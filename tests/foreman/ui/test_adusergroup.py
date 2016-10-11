@@ -155,9 +155,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         location_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
-            self.role.update(
+            self.role.add_permission(
                 foreman_role,
-                add_permission=True,
                 permission_list=PERMISSIONS['Location'],
                 resource_type='Location',
             )
@@ -210,9 +209,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=katello_role)
-            self.role.update(
+            self.role.add_permission(
                 katello_role,
-                add_permission=True,
                 permission_list=PERMISSIONS['Organization'],
                 resource_type='Organization',
             )
@@ -381,9 +379,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
-            self.role.update(
+            self.role.add_permission(
                 foreman_role,
-                add_permission=True,
                 permission_list=PERMISSIONS['Location'],
                 resource_type='Location',
             )
@@ -411,9 +408,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.assertIsNotNone(self.location.search(loc_name))
         with Session(self.browser) as session:
             make_role(session, name=katello_role)
-            self.role.update(
+            self.role.add_permission(
                 katello_role,
-                add_permission=True,
                 permission_list=PERMISSIONS['Organization'],
                 resource_type='Organization',
             )
@@ -460,9 +456,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         foreman_role = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
-            self.role.update(
+            self.role.add_permission(
                 foreman_role,
-                add_permission=True,
                 permission_list=PERMISSIONS['Location'],
                 resource_type='Location',
             )
@@ -535,9 +530,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
-            self.role.update(
+            self.role.add_permission(
                 foreman_role,
-                add_permission=True,
                 permission_list=PERMISSIONS['Location'],
                 resource_type='Location',
             )
@@ -565,9 +559,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.assertIsNotNone(self.location.search(loc_name))
         with Session(self.browser) as session:
             make_role(session, name=katello_role)
-            self.role.update(
+            self.role.add_permission(
                 katello_role,
-                add_permission=True,
                 permission_list=PERMISSIONS['Organization'],
                 resource_type='Organization',
             )

@@ -21,8 +21,8 @@ from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_role
-from robottelo.ui.locators import common_locators
+from robottelo.ui.factory import make_domain, make_role, make_user, set_context
+from robottelo.ui.locators import common_locators, menu_locators
 from robottelo.ui.session import Session
 
 
@@ -102,39 +102,25 @@ class RoleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_role(session, name=name)
             self.assertIsNotNone(self.role.search(name))
-            self.role.update(
+            self.role.add_permission(
                 name,
-                add_permission=True,
                 resource_type='Architecture',
                 permission_list=['view_architectures', 'create_architectures'],
-            )
-
-    @tier1
-    def test_positive_update_org(self):
-        """Update organization for selected role
-
-        @id: 593dfca9-18dc-46cf-a7b1-b32edad3550c
-
-        @Assert: Role is updated
-        """
-        name = gen_string('alpha')
-        org = entities.Organization().create()
-        with Session(self.browser) as session:
-            make_role(session, name=name)
-            self.assertIsNotNone(self.role.search(name))
-            self.role.update(
-                name,
-                add_permission=True,
-                resource_type='Activation Keys',
-                permission_list=['view_activation_keys'],
-                organization=[org.name],
             )
 
 
 class CannedRoleTestCases(UITestCase):
     """Implements Canned Roles tests from UI"""
 
-    @stubbed
+    @classmethod
+    def setUpClass(cls):
+        """Create Organization and Location to be used in tests"""
+        super(CannedRoleTestCases, cls).setUpClass()
+        cls.role_org = entities.Organization().create().name
+        cls.role_loc = entities.Location().create().name
+        cls.filter_org = entities.Organization().create().name
+        cls.filter_loc = entities.Location().create().name
+
     @tier1
     def test_positive_create_role_with_taxonomies(self):
         """create role with taxonomies
@@ -144,25 +130,17 @@ class CannedRoleTestCases(UITestCase):
         @steps: Create new role with taxonomies
 
         @assert: New role is created with taxonomies
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_role(
+                session,
+                name=name,
+                locations=[self.role_loc],
+                organizations=[self.role_org],
+            )
+            self.assertIsNotNone(self.role.search(name))
 
-    @stubbed
-    @tier1
-    def test_positive_create_role_without_taxonomies(self):
-        """Create role without taxonomies
-
-        @id: 4fab51f1-2809-4163-9050-7ad534b5d9af
-
-        @steps: Create new role without any taxonomies
-
-        @assert: New role is created without taxonomies
-
-        @caseautomation: notautomated
-        """
-
-    @stubbed
     @tier1
     def test_positive_create_filter_without_override(self):
         """Create filter in role w/o overriding it
@@ -173,17 +151,56 @@ class CannedRoleTestCases(UITestCase):
 
         1. Create a role with taxonomies assigned
         2. Create filter in role without overriding it
+        3. Create user and assign new role to it
+        4. Re-login into application using new user with a role
 
         @assert:
 
         1. Filter w/o override is created in role
         2. The taxonomies of role are inherited to filter
         3. Override check is not marked by default in filters table
-
-        @caseautomation: notautomated
+        4. User can access application sections specified in a filter only
         """
+        name = gen_string('alpha')
+        username = gen_string('alpha')
+        password = gen_string('alpha')
+        domain_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_role(
+                session,
+                name=name,
+                locations=[self.role_loc],
+                organizations=[self.role_org],
+            )
+            self.assertIsNotNone(self.role.search(name))
+            self.role.add_permission(
+                name,
+                resource_type='Domain',
+                permission_list=['view_domains', 'create_domains'],
+                override_check=True,
+            )
+            self.assertTrue(self.role.wait_until_element(
+                common_locators['alert.success']))
+            make_user(
+                session,
+                username=username,
+                password1=password,
+                password2=password,
+                roles=[name],
+                locations=[self.role_loc],
+                organizations=[self.role_org],
+                edit=True
+            )
+        with Session(self.browser, username, password) as session:
+            set_context(session, org=self.role_org)
+            set_context(session, loc=self.role_loc)
+            make_domain(session, name=domain_name)
+            self.assertIsNotNone(self.domain.search(domain_name))
+            self.assertIsNone(session.nav.wait_until_element(
+                menu_locators['menu.content'], timeout=3))
+            self.assertIsNone(session.nav.wait_until_element(
+                menu_locators['menu.configure'], timeout=3))
 
-    @stubbed
     @tier1
     def test_positive_create_non_overridable_filter(self):
         """Create non overridden filter in role
@@ -199,12 +216,46 @@ class CannedRoleTestCases(UITestCase):
 
         1. Filter is created without taxonomies
         2. Override checkbox is not available to check.
-        3. Filter doesnt inherits taxonomies from role
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        username = gen_string('alpha')
+        password = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_role(
+                session,
+                name=name,
+                locations=[self.role_loc],
+                organizations=[self.role_org],
+            )
+            self.assertIsNotNone(self.role.search(name))
+            self.role.add_permission(
+                name,
+                resource_type='Architecture',
+                permission_list=['view_architectures', 'edit_architectures'],
+                override_check=False,
+            )
+            self.assertTrue(self.role.wait_until_element(
+                common_locators['alert.success']))
+            make_user(
+                session,
+                username=username,
+                password1=password,
+                password2=password,
+                roles=[name],
+                locations=[self.role_loc],
+                organizations=[self.role_org],
+                edit=True
+            )
+        with Session(self.browser, username, password) as session:
+            set_context(session, org=self.role_org)
+            set_context(session, loc=self.role_loc)
+            self.assertIsNone(session.nav.wait_until_element(
+                menu_locators['menu.content'], timeout=3))
+            self.assertIsNone(session.nav.wait_until_element(
+                menu_locators['menu.infrastructure'], timeout=3))
+            # check that we can access edit functionality at all
+            self.architecture.update(old_name='x86_64', new_name='x86_64')
 
-    @stubbed
     @tier1
     def test_positive_create_overridable_filter(self):
         """Create overridden filter in role
@@ -222,9 +273,54 @@ class CannedRoleTestCases(UITestCase):
         1. Filter is created with taxonomies
         2. Override check is marked in filters table
         3. Filter doesnt inherits taxonomies from role
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        username = gen_string('alpha')
+        password = gen_string('alpha')
+        domain_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_role(
+                session,
+                name=name,
+                locations=[self.role_loc],
+                organizations=[self.role_org],
+            )
+            self.assertIsNotNone(self.role.search(name))
+            self.role.add_permission(
+                name,
+                resource_type='Domain',
+                permission_list=['view_domains', 'create_domains'],
+                override=True,
+                override_check=True,
+                organization=[self.filter_org],
+                location=[self.filter_loc],
+            )
+            make_user(
+                session,
+                username=username,
+                password1=password,
+                password2=password,
+                roles=[name],
+                locations=[self.role_loc, self.filter_loc],
+                organizations=[self.role_org, self.filter_org],
+                edit=True
+            )
+        with Session(self.browser, username, password) as session:
+            set_context(session, org=self.filter_org)
+            set_context(session, loc=self.filter_loc)
+            make_domain(session, name=domain_name)
+            self.assertIsNotNone(self.domain.search(domain_name))
+            self.assertIsNone(session.nav.wait_until_element(
+                menu_locators['menu.content'], timeout=3))
+            self.assertIsNone(session.nav.wait_until_element(
+                menu_locators['menu.configure'], timeout=3))
+
+        with Session(self.browser, username, password) as session:
+            set_context(session, org=self.role_org)
+            set_context(session, loc=self.role_loc)
+            self.assertIsNone(self.domain.search(domain_name))
+            self.assertIsNone(session.nav.wait_until_element(
+                menu_locators['menu.hosts'], timeout=3))
 
     @stubbed
     @tier1

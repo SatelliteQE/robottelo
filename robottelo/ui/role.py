@@ -17,17 +17,20 @@ class Role(Base):
         """Specify locator for Role entity search procedure"""
         return locators['roles.role']
 
-    def create(self, name):
+    def _configure_taxonomies(self, locations=None, organizations=None):
+        """Associate role with organization or location"""
+        if locations:
+            self.configure_entity(locations, FILTER['role_loc'])
+        if organizations:
+            self.configure_entity(organizations, FILTER['role_org'])
+
+    def create(self, name, locations=None, organizations=None):
         """Creates new Role with default permissions."""
         self.click(locators['roles.new'])
-
-        if self.wait_until_element(locators['roles.name']):
-            self.find_element(locators['roles.name']).send_keys(name)
-            self.click(common_locators['submit'])
-        else:
-            raise UIError(
-                'Could not create new role "{0}"'.format(name)
-            )
+        self.assign_value(locators['roles.name'], name)
+        if locations or organizations:
+            self._configure_taxonomies(locations, organizations)
+        self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
         """Delete existing role."""
@@ -38,28 +41,47 @@ class Role(Base):
             locators['roles.dropdown'],
         )
 
-    def update(self, name, new_name=None, add_permission=False,
-               resource_type=None, permission_list=None, organization=None):
-        """Update role name/permissions/org."""
-        element = self.search(name)
-
-        if element is None:
-            raise UIError('Could not find role "{0}"'.format(name))
+    def update(self, name, new_name=None, locations=None, organizations=None):
+        """Update role name/location/organization."""
+        self.click(self.search(name))
         if new_name:
-            element.click()
-            if self.wait_until_element(locators['roles.name']):
-                self.field_update('roles.name', new_name)
-        if add_permission:
-            strategy, value = locators['roles.dropdown']
-            self.click((strategy, value % name))
-            self.click(locators['roles.add_permission'])
-            if resource_type:
-                self.select(
-                    locators['roles.select_resource_type'], resource_type)
-                if permission_list:
-                    self.configure_entity(
-                        permission_list, FILTER['role_permission'])
-            if organization:
-                self.click(tab_locators['roles.tab_org'])
-                self.configure_entity(organization, FILTER['role_org'])
+            self.assign_value(locators['roles.name'], new_name)
+        if locations or organizations:
+            self._configure_taxonomies(locations, organizations)
+        self.click(common_locators['submit'])
+
+    def add_permission(self, role_name, resource_type=None,
+                       permission_list=None, override=None,
+                       override_check=None, unlimited=None,
+                       organization=None, location=None):
+        """Add new permission to Role Filter"""
+        self.search(role_name)
+        self.click(locators['roles.dropdown'] % role_name)
+        self.click(locators['roles.add_permission'])
+        if resource_type:
+            self.assign_value(
+                locators['roles.select_resource_type'], resource_type)
+        if permission_list:
+            self.configure_entity(
+                permission_list, FILTER['filter_permission'])
+        # Verify whether 'Override' checkbox is present on the page or not.
+        # Putting it here as we can do it only during create procedure, not
+        # after
+        if override_check is True:
+            if self.wait_until_element(
+                    locators['roles.override']).is_selected():
+                raise UIError('Override checkbox has unexpected state')
+        # For non-overridable filters, checkbox should be absent at all
+        elif override_check is False:
+            self.wait_until_element_is_not_visible(locators['roles.override'])
+        if override:
+            self.assign_value(locators['roles.override'], override)
+        if unlimited:
+            self.assign_value(locators['roles.unlimited'], unlimited)
+        if organization:
+            self.click(tab_locators['roles.tab_org'])
+            self.configure_entity(organization, FILTER['filter_org'])
+        if location:
+            self.click(tab_locators['roles.tab_location'])
+            self.configure_entity(location, FILTER['filter_loc'])
         self.click(common_locators['submit'])

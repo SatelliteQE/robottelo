@@ -594,10 +594,13 @@ def make_hw_model(session, org=None, loc=None,  force_context=True, **kwargs):
     HardwareModel(session.browser).create(**create_args)
 
 
-def make_role(session, org=None, loc=None,  force_context=True, **kwargs):
+def make_role(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates new role"""
-
-    create_args = {u'name': None}
+    create_args = {
+        u'name': gen_string('alpha'),
+        u'locations': None,
+        u'organizations': None,
+    }
     page = session.nav.go_to_roles
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
