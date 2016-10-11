@@ -15,7 +15,6 @@
 @Upstream: No
 """
 
-from contextlib import nested
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import enable_rhrepo_and_fetchid
@@ -46,6 +45,7 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier2,
@@ -260,10 +260,8 @@ class ErrataTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with nested(
-                VirtualMachine(distro=DISTRO_RHEL7),
-                VirtualMachine(distro=DISTRO_RHEL7)
-        ) as (client1, client2):
+        with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
+                distro=DISTRO_RHEL7) as client2:
             clients = [client1, client2]
             for client in clients:
                 client.install_katello_ca()
@@ -407,7 +405,7 @@ class ErrataTestCase(UITestCase):
                 only_applicable=False,
             )
 
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1383729)
     @tier3
     def test_positive_filter(self):
         """Filter Content hosts by environment
@@ -423,10 +421,72 @@ class ErrataTestCase(UITestCase):
 
         @Assert: Content hosts can be filtered by Environment.
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
+                distro=DISTRO_RHEL7) as client2:
+            for client in client1, client2:
+                client.install_katello_ca()
+                result = client.register_contenthost(
+                    self.session_org.label,
+                    self.activation_key.name,
+                )
+                self.assertEqual(result.return_code, 0)
+                client.enable_repo(REPOS['rhst7']['id'])
+                client.install_katello_agent()
+                client.run(
+                    'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            last_env_id = max(
+                lce.id
+                for lce
+                in entities.LifecycleEnvironment(
+                    organization=self.session_org).search()
+            )
+            new_env = entities.LifecycleEnvironment(
+                organization=self.session_org,
+                prior=last_env_id,
+            ).create()
+            cvv = ContentView.info({
+                'id': self.content_view.id})['versions'][-1]
+            ContentView.version_promote({
+                'id': cvv['id'],
+                'organization-id': self.session_org.id,
+                'to-lifecycle-environment-id': new_env.id,
+            })
+            Host.update({
+                'name': client1.hostname,
+                'lifecycle-environment-id': new_env.id,
+                'organization-id': self.session_org.id,
+            })
+            with Session(self.browser):
+                self.assertIsNotNone(
+                    self.errata.contenthost_search(
+                        CUSTOM_REPO_ERRATA_ID,
+                        client1.hostname,
+                        environment=new_env.name,
+                    )
+                )
+                self.assertIsNone(
+                    self.errata.contenthost_search(
+                        CUSTOM_REPO_ERRATA_ID,
+                        client2.hostname,
+                        environment=new_env.name,
+                    )
+                )
+                self.assertIsNotNone(
+                    self.errata.contenthost_search(
+                        CUSTOM_REPO_ERRATA_ID,
+                        client2.hostname,
+                        environment=self.env.name,
+                    )
+                )
+                self.assertIsNone(
+                    self.errata.contenthost_search(
+                        CUSTOM_REPO_ERRATA_ID,
+                        client1.hostname,
+                        environment=self.env.name,
+                    )
+                )
 
     @tier2
     def test_positive_search_autocomplete(self):
