@@ -158,13 +158,13 @@ class ErrataTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
-            self.assertIsNone(self.errata.search(FAKE_3_ERRATA_ID))
-            self.assertIsNotNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
+            self.assertIsNone(self.errata.get_entity(FAKE_3_ERRATA_ID))
+            self.assertIsNotNone(self.errata.get_entity(CUSTOM_REPO_ERRATA_ID))
             session.nav.go_to_select_org(org.name)
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
-            self.assertIsNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
-            self.assertIsNotNone(self.errata.search(FAKE_3_ERRATA_ID))
+            self.assertIsNone(self.errata.get_entity(CUSTOM_REPO_ERRATA_ID))
+            self.assertIsNotNone(self.errata.get_entity(FAKE_3_ERRATA_ID))
 
     @tier2
     def test_positive_list_permission(self):
@@ -205,8 +205,8 @@ class ErrataTestCase(UITestCase):
         with Session(self.browser, user.login, user_password) as session:
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
-            self.assertIsNotNone(self.errata.search(REAL_0_ERRATA_ID))
-            self.assertIsNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
+            self.assertIsNotNone(self.errata.get_entity(REAL_0_ERRATA_ID))
+            self.assertIsNone(self.errata.get_entity(CUSTOM_REPO_ERRATA_ID))
 
     @tier3
     def test_positive_apply_for_host(self):

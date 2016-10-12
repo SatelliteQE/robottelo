@@ -51,7 +51,7 @@ class Medium(Base):
 
     def update(self, old_name, new_name=None, new_path=None, os_family=None):
         """Update installation media name, media path and OS family."""
-        element = self.search(old_name)
+        element = self.get_entity(old_name)
         self.click(element)
         if self.wait_until_element(locators['medium.name']):
             self.field_update('medium.name', new_name)

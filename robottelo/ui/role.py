@@ -41,7 +41,7 @@ class Role(Base):
     def update(self, name, new_name=None, add_permission=False,
                resource_type=None, permission_list=None, organization=None):
         """Update role name/permissions/org."""
-        element = self.search(name)
+        element = self.get_entity(name)
 
         if element is None:
             raise UIError('Could not find role "{0}"'.format(name))

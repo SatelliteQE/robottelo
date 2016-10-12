@@ -44,11 +44,11 @@ class DiscoveryTestCase(UITestCase):
         Introduced a delay of 300secs by polling every 10 secs to see if
         unknown host gets discovered and become visible on UI
         """
-        discovered_host = self.discoveredhosts.search(hostname)
+        discovered_host = self.discoveredhosts.get_entity(hostname)
         for _ in range(30):
             if discovered_host is None:
                 sleep(10)
-                discovered_host = self.discoveredhosts.search(hostname)
+                discovered_host = self.discoveredhosts.get_entity(hostname)
             else:
                 break
 
@@ -145,7 +145,7 @@ class DiscoveryTestCase(UITestCase):
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
                 self._assertdiscoveredhost(hostname)
-                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+                self.assertIsNotNone(self.discoveredhosts.get_entity(hostname))
 
     @run_only_on('sat')
     @tier3
@@ -169,7 +169,7 @@ class DiscoveryTestCase(UITestCase):
             with LibvirtGuest(boot_iso=True) as pxe_less_host:
                 hostname = pxe_less_host.guest_name
                 self._assertdiscoveredhost(hostname)
-                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+                self.assertIsNotNone(self.discoveredhosts.get_entity(hostname))
 
     @run_only_on('sat')
     @stubbed()
@@ -479,7 +479,7 @@ class DiscoveryTestCase(UITestCase):
                 hostname = pxe_host.guest_name
                 self._assertdiscoveredhost(hostname)
                 self.discoveredhosts.delete_from_facts(hostname)
-                self.assertIsNone(self.discoveredhosts.search(hostname))
+                self.assertIsNone(self.discoveredhosts.get_entity(hostname))
 
     @run_only_on('sat')
     @tier3
@@ -505,7 +505,7 @@ class DiscoveryTestCase(UITestCase):
                     host_2_name = pxe_2_host.guest_name
                     self._assertdiscoveredhost(host_2_name)
                     for hostname in [host_1_name, host_2_name]:
-                        host = self.discoveredhosts.search(hostname)
+                        host = self.discoveredhosts.get_entity(hostname)
                         if not host:
                             raise UIError(
                                 'Could not find the selected discovered host '
@@ -516,7 +516,7 @@ class DiscoveryTestCase(UITestCase):
                         self.discoveredhosts.multi_delete()
                         for hostname in [host_1_name, host_2_name]:
                             self.assertIsNone(
-                                self.discoveredhosts.search(hostname))
+                                self.discoveredhosts.get_entity(hostname))
 
     @run_only_on('sat')
     @tier3
@@ -540,7 +540,7 @@ class DiscoveryTestCase(UITestCase):
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
                 self._assertdiscoveredhost(hostname)
-                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+                self.assertIsNotNone(self.discoveredhosts.get_entity(hostname))
                 # To add a new network interface on discovered host
                 pxe_host.attach_nic()
                 # To refresh the facts of discovered host,

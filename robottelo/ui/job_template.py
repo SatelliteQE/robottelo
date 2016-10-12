@@ -78,7 +78,7 @@ class JobTemplate(Base):
                effective_user_value=None, current_user=None, overridable=None,
                snippet=None):
         """Updates a job template from UI."""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['tab_primary'])
         if new_name:
             self.assign_value(locators['job.template_name'], new_name)
@@ -107,7 +107,7 @@ class JobTemplate(Base):
         input' type is supported, but method can be expanded to support all
         types
         """
-        self.click(self.search(job_template_name))
+        self.click(self.get_entity(job_template_name))
         self.click(tab_locators['job.tab_job'])
         self.click(locators['job.add_new_input'])
         self.assign_value(locators['job.input_name'], name)
@@ -134,7 +134,7 @@ class JobTemplate(Base):
     def clone(
             self, name, clone_name, template_content=None, template_type=None):
         """Clones a given job template."""
-        self.search(name)
+        self.get_entity(name)
         strategy, value = locators['job.template_dropdown']
         self.click((strategy, value % name))
         self.click(locators['job.template_clone'])

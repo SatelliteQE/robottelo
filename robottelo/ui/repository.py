@@ -49,7 +49,7 @@ class Repos(Base):
                new_repo_checksum=None, new_gpg_key=None, http=False,
                new_upstream_name=None, download_policy=None):
         """Updates repositories from UI."""
-        repo_element = self.search(name)
+        repo_element = self.get_entity(name)
         if repo_element is None:
             raise UIError(
                 u'Unable to find the repository "{0}" for update.'.format(name)
@@ -97,7 +97,7 @@ class Repos(Base):
             locators['repo.remove'],
         )
 
-    def search(self, element_name):
+    def get_entity(self, element_name):
         """Uses the search box to locate an element from a list of elements.
         Repository entity is located inside of Product entity and has another
         appearance, so it is necessary to use custom search there.
@@ -143,7 +143,7 @@ class Repos(Base):
 
     def validate_field(self, name, field_name, expected_field_value):
         """Check that repository field has expected value"""
-        repo_element = self.search(name)
+        repo_element = self.get_entity(name)
         if repo_element is None:
             raise UIError(
                 u'Unable to find the repo "{0}" for validation.'.format(name)

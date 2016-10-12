@@ -85,7 +85,7 @@ class GPGKey(UITestCase):
                         org=self.organization.name,
                         upload_key=True,
                     )
-                    self.assertIsNotNone(self.gpgkey.search(name))
+                    self.assertIsNotNone(self.gpgkey.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -106,7 +106,7 @@ class GPGKey(UITestCase):
                         name=name,
                         org=self.organization.name,
                     )
-                    self.assertIsNotNone(self.gpgkey.search(name))
+                    self.assertIsNotNone(self.gpgkey.get_entity(name))
 
     # Negative Create
 
@@ -129,7 +129,7 @@ class GPGKey(UITestCase):
         }
         with Session(self.browser) as session:
             make_gpgkey(session, **kwargs)
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             make_gpgkey(session, **kwargs)
             self.assertIsNotNone(
                 self.gpgkey.wait_until_element(common_locators['alert.error'])
@@ -153,7 +153,7 @@ class GPGKey(UITestCase):
         }
         with Session(self.browser) as session:
             make_gpgkey(session, **kwargs)
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             make_gpgkey(session, **kwargs)
             self.assertIsNotNone(
                 self.gpgkey.wait_until_element(common_locators['alert.error'])
@@ -172,7 +172,7 @@ class GPGKey(UITestCase):
         with Session(self.browser) as session:
             with self.assertRaises(UIError):
                 make_gpgkey(session, name=name, org=self.organization.name)
-            self.assertIsNone(self.gpgkey.search(name))
+            self.assertIsNone(self.gpgkey.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -198,7 +198,7 @@ class GPGKey(UITestCase):
                         self.gpgkey.wait_until_element(
                             common_locators['alert.error'])
                     )
-                    self.assertIsNone(self.gpgkey.search(name))
+                    self.assertIsNone(self.gpgkey.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -223,7 +223,7 @@ class GPGKey(UITestCase):
                         self.gpgkey.wait_until_element(
                             common_locators['alert.error'])
                     )
-                    self.assertIsNone(self.gpgkey.search(name))
+                    self.assertIsNone(self.gpgkey.get_entity(name))
 
     # Positive Delete
 
@@ -247,7 +247,7 @@ class GPGKey(UITestCase):
                         org=self.organization.name,
                         upload_key=True,
                     )
-                    self.assertIsNotNone(self.gpgkey.search(name))
+                    self.assertIsNotNone(self.gpgkey.get_entity(name))
                     self.gpgkey.delete(name)
 
     @run_only_on('sat')
@@ -269,7 +269,7 @@ class GPGKey(UITestCase):
                         name=name,
                         org=self.organization.name,
                     )
-                    self.assertIsNotNone(self.gpgkey.search(name))
+                    self.assertIsNotNone(self.gpgkey.get_entity(name))
                     self.gpgkey.delete(name)
 
     # Positive Update
@@ -294,7 +294,7 @@ class GPGKey(UITestCase):
                 org=self.organization.name,
                 upload_key=True,
             )
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             self.gpgkey.update(name, new_name)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
                 common_locators['alert.success_sub_form']
@@ -320,7 +320,7 @@ class GPGKey(UITestCase):
                 org=self.organization.name,
                 upload_key=True,
             )
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             self.gpgkey.update(name, new_key=new_key_path)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
                 common_locators['alert.success_sub_form']
@@ -345,7 +345,7 @@ class GPGKey(UITestCase):
                 name=name,
                 org=self.organization.name,
             )
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             self.gpgkey.update(name, new_name)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
                 common_locators['alert.success_sub_form']
@@ -370,7 +370,7 @@ class GPGKey(UITestCase):
                 name=name,
                 org=self.organization.name,
             )
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             self.gpgkey.update(name, new_key=new_key_path)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
                 common_locators['alert.success_sub_form']
@@ -397,14 +397,14 @@ class GPGKey(UITestCase):
                 org=self.organization.name,
                 upload_key=True,
             )
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.gpgkey.update(name, new_name)
                     self.assertIsNotNone(self.gpgkey.wait_until_element(
                         common_locators['alert.error_sub_form']
                     ))
-                    self.assertIsNone(self.gpgkey.search(new_name))
+                    self.assertIsNone(self.gpgkey.get_entity(new_name))
 
     @run_only_on('sat')
     @tier3
@@ -749,7 +749,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 name=name,
                 org=self.organization.name,
             )
-            self.assertIsNotNone(self.gpgkey.search(name))
+            self.assertIsNotNone(self.gpgkey.get_entity(name))
             session.nav.go_to_products()
             self.repository.discover_repo(
                 REPO_DISCOVERY_URL,
@@ -1223,7 +1223,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             )
             self.gpgkey.delete(name)
             # Assert GPGKey isn't associated with product
-            prd_element = self.products.search(product.name)
+            prd_element = self.products.get_entity(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
@@ -1267,7 +1267,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 )
             self.gpgkey.delete(name)
             # Assert GPGKey isn't associated with product
-            prd_element = self.products.search(product.name)
+            prd_element = self.products.get_entity(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
@@ -1318,7 +1318,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 )
             self.gpgkey.delete(name)
             # Assert GPGKey isn't associated with product
-            prd_element = self.products.search(product.name)
+            prd_element = self.products.get_entity(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
@@ -1362,7 +1362,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                     self.gpgkey.assert_product_repo(name, product=product_)
                 )
             self.gpgkey.delete(name)
-            prd_element = self.products.search(product_name)
+            prd_element = self.products.get_entity(product_name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
@@ -1411,7 +1411,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             )
             self.gpgkey.delete(name)
             # Assert that after deletion GPGKey is not associated with product
-            prd_element = self.products.search(product.name)
+            prd_element = self.products.get_entity(product.name)
             self.assertIsNone(self.gpgkey.assert_key_from_product(
                 name, prd_element, repo.name))
 
@@ -1468,7 +1468,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             self.gpgkey.delete(name)
             # Assert key shouldn't be associated with product or repository
             # after deletion
-            prd_element = self.products.search(product.name)
+            prd_element = self.products.get_entity(product.name)
             self.assertIsNone(self.gpgkey.assert_key_from_product(
                 name, prd_element, repo1.name))
 

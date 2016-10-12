@@ -43,7 +43,7 @@ class ComputeProfileTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     make_compute_profile(session, name=name)
-                    self.assertIsNotNone(self.compute_profile.search(name))
+                    self.assertIsNotNone(self.compute_profile.get_entity(name))
 
     @tier1
     def test_negative_create(self):
@@ -71,11 +71,12 @@ class ComputeProfileTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_compute_profile(session, name=name)
-            self.assertIsNotNone(self.compute_profile.search(name))
+            self.assertIsNotNone(self.compute_profile.get_entity(name))
             for new_name in generate_strings_list(length=7):
                 with self.subTest(new_name):
                     self.compute_profile.update(name, new_name)
-                    self.assertIsNotNone(self.compute_profile.search(new_name))
+                    self.assertIsNotNone(
+                        self.compute_profile.get_entity(new_name))
                     name = new_name
 
     @tier1
@@ -89,7 +90,7 @@ class ComputeProfileTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_compute_profile(session, name=name)
-            self.assertIsNotNone(self.compute_profile.search(name))
+            self.assertIsNotNone(self.compute_profile.get_entity(name))
             for new_name in invalid_values_list('ui'):
                 with self.subTest(new_name):
                     self.compute_profile.update(name, new_name)

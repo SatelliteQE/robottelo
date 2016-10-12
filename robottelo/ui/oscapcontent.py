@@ -38,7 +38,7 @@ class OpenScapContent(Base):
 
     def update(self, name, new_name=None, content_org=None, content_loc=None):
         """Updates existing oscap content from UI"""
-        element = self.search(name)
+        element = self.get_entity(name)
         if not element:
             raise UIError(u'Could not find oscap content {0}'.format(name))
         strategy, value = locators['oscap.content_edit']

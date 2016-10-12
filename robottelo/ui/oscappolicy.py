@@ -58,7 +58,7 @@ class OpenScapPolicy(Base):
                period=None, period_value=None, org=None, loc=None,
                host_group=None):
         """Updates existing Oscap Policy from UI"""
-        element = self.search(name)
+        element = self.get_entity(name)
         if not element:
             raise UIError('Could not find oscap policy {0}'.format(name))
         strategy, value = locators['oscap.dropdown_policy']

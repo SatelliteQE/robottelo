@@ -50,7 +50,7 @@ class GPGKey(Base):
 
     def update(self, name, new_name=None, new_key=None):
         """Updates an existing GPG key."""
-        element = self.search(name)
+        element = self.get_entity(name)
         self.click(element)
         if new_name:
             self.edit_entity(
@@ -71,7 +71,7 @@ class GPGKey(Base):
         Here product is a boolean variable when product = True; validation
         assert product tab otherwise assert repo tab.
         """
-        element = self.search(key_name)
+        element = self.get_entity(key_name)
         self.click(element)
         if product:
             self.click(tab_locators['gpgkey.tab_products'])

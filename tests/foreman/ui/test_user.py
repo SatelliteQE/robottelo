@@ -93,7 +93,9 @@ class UserTestCase(UITestCase):
             for user_name in valid_strings():
                 with self.subTest(user_name):
                     make_user(session, username=user_name)
-                    self.assertIsNotNone(self.user.search(user_name))
+                    self.assertIsNotNone(
+                        self.user.get_entity(user_name)
+                    )
 
     @tier1
     def test_positive_create_with_first_name(self):
@@ -179,7 +181,8 @@ class UserTestCase(UITestCase):
                         password1=password,
                         password2=password,
                     )
-                    self.assertIsNotNone(self.user.search(name))
+                    self.assertIsNotNone(
+                        self.user.get_entity(name))
 
     @tier1
     def test_positive_create_admin(self):
@@ -192,7 +195,8 @@ class UserTestCase(UITestCase):
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=user_name, admin=True)
-            self.assertIsNotNone(self.user.search(user_name))
+            self.assertIsNotNone(
+                self.user.get_entity(user_name))
 
     @tier1
     def test_positive_create_with_one_role(self):
@@ -207,7 +211,7 @@ class UserTestCase(UITestCase):
         role = entities.Role().create()
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role.name], edit=True)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_roles'])
             element = self.user.wait_until_element(
                 (strategy, value % role.name))
@@ -231,7 +235,7 @@ class UserTestCase(UITestCase):
             entities.Role(name=role).create()
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role1, role2], edit=True)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in [role1, role2]:
                 element = self.user.wait_until_element(
@@ -252,7 +256,7 @@ class UserTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name, roles=ROLES, edit=True)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in ROLES:
                 self.assertIsNotNone(self.user.wait_until_element(
@@ -273,7 +277,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(
                 session, username=name, organizations=[org_name], edit=True)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element(
                 (strategy, value % org_name))
@@ -303,7 +307,7 @@ class UserTestCase(UITestCase):
                 organizations=[org_name1, org_name2],
                 edit=True,
             )
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_organizations'])
             for org_name in [org_name1, org_name2, DEFAULT_ORG]:
                 element = self.user.wait_until_element(
@@ -325,7 +329,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True, default_org=org_name)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_organizations'])
             element = session.nav.wait_until_element(
                 (strategy, value % org_name))
@@ -349,7 +353,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name, locations=[loc_name],
                       edit=True, default_loc=loc_name)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_locations'])
             element = session.nav.wait_until_element(
                 (strategy, value % loc_name))
@@ -376,7 +380,7 @@ class UserTestCase(UITestCase):
                 email=u'{0}@example.com'.format(gen_string('numeric')),
                 submit=False,
             )
-            self.assertIsNone(self.user.search(user_name))
+            self.assertIsNone(self.user.get_entity(user_name))
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -507,7 +511,7 @@ class UserTestCase(UITestCase):
                 with Session(self.browser):
                     self.user.update(name, new_username)
                     self.assertIsNotNone(
-                        self.user.search(new_username))
+                        self.user.get_entity(new_username))
                     self.login.logout()
                     self.login.login(new_username, password)
                     self.assertTrue(self.login.is_logged())
@@ -610,7 +614,8 @@ class UserTestCase(UITestCase):
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=user_name, admin=True)
-            self.assertIsNotNone(self.user.search(user_name))
+            self.assertIsNotNone(
+                self.user.get_entity(user_name))
             self.assertFalse(
                 self.user.user_admin_role_toggle(user_name, False))
 
@@ -625,7 +630,8 @@ class UserTestCase(UITestCase):
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=user_name, admin=False)
-            self.assertIsNotNone(self.user.search(user_name))
+            self.assertIsNotNone(
+                self.user.get_entity(user_name))
             self.assertTrue(self.user.user_admin_role_toggle(user_name, True))
 
     @tier1
@@ -641,12 +647,12 @@ class UserTestCase(UITestCase):
         role_name = entities.Role().create().name
         with Session(self.browser) as session:
             make_user(session, username=name)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_roles'])
             self.assertIsNone(
                 self.user.wait_until_element((strategy, value % role_name)))
             self.user.update(name, new_roles=[role_name])
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_roles'])
             self.assertIsNotNone(
                 self.user.wait_until_element((strategy, value % role_name)))
@@ -670,7 +676,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=role_names)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in role_names:
                 self.assertIsNotNone(
@@ -691,7 +697,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=ROLES)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in ROLES:
                 self.assertIsNotNone(
@@ -712,7 +718,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_organizations=[org_name])
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element(
                 (strategy, value % org_name))
@@ -737,7 +743,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_organizations=org_names)
-            self.user.click(self.user.search(name))
+            self.user.click(self.user.get_entity(name))
             self.user.click(tab_locators['users.tab_organizations'])
             for org in org_names:
                 self.assertIsNotNone(
@@ -879,8 +885,10 @@ class UserTestCase(UITestCase):
                 last_name=new_last_name,
                 submit=False,
             )
-            self.assertIsNotNone(self.user.search(username))
-            self.assertIsNone(self.user.search(new_username))
+            self.assertIsNotNone(
+                self.user.get_entity(username))
+            self.assertIsNone(
+                self.user.get_entity(new_username))
 
     @tier1
     def test_positive_delete_user(self):
@@ -907,7 +915,8 @@ class UserTestCase(UITestCase):
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=user_name, admin=True)
-            self.assertIsNotNone(self.user.search(user_name))
+            self.assertIsNotNone(
+                self.user.get_entity(user_name))
             self.user.delete(user_name)
 
     @tier1
@@ -921,7 +930,8 @@ class UserTestCase(UITestCase):
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=user_name)
-            self.assertIsNotNone(self.user.search(user_name))
+            self.assertIsNotNone(
+                self.user.get_entity(user_name))
             self.user.delete(user_name, really=False)
 
     @stubbed()
@@ -1166,4 +1176,5 @@ class ActiveDirectoryUserTestCase(UITestCase):
                 password1='',
                 password2='',
             )
-            self.assertIsNotNone(self.user.search(user_name))
+            self.assertIsNotNone(
+                self.user.get_entity(user_name))

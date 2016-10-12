@@ -117,7 +117,7 @@ class Location(Base):
                new_ptables=None, new_domains=None, new_envs=None,
                new_hostgroups=None, select=False):
         """Update Location in UI."""
-        org_object = self.search(loc_name)
+        org_object = self.get_entity(loc_name)
         self.click(org_object)
         if new_name:
             if self.wait_until_element(locators['location.name']):

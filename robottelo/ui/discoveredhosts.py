@@ -28,7 +28,7 @@ class DiscoveredHosts(Base):
 
     def delete_from_facts(self, hostname, really=True):
         """Delete existing discovered host from facts page"""
-        host = self.search(hostname)
+        host = self.get_entity(hostname)
         if not host:
             raise UIError(
                 'Could not find the selected discovered host "{0}"'
@@ -68,7 +68,7 @@ class DiscoveredHosts(Base):
 
     def refresh_facts(self, hostname):
         """Refresh the facts of discovered host"""
-        host = self.search(hostname)
+        host = self.get_entity(hostname)
         if not host:
             raise UIError(
                 'Could not find the selected discovered host "{0}"'
@@ -81,7 +81,7 @@ class DiscoveredHosts(Base):
 
     def fetch_fact_value(self, hostname, element):
         """Fetch the value of selected fact from discovered hosts page"""
-        host = self.search(hostname)
+        host = self.get_entity(hostname)
         if not host:
             raise UIError(
                 'Could not find the selected discovered host "{0}"'

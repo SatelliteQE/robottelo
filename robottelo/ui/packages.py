@@ -32,7 +32,7 @@ class Package(Base):
             ]
 
         """
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         for parameter_name, parameter_value in parameter_list:
             param_locator = '.'.join((
                 'package',

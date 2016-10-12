@@ -126,13 +126,13 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(prod.name).click()
+                    self.products.get_entity(prod.name).click()
                     make_repository(
                         session,
                         name=repo_name,
                         url=FAKE_1_YUM_REPO,
                     )
-                    self.assertIsNotNone(self.repository.search(repo_name))
+                    self.assertIsNotNone(self.repository.get_entity(repo_name))
 
     @run_only_on('sat')
     @tier2
@@ -152,22 +152,22 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product_1.name).click()
+                    self.products.get_entity(product_1.name).click()
                     make_repository(
                         session,
                         name=repo_name,
                         url=FAKE_1_YUM_REPO,
                     )
-                    self.assertIsNotNone(self.repository.search(repo_name))
+                    self.assertIsNotNone(self.repository.get_entity(repo_name))
                     set_context(session, org=org_2.name)
-                    self.products.search(product_2.name).click()
+                    self.products.get_entity(product_2.name).click()
                     make_repository(
                         session,
                         name=repo_name,
                         url=FAKE_1_YUM_REPO,
                         force_context=True,
                     )
-                    self.assertIsNotNone(self.repository.search(repo_name))
+                    self.assertIsNotNone(self.repository.get_entity(repo_name))
 
     @run_only_on('sat')
     @tier1
@@ -185,7 +185,7 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.get_entity(product.name).click()
                     make_repository(
                         session,
                         name=repo_name,
@@ -210,7 +210,7 @@ class RepositoryTestCase(UITestCase):
             with self.subTest(repo_name):
                 with Session(self.browser) as session:
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.get_entity(product.name).click()
                     make_repository(
                         session,
                         name=repo_name,
@@ -233,14 +233,14 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_1_YUM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
-            self.products.search(product.name).click()
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
@@ -263,18 +263,18 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.get_entity(product.name).click()
                     make_repository(
                         session,
                         name=repo_name,
                         url=FAKE_1_YUM_REPO,
                     )
-                    self.assertIsNotNone(self.repository.search(repo_name))
+                    self.assertIsNotNone(self.repository.get_entity(repo_name))
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'url', FAKE_1_YUM_REPO))
-                    self.products.search(product.name).click()
+                    self.products.get_entity(product.name).click()
                     self.repository.update(repo_name, new_url=FAKE_2_YUM_REPO)
-                    self.products.search(product.name).click()
+                    self.products.get_entity(product.name).click()
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'url', FAKE_2_YUM_REPO))
 
@@ -302,19 +302,19 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_1_YUM_REPO,
                 gpg_key=gpgkey_1.name,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'gpgkey', gpgkey_1.name))
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             self.repository.update(repo_name, new_gpg_key=gpgkey_2.name)
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'gpgkey', gpgkey_2.name))
 
@@ -333,19 +333,19 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_1_YUM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'checksum', checksum_default))
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             self.repository.update(
                 repo_name, new_repo_checksum=checksum_update)
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'checksum', checksum_update))
 
@@ -363,13 +363,13 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.get_entity(product.name).click()
                     make_repository(
                         session,
                         name=repo_name,
                         url=FAKE_1_YUM_REPO,
                     )
-                    self.assertIsNotNone(self.repository.search(repo_name))
+                    self.assertIsNotNone(self.repository.get_entity(repo_name))
                     self.repository.delete(repo_name)
 
     @run_only_on('sat')
@@ -445,7 +445,7 @@ class RepositoryTestCase(UITestCase):
                 product=product_name,
                 new_product=True,
             )
-            self.assertIsNotNone(self.products.search(product_name))
+            self.assertIsNotNone(self.products.get_entity(product_name))
 
     @run_only_on('sat')
     @tier2
@@ -552,14 +552,14 @@ class RepositoryTestCase(UITestCase):
                 with self.subTest(repo_name):
                     session.nav.go_to_select_org(
                         self.session_org.name, force=False)
-                    self.products.click(self.products.search(prod.name))
+                    self.products.click(self.products.get_entity(prod.name))
                     make_repository(
                         session,
                         name=repo_name,
                         repo_type=REPO_TYPE['ostree'],
                         url=FEDORA23_OSTREE_REPO,
                     )
-                    self.assertIsNotNone(self.repository.search(repo_name))
+                    self.assertIsNotNone(self.repository.get_entity(repo_name))
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -583,8 +583,8 @@ class RepositoryTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
-            self.products.click(self.products.search(prod.name))
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.products.click(self.products.get_entity(prod.name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.repository.delete(repo_name)
 
     @run_only_on('sat')
@@ -612,12 +612,12 @@ class RepositoryTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
-            self.products.click(self.products.search(prod.name))
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.products.click(self.products.get_entity(prod.name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.repository.update(
                 repo_name, new_name=new_repo_name)
-            self.products.click(self.products.search(prod.name))
-            self.assertIsNotNone(self.repository.search(new_repo_name))
+            self.products.click(self.products.get_entity(prod.name))
+            self.assertIsNotNone(self.repository.get_entity(new_repo_name))
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -643,13 +643,13 @@ class RepositoryTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
-            self.products.click(self.products.search(prod.name))
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.products.click(self.products.get_entity(prod.name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.repository.update(
                 repo_name,
                 new_url=FEDORA23_OSTREE_REPO
             )
-            self.products.click(self.products.search(prod.name))
+            self.products.click(self.products.get_entity(prod.name))
             # Validate the new repo URL
             self.assertTrue(
                 self.repository.validate_field(
@@ -667,7 +667,7 @@ class RepositoryTestCase(UITestCase):
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             self.repository.navigate_to_entity()
             self.repository.click(locators['repo.new'])
             self.repository.assign_value(
@@ -689,14 +689,14 @@ class RepositoryTestCase(UITestCase):
         with Session(self.browser) as session:
             for policy in DOWNLOAD_POLICIES.values():
                 with self.subTest(policy):
-                    self.products.search_and_click(self.session_prod.name)
+                    self.products.get_and_click(self.session_prod.name)
                     make_repository(
                         session,
                         name=repo_name,
                         repo_type=REPO_TYPE['yum'],
                         download_policy=policy
                     )
-                    self.assertIsNotNone(self.repository.search(repo_name))
+                    self.assertIsNotNone(self.repository.get_entity(repo_name))
 
     @tier1
     def test_positive_create_with_default_download_policy(self):
@@ -710,7 +710,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             make_repository(session, name=repo_name, repo_type='yum')
             self.assertTrue(
                 self.repository.validate_field(
@@ -742,7 +742,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
         with Session(self.browser):
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='On Demand')
             self.assertTrue(
                 self.repository.validate_field(
@@ -762,7 +762,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
         with Session(self.browser):
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Background')
             self.assertTrue(
                 self.repository.validate_field(
@@ -782,7 +782,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
         with Session(self.browser):
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Immediate')
             self.assertTrue(
                 self.repository.validate_field(
@@ -802,7 +802,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
         with Session(self.browser):
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Background')
             self.assertTrue(
                 self.repository.validate_field(
@@ -822,7 +822,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
         with Session(self.browser):
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Immediate')
             self.assertTrue(
                 self.repository.validate_field(
@@ -842,7 +842,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
         with Session(self.browser):
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='On Demand')
             self.assertTrue(
                 self.repository.validate_field(
@@ -861,7 +861,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             invalid = gen_string('alpha', 5)
             msg = "Could not locate element with visible text: %s" % invalid
             with self.assertRaisesRegexp(NoSuchElementException, msg):
@@ -884,7 +884,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
         with Session(self.browser):
-            self.products.search_and_click(self.session_prod.name)
+            self.products.get_and_click(self.session_prod.name)
             invalid = gen_string('alpha', 5)
             msg = "Could not locate element with visible text: %s" % invalid
             with self.assertRaisesRegexp(NoSuchElementException, msg):
@@ -908,7 +908,7 @@ class RepositoryTestCase(UITestCase):
         ]
         with Session(self.browser):
             for content_type in non_yum_repo_types:
-                self.products.search_and_click(self.session_prod.name)
+                self.products.get_and_click(self.session_prod.name)
                 with self.subTest(content_type):
                     self.repository.navigate_to_entity()
                     self.repository.click(locators['repo.new'])
@@ -933,13 +933,13 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_YUM_SRPM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.setup_navigate_syncnow(
                 session,
                 product.name,
@@ -971,13 +971,13 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_YUM_SRPM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.setup_navigate_syncnow(
                 session,
                 product.name,
@@ -986,7 +986,7 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.prd_sync_is_ok(repo_name))
 
             make_contentview(session, org=self.session_org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1022,13 +1022,13 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_YUM_SRPM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.setup_navigate_syncnow(
                 session,
                 product.name,
@@ -1037,7 +1037,7 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.prd_sync_is_ok(repo_name))
 
             make_contentview(session, org=self.session_org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1072,13 +1072,13 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_YUM_DRPM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.setup_navigate_syncnow(
                 session,
                 product.name,
@@ -1110,13 +1110,13 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_YUM_DRPM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.setup_navigate_syncnow(
                 session,
                 product.name,
@@ -1125,7 +1125,7 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.prd_sync_is_ok(repo_name))
 
             make_contentview(session, org=self.session_org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1161,13 +1161,13 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.get_entity(product.name).click()
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_YUM_DRPM_REPO,
             )
-            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertIsNotNone(self.repository.get_entity(repo_name))
             self.setup_navigate_syncnow(
                 session,
                 product.name,
@@ -1176,7 +1176,7 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.prd_sync_is_ok(repo_name))
 
             make_contentview(session, org=self.session_org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))

@@ -45,7 +45,7 @@ class EnvironmentTestCase(UITestCase):
             for name in valid_environments_list():
                 with self.subTest(name):
                     make_env(session, name=name)
-                    self.assertIsNotNone(self.environment.search(name))
+                    self.assertIsNotNone(self.environment.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -67,7 +67,7 @@ class EnvironmentTestCase(UITestCase):
         name = gen_string('alphanumeric', 255)
         with Session(self.browser) as session:
             make_env(session, name=name)
-            self.assertIsNotNone(self.environment.search(name))
+            self.assertIsNotNone(self.environment.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -103,7 +103,7 @@ class EnvironmentTestCase(UITestCase):
             for new_name in valid_environments_list():
                 with self.subTest(new_name):
                     self.environment.update(name, new_name=new_name)
-                    self.assertIsNotNone(self.environment.search(new_name))
+                    self.assertIsNotNone(self.environment.get_entity(new_name))
                     name = new_name  # for next iteration
 
     @run_only_on('sat')

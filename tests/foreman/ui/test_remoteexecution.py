@@ -71,7 +71,7 @@ class JobsTemplateTestCase(UITestCase):
                         template_type='input',
                         template_content=gen_string('alphanumeric', 500),
                     )
-                    self.assertIsNotNone(self.jobtemplate.search(name))
+                    self.assertIsNotNone(self.jobtemplate.get_entity(name))
 
     @tier1
     def test_positive_template_upload(self):
@@ -99,7 +99,7 @@ class JobsTemplateTestCase(UITestCase):
                         template_type='file',
                         template_content=OS_TEMPLATE_DATA_FILE,
                     )
-                    self.assertIsNotNone(self.jobtemplate.search(name))
+                    self.assertIsNotNone(self.jobtemplate.get_entity(name))
 
     @tier1
     def test_positive_create_job_template_input(self):
@@ -130,7 +130,7 @@ class JobsTemplateTestCase(UITestCase):
                 template_type='input',
                 template_content=gen_string('alphanumeric', 20),
             )
-            self.assertIsNotNone(self.jobtemplate.search(name))
+            self.assertIsNotNone(self.jobtemplate.get_entity(name))
             self.jobtemplate.add_input(name, var_name)
             self.jobtemplate.update(
                 name,
@@ -187,7 +187,7 @@ class JobsTemplateTestCase(UITestCase):
                 template_type='input',
                 template_content=gen_string('alphanumeric', 20),
             )
-            self.assertIsNotNone(self.jobtemplate.search(name))
+            self.assertIsNotNone(self.jobtemplate.get_entity(name))
             make_job_template(
                 session,
                 name=name,
@@ -249,9 +249,9 @@ class JobsTemplateTestCase(UITestCase):
                 template_type='input',
                 template_content=gen_string('alphanumeric', 20),
             )
-            self.assertIsNotNone(self.jobtemplate.search(name))
+            self.assertIsNotNone(self.jobtemplate.get_entity(name))
             self.jobtemplate.clone(name, clone_name)
-            self.assertIsNotNone(self.jobtemplate.search(clone_name))
+            self.assertIsNotNone(self.jobtemplate.get_entity(clone_name))
 
     @tier1
     def test_positive_view_diff(self):
@@ -279,7 +279,7 @@ class JobsTemplateTestCase(UITestCase):
                 template_type='input',
                 template_content=old_template,
             )
-            self.jobtemplate.click(self.jobtemplate.search(name))
+            self.jobtemplate.click(self.jobtemplate.get_entity(name))
             self.jobtemplate.assign_value(
                 locators['job.template_input'], new_template)
             self.jobtemplate.click(common_locators['ace.diff'])
@@ -319,7 +319,7 @@ class JobsTemplateTestCase(UITestCase):
                 template_type='input',
                 template_content='<%= input("{0}") %>'.format(var_name)
             )
-            self.jobtemplate.click(self.jobtemplate.search(name))
+            self.jobtemplate.click(self.jobtemplate.get_entity(name))
             self.jobtemplate.click(common_locators['ace.preview'])
             self.assertEqual(
                 u'$USER_INPUT[{0}]'.format(var_name),
@@ -359,7 +359,7 @@ class JobsTemplateTestCase(UITestCase):
                 template_content='<%= input("{0}") %>'.format(
                     gen_string('alphanumeric'))
             )
-            self.jobtemplate.click(self.jobtemplate.search(name))
+            self.jobtemplate.click(self.jobtemplate.get_entity(name))
             self.jobtemplate.click(common_locators['ace.preview'])
             self.assertIsNotNone(self.jobtemplate.wait_until_element(
                 common_locators['alert.error']))
@@ -398,7 +398,7 @@ class RemoteExecutionTestCase(UITestCase):
             add_remote_execution_ssh_key(client.ip_addr)
             with Session(self.browser) as session:
                 set_context(session, org=self.organization.name)
-                self.hosts.click(self.hosts.search(client.hostname))
+                self.hosts.click(self.hosts.get_entity(client.hostname))
                 status = self.job.run(
                     job_category='Commands',
                     job_template='Run Command - SSH Default',
@@ -439,10 +439,10 @@ class RemoteExecutionTestCase(UITestCase):
                     provider_type='SSHExecutionProvider',
                 )
                 self.assertIsNotNone(
-                    self.jobtemplate.search(jobs_template_name))
+                    self.jobtemplate.get_entity(jobs_template_name))
                 self.jobtemplate.add_input(
                     jobs_template_name, 'command', required=True)
-                self.hosts.click(self.hosts.search(client.hostname))
+                self.hosts.click(self.hosts.get_entity(client.hostname))
                 status = self.job.run(
                     job_category='Miscellaneous',
                     job_template=jobs_template_name,
@@ -517,7 +517,7 @@ class RemoteExecutionTestCase(UITestCase):
             add_remote_execution_ssh_key(client.ip_addr)
             with Session(self.browser) as session:
                 set_context(session, org=self.organization.name)
-                self.hosts.click(self.hosts.search(client.hostname))
+                self.hosts.click(self.hosts.get_entity(client.hostname))
                 plan_time = (datetime.now() + timedelta(seconds=90)).strftime(
                     "%Y-%m-%d %H:%M")
                 status = self.job.run(

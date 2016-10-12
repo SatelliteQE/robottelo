@@ -61,7 +61,7 @@ class OpenScapPolicy(UITestCase):
                 content_path=self.content_path,
             )
             self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
+                self.oscapcontent.get_entity(content_name))
             for policy_name in valid_data_list():
                 with self.subTest(policy_name):
                     make_oscappolicy(
@@ -73,7 +73,7 @@ class OpenScapPolicy(UITestCase):
                         period_value=OSCAP_WEEKDAY['friday'],
                     )
                     self.assertIsNotNone(
-                        self.oscappolicy.search(policy_name))
+                        self.oscappolicy.get_entity(policy_name))
 
     @tier1
     def test_positive_delete_by_policy_name(self):
@@ -98,7 +98,7 @@ class OpenScapPolicy(UITestCase):
                 content_path=self.content_path,
             )
             self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
+                self.oscapcontent.get_entity(content_name))
             for policy_name in valid_data_list():
                 with self.subTest(policy_name):
                     make_oscappolicy(
@@ -110,7 +110,7 @@ class OpenScapPolicy(UITestCase):
                         period_value=OSCAP_WEEKDAY['friday'],
                     )
                     self.assertIsNotNone(
-                        self.oscappolicy.search(policy_name))
+                        self.oscappolicy.get_entity(policy_name))
                     self.oscappolicy.delete(policy_name)
 
     @skip_if_bug_open('bugzilla', 1293296)
@@ -138,7 +138,7 @@ class OpenScapPolicy(UITestCase):
                 content_path=self.content_path,
             )
             self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
+                self.oscapcontent.get_entity(content_name))
             for policy_name in invalid_values_list(interface='ui'):
                 with self.subTest(policy_name):
                     make_oscappolicy(
@@ -149,7 +149,7 @@ class OpenScapPolicy(UITestCase):
                         profile=OSCAP_PROFILE['c2s_rhel6'],
                         period_value=OSCAP_WEEKDAY['friday'],
                     )
-                    self.assertIsNone(self.oscappolicy.search(policy_name))
+                    self.assertIsNone(self.oscappolicy.get_entity(policy_name))
 
     @tier1
     def test_positive_update(self):
@@ -175,7 +175,7 @@ class OpenScapPolicy(UITestCase):
                 content_path=self.content_path,
             )
             self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
+                self.oscapcontent.get_entity(content_name))
             make_oscappolicy(
                 session,
                 content=content_name,
@@ -185,7 +185,7 @@ class OpenScapPolicy(UITestCase):
                 period_value=OSCAP_WEEKDAY['friday'],
             )
             self.assertIsNotNone(
-                self.oscappolicy.search(policy_name))
+                self.oscappolicy.get_entity(policy_name))
             for new_policy_name in valid_data_list():
                 with self.subTest(new_policy_name):
                     self.oscappolicy.update(
@@ -197,5 +197,5 @@ class OpenScapPolicy(UITestCase):
                         period_value=OSCAP_WEEKDAY['sunday'],
                     )
                     self.assertIsNotNone(
-                        self.oscappolicy.search(new_policy_name))
+                        self.oscappolicy.get_entity(new_policy_name))
                     policy_name = new_policy_name

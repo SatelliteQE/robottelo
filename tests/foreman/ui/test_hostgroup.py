@@ -41,7 +41,7 @@ class HostgroupTestCase(UITestCase):
             for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
-                    self.assertIsNotNone(self.hostgroup.search(name))
+                    self.assertIsNotNone(self.hostgroup.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -71,7 +71,7 @@ class HostgroupTestCase(UITestCase):
         name = gen_string('utf8')
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
-            self.assertIsNotNone(self.hostgroup.search(name))
+            self.assertIsNotNone(self.hostgroup.get_entity(name))
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.wait_until_element
                                  (common_locators['name_haserror']))
@@ -103,9 +103,9 @@ class HostgroupTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
-            self.assertIsNotNone(self.hostgroup.search(name))
+            self.assertIsNotNone(self.hostgroup.get_entity(name))
             for new_name in generate_strings_list(length=4):
                 with self.subTest(new_name):
                     self.hostgroup.update(name, new_name=new_name)
-                    self.assertIsNotNone(self.hostgroup.search(new_name))
+                    self.assertIsNotNone(self.hostgroup.get_entity(new_name))
                     name = new_name  # for next iteration

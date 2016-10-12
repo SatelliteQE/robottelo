@@ -41,7 +41,7 @@ class RoleTestCase(UITestCase):
             for name in generate_strings_list(length=10):
                 with self.subTest(name):
                     make_role(session, name=name)
-                    self.assertIsNotNone(self.role.search(name))
+                    self.assertIsNotNone(self.role.get_entity(name))
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -83,11 +83,11 @@ class RoleTestCase(UITestCase):
         name = gen_string('utf8')
         with Session(self.browser) as session:
             make_role(session, name=name)
-            self.assertIsNotNone(self.role.search(name))
+            self.assertIsNotNone(self.role.get_entity(name))
             for new_name in generate_strings_list(length=10):
                 with self.subTest(new_name):
                     self.role.update(name, new_name)
-                    self.assertIsNotNone(self.role.search(new_name))
+                    self.assertIsNotNone(self.role.get_entity(new_name))
                     name = new_name  # for next iteration
 
     @tier1
@@ -101,7 +101,7 @@ class RoleTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=name)
-            self.assertIsNotNone(self.role.search(name))
+            self.assertIsNotNone(self.role.get_entity(name))
             self.role.update(
                 name,
                 add_permission=True,
@@ -121,7 +121,7 @@ class RoleTestCase(UITestCase):
         org = entities.Organization().create()
         with Session(self.browser) as session:
             make_role(session, name=name)
-            self.assertIsNotNone(self.role.search(name))
+            self.assertIsNotNone(self.role.get_entity(name))
             self.role.update(
                 name,
                 add_permission=True,

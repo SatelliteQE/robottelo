@@ -192,7 +192,7 @@ class SmartVariablesTestCase(UITestCase):
                         name=name,
                         puppet_class=self.puppet['name'],
                     )
-                    self.assertIsNotNone(self.smart_variable.search(name))
+                    self.assertIsNotNone(self.smart_variable.get_entity(name))
 
     @run_only_on('sat')
     @tier2
@@ -225,7 +225,7 @@ class SmartVariablesTestCase(UITestCase):
                 puppet_class=self.puppet['name'],
                 default_value=value,
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             # Verify that corresponding entry is present in YAML output
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], value)
@@ -267,7 +267,7 @@ class SmartVariablesTestCase(UITestCase):
                         self.smart_variable.wait_until_element(
                             common_locators['haserror'])
                     )
-                    self.assertIsNone(self.smart_variable.search(name))
+                    self.assertIsNone(self.smart_variable.get_entity(name))
 
     @run_only_on('sat')
     @tier2
@@ -298,7 +298,7 @@ class SmartVariablesTestCase(UITestCase):
                 puppet_class=self.puppet['name'],
                 default_value=value,
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             self.smart_variable.delete(name)
             # Verify that corresponding entry is not present in YAML output
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
@@ -331,11 +331,12 @@ class SmartVariablesTestCase(UITestCase):
                 name=old_name,
                 puppet_class=self.puppet['name'],
             )
-            self.assertIsNotNone(self.smart_variable.search(old_name))
+            self.assertIsNotNone(self.smart_variable.get_entity(old_name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     self.smart_variable.update(old_name, new_name=new_name)
-                    self.assertIsNotNone(self.smart_variable.search(new_name))
+                    self.assertIsNotNone(
+                        self.smart_variable.get_entity(new_name))
                     old_name = new_name  # for next iteration
 
     @run_only_on('sat')
@@ -360,7 +361,7 @@ class SmartVariablesTestCase(UITestCase):
                 name=name,
                 puppet_class=self.puppet['name'],
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             self.smart_variable.update(name, puppet_class='ntp::config')
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'puppet_class', 'ntp::config'))
@@ -432,7 +433,8 @@ class SmartVariablesTestCase(UITestCase):
                         key_type=data['sc_type'],
                         default_value=data['value'],
                     )
-                    self.smart_variable.click(self.smart_variable.search(name))
+                    self.smart_variable.click(
+                        self.smart_variable.get_entity(name))
                     value = self.smart_variable.wait_until_element(
                         locators['smart_variable.default_value']).text
                     # Application is adding some data for yaml type once
@@ -480,7 +482,8 @@ class SmartVariablesTestCase(UITestCase):
                         self.smart_variable.wait_until_element(
                             common_locators['haserror'])
                     )
-                    self.smart_variable.click(self.smart_variable.search(name))
+                    self.smart_variable.click(
+                        self.smart_variable.get_entity(name))
                     value = self.smart_variable.wait_until_element(
                         locators['smart_variable.default_value']).text
                     self.assertEqual(value, initial_value)
@@ -541,7 +544,7 @@ class SmartVariablesTestCase(UITestCase):
                 validator_type='regexp',
                 validator_rule='[0-9]',
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -610,7 +613,7 @@ class SmartVariablesTestCase(UITestCase):
                     'matcher_value': gen_string('numeric')
                 }]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             self.assertIsNone(
                 self.smart_variable.wait_until_element(
                     locators['smart_variable.matcher_error'], timeout=8)
@@ -672,7 +675,7 @@ class SmartVariablesTestCase(UITestCase):
                 validator_type='list',
                 validator_rule='true, 50, test1',
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -741,7 +744,7 @@ class SmartVariablesTestCase(UITestCase):
                     'matcher_value': '30'
                 }]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -805,7 +808,7 @@ class SmartVariablesTestCase(UITestCase):
                     'matcher_value': 'false'
                 }]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -914,7 +917,7 @@ class SmartVariablesTestCase(UITestCase):
                     'matcher_value': override_value
                 }]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             # Verify that overridden value is present for just created smart
             # variable in YAML output
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
@@ -971,7 +974,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], override_value)
 
@@ -1025,7 +1028,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], override_value2)
             self.assertNotEqual(output['parameters'][name], override_value)
@@ -1084,7 +1087,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], [80, 90, 90, 100])
 
@@ -1142,7 +1145,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], [80, 90])
 
@@ -1202,7 +1205,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(
                 output['parameters'][name], ['test', 80, 90, 90, 100])
@@ -1263,7 +1266,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], [80, 90, 90, 100])
 
@@ -1323,7 +1326,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], [80, 90, 100])
 
@@ -1382,7 +1385,7 @@ class SmartVariablesTestCase(UITestCase):
 
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             output = yaml.load(self.hosts.get_yaml_output(self.host_name))
             self.assertEqual(output['parameters'][name], [70, 80, 90, 100])
 
@@ -1615,13 +1618,13 @@ class SmartVariablesTestCase(UITestCase):
                     },
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             # Change matcher value for smart variable from Host page
             self.hosts.set_smart_variable_value(
                 self.host_name, name, host_override_value, override=False)
             # Check that matcher value was changed from smart variable
             # interface
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             sv_matcher_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.matcher_value'] % 1)
             self.assertEqual(sv_matcher_value.text, host_override_value)
@@ -1668,7 +1671,7 @@ class SmartVariablesTestCase(UITestCase):
                     },
                 ]
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             # Attempt to change matcher value from Host page using invalid
             # value
             self.hosts.set_smart_variable_value(
@@ -1676,7 +1679,7 @@ class SmartVariablesTestCase(UITestCase):
             self.assertIsNotNone(
                 self.hosts.wait_until_element(locators['host.override_error']))
             # Verify that matcher value was not changed
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             sv_matcher_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.matcher_value'] % 1)
             self.assertEqual(sv_matcher_value.text, override_value)
@@ -1707,7 +1710,7 @@ class SmartVariablesTestCase(UITestCase):
                 puppet_class=self.puppet['name'],
                 hidden_value=True,
             )
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value_hidden'])
             self.assertEqual(default_value.get_attribute('value'), value)
@@ -1742,12 +1745,12 @@ class SmartVariablesTestCase(UITestCase):
                 puppet_class=self.puppet['name'],
                 hidden_value=True,
             )
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value_hidden'])
             self.assertEqual(default_value.get_attribute('type'), 'password')
             self.smart_variable.update(name, hidden_value=False)
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value'])
             self.assertEqual(default_value.get_attribute('type'), 'textarea')
@@ -1787,8 +1790,8 @@ class SmartVariablesTestCase(UITestCase):
                 default_value=default_value,
                 hidden_value=True,
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
-            self.hosts.click(self.hosts.search(self.host_name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
+            self.hosts.click(self.hosts.get_entity(self.host_name))
             self.hosts.click(locators['host.edit'])
             self.hosts.click(tab_locators['host.tab_params'])
             sv_value = self.hosts.get_smart_variable_value(
@@ -1838,7 +1841,7 @@ class SmartVariablesTestCase(UITestCase):
                 default_value=default_value,
                 hidden_value=True,
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             sv_value = self.hosts.get_smart_variable_value(
                 self.host_name, name, hidden=True)
             self.assertEqual(sv_value.get_attribute('type'), 'password')
@@ -1848,7 +1851,7 @@ class SmartVariablesTestCase(UITestCase):
             self.assertTrue(self.smart_variable.is_element_enabled(
                 locators['host.smart_variable_hide'] % name))
             self.hosts.click(common_locators['submit'])
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value_hidden'])
             self.assertEqual(default_value.get_attribute('type'), 'password')
@@ -1884,7 +1887,7 @@ class SmartVariablesTestCase(UITestCase):
                 puppet_class=self.puppet['name'],
                 hidden_value=True,
             )
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value_hidden'])
             self.assertEqual(default_value.get_attribute('type'), 'password')
@@ -1892,7 +1895,7 @@ class SmartVariablesTestCase(UITestCase):
             self.smart_variable.assign_value(
                 locators['smart_variable.default_value_hidden'], new_value)
             self.smart_variable.click(common_locators['submit'])
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value_hidden'])
             self.assertEqual(default_value.get_attribute('type'), 'password')
@@ -1935,7 +1938,7 @@ class SmartVariablesTestCase(UITestCase):
                 default_value=default_value,
                 hidden_value=True,
             )
-            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNotNone(self.smart_variable.get_entity(name))
             sv_value = self.hosts.get_smart_variable_value(
                 self.host_name, name, hidden=True)
             self.assertEqual(sv_value.get_attribute('type'), 'password')
@@ -1947,7 +1950,7 @@ class SmartVariablesTestCase(UITestCase):
             self.assertEqual(sv_value.get_attribute('type'), 'password')
             self.assertEqual(
                 sv_value.get_attribute('value'), host_override_value)
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value_element = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value_hidden'])
             self.assertEqual(
@@ -1997,7 +2000,7 @@ class SmartVariablesTestCase(UITestCase):
                     },
                 ]
             )
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.click(self.smart_variable.get_entity(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value_hidden'])
             self.assertEqual(default_value.get_attribute('type'), 'password')

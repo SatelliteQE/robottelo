@@ -42,18 +42,30 @@ from robottelo.ui.session import Session
 def valid_org_loc_data():
     """Returns a list of valid org/location data"""
     return [
-        {'org_name': gen_string('alpha', 242),
-         'loc_name': gen_string('alpha', 242)},
-        {'org_name': gen_string('numeric', 242),
-         'loc_name': gen_string('numeric', 242)},
-        {'org_name': gen_string('alphanumeric', 242),
-         'loc_name': gen_string('alphanumeric', 242)},
-        {'org_name': gen_string('utf8', 80),
-         'loc_name': gen_string('utf8', 80)},
-        {'org_name': gen_string('latin1', 242),
-         'loc_name': gen_string('latin1', 242)},
-        {'org_name': gen_string('html', 217),
-         'loc_name': gen_string('html', 217)}
+        {
+            'org_name': gen_string('alpha', 242),
+            'loc_name': gen_string('alpha', 242)
+        },
+        {
+            'org_name': gen_string('numeric', 242),
+            'loc_name': gen_string('numeric', 242)
+        },
+        {
+            'org_name': gen_string('alphanumeric', 242),
+            'loc_name': gen_string('alphanumeric', 242)
+        },
+        {
+            'org_name': gen_string('utf8', 80),
+            'loc_name': gen_string('utf8', 80)
+        },
+        {
+            'org_name': gen_string('latin1', 242),
+            'loc_name': gen_string('latin1', 242)
+        },
+        {
+            'org_name': gen_string('html', 217),
+            'loc_name': gen_string('html', 217)
+        }
     ]
 
 
@@ -118,7 +130,7 @@ class LocationTestCase(UITestCase):
             for loc_name in generate_strings_list():
                 with self.subTest(loc_name):
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
 
     @run_only_on('sat')
     @tier1
@@ -150,7 +162,7 @@ class LocationTestCase(UITestCase):
         loc_name = gen_string('utf8')
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            self.assertIsNotNone(self.location.get_entity(loc_name))
             make_loc(session, name=loc_name)
             error = session.nav.wait_until_element(
                 common_locators['name_haserror'])
@@ -175,7 +187,7 @@ class LocationTestCase(UITestCase):
                     org = entities.Organization(name=org_name).create()
                     self.assertEqual(org.name, org_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     location = session.nav.go_to_select_loc(loc_name)
                     organization = session.nav.go_to_select_org(org_name)
                     self.assertEqual(location, loc_name)
@@ -195,11 +207,11 @@ class LocationTestCase(UITestCase):
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            self.assertIsNotNone(self.location.get_entity(loc_name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     self.location.update(loc_name, new_name=new_name)
-                    self.assertIsNotNone(self.location.search(new_name))
+                    self.assertIsNotNone(self.location.get_entity(new_name))
                     loc_name = new_name  # for next iteration
 
     # Negative Update
@@ -217,7 +229,7 @@ class LocationTestCase(UITestCase):
         loc_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            self.assertIsNotNone(self.location.get_entity(loc_name))
             new_name = gen_string('alpha', 247)
             self.location.update(loc_name, new_name=new_name)
             error = session.nav.wait_until_element(
@@ -263,9 +275,9 @@ class LocationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(subnet.name, subnet_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     self.location.update(loc_name, new_subnets=[subnet_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy, value % subnet_name))
@@ -290,9 +302,9 @@ class LocationTestCase(UITestCase):
                     domain = entities.Domain(name=domain_name).create()
                     self.assertEqual(domain.name, domain_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     self.location.update(loc_name, new_domains=[domain_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy, value % domain_name))
@@ -312,9 +324,8 @@ class LocationTestCase(UITestCase):
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             # User names does not accept html values
-            for user_name in generate_strings_list(
-                    length=10,
-                    exclude_types=['html']):
+            for user_name in generate_strings_list(length=10,
+                                                   exclude_types=['html']):
                 with self.subTest(user_name):
                     loc_name = gen_string('alpha')
                     password = gen_string('alpha')
@@ -326,9 +337,9 @@ class LocationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(user.login, user_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     self.location.update(loc_name, new_users=[user_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy, value % user_name))
@@ -346,7 +357,7 @@ class LocationTestCase(UITestCase):
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            self.assertIsNotNone(self.location.get_entity(loc_name))
             selected = self.location.check_all_values(
                 session.nav.go_to_loc,
                 loc_name,
@@ -375,8 +386,8 @@ class LocationTestCase(UITestCase):
                     host_grp = entities.HostGroup(name=host_grp_name).create()
                     self.assertEqual(host_grp.name, host_grp_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
-                    self.location.search(loc_name).click()
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -401,10 +412,10 @@ class LocationTestCase(UITestCase):
                     org = entities.Organization(name=org_name).create()
                     self.assertEqual(org.name, org_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     self.location.update(
                         loc_name, new_organizations=[org_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(
                         tab_locators['context.tab_organizations'])
                     element = session.nav.wait_until_element(
@@ -430,9 +441,9 @@ class LocationTestCase(UITestCase):
                     env = entities.Environment(name=env_name).create()
                     self.assertEqual(env.name, env_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     self.location.update(loc_name, new_envs=[env_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy, value % env_name))
@@ -461,10 +472,10 @@ class LocationTestCase(UITestCase):
                         name=resource_name, url=url).create()
                     self.assertEqual(resource.name, resource_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     self.location.update(
                         loc_name, new_resources=[resource_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
                         (strategy, value % resource_name))
@@ -493,9 +504,9 @@ class LocationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(medium.name, medium_name)
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     self.location.update(loc_name, new_medias=[medium_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy, value % medium_name))
@@ -514,7 +525,7 @@ class LocationTestCase(UITestCase):
         with Session(self.browser) as session:
             page = session.nav.go_to_loc
             make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            self.assertIsNotNone(self.location.get_entity(loc_name))
             selected = self.location.check_all_values(
                 page, loc_name, locators['location.select_name'],
                 tab_locators['context.tab_template'], context='location')
@@ -537,7 +548,7 @@ class LocationTestCase(UITestCase):
                 with self.subTest(template):
                     loc_name = gen_string('alpha')
                     make_loc(session, name=loc_name)
-                    self.assertIsNotNone(self.location.search(loc_name))
+                    self.assertIsNotNone(self.location.get_entity(loc_name))
                     make_templates(
                         session,
                         name=template,
@@ -545,8 +556,8 @@ class LocationTestCase(UITestCase):
                         custom_really=True,
                         template_type='Provisioning template',
                     )
-                    self.assertIsNotNone(self.template.search(template))
-                    self.location.search(loc_name).click()
+                    self.assertIsNotNone(self.template.get_entity(template))
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy, value % template))
@@ -580,7 +591,7 @@ class LocationTestCase(UITestCase):
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % env_name))
@@ -588,7 +599,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, envs=[env_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy, value % env_name))
@@ -625,7 +636,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         subnets=[subnet_name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % subnet_name))
@@ -633,7 +644,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, subnets=[subnet_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     self.location.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy, value % subnet_name))
@@ -670,7 +681,7 @@ class LocationTestCase(UITestCase):
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % domain_name))
@@ -678,7 +689,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, domains=[domain_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy, value % domain_name))
@@ -702,9 +713,8 @@ class LocationTestCase(UITestCase):
         strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             # User names does not accept html values
-            for user_name in generate_strings_list(
-                    length=10,
-                    exclude_types=['html']):
+            for user_name in generate_strings_list(length=10,
+                                                   exclude_types=['html']):
                 with self.subTest(user_name):
                     loc_name = gen_string('alpha')
                     user = entities.User(
@@ -720,7 +730,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         users=[user_name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % user_name))
@@ -728,7 +738,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, users=[user_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy, value % user_name))
@@ -763,7 +773,7 @@ class LocationTestCase(UITestCase):
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -771,7 +781,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.hostgroup.delete(host_grp_name)
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -811,7 +821,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         resources=[resource_name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = self.location.wait_until_element(
                         (strategy1, value1 % resource_name))
@@ -819,7 +829,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, resources=[resource_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
                         (strategy, value % resource_name))
@@ -857,7 +867,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         name=loc_name,
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % medium_name))
@@ -865,7 +875,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, medias=[medium_name])
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy, value % medium_name))
@@ -896,13 +906,14 @@ class LocationTestCase(UITestCase):
                         template_type='Provisioning template',
                         custom_really=True,
                     )
-                    self.assertIsNotNone(self.template.search(template_name))
+                    self.assertIsNotNone(
+                        self.template.get_entity(template_name))
                     make_loc(
                         session,
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy, value % template_name))
@@ -910,7 +921,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.template.delete(template_name)
-                    self.location.search(loc_name).click()
+                    self.location.get_entity(loc_name).click()
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy, value % template_name))

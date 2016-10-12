@@ -52,4 +52,4 @@ class SubscriptionTestCase(UITestCase):
             self.assertTrue(self.subscriptions.wait_until_element_exists(
                 tab_locators['subs.import_history.deleted']))
             self.assertIsNone(
-                self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
+                self.subscriptions.get_entity(DEFAULT_SUBSCRIPTION_NAME))

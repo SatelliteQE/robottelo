@@ -28,7 +28,7 @@ class ConfigGroups(Base):
 
     def update(self, old_name, new_name=None):
         """Updates the config-groups."""
-        element = self.search(old_name)
+        element = self.get_entity(old_name)
         if element:
             element.click()
             if (self.wait_until_element(locators['config_groups.name']) and

@@ -67,15 +67,14 @@ class BookmarkTestCase(UITestCase):
             # appear. Creating 1 entity for such pages
             if entity.get('setup'):
                 # entities with 1 organization
+                with_no_org = (
+                    'Compute_Profile', 'ConfigGroups', 'HardwareModel',
+                    'PuppetClasses', 'UserGroup'
+                )
                 if entity['name'] in ('Hosts',):
                     entity['setup'](organization=cls.session_org).create()
                 # entities with no organizations
-                elif entity['name'] in (
-                        'Compute_Profile',
-                        'ConfigGroups',
-                        'HardwareModel',
-                        'PuppetClasses',
-                        'UserGroup'):
+                elif entity['name'] in with_no_org:
                     entity['setup']().create()
                 # entities with multiple organizations
                 else:
@@ -96,7 +95,7 @@ class BookmarkTestCase(UITestCase):
     @classmethod
     def getOneEntity(cls):
         """Return 1 entity to test"""
-        return [cls.entities[random.randint(0, len(cls.entities)-1)]]
+        return [cls.entities[random.randint(0, len(cls.entities) - 1)]]
 
     # CREATE TESTS
     @tier1
@@ -133,7 +132,7 @@ class BookmarkTestCase(UITestCase):
                         ),
                     )
                     self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                        self.bookmark.get_entity(entity['controller'], name))
 
     @tier1
     def test_positive_create_bookmark_populate_manual(self):
@@ -165,7 +164,7 @@ class BookmarkTestCase(UITestCase):
                         query=gen_string(random.choice(STRING_TYPES)),
                     )
                     self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                        self.bookmark.get_entity(entity['controller'], name))
 
     @tier2
     def test_positive_create_bookmark_public(self):
@@ -216,11 +215,11 @@ class BookmarkTestCase(UITestCase):
                         ),
                     )
                     self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                        self.bookmark.get_entity(entity['controller'], name))
                 with Session(self.browser, user=self.custom_user.login,
                              password=self.custom_password):
                     self.assertIsNone(
-                        self.bookmark.search(entity['controller'], name))
+                        self.bookmark.get_entity(entity['controller'], name))
 
     @skip_if_bug_open('bugzilla', 1326633)
     @tier1
@@ -288,7 +287,7 @@ class BookmarkTestCase(UITestCase):
                         query='',
                     )
                     self.assertIsNone(
-                        self.bookmark.search(entity['controller'], name))
+                        self.bookmark.get_entity(entity['controller'], name))
 
     @tier1
     def test_negative_create_bookmark_same_name(self):
@@ -366,7 +365,8 @@ class BookmarkTestCase(UITestCase):
                     self.bookmark.update(
                         entity['controller'], name, new_name, query)
                     self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], new_name))
+                        self.bookmark.get_entity(entity['controller'],
+                                                 new_name))
 
     @tier1
     def test_negative_update_bookmark_name(self):
@@ -408,7 +408,8 @@ class BookmarkTestCase(UITestCase):
                     self.assertTrue(self.bookmark.wait_until_element(
                         common_locators['name_haserror']))
                     self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], bm2_name))
+                        self.bookmark.get_entity(entity['controller'],
+                                                 bm2_name))
 
     @tier1
     def test_negative_update_bookmark_name_empty(self):
@@ -447,7 +448,7 @@ class BookmarkTestCase(UITestCase):
                     self.assertTrue(self.bookmark.wait_until_element(
                         common_locators['name_haserror']))
                     self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                        self.bookmark.get_entity(entity['controller'], name))
 
     @skip_if_bug_open('bugzilla', 1324484)
     @tier1
@@ -591,9 +592,9 @@ class BookmarkTestCase(UITestCase):
         with Session(self.browser, user=self.custom_user.login,
                      password=self.custom_password):
             self.assertIsNotNone(
-                self.bookmark.search(bm1_entity['controller'], bm1_name))
+                self.bookmark.get_entity(bm1_entity['controller'], bm1_name))
             self.assertIsNone(
-                self.bookmark.search(bm2_entity['controller'], bm2_name))
+                self.bookmark.get_entity(bm2_entity['controller'], bm2_name))
         with Session(self.browser):
             self.bookmark.update(
                 bm1_entity['controller'], bm1_name, new_public=False)
@@ -602,9 +603,9 @@ class BookmarkTestCase(UITestCase):
         with Session(self.browser, user=self.custom_user.login,
                      password=self.custom_password):
             self.assertIsNone(
-                self.bookmark.search(bm1_entity['controller'], bm1_name))
+                self.bookmark.get_entity(bm1_entity['controller'], bm1_name))
             self.assertIsNotNone(
-                self.bookmark.search(bm2_entity['controller'], bm2_name))
+                self.bookmark.get_entity(bm2_entity['controller'], bm2_name))
 
     # DELETE TESTS
     @tier1
@@ -636,7 +637,7 @@ class BookmarkTestCase(UITestCase):
                         query=gen_string(random.choice(STRING_TYPES)),
                     )
                     self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                        self.bookmark.get_entity(entity['controller'], name))
                     self.bookmark.delete(entity['controller'], name)
 
     @tier2

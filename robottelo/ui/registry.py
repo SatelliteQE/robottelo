@@ -50,7 +50,7 @@ class Registry(Base):
                new_username=None, new_pass=None, orgs=None, new_orgs=None,
                org_select=False, locs=None, new_locs=None, loc_select=False):
         """Updates a registry."""
-        element = self.search(name)
+        element = self.get_entity(name)
         if not element:
             raise UIError(
                 'Could not find necessary registry "{0}"'.format(name)

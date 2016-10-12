@@ -57,7 +57,7 @@ class HardwareModelTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     make_hw_model(session, name=name)
-                    self.assertIsNotNone(self.hardwaremodel.search(name))
+                    self.assertIsNotNone(self.hardwaremodel.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -88,7 +88,7 @@ class HardwareModelTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_hw_model(session, name=name)
-            self.assertIsNotNone(self.hardwaremodel.search(name))
+            self.assertIsNotNone(self.hardwaremodel.get_entity(name))
             for test_data in valid_hw_model_names():
                 with self.subTest(test_data):
                     bug_id = test_data.pop('bugzilla', None)
@@ -98,7 +98,7 @@ class HardwareModelTestCase(UITestCase):
                             'data.'.format(bug_id)
                         )
                     self.hardwaremodel.update(name, test_data['name'])
-                    self.assertIsNotNone(self.hardwaremodel.search(
+                    self.assertIsNotNone(self.hardwaremodel.get_entity(
                         test_data['name']))
                     name = test_data['name']  # for next iteration
 

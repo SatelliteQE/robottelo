@@ -48,7 +48,7 @@ class Hostgroup(Base):
 
     def update(self, name, new_name=None, parent=None, environment=None):
         """Updates existing hostgroup from UI."""
-        element = self.search(name)
+        element = self.get_entity(name)
         if not element:
             raise UIError('Could not find hostgroup "{0}"'.format(name))
         element.click()

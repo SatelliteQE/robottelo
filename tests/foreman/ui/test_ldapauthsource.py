@@ -67,7 +67,7 @@ class LDAPAuthSourceTestCase(UITestCase):
                         account_grpbasedn=self.group_base_dn,
                     )
                     self.assertIsNotNone(
-                        self.ldapauthsource.search(server_name)
+                        self.ldapauthsource.get_entity(server_name)
                     )
 
     @tier1
@@ -101,6 +101,6 @@ class LDAPAuthSourceTestCase(UITestCase):
                         account_grpbasedn=self.group_base_dn,
                     )
                     self.assertIsNotNone(
-                        self.ldapauthsource.search(server_name)
+                        self.ldapauthsource.get_entity(server_name)
                     )
                     self.ldapauthsource.delete(server_name)

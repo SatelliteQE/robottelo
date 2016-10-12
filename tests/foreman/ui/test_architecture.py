@@ -36,8 +36,10 @@ def valid_arch_os_names():
         {u'name': gen_string('alpha'), u'os_name': gen_string('alpha')},
         {u'name': gen_string('html'), u'os_name': gen_string('html')},
         {u'name': gen_string('utf8'), u'os_name': gen_string('utf8')},
-        {u'name': gen_string('alphanumeric'),
-         u'os_name': gen_string('alphanumeric')}
+        {
+            u'name': gen_string('alphanumeric'),
+            u'os_name': gen_string('alphanumeric')
+        }
     ]
 
 
@@ -61,7 +63,7 @@ class ArchitectureTestCase(UITestCase):
                     make_arch(session, name=test_data['name'],
                               os_names=[test_data['os_name']])
                     self.assertIsNotNone(
-                        self.architecture.search(test_data['name']))
+                        self.architecture.get_entity(test_data['name']))
 
     @run_only_on('sat')
     @tier1
@@ -76,7 +78,7 @@ class ArchitectureTestCase(UITestCase):
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_arch(session, name=name)
-                    self.assertIsNotNone(self.architecture.search(name))
+                    self.assertIsNotNone(self.architecture.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -108,7 +110,7 @@ class ArchitectureTestCase(UITestCase):
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_arch(session, name=name)
-                    self.assertIsNotNone(self.architecture.search(name))
+                    self.assertIsNotNone(self.architecture.get_entity(name))
                     make_arch(session, name=name)
                     self.assertIsNotNone(self.architecture.wait_until_element(
                         common_locators['name_haserror']))
@@ -143,12 +145,13 @@ class ArchitectureTestCase(UITestCase):
         old_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_arch(session, name=old_name)
-            self.assertIsNotNone(self.architecture.search(old_name))
+            self.assertIsNotNone(self.architecture.get_entity(old_name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     os_name = gen_string('alpha')
                     entities.OperatingSystem(name=os_name).create()
                     self.architecture.update(
                         old_name, new_name, new_os_names=[os_name])
-                    self.assertIsNotNone(self.architecture.search(new_name))
+                    self.assertIsNotNone(
+                        self.architecture.get_entity(new_name))
                     old_name = new_name  # for next iteration

@@ -92,7 +92,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 with self.subTest(name):
                     make_discoveryrule(
                         session, name=name, hostgroup=self.host_group.name)
-                    self.assertIsNotNone(self.discoveryrules.search(name))
+                    self.assertIsNotNone(self.discoveryrules.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -114,7 +114,7 @@ class DiscoveryRuleTestCase(UITestCase):
                         hostgroup=self.host_group.name,
                         search_rule=query,
                     )
-                    self.assertIsNotNone(self.discoveryrules.search(name))
+                    self.assertIsNotNone(self.discoveryrules.get_entity(name))
                     self.assertEqual(
                         self.discoveryrules.get_attribute_value(
                             name, 'search'),
@@ -140,7 +140,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 hostname=hostname,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'hostname'),
                 hostname
@@ -166,7 +166,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 host_limit=limit,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'host_limit'),
                 limit
@@ -192,7 +192,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 priority=priority,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'priority'),
                 priority
@@ -215,7 +215,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 enabled=False,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(
                     name, 'enabled', element_type='checkbox'),
@@ -241,7 +241,7 @@ class DiscoveryRuleTestCase(UITestCase):
                         self.discoveryrules.wait_until_element(
                             common_locators['name_haserror'])
                     )
-                    self.assertIsNone(self.discoveryrules.search(name))
+                    self.assertIsNone(self.discoveryrules.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -263,7 +263,7 @@ class DiscoveryRuleTestCase(UITestCase):
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['haserror']
             ))
-            self.assertIsNone(self.discoveryrules.search(name))
+            self.assertIsNone(self.discoveryrules.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -288,7 +288,7 @@ class DiscoveryRuleTestCase(UITestCase):
                         self.discoveryrules.wait_until_element(
                             common_locators['haserror'])
                     )
-                    self.assertIsNone(self.discoveryrules.search(name))
+                    self.assertIsNone(self.discoveryrules.get_entity(name))
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1308831)
@@ -312,7 +312,7 @@ class DiscoveryRuleTestCase(UITestCase):
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['haserror']
             ))
-            self.assertIsNone(self.discoveryrules.search(name))
+            self.assertIsNone(self.discoveryrules.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -327,7 +327,7 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
@@ -354,7 +354,7 @@ class DiscoveryRuleTestCase(UITestCase):
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['haserror']
             ))
-            self.assertIsNone(self.discoveryrules.search(name))
+            self.assertIsNone(self.discoveryrules.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -370,7 +370,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 with self.subTest(name):
                     make_discoveryrule(
                         session, name=name, hostgroup=self.host_group.name)
-                    self.assertIsNotNone(self.discoveryrules.search(name))
+                    self.assertIsNotNone(self.discoveryrules.get_entity(name))
                     self.discoveryrules.delete(name)
 
     @run_only_on('sat')
@@ -386,11 +386,12 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.discoveryrules.update(name=name, new_name=new_name)
-                    self.assertIsNotNone(self.discoveryrules.search(new_name))
+                    self.assertIsNotNone(
+                        self.discoveryrules.get_entity(new_name))
                     name = new_name  # for next iteration
 
     @run_only_on('sat')
@@ -406,7 +407,7 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             for new_query in valid_search_queries():
                 with self.subTest(new_query):
                     self.discoveryrules.update(
@@ -432,7 +433,7 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(
                     name, 'hostgroup', element_type='select'),
@@ -459,7 +460,7 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.discoveryrules.update(name=name, hostname=hostname)
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'hostname'),
@@ -480,7 +481,7 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.discoveryrules.update(name=name, host_limit=limit)
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'host_limit'),
@@ -501,7 +502,7 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.discoveryrules.update(name=name, priority=priority)
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'priority'),
@@ -525,7 +526,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 enabled=False,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.discoveryrules.update(name=name, enabled=True)
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(
@@ -547,7 +548,7 @@ class DiscoveryRuleTestCase(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             for new_name in invalid_values_list(interface='ui'):
                 with self.subTest(new_name):
                     self.discoveryrules.update(name=name, new_name=new_name)
@@ -555,7 +556,7 @@ class DiscoveryRuleTestCase(UITestCase):
                         self.discoveryrules.wait_until_element(
                             common_locators['name_haserror'])
                     )
-                    self.assertIsNone(self.discoveryrules.search(new_name))
+                    self.assertIsNone(self.discoveryrules.get_entity(new_name))
 
     @run_only_on('sat')
     @tier1
@@ -575,7 +576,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 hostname=hostname,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             self.discoveryrules.update(
                 name=name, hostname=gen_string('numeric'))
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
@@ -604,7 +605,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 host_limit=limit,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             for new_limit in '-1', gen_string('alpha'):
                 with self.subTest(new_limit):
                     self.discoveryrules.update(
@@ -636,7 +637,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 priority=priority,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
             for new_priority in '-1', gen_string('alpha'):
                 with self.subTest(new_priority):
                     self.discoveryrules.update(
@@ -654,7 +655,8 @@ class DiscoveryRuleTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_order_rules_by_priority_and_create_time(self):
-        """Create rule with same priority and see their ordering should be based
+        """Create rule with same priority and see their ordering should be
+        based
         on create time.
 
         @id: 585c4bc2-6e34-4fdd-88fb-d788f9e0625b
@@ -736,7 +738,8 @@ class DiscoveryRuleRoleTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_create_rule_with_non_admin_user(self):
-        """Create rule with non-admin user by associating discovery_manager role
+        """Create rule with non-admin user by associating discovery_manager
+        role
 
         @id: 6a03983b-363d-4646-b277-34af5f5abc55
 
@@ -753,12 +756,13 @@ class DiscoveryRuleRoleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
             )
-            self.assertIsNotNone(self.discoveryrules.search(name))
+            self.assertIsNotNone(self.discoveryrules.get_entity(name))
 
     @run_only_on('sat')
     @tier2
     def test_positive_delete_rule_with_non_admin_user(self):
-        """Delete rule with non-admin user by associating discovery_manager role
+        """Delete rule with non-admin user by associating discovery_manager
+        role
 
         @id: 7fa56bab-82d7-46c9-a4fa-c44ef173c703
 

@@ -127,7 +127,7 @@ class ContentViewTestCase(UITestCase):
                     make_contentview(
                         session, org=self.organization.name, name=name)
                     self.assertIsNotNone(
-                        self.content_views.search(name),
+                        self.content_views.get_entity(name),
                         'Failed to find content view %s from %s org' % (
                             name, self.organization.name)
                     )
@@ -154,7 +154,7 @@ class ContentViewTestCase(UITestCase):
                             locators['contentviews.has_error']),
                         'No validation error found for "%s" from %s org' % (
                             name, self.organization.name))
-                    self.assertIsNone(self.content_views.search(name))
+                    self.assertIsNone(self.content_views.get_entity(name))
 
     @run_only_on('sat')
     @tier2
@@ -191,7 +191,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
@@ -227,7 +227,7 @@ class ContentViewTestCase(UITestCase):
                 repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_puppet_module(
                 cv_name,
                 puppet_module,
@@ -259,7 +259,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             make_contentview(
                 session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_filter(
                 cv_name,
                 filter_name,
@@ -289,7 +289,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.add_filter(
                 cv_name,
@@ -325,7 +325,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.add_filter(
                 cv_name,
@@ -360,7 +360,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.add_filter(
                 cv_name,
@@ -390,11 +390,12 @@ class ContentViewTestCase(UITestCase):
                 name=name,
                 description=gen_string('alpha', 15),
             )
-            self.assertIsNotNone(self.content_views.search(name))
+            self.assertIsNotNone(self.content_views.get_entity(name))
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.content_views.update(name, new_name)
-                    self.assertIsNotNone(self.content_views.search(new_name))
+                    self.assertIsNotNone(
+                        self.content_views.get_entity(new_name))
                     name = new_name  # for next iteration
 
     @run_only_on('sat')
@@ -410,7 +411,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             make_contentview(
                 session, org=self.organization.name, name=name)
-            self.assertIsNotNone(self.content_views.search(name))
+            self.assertIsNotNone(self.content_views.get_entity(name))
             # invalid_names_list is used instead of invalid_values_list
             # because save button will not be enabled if name is blank
             for new_name in invalid_names_list():
@@ -418,7 +419,7 @@ class ContentViewTestCase(UITestCase):
                     self.content_views.update(name, new_name)
                     self.assertIsNotNone(self.content_views.wait_until_element(
                         common_locators['alert.error_sub_form']))
-                    self.assertIsNone(self.content_views.search(new_name))
+                    self.assertIsNone(self.content_views.get_entity(new_name))
 
     @run_only_on('sat')
     @tier1
@@ -439,7 +440,7 @@ class ContentViewTestCase(UITestCase):
                 name=name,
                 description=desc,
             )
-            self.assertIsNotNone(self.content_views.search(name))
+            self.assertIsNotNone(self.content_views.get_entity(name))
             for new_desc in valid_data_list():
                 with self.subTest(new_desc):
                     self.content_views.update(name, new_description=new_desc)
@@ -484,7 +485,7 @@ class ContentViewTestCase(UITestCase):
                     make_contentview(
                         session, org=self.organization.name, name=name)
                     self.assertIsNotNone(
-                        self.content_views.search(name),
+                        self.content_views.get_entity(name),
                         'Failed to find content view %s from %s org' % (
                             name, self.organization.name)
                     )
@@ -526,7 +527,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name2)
-            self.assertIsNotNone(self.content_views.search(cv_name2))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name2))
             self.setup_to_create_cv(
                 repo_url=FAKE_0_PUPPET_REPO,
                 repo_type=REPO_TYPE['puppet'],
@@ -534,7 +535,7 @@ class ContentViewTestCase(UITestCase):
             )
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name1)
-            self.assertIsNotNone(self.content_views.search(cv_name1))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name1))
             self.content_views.add_puppet_module(
                 cv_name1,
                 puppet_module,
@@ -585,7 +586,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -635,7 +636,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -662,7 +663,7 @@ class ContentViewTestCase(UITestCase):
                 name=composite_name,
                 is_composite=True
             )
-            self.assertIsNotNone(self.content_views.search(composite_name))
+            self.assertIsNotNone(self.content_views.get_entity(composite_name))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_puppet_module(
                     composite_name, 'httpd', filter_term='Latest')
@@ -688,10 +689,10 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             make_contentview(
                 session, org=self.organization.name, name=cv1_name)
-            self.assertIsNotNone(self.content_views.search(cv1_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv1_name))
             make_contentview(
                 session, org=self.organization.name, name=cv2_name)
-            self.assertIsNotNone(self.content_views.search(cv2_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv2_name))
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.add_remove_cv(cv1_name, [cv2_name])
             self.assertEqual(
@@ -718,7 +719,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -726,8 +727,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertEqual(
                 context.exception.message,
-                u'Could not find repo "{0}" to add into CV'
-                .format(repo_name)
+                u'Could not find repo "{0}" to add into CV'.format(repo_name)
             )
 
     @stubbed()
@@ -782,7 +782,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -838,7 +838,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -919,7 +919,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -972,7 +972,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1077,7 +1077,7 @@ class ContentViewTestCase(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(
@@ -1092,7 +1092,7 @@ class ContentViewTestCase(UITestCase):
             )
             # Copy the CV
             self.content_views.copy_view(cv_name, copy_cv_name)
-            self.assertIsNotNone(self.content_views.search(copy_cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(copy_cv_name))
             self.assertEqual(
                 repo_name,
                 self.content_views.fetch_yum_content_repo_name(copy_cv_name)
@@ -1454,7 +1454,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(
                 cv_name,
@@ -1493,7 +1493,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(
                 cv_name,
@@ -1530,7 +1530,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(
                 cv_name,
@@ -1581,7 +1581,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(
                 cv_name,
@@ -1645,7 +1645,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add ostree repository to selected CV
             self.content_views.add_remove_repos(
                 cv_name,
@@ -1731,7 +1731,7 @@ class ContentViewTestCase(UITestCase):
         with Session(self.browser) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(
                 cv_name,

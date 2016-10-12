@@ -38,7 +38,7 @@ class SystemGroup(Base):
 
     def update(self, name, new_name=None, new_description=None, limit=None):
         """Updates existing System Group from UI"""
-        system_group = self.search(name)
+        system_group = self.get_entity(name)
         self.wait_for_ajax()
         if system_group:
             system_group.click()

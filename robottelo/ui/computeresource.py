@@ -118,7 +118,7 @@ class ComputeResource(Base):
     def update(self, name, newname=None, parameter_list=None,
                orgs=None, org_select=None, locations=None, loc_select=None):
         """Updates compute resource entity."""
-        element = self.search(name)
+        element = self.get_entity(name)
         if element is None:
             raise UINoSuchElementError(
                 'Could not find the resource {0}'.format(name))
@@ -147,7 +147,7 @@ class ComputeResource(Base):
         """Searches for specific container located in compute resource under
         'Containers' tab
         """
-        self.click(self.search(cr_name))
+        self.click(self.get_entity(cr_name))
         self.click(tab_locators['resource.tab_containers'])
         self.text_field_update(
             locators['resource.filter_containers'], container_name)
@@ -159,14 +159,14 @@ class ComputeResource(Base):
 
         Note: Currently lists only vms that show up on the first page.
         """
-        self.click(self.search(res_name))
+        self.click(self.get_entity(res_name))
         self.click(tab_locators['resource.tab_virtual_machines'])
         vm_elements = self.find_elements(locators['resource.vm_list'])
         return [vm.text for vm in vm_elements]
 
     def add_image(self, res_name, parameter_list):
         """Adds an image to a compute resource."""
-        self.click(self.search(res_name))
+        self.click(self.get_entity(res_name))
         self.click(locators['resource.image_add'])
         self.wait_until_element(locators['resource.image_name'])
         for parameter_name, parameter_value in parameter_list:
@@ -182,14 +182,14 @@ class ComputeResource(Base):
 
         Note: Currently lists only images that show up on the first page.
         """
-        self.click(self.search(res_name))
+        self.click(self.get_entity(res_name))
         self.click(tab_locators['resource.tab_images'])
         image_elements = self.find_elements(locators['resource.image_list'])
         return [image.text for image in image_elements]
 
     def vm_action_stop(self, res_name, vm_name, really):
         """Stops a vm on the compute resource."""
-        self.click(self.search(res_name))
+        self.click(self.get_entity(res_name))
         self.click(tab_locators['resource.tab_virtual_machines'])
         button = self.find_element(
             locators['resource.vm_power_button'] % vm_name
@@ -203,7 +203,7 @@ class ComputeResource(Base):
 
     def vm_action_start(self, res_name, vm_name):
         """Starts a vm on the compute resource."""
-        self.click(self.search(res_name))
+        self.click(self.get_entity(res_name))
         self.click(tab_locators['resource.tab_virtual_machines'])
         button = self.find_element(
             locators['resource.vm_power_button'] % vm_name
@@ -216,7 +216,7 @@ class ComputeResource(Base):
 
     def vm_action_toggle(self, res_name, vm_name, really):
         """Toggle power status of a vm on the compute resource."""
-        self.click(self.search(res_name))
+        self.click(self.get_entity(res_name))
         self.click(tab_locators['resource.tab_virtual_machines'])
         button = self.find_element(
             locators['resource.vm_power_button'] % vm_name
@@ -227,7 +227,7 @@ class ComputeResource(Base):
 
     def vm_delete(self, res_name, vm_name, really):
         """Removes a vm from the compute resource."""
-        self.click(self.search(res_name))
+        self.click(self.get_entity(res_name))
         self.click(tab_locators['resource.tab_virtual_machines'])
         for locator in [locators['resource.vm_delete_button_dropdown'],
                         locators['resource.vm_delete_button']]:

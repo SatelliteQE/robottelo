@@ -112,7 +112,7 @@ class OrganizationTestCase(UITestCase):
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
 
     @tier1
     def test_positive_create_with_unmatched_name_label(self):
@@ -128,7 +128,7 @@ class OrganizationTestCase(UITestCase):
                     org_name = gen_string('alphanumeric')
                     make_org(
                         session, org_name=org_name, label=label)
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     name = session.nav.wait_until_element(
                         locators['org.name']).get_attribute('value')
                     label = session.nav.wait_until_element(
@@ -147,7 +147,7 @@ class OrganizationTestCase(UITestCase):
             for item in valid_labels():
                 with self.subTest(item):
                     make_org(session, org_name=item, label=item)
-                    self.org.search(item).click()
+                    self.org.get_entity(item).click()
                     name = self.org.wait_until_element(
                         locators['org.name']).get_attribute('value')
                     label = self.org.wait_until_element(
@@ -170,8 +170,8 @@ class OrganizationTestCase(UITestCase):
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
-                    self.org.search(org_name).click()
+                    self.assertIsNotNone(self.org.get_entity(org_name))
+                    self.org.get_entity(org_name).click()
                     label = session.nav.wait_until_element(
                         locators['org.label'])
                     label_value = label.get_attribute('value')
@@ -194,7 +194,7 @@ class OrganizationTestCase(UITestCase):
                     location = entities.Location(name=name).create()
                     self.assertEqual(location.name, name)
                     make_org(session, org_name=name, locations=[name])
-                    self.assertIsNotNone(self.org.search(name))
+                    self.assertIsNotNone(self.org.get_entity(name))
                     organization = session.nav.go_to_select_org(name)
                     location = session.nav.go_to_select_loc(name)
                     self.assertEqual(organization, name)
@@ -230,7 +230,7 @@ class OrganizationTestCase(UITestCase):
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.create(org_name)
                     error = session.nav.wait_until_element(
                         common_locators['name_haserror'])
@@ -278,7 +278,7 @@ class OrganizationTestCase(UITestCase):
             session.nav.go_to_select_org('Default Organization')
             self.org.delete(org_name)
             for _ in range(10):
-                status = self.org.search(org_name)
+                status = self.org.get_entity(org_name)
                 if status is None:
                     break
             self.assertIsNone(status)
@@ -326,11 +326,11 @@ class OrganizationTestCase(UITestCase):
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            self.assertIsNotNone(self.org.get_entity(org_name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     self.org.update(org_name, new_name=new_name)
-                    self.assertIsNotNone(self.org.search(new_name))
+                    self.assertIsNotNone(self.org.get_entity(new_name))
                     org_name = new_name  # for next iteration
 
     @tier1
@@ -345,7 +345,7 @@ class OrganizationTestCase(UITestCase):
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            self.assertIsNotNone(self.org.get_entity(org_name))
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.org.update(org_name, new_name=new_name)
@@ -374,7 +374,7 @@ class OrganizationTestCase(UITestCase):
                     domain = entities.Domain(name=domain_name).create()
                     self.assertEqual(domain.name, domain_name)
                     make_org(session, org_name=org_name, domains=[domain_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % domain_name))
@@ -382,7 +382,7 @@ class OrganizationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, domains=[domain_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy, value % domain_name))
@@ -416,7 +416,7 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(user.login, user_name)
                     make_org(session, org_name=org_name, users=[user_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % user_name))
@@ -425,7 +425,7 @@ class OrganizationTestCase(UITestCase):
                     self.assertIsNotNone(element)
                     self.org.update(
                         org_name, users=[user_name], new_users=None)
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy, value % user_name))
@@ -456,7 +456,7 @@ class OrganizationTestCase(UITestCase):
                     self.assertEqual(host_grp.name, host_grp_name)
                     make_org(
                         session, org_name=org_name, hostgroups=[host_grp_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % host_grp_name))
@@ -468,7 +468,7 @@ class OrganizationTestCase(UITestCase):
                         hostgroups=[host_grp_name],
                         new_hostgroups=None
                     )
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -515,9 +515,9 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(subnet.name, subnet_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_subnets=[subnet_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy, value % subnet_name))
@@ -542,9 +542,9 @@ class OrganizationTestCase(UITestCase):
                     domain = entities.Domain(name=domain_name).create()
                     self.assertEqual(domain.name, domain_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_domains=[domain_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy, value % domain_name))
@@ -574,9 +574,9 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(user.login, user_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_users=[user_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy, value % user_name))
@@ -603,9 +603,9 @@ class OrganizationTestCase(UITestCase):
                     host_grp = entities.HostGroup(name=host_grp_name).create()
                     self.assertEqual(host_grp.name, host_grp_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_hostgroups=[host_grp_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -631,9 +631,9 @@ class OrganizationTestCase(UITestCase):
                     location = entities.Location(name=location_name).create()
                     self.assertEqual(location.name, location_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_locations=[location_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_locations'])
                     element = session.nav.wait_until_element(
                         (strategy, value % location_name))
@@ -667,7 +667,7 @@ class OrganizationTestCase(UITestCase):
                     self.assertEqual(resource.name, resource_name)
                     make_org(
                         session, org_name=org_name, resources=[resource_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % resource_name))
@@ -679,7 +679,7 @@ class OrganizationTestCase(UITestCase):
                         resources=[resource_name],
                         new_resources=None
                     )
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
                         (strategy, value % resource_name))
@@ -712,7 +712,7 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(medium.name, medium_name)
                     make_org(session, org_name=org_name, medias=[medium_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % medium_name))
@@ -722,7 +722,7 @@ class OrganizationTestCase(UITestCase):
                     self.navigator.go_to_org()
                     self.org.update(
                         org_name, medias=[medium_name], new_medias=None)
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy, value % medium_name))
@@ -751,7 +751,7 @@ class OrganizationTestCase(UITestCase):
                     entities.ConfigTemplate(name=template_name).create()
                     make_org(
                         session, org_name=org_name, templates=[template_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % template_name))
@@ -759,7 +759,7 @@ class OrganizationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, templates=[template_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_template'])
                     element = self.org.wait_until_element(
                         (strategy, value % template_name))
@@ -788,7 +788,7 @@ class OrganizationTestCase(UITestCase):
                     entities.PartitionTable(name=ptable_name).create()
                     make_org(
                         session, org_name=org_name, ptables=[ptable_name])
-                    self.org.click(self.org.search(org_name))
+                    self.org.click(self.org.get_entity(org_name))
                     self.org.click(tab_locators['context.tab_ptable'])
                     element = self.org.wait_until_element(
                         (strategy1, value1 % ptable_name))
@@ -796,7 +796,7 @@ class OrganizationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, ptables=[ptable_name])
-                    self.org.click(self.org.search(org_name))
+                    self.org.click(self.org.get_entity(org_name))
                     self.org.click(tab_locators['context.tab_ptable'])
                     element = self.org.wait_until_element(
                         (strategy, value % ptable_name))
@@ -823,9 +823,9 @@ class OrganizationTestCase(UITestCase):
                     env = entities.Environment(name=env_name).create_json()
                     self.assertEqual(env['name'], env_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_envs=[env_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy, value % env_name))
@@ -873,9 +873,9 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(resource.name, resource_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_resources=[resource_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
                         (strategy, value % resource_name))
@@ -905,9 +905,9 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(medium.name, medium_name)
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_medias=[medium_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy, value % medium_name))
@@ -933,9 +933,9 @@ class OrganizationTestCase(UITestCase):
                     # Create config template using nailgun
                     entities.ConfigTemplate(name=template_name).create()
                     make_org(session, org_name=org_name)
-                    self.assertIsNotNone(self.org.search(org_name))
+                    self.assertIsNotNone(self.org.get_entity(org_name))
                     self.org.update(org_name, new_templates=[template_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy, value % template_name))
@@ -962,7 +962,7 @@ class OrganizationTestCase(UITestCase):
                     env = entities.Environment(name=env_name).create_json()
                     self.assertEqual(env['name'], env_name)
                     make_org(session, org_name=org_name, envs=[env_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % env_name))
@@ -970,7 +970,7 @@ class OrganizationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, envs=[env_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy, value % env_name))
@@ -1003,7 +1003,7 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(subnet.name, subnet_name)
                     make_org(session, org_name=org_name, subnets=[subnet_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % subnet_name))
@@ -1011,7 +1011,7 @@ class OrganizationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, subnets=[subnet_name])
-                    self.org.search(org_name).click()
+                    self.org.get_entity(org_name).click()
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy, value % subnet_name))
