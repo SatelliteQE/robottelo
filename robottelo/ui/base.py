@@ -219,17 +219,15 @@ class Base(object):
         for entity in entity_list:
             # Scroll to top
             self.browser.execute_script('window.scroll(0, 0)')
-            strategy, value = common_locators['filter']
-            txt_field = self.wait_until_element((strategy, value % filter_key))
+            txt_field = self.wait_until_element(
+                common_locators['filter'] % filter_key)
             self.logger.debug(u'Toggling entity %s select state', entity)
             if txt_field:
                 txt_field.clear()
                 txt_field.send_keys(entity)
-                strategy, value = loc
-                self.click((strategy, value % entity))
+                self.click(loc % entity)
             else:
-                strategy, value = common_locators['entity_checkbox']
-                self.click((strategy, value % entity))
+                self.click(common_locators['entity_checkbox'] % entity)
 
     def configure_entity(self, entity_list, filter_key, tab_locator=None,
                          new_entity_list=None, entity_select=True):

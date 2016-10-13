@@ -113,6 +113,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@href='#primary']"),
     "roles.tab_org": (
         By.XPATH, "//a[@href='#organizations']"),
+    "roles.tab_location": (
+        By.XPATH, "//a[@href='#locations']"),
 
     # GPG key
     # Third level UI
