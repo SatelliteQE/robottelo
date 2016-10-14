@@ -74,3 +74,10 @@ class Template(Base):
         cls.command_sub = 'clone'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def build_pxe_default(cls, options=None):
+        """Build PXE default template"""
+        cls.command_sub = 'build-pxe-default'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
