@@ -15,12 +15,130 @@
 
 @Upstream: No
 """
-from robottelo.decorators import run_only_on, stubbed, tier3
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.discoveredhost import DiscoveredHost
+from robottelo.cli.factory import make_org, make_location
+from robottelo.cli.settings import Settings
+from robottelo.cli.template import Template
+from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
+from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import CLITestCase
+from time import sleep
 
 
-class DiscoveryTestCase(CLITestCase):
+class DiscoveredTestCase(CLITestCase):
     """Implements Foreman discovery CLI tests."""
+
+    def _assertdiscoveredhost(self, hostname):
+        """Check if host is discovered and information about it can be
+        retrieved back
+
+        Introduced a delay of 300secs by polling every 10 secs to get expected
+        host
+        """
+        for _ in range(30):
+            try:
+                discovered_host = DiscoveredHost.info({'name': hostname})
+            except CLIReturnCodeError:
+                sleep(10)
+                continue
+            return discovered_host
+
+    @classmethod
+    @skip_if_not_set('vlan_networking')
+    def setUpClass(cls):
+        """Steps to Configure foreman discovery
+
+        1. Build PXE default template
+        2. Create Organization/Location
+        3. Update Global parameters to set default org and location for
+           discovered hosts.
+        4. Enable auto_provision flag to perform discovery via discovery
+           rules.
+        """
+        super(DiscoveredTestCase, cls).setUpClass()
+
+        # Build PXE default template to get default PXE file
+        Template.build_pxe_default()
+
+        # Create Org and location
+        cls.org = make_org()
+        cls.loc = make_location()
+
+        # Get default settings values
+        cls.default_discovery_loc = Settings.list(
+            {'search': 'name=%s' % 'discovery_location'})[0]
+        cls.default_discovery_org = Settings.list(
+            {'search': 'name=%s' % 'discovery_organization'})[0]
+        cls.default_discovery_auto = Settings.list(
+            {'search': 'name=%s' % 'discovery_auto'})[0]
+
+        # Update default org and location params to place discovered host
+        Settings.set({'name': 'discovery_location', 'value': cls.loc['name']})
+        Settings.set(
+            {'name': 'discovery_organization', 'value': cls.org['name']})
+
+        # Enable flag to auto provision discovered hosts via discovery rules
+        Settings.set({'name': 'discovery_auto', 'value': 'true'})
+
+    @classmethod
+    def tearDownClass(cls):
+        """Restore default global setting's values"""
+        Settings.set({
+            'name': 'discovery_location',
+            'value': cls.default_discovery_loc['value']
+        })
+        Settings.set({
+            'name': 'discovery_organization',
+            'value': cls.default_discovery_org['value']
+        })
+        Settings.set({
+            'name': 'discovery_auto',
+            'value': cls.default_discovery_auto['value']
+        })
+        super(DiscoveredTestCase, cls).tearDownClass()
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_pxe_based_discovery(self):
+        """Discover a host via PXE boot by setting "proxy.type=proxy" in
+        PXE default
+
+        @id: 25e935fe-18f4-477e-b791-7ea5a395b4f6
+
+        @Setup: Provisioning should be configured
+
+        @Steps: PXE boot a host/VM
+
+        @Assert: Host should be successfully discovered
+
+        @CaseLevel: System
+        """
+        with LibvirtGuest() as pxe_host:
+            hostname = pxe_host.guest_name
+            host = self._assertdiscoveredhost(hostname)
+            self.assertIsNotNone(host)
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_pxe_less_with_dhcp_unattended(self):
+        """Discover a host with dhcp via bootable discovery ISO by setting
+        "proxy.type=proxy" in PXE default in unattended mode.
+
+        @id: a23bd065-8385-4876-aa45-e38470be79b8
+
+        @Setup: Provisioning should be configured
+
+        @Steps: Boot a host/VM using modified discovery ISO.
+
+        @Assert: Host should be successfully discovered
+
+        @CaseLevel: System
+        """
+        with LibvirtGuest(boot_iso=True) as pxe_less_host:
+            hostname = pxe_less_host.guest_name
+            host = self._assertdiscoveredhost(hostname)
+            self.assertIsNotNone(host)
 
     @run_only_on('sat')
     @stubbed()

@@ -35,6 +35,16 @@ Submodules:
 
 .. automodule:: robottelo.cli.contentview
 
+:mod:`robottelo.cli.discoveredhost`
+-----------------------------------
+
+.. automodule:: robottelo.cli.discoveredhost
+
+:mod:`robottelo.cli.discoveryrule`
+----------------------------------
+
+.. automodule:: robottelo.cli.discoveryrule
+
 :mod:`robottelo.cli.docker`
 ---------------------------
 
