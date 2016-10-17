@@ -702,6 +702,111 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_negative_add_unpublished_cv_to_composite(self):
+        """Attempt to associate unpublished non-composite content view with
+        composite content view.
+
+        @id: dc253606-3425-489d-bc01-266787d36841
+
+        @steps:
+
+        1. Create an empty non-composite content view. Do not publish it.
+        2. Create a new composite content view
+
+        @assert: Non-composite content view is not listed as available to be
+        added to composite content view.
+
+        @CaseLevel: Integration
+
+        @BZ: 1367123
+        """
+        unpublished_cv_name = gen_string('alpha')
+        composite_cv_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            # Create unpublished component CV
+            make_contentview(
+                session, org=self.organization.name, name=unpublished_cv_name)
+            self.assertIsNotNone(
+                self.content_views.search(unpublished_cv_name))
+            # Create composite CV
+            make_contentview(
+                session,
+                org=self.organization.name,
+                name=composite_cv_name,
+                is_composite=True
+            )
+            self.assertIsNotNone(self.content_views.search(composite_cv_name))
+            # Add component to composite CV
+            with self.assertRaises(UINoSuchElementError):
+                self.content_views.add_remove_cv(
+                    composite_cv_name, [unpublished_cv_name])
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_add_non_composite_cv_to_composite(self):
+        """Attempt to associate both published and unpublished
+        non-composite content views with composite content view.
+
+        @id: 93307c2a-a03f-44fa-972d-43f6e40b9de6
+
+        @steps:
+
+        1. Create an empty non-composite content view. Do not publish it
+        2. Create a second non-composite content view. Publish it.
+        3. Create a new composite content view.
+        4. Add the published non-composite content view to the composite
+            content view.
+
+        @assert:
+
+        1. Unpublished non-composite content view is not listed as available
+            to be added to composite content view.
+        2. Published non-composite content view is listed as available to be
+            added to composite content view.
+        3. Published non-composite content view is successfully added to
+            composite content view.
+
+        @CaseLevel: Integration
+
+        @BZ: 1367123
+        """
+        published_cv_name = gen_string('alpha')
+        unpublished_cv_name = gen_string('alpha')
+        composite_cv_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            # Create published component CV
+            make_contentview(
+                session, org=self.organization.name, name=published_cv_name)
+            self.assertIsNotNone(
+                self.content_views.search(published_cv_name))
+            self.content_views.publish(published_cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Create unpublished component CV
+            make_contentview(
+                session, org=self.organization.name, name=unpublished_cv_name)
+            self.assertIsNotNone(
+                self.content_views.search(unpublished_cv_name))
+            # Create composite CV
+            make_contentview(
+                session,
+                org=self.organization.name,
+                name=composite_cv_name,
+                is_composite=True
+            )
+            self.assertIsNotNone(self.content_views.search(composite_cv_name))
+            # Add published component to composite CV
+            self.content_views.add_remove_cv(
+                composite_cv_name, [published_cv_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Add unpublished component to composite CV
+            with self.assertRaises(UINoSuchElementError):
+                self.content_views.add_remove_cv(
+                    composite_cv_name, [unpublished_cv_name])
+
+    @run_only_on('sat')
+    @tier2
     def test_negative_add_dupe_repos(self):
         """attempt to associate the same repo multiple times within a
         content view
