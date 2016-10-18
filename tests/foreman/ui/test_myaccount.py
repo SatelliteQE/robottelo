@@ -17,7 +17,7 @@
 """
 import random
 
-from fauxfactory import gen_string
+from fauxfactory import gen_string, gen_alpha
 from nailgun.entities import User
 from robottelo.constants import LANG_TO_LOCALE_DCT
 from robottelo.decorators import stubbed, tier1
@@ -62,7 +62,7 @@ class MyAccountTestCase(UITestCase):
         """Setup of myaccount"""
         super(MyAccountTestCase, self).setUp()
         self.my_account = MyAccount(self.browser)
-        user = User(login=gen_string('alpha', 10), password='password')
+        user = User(login=gen_alpha(), password='password')
         user.id = user.create().id
         # Creating user for each test to not mess with default user
         self.user = user
@@ -159,7 +159,7 @@ class MyAccountTestCase(UITestCase):
 
         for lang, locale in LANG_TO_LOCALE_DCT.items():
             with self.subTest(lang):
-                user = User(login=gen_string('alpha', 10), password='password')
+                user = User(login=gen_alpha(), password='password')
                 user.id = user.create().id
                 with Session(self.browser, user.login, user.password):
                     self.my_account.navigate_to_entity()
@@ -190,7 +190,6 @@ class MyAccountTestCase(UITestCase):
 
         @Assert: User is updated
         """
-
         for password in _valid_string_data(max_len=254):
             with self.subTest(password):
                 with self.logged_test_user():
