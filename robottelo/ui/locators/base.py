@@ -1293,9 +1293,13 @@ locators = LocatorDict({
     "ak.content_host_name": (
         By.XPATH,
         "//tr[@ng-controller='ContentHostStatusController']/td/a"),
+    "ak.content_host_select": (
+        By.XPATH,
+        ("//tr[@ng-controller='ContentHostStatusController']/td"
+         "/a[contains(., '%s')]")),
     "ak.prd_content.edit_repo": (
         By.XPATH,
-        ("//u[contains(.,'%s')]/../..//i[contains(@class,'fa-edit')]")),
+        "//u[contains(.,'%s')]/../..//i[contains(@class,'fa-edit')]"),
     "ak.prd_content.select_repo": (
         By.XPATH,
         "//u[contains(.,'%s')]/../../div/form/div/select"),

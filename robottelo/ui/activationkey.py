@@ -59,6 +59,16 @@ class ActivationKey(Base):
             (strategy, value % subscription_name))
         return element
 
+    def search_host(self, ak_name, host_name):
+        """Search for host activated by selected activation key."""
+        self.click(self.search(ak_name))
+        self.click(tab_locators['ak.associations'])
+        self.click(locators['ak.content_hosts'])
+        self.assign_value(common_locators['kt_table_search'], host_name)
+        self.click(common_locators['kt_table_search_button'])
+        return self.wait_until_element(
+            locators['ak.content_host_select'] % host_name)
+
     def update(self, name, new_name=None, description=None,
                limit=None, content_view=None, env=None):
         """Updates an existing activation key."""
