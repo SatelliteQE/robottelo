@@ -341,7 +341,7 @@ class SmartClassParametersTestCase(CLITestCase):
             })
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1352502)
+    @skip_if_bug_open('bugzilla', 1357864)
     @tier1
     def test_positive_puppet_default(self):
         """On Override, Set Puppet Default Value.
