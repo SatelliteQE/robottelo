@@ -290,6 +290,7 @@ DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
+DEFAULT_ROLE = 'Default role'
 
 LANGUAGES = [
     u'zh_TW',

@@ -25,23 +25,31 @@ from robottelo.cli.factory import (
     make_activation_key,
     make_content_host,
     make_content_view,
+    make_content_view_filter,
+    make_content_view_filter_rule,
+    make_filter,
     make_lifecycle_environment,
     make_org,
     make_product,
     make_repository,
+    make_role,
     make_user,
 )
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
+from robottelo.cli.user import User
 from robottelo.constants import (
     DEFAULT_CV,
+    DEFAULT_ROLE,
     DOCKER_REGISTRY_HUB,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_1_YUM_REPO,
     FEDORA23_OSTREE_REPO,
+    PERMISSIONS,
     PRDS,
     REPOS,
     REPOSET,
@@ -235,8 +243,9 @@ class ContentViewTestCase(CLITestCase):
         con_view = ContentView.info({'id': con_view['id']})
         self.assertEqual(con_view['name'], new_name)
 
+    @run_in_one_thread
     @run_only_on('sat')
-    @stubbed
+    @tier2
     def test_positive_update_filter(self):
         # Variations might be:
         # * A filter on errata date (only content that matches date
@@ -249,9 +258,42 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Edited content view save is successful and info is updated
 
-        @caseautomation: notautomated
-
+        @CaseLevel: Integration
         """
+        self.create_rhel_content()
+        # Create CV
+        new_cv = make_content_view({
+            'organization-id': self.rhel_content_org['id']
+        })
+        # Associate repo to CV
+        ContentView.add_repository({
+            'id': new_cv['id'],
+            'organization-id': ContentViewTestCase.rhel_content_org['id'],
+            'repository-id': ContentViewTestCase.rhel_repo['id'],
+        })
+        new_cv = ContentView.info({'id': new_cv['id']})
+        self.assertEqual(
+            new_cv['yum-repositories'][0]['name'],
+            ContentViewTestCase.rhel_repo_name,
+        )
+        cvf = make_content_view_filter({
+            'content-view-id': new_cv['id'],
+            'inclusion': 'true',
+            'type': 'erratum',
+        })
+        cvf_rule = make_content_view_filter_rule({
+            'content-view-filter-id': cvf['filter-id'],
+            'types': ['bugfix', 'enhancement'],
+        })
+        cvf = ContentView.filter.info({'id': cvf['filter-id']})
+        self.assertNotIn('security', cvf['rules'][0]['types'])
+        ContentView.filter.rule.update({
+            'id': cvf_rule['rule-id'],
+            'types': 'security',
+            'content-view-filter-id': cvf['filter-id'],
+        })
+        cvf = ContentView.filter.info({'id': cvf['filter-id']})
+        self.assertEqual('security', cvf['rules'][0]['types'])
 
     # pylint: disable=unexpected-keyword-arg
     @tier1
@@ -846,13 +888,13 @@ class ContentViewTestCase(CLITestCase):
             'Repo was not associated to CV',
         )
         name = gen_string('alphanumeric')
-        ContentView.filter_create({
+        ContentView.filter.create({
             'content-view-id': new_cv['id'],
             'inclusion': 'true',
             'name': name,
             'type': 'rpm',
         })
-        ContentView.filter_rule_create({
+        ContentView.filter.rule.create({
             'content-view-filter': name,
             'content-view-id': new_cv['id'],
             'name': 'walgrind',
@@ -1121,8 +1163,9 @@ class ContentViewTestCase(CLITestCase):
         }
         self.assertIn(environment, new_cv['lifecycle-environments'])
 
+    @run_in_one_thread
     @run_only_on('sat')
-    @stubbed
+    @tier2
     def test_positive_promote_rh_and_custom_content(self):
         """attempt to promote a content view containing RH content and
         custom content using filters
@@ -1133,9 +1176,57 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Content view can be promoted
 
-        @caseautomation: notautomated
-
+        @CaseLevel: Integration
         """
+        # Enable RH repo
+        self.create_rhel_content()
+        # Create custom repo
+        new_repo = make_repository({
+            'product-id': make_product({
+                'organization-id': self.rhel_content_org['id']})['id']
+        })
+        # Sync custom repo
+        Repository.synchronize({'id': new_repo['id']})
+        # Create CV
+        new_cv = make_content_view({
+            'organization-id': self.rhel_content_org['id'],
+        })
+        # Associate repos with CV
+        ContentView.add_repository({
+            'id': new_cv['id'],
+            'repository-id': self.rhel_repo['id'],
+        })
+        ContentView.add_repository({
+            'id': new_cv['id'],
+            'repository-id': new_repo['id'],
+        })
+        cvf = make_content_view_filter({
+            'content-view-id': new_cv['id'],
+            'inclusion': 'false',
+            'type': 'rpm',
+        })
+        make_content_view_filter_rule({
+            'content-view-filter-id': cvf['filter-id'],
+            'min-version': 5,
+            'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+        })
+        # Publish a new version of CV
+        ContentView.publish({'id': new_cv['id']})
+        new_cv = ContentView.info({'id': new_cv['id']})
+        env1 = make_lifecycle_environment({
+            'organization-id': ContentViewTestCase.rhel_content_org['id'],
+        })
+        # Promote the Published version of CV to the next env
+        ContentView.version_promote({
+            'id': new_cv['versions'][0]['id'],
+            'to-lifecycle-environment-id': env1['id'],
+        })
+        new_cv = ContentView.info({'id': new_cv['id']})
+        environment = {
+            'id': env1['id'],
+            'name': env1['name'],
+        }
+        self.assertIn(environment, new_cv['lifecycle-environments'])
 
     @tier2
     @run_only_on('sat')
@@ -1341,8 +1432,9 @@ class ContentViewTestCase(CLITestCase):
             'Publishing new version of CV was not successful'
         )
 
+    @run_in_one_thread
     @run_only_on('sat')
-    @stubbed
+    @tier2
     def test_positive_publish_rh_and_custom_content(self):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
@@ -1353,9 +1445,48 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Content view can be published
 
-        @caseautomation: notautomated
-
+        @CaseLevel: Integration
         """
+        # Enable RH repo
+        self.create_rhel_content()
+        # Create custom repo
+        new_repo = make_repository({
+            'product-id': make_product({
+                'organization-id': self.rhel_content_org['id']})['id']
+        })
+        # Sync custom repo
+        Repository.synchronize({'id': new_repo['id']})
+        # Create CV
+        new_cv = make_content_view({
+            'organization-id': self.rhel_content_org['id'],
+        })
+        # Associate repos with CV
+        ContentView.add_repository({
+            'id': new_cv['id'],
+            'repository-id': self.rhel_repo['id'],
+        })
+        ContentView.add_repository({
+            'id': new_cv['id'],
+            'repository-id': new_repo['id'],
+        })
+        cvf = make_content_view_filter({
+            'content-view-id': new_cv['id'],
+            'inclusion': 'false',
+            'type': 'rpm',
+        })
+        make_content_view_filter_rule({
+            'content-view-filter-id': cvf['filter-id'],
+            'min-version': 5,
+            'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+        })
+        # Publish a new version of CV
+        ContentView.publish({'id': new_cv['id']})
+        new_cv = ContentView.info({'id': new_cv['id']})
+        self.assertTrue(
+            {self.rhel_repo['name'], new_repo['name']}.issubset(
+                {repo['name'] for repo in new_cv['yum-repositories']})
+        )
+        self.assertEqual(new_cv['versions'][0]['version'], '1.0')
 
     @tier2
     @run_only_on('sat')
@@ -1768,14 +1899,14 @@ class ContentViewTestCase(CLITestCase):
         )
 
         name = gen_string('utf8')
-        ContentView.filter_create({
+        ContentView.filter.create({
             'content-view-id': content_view['id'],
             'inclusion': 'true',
             'name': name,
             'type': 'rpm',
         })
 
-        ContentView.filter_rule_create({
+        ContentView.filter.rule.info({
             'content-view-filter': name,
             'content-view-id': content_view['id'],
             'name': gen_string('utf8'),
@@ -2105,7 +2236,7 @@ class ContentViewTestCase(CLITestCase):
                     ).info({'id': con_view['id']})
 
     @run_only_on('sat')
-    @stubbed()
+    @tier2
     def test_negative_user_with_read_only_cv_permission(self):
         """Read-only user is able to view content view
 
@@ -2116,12 +2247,50 @@ class ContentViewTestCase(CLITestCase):
         @assert: User with read-only role for content view can view the content
         view but not Create / Modify / Promote / Publish
 
-        @caseautomation: notautomated
-
+        @CaseLevel: Integration
         """
+        cv = make_content_view({'organization-id': self.org['id']})
+        password = gen_string('alphanumeric')
+        user = make_user({'password': password})
+        role = make_role()
+        make_filter({
+            'organization-ids': self.org['id'],
+            'permissions': 'view_content_views',
+            'role-id': role['id'],
+        })
+        User.add_role({
+            'id': user['id'],
+            'role-id': role['id'],
+        })
+        ContentView.with_user(user['login'], password).info({'id': cv['id']})
+        # Verify read-only user can't either edit CV
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.with_user(user['login'], password).update({
+                'id': cv['id'],
+                'new-name': gen_string('alphanumeric'),
+            })
+        # or create a new one
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.with_user(user['login'], password).create({
+                'name': gen_string('alphanumeric'),
+                'organization-id': self.org['id'],
+            })
+        # or publish
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.with_user(user['login'], password).publish({
+                'id': cv['id']})
+        ContentView.publish({'id': cv['id']})
+        cvv = ContentView.info({'id': cv['id']})['versions'][-1]
+        # or promote
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.with_user(user['login'], password).version_promote({
+                'id': cvv['id'],
+                'organization-id': self.org['id'],
+                'to-lifecycle-environment-id': self.env1['id'],
+            })
 
     @run_only_on('sat')
-    @stubbed()
+    @tier2
     def test_positive_user_with_all_cv_permissions(self):
         """A user with all content view permissions is able to create,
         read, modify, promote, publish content views
@@ -2133,9 +2302,62 @@ class ContentViewTestCase(CLITestCase):
         @assert: User is able to perform create, read, modify, promote, publish
         content view
 
-        @caseautomation: notautomated
-
+        @CaseLevel: Integration
         """
+        cv = make_content_view({'organization-id': self.org['id']})
+        password = gen_string('alphanumeric')
+        user = make_user({'password': password})
+        role = make_role()
+        make_filter({
+            'organization-ids': self.org['id'],
+            'permissions': PERMISSIONS['Katello::ContentView'],
+            'role-id': role['id'],
+        })
+        make_filter({
+            'organization-ids': self.org['id'],
+            'permissions': PERMISSIONS['Katello::KTEnvironment'],
+            'role-id': role['id'],
+        })
+        User.add_role({
+            'id': user['id'],
+            'role-id': role['id'],
+        })
+        # Make sure user is not admin and has only expected roles assigned
+        user = User.info({'id': user['id']})
+        self.assertEqual(user['admin'], 'no')
+        self.assertEqual(set(user['roles']), {DEFAULT_ROLE, role['name']})
+        # Verify user can either edit CV
+        ContentView.with_user(user['login'], password).info({'id': cv['id']})
+        new_name = gen_string('alphanumeric')
+        ContentView.with_user(user['login'], password).update({
+            'id': cv['id'],
+            'new-name': new_name,
+        })
+        cv = ContentView.info({'id': cv['id']})
+        self.assertEqual(cv['name'], new_name)
+        # or create a new one
+        new_cv_name = gen_string('alphanumeric')
+        new_cv = ContentView.with_user(user['login'], password).create({
+            'name': new_cv_name,
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(new_cv['name'], new_cv_name)
+        # or publish
+        ContentView.with_user(user['login'], password).publish({
+            'id': cv['id']})
+        cv = ContentView.info({'id': cv['id']})
+        self.assertEqual(len(cv['versions']), 1)
+        # or promote
+        ContentView.with_user(user['login'], password).version_promote({
+            'id': cv['versions'][-1]['id'],
+            'organization-id': self.org['id'],
+            'to-lifecycle-environment-id': self.env1['id'],
+        })
+        cv = ContentView.info({'id': cv['id']})
+        self.assertIn(
+            self.env1['id'],
+            [env['id'] for env in cv['lifecycle-environments']],
+        )
 
 
 class OstreeContentViewTestCase(CLITestCase):

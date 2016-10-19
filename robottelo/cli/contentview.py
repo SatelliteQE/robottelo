@@ -35,13 +35,60 @@ Options::
 """
 
 from robottelo.cli import hammer
-from robottelo.cli.base import Base
+from robottelo.cli.base import Base, CLIError
+
+
+class ContentViewFilterRule(Base):
+    """Manipulates content view filter rules."""
+
+    command_base = 'content-view filter rule'
+
+    @classmethod
+    def create(cls, options=None):
+        """Create a content-view filter rule"""
+        if (
+                not options or
+                'content-view-filter' not in options and
+                'content-view-filter-id' not in options):
+            raise CLIError(
+                'Could not find content_view_filter, please set one of options'
+                ' "content-view-filter" or "content-view-filter-id".'
+            )
+        cls.command_sub = 'create'
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+        # Extract new CV filter rule ID if it was successfully created
+        if len(result) > 0 and 'id' in result[0]:
+            cvfr_id = result[0]['id']
+            # CV filter rule can only be fetched by specifying either
+            # content-view-filter-id or content-view-filter + content-view-id.
+            # Passing these options to info command
+            info_options = {
+                'content-view-id': options.get('content-view-id'),
+                'content-view-filter': options.get('content-view-filter'),
+                'content-view-filter-id': options.get(
+                    'content-view-filter-id'),
+                'id': cvfr_id,
+            }
+            result = cls.info(info_options)
+        return result
+
+
+class ContentViewFilter(Base):
+    """Manipulates content view filters."""
+
+    command_base = 'content-view filter'
+
+    rule = ContentViewFilterRule
 
 
 class ContentView(Base):
     """Manipulates Foreman's content view."""
 
     command_base = 'content-view'
+
+    filter = ContentViewFilter
 
     @classmethod
     def add_repository(cls, options):
@@ -112,128 +159,6 @@ class ContentView(Base):
             options = {}
 
         return hammer.parse_info(cls.execute(cls._construct_command(options)))
-
-    @classmethod
-    def filter_info(cls, options):
-        """Provides filter info related to content-view's version."""
-
-        cls.command_sub = 'filter info'
-
-        if options is None:
-            options = {}
-
-        return hammer.parse_info(cls.execute(cls._construct_command(options)))
-
-    @classmethod
-    def filter_create(cls, options):
-        """Add new filter to content view entity.
-
-        Usage::
-
-            hammer content-view filter create [OPTIONS]
-
-        Options::
-
-            --content-view CONTENT_VIEW_NAME    Content view name
-            --content-view-id CONTENT_VIEW_ID   Content view numeric identifier
-            --description DESCRIPTION           Description of the filter
-            --inclusion INCLUSION               Specifies if content should be
-                                                included or excluded, default:
-                                                inclusion=false (One of yes/no,
-                                                1/0, true/false)
-            --name NAME                         name of the filter
-            --organization ORGANIZATION_NAME    Organization name to search by
-            --organization-id ORGANIZATION_ID   Organization ID
-            --organization-label ORGANIZATION_LABEL   Organization label to
-                                                      search by
-            --original-packages ORIGINAL_PACKAGES     Add all packages without
-                                                      Errata to the included/
-                                                      excluded list. (Package
-                                                      Filter only)
-            --repositories REPOSITORY_NAMES      Comma separated list of values
-            --repository-ids REPOSITORY_IDS      Repository ID
-            --type TYPE                          type of filter (e.g. rpm,
-                                                 package_group, erratum)
-        """
-        cls.command_sub = 'filter create'
-        if options is None:
-            options = {}
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
-        if isinstance(result, list):
-            result = result[0]
-        return result
-
-    @classmethod
-    def filter_update(cls, options):
-        """Update existing content view filter entity.
-
-        Usage::
-
-            hammer content-view filter update [OPTIONS]
-
-        Options::
-
-            --content-view CONTENT_VIEW_NAME    Content view name
-            --content-view-id CONTENT_VIEW_ID   Content view numeric identifier
-            --id ID                             filter identifier
-            --inclusion INCLUSION               Specifies if content should be
-                                                included or excluded, default:
-                                                inclusion=false (One of yes/no,
-                                                1/0, true/false)
-            --name NAME                         Name to search by
-            --new-name NEW_NAME                 new name for the filter
-            --organization ORGANIZATION_NAME    Organization name to search by
-            --organization-id ORGANIZATION_ID   Organization ID
-            --organization-label ORGANIZATION_LABEL   Organization label to
-                                                      search by
-            --original-packages ORIGINAL_PACKAGES     Add all packages without
-                                                      Errata to the included/
-                                                      excluded list. (Package
-                                                      Filter only)
-            --repositories REPOSITORY_NAMES      Repository Name
-                                                 Comma separated list of values
-            --repository-ids REPOSITORY_IDS      Repository ID
-                                                 Comma separated list of values
-
-        """
-        cls.command_sub = 'filter update'
-        if options is None:
-            options = {}
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def filter_delete(cls, options):
-        """Delete existing content view filter entity.
-
-        Usage::
-
-            hammer content-view filter delete [OPTIONS]
-
-        Options::
-
-            --content-view CONTENT_VIEW_NAME    Content view name
-            --content-view-id CONTENT_VIEW_ID   Content view numeric identifier
-            --id ID                             filter identifier
-            --name NAME                         Name to search by
-            --organization ORGANIZATION_NAME    Organization name to search by
-            --organization-id ORGANIZATION_ID   Organization ID
-            --organization-label ORGANIZATION_LABEL   Organization label to
-                                                      search by
-
-        """
-        cls.command_sub = 'filter delete'
-        if options is None:
-            options = {}
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def filter_rule_create(cls, options):
-        """Add new rule to content view filter."""
-        cls.command_sub = 'filter rule create'
-        if options is None:
-            options = {}
-        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def version_list(cls, options):
