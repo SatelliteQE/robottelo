@@ -1116,6 +1116,105 @@ class ContentViewTestCase(CLITestCase):
                     u'name': puppet_module['name'],
                 })
 
+    @tier2
+    @run_only_on('sat')
+    def test_negative_add_unpublished_cv_to_composite(self):
+        """Attempt to associate unpublished non-composite content view with
+        composite content view.
+
+        @id: acee782f-2792-4c4e-b0c9-87d6b89992ef
+
+        @steps:
+
+        1. Create an empty non-composite content view. Do not publish it.
+        2. Create a new composite content view
+
+        @assert: Non-composite content view cannot be added to
+        composite content view.
+
+        @CaseLevel: Integration
+
+        @BZ: 1367123
+        """
+        # Create component CV
+        content_view = make_content_view({'organization-id': self.org['id']})
+        # Create composite CV
+        composite_cv = make_content_view({
+            'organization-id': self.org['id'],
+            'composite': True,
+        })
+        # Add unpublished component CV
+        with self.assertRaises(CLIReturnCodeError) as context:
+            ContentView.add_version({
+                'id': composite_cv['id'],
+                'content-view-version-content-view-id': content_view['id'],
+            })
+        self.assertRegexpMatches(
+            context.exception.message,
+            "Could not add version:\s*"
+            "Error: one of content_view_versions not found"
+        )
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_add_non_composite_cv_to_composite(self):
+        """Attempt to associate both published and unpublished
+        non-composite content views with composite content view.
+
+        @id: 4f6d3308-8083-4fc3-bb4f-5d5e1b886a96
+
+        @steps:
+
+        1. Create an empty non-composite content view. Do not publish it
+        2. Create a second non-composite content view. Publish it.
+        3. Create a new composite content view.
+        4. Add the published non-composite content view to the composite
+            content view.
+
+        @assert:
+
+        1. Unpublished non-composite content view cannot be added to
+        composite content view
+        2. Published non-composite content view is successfully added to
+        composite content view.
+
+        @CaseLevel: Integration
+
+        @BZ: 1367123
+        """
+        # Create published component CV
+        published_cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.publish({'id': published_cv['id']})
+        # Create unpublished component CV
+        unpublished_cv = make_content_view({'organization-id': self.org['id']})
+        # Create composite CV
+        composite_cv = make_content_view({
+            'organization-id': self.org['id'],
+            'composite': True,
+        })
+        # Add published CV
+        ContentView.add_version({
+            'id': composite_cv['id'],
+            'content-view-version-content-view-id': published_cv['id']
+        })
+        published_cv = ContentView.info({'id': published_cv['id']})
+        composite_cv = ContentView.info({'id': composite_cv['id']})
+        self.assertEqual(
+            composite_cv['components'][0]['id'],
+            published_cv['versions'][0]['id']
+        )
+        # Add unpublished CV
+        with self.assertRaises(CLIReturnCodeError) as context:
+            ContentView.add_version({
+                'id': composite_cv['id'],
+                'content-view-version-content-view-id': unpublished_cv['id'],
+            })
+        self.assertRegexpMatches(
+            context.exception.message,
+            "Could not add version:\s*"
+            "Error: one of content_view_versions not found"
+        )
+
     # Content View: promotions
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
