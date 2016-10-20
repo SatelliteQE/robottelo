@@ -1077,7 +1077,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
@@ -1091,11 +1091,55 @@ class ContentViewTestCase(UITestCase):
 
         @assert: Content view can be published
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: System
         """
+
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        rh_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None,
+        }
+        env_name = gen_string('alpha')
+        strategy, value = locators['content_env.select_name']
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create a lifecycle environment
+            make_lifecycle_environment(
+                session, org=org.name, name=env_name)
+
+            self.assertIsNotNone(session.nav.wait_until_element(
+                (strategy, value % env_name)))
+
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+            # Create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add rh repo
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+
+            # Add a package exclude filter
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['exclude'],
+            )
+            # assert the added filter visible
+            self.assertIsNotNone(self.content_views.search_filter(cv_name, filter_name))
+            # exclude some package in the created filter
+            self.content_views.add_packages_to_filter(cv_name, filter_name, ['gofer'], ['All Versions'], [None], [None])
+            # Publish the content view
+            self.content_views.publish(cv_name)
+            # Assert the content view successfully published
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
