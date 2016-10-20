@@ -36,8 +36,8 @@ class LibvirtGuest(object):
     """
 
     def __init__(
-            self, cpu=1, ram=1024, boot_iso=False, libvirt_server=None,
-            image_dir=None, mac=None, bridge=None):
+            self, cpu=1, ram=1024, boot_iso=False, extra_nic=False,
+            libvirt_server=None, image_dir=None, mac=None, bridge=None):
         self.cpu = cpu
         self.ram = ram
         if libvirt_server is None:
@@ -71,6 +71,7 @@ class LibvirtGuest(object):
                 'argument.'
             )
         self.boot_iso = boot_iso
+        self.extra_nic = extra_nic
         self.hostname = None
         self.ip_addr = None
         self._domain = None
@@ -111,6 +112,11 @@ class LibvirtGuest(object):
             boot_iso_dir = u'{0}/{1}'.format(
                 self.image_dir, self.boot_iso_name)
             command_args.append('--cdrom={0}'.format(boot_iso_dir))
+
+        if self.extra_nic:
+            nic_mac = gen_mac(multicast=False, locally=True)
+            command_args.append('--network=bridge:{vm_bridge}')
+            command_args.append('--mac={0}'.format(nic_mac))
 
         if self._domain is None:
             try:
@@ -163,7 +169,7 @@ class LibvirtGuest(object):
             raise LibvirtGuestError(
                 'The virtual guest should be created before updating it'
             )
-
+        nic_mac = gen_mac(multicast=False, locally=True)
         command_args = [
             'virsh attach-interface',
             '--domain={vm_name}',
@@ -176,7 +182,7 @@ class LibvirtGuest(object):
         command = u' '.join(command_args).format(
             vm_name=self.hostname,
             vm_bridge=self.bridge,
-            vm_mac=self.mac,
+            vm_mac=nic_mac,
         )
 
         result = ssh.command(command, self.libvirt_server)
