@@ -29,7 +29,7 @@ from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
+from robottelo.constants import ANY_CONTEXT, PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -37,6 +37,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_smart_variable, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -147,8 +148,12 @@ class SmartVariablesTestCase(UITestCase):
         cls.puppet_module = "puppetlabs/ntp"
         cls.host_name = settings.server.hostname
         _, _, cls.domain_name = cls.host_name.partition('.')
-        ssh.command(
-            'puppet module install --force {0}'.format(cls.puppet_module))
+        ssh.upload_file(
+            local_file=get_data_file(PUPPET_MODULE_NTP_PUPPETLABS),
+            remote_file='/tmp/{0}'.format(PUPPET_MODULE_NTP_PUPPETLABS)
+        )
+        ssh.command('puppet module install --force /tmp/{0}'.format(
+            PUPPET_MODULE_NTP_PUPPETLABS))
         cls.env = Environment.info({u'name': 'production'})
         Proxy.importclasses({
             u'environment': cls.env['name'],
@@ -168,9 +173,12 @@ class SmartVariablesTestCase(UITestCase):
         module.
         """
         super(SmartVariablesTestCase, cls).tearDownClass()
-
-        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
-                            cls.host_name, cls.env['name'])
+        delete_puppet_class(
+            cls.puppet['name'],
+            cls.puppet_module,
+            cls.host_name,
+            cls.env['name']
+        )
 
     @tier1
     def test_positive_create(self):

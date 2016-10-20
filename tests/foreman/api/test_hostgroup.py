@@ -44,7 +44,6 @@ class HostGroupTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
 
-    @skip_if_bug_open('bugzilla', 1222118)
     @tier3
     def test_verify_bugzilla_1107708(self):
         """Host that created from HostGroup entity with PuppetClass
