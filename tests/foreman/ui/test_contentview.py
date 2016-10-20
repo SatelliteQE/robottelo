@@ -951,9 +951,14 @@ class ContentViewTestCase(UITestCase):
                 FILTER_TYPE['exclude'],
             )
             # assert the added filter visible
-            self.assertIsNotNone(self.content_views.search_filter(cv_name, filter_name))
+            self.assertIsNotNone(self.content_views.search_filter(cv_name,
+                                                                  filter_name))
             # exclude some package in the created filter
-            self.content_views.add_packages_to_filter(cv_name, filter_name, ['gofer'], ['All Versions'], [None], [None])
+            self.content_views.add_packages_to_filter(cv_name, filter_name,
+                                                      ['gofer'],
+                                                      ['All Versions'],
+                                                      [None],
+                                                      [None])
 
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
@@ -1132,9 +1137,14 @@ class ContentViewTestCase(UITestCase):
                 FILTER_TYPE['exclude'],
             )
             # assert the added filter visible
-            self.assertIsNotNone(self.content_views.search_filter(cv_name, filter_name))
+            self.assertIsNotNone(self.content_views.search_filter(cv_name,
+                                                                  filter_name))
             # exclude some package in the created filter
-            self.content_views.add_packages_to_filter(cv_name, filter_name, ['gofer'], ['All Versions'], [None], [None])
+            self.content_views.add_packages_to_filter(cv_name, filter_name,
+                                                      ['gofer'],
+                                                      ['All Versions'],
+                                                      [None],
+                                                      [None])
             # Publish the content view
             self.content_views.publish(cv_name)
             # Assert the content view successfully published
