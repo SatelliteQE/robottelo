@@ -924,16 +924,13 @@ class ContentViewTestCase(UITestCase):
             'releasever': None,
         }
         env_name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         # Create new org to import manifest
         org = entities.Organization().create()
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
-
             self.assertIsNotNone(session.nav.wait_until_element(
-                (strategy, value % env_name)))
-
+                locators['content_env.select_name'] % env_name))
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
@@ -942,7 +939,6 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
-
             # add a filter
             self.content_views.add_filter(
                 cv_name,
@@ -951,14 +947,20 @@ class ContentViewTestCase(UITestCase):
                 FILTER_TYPE['exclude'],
             )
             # assert the added filter visible
-            self.assertIsNotNone(self.content_views.search_filter(cv_name, filter_name))
+            self.assertIsNotNone(
+                self.content_views.search_filter(cv_name, filter_name))
             # exclude some package in the created filter
-            self.content_views.add_packages_to_filter(cv_name, filter_name, ['gofer'], ['All Versions'], [None], [None])
-
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                ['gofer'],
+                ['All Versions'],
+                [None],
+                [None]
+            )
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
-
             self.content_views.promote(cv_name, 'Version 1', env_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1093,7 +1095,6 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: System
         """
-
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         rh_repo = {
@@ -1104,17 +1105,14 @@ class ContentViewTestCase(UITestCase):
             'releasever': None,
         }
         env_name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         # Create new org to import manifest
         org = entities.Organization().create()
         with Session(self.browser) as session:
             # create a lifecycle environment
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
-
             self.assertIsNotNone(session.nav.wait_until_element(
-                (strategy, value % env_name)))
-
+                locators['content_env.select_name'] % env_name))
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content view
             make_contentview(session, org=org.name, name=cv_name)
@@ -1123,7 +1121,6 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
-
             # Add a package exclude filter
             self.content_views.add_filter(
                 cv_name,
@@ -1132,9 +1129,17 @@ class ContentViewTestCase(UITestCase):
                 FILTER_TYPE['exclude'],
             )
             # assert the added filter visible
-            self.assertIsNotNone(self.content_views.search_filter(cv_name, filter_name))
+            self.assertIsNotNone(
+                self.content_views.search_filter(cv_name, filter_name))
             # exclude some package in the created filter
-            self.content_views.add_packages_to_filter(cv_name, filter_name, ['gofer'], ['All Versions'], [None], [None])
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                ['gofer'],
+                ['All Versions'],
+                [None],
+                [None]
+            )
             # Publish the content view
             self.content_views.publish(cv_name)
             # Assert the content view successfully published
