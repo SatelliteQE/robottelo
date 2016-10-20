@@ -15,6 +15,9 @@
 
 @Upstream: No
 """
+import subprocess
+import time
+
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.decorators import (
@@ -71,6 +74,33 @@ class DiscoveryTestCase(UITestCase):
         saved_element = self.settings.get_saved_value(
             tab_locator, param_name)
         self.assertEqual(param_value, saved_element)
+
+    def _ping_host(self, host, timeout=1):
+        """Helper to ensure given IP/hostname is reachable after reboot.
+
+        :param host: A string. The IP or hostname of host.
+        :param int timeout: The polling timeout in minutes.
+        """
+        timeup = time.time() + int(timeout) * 60
+        while True:
+            command = subprocess.Popen(
+                'ping -c1 {0}; echo $?'.format(host),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True
+            )
+            output = command.communicate()[0]
+            # Checking the return code of ping is 0
+            if time.time() > timeup:
+                print('The timout to ping the host {0} has reached!'.format(
+                    host))
+                return False
+            if int(output.split()[-1]) == 0:
+                print('SUCCESS !! The given host {0} is reachable!!'.format(
+                    host))
+                return True
+            else:
+                time.sleep(5)
 
     @classmethod
     @skip_if_not_set('vlan_networking')
@@ -292,7 +322,6 @@ class DiscoveryTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_pxe_less_multi_nic_with_dhcp_unattended(self):
         """Discover a host with multiple NIC on a network with dhcp
@@ -302,10 +331,20 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            # To show new fact column 'Interfaces' on Discovered Hosts page
+            self._edit_discovery_fact_column_param(session, "interfaces")
+            with LibvirtGuest(boot_iso=True, extra_nic=True) as pxe_less_host:
+                hostname = pxe_less_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+                element = locators['discoveredhosts.fetch_interfaces']
+                host_interfaces = self.discoveredhosts.fetch_fact_value(
+                    hostname, element)
+                self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
     @run_only_on('sat')
     @stubbed()
@@ -356,7 +395,6 @@ class DiscoveryTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_pxe_multi_nic_unattended(self):
         """Discover a host with multiple NIC on a network with dhcp
@@ -366,10 +404,20 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            # To show new fact column 'Interfaces' on Discovered Hosts page
+            self._edit_discovery_fact_column_param(session, "interfaces")
+            with LibvirtGuest(extra_nic=True) as pxe_host:
+                hostname = pxe_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+                element = locators['discoveredhosts.fetch_interfaces']
+                host_interfaces = self.discoveredhosts.fetch_fact_value(
+                    hostname, element)
+                self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
     @run_only_on('sat')
     @tier3
@@ -504,19 +552,21 @@ class DiscoveryTestCase(UITestCase):
                 with LibvirtGuest() as pxe_2_host:
                     host_2_name = pxe_2_host.guest_name
                     self._assertdiscoveredhost(host_2_name)
-                    for hostname in [host_1_name, host_2_name]:
+                    hostnames = [host_1_name, host_2_name]
+                    for hostname in hostnames:
                         host = self.discoveredhosts.search(hostname)
                         if not host:
                             raise UIError(
                                 'Could not find the selected discovered host '
                                 '"{0}"'.format(hostname)
                             )
-                        self.discoveredhosts.navigate_to_entity()
-                        # To delete multiple discovered hosts
-                        self.discoveredhosts.multi_delete()
-                        for hostname in [host_1_name, host_2_name]:
-                            self.assertIsNone(
-                                self.discoveredhosts.search(hostname))
+                    self.discoveredhosts.navigate_to_entity()
+                    # To delete multiple discovered hosts
+                    self.discoveredhosts.multi_delete(hostnames)
+                    for hostname in [host_1_name, host_2_name]:
+                        self.assertIsNone(
+                            self.discoveredhosts.search(hostname)
+                        )
 
     @run_only_on('sat')
     @tier3
@@ -552,7 +602,6 @@ class DiscoveryTestCase(UITestCase):
                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_refresh_facts_pxe_less(self):
         """Refresh the facts of pxe-less discovered host by adding a new NIC.
@@ -563,13 +612,27 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Facts should be refreshed successfully with new NIC
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            # To show new fact column 'Interfaces' on Discovered Hosts page
+            self._edit_discovery_fact_column_param(session, 'interfaces')
+            with LibvirtGuest(boot_iso=True) as pxe_less_host:
+                hostname = pxe_less_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+                # To add a new network interface on discovered host
+                pxe_less_host.attach_nic()
+                # To refresh the facts of discovered host,
+                # UI should show newly added interface on refresh_facts
+                self.discoveredhosts.refresh_facts(hostname)
+                element = locators['discoveredhosts.fetch_interfaces']
+                host_interfaces = self.discoveredhosts.fetch_fact_value(
+                    hostname, element)
+                self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_reboot(self):
         """Reboot a discovered host.
@@ -580,13 +643,26 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Host should be successfully rebooted.
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            with LibvirtGuest() as pxe_host:
+                hostname = pxe_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                strategy, value = locators['discoveredhosts.fetch_ip']
+                element = ((strategy, value % hostname))
+                # Get the IP of discovered host
+                host_ip = self.discoveredhosts.fetch_fact_value(
+                    hostname, element)
+                # Check if host is reachable via IP
+                self.assertTrue(self._ping_host(host_ip))
+                self.discoveredhosts.reboot_host(hostname)
+                sleep(12)
+                # Check if host is still reachable via IP after reboot
+                self.assertFalse(self._ping_host(host_ip))
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_update_default_org(self):
         """Change the default org of more than one discovered hosts
@@ -598,10 +674,28 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Default org should be successfully changed for multiple hosts
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        new_org = gen_string('alpha')
+        entities.Organization(name=new_org).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            with LibvirtGuest() as pxe_1_host:
+                host_1_name = pxe_1_host.guest_name
+                self._assertdiscoveredhost(host_1_name)
+                with LibvirtGuest() as pxe_2_host:
+                    host_2_name = pxe_2_host.guest_name
+                    self._assertdiscoveredhost(host_2_name)
+                    hostnames = [host_1_name, host_2_name]
+                    for hostname in hostnames:
+                        host = self.discoveredhosts.search(hostname)
+                        if not host:
+                            raise UIError(
+                                'Could not find the selected discovered host '
+                                '"{0}"'.format(hostname)
+                            )
+                        self.discoveredhosts.navigate_to_entity()
+                    self.discoveredhosts.update_org(hostnames, new_org)
 
     @run_only_on('sat')
     @stubbed()
