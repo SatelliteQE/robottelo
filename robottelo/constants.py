@@ -1038,7 +1038,7 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'DiscoveryRules', 'controller': 'discovery_rules',
-        'skip_for_ui': 1324508, 'setup': entities.DiscoveryRule
+        'skip_for_ui': 1387569, 'setup': entities.DiscoveryRule
     },
     {
         'name': 'GlobalParameter', 'controller': 'common_parameters',
