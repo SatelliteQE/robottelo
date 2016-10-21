@@ -127,7 +127,7 @@ class CannedRoleTestCases(UITestCase):
 
         @id: 5d9da688-f371-4654-93d3-b221211be280
 
-        @steps: Create new role with taxonomies
+        @steps: Create new role with taxonomies (location and organization)
 
         @assert: New role is created with taxonomies
         """
@@ -141,7 +141,7 @@ class CannedRoleTestCases(UITestCase):
             )
             self.assertIsNotNone(self.role.search(name))
 
-    @tier1
+    @tier2
     def test_positive_create_filter_without_override(self):
         """Create filter in role w/o overriding it
 
@@ -149,7 +149,7 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Create a role with taxonomies assigned
+        1. Create a role with taxonomies (location and organization) assigned
         2. Create filter in role without overriding it
         3. Create user and assign new role to it
         4. Re-login into application using new user with a role
@@ -159,7 +159,7 @@ class CannedRoleTestCases(UITestCase):
         1. Filter w/o override is created in role
         2. The taxonomies of role are inherited to filter
         3. Override check is not marked by default in filters table
-        4. User can access application sections specified in a filter only
+        4. User can access application sections specified in a filter
         """
         name = gen_string('alpha')
         username = gen_string('alpha')
@@ -201,7 +201,7 @@ class CannedRoleTestCases(UITestCase):
             self.assertIsNone(session.nav.wait_until_element(
                 menu_locators['menu.configure'], timeout=3))
 
-    @tier1
+    @tier2
     def test_positive_create_non_overridable_filter(self):
         """Create non overridden filter in role
 
@@ -209,13 +209,19 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Create a filter to which taxonomies cannot be associated.
+        1. Create a filter in a role to which taxonomies
+        (location and organization) cannot be associated.
         e.g Architecture filter
+        2. Create an user with taxonomies different than role and assign role
+        to it
+        3. Login as new user and attempt to acess the resources
 
         @assert:
 
         1. Filter is created without taxonomies
-        2. Override checkbox is not available to check.
+        2. Override checkbox is not available to check
+        3. User can access resources, permissions specified in a filter
+        4. User have access in all taxonomies available to user
         """
         name = gen_string('alpha')
         username = gen_string('alpha')
@@ -256,7 +262,7 @@ class CannedRoleTestCases(UITestCase):
             # check that we can access edit functionality at all
             self.architecture.update(old_name='x86_64', new_name='x86_64')
 
-    @tier1
+    @tier2
     def test_positive_create_overridable_filter(self):
         """Create overridden filter in role
 
@@ -264,15 +270,21 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Create a filter to which taxonomies can be associated
-        e.g Domain filter
-        2. Override a filter with some taxonomies
+        1. Create a role with some taxonomies (organizations and locations)
+        2. Create a filter in role to which taxonomies can be associated
+            e.g Domain filter
+        3. Override a filter with some taxonomies which doesnt match the
+            taxonomies of role
+        4. Create user with taxonomies including filter taxonomies and assign
+            role to it
+        5. Login with user and attempt to access the resources
 
         @assert:
 
         1. Filter is created with taxonomies
-        2. Override check is marked in filters table
-        3. Filter doesnt inherits taxonomies from role
+        2. Override checkmark is displayed in filters table for that filter
+        3. User can access resources, permissions specified in filter
+        4. User have access only in taxonomies specified in filter
         """
         name = gen_string('alpha')
         username = gen_string('alpha')
@@ -323,39 +335,34 @@ class CannedRoleTestCases(UITestCase):
                 menu_locators['menu.hosts'], timeout=3))
 
     @stubbed
-    @tier1
+    @tier2
     def test_positive_update_role_taxonomies(self):
-        """Update role taxonomies which applies to its non-overrided filters
+        """Update role taxonomies which applies only to non-overrided filters
+        in role
 
         @id: f705faea-0d1c-4c11-b82d-b6b0e848f75d
 
         @steps:
 
-        1. Update existing role with different taxonomies
+        1. Create role with overrided, non-overrided resources and assign some
+            taxonomies (organizations and locations) to role
+        2. Assign this role to user
+        3. Update existing role with different taxonomies
+        4. Login with new user and attempt to access the resources
 
-        @assert: The taxonomies are applied only to non-overrided role filters
+        @assert:
 
-        @caseautomation: notautomated
-        """
-
-    @stubbed
-    @tier1
-    def test_negative_update_role_taxonomies(self):
-        """Update role taxonomies which doesnt applies to its overrided filters
-
-        @id: 9ffca18f-8784-48e2-8972-a67979a44508
-
-        @steps:
-
-        1. Update existing role with different taxonomies
-
-        @assert: The overridden role filters are not updated
+        1. The role is updated successfully
+        2. User should have access to non-overrided resources of role in
+            updated taxonomies
+        3. User shouldnt have access to overrided resources of role in updated
+            taxonomies
 
         @caseautomation: notautomated
         """
 
     @stubbed
-    @tier1
+    @tier2
     def test_positive_disable_filter_override(self):
         """Uncheck override resets filter taxonomies
 
@@ -363,17 +370,26 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Create role with overridden filter having different taxonomies than
-        its role.
-        2. Uncheck the override checkbox in above role filter
+        1. Create role with some taxonomies (Organizations and Locations)
+        2. Create and override filter having different taxonomies than its role
+        3. Create user with role
+        4. Uncheck the override checkbox in role filter
+        5. Login with user and attempt to access resources
 
-        @assert: The taxonomies of filter resets/synced to role taxonomies
+        @assert:
+
+        1. On unchecking override, the override mark is not displayed for that
+            filter in filters table
+        2. On unchecking override, User should have access to resources in
+            taxonomies assigned to role
+        3. On unchecking override, User shouldn't have access to resources in
+            taxonomies mentioned in filter
 
         @caseautomation: notautomated
         """
 
     @stubbed
-    @tier1
+    @tier2
     def test_positive_disable_overriding_option(self):
         """Disable overriding option to disable single filter overriding
 
@@ -381,20 +397,26 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Create role with overridden filter
-        2. Click on 'Disable overriding' option of that filter in filters table
-        in role
+        1. Create role with some taxonomies (Organizations and Locations)
+        2. Create and override filter having different taxonomies than its role
+        3. Create user with role
+        4. Click on 'Disable overriding' option of that filter in filters table
+        5. Login with user and attempt to access resources
 
         @assert:
 
-        1. The overriding is disabled for that filter
-        2. The taxonomies of filter resets/synced to role taxonomies
+        1. On unchecking override, the override mark is not displayed for that
+            filter in filters table
+        2. On unchecking override, User should have access to resources in
+            taxonomies assigned to role
+        3. On unchecking override, User shouldn't have access to resources in
+            taxonomies mentioned in filter
 
         @caseautomation: notautomated
         """
 
     @stubbed
-    @tier1
+    @tier2
     def test_positive_disable_all_filters_overriding_option(self):
         """Disable all filters overriding option to disable all filters
         overriding in a role
@@ -403,21 +425,26 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Create role with overridden filters
-        2. Click on 'Disable all filters overriding' button in filters table
-        in role
+        1. Create role with more than one overridden filters
+        2. Create user with role
+        3. Click on 'Disable all filters overriding' button in filters table
+            in role
+        4. Login with user and attempt to access resources
 
         @assert:
 
-        1. The overriding is disabled for all the overridden filters in role
-        2. The taxonomies of all overridden filters resets/synced to role
-        taxonomies
+        1. On disable, the overridden mark is disabled for all the overridden
+            filters in role
+        2. On disable, User should have access to resources in
+            taxonomies (orgnizations and locations) assigned to role
+        3. On disable, User shouldn't have access to resources in
+            taxonomies mentioned in filter
 
         @caseautomation: notautomated
         """
 
     @stubbed
-    @tier1
+    @tier2
     def test_positive_create_org_admin(self):
         """Create Org admin role which has access to all the resources within
         organization
@@ -426,56 +453,44 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Clone Manager role which has most resource permission
-        2. Assign an organization to the cloned role
+        1. Clone Manager role which has most resource permissions
+        2. Assign taxonomies (organizations and locations) to the cloned role
         3. Add more missing resource permission to the cloned role to make it
-        Org Admin having access to all resources
+            Org Admin having access to all resources
+        4. Create user and assign org admin role
+        5. Login with user and attempt to access resources
 
         @assert:
 
-        1. Successfully created Org Admin
-        2. Successfully assigned organization to role
+        1. Successfully created Org Admin by cloning manager role
+        2. Successfully assigned taxonomiess to role
         3. Missing resource filters are added successfully to the Org Admin
-        role
+            role
+        4. User is able to access all the resources, permissions only in
+            taxonomies selected in org admin role
+        5. User shouldnt be able to access resources, permissions in
+            taxonomies not selected in org admin role
 
         @caseautomation: notautomated
         """
 
     @stubbed
     @tier1
-    def test_positive_create_org_admin_filter_taxonomies(self):
-        """Org Admin role filters should inherit taxonomies from org admin role
-
-        @id: d08e1c47-ffc7-4885-ba73-a95e89e45f34
-
-        @steps:
-
-        1. Clone Manager role which has most resource permission
-        2. Add more missing resource permission to the cloned role to make it
-        Org Admin having access to all resources
-        3. Assign an organization to the cloned role
-
-        @assert: All the org admin filters inherit taxonomies from org admin
-
-        @caseautomation: notautomated
-        """
-
-    @stubbed
-    @tier1
-    def test_positive_clone_role_with_taxonomies(self):
-        """Test new taxonomies can be set on cloned role.
+    def test_positive_create_cloned_role_with_taxonomies(self):
+        """Test taxonomies can be set on cloned role.
 
         @id: ad20f5c7-3df7-4b43-8a52-097c87676d07
 
         @steps:
 
         1. Attempt to clone any existing role(e.g Manager Role)
-        2. Set new taxonomies to cloned role
+        2. Set new taxonomies (locations and organizations) to cloned role
 
         @assert:
 
-        1. Cloned role has no taxonomies selected by default
-        2. New taxonomies can be set on cloned role
+        1. While cloning, role has no taxonomies selected by default
+        2. While cloning, role allows to set taxonomies
+        3. New taxonomies should be applied to cloned role
 
         @caseautomation: notautomated
         """
@@ -494,7 +509,7 @@ class CannedRoleTestCases(UITestCase):
 
         @assert:
 
-        1. Filter in cloned role is successfully overriding
+        1. Filter in cloned role should be successfully overriding
 
         @caseautomation: notautomated
         """
@@ -508,11 +523,13 @@ class CannedRoleTestCases(UITestCase):
 
         @steps:
 
-        1. Clone a role having overridden filter(s)
+        1. Clone a role having overridden filter(s), where filters should have
+            some taxonomies (locations and organizations) assigned
 
         @assert:
 
-        1. cloned overridden filters are cleared in cloned role
+        1. On cloning, taxonomies of the overridden filters in cloned role are
+            set to None
         2. Override mark is filters table is marked
 
         @caseautomation: notautomated
@@ -528,55 +545,12 @@ class CannedRoleTestCases(UITestCase):
         @steps:
 
         1. Clone a role having overridden filter(s)
-        2. Override overridden filters by setting some taxonomies in cloned
-        role
+        2. In cloned role, Assign some taxonomies (locations and organizations)
+            to these filters as taxonomies in filters will be blank after
+            cloning
 
-        @assert: Overridden filters are overriding in cloned role
-
-        @caseautomation: notautomated
-        """
-
-    @stubbed
-    @tier2
-    def test_positive_access_resources_from_role_taxonomies(self):
-        """Test user access resources from taxonomies of assigned role
-
-        @id: 25217ba7-ae8d-4a63-a4cf-faa5932934b0
-
-        @steps:
-
-        1. Create role with taxonomies
-        2. Create resource(s) filter(s) without overriding them
-        3. Create user with taxonomies same as role taxonomies
-        4. Assign step 1 role to user
-
-        @assert: User should be able to access the resource(s) of the assigned
-        role
+        @assert: In cloned role, The taxonomies should be able to assign to
+        overridden filters
 
         @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed
-    @tier2
-    def test_negative_access_resources_outside_role_taxonomies(self):
-        """Test user cannot access resources from non associated taxonomies to
-        role
-
-        @id: bff0fd9d-9363-4759-9595-e6294a8d5a89
-
-        @steps:
-
-        1. Create role with taxonomies
-        2. Create resource(s) filter(s) without overriding them
-        3. Create user with taxonomies not matching role taxonomies
-        4. Assign step 1 role to user
-
-        @assert: User should not be able to access the resource(s) that are not
-        associated to assigned role
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
         """
