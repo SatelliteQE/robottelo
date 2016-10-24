@@ -22,8 +22,7 @@ from robottelo.datafactory import (
     valid_labels_list,
     valid_names_list,
     valid_org_names_list,
-    valid_usernames_list,
-    gen_html_with_total_len)
+    valid_usernames_list)
 
 if six.PY2:
     import mock
@@ -75,12 +74,6 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_names_list()), 1)
         self.assertEqual(len(valid_org_names_list()), 1)
         self.assertEqual(len(valid_usernames_list()), 1)
-
-    @mock.patch('robottelo.datafactory.gen_string')
-    def test_gen_html_with_total_len(self, gen_string):
-        gen_string.side_effect = lambda _, length: 'a' * length
-        html_str = gen_html_with_total_len(50)
-        self.assertEqual(50, len(html_str))
 
     @mock.patch('robottelo.datafactory.gen_string')
     def test_generate_strings_list_remove_str(self, gen_string):

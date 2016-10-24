@@ -15,16 +15,15 @@
 
 @Upstream: No
 """
-import random
 
 from fauxfactory import gen_string, gen_alpha
 from nailgun.entities import User
 from robottelo.constants import LANGUAGES
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
 from robottelo.ui.locators import locators
-from robottelo.ui.my_account import MyAccount
 from robottelo.ui.session import Session
 
 
@@ -36,14 +35,9 @@ def _valid_string_data(min_len=1, max_len=50):
     ui validation
     :return: list of generated strings
     """
-    return [
-        gen_string('alphanumeric', random.randint(min_len, max_len)),
-        gen_string('alpha', random.randint(min_len, max_len)),
-        gen_string('cjk', random.randint(min_len, max_len)),
-        gen_string('latin1', random.randint(min_len, max_len)),
-        gen_string('numeric', random.randint(min_len, max_len)),
-        gen_string('utf8', random.randint(min_len, max_len)),
-    ]
+    return generate_strings_list(
+        min_length=min_len, max_length=max_len, exclude_types=['html']
+    )
 
 
 class MyAccountTestCase(UITestCase):
@@ -61,19 +55,24 @@ class MyAccountTestCase(UITestCase):
     def setUp(self):
         """Setup of myaccount"""
         super(MyAccountTestCase, self).setUp()
-        user = User(login=gen_alpha(), password='password')
-        user.id = user.create().id
         # Creating user for each test to not mess with default user
-        self.user = user
+        user = User(login=gen_alpha(), password='password')
+        # copying missing id because create returns only password's hash once
+        # it is not stored in plain text for security reason
+        user.id = user.create().id
+        self.account_user = user
 
     def tearDown(self):
         """Deleting test user after each test"""
         super(MyAccountTestCase, self).tearDown()
-        self.user.delete()
+        self.account_user.delete()
 
     def logged_test_user(self):
         """Create session with test user"""
-        return Session(self.browser, self.user.login, self.user.password)
+        return Session(
+            self.browser,
+            self.account_user.login,
+            self.account_user.password)
 
     def assert_text_field_update(self, locator_name, *new_values):
         """Check user account text property is updated
@@ -202,10 +201,10 @@ class MyAccountTestCase(UITestCase):
                     )
                     self.my_account.click(common_locators['submit'])
                     self.login.logout()
-                    self.login.login(self.user.login, password)
+                    self.login.login(self.account_user.login, password)
                     self.assertTrue(self.login.is_logged())
                     # Updating test user password for next login
-                    self.user.password = password
+                    self.account_user.password = password
 
     @stubbed()
     @tier1

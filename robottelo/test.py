@@ -9,7 +9,6 @@ import logging
 import os
 import pytest
 import unittest2
-from robottelo.ui.my_account import MyAccount
 
 try:
     import sauceclient
@@ -69,6 +68,7 @@ from robottelo.ui.lifecycleenvironment import LifecycleEnvironment
 from robottelo.ui.location import Location
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
+from robottelo.ui.my_account import MyAccount
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
