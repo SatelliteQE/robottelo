@@ -61,7 +61,6 @@ class MyAccountTestCase(UITestCase):
     def setUp(self):
         """Setup of myaccount"""
         super(MyAccountTestCase, self).setUp()
-        self.my_account = MyAccount(self.browser)
         user = User(login=gen_alpha(), password='password')
         user.id = user.create().id
         # Creating user for each test to not mess with default user

@@ -9,6 +9,7 @@ import logging
 import os
 import pytest
 import unittest2
+from robottelo.ui.my_account import MyAccount
 
 try:
     import sauceclient
@@ -308,6 +309,7 @@ class UITestCase(TestCase):
         self.location = Location(self.browser)
         self.login = Login(self.browser)
         self.medium = Medium(self.browser)
+        self.my_account = MyAccount(self.browser)
         self.navigator = Navigator(self.browser)
         self.user = User(self.browser)
         self.operatingsys = OperatingSys(self.browser)
