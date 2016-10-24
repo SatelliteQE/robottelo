@@ -3,9 +3,9 @@
 import random
 
 from functools import wraps
-from fauxfactory import gen_string, gen_integer, _make_unicode
+from fauxfactory import gen_string, gen_integer
 from robottelo.config import settings
-from robottelo.constants import STRING_TYPES, HTML_TAGS
+from robottelo.constants import STRING_TYPES
 from robottelo.decorators import bz_bug_is_open
 from robottelo.upgrade import get_all_yaml_data, get_yaml_field_value
 from six.moves.urllib.parse import quote_plus
@@ -22,7 +22,6 @@ def filtered_datapoint(func):
     If run_one_datapoint=true, return a random data.
 
     """
-
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         """Perform smoke test attribute check"""
@@ -30,7 +29,6 @@ def filtered_datapoint(func):
         if settings.run_one_datapoint:
             dataset = [random.choice(dataset)]
         return dataset
-
     return func_wrapper
 
 
@@ -184,7 +182,7 @@ def valid_emails_list():
 @filtered_datapoint
 def valid_environments_list():
     """Returns a list of valid environment names"""
-    return [
+    return[
         gen_string('alpha'),
         gen_string('numeric'),
         gen_string('alphanumeric'),
@@ -405,10 +403,10 @@ def valid_http_credentials(url_encoded=False):
     ]
     if url_encoded:
         return [{
-            u'login': quote_plus(cred['login'].encode('utf-8'), ''),
-            u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
-            u'http_valid': cred['http_valid'],
-        } for cred in credentials]
+                u'login': quote_plus(cred['login'].encode('utf-8'), ''),
+                u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
+                u'http_valid': cred['http_valid'],
+                } for cred in credentials]
     else:
         return credentials
 
@@ -421,18 +419,14 @@ def invalid_http_credentials(url_encoded=False):
     """
     credentials = [
         {u'login': gen_string('alpha', 1024), u'pass': ''},
-        {
-            u'login': gen_string('alpha', 512),
-            u'pass': gen_string('alpha', 512)
-        },
+        {u'login': gen_string('alpha', 512),
+         u'pass': gen_string('alpha', 512)},
         {u'login': gen_string('utf8', 256), u'pass': gen_string('utf8', 256)},
     ]
     if url_encoded:
-        return [{
-            u'login': quote_plus(cred['login'].encode('utf-8'), ''),
-            u'pass': quote_plus(cred['pass'].encode('utf-8'), '')
-        }
-            for cred in credentials]
+        return [{u'login': quote_plus(cred['login'].encode('utf-8'), ''),
+                 u'pass': quote_plus(cred['pass'].encode('utf-8'), '')}
+                for cred in credentials]
     else:
         return credentials
 
@@ -467,29 +461,3 @@ def get_valid_preupgrade_data(test_entity, field):
         raise InvalidArgumentError('No such field/test \'{0}\' exists in YAML'
                                    'file under {1}'.format(field, test_entity))
     return datalist
-
-
-def gen_html_with_total_len(length=10):
-    """Returns a random string made up of html characters.
-    This differ from fauxfactory gen_html because length takes html tag into
-    account
-    :param int length: Length for random data.
-    :returns: A random string made up of html characters.
-    :rtype: str
-
-    """
-    if length < 8:
-        raise ValueError('Impossible generate html with len less then 7')
-
-    random.seed()
-    html_tag = random.choice(HTML_TAGS)
-    maybe_len = length - (len(html_tag) * 2 + 5)
-    if maybe_len <= 0:
-        length -= 7
-        html_tag = 'a'
-    else:
-        length = maybe_len
-    output_string = u'<{0}>{1}</{2}>'.format(
-        html_tag, gen_string("alpha", length), html_tag)
-
-    return _make_unicode(output_string)
