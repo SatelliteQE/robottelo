@@ -291,20 +291,24 @@ DEFAULT_SUBSCRIPTION_NAME = (
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 
-LANGUAGES = [
-    u'Català', u'Deutsch', u'English (United States)',
-    u'English (United Kingdom)', u'Español', u'Français', u'Galego', u'it',
-    u'日本語', u'한국어', u'pl', u'Português (Brasil)', u'Русский', u'sv_SE',
-    u'简体中文', u'zh_TW'
-]
-
-
-LOCALES = [
-    u'ca', u'de', u'en', u'en_GB', u'es', u'fr', u'gl', u'it',
-    u'ja', u'ko', u'pl', u'pt_BR', u'ru', u'sv_SE', u'zh_CN', u'zh_TW'
-]
-
-LANG_TO_LOCALE_DCT = dict(zip(LANGUAGES, LOCALES))
+LANGUAGES = {
+    u'Català': u'ca',
+    u'Deutsch': u'de',
+    u'English (United States)': u'en',
+    u'English (United Kingdom)': u'en_GB',
+    u'Español': u'es',
+    u'Français': u'fr',
+    u'Galego': u'gl',
+    u'it': u'it',
+    u'日本語': u'ja',
+    u'한국어': u'ko',
+    u'pl': u'pl',
+    u'Português (Brasil)': u'pt_BR',
+    u'Русский': u'ru',
+    u'sv_SE': u'sv_SE',
+    u'简体中文': u'zh_CN',
+    u'zh_TW': u'zh_TW'
+}
 
 TIMEZONES = [
     u'(GMT+00:00) UTC',

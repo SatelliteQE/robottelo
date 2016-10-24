@@ -19,7 +19,7 @@ import random
 
 from fauxfactory import gen_string, gen_alpha
 from nailgun.entities import User
-from robottelo.constants import LANG_TO_LOCALE_DCT
+from robottelo.constants import LANGUAGES
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
@@ -157,7 +157,7 @@ class MyAccountTestCase(UITestCase):
         @Assert: Current User is updated
         """
 
-        for lang, locale in LANG_TO_LOCALE_DCT.items():
+        for lang, locale in LANGUAGES.items():
             with self.subTest(lang):
                 user = User(login=gen_alpha(), password='password')
                 user.id = user.create().id

@@ -569,7 +569,7 @@ class UserTestCase(UITestCase):
 
         @Assert: User is updated successfully
         """
-        locale = random.choice(LANGUAGES)
+        locale = random.choice(list(LANGUAGES.keys()))
         username = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=username)
