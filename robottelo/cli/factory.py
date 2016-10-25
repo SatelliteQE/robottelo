@@ -709,10 +709,12 @@ def make_partition_table(options=None):
 
     args = {
         u'file': '/tmp/{0}'.format(gen_alphanumeric()),
+        u'location-ids': None,
+        u'locations': None,
         u'name': gen_alphanumeric(),
-        u'os-family': random.choice(OPERATING_SYSTEMS),
         u'organization-ids': None,
-        u'location-ids': None
+        u'organizations': None,
+        u'os-family': random.choice(OPERATING_SYSTEMS),
     }
 
     # Upload file to server
@@ -1146,76 +1148,141 @@ def make_host(options=None):
     Options::
 
         --architecture ARCHITECTURE_NAME Architecture name
+        --architecture ARCHITECTURE_NAME            Architecture name
         --architecture-id ARCHITECTURE_ID
-        --ask-root-password ASK_ROOT_PW One of true/false, yes/no, 1/0.
-        --build BUILD                 One of true/false, yes/no, 1/0.
-                                      Default: 'true'
-        --compute-attributes COMPUTE_ATTRS Compute resource attributes.
-                                      Comma-separated list of key=value.
-        --compute-profile COMPUTE_PROFILE_NAME Name to search by
+        --ask-root-password ASK_ROOT_PW             One of true/false, yes/no,
+                                                    1/0.
+        --autoheal AUTOHEAL                         Sets whether the Host will
+                                                    autoheal subscriptions upon
+                                                    checkin
+                                                    One of true/false, yes/no,
+                                                    1/0.
+        --build BUILD                               One of true/false, yes/no,
+                                                    1/0.
+                                                    Default: "true"
+        --comment COMMENT                           Additional information
+                                                    about this host
+        --compute-attributes COMPUTE_ATTRS          Compute resource attributes
+                                                    Comma-separated list of
+                                                    key=value.
+        --compute-profile COMPUTE_PROFILE_NAME      Name to search by
         --compute-profile-id COMPUTE_PROFILE_ID
-        --compute-resource COMPUTE_RESOURCE_NAME Compute resource name
-        --compute-resource-id COMPUTE_RESOURCE
-        --domain DOMAIN_NAME          Domain name
-        --domain-id DOMAIN_ID
-        --enabled ENABLED             One of true/false, yes/no, 1/0.
-                                      Default: 'true'
-        --environment ENVIRONMENT_NAME Environment name
+        --compute-resource COMPUTE_RESOURCE_NAME    Compute resource name
+        --compute-resource-id COMPUTE_RESOURCE_ID
+        --content-view CONTENT_VIEW_NAME            Name to search by
+        --content-view-id CONTENT_VIEW_ID           content view numeric
+                                                    identifier
+        --domain DOMAIN_NAME                        Domain name
+        --domain-id DOMAIN_ID                       Numerical ID or domain name
+        --enabled ENABLED                           One of true/false, yes/no,
+                                                    1/0.
+                                                    Default: "true"
+        --environment ENVIRONMENT_NAME              Environment name
         --environment-id ENVIRONMENT_ID
-        --hostgroup HOSTGROUP_NAME    Hostgroup name
+        --hostgroup HOSTGROUP_NAME                  Hostgroup name
         --hostgroup-id HOSTGROUP_ID
+        --hostgroup-title HOSTGROUP_TITLE           Hostgroup title
+        --hypervisor-guest-uuids HYPERVISOR_GUEST_UUIDS     List of hypervisor
+                                                            guest uuids
+                                                            Comma separated
+                                                            list of values.
+        --image IMAGE_NAME                          Name to search by
         --image-id IMAGE_ID
-        --interface INTERFACE         Interface parameters.
-                                      Comma-separated list of key=value.
-                                      Can be specified multiple times.
-        --ip IP                       not required if using a subnet with dhcp
-                                      proxy
-        --location LOCATION_NAME      Location name
+        --interface INTERFACE                       Interface parameters.
+                                                    Comma-separated list of
+                                                    key=value.
+                                                    Can be specified multiple
+                                                    times.
+        --ip IP                                     not required if using a
+                                                    subnet with DHCP Capsule
+        --kickstart-repository-id KICKSTART_REPOSITORY_ID   Repository Id
+                                                            associated with the
+                                                            kickstart repo used
+                                                            for provisioning
+        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME  Name to search by
+        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID ID of the
+                                                            environment
+        --location LOCATION_NAME                    Location name
         --location-id LOCATION_ID
-        --mac MAC                     not required if its a virtual machine
-        --managed MANAGED             One of true/false, yes/no, 1/0.
-                                      Default: 'true'
-        --medium MEDIUM_NAME          Medium name
+        --mac MAC                                   required for managed host
+                                                    that is bare metal, not
+                                                    required if it's a virtual
+                                                    machine
+        --managed MANAGED                           One of true/false, yes/no,
+                                                    1/0.
+                                                    Default: "true"
+        --medium MEDIUM_NAME                        Medium name
         --medium-id MEDIUM_ID
-        --model MODEL_NAME            Model name
+        --model MODEL_NAME                          Model name
         --model-id MODEL_ID
         --name NAME
-        --operatingsystem OPERATINGSYSTEM_TITLE  Operating system title
+        --operatingsystem OPERATINGSYSTEM_TITLE     Operating system title
         --operatingsystem-id OPERATINGSYSTEM_ID
-        --organization ORGANIZATION_NAME Organization name
-        --organization-id ORGANIZATION_ID
-        --owner-id OWNER_ID
-        --parameters PARAMS           Host parameters.
-                                    Comma-separated list of key=value.
+        --organization ORGANIZATION_NAME            Organization name
+        --organization-id ORGANIZATION_ID           organization ID
+        --overwrite OVERWRITE                       One of true/false, yes/no,
+                                                    1/0.
+                                                    Default: "true"
+        --owner OWNER_LOGIN                         Login of the owner
+        --owner-id OWNER_ID                         ID of the owner
+        --owner-type OWNER_TYPE                     Host's owner type
+                                                    Possible value(s): 'User',
+                                                    'Usergroup'
+        --parameters PARAMS                         Host parameters.
+                                                    Comma-separated list of
+                                                    key=value.
+        --partition-table PARTITION_TABLE_NAME      Partition table name
         --partition-table-id PARTITION_TABLE_ID
-        --progress-report-id PROGRESS_REPORT_ID UUID to track orchestration
-                                    tasks status, GET
-                                    /api/orchestration/:UUID/tasks
-        --provision-method METHOD     One of 'build', 'image'
-        --ptable PTABLE_NAME          Partition table name
-        --ptable-id PTABLE_ID
+        --progress-report-id PROGRESS_REPORT_ID     UUID to track orchestration
+                                                    tasks status, GET
+                                                    /api/orchestration/:UUID
+                                                    /tasks
+        --provision-method METHOD                   Possible value(s): 'build',
+                                                    'image'
+        --puppet-ca-proxy PUPPET_CA_PROXY_NAME
         --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
+        --puppet-class-ids PUPPET_CLASS_IDS         Comma separated list of
+                                                    values.
+        --puppet-classes PUPPET_CLASS_NAMES         Comma separated list of
+                                                    values.
+        --puppet-proxy PUPPET_PROXY_NAME
         --puppet-proxy-id PUPPET_PROXY_ID
-        --puppetclass-ids PUPPETCLASS_IDS Comma separated list of values.
-        --realm REALM_NAME            Name to search by
-        --realm-id REALM_ID           May be numerical id or realm name
+        --pxe-loader PXE_LOADER                     DHCP filename option
+                                                    (Grub2/PXELinux by default)
+                                                    Possible value(s): 'None',
+                                                    'PXELinux BIOS',
+                                                    'PXELinux UEFI',
+                                                    'Grub UEFI',
+                                                    'Grub UEFI SecureBoot',
+                                                    'Grub2 UEFI',
+                                                    'Grub2 UEFI SecureBoot'
+        --realm REALM_NAME                          Name to search by
+        --realm-id REALM_ID                         Numerical ID or realm name
+        --release-version RELEASE_VERSION           Release version for this
+                                                    Host to use (7Server, 7.1,
+                                                    etc)
+        --root-pass ROOT_PASS                       required if host is managed
+                                                    and value is not inherited
+                                                    from host group or default
+                                                    password in settings
         --root-password ROOT_PW
-        --sp-subnet-id SP_SUBNET_ID
-        --subnet SUBNET_NAME          Subnet name
+        --service-level SERVICE_LEVEL               Service level to be used
+                                                    for autoheal.
+        --subnet SUBNET_NAME                        Subnet name
         --subnet-id SUBNET_ID
-        --volume VOLUME               Volume parameters
-                                    Comma-separated list of key=value.
-                                    Can be specified multiple times.
+        --volume VOLUME                             Volume parameters
+                                                    Comma-separated list of
+                                                    key=value.
+                                                    Can be specified multiple
+                                                    times.
     """
     # Check for required options
     required_options = (
         'architecture-id',
         'domain-id',
-        'environment-id',
         'medium-id',
         'operatingsystem-id',
         'partition-table-id',
-        'puppet-proxy-id',
     )
 
     if options is None:
@@ -1236,12 +1303,16 @@ def make_host(options=None):
         u'architecture': None,
         u'architecture-id': None,
         u'ask-root-password': None,
+        u'autoheal': None,
         u'build': None,
+        u'comment': None,
         u'compute-attributes': None,
         u'compute-profile': None,
         u'compute-profile-id': None,
         u'compute-resource': None,
         u'compute-resource-id': None,
+        u'content-view': None,
+        u'content-view-id': None,
         u'domain': None,
         u'domain-id': None,
         u'enabled': None,
@@ -1249,9 +1320,15 @@ def make_host(options=None):
         u'environment-id': None,
         u'hostgroup': None,
         u'hostgroup-id': None,
+        u'hostgroup-title': None,
+        u'hypervisor-guest-uuids': None,
+        u'image': None,
         u'image-id': None,
         u'interface': None,
         u'ip': gen_ipaddr(),
+        u'kickstart-repository-id': None,
+        u'lifecycle-environment': None,
+        u'lifecycle-environment-id': None,
         u'location': None,
         u'location-id': None,
         u'mac': gen_mac(),
@@ -1265,26 +1342,117 @@ def make_host(options=None):
         u'operatingsystem-id': None,
         u'organization': None,
         u'organization-id': None,
+        u'overwrite': None,
+        u'owner': None,
         u'owner-id': None,
+        u'owner-type': None,
         u'parameters': None,
+        u'partition-table': None,
         u'partition-table-id': None,
         u'progress-report-id': None,
         u'provision-method': None,
-        u'ptable': None,
-        u'ptable-id': None,
+        u'puppet-ca-proxy': None,
         u'puppet-ca-proxy-id': None,
+        u'puppet-class-ids': None,
+        u'puppet-classes': None,
+        u'puppet-proxy': None,
         u'puppet-proxy-id': None,
-        u'puppetclass-ids': None,
+        u'pxe-loader': None,
         u'realm': None,
         u'realm-id': None,
+        u'root-pass': None,
         u'root-password': gen_string('alpha', 8),
-        u'sp-subnet-id': None,
+        u'service-level': None,
         u'subnet': None,
         u'subnet-id': None,
         u'volume': None,
     }
 
     return create_object(Host, args, options)
+
+
+@cacheable
+def make_fake_host(options=None, isolated_mode=False):
+    """Wrapper function for make_host to pass all required options for creation
+    of a fake host
+
+    :param options: options to pass directly to make_host. May be equal to
+     `None` or contain some of entities to use (for example, `organization-id`
+     to create all sub-entities inside specific organization)
+    :param isolated_mode: set `True` to create all the required entities
+     like architecture, domain, location etc. Set `False` to use Satellite
+     predefined ones where it's possible. Defaults to `False`.
+    """
+    if options is None:
+        options = {}
+
+    if not isolated_mode:
+        # Check if entity name or id was passed. If not - use the default one
+        # with id = 1
+        for entity in (
+            'architecture',
+            'domain',
+            'location',
+            'operatingsystem',
+            'organization',
+        ):
+            if (not options.get(entity) and
+                    not options.get('{}-id'.format(entity))):
+                options['{}-id'.format(entity)] = 1
+        # Pick up the first available partition table for default operating
+        # system
+        if (not options.get('partition-table') and
+                not options.get('partition-table-id')):
+            options['partition-table-id'] = PartitionTable.list({
+                'operatingsystem': options.get('operatingsystem'),
+                'operatingsystem-id': options.get('operatingsystem-id'),
+            })[0]['id']
+
+    # Create all the required entities if they were not passed or defined
+    # previously
+    if not options.get('organization') and not options.get('organization-id'):
+        options['organization-id'] = make_org()['id']
+    if not options.get('location') and not options.get('location-id'):
+        options['location-id'] = make_location()['id']
+    if not options.get('domain') and not options.get('domain-id'):
+        options['domain-id'] = make_domain({
+            'location-ids': options.get('location-id'),
+            'locations': options.get('location'),
+            'organization-ids': options.get('organization-id'),
+            'organizations': options.get('organization'),
+        })['id']
+    if not options.get('architecture') and not options.get('architecture-id'):
+        options['architecture-id'] = make_architecture()['id']
+    if (not options.get('partition-table') and
+            not options.get('partition-table-id')):
+        options['partition-table-id'] = make_partition_table({
+            'location-ids': options.get('location-id'),
+            'locations': options.get('location'),
+            'organization-ids': options.get('organization-id'),
+            'organizations': options.get('organization'),
+        })['id']
+    if (not options.get('operatingsystem') and
+            not options.get('operatingsystem-id')):
+        options['operatingsystem-id'] = make_os({
+            'architecture-ids': options.get('architecture-id'),
+            'architectures': options.get('architecture'),
+            'partition-table-ids': options.get('partition-table-id'),
+            'partition-tables': options.get('partition-table'),
+        })['id']
+
+    # Finally, regardless of `isolated_mode` state, create a new medium (if
+    # none was passed)
+    if not options.get('medium') and not options.get('medium-id'):
+        options['medium-id'] = make_medium({
+            'location-ids': options.get('location-id'),
+            'locations': options.get('location'),
+            'operatingsystems': options.get('operatingsystem'),
+            'operatingsystem-ids': options.get('operatingsystem-id'),
+            'organization-ids': options.get('organization-id'),
+            'organizations': options.get('organization'),
+        })['id']
+
+    return make_host(options)
 
 
 @cacheable
@@ -1827,8 +1995,10 @@ def make_domain(options=None):
         u'description': None,
         u'dns-id': None,
         u'location-ids': None,
+        u'locations': None,
         u'name': gen_alphanumeric().lower(),
         u'organization-ids': None,
+        u'organizations': None,
     }
 
     return create_object(Domain, args, options)
@@ -1966,9 +2136,12 @@ def make_medium(options=None):
     # Assigning default values for attributes
     args = {
         u'location-ids': None,
+        u'locations': None,
         u'name': gen_alphanumeric(6),
         u'operatingsystem-ids': None,
+        u'operatingsystems': None,
         u'organization-ids': None,
+        u'organizations': None,
         u'os-family': None,
         u'path': 'http://{0}'.format((gen_string('alpha', 6))),
     }
