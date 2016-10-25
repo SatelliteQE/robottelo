@@ -1149,3 +1149,13 @@ UI_CRUD = [
     'usergroup.UserGroup',
     'user.User'
 ]
+
+BACKUP_FILES = [
+    u'candlepin.dump',
+    u'config_files.tar.gz',
+    u'config.snar',
+    u'foreman.dump',
+    u'mongo_dump',
+    u'pulp_data.tar',
+    u'pulp.snar',
+]
