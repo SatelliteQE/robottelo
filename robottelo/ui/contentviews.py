@@ -30,6 +30,18 @@ class ContentViews(Base):
         strategy, value = locators['contentviews.select_filter_name']
         self.click((strategy, value % filter_name))
 
+    def set_calendar_date_value(self, name, value):
+        """Set the input value of a date field and press the button to hide
+         the calendar popup panel"""
+        date_elm = self.wait_until_element(
+            locators['contentviews.calendar_date_input'] % name)
+        date_elm.clear()
+        if value:
+            date_elm.send_keys(value)
+        # close the popup calendar panel
+        self.click(
+            locators["contentviews.calendar_date_button"] % name)
+
     def create(self, name, label=None, description=None, is_composite=False):
         """Creates a content view"""
         self.click(locators['contentviews.new'])
@@ -449,6 +461,41 @@ class ContentViews(Base):
             self.click(locators['contentviews.add_errata'])
         else:
             self.click(locators['contentviews.remove_errata'])
+
+    def edit_erratum_date_range_filter(
+            self, cv_name, filter_name, errata_types=None, date_type=None,
+            start_date=None, end_date=None, open_filter=True):
+        """Edit Erratum Date Range Filter"""
+        allowed_errata_types = ['security', 'enhancement', 'bugfix']
+        allowed_date_types = ['updated', 'issued']
+        if not errata_types:
+            errata_types = ['security']
+        if not date_type:
+            date_type = 'updated'
+        if date_type not in allowed_date_types:
+            raise UIError('date type "{0}" does not exit'.format(date_type))
+        if open_filter:
+            self.go_to_filter_page(cv_name, filter_name)
+        for errata_type in allowed_errata_types:
+            errata_type_elm = self.wait_until_element(
+                locators['contentviews.erratum_type_checkbox'] % errata_type)
+            if errata_type_elm:
+                if errata_type_elm.get_attribute('value') == 'true':
+                    checked = True
+                else:
+                    checked = False
+                if (errata_type in errata_types and not checked)\
+                        or (errata_type not in errata_types and checked):
+                    # click on it only if it is checked and not selected
+                    # or not checked and selected
+                    errata_type_elm.click()
+            else:
+                raise UIError(
+                    'Can find the check box element %s .', errata_type)
+        self.click(locators['contentviews.erratum_date_type'] % date_type)
+        self.set_calendar_date_value('start_date', start_date)
+        self.set_calendar_date_value('end_date', end_date)
+        self.click(locators['contentviews.save_erratum'])
 
     def fetch_puppet_module(self, cv_name, module_name):
         """Get added puppet module name from selected content-view"""
