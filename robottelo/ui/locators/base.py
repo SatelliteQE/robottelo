@@ -306,9 +306,16 @@ locators = LocatorDict({
         "//a[not(contains(@href, 'search')) and contains(@href, '%s')]"),
 
     # Locators under compute-resources vm tab.
+    "resource.search_filter": (
+        By.XPATH,
+        "//div[@class='tab-content']/div[contains(@class, 'active')]//"
+        "input[contains(@aria-controls, 'DataTables_Table')]"),
+    "resource.power_status": (
+        By.XPATH,
+        ".//*[@id='DataTables_Table_0']/tbody/tr/td[4]/span"),
     "resource.vm_power_button": (
         By.XPATH,
-        "//a[contains(@href,'power') and contains(@data-confirm, '%s')]"),
+        "//a[contains(@href,'power')]"),
     "resource.vm_delete_button_dropdown": (
         By.XPATH,
         ("//a[contains(@href,'power') and contains(@data-confirm, '%s')]"

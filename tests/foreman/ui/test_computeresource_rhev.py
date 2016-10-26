@@ -585,3 +585,59 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Caseautomation: notautomated
         """
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_rhev_vm_power_on(self):
+        """The virtual machine in rhev cr should be powered on.
+
+        @id: fb42e739-c35b-4c6f-a727-b99a4d695191
+
+        @Assert: The virtual machine is switched on
+
+        @CaseAutomation: Automated
+        """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.assertEqual(self.compute_resource.set_power_status(
+                name, self.rhev_vm_name, True), u'On')
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_rhev_vm_power_off(self):
+        """The virtual machine in rhev cr should be powered Off.
+
+        @id: e2996210-7f49-4de4-a298-4a142506ed48
+
+        @Assert: The virtual machine is switched Off
+
+        @CaseAutomation: Automated
+        """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.assertEqual(self.compute_resource.set_power_status(
+                name, self.rhev_vm_name, False), u'Off')
