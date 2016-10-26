@@ -1072,13 +1072,20 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         ).create()
 
         # step 2.15: Add the products to the activation key
+        subscription_added = False
         for sub in entities.Subscription(organization=org).search():
             if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 activation_key.add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': sub.id,
                 })
+                subscription_added = True
                 break
+        self.assertTrue(
+            subscription_added,
+            'Not able to find subscription "{0}"'
+            .format(DEFAULT_SUBSCRIPTION_NAME)
+        )
         # step 2.15.1: Enable product content
         if self.fake_manifest_is_set:
             activation_key.content_override(data={'content_override': {
