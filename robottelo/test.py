@@ -68,6 +68,7 @@ from robottelo.ui.lifecycleenvironment import LifecycleEnvironment
 from robottelo.ui.location import Location
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
+from robottelo.ui.my_account import MyAccount
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
@@ -308,6 +309,7 @@ class UITestCase(TestCase):
         self.location = Location(self.browser)
         self.login = Login(self.browser)
         self.medium = Medium(self.browser)
+        self.my_account = MyAccount(self.browser)
         self.navigator = Navigator(self.browser)
         self.user = User(self.browser)
         self.operatingsys = OperatingSys(self.browser)

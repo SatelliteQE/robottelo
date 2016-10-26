@@ -184,7 +184,7 @@ class Locator(defaultdict):
 
     def __getitem__(self, item):
         """This is where all access is intercepted, dotted.attribute is
-        forwarded to hereand also ['multi.keys.access'] so this method
+        forwarded to here and also ['multi.keys.access'] so this method
         manages how to get the proper element from node tree.
         if multiple keys it uses a map-reduce like access, if only a single key
         access it directly from the self dictionary, if doesn't exists, the

@@ -22,8 +22,7 @@ from robottelo.datafactory import (
     valid_labels_list,
     valid_names_list,
     valid_org_names_list,
-    valid_usernames_list
-)
+    valid_usernames_list)
 
 if six.PY2:
     import mock
@@ -96,6 +95,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
 class TestReturnTypes(unittest2.TestCase):
     """Tests for validating return types for different data factory
     functions."""
+
     def test_return_type(self):
         """This test validates return types for functions:
 
@@ -126,7 +126,7 @@ class TestReturnTypes(unittest2.TestCase):
                 valid_labels_list(),
                 valid_names_list(),
                 valid_org_names_list(),
-                valid_usernames_list(),):
+                valid_usernames_list()):
             self.assertIsInstance(item, six.text_type)
         for item in invalid_id_list():
             if not (isinstance(item, (six.text_type, int)) or item is None):
@@ -135,6 +135,7 @@ class TestReturnTypes(unittest2.TestCase):
 
 class InvalidValuesListTestCase(unittest2.TestCase):
     """Tests for :meth:`robottelo.datafactory.invalid_values_list`"""
+
     def test_return_values(self):
         """Tests if invalid values list returns right values based on input"""
         # Test valid values

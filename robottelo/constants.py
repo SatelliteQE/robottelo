@@ -399,14 +399,24 @@ DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
 
-LANGUAGES = [
-    u'zh_TW',
-    u'Galego',
-    u'Deutsch',
-    u'it',
-    u'日本語',
-    u'sv_SE',
-]
+LANGUAGES = {
+    u'Català': u'ca',
+    u'Deutsch': u'de',
+    u'English (United States)': u'en',
+    u'English (United Kingdom)': u'en_GB',
+    u'Español': u'es',
+    u'Français': u'fr',
+    u'Galego': u'gl',
+    u'it': u'it',
+    u'日本語': u'ja',
+    u'한국어': u'ko',
+    u'pl': u'pl',
+    u'Português (Brasil)': u'pt_BR',
+    u'Русский': u'ru',
+    u'sv_SE': u'sv_SE',
+    u'简体中文': u'zh_CN',
+    u'zh_TW': u'zh_TW'
+}
 
 TIMEZONES = [
     u'(GMT+00:00) UTC',
