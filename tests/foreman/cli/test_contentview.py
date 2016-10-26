@@ -23,11 +23,11 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_activation_key,
-    make_content_host,
     make_content_view,
     make_content_view_filter,
     make_content_view_filter_rule,
     make_filter,
+    make_fake_host,
     make_lifecycle_environment,
     make_org,
     make_product,
@@ -589,7 +589,7 @@ class ContentViewTestCase(CLITestCase):
         source_cv = ContentView.info({u'id': source_cv['id']})
         self.assertEqual(source_cv['content-host-count'], '0')
 
-        make_content_host({
+        make_fake_host({
             u'content-view-id': source_cv['id'],
             u'lifecycle-environment-id': env[0]['id'],
             u'name': gen_alphanumeric(),
@@ -1904,7 +1904,7 @@ class ContentViewTestCase(CLITestCase):
         })
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '0')
-        make_content_host({
+        make_fake_host({
             u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
@@ -1954,7 +1954,7 @@ class ContentViewTestCase(CLITestCase):
         })
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '0')
-        make_content_host({
+        make_fake_host({
             u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
@@ -2024,7 +2024,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '0')
 
-        make_content_host({
+        make_fake_host({
             u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
@@ -2070,7 +2070,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '0')
 
-        make_content_host({
+        make_fake_host({
             u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
@@ -2108,7 +2108,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '0')
 
-        make_content_host({
+        make_fake_host({
             u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
@@ -2168,7 +2168,7 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '0')
 
-        make_content_host({
+        make_fake_host({
             u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
