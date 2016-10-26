@@ -1447,10 +1447,12 @@ class ContentViewTestCase(CLITestCase):
             cv for cv in result
             if cv['name'] == DEFAULT_CV
         ])
+        cvv = ContentView.version_list({
+            'content-view-id': content_view['content-view-id']})[0]
         # Promote the Default CV to the next env
         with self.assertRaises(CLIReturnCodeError):
             ContentView.version_promote({
-                u'id': content_view['content-view-id'],
+                u'id': cvv['id'],
                 u'to-lifecycle-environment-id': self.env1['id'],
             })
 
@@ -2005,7 +2007,7 @@ class ContentViewTestCase(CLITestCase):
             'type': 'rpm',
         })
 
-        ContentView.filter.rule.info({
+        make_content_view_filter_rule({
             'content-view-filter': name,
             'content-view-id': content_view['id'],
             'name': gen_string('utf8'),
