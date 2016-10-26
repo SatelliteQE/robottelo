@@ -187,33 +187,6 @@ class ComputeResource(Base):
         image_elements = self.find_elements(locators['resource.image_list'])
         return [image.text for image in image_elements]
 
-    def vm_action_stop(self, res_name, vm_name, really):
-        """Stops a vm on the compute resource."""
-        self.click(self.search(res_name))
-        self.click(tab_locators['resource.tab_virtual_machines'])
-        button = self.find_element(
-            locators['resource.vm_power_button'] % vm_name
-        )
-        if 'Off' not in button.text:
-            raise UIError(
-                'Could not stop VM {0}. VM is not running'.format(vm_name)
-            )
-        self.click(button)
-        self.handle_alert(really)
-
-    def vm_action_start(self, res_name, vm_name):
-        """Starts a vm on the compute resource."""
-        self.click(self.search(res_name))
-        self.click(tab_locators['resource.tab_virtual_machines'])
-        button = self.find_element(
-            locators['resource.vm_power_button'] % vm_name
-        )
-        if 'On' not in button.text:
-            raise UIError(
-                'Could not start VM {0}. VM is already running'.format(vm_name)
-            )
-        self.click(button)
-
     def vm_action_toggle(self, res_name, vm_name, really):
         """Toggle power status of a vm on the compute resource."""
         self.click(self.search(res_name))
@@ -233,3 +206,49 @@ class ComputeResource(Base):
                         locators['resource.vm_delete_button']]:
             self.click(locator % vm_name)
         self.handle_alert(really)
+
+    def search_vm(self, resource_name, vm_name):
+        """Searches for existing Virtual machine from particular compute resource. It
+        is necessary to use custom search here as we need to select compute
+        resource tab before searching for particular Virtual machine and also,
+        there is no search button to click
+        """
+        self.click(self.search(resource_name))
+        self.click(tab_locators['resource.tab_virtual_machines'])
+        self.text_field_update(
+            locators['resource.search_filter'], vm_name)
+        strategy, value = self._search_locator()
+        return self.wait_until_element((strategy, value % vm_name))
+
+    def set_power_status(self, resource_name, vm_name, power_on=None):
+        """Perform power on or power off for VM's
+
+        :param bool power_on: True - for On, False - for Off
+        """
+        status = None
+        locator_status = locators['resource.power_status']
+        element = self.search_vm(resource_name, vm_name)
+        if element is None:
+            raise UIError(
+                'Could not find Virtual machine "{0}"'.format(vm_name))
+        button = self.find_element(
+            locators['resource.vm_power_button']
+        )
+        if power_on is True:
+            if 'On' not in button.text:
+                raise UIError(
+                    'Could not start VM {0}. VM is running'.format(vm_name)
+                )
+            self.click(button)
+            self.search_vm(resource_name, vm_name)
+            status = self.wait_until_element(locator_status).text
+        elif power_on is False:
+            if 'Off' not in button.text:
+                raise UIError(
+                    'Could not stop VM {0}. VM is not running'.format(vm_name)
+                )
+            self.click(button, wait_for_ajax=False)
+            self.handle_alert(True)
+            self.search_vm(resource_name, vm_name)
+            status = self.wait_until_element(locator_status).text
+        return status
