@@ -30,14 +30,17 @@ class ContentViews(Base):
         strategy, value = locators['contentviews.select_filter_name']
         self.click((strategy, value % filter_name))
 
-    def set_calendar_date_value(self, name, value):
+    def set_calendar_date_value(self, name, value=None):
         """Set the input value of a date field and press the button to hide
          the calendar popup panel"""
-        date_elm = self.wait_until_element(
+        date_element = self.wait_until_element(
             locators['contentviews.calendar_date_input'] % name)
-        date_elm.clear()
+        date_element.clear()
         if value:
-            date_elm.send_keys(value)
+            date_element.send_keys(value)
+        # whether we clear or send_keys to calendar input element,
+        # the calendar panel popup and hide other form elements that became
+        # unreachable.
         # close the popup calendar panel
         self.click(
             locators["contentviews.calendar_date_button"] % name)
@@ -463,35 +466,31 @@ class ContentViews(Base):
             self.click(locators['contentviews.remove_errata'])
 
     def edit_erratum_date_range_filter(
-            self, cv_name, filter_name, errata_types=None, date_type=None,
+            self, cv_name, filter_name, errata_types=None, date_type='updated',
             start_date=None, end_date=None, open_filter=True):
         """Edit Erratum Date Range Filter"""
         allowed_errata_types = ['security', 'enhancement', 'bugfix']
         allowed_date_types = ['updated', 'issued']
         if not errata_types:
+            # one errata type is mandatory
             errata_types = ['security']
-        if not date_type:
-            date_type = 'updated'
         if date_type not in allowed_date_types:
             raise UIError('date type "{0}" does not exit'.format(date_type))
         if open_filter:
             self.go_to_filter_page(cv_name, filter_name)
         for errata_type in allowed_errata_types:
-            errata_type_elm = self.wait_until_element(
+            errata_type_element = self.wait_until_element(
                 locators['contentviews.erratum_type_checkbox'] % errata_type)
-            if errata_type_elm:
-                if errata_type_elm.get_attribute('value') == 'true':
-                    checked = True
-                else:
-                    checked = False
-                if (errata_type in errata_types and not checked)\
-                        or (errata_type not in errata_types and checked):
-                    # click on it only if it is checked and not selected
-                    # or not checked and selected
-                    errata_type_elm.click()
+            if errata_type_element:
+                checked = errata_type_element.is_selected()
+                if ((errata_type in errata_types and not checked) or
+                        (errata_type not in errata_types and checked)):
+                    # click on it only if it's checked and not in the selection
+                    # or not checked and in the selection
+                    errata_type_element.click()
             else:
                 raise UIError(
-                    'Can find the check box element %s .', errata_type)
+                    'Cannot find the check box element %s .', errata_type)
         self.click(locators['contentviews.erratum_date_type'] % date_type)
         self.set_calendar_date_value('start_date', start_date)
         self.set_calendar_date_value('end_date', end_date)

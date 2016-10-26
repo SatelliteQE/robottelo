@@ -679,11 +679,11 @@ class ContentViewTestCase(UITestCase):
                 FILTER_CONTENT_TYPE['erratum by date and type'],
                 FILTER_TYPE['exclude']
             )
-            # edit the filter fields immediately after creation and without
-            # opening, as after creation the filter form should be opened
-            # and ready to be be edited
-            # should not assert the filter existence to not exist from
-            # the window at this time
+            # The last executed function will create the filter and open the
+            # edit filter form.
+            # will not assert the filter existence here to not exist from the
+            # filter edit form.
+            # will edit the filter fields immediately with open_filter=False
             self.content_views.edit_erratum_date_range_filter(
                 cv_name,
                 filter_name,
