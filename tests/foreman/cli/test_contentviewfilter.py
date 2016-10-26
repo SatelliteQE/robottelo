@@ -21,6 +21,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view,
+    make_content_view_filter,
     make_org,
     make_product_wait,  # workaround for BZ 1332650
     make_repository,
@@ -465,7 +466,7 @@ class ContentViewFilterTestCase(CLITestCase):
         @CaseLevel: Integration
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter.create({
+        cvf = make_content_view_filter({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
             'organization-id': self.org['id'],
@@ -475,13 +476,12 @@ class ContentViewFilterTestCase(CLITestCase):
             with self.subTest(new_name):
                 ContentView.filter.update({
                     'content-view-id': self.content_view['id'],
-                    'name': cvf_name,
+                    'id': cvf['filter-id'],
                     'new-name': new_name,
-                    'organization-id': self.org['id'],
                 })
                 cvf = ContentView.filter.info({
-                    u'content-view-id': self.content_view['id'],
-                    u'name': new_name,
+                    'content-view-id': self.content_view['id'],
+                    'name': new_name,
                 })
                 self.assertEqual(cvf['name'], new_name)
                 cvf_name = new_name  # updating cvf name for next iteration
@@ -616,7 +616,6 @@ class ContentViewFilterTestCase(CLITestCase):
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
             'inclusion': 'false',
-            'organization-id': self.org['id'],
         })
         cvf = ContentView.filter.info({
             u'content-view-id': self.content_view['id'],
@@ -833,6 +832,7 @@ class ContentViewFilterTestCase(CLITestCase):
                 u'name': cvf_name,
             })
 
+    @skip_if_bug_open('bugzilla', 1388642)
     @tier1
     def test_positive_delete_by_org_name(self):
         """Create new content view filter and assign it to existing content
