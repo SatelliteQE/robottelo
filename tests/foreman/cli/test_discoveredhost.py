@@ -17,9 +17,15 @@
 """
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.discoveredhost import DiscoveredHost
-from robottelo.cli.factory import make_org, make_location
+from robottelo.cli.factory import (
+    configure_env_for_provision,
+    make_location,
+    make_org,
+)
+from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
 from robottelo.cli.template import Template
+from robottelo.datafactory import gen_string
 from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import CLITestCase
@@ -189,7 +195,6 @@ class DiscoveredTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_provision_pxeless_host(self):
         """Provision the pxe-less discovered host from cli
@@ -201,13 +206,40 @@ class DiscoveredTestCase(CLITestCase):
         @Assert: Host should be provisioned successfully and entry from
         discovered host list should be auto removed
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        result = configure_env_for_provision(
+            org=self.org, loc=self.loc)
+        with LibvirtGuest(boot_iso=True) as pxe_host:
+            hostname = pxe_host.guest_name
+            discovered_host = self._assertdiscoveredhost(hostname)
+            self.assertIsNotNone(discovered_host)
+            # Provision just discovered host
+            DiscoveredHost.provision({
+                'name': discovered_host['name'],
+                'hostgroup': result['hostgroup']['name'],
+                'root-password': gen_string('alphanumeric'),
+            })
+            provisioned_host = Host.info({'name': '{0}.{1}'.format(
+                discovered_host['name'], result['domain']['name'])})
+            self.assertEqual(
+                provisioned_host['network']['subnet'],
+                result['subnet']['name']
+            )
+            self.assertEqual(
+                provisioned_host['operating-system']['partition-table'],
+                result['ptable']['name']
+            )
+            self.assertEqual(
+                provisioned_host['operating-system']['operating-system'],
+                result['os']['title']
+            )
+            # Check that provisioned host is not in the list of discovered
+            # hosts anymore
+            with self.assertRaises(CLIReturnCodeError):
+                DiscoveredHost.info({'id': discovered_host['id']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_provision_pxe_host(self):
         """Provision the pxe based discovered host from cli
@@ -219,13 +251,40 @@ class DiscoveredTestCase(CLITestCase):
         @Assert: Host should be provisioned successfully and entry from
         discovered host list should be automatically removed.
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        result = configure_env_for_provision(
+            org=self.org, loc=self.loc)
+        with LibvirtGuest() as pxe_host:
+            hostname = pxe_host.guest_name
+            discovered_host = self._assertdiscoveredhost(hostname)
+            self.assertIsNotNone(discovered_host)
+            # Provision just discovered host
+            DiscoveredHost.provision({
+                'name': discovered_host['name'],
+                'hostgroup': result['hostgroup']['name'],
+                'root-password': gen_string('alphanumeric'),
+            })
+            provisioned_host = Host.info({'name': '{0}.{1}'.format(
+                discovered_host['name'], result['domain']['name'])})
+            self.assertEqual(
+                provisioned_host['network']['subnet'],
+                result['subnet']['name']
+            )
+            self.assertEqual(
+                provisioned_host['operating-system']['partition-table'],
+                result['ptable']['name']
+            )
+            self.assertEqual(
+                provisioned_host['operating-system']['operating-system'],
+                result['os']['title']
+            )
+            # Check that provisioned host is not in the list of discovered
+            # hosts anymore
+            with self.assertRaises(CLIReturnCodeError):
+                DiscoveredHost.info({'id': discovered_host['id']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_delete_pxeless_host(self):
         """Delete the selected pxe-less discovered host
@@ -236,13 +295,17 @@ class DiscoveredTestCase(CLITestCase):
 
         @Assert: Selected host should be removed successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with LibvirtGuest(boot_iso=True) as pxe_less_host:
+            hostname = pxe_less_host.guest_name
+            host = self._assertdiscoveredhost(hostname)
+            self.assertIsNotNone(host)
+        DiscoveredHost.delete({'id': host['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            DiscoveredHost.info({'id': host['id']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_delete_pxe_host(self):
         """Delete the selected pxe-based discovered host
@@ -253,10 +316,15 @@ class DiscoveredTestCase(CLITestCase):
 
         @Assert: Selected host should be removed successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with LibvirtGuest() as pxe_host:
+            hostname = pxe_host.guest_name
+            host = self._assertdiscoveredhost(hostname)
+            self.assertIsNotNone(host)
+        DiscoveredHost.delete({'id': host['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            DiscoveredHost.info({'id': host['id']})
 
     @run_only_on('sat')
     @stubbed()

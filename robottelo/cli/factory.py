@@ -64,9 +64,11 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_LOC,
     DEFAULT_ORG,
+    DEFAULT_PTABLE,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
+    LIBVIRT_RESOURCE_URL,
     OPERATING_SYSTEMS,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
@@ -2710,4 +2712,216 @@ def setup_org_for_a_rh_repo(options=None):
         u'lifecycle-environment-id': env_id,
         u'organization-id': org_id,
         u'repository-id': rhel_repo['id'],
+    }
+
+
+def configure_env_for_provision(org=None, loc=None):
+    """
+    :param org: Default Organization that should be used in both host
+        discovering and host provisioning procedures
+    :param loc: Default Location that should be used in both host
+        discovering and host provisioning procedures
+    :return: List of created entities that can be re-used further in
+        provisioning or validation procedure (e.g. hostgroup or subnet)
+    """
+    # Create new organization and location in case they were not passed
+    if org is None:
+        org = make_org()
+    if loc is None:
+        loc = make_location()
+
+    # Create a new Lifecycle environment
+    lce = make_lifecycle_environment({'organization-id': org['id']})
+
+    # Create a Product, Repository for custom content and sync it
+    new_product = make_product({u'organization-id': org['id']})
+    new_repo = make_repository({
+        u'product-id': new_product['id'],
+        u'url': settings.rhel7_os
+    })
+    Repository.synchronize({'id': new_repo['id']})
+
+    # Content View should be promoted to be used with LC Env
+    cv = make_content_view({'organization-id': org['id']})
+    ContentView.add_repository({
+        u'id': cv['id'],
+        u'organization-id': org['id'],
+        u'repository-id': new_repo['id'],
+    })
+    ContentView.publish({'id': cv['id']})
+    cv = ContentView.info({'id': cv['id']})
+    ContentView.version_promote({
+        'id': cv['versions'][0]['id'],
+        'to-lifecycle-environment-id': lce['id'],
+    })
+
+    # Create puppet environment and associate organization and location
+    env = make_environment({
+        'location-ids': loc['id'],
+        'organization-ids': org['id'],
+    })
+
+    # Search for SmartProxy, and associate location
+    puppet_proxy = Proxy.list()[0]
+    Proxy.update({
+        u'id': puppet_proxy['id'],
+        u'location-ids': loc['id'],
+    })
+
+    # Network
+    # Search for existing domain or create new otherwise. Associate org,
+    # location and dns to it
+    _, _, domain_name = settings.server.hostname.partition('.')
+    domain = Domain.list({'search': 'name={0}'.format(domain_name)})
+    if len(domain) == 1:
+        domain = domain[0]
+        Domain.update({
+            'name': domain_name,
+            'location-ids': loc['id'],
+            'organization-ids': org['id'],
+            'dns-id': puppet_proxy['id'],
+        })
+    else:
+        # Create new domain
+        domain = make_domain({
+            'name': domain_name,
+            'location-ids': loc['id'],
+            'organization-ids': org['id'],
+            'dns-id': puppet_proxy['id'],
+        })
+    # Search if subnet is defined with given network. If so, just update its
+    # relevant fields otherwise create new subnet
+    network = settings.vlan_networking.subnet
+    subnet = Subnet.list({'search': 'network={0}'.format(network)})
+    if len(subnet) == 1:
+        subnet = subnet[0]
+        Subnet.update({
+            'name': subnet['name'],
+            'domain-ids': domain['id'],
+            'location-ids': loc['id'],
+            'organization-ids': org['id'],
+            'dhcp-id': puppet_proxy['id'],
+            'dns-id': puppet_proxy['id'],
+            'tftp-id': puppet_proxy['id'],
+        })
+    else:
+        # Create new subnet
+        subnet = make_subnet({
+            'name': gen_string('alpha'),
+            'network': network,
+            'mask': settings.vlan_networking.netmask,
+            'domain-ids': domain['id'],
+            'location-ids': loc['id'],
+            'organization-ids': org['id'],
+            'dhcp-id': puppet_proxy['id'],
+            'dns-id': puppet_proxy['id'],
+            'tftp-id': puppet_proxy['id'],
+        })
+
+    # Search if Libvirt compute-resource already exists. If so, just update its
+    # relevant fields otherwise, create new compute-resource with 'libvirt'
+    # provider.
+    current_libvirt_url = (
+        LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
+    )
+
+    libvirt_resources = [
+        ComputeResource.info({'id': comp_res['id']}) for comp_res
+        in ComputeResource.list()
+    ]
+    comp_resources = [
+        comp_res for comp_res in libvirt_resources
+        if comp_res['url'] == 'url={0}'.format(current_libvirt_url) and
+        comp_res['provider'] == 'Libvirt'
+    ]
+    if len(comp_resources) >= 1:
+        ComputeResource.update({
+            u'id': comp_resources[0]['id'],
+            u'location-ids': loc['id'],
+            u'organization-ids': org['id'],
+        })
+    else:
+        # Create Libvirt compute-resource
+        make_compute_resource({
+            'name': gen_string('alpha'),
+            'provider': 'libvirt',
+            'url': current_libvirt_url,
+            'set-console-password': False,
+            'display-type': 'VNC',
+            u'location-ids': loc['id'],
+            u'organization-ids': org['id'],
+        })
+
+    # Get the Partition table entity
+    ptable = PartitionTable.info({'name': DEFAULT_PTABLE})
+
+    # Get the OS entity
+    os = OperatingSys.list({
+        'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
+            RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+    })[0]
+
+    # Get proper Provisioning templates and update with OS, Org, Location
+    provisioning_template = Template.info({
+        'name': 'Satellite Kickstart Default'})
+    Template.update({
+        u'id': provisioning_template['id'],
+        u'operatingsystem-ids': os['id'],
+        u'location-ids': loc['id'],
+        u'organization-ids': org['id'],
+    })
+    pxe_template = Template.info({
+        'name': 'Kickstart default PXELinux'})
+    Template.update({
+        u'id': pxe_template['id'],
+        u'operatingsystem-ids': os['id'],
+        u'location-ids': loc['id'],
+        u'organization-ids': org['id'],
+    })
+
+    # Get the architecture entity
+    arch = Architecture.list(
+        {'search': 'name={0}'.format(DEFAULT_ARCHITECTURE)})[0]
+
+    # Get the media and update its location
+    media = Medium.list({u'organization-id': org['id']})[0]
+    Medium.update({
+        u'id': media['id'],
+        u'location-ids': loc['id']
+    })
+
+    # Update the OS with found arch, ptable, templates and media
+    OperatingSys.update({
+        'id': os['id'],
+        'architecture-ids': arch['id'],
+        'config-template-ids': [
+            provisioning_template['id'], pxe_template['id']],
+        'partition-table-ids': ptable['id'],
+        'medium-ids': media['id'],
+    })
+
+    # Create new hostgroup using proper entities
+    hostgroup = make_hostgroup({
+        'location-ids': loc['id'],
+        'environment-id': env['id'],
+        'lifecycle-environment': lce['name'],
+        'puppet-proxy-id': puppet_proxy['id'],
+        'puppet-ca-proxy-id': puppet_proxy['id'],
+        'content-view-id': cv['id'],
+        'domain-id': domain['id'],
+        'subnet-id': subnet['id'],
+        'organization-id': org['id'],
+        'architecture-id': arch['id'],
+        'partition-table-id': ptable['id'],
+        'medium-id': media['id'],
+        'operatingsystem-id': os['id'],
+        'content-source-id': puppet_proxy['id'],
+    })
+
+    return {
+        'hostgroup': hostgroup,
+        'subnet': subnet,
+        'domain': domain,
+        'ptable': ptable,
+        'os': os
     }
