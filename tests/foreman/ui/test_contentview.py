@@ -487,7 +487,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+                common_locators.alert.success_sub_form))
             self.content_views.add_filter(
                 cv_name,
                 filter_name,
@@ -509,7 +509,7 @@ class ContentViewTestCase(UITestCase):
                 open_filter=True
             )
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+                common_locators.alert.success_sub_form))
 
     @run_only_on('sat')
     @tier1
@@ -672,7 +672,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+                common_locators.alert.success_sub_form))
             self.content_views.add_filter(
                 cv_name,
                 filter_name,
@@ -681,7 +681,7 @@ class ContentViewTestCase(UITestCase):
             )
             # The last executed function will create the filter and open the
             # edit filter form.
-            # will not assert the filter existence here to not exist from the
+            # will not assert the filter existence here to not exit from the
             # filter edit form.
             # will edit the filter fields immediately with open_filter=False
             self.content_views.edit_erratum_date_range_filter(
@@ -695,7 +695,7 @@ class ContentViewTestCase(UITestCase):
                 open_filter=False
             )
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+                common_locators.alert.success_sub_form))
             # this assertion should find/open the cv and search for our filter
             self.assertIsNotNone(
                  self.content_views.search_filter(cv_name, filter_name))

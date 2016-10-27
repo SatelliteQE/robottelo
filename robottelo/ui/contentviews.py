@@ -35,12 +35,12 @@ class ContentViews(Base):
         """Set the input value of a date field and press the button to hide
          the calendar popup panel"""
         self.assign_value(
-            locators['contentviews.calendar_date_input'] % name, value)
+            locators.contentviews.calendar_date_input % name, value
+        )
         # the calendar panel popup and hide other form elements that became
         # unreachable.
         # close the popup calendar panel
-        self.click(
-            locators["contentviews.calendar_date_button"] % name)
+        self.click(locators.contentviews.calendar_date_button % name)
 
     def create(self, name, label=None, description=None, is_composite=False):
         """Creates a content view"""
@@ -468,38 +468,43 @@ class ContentViews(Base):
         """Edit Erratum Date Range Filter"""
         allowed_errata_types = FILTER_ERRATA_TYPE.values()
         allowed_date_types = FILTER_ERRATA_DATE.values()
-        erratum_type_locator = locators['contentviews.erratum_type_checkbox']
-        date_type_locator = locators['contentviews.erratum_date_type']
         if open_filter:
             self.go_to_filter_page(cv_name, filter_name)
         if errata_types is not None:
-            if errata_types:
-                # because of the behaviour of the UI to check and disable
-                # the last element if the others are unchecked,
-                # will check all the elements first,
-                # after then uncheck the not selected ones
-                for errata_type in allowed_errata_types:
-                    self.assign_value(erratum_type_locator % errata_type, True)
-                for errata_type in allowed_errata_types:
-                    if errata_type not in errata_types:
-                        self.assign_value(
-                            erratum_type_locator % errata_type, False)
-            else:
-                # minimum one errata type is mandatory
+            if not errata_types:
                 raise UIError(
-                    'errata types is empty, minimum required: one errata type')
+                    'errata types is empty, minimum required: one errata type'
+                )
+            if not set(errata_types).issubset(allowed_errata_types):
+                raise UIError('some types in errata_types are not allowed')
+            # because of the behaviour of the UI to disable the last checked
+            # element.
+            # will check all selected errata types first, after then uncheck
+            # the not selected ones.
+            # 1 - check first the types that are in the errata_types
+            for errata_type in errata_types:
+                self.assign_value(
+                    locators.contentviews.erratum_type_checkbox % errata_type,
+                    True
+                )
+            # we are sure now that any check box not in the errata_types
+            # is enabled and clickable
+            # 2 - uncheck the types that are not in the selection
+            for errata_type in set(allowed_errata_types).difference(
+                    errata_types):
+                self.assign_value(
+                    locators.contentviews.erratum_type_checkbox % errata_type,
+                    False
+                )
         if date_type is not None:
-            if date_type in allowed_date_types:
-                self.click(date_type_locator % date_type)
-            else:
-                raise UIError(
-                    'date type "{0}" not allowed'.format(date_type))
+            if date_type not in allowed_date_types:
+                raise UIError('date type "{0}" not allowed'.format(date_type))
+            self.click(locators.contentviews.erratum_date_type % date_type)
         if start_date is not None:
             self.set_calendar_date_value('start_date', start_date)
         if end_date is not None:
             self.set_calendar_date_value('end_date', end_date)
-
-        self.click(locators['contentviews.save_erratum'])
+        self.click(locators.contentviews.save_erratum)
 
     def fetch_puppet_module(self, cv_name, module_name):
         """Get added puppet module name from selected content-view"""
