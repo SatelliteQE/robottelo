@@ -35,7 +35,8 @@ class ContentViews(Base):
         """Set the input value of a date field and press the button to hide
          the calendar popup panel"""
         self.assign_value(
-            locators.contentviews.calendar_date_input % name, value
+            locators.contentviews.calendar_date_input % name,
+            value
         )
         # the calendar panel popup and hide other form elements that became
         # unreachable.
