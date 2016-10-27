@@ -3,6 +3,7 @@
 
 import time
 
+from robottelo.constants import FILTER_ERRATA_TYPE, FILTER_ERRATA_DATE
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -30,15 +31,11 @@ class ContentViews(Base):
         strategy, value = locators['contentviews.select_filter_name']
         self.click((strategy, value % filter_name))
 
-    def set_calendar_date_value(self, name, value=None):
+    def set_calendar_date_value(self, name, value):
         """Set the input value of a date field and press the button to hide
          the calendar popup panel"""
-        date_element = self.wait_until_element(
-            locators['contentviews.calendar_date_input'] % name)
-        date_element.clear()
-        if value:
-            date_element.send_keys(value)
-        # whether we clear or send_keys to calendar input element,
+        self.assign_value(
+            locators['contentviews.calendar_date_input'] % name, value)
         # the calendar panel popup and hide other form elements that became
         # unreachable.
         # close the popup calendar panel
@@ -466,34 +463,42 @@ class ContentViews(Base):
             self.click(locators['contentviews.remove_errata'])
 
     def edit_erratum_date_range_filter(
-            self, cv_name, filter_name, errata_types=None, date_type='updated',
+            self, cv_name, filter_name, errata_types=None, date_type=None,
             start_date=None, end_date=None, open_filter=True):
         """Edit Erratum Date Range Filter"""
-        allowed_errata_types = ['security', 'enhancement', 'bugfix']
-        allowed_date_types = ['updated', 'issued']
-        if not errata_types:
-            # one errata type is mandatory
-            errata_types = ['security']
-        if date_type not in allowed_date_types:
-            raise UIError('date type "{0}" does not exit'.format(date_type))
+        allowed_errata_types = FILTER_ERRATA_TYPE.values()
+        allowed_date_types = FILTER_ERRATA_DATE.values()
+        erratum_type_locator = locators['contentviews.erratum_type_checkbox']
+        date_type_locator = locators['contentviews.erratum_date_type']
         if open_filter:
             self.go_to_filter_page(cv_name, filter_name)
-        for errata_type in allowed_errata_types:
-            errata_type_element = self.wait_until_element(
-                locators['contentviews.erratum_type_checkbox'] % errata_type)
-            if errata_type_element:
-                checked = errata_type_element.is_selected()
-                if ((errata_type in errata_types and not checked) or
-                        (errata_type not in errata_types and checked)):
-                    # click on it only if it's checked and not in the selection
-                    # or not checked and in the selection
-                    errata_type_element.click()
+        if errata_types is not None:
+            if errata_types:
+                # because of the behaviour of the UI to check and disable
+                # the last element if the others are unchecked,
+                # will check all the elements first,
+                # after then uncheck the not selected ones
+                for errata_type in allowed_errata_types:
+                    self.assign_value(erratum_type_locator % errata_type, True)
+                for errata_type in allowed_errata_types:
+                    if errata_type not in errata_types:
+                        self.assign_value(
+                            erratum_type_locator % errata_type, False)
+            else:
+                # minimum one errata type is mandatory
+                raise UIError(
+                    'errata types is empty, minimum required: one errata type')
+        if date_type is not None:
+            if date_type in allowed_date_types:
+                self.click(date_type_locator % date_type)
             else:
                 raise UIError(
-                    'Cannot find the check box element %s .', errata_type)
-        self.click(locators['contentviews.erratum_date_type'] % date_type)
-        self.set_calendar_date_value('start_date', start_date)
-        self.set_calendar_date_value('end_date', end_date)
+                    'date type "{0}" not allowed'.format(date_type))
+        if start_date is not None:
+            self.set_calendar_date_value('start_date', start_date)
+        if end_date is not None:
+            self.set_calendar_date_value('end_date', end_date)
+
         self.click(locators['contentviews.save_erratum'])
 
     def fetch_puppet_module(self, cv_name, module_name):
