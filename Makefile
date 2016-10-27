@@ -52,11 +52,14 @@ help:
 	@echo "  can-i-push?                to check if local changes are suitable to push"
 	@echo "  install-commit-hook        to install pre-commit hook to check if changes are suitable to push"
 	@echo "  gitflake8                  to check flake8 styling only for modified files"
+	@echo "  clean-cache                to clean pytest cache files"
+	@echo "  clean-all                  to clean cache, pyc, logs and docs"
 
 docs:
 	@cd docs; $(MAKE) html
 
 docs-clean:
+	$(info "Cleaning docs...")
 	@cd docs; $(MAKE) clean
 
 test-docstrings: uuid-check
@@ -128,9 +131,11 @@ pyc-clean: ## remove Python file artifacts
 	find . -name '__pycache__' -exec rm -fr {} +
 
 logs-join:
+	$(info "Joining worker logs in to one master file...")
 	-cat robottelo_gw*.log > robottelo_master.log
 
 logs-clean:
+	$(info "Removing pytest worker logs...")
 	-rm -f robottelo_gw*.log
 
 uuid-check:  ## list duplicated or empty uuids
@@ -152,6 +157,12 @@ install-commit-hook:
 	@grep -q '^make uuid-fix' .git/hooks/pre-commit || echo "make uuid-fix" >> .git/hooks/pre-commit
 	@grep -q '^make can-i-push?' .git/hooks/pre-commit || echo "make can-i-push?" >> .git/hooks/pre-commit
 
+clean-cache:
+	$(info "Cleaning the .cache directory...")
+	rm -rf .cache
+
+clean-all: docs-clean logs-clean pyc-clean clean-cache
+
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
@@ -160,4 +171,5 @@ install-commit-hook:
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
         graph-entities lint logs-join logs-clean pyc-clean \
-        uuid-check uuid-fix can-i-push? install-commit-hook gitflake8
+        uuid-check uuid-fix can-i-push? install-commit-hook gitflake8 \
+        clean-cache clean-all
