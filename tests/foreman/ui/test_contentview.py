@@ -867,14 +867,11 @@ class ContentViewTestCase(UITestCase):
                 filter_term='Latest'
             )
             # ensure that the puppet module is added to content view
-            session.nav.go_to_select_org(self.organization.name)
             self.assertIsNotNone(
                 self.content_views.fetch_puppet_module(
                     cv_name, module_name)
             )
-            # ensure that the module that we already added cannot be found
-            # in the list of modules to add when try to add it a second time.
-            session.nav.go_to_select_org(self.organization.name)
+            # ensure that cannot add the same module a second time.
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.add_puppet_module(
                     cv_name,
