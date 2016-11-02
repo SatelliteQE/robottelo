@@ -16,17 +16,24 @@
 @Upstream: No
 """
 
-from robottelo import ssh
 from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import make_hostgroup, make_smart_variable
+from robottelo.cli.factory import (
+    make_content_view,
+    make_hostgroup,
+    make_org,
+    make_product,
+    make_repository,
+    make_smart_variable,
+)
 from robottelo.cli.host import Host
 from robottelo.cli.hostgroup import HostGroup
-from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
+from robottelo.cli.repository import Repository
 from robottelo.cli.smart_variable import SmartVariable
-from robottelo.config import settings
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import (
     gen_string,
     invalid_values_list,
@@ -41,6 +48,8 @@ from robottelo.decorators import (
 )
 from robottelo.test import CLITestCase
 
+from nailgun import entities
+
 
 class SmartVariablesTestCase(CLITestCase):
     """Implements Smart Variables tests in CLI"""
@@ -52,26 +61,43 @@ class SmartVariablesTestCase(CLITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
-        cls.puppet_module = "puppetlabs/ntp"
-        cls.host_name = settings.server.hostname
-        ssh.command(
-            'puppet module install --force {0}'.format(cls.puppet_module))
-        cls.env = Environment.info({u'name': 'production'})
-        Proxy.importclasses({
-            u'environment': cls.env['name'],
-            u'name': cls.host_name,
+        cls.puppet_modules = [
+            "robottelo/cli_test_variables",
+            "robottelo/generic_1",
+        ]
+        cls.org = make_org()
+        # Create product and puppet modules repository
+        product = make_product({u'organization-id': cls.org['id']})
+        repo = make_repository({
+            u'product-id': product['id'],
+            u'content-type': 'puppet',
+            u'url': CUSTOM_PUPPET_REPO,
         })
-        cls.puppet = Puppet.info({u'name': 'ntp'})
+        # Synchronize repo via provided URL
+        Repository.synchronize({'id': repo['id']})
+        # Add selected module to Content View
+        cv = make_content_view({u'organization-id': cls.org['id']})
+        for module in cls.puppet_modules:
+            ContentView.puppet_module_add({
+                u'author': module.split('/')[0],
+                u'name': module.split('/')[1],
+                u'content-view-id': cv['id'],
+            })
+        # CV publishing will automatically create Environment and
+        # Puppet Class entities
+        ContentView.publish({u'id': cv['id']})
+        cls.env = Environment.list({
+            u'search': 'content_view="{0}"'.format(cv['name'])
+        })[0]
+        cls.puppet = Puppet.info({
+            u'name': cls.puppet_modules[0].split('/')[1]
+        })
 
     @classmethod
     def tearDownClass(cls):
-        """Removes entire module from the system and re-imports classes into
-        proxy. This is required as other types of tests (API/UI) use the same
-        module.
-        """
+        """Removes puppet class."""
         super(SmartVariablesTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
-                            cls.host_name, cls.env['name'])
+        delete_puppet_class(cls.puppet['name'])
 
     @run_only_on('sat')
     @tier2
@@ -85,12 +111,15 @@ class SmartVariablesTestCase(CLITestCase):
         @CaseLevel: Integration
         """
         make_smart_variable({'puppet-class': self.puppet['name']})
+        organization = entities.Organization(id=self.org['id']).search()[0]
+        host = entities.Host(organization=organization).create()
         Host.update({
-            u'name': self.host_name,
-            u'puppet-classes': self.puppet['name']
+            u'name': host.name,
+            u'environment': self.env['name'],
+            u'puppet-classes': self.puppet['name'],
         })
         host_smart_variables_list = Host.smart_variables({
-            u'host': self.host_name})
+            u'host': host.name})
         self.assertGreater(len(host_smart_variables_list), 0)
 
     @run_only_on('sat')
@@ -105,13 +134,15 @@ class SmartVariablesTestCase(CLITestCase):
         @CaseLevel: Integration
         """
         make_smart_variable({'puppet-class': self.puppet['name']})
+        organization = entities.Organization(id=self.org['id']).search()[0]
+        host = entities.Host(organization=organization).create()
         Host.update({
-            u'name': self.host_name,
-            u'puppet-classes': self.puppet['name']
+            u'name': host.name,
+            u'environment': self.env['name'],
+            u'puppet-classes': self.puppet['name'],
         })
-        host_id = Host.info({u'name': self.host_name})['id']
         host_smart_variables_list = Host.smart_variables({
-            u'host-id': host_id})
+            u'host-id': host.id})
         self.assertGreater(len(host_smart_variables_list), 0)
 
     @run_only_on('sat')
@@ -283,7 +314,8 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet['name']})
         self.assertEqual(smart_variable['puppet-class'], self.puppet['name'])
-        new_puppet = Puppet.info({u'name': 'ntp::config'})
+        new_puppet = Puppet.info(
+            {u'name': self.puppet_modules[1].split('/')[1]})
         SmartVariable.update({
             'variable': smart_variable['variable'],
             'puppet-class': new_puppet['name']
@@ -1151,7 +1183,6 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['merge-default-value'], True)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
         """Attempt to enable Merge Overrides, Merge Default flags for non
@@ -1179,6 +1210,11 @@ class SmartVariablesTestCase(CLITestCase):
                 'merge-overrides': 1,
                 'merge-default': 1,
             })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['merge-overrides'], False)
+        self.assertEqual(
+            smart_variable['override-values']['merge-default-value'], False)
 
     @run_only_on('sat')
     @tier1
@@ -1212,7 +1248,6 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['avoid-duplicates'], True)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
         """Attempt to enable Avoid duplicates flag for non supported types.
@@ -1243,6 +1278,11 @@ class SmartVariablesTestCase(CLITestCase):
                 'merge-overrides': 1,
                 'avoid-duplicates': 1,
             })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['merge-overrides'], False)
+        self.assertEqual(
+            smart_variable['override-values']['avoid-duplicates'], False)
 
     @tier2
     def test_positive_impact_delete_attribute(self):

@@ -18,12 +18,12 @@
 from random import choice
 
 from fauxfactory import gen_integer, gen_string
+from robottelo.constants import CUSTOM_PUPPET_REPO
+
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo import ssh
 from robottelo.api.utils import delete_puppet_class
-from robottelo.config import settings
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
@@ -45,31 +45,43 @@ class SmartVariablesTestCase(APITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
-        cls.puppet_module = "puppetlabs/ntp"
-        cls.host_name = settings.server.hostname
-        ssh.command(
-            'puppet module install --force {0}'.format(cls.puppet_module))
+        cls.puppet_modules = [
+            "robottelo/api_test_variables",
+            "robottelo/generic_1"
+        ]
+        cls.org = entities.Organization().create()
+        # Create product and puppet modules repository
+        product = entities.Product(organization=cls.org).create()
+        repo = entities.Repository(
+            product=product,
+            content_type='puppet',
+            url=CUSTOM_PUPPET_REPO
+        ).create()
+        # Synchronize repo via provided URL
+        repo.sync()
+        # Add selected module to Content View
+        cv = entities.ContentView(organization=cls.org).create()
+        for module in cls.puppet_modules:
+            entities.ContentViewPuppetModule(
+                author=module.split('/')[0],
+                name=module.split('/')[1],
+                content_view=cv,
+            ).create()
+        # CV publishing will automatically create Environment and
+        # Puppet Class entities
+        cv.publish()
         cls.env = entities.Environment().search(
-            query={'search': 'name="production"'}
-        )
-        if len(cls.env) == 0:
-            raise Exception("Environment not found")
-        cls.env = cls.env[0]
-        cls.proxy = entities.SmartProxy(name=cls.host_name).search()[0]
-        cls.proxy.import_puppetclasses(environment=cls.env)
-        cls.puppet = entities.PuppetClass().search(
-            query={'search': 'name="ntp"'}
+            query={'search': 'content_view="{0}"'.format(cv.name)}
         )[0]
+        cls.puppet = entities.PuppetClass().search(query={
+            'search': 'name="{0}"'.format(cls.puppet_modules[0].split('/')[1])
+        })[0]
 
     @classmethod
     def tearDownClass(cls):
-        """Removes entire module from the system and re-imports classes into
-        proxy. This is required as other types of tests (CLI/UI) use the same
-        module.
-        """
+        """Removes puppet class."""
         super(SmartVariablesTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet.name, cls.puppet_module,
-                            cls.host_name, cls.env.name)
+        delete_puppet_class(cls.puppet.name)
 
     @run_only_on('sat')
     @tier1
@@ -151,9 +163,9 @@ class SmartVariablesTestCase(APITestCase):
             puppetclass=self.puppet,
         ).create()
         self.assertEqual(smart_variable.puppetclass.id, self.puppet.id)
-        new_puppet = entities.PuppetClass().search(
-            query={'search': 'name="ntp::config"'}
-        )[0]
+        new_puppet = entities.PuppetClass().search(query={
+            'search': 'name="{0}"'.format(self.puppet_modules[1].split('/')[1])
+        })[0]
         smart_variable.puppetclass = new_puppet
         updated_sv = smart_variable.update(['puppetclass'])
         self.assertEqual(updated_sv.puppetclass.id, new_puppet.id)
@@ -223,9 +235,9 @@ class SmartVariablesTestCase(APITestCase):
         @CaseLevel: Integration
         """
         entities.SmartVariable(puppetclass=self.puppet).create()
-        host = entities.Host().search(
-            query={'search': 'name={0}'.format(self.host_name)}
-        )[0]
+        host = entities.Host(organization=self.org).create()
+        host.environment = self.env
+        host.update(['environment'])
         host.add_puppetclass(data={'puppetclass_id': self.puppet.id})
         self.assertGreater(len(host.list_smart_variables()['results']), 0)
 
@@ -1026,7 +1038,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.merge_default, True)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
         """Disable Merge Overrides, Merge Default flags for non supported types
@@ -1052,9 +1063,8 @@ class SmartVariablesTestCase(APITestCase):
             "array or hash"
         )
         with self.assertRaises(HTTPError) as context:
-            smart_variable.merge_overrides = True
             smart_variable.merge_default = True
-            smart_variable.update(['merge_overrides', 'merge_default'])
+            smart_variable.update(['merge_default'])
         self.assertRegexpMatches(
             context.exception.response.text,
             "Validation failed: Merge default can only be set when merge "
@@ -1090,7 +1100,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.avoid_duplicates, True)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
         """Disable Avoid duplicates flag for non supported types
@@ -1120,14 +1129,14 @@ class SmartVariablesTestCase(APITestCase):
             "array or hash"
         )
         with self.assertRaises(HTTPError) as context:
-            smart_variable.merge_overrides = True
             smart_variable.avoid_duplicates = True
-            smart_variable.update(['merge_overrides', 'avoid_duplicates'])
+            smart_variable.update(['avoid_duplicates'])
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Merge default can only be set when merge "
-            "overrides is set"
+            "Validation failed: Avoid duplicates can only be set for arrays "
+            "that have merge_overrides set to true"
         )
+        smart_variable = smart_variable.read()
         self.assertEqual(smart_variable.merge_overrides, False)
         self.assertEqual(smart_variable.avoid_duplicates, False)
 
