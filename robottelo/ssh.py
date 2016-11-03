@@ -42,6 +42,26 @@ class SSHCommandResult(object):
         return tmpl.format(**self.__dict__)
 
 
+class SSHClient(paramiko.SSHClient):
+    """Extended SSHClient allowing custom methods"""
+
+    def run(self, cmd, *args, **kwargs):
+        """This method exists to allow the reuse of existing connections when
+        running multiple ssh commands as in the following example of use:
+
+            with robotello.ssh.get_connection() as connection:
+                connection.run('ls /tmp')
+                connection.run('another command')
+
+        `self` is always passed as the connection when used in context manager
+        only when using `ssh.get_connection` function.
+
+        Note: This method is named `run` to avoid conflicts with existing
+        `exec_command` and local function `execute_command`.
+        """
+        return execute_command(cmd, self, *args, **kwargs)
+
+
 def _call_paramiko_sshclient():  # pragma: no cover
     """Call ``paramiko.SSHClient``.
 
@@ -50,7 +70,31 @@ def _call_paramiko_sshclient():  # pragma: no cover
     mocking purposes.
 
     """
-    return paramiko.SSHClient()
+    return SSHClient()
+
+
+def get_client(hostname=None, username=None, password=None,
+               key_filename=None, timeout=10):
+    """Returns a SSH client connected to given hostname"""
+    if hostname is None:
+        hostname = settings.server.hostname
+    if username is None:
+        username = settings.server.ssh_username
+    if key_filename is None:
+        key_filename = settings.server.ssh_key
+    if password is None:
+        password = settings.server.ssh_password
+    client = _call_paramiko_sshclient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(
+        hostname=hostname,
+        username=username,
+        key_filename=key_filename,
+        password=password,
+        timeout=timeout
+    )
+    client._id = hex(id(client))
+    return client
 
 
 @contextmanager
@@ -85,33 +129,17 @@ def get_connection(hostname=None, username=None, password=None,
     :rtype: ``paramiko.SSHClient``
 
     """
-    if hostname is None:
-        hostname = settings.server.hostname
-    if username is None:
-        username = settings.server.ssh_username
-    if key_filename is None:
-        key_filename = settings.server.ssh_key
-    if password is None:
-        password = settings.server.ssh_password
-
-    client = _call_paramiko_sshclient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(
-        hostname=hostname,
-        username=username,
-        key_filename=key_filename,
-        password=password,
-        timeout=timeout
+    client = get_client(
+        hostname, username, password, key_filename, timeout
     )
-    client_id = hex(id(client))
     try:
-        logger.info('Instantiated Paramiko client {0}'.format(client_id))
+        logger.info('Instantiated Paramiko client {0}'.format(client._id))
         logger.debug('Connected to [%s]', hostname)
         yield client
     finally:
-        logger.info('Destroying Paramiko client {0}'.format(client_id))
+        logger.info('Destroying Paramiko client {0}'.format(client._id))
         client.close()
-        logger.info('Destroyed Paramiko client {0}'.format(client_id))
+        logger.info('Destroyed Paramiko client {0}'.format(client._id))
 
 
 def add_authorized_key(key, hostname=None, username=None, password=None,
@@ -240,7 +268,7 @@ def execute_command(cmd, connection, output_format=None, timeout=120):
 
     :param cmd: a command to be executed via ssh
     :param connection: SSH Paramiko client connection
-    :param output_format: plain|json|csv valid only for hammer commands
+    :param output_format: plain|json|csv|list valid only for hammer commands
     :param timeout: defaults to 120
     :return: SSHCommandResult
     """
