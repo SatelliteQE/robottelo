@@ -1027,22 +1027,6 @@ class ContentViewTestCase(UITestCase):
         @CaseLevel: Integration
         """
 
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_negative_promote_default(self):
-        """attempt to promote a the default content views
-
-        @id: b753e920-7dc6-4801-8e2f-e083042bcea5
-
-        @assert: Default content views cannot be promoted
-
-        @caseautomation: notautomated
-
-
-        @CaseLevel: Integration
-        """
-
     @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
