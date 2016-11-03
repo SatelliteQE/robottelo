@@ -2239,12 +2239,11 @@ locators = LocatorDict({
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
     "contentviews.remove": (
-        By.XPATH, "//button[@ui-sref='content-views.details.deletion']"),
+        By.XPATH,
+        "//button[contains(@ng-click, 'content-views.details.deletion')]"),
     "contentviews.remove_ver": (
         By.XPATH, ("//td/a[contains(., '%s')]/following::td/"
-                   "button[contains(@ui-sref, 'version-deletion')]")),
-    "contentviews.remove_cv_version": (
-        By.XPATH, "//a[contains(@ui-sref, 'version-deletion')]/button"),
+                   "button[contains(@ng-click, 'version-deletion')]")),
     "contentviews.completely_remove_checkbox": (
         By.XPATH, "//span/input[contains(@ng-model, 'deleteArchive')]"),
     "contentviews.next_button": (

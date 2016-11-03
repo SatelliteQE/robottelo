@@ -1332,15 +1332,13 @@ class ContentViewTestCase(UITestCase):
         # Publish content view
         cv.publish()
         # Get published content-view version info
-        cv_info = entities.ContentView(id=cv.id).read_json()
-        self.assertEqual(len(cv_info['versions']), 1)
+        cvv = entities.ContentView(id=cv.id).read().version
+        self.assertEqual(len(cvv), 1)
         # API returns version like '1.0'
-        version_num = cv_info['versions'][0]['version']
         # WebUI displays version like 'Version 1.0'
-        version = 'Version {0}'.format(version_num)
+        version = 'Version {0}'.format(cvv[0].read().version)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            session.nav.go_to_content_views()
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
@@ -1361,23 +1359,17 @@ class ContentViewTestCase(UITestCase):
         product = entities.Product(organization=org).create()
         repo = entities.Repository(product=product).create()
         repo.sync()
-        cv = entities.ContentView(
-            name=gen_string('alpha'),
-            organization=org,
-        ).create()
+        cv = entities.ContentView(organization=org).create()
         cv.repository = [repo]
         cv.update(['repository'])
         cv.publish()
 
-        cv_info = cv.read_json()['versions'][0]
-        version = 'Version {0}'.format(cv_info['version'])
-        cvv = entities.ContentViewVersion(id=cv_info['id'])
+        cvv = cv.read().version[0].read()
+        version = 'Version {0}'.format(cvv.version)
         lc_env = entities.LifecycleEnvironment(organization=org).create()
         cvv.promote(data={u'environment_id': lc_env.id})
-
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            session.nav.go_to_content_views()
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
@@ -1395,15 +1387,11 @@ class ContentViewTestCase(UITestCase):
         @CaseLevel: Integration
         """
         org = entities.Organization().create()
-        cv = entities.ContentView(
-            name=gen_string('alpha'),
-            organization=org,
-        ).create()
+        cv = entities.ContentView(organization=org).create()
         cv.publish()
 
-        cv_info = cv.read_json()['versions'][0]
-        version = 'Version {0}'.format(cv_info['version'])
-        cvv = entities.ContentViewVersion(id=cv_info['id'])
+        cvv = cv.read().version[0].read()
+        version = 'Version {0}'.format(cvv.version)
         lc_env = entities.LifecycleEnvironment(organization=org).create()
         cvv.promote(data={u'environment_id': lc_env.id})
 
@@ -1421,20 +1409,11 @@ class ContentViewTestCase(UITestCase):
                 cv.name,
                 version,
             )
-            # That call should be made to remove any reference from DOM to
-            # search field on the page and prevent StaleElementException in
-            # our search functionality as our code does not differentiate
-            # search field locator for ActivationKey or ContentView or any
-            # other possible entities in the application.
-            session.nav.go_to_dashboard()
-            session.nav.go_to_activation_keys()
             self.activationkey.update(
                 ak.name,
                 content_view=DEFAULT_CV,
                 env=ENVIRONMENT,
             )
-            session.nav.go_to_dashboard()
-            session.nav.go_to_content_views()
             self.content_views.delete_version(cv.name, version)
             self.content_views.validate_version_deleted(cv.name, version)
 
