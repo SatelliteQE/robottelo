@@ -276,32 +276,6 @@ class ContentHostTestCase(CLITestCase):
             })
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1318686)
-    @skip_if_bug_open('bugzilla', 1338780)
-    def test_positive_update_name(self):
-        """Check if content host name can be updated
-
-        @id: 056fff14-e9ea-407e-8340-1d5b5da1e4e4
-
-        @Assert: Content host is created and name is updated
-
-        @BZ: 1318686, 1338780
-        """
-        new_system = make_content_host({
-            u'content-view-id': self.DEFAULT_CV['id'],
-            u'lifecycle-environment-id': self.LIBRARY['id'],
-            u'organization-id': self.NEW_ORG['id'],
-        })
-        for new_name in valid_hosts_list():
-            with self.subTest(new_name):
-                ContentHost.update({
-                    u'id': new_system['id'],
-                    u'new-name': new_name,
-                })
-                result = ContentHost.info({'id': new_system['id']})
-                self.assertEqual(result['name'], new_name)
-
-    @tier1
     @skip_if_bug_open('bugzilla', 1328202)
     def test_positive_delete_by_id(self):
         """Check if content host can be created and deleted by passing its ID
