@@ -19,6 +19,8 @@
 import json
 from random import choice
 
+from nailgun import entities
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
@@ -45,8 +47,6 @@ from robottelo.decorators import (
     tier2,
 )
 from robottelo.test import CLITestCase
-
-from nailgun import entities
 
 
 @filtered_datapoint
@@ -135,7 +135,8 @@ class SmartClassParametersTestCase(CLITestCase):
         be able to work with unique entity for each specific test.
         """
         super(SmartClassParametersTestCase, cls).setUpClass()
-        cls.puppet_module = "robottelo/cli_test_classparameters"
+        puppet_module_author = "robottelo"
+        puppet_module_name = "cli_test_classparameters"
         cls.org = make_org()
         # Create product and puppet modules repository
         product = make_product({u'organization-id': cls.org['id']})
@@ -149,22 +150,22 @@ class SmartClassParametersTestCase(CLITestCase):
         # Add selected module to Content View
         cv = make_content_view({u'organization-id': cls.org['id']})
         ContentView.puppet_module_add({
-            u'author': cls.puppet_module.split('/')[0],
-            u'name': cls.puppet_module.split('/')[1],
+            u'author': puppet_module_author,
+            u'name': puppet_module_name,
             u'content-view-id': cv['id'],
         })
         # CV publishing will automatically create Environment and will make
         # puppet classes from module available
         ContentView.publish({u'id': cv['id']})
         cls.env = Environment.list({
-            u'search': 'content_view="{0}"'.format(cv['name'])
+            u'search': u'content_view="{0}"'.format(cv['name'])
         })[0]
         cls.puppet = Puppet.info({
-            u'name': cls.puppet_module.split('/')[1]
+            u'name': puppet_module_name
         })
         cls.sc_params_list = SmartClassParameter.list({
             u'environment': cls.env['name'],
-            u'search': 'puppetclass="{0}"'.format(cls.puppet['name'])
+            u'search': u'puppetclass="{0}"'.format(cls.puppet['name'])
         })
         cls.sc_params_ids_list = [
             sc_param['id'] for sc_param in cls.sc_params_list]
@@ -173,8 +174,9 @@ class SmartClassParametersTestCase(CLITestCase):
         """Checks that there is at least one not overridden
         smart class parameter before executing test.
         """
+        super(SmartClassParameter, self).setUp()
         if len(self.sc_params_list) == 0:
-            raise Exception("Not enough smart class parameters. Please"
+            raise Exception("Not enough smart class parameters. Please "
                             "update puppet module.")
 
     @run_only_on('sat')
@@ -198,8 +200,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
-        organization = entities.Organization(id=self.org['id']).search()[0]
-        host = entities.Host(organization=organization).create()
+        host = entities.Host(organization=self.org['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],
@@ -229,8 +230,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
-        organization = entities.Organization(id=self.org['id']).search()[0]
-        host = entities.Host(organization=organization).create()
+        host = entities.Host(organization=self.org['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],
