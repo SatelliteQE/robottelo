@@ -267,7 +267,6 @@ class HostCollectionTestCase(APITestCase):
                 self.assertEqual(
                     host_collection.unlimited_hosts, unlimited)
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_update_host(self):
         """Update host collection's host.
@@ -280,11 +279,10 @@ class HostCollectionTestCase(APITestCase):
             host=[self.hosts[0]],
             organization=self.org,
         ).create()
-        host_collection.host = self.hosts[1]
+        host_collection.host = [self.hosts[1]]
         host_collection = host_collection.update(['host'])
         self.assertEqual(host_collection.host[0].id, self.hosts[1].id)
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_update_hosts(self):
         """Update host collection's hosts.
