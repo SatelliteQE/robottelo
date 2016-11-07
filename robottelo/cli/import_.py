@@ -390,7 +390,7 @@ class Import(Base):
             in (
                 (u'ls -v ${HOME}/.transition_data/system_content_views*',
                     u'ch_seq'),
-                (u'ls -v ${HOME}/.transition_data/systems*', u'sat5'),
+                (u'ls -v ${HOME}/.transition_data/hosts*', u'sat5'),
             )
         ]
         return (result, transition_data)
