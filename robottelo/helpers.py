@@ -270,6 +270,9 @@ def add_remote_execution_ssh_key(hostname, key_path=None, **kwargs):
     key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     # This connection defaults to settings.server
     server_key = ssh.command('cat %s' % key_path).stdout
+    # Sometimes stdout contains extra empty string. Skipping it
+    if isinstance(server_key, list):
+        server_key = server_key[0]
 
     # add that key to the client using hostname and kwargs for connection
     ssh.add_authorized_key(server_key, hostname=hostname, **kwargs)
