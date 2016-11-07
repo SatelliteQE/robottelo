@@ -509,7 +509,9 @@ def make_partition_table(options=None):
     args = {
         u'file': '/tmp/{0}'.format(gen_alphanumeric()),
         u'name': gen_alphanumeric(),
-        u'os-family': random.choice(OPERATING_SYSTEMS)
+        u'os-family': random.choice(OPERATING_SYSTEMS),
+        u'organization-ids': None,
+        u'location-ids': None
     }
 
     # Upload file to server
@@ -1527,10 +1529,11 @@ def make_hostgroup(options=None):
         u'name': gen_alphanumeric(6),
         u'operatingsystem': None,
         u'operatingsystem-id': None,
+        u'organization-id': None,
         u'organization-ids': None,
         u'parent-id': None,
-        u'ptable': None,
-        u'ptable-id': None,
+        u'partition-table': None,
+        u'partition-table-id': None,
         u'puppet-ca-proxy': None,
         u'puppet-ca-proxy-id': None,
         u'puppet-class-ids': None,
