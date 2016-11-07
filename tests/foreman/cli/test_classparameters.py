@@ -18,16 +18,25 @@
 
 import json
 from random import choice
-from robottelo import ssh
+
+from nailgun import entities
+
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.factory import (
+    make_content_view,
+    make_hostgroup,
+    make_org,
+    make_product,
+    make_repository,
+)
 from robottelo.cli.host import Host
 from robottelo.cli.hostgroup import HostGroup
-from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
+from robottelo.cli.repository import Repository
 from robottelo.cli.scparams import SmartClassParameter
-from robottelo.config import settings
+from robottelo.constants import FAKE_8_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
     run_in_one_thread,
@@ -123,27 +132,52 @@ class SmartClassParametersTestCase(CLITestCase):
         """Import some parametrized puppet classes. This is required to make
         sure that we have smart class variable available.
         Read all available smart class parameters for imported puppet class to
-        be able to work with unique entity for each specific test. Raise an
-        exception and skip all tests in case not enough parameters returned.
+        be able to work with unique entity for each specific test.
         """
         super(SmartClassParametersTestCase, cls).setUpClass()
-        cls.host_name = settings.server.hostname
-        ssh.command('puppet module install --force puppetlabs/ntp')
-        cls.env = Environment.info({u'name': 'production'})
-        Proxy.importclasses({
+        puppet_module_author = "robottelo"
+        puppet_module_name = "cli_test_classparameters"
+        cls.org = make_org()
+        # Create product and puppet modules repository
+        product = make_product({u'organization-id': cls.org['id']})
+        repo = make_repository({
+            u'product-id': product['id'],
+            u'content-type': 'puppet',
+            u'url': FAKE_8_PUPPET_REPO,
+        })
+        # Synchronize repo via provided URL
+        Repository.synchronize({'id': repo['id']})
+        # Add selected module to Content View
+        cv = make_content_view({u'organization-id': cls.org['id']})
+        ContentView.puppet_module_add({
+            u'author': puppet_module_author,
+            u'name': puppet_module_name,
+            u'content-view-id': cv['id'],
+        })
+        # CV publishing will automatically create Environment and will make
+        # puppet classes from module available
+        ContentView.publish({u'id': cv['id']})
+        cls.env = Environment.list({
+            u'search': u'content_view="{0}"'.format(cv['name'])
+        })[0]
+        cls.puppet = Puppet.info({
+            u'name': puppet_module_name
+        })
+        cls.sc_params_list = SmartClassParameter.list({
             u'environment': cls.env['name'],
-            u'name': cls.host_name,
+            u'search': u'puppetclass="{0}"'.format(cls.puppet['name'])
         })
-        cls.puppet = Puppet.info({u'name': 'ntp'})
-        sc_params_list = SmartClassParameter.list({
-            'environment': cls.env['name'],
-            'search': 'puppetclass=ntp'
-        })
-        if len(sc_params_list) < 45:
-            raise RuntimeError('There are not enough smart class parameters to'
-                               ' work with in provided puppet class')
         cls.sc_params_ids_list = [
-            sc_param['id'] for sc_param in sc_params_list]
+            sc_param['id'] for sc_param in cls.sc_params_list]
+
+    def setUp(self):
+        """Checks that there is at least one not overridden
+        smart class parameter before executing test.
+        """
+        super(SmartClassParameter, self).setUp()
+        if len(self.sc_params_list) == 0:
+            raise Exception("Not enough smart class parameters. Please "
+                            "update puppet module.")
 
     @run_only_on('sat')
     @tier2
@@ -166,11 +200,13 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
+        host = entities.Host(organization=self.org['id']).create()
         Host.update({
-            u'name': self.host_name,
-            u'puppet-classes': 'ntp'
+            u'name': host.name,
+            u'environment': self.env['name'],
+            u'puppet-classes': self.puppet['name']
         })
-        host_sc_params_list = Host.sc_params({u'host': self.host_name})
+        host_sc_params_list = Host.sc_params({u'host': host.name})
         self.assertGreater(len(host_sc_params_list), 0)
 
     @run_only_on('sat')
@@ -194,12 +230,13 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
+        host = entities.Host(organization=self.org['id']).create()
         Host.update({
-            u'name': self.host_name,
-            u'puppet-classes': 'ntp'
+            u'name': host.name,
+            u'environment': self.env['name'],
+            u'puppet-classes': self.puppet['name']
         })
-        host_id = Host.info({u'name': self.host_name})['id']
-        host_sc_params_list = Host.sc_params({u'host-id': host_id})
+        host_sc_params_list = Host.sc_params({u'host-id': host.id})
         self.assertGreater(len(host_sc_params_list), 0)
 
     @run_only_on('sat')
@@ -366,7 +403,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'puppet-class': 'ntp',
             'id': sc_param_id,
         })
-        self.assertEqual(sc_param['use-puppet-default'], 'true')
+        self.assertEqual(sc_param['use-puppet-default'], True)
 
     @run_only_on('sat')
     @tier1
@@ -396,7 +433,7 @@ class SmartClassParametersTestCase(CLITestCase):
                     'override': 1,
                 })
                 sc_param = SmartClassParameter.info({
-                    'puppet-class': 'ntp',
+                    'puppet-class': self.puppet['name'],
                     'id': sc_param_id,
                 })
                 if data['sc_type'] == 'boolean':
@@ -448,7 +485,7 @@ class SmartClassParametersTestCase(CLITestCase):
                         'override': 1,
                     })
                 sc_param = SmartClassParameter.info({
-                    'puppet-class': 'ntp',
+                    'puppet-class': self.puppet['name'],
                     'id': sc_param_id,
                 })
                 self.assertNotEqual(
@@ -479,7 +516,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'required': 1
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['required'], True)
@@ -514,7 +551,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'required': 1
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['required'], True)
@@ -546,7 +583,7 @@ class SmartClassParametersTestCase(CLITestCase):
                 'validator-rule': '[0-9]',
             })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertNotEqual(sc_param['default-value'], value)
@@ -577,7 +614,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'validator-rule': '[0-9]',
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['default-value'], value)
@@ -617,7 +654,7 @@ class SmartClassParametersTestCase(CLITestCase):
                 'validator-rule': '[0-9]',
             })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertNotEqual(sc_param['default-value'], value)
@@ -653,7 +690,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'validator-rule': '[0-9]',
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['default-value'], value)
@@ -685,7 +722,7 @@ class SmartClassParametersTestCase(CLITestCase):
                 'validator-rule': '5, test',
             })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertNotEqual(sc_param['default-value'], value)
@@ -715,7 +752,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'validator-rule': '5, test',
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['default-value'], 'test')
@@ -754,7 +791,7 @@ class SmartClassParametersTestCase(CLITestCase):
                 'validator-rule': '25, example, 50',
             })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertNotEqual(sc_param['default-value'], '50')
@@ -789,7 +826,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'validator-rule': 'test, example, 30',
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['default-value'], 'example')
@@ -853,7 +890,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'value': u'false'
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(
@@ -940,7 +977,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'value': value
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(
@@ -1005,7 +1042,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'use-puppet-default': 1
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(
@@ -1343,7 +1380,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'value': value
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(len(sc_param['override-values']['values']), 1)
@@ -1352,7 +1389,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param['override-values']['values']['1']['id'],
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(len(sc_param['override-values']['values']), 0)
@@ -1380,7 +1417,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'hidden-value': 1,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
@@ -1409,7 +1446,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'hidden-value': 1,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
@@ -1418,7 +1455,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'hidden-value': 0,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['hidden-value?'], False)
@@ -1452,7 +1489,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'hidden-value': 1,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
@@ -1462,7 +1499,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'default-value': new_value,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
@@ -1494,7 +1531,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'default-value': '',
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet['name'],
             'id': sc_param_id,
         })
         self.assertFalse(sc_param['default-value'])
