@@ -74,7 +74,6 @@ class SyncPlanTestCase(UITestCase):
         :param int max_attempts: Specify how many times to check for content
             presence. Delay between each attempt is 10 seconds. Default is 10
             attempts.
-
         """
         self.products.search(product).click()
         for _ in range(max_attempts):
@@ -93,6 +92,30 @@ class SyncPlanTestCase(UITestCase):
         else:
             raise AssertionError(
                 'Repository contains invalid number of content entities')
+
+    def get_client_datetime(self):
+        """Make Javascript call inside of browser session to get exact current
+        date and time. In that way, we will be isolated from any issue that can
+        happen due different environments where test automation code is
+        executing and where browser session is opened. That should help us to
+        have successful run for docker containers or separated virtual machines
+        When calling .getMonth() you need to add +1 to display the correct
+        month. Javascript count always starts at 0, so calling .getMonth() in
+        May will return 4 and not 5.
+
+        :return: Datetime object that contains data for current date and time
+            on a client
+        """
+        script = ('var currentdate = new Date(); return ({0} + "-" + {1} + '
+                  '"-" + {2} + " @ " + {3} + ":" + {4});').format(
+            'currentdate.getFullYear()',
+            '(currentdate.getMonth()+1)',
+            'currentdate.getDate()',
+            'currentdate.getHours()',
+            'currentdate.getMinutes()',
+        )
+        client_datetime = self.browser.execute_script(script)
+        return datetime.strptime(client_datetime, '%Y-%m-%d @ %H:%M')
 
     @tier1
     def test_positive_create_with_name(self):
@@ -167,7 +190,7 @@ class SyncPlanTestCase(UITestCase):
         @CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
-        startdate = datetime.now() + timedelta(minutes=10)
+        startdate = self.get_client_datetime() + timedelta(minutes=10)
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -178,7 +201,7 @@ class SyncPlanTestCase(UITestCase):
                 start_minute=startdate.strftime('%M'),
             )
             self.assertIsNotNone(self.syncplan.search(plan_name))
-            self.syncplan.search(plan_name).click()
+            self.syncplan.click(self.syncplan.search(plan_name))
             starttime_text = self.syncplan.wait_until_element(
                 locators['sp.fetch_startdate']).text
             # Removed the seconds info as it would be too quick
@@ -199,7 +222,7 @@ class SyncPlanTestCase(UITestCase):
         @CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
-        startdate = datetime.now() + timedelta(days=10)
+        startdate = self.get_client_datetime() + timedelta(days=10)
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -209,7 +232,7 @@ class SyncPlanTestCase(UITestCase):
                 startdate=startdate.strftime("%Y-%m-%d"),
             )
             self.assertIsNotNone(self.syncplan.search(plan_name))
-            self.syncplan.search(plan_name).click()
+            self.syncplan.click(self.syncplan.search(plan_name))
             startdate_text = self.syncplan.wait_until_element(
                 locators['sp.fetch_startdate']).text
             self.assertEqual(
@@ -300,7 +323,7 @@ class SyncPlanTestCase(UITestCase):
             for new_interval in valid_sync_intervals():
                 with self.subTest(new_interval):
                     self.syncplan.update(name, new_sync_interval=new_interval)
-                    self.syncplan.search(name).click()
+                    self.syncplan.click(self.syncplan.search(name))
                     # Assert updated sync interval
                     interval_text = self.syncplan.wait_until_element(
                         locators['sp.fetch_interval']
@@ -329,7 +352,7 @@ class SyncPlanTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             self.syncplan.update(
                 plan_name, add_products=[product.name])
-            self.syncplan.search(plan_name).click()
+            self.syncplan.click(self.syncplan.search(plan_name))
             # Assert product is associated with sync plan
             self.syncplan.click(tab_locators['sp.tab_products'])
             element = self.syncplan.wait_until_element(
@@ -357,15 +380,15 @@ class SyncPlanTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.syncplan.update(plan_name, add_products=[product.name])
-            self.syncplan.search(plan_name).click()
+            self.syncplan.click(self.syncplan.search(plan_name))
             self.syncplan.click(tab_locators['sp.tab_products'])
             element = self.syncplan.wait_until_element(
                 (strategy, value % product.name))
             self.assertIsNotNone(element)
-            # Dis-associate the product from sync plan and the selected product
+            # Disassociate the product from sync plan and the selected product
             # should automatically move from 'List/Remove` tab to 'Add' tab
             self.syncplan.update(plan_name, rm_products=[product.name])
-            self.syncplan.search(plan_name).click()
+            self.syncplan.click(self.syncplan.search(plan_name))
             self.syncplan.click(tab_locators['sp.tab_products'])
             self.syncplan.click(tab_locators['sp.add_prd'])
             element = self.syncplan.wait_until_element(
@@ -424,7 +447,7 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = datetime.now()
+        startdate = self.get_client_datetime()
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -463,7 +486,7 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = datetime.now()
+        startdate = self.get_client_datetime()
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -509,7 +532,7 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = datetime.now() + timedelta(seconds=delay)
+        startdate = self.get_client_datetime() + timedelta(seconds=delay)
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -529,7 +552,7 @@ class SyncPlanTestCase(UITestCase):
             # Associate sync plan with product
             self.syncplan.update(plan_name, add_products=[product.name])
             # Wait half of expected time
-            sleep(delay/2)
+            sleep(delay / 2)
             # Verify product has not been synced yet
             self.validate_repo_content(
                 product.name,
@@ -568,7 +591,7 @@ class SyncPlanTestCase(UITestCase):
             for product in products
             for _ in range(randint(2, 3))
         ]
-        startdate = datetime.now() + timedelta(seconds=delay)
+        startdate = self.get_client_datetime() + timedelta(seconds=delay)
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -589,8 +612,9 @@ class SyncPlanTestCase(UITestCase):
             # Associate sync plan with products
             self.syncplan.update(
                 plan_name, add_products=[product.name for product in products])
-            # Wait half of expected time
-            sleep(delay/2)
+            # Wait third part of expected time, because it will take a while to
+            # verify each product and repository
+            sleep(delay / 3)
             # Verify products has not been synced yet
             for repo in repos:
                 self.validate_repo_content(
@@ -600,7 +624,7 @@ class SyncPlanTestCase(UITestCase):
                     after_sync=False,
                 )
             # Wait the rest of expected time
-            sleep(delay/2)
+            sleep(delay * 2 / 3)
             # Verify product was synced successfully
             for repo in repos:
                 self.validate_repo_content(
@@ -643,7 +667,7 @@ class SyncPlanTestCase(UITestCase):
             releasever=None,
         )
         repo = entities.Repository(id=repo_id).read()
-        startdate = datetime.now()
+        startdate = self.get_client_datetime()
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -704,7 +728,7 @@ class SyncPlanTestCase(UITestCase):
             releasever=None,
         )
         repo = entities.Repository(id=repo_id).read()
-        startdate = datetime.now() + timedelta(seconds=delay)
+        startdate = self.get_client_datetime() + timedelta(seconds=delay)
         with Session(self.browser) as session:
             make_syncplan(
                 session,
