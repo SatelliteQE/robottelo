@@ -1489,6 +1489,7 @@ class TestImport(CLITestCase):
                 )
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1238247)
     @tier1
     def test_positive_import_chosts_default(self):
         """Import all content hosts from
@@ -1519,6 +1520,7 @@ class TestImport(CLITestCase):
                     )
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1238247)
     @tier1
     def test_negative_reimport_chosts(self):
         """Repetitive Import of all content hosts from
@@ -1559,6 +1561,7 @@ class TestImport(CLITestCase):
                 )
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1238247)
     @skip_if_bug_open('bugzilla', 1267224)
     @tier1
     def test_negative_import_chosts_recovery(self):
