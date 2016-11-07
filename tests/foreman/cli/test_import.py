@@ -1518,7 +1518,7 @@ class TestImport(CLITestCase):
                 )
                 clean_transdata()
 
-    @skip_if_bug_open('bugzilla', 1325497)
+    @skip_if_bug_open('bugzilla', 1238247)
     @tier1
     def test_positive_import_chosts_default(self):
         """Import all content hosts from
@@ -1549,6 +1549,7 @@ class TestImport(CLITestCase):
                     )
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1238247)
     @tier1
     def test_negative_reimport_chosts(self):
         """Repetitive Import of all content hosts from
@@ -1589,6 +1590,7 @@ class TestImport(CLITestCase):
                 )
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1238247)
     @skip_if_bug_open('bugzilla', 1267224)
     @tier1
     def test_negative_import_chosts_recovery(self):
@@ -1608,7 +1610,7 @@ class TestImport(CLITestCase):
                 import_content_hosts(files, tmp_dir)
                 # clear the .transition_data to clear the transition mapping
                 ssh.command(
-                    'rm -rf "${{HOME}}"/.transition_data/system*'
+                    'rm -rf "${{HOME}}"/.transition_data/{{system*,hosts*}} '
                     '{0}/SOURCES {0}/SPECS'
                     .format(tmp_dir)
                 )
