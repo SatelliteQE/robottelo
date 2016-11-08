@@ -21,6 +21,7 @@ from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
+    bz_bug_is_open,
     stubbed,
     tier2,
     tier3,
@@ -145,7 +146,10 @@ class DiscoveryTestCase(APITestCase):
             with self.subTest(name):
                 mac_address = gen_mac()
                 host = _create_discovered_host(name, macaddress=mac_address)
-                host_name = 'mac{0}'.format(mac_address.replace(':', ''))
+                if bz_bug_is_open(1392919):
+                    host_name = 'mac{0}'.format(mac_address.replace(':', ''))
+                else:
+                    host_name = 'mac{0}'.format(host['mac'].replace(':', ''))
                 self.assertEqual(host['name'], host_name)
 
     @stubbed()
