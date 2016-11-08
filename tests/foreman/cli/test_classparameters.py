@@ -174,7 +174,7 @@ class SmartClassParametersTestCase(CLITestCase):
         """Checks that there is at least one not overridden
         smart class parameter before executing test.
         """
-        super(SmartClassParameter, self).setUp()
+        super(SmartClassParametersTestCase, self).setUp()
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please "
                             "update puppet module.")
