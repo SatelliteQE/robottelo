@@ -110,17 +110,20 @@ class TestCase(unittest2.TestCase):
         """
         self.worker_id = worker_id
         if worker_id != 'master':
-            formatter = logging.Formatter(
-                fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
-                ' %(message)s'.format(worker_id),
-                datefmt='%Y-%m-%d %H:%M:%S'
-            )
-            handler = logging.FileHandler(
-                'robottelo_{0}.log'.format(worker_id))
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-            # Nailgun HTTP logs should also be included in gw* logs
-            logging.getLogger('nailgun').addHandler(handler)
+            if '{0}'.format(worker_id) not in [
+                    h.get_name() for h in self.logger.handlers]:
+                formatter = logging.Formatter(
+                    fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
+                    ' %(message)s'.format(worker_id),
+                    datefmt='%Y-%m-%d %H:%M:%S'
+                )
+                handler = logging.FileHandler(
+                    'robottelo_{0}.log'.format(worker_id))
+                handler.set_name('{0}'.format(worker_id))
+                handler.setFormatter(formatter)
+                self.logger.addHandler(handler)
+                # Nailgun HTTP logs should also be included in gw* logs
+                logging.getLogger('nailgun').addHandler(handler)
 
     @classmethod
     def setUpClass(cls):  # noqa
