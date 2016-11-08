@@ -143,8 +143,9 @@ class DiscoveryTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                host = _create_discovered_host(name)
-                host_name = 'mac{0}'.format(host['mac'].replace(':', ''))
+                mac_address = gen_mac()
+                host = _create_discovered_host(name, macaddress=mac_address)
+                host_name = 'mac{0}'.format(mac_address.replace(':', ''))
                 self.assertEqual(host['name'], host_name)
 
     @stubbed()
