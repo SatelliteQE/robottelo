@@ -16,6 +16,7 @@
 """
 from fauxfactory import gen_mac, gen_string
 from nailgun import entities
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     make_activation_key,
@@ -1144,3 +1145,21 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run(
             'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         self.assertNotEqual(result.return_code, 0)
+
+
+class HostErrataTestCase(CLITestCase):
+    """Tests for errata's host sub command"""
+
+    @tier1
+    def test_positive_errata_list_of_sat_server(self):
+        """Check if errata list doesn't raise exception. Check BZ for details.
+
+        @id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
+
+        @assert: Satellite host errata list not failing
+
+        @BZ: 1351040
+        """
+        hostname = ssh.command('hostname').stdout[0]
+        host = Host.info({'name': hostname})
+        self.assertIsInstance(Host.errata_list({'host-id': host['id']}), list)
