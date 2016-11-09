@@ -1323,12 +1323,12 @@ class HostErrataTestCase(CLITestCase):
     """Tests for errata's host sub command"""
 
     @tier1
-    def test_positive_errata_listing_of_sat_server(self):
-        """Check if can list errata from the sat host itself
+    def test_positive_errata_list_of_sat_server(self):
+        """Check if errata list doesn't raise exception. Check BZ for details.
 
         @id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
 
-        @assert: Host itself can list errata
+        @assert: Satellite host errata list not failing
 
         @BZ: 1351040
         """
