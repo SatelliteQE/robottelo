@@ -32,6 +32,8 @@ from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_TYPE,
+    FILTER_ERRATA_TYPE,
+    FILTER_ERRATA_DATE,
     PRDS,
     REPOS,
     REPOSET,
@@ -446,8 +448,9 @@ class ContentViewTestCase(UITestCase):
                     self.assertIsNotNone(self.content_views.wait_until_element(
                         common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_edit_rh_custom_spin(self):
         # Variations might be:
@@ -463,11 +466,49 @@ class ContentViewTestCase(UITestCase):
         @assert: edited content view save is successful and info is
         updated
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: System
         """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        rh_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+            # Create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators.alert.success_sub_form))
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['erratum by date and type'],
+                FILTER_TYPE['exclude']
+            )
+            # this assertion should find/open the cv and search for our filter
+            self.assertIsNotNone(
+                self.content_views.search_filter(cv_name, filter_name))
+            # go to the filter open it, edit it and save
+            self.content_views.edit_erratum_date_range_filter(
+                cv_name,
+                filter_name,
+                errata_types=[FILTER_ERRATA_TYPE['enhancement'],
+                              FILTER_ERRATA_TYPE['bugfix']],
+                date_type=FILTER_ERRATA_DATE['issued'],
+                start_date='2016-01-01',
+                end_date='2016-06-01',
+                open_filter=True
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators.alert.success_sub_form))
 
     @run_only_on('sat')
     @tier1
@@ -590,7 +631,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier2
@@ -610,11 +651,53 @@ class ContentViewTestCase(UITestCase):
 
         @assert: Filtered RH content only is available/can be seen in a view
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        rh_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+            # Create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators.alert.success_sub_form))
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['erratum by date and type'],
+                FILTER_TYPE['exclude']
+            )
+            # The last executed function will create the filter and open the
+            # edit filter form.
+            # will not assert the filter existence here to not exit from the
+            # filter edit form.
+            # will edit the filter fields immediately with open_filter=False
+            self.content_views.edit_erratum_date_range_filter(
+                cv_name,
+                filter_name,
+                errata_types=[FILTER_ERRATA_TYPE['enhancement'],
+                              FILTER_ERRATA_TYPE['bugfix']],
+                date_type=FILTER_ERRATA_DATE['issued'],
+                start_date='2016-01-01',
+                end_date='2016-06-01',
+                open_filter=False
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators.alert.success_sub_form))
+            # this assertion should find/open the cv and search for our filter
+            self.assertIsNotNone(
+                 self.content_views.search_filter(cv_name, filter_name))
 
     @run_only_on('sat')
     @tier2
