@@ -1775,7 +1775,6 @@ locators = LocatorDict({
     # Manifests / subscriptions
     "subs.select": (
         By.XPATH, ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions') "
-                   "and contains(., '%s')]/following-sibling::tr[1]/td/"
                    "a[contains(@href, '/info')]")),
     "subs.delete_manifest": (
         By.XPATH, "//button[contains(@ng-click,'deleteManifest')]"),
@@ -1891,15 +1890,32 @@ locators = LocatorDict({
     "discoveredhosts.refresh_facts": (
         By.XPATH, ("//a[contains(@href,'%s') and "
                    "contains(@data-id,'refresh_facts')]")),
+    "discoveredhosts.reboot": (
+        By.XPATH, ("//a[contains(@href,'%s') and "
+                   "contains(@data-id,'reboot')]")),
     "discoveredhosts.delete": (
         By.XPATH, ("//a[@class='delete' and contains(@data-confirm, '%s')]")),
     "discoveredhosts.delete_from_facts": (
         By.XPATH, ("//a[contains(@href,'%s') and contains(.,'Delete')]")),
     "discoveredhosts.select_all": (By.ID, "check_all"),
+    "discoveredhosts.fetch_ip": (
+        By.XPATH, ("//td/span/a[contains(@href, '%s')]/following::td[2]")),
+    "discoveredhosts.select_host": (
+        By.XPATH, ("//a[contains(@href, '%s')]/../../../td/"
+                   "input[@type='checkbox']")),
     "discoveredhosts.select_action": (
         By.XPATH, ("//div[@id='submit_multiple']/a[@data-toggle='dropdown']")),
     "discoveredhosts.multi_delete": (
-        By.XPATH, ("//a[@href='/discovered_hosts/multiple_destroy']")),
+        By.XPATH, ("//a[contains(@onclick, "
+                   "'/discovered_hosts/multiple_destroy')]")),
+    "discoveredhosts.assign_org": (
+        By.XPATH, ("//a[contains(@onclick, "
+                   "'/discovered_hosts/select_multiple_organization')]")),
+    "discoveredhosts.assign_loc": (
+        By.XPATH, ("//a[contains(@onclick, "
+                   "'/discovered_hosts/select_multiple_location')]")),
+    "discoveredhosts.select_org": (By.ID, "organization_id"),
+    "discoveredhosts.select_loc": (By.ID, "location_id"),
     "discoveredhosts.fetch_interfaces": (
         By.XPATH, ("//div[@id='content']/table/tbody/tr[2]/"
                    "td[contains(.,'eth')]")),
