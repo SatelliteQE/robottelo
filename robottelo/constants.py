@@ -438,6 +438,17 @@ FILTER_TYPE = {
     'exclude': "Exclude"
 }
 
+FILTER_ERRATA_TYPE = {
+    'security': "security",
+    'enhancement': "enhancement",
+    'bugfix': "bugfix"
+}
+
+FILTER_ERRATA_DATE = {
+    'updated': "updated",
+    'issued': "issued"
+}
+
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
