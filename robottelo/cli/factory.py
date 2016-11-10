@@ -684,25 +684,20 @@ def make_partition_table(options=None):
     """
     Usage::
 
-        hammer partition-table update [OPTIONS]
-
-    Options::
-
-        --file LAYOUT         Path to a file that contains the partition layout
-        --id ID
-        --name NAME           Partition table name
-        --new-name NEW_NAME
-        --os-family OS_FAMILY
-        -h, --help            print help
-
-    Usage::
-
         hammer partition-table create [OPTIONS]
 
     Options::
 
-        --file LAYOUT         Path to a file that contains the partition layout
+        --file LAYOUT                         Path to a file that contains the
+                                              partition layout
+        --location-ids LOCATION_IDS           REPLACE locations with given ids
+                                              Comma separated list of values.
+        --locations LOCATION_NAMES            Comma separated list of values.
         --name NAME
+        --organization-ids ORGANIZATION_IDS   REPLACE organizations with given
+                                              ids.
+                                              Comma separated list of values.
+        --organizations ORGANIZATION_NAMES    Comma separated list of values.
         --os-family OS_FAMILY
     """
     if options is None:
