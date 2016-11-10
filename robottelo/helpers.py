@@ -18,7 +18,7 @@ from robottelo.config import settings
 if six.PY3:  # pragma: no cover
     from functools import lru_cache  # noqa
 else:  # pragma: no cover
-    from cachetools import lru_cache  # noqa
+    from cachetools.func import lru_cache  # noqa
 
 LOGGER = logging.getLogger(__name__)
 
