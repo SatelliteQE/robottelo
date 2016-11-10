@@ -19,12 +19,12 @@ import json
 from random import choice
 
 from fauxfactory import gen_boolean, gen_integer, gen_string
-from robottelo.constants import CUSTOM_PUPPET_REPO
 
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.api.utils import delete_puppet_class
+from robottelo.api.utils import delete_puppet_class, publish_puppet_module
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
     run_in_one_thread,
@@ -125,51 +125,38 @@ class SmartClassParametersTestCase(APITestCase):
         be able to work with unique entity for each specific test.
         """
         super(SmartClassParametersTestCase, cls).setUpClass()
-        cls.puppet_module = "robottelo/api_test_classparameters"
+        cls.puppet_modules = [
+            {'author': 'robottelo', 'name': 'api_test_classparameters'},
+        ]
         cls.org = entities.Organization().create()
-        # Create product and puppet modules repository
-        product = entities.Product(organization=cls.org).create()
-        repo = entities.Repository(
-            product=product,
-            content_type='puppet',
-            url=CUSTOM_PUPPET_REPO
-        ).create()
-        # Synchronize repo via provided URL
-        repo.sync()
-        # Add selected module to Content View
-        cv = entities.ContentView(organization=cls.org).create()
-        entities.ContentViewPuppetModule(
-            author=cls.puppet_module.split('/')[0],
-            name=cls.puppet_module.split('/')[1],
-            content_view=cv,
-        ).create()
-        # CV publishing will automatically create Environment and
-        # Puppet Class entities
-        cv.publish()
+        cv = publish_puppet_module(
+            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
         cls.env = entities.Environment().search(
-            query={'search': 'content_view="{0}"'.format(cv.name)}
+            query={'search': u'content_view="{0}"'.format(cv.name)}
         )[0]
-        cls.puppet = entities.PuppetClass().search(query={
-            'search': 'name="{0}"'.format(cls.puppet_module.split('/')[1])
+        cls.puppet_class = entities.PuppetClass().search(query={
+            'search': u'name = "{0}" and environment = "{1}"'.format(
+                cls.puppet_modules[0]['name'], cls.env.name)
         })[0]
         cls.sc_params_list = entities.SmartClassParameters().search(
             query={
-                'search': 'puppetclass="{0}"'.format(cls.puppet.name),
-                'per_page': 900
+                'search': 'puppetclass="{0}"'.format(cls.puppet_class.name),
+                'per_page': 1000
             })
 
     @classmethod
     def tearDownClass(cls):
         """Removes puppet class."""
         super(SmartClassParametersTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet.name)
+        delete_puppet_class(cls.puppet_class.name)
 
     def setUp(self):
         """Checks that there is at least one not overridden
         smart class parameter before executing test.
         """
+        super(SmartClassParametersTestCase, self).setUp()
         if len(self.sc_params_list) == 0:
-            raise Exception("Not enough smart class parameters. Please"
+            raise Exception("Not enough smart class parameters. Please "
                             "update puppet module.")
 
     @run_only_on('sat')
@@ -188,7 +175,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.update(['override'])
         self.assertEqual(sc_param.read().override, True)
         host = entities.Host(organization=self.org).create()
-        host.puppet_class = [self.puppet]
+        host.puppet_class = [self.puppet_class]
         host.update(['puppet_class'])
         self.assertGreater(len(host.list_scparams()), 0)
 
@@ -208,7 +195,8 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.override = True
         sc_param.update(['override'])
         hostgroup = entities.HostGroup().create()
-        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
         self.assertGreater(len(hostgroup.list_scparams()), 0)
 
     @run_only_on('sat')
@@ -220,7 +208,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Parameters listed for specific Puppet class.
         """
-        self.assertGreater(len(self.puppet.list_scparams()), 0)
+        self.assertGreater(len(self.puppet_class.list_scparams()), 0)
 
     @run_only_on('sat')
     @tier2
@@ -1455,7 +1443,8 @@ class SmartClassParametersTestCase(APITestCase):
             name=hostgroup_name,
             environment=self.env,
         ).create()
-        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
         entities.OverrideValue(
             smart_class_parameter=sc_param,
             match=match,
@@ -1470,7 +1459,8 @@ class SmartClassParametersTestCase(APITestCase):
             name=hostgroup_name,
             environment=self.env,
         ).create()
-        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
         self.assertEqual(len(sc_param.read().override_values), 0)
 
     @run_only_on('sat')

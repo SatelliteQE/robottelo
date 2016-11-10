@@ -16,17 +16,12 @@
 @Upstream: No
 """
 
-from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
-    make_content_view,
     make_org,
-    make_product,
-    make_repository,
     make_smart_variable,
-)
+    publish_puppet_module)
 from robottelo.cli.puppet import Puppet
-from robottelo.cli.repository import Repository
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.decorators import (
     tier2,
@@ -43,27 +38,18 @@ class PuppetClassTestCase(CLITestCase):
         """Import a parametrized puppet class.
         """
         super(PuppetClassTestCase, cls).setUpClass()
-        puppet_module = "robottelo/generic_2"
-        org = make_org()
-        product = make_product({u'organization-id': org['id']})
-        repo = make_repository({
-            u'product-id': product['id'],
-            u'content-type': 'puppet',
-            u'url': CUSTOM_PUPPET_REPO,
-        })
-        Repository.synchronize({'id': repo['id']})
-        cv = make_content_view({u'organization-id': org['id']})
-        ContentView.puppet_module_add({
-            u'author': puppet_module.split('/')[0],
-            u'name': puppet_module.split('/')[1],
-            u'content-view-id': cv['id'],
-        })
-        ContentView.publish({u'id': cv['id']})
+        cls.puppet_modules = [
+            {'author': 'robottelo', 'name': 'generic_1'},
+        ]
+        cls.org = make_org()
+        cv = publish_puppet_module(
+            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
         cls.env = Environment.list({
-            u'search': 'content_view="{0}"'.format(cv['name'])
+            'search': u'content_view="{0}"'.format(cv['name'])
         })[0]
         cls.puppet = Puppet.info({
-            u'name': puppet_module.split('/')[1]
+            'name': cls.puppet_modules[0]['name'],
+            'environment': cls.env['name'],
         })
 
     @run_only_on('sat')

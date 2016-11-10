@@ -18,12 +18,11 @@
 from random import choice
 
 from fauxfactory import gen_integer, gen_string
-from robottelo.constants import CUSTOM_PUPPET_REPO
-
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.api.utils import delete_puppet_class
+from robottelo.api.utils import delete_puppet_class, publish_puppet_module
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
@@ -46,42 +45,30 @@ class SmartVariablesTestCase(APITestCase):
         """
         super(SmartVariablesTestCase, cls).setUpClass()
         cls.puppet_modules = [
-            "robottelo/api_test_variables",
-            "robottelo/generic_1"
+            {'author': 'robottelo', 'name': 'api_test_variables'},
         ]
         cls.org = entities.Organization().create()
-        # Create product and puppet modules repository
-        product = entities.Product(organization=cls.org).create()
-        repo = entities.Repository(
-            product=product,
-            content_type='puppet',
-            url=CUSTOM_PUPPET_REPO
-        ).create()
-        # Synchronize repo via provided URL
-        repo.sync()
-        # Add selected module to Content View
-        cv = entities.ContentView(organization=cls.org).create()
-        for module in cls.puppet_modules:
-            entities.ContentViewPuppetModule(
-                author=module.split('/')[0],
-                name=module.split('/')[1],
-                content_view=cv,
-            ).create()
-        # CV publishing will automatically create Environment and
-        # Puppet Class entities
-        cv.publish()
+        cv = publish_puppet_module(
+            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
         cls.env = entities.Environment().search(
-            query={'search': 'content_view="{0}"'.format(cv.name)}
+            query={'search': u'content_view="{0}"'.format(cv.name)}
         )[0]
-        cls.puppet = entities.PuppetClass().search(query={
-            'search': 'name="{0}"'.format(cls.puppet_modules[0].split('/')[1])
+        # Find imported puppet class
+        cls.puppet_class = entities.PuppetClass().search(query={
+            'search': u'name = "{0}" and environment = "{1}"'.format(
+                cls.puppet_modules[0]['name'], cls.env.name)
         })[0]
+        # And all its subclasses
+        cls.puppet_subclasses = entities.PuppetClass().search(query={
+            'search': u'name = "{0}::" and environment = "{1}"'.format(
+                cls.puppet_modules[0]['name'], cls.env.name)
+        })
 
     @classmethod
     def tearDownClass(cls):
         """Removes puppet class."""
         super(SmartVariablesTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet.name)
+        delete_puppet_class(cls.puppet_class.name)
 
     @run_only_on('sat')
     @tier1
@@ -97,7 +84,7 @@ class SmartVariablesTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 smart_variable = entities.SmartVariable(
-                    puppetclass=self.puppet,
+                    puppetclass=self.puppet_class,
                     variable=name,
                 ).create()
                 self.assertEqual(smart_variable.variable, name)
@@ -117,7 +104,7 @@ class SmartVariablesTestCase(APITestCase):
         for name in invalid_values_list():
             with self.subTest(name), self.assertRaises(HTTPError):
                 entities.SmartVariable(
-                    puppetclass=self.puppet,
+                    puppetclass=self.puppet_class,
                     variable=name,
                 ).create()
 
@@ -133,7 +120,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: The smart Variable is deleted successfully
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet
+            puppetclass=self.puppet_class
         ).create()
         smart_variable.delete()
         with self.assertRaises(HTTPError) as context:
@@ -160,11 +147,11 @@ class SmartVariablesTestCase(APITestCase):
         @assert: The variable is updated with new puppet class.
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
-        self.assertEqual(smart_variable.puppetclass.id, self.puppet.id)
+        self.assertEqual(smart_variable.puppetclass.id, self.puppet_class.id)
         new_puppet = entities.PuppetClass().search(query={
-            'search': 'name="{0}"'.format(self.puppet_modules[1].split('/')[1])
+            'search': 'name="{0}"'.format(choice(self.puppet_subclasses).name)
         })[0]
         smart_variable.puppetclass = new_puppet
         updated_sv = smart_variable.update(['puppetclass'])
@@ -185,7 +172,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: The variable is updated with new name.
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
         for new_name in valid_data_list():
             with self.subTest(new_name):
@@ -211,12 +198,12 @@ class SmartVariablesTestCase(APITestCase):
         name = gen_string('alpha')
         entities.SmartVariable(
             variable=name,
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
         with self.assertRaises(HTTPError) as context:
             entities.SmartVariable(
                 variable=name,
-                puppetclass=self.puppet,
+                puppetclass=self.puppet_class,
             ).create()
         self.assertRegexpMatches(
             context.exception.response.text,
@@ -234,11 +221,11 @@ class SmartVariablesTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        entities.SmartVariable(puppetclass=self.puppet).create()
+        entities.SmartVariable(puppetclass=self.puppet_class).create()
         host = entities.Host(organization=self.org).create()
         host.environment = self.env
         host.update(['environment'])
-        host.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        host.add_puppetclass(data={'puppetclass_id': self.puppet_class.id})
         self.assertGreater(len(host.list_smart_variables()['results']), 0)
 
     @run_only_on('sat')
@@ -252,9 +239,10 @@ class SmartVariablesTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        entities.SmartVariable(puppetclass=self.puppet).create()
+        entities.SmartVariable(puppetclass=self.puppet_class).create()
         hostgroup = entities.HostGroup().create()
-        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
         self.assertGreater(len(hostgroup.list_smart_variables()['results']), 0)
 
     @run_only_on('sat')
@@ -266,7 +254,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @assert: All variables listed for puppet class
         """
-        self.assertGreater(len(self.puppet.list_smart_variables()), 0)
+        self.assertGreater(len(self.puppet_class.list_smart_variables()), 0)
 
     @run_only_on('sat')
     @stubbed()
@@ -317,7 +305,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: Matcher is created with empty value
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             variable_type='string',
         ).create()
         entities.OverrideValue(
@@ -346,7 +334,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: Matcher is not created for empty value
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=gen_integer(),
             variable_type='integer',
         ).create()
@@ -374,7 +362,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: Matcher is not created
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
         with self.assertRaises(HTTPError) as context:
             entities.OverrideValue(
@@ -404,7 +392,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=value,
         ).create()
         smart_variable.default_value = gen_string('alpha')
@@ -437,7 +425,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         value = gen_string('numeric')
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=gen_string('alpha'),
         ).create()
         smart_variable.default_value = value
@@ -466,7 +454,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: Matcher is not created for non matching value with regexp
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=gen_string('numeric'),
             validator_type='regexp',
             validator_rule='[0-9]',
@@ -499,7 +487,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         value = gen_string('numeric')
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=gen_string('numeric'),
             validator_type='regexp',
             validator_rule='[0-9]',
@@ -535,7 +523,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError) as context:
             entities.SmartVariable(
-                puppetclass=self.puppet,
+                puppetclass=self.puppet_class,
                 default_value=gen_string('alphanumeric'),
                 validator_type='list',
                 validator_rule='5, test',
@@ -571,7 +559,7 @@ class SmartVariablesTestCase(APITestCase):
         values_list_str = ", ".join(str(x) for x in values_list)
         value = choice(values_list)
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=value,
             validator_type='list',
             validator_rule=values_list_str,
@@ -597,7 +585,7 @@ class SmartVariablesTestCase(APITestCase):
         validator
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value='example',
             validator_type='list',
             validator_rule='test, example, 30',
@@ -630,7 +618,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: Matcher is created for matching value with list validator
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value='example',
             validator_type='list',
             validator_rule='test, example, 30',
@@ -665,7 +653,7 @@ class SmartVariablesTestCase(APITestCase):
         value
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=True,
             variable_type='boolean',
         ).create()
@@ -696,7 +684,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: Matcher is created for matching the type of default value
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=True,
             variable_type='boolean',
         ).create()
@@ -723,7 +711,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: Matcher is not created for non existing attribute
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
         with self.assertRaises(HTTPError) as context:
             entities.OverrideValue(
@@ -751,7 +739,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
         entities.OverrideValue(
             smart_variable=smart_variable,
@@ -792,7 +780,8 @@ class SmartVariablesTestCase(APITestCase):
     @stubbed()
     @tier1
     def test_negative_update_variable_attribute_priority(self):
-        """Matcher Value set on Attribute Priority for Host - alternate priority
+        """Matcher Value set on Attribute Priority
+        for Host - alternate priority
 
         @id: f6ef2193-5d63-43f1-8d91-e30984b2c0c5
 
@@ -1026,7 +1015,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: The Merge Overrides, Merge Default flags are enabled to set
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=[gen_integer()],
             variable_type='array',
         ).create()
@@ -1050,7 +1039,7 @@ class SmartVariablesTestCase(APITestCase):
         set
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value='50',
             variable_type='string',
         ).create()
@@ -1089,7 +1078,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: The Avoid Duplicates is enabled to set to True
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=[gen_integer()],
             variable_type='array',
         ).create()
@@ -1116,7 +1105,7 @@ class SmartVariablesTestCase(APITestCase):
            array
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=True,
             variable_type='boolean',
         ).create()
@@ -1156,7 +1145,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
         matcher = entities.OverrideValue(
             smart_variable=smart_variable,
@@ -1195,14 +1184,15 @@ class SmartVariablesTestCase(APITestCase):
         matcher_value = gen_string('alpha')
         # Create variable
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
         ).create()
         # Create hostgroup and add puppet class to it
         hostgroup = entities.HostGroup(
             name=hostgroup_name,
             environment=self.env,
         ).create()
-        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
         # Create matcher
         entities.OverrideValue(
             smart_variable=smart_variable,
@@ -1224,7 +1214,8 @@ class SmartVariablesTestCase(APITestCase):
             name=hostgroup_name,
             environment=self.env,
         ).create()
-        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
         self.assertEqual(len(smart_variable.read().override_values), 0)
 
     @run_only_on('sat')
@@ -1242,7 +1233,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: The 'hidden value' flag is set
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             hidden_value=True,
         ).create()
         self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
@@ -1264,7 +1255,7 @@ class SmartVariablesTestCase(APITestCase):
         @assert: The 'hidden value' flag set to false
         """
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             hidden_value=True,
         ).create()
         self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
@@ -1293,7 +1284,7 @@ class SmartVariablesTestCase(APITestCase):
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
-            puppetclass=self.puppet,
+            puppetclass=self.puppet_class,
             default_value=gen_string('alpha'),
             hidden_value=True,
         ).create()
