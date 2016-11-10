@@ -1441,6 +1441,7 @@ def make_fake_host(options=None):
             options['partition-table-id'] = make_partition_table({
                 'location-ids': options.get('location-id'),
                 'locations': options.get('location'),
+                'operatingsystem-ids': options.get('operatingsystem-id'),
                 'organization-ids': options.get('organization-id'),
                 'organizations': options.get('organization'),
             })['id']
@@ -1987,10 +1988,12 @@ def make_domain(options=None):
         --dns-id DNS_ID               DNS Proxy to use within this domain
         --location-ids LOCATION_IDS   REPLACE locations with given ids
                                       Comma separated list of values.
+        --locations LOCATION_NAMES    Comma separated list of values.
         --name NAME                   The full DNS Domain name
         --organization-ids ORGANIZATION_IDS REPLACE organizations with
                                             given ids.
                                             Comma separated list of values.
+        --organizations ORGANIZATION_NAMES  Comma separated list of values.
         -h, --help                          print help
 
     """
@@ -2109,13 +2112,18 @@ def make_medium(options=None):
 
         --location-ids LOCATION_IDS   REPLACE locations with given ids
                                       Comma separated list of values.
+        --locations LOCATION_NAMES    Comma separated list of values.
         --name NAME             Name of media
         --operatingsystem-ids OPERATINGSYSTEM_IDS REPLACE organizations with
-                                                          given ids.
-                                                          Comma separated list
-                                                          of values.
-        --organization-ids ORGANIZATION_IDS               Comma separated list
-                                                          of values.
+                                                  given ids.
+                                                  Comma separated list of
+                                                  values.
+        --operatingsystems OPERATINGSYSTEM_TITLES Comma separated list of
+                                                  values.
+        --organization-ids ORGANIZATION_IDS       Comma separated list of
+                                                  values.
+        --organizations ORGANIZATION_NAMES        Comma separated list of
+                                                  values.
         --os-family OS_FAMILY   The family that the operating system belongs
                                 to. Available families:
                                 Archlinux
