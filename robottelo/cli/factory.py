@@ -61,10 +61,15 @@ from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.smart_variable import SmartVariable
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_LOC,
+    DEFAULT_ORG,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
     OPERATING_SYSTEMS,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
@@ -1372,76 +1377,75 @@ def make_host(options=None):
 
 
 @cacheable
-def make_fake_host(options=None, isolated_mode=False):
+def make_fake_host(options=None):
     """Wrapper function for make_host to pass all required options for creation
     of a fake host
-
-    :param options: options to pass directly to make_host. May be equal to
-     `None` or contain some of entities to use (for example, `organization-id`
-     to create all sub-entities inside specific organization)
-    :param isolated_mode: set `True` to create all the required entities
-     like architecture, domain, location etc. Set `False` to use Satellite
-     predefined ones where it's possible. Defaults to `False`.
     """
     if options is None:
         options = {}
 
-    if not isolated_mode:
-        # Check if entity name or id was passed. If not - use the default one
-        # with id = 1
-        for entity in (
-            'architecture',
-            'domain',
-            'location',
-            'operatingsystem',
-            'organization',
-        ):
-            if (not options.get(entity) and
-                    not options.get('{}-id'.format(entity))):
-                options['{}-id'.format(entity)] = 1
-        # Pick up the first available partition table for default operating
-        # system
-        if (not options.get('partition-table') and
-                not options.get('partition-table-id')):
+    # Try to use default Satellite entities, otherwise create them if they were
+    # not passed or defined previously
+    if not options.get('organization') and not options.get('organization-id'):
+        try:
+            options['organization-id'] = Org.info({'name': DEFAULT_ORG})['id']
+        except CLIReturnCodeError:
+            options['organization-id'] = make_org()['id']
+    if not options.get('location') and not options.get('location-id'):
+        try:
+            options['location-id'] = Location.info({'name': DEFAULT_LOC})['id']
+        except CLIReturnCodeError:
+            options['location-id'] = make_location()['id']
+    if not options.get('domain') and not options.get('domain-id'):
+        try:
+            options['domain-id'] = Domain.info({
+                'name': settings.server.hostname.partition('.')[-1]})['id']
+        except CLIReturnCodeError:
+            options['domain-id'] = make_domain({
+                'location-ids': options.get('location-id'),
+                'locations': options.get('location'),
+                'organization-ids': options.get('organization-id'),
+                'organizations': options.get('organization'),
+            })['id']
+    if not options.get('architecture') and not options.get('architecture-id'):
+        try:
+            options['architecture-id'] = Architecture.info({
+                'name': DEFAULT_ARCHITECTURE})['id']
+        except CLIReturnCodeError:
+            options['architecture-id'] = make_architecture()['id']
+    if (not options.get('operatingsystem') and
+            not options.get('operatingsystem-id')):
+        try:
+            options['operatingsystem-id'] = OperatingSys.list({
+                    'search': 'name="RedHat" AND major="{0}" OR major="{1}"'
+                              .format(
+                                   RHEL_6_MAJOR_VERSION,
+                                   RHEL_7_MAJOR_VERSION
+                              )
+            })[0]['id']
+        except IndexError:
+            options['operatingsystem-id'] = make_os({
+                'architecture-ids': options.get('architecture-id'),
+                'architectures': options.get('architecture'),
+                'partition-table-ids': options.get('partition-table-id'),
+                'partition-tables': options.get('partition-table'),
+            })['id']
+    if (not options.get('partition-table') and
+            not options.get('partition-table-id')):
+        try:
             options['partition-table-id'] = PartitionTable.list({
                 'operatingsystem': options.get('operatingsystem'),
                 'operatingsystem-id': options.get('operatingsystem-id'),
             })[0]['id']
+        except IndexError:
+            options['partition-table-id'] = make_partition_table({
+                'location-ids': options.get('location-id'),
+                'locations': options.get('location'),
+                'organization-ids': options.get('organization-id'),
+                'organizations': options.get('organization'),
+            })['id']
 
-    # Create all the required entities if they were not passed or defined
-    # previously
-    if not options.get('organization') and not options.get('organization-id'):
-        options['organization-id'] = make_org()['id']
-    if not options.get('location') and not options.get('location-id'):
-        options['location-id'] = make_location()['id']
-    if not options.get('domain') and not options.get('domain-id'):
-        options['domain-id'] = make_domain({
-            'location-ids': options.get('location-id'),
-            'locations': options.get('location'),
-            'organization-ids': options.get('organization-id'),
-            'organizations': options.get('organization'),
-        })['id']
-    if not options.get('architecture') and not options.get('architecture-id'):
-        options['architecture-id'] = make_architecture()['id']
-    if (not options.get('partition-table') and
-            not options.get('partition-table-id')):
-        options['partition-table-id'] = make_partition_table({
-            'location-ids': options.get('location-id'),
-            'locations': options.get('location'),
-            'organization-ids': options.get('organization-id'),
-            'organizations': options.get('organization'),
-        })['id']
-    if (not options.get('operatingsystem') and
-            not options.get('operatingsystem-id')):
-        options['operatingsystem-id'] = make_os({
-            'architecture-ids': options.get('architecture-id'),
-            'architectures': options.get('architecture'),
-            'partition-table-ids': options.get('partition-table-id'),
-            'partition-tables': options.get('partition-table'),
-        })['id']
-
-    # Finally, regardless of `isolated_mode` state, create a new medium (if
-    # none was passed)
+    # Finally, create a new medium (if none was passed)
     if not options.get('medium') and not options.get('medium-id'):
         options['medium-id'] = make_medium({
             'location-ids': options.get('location-id'),
