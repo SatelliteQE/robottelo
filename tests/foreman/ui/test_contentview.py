@@ -878,10 +878,10 @@ class ContentViewTestCase(UITestCase):
                     module_name,
                     filter_term='Latest'
                 )
-                # ensure that the select location of our module is in the
-                # exception message
-                _, location = locators.contentviews.select_module % module_name
-                self.assertIn(location, context.exception.message)
+            # ensure that the select location of our module is in the
+            # exception message
+            _, location = locators.contentviews.select_module % module_name
+            self.assertIn(location, context.exception.message)
 
     @run_in_one_thread
     @run_only_on('sat')
