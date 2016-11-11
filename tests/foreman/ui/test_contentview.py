@@ -919,7 +919,6 @@ class ContentViewTestCase(UITestCase):
                 .format(repo_name)
             )
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_negative_add_dupe_modules(self):
@@ -930,11 +929,42 @@ class ContentViewTestCase(UITestCase):
 
         @assert: User cannot add modules multiple times to the view
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        module_name = 'samba'
+        product = entities.Product(organization=self.organization).create()
+        puppet_repository = entities.Repository(
+            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=product
+        ).create()
+        puppet_repository.sync()
+        with Session(self.browser) as session:
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_puppet_module(
+                cv_name,
+                module_name,
+                filter_term='Latest'
+            )
+            # ensure that the puppet module is added to content view
+            self.assertIsNotNone(
+                self.content_views.fetch_puppet_module(
+                    cv_name, module_name)
+            )
+            # ensure that cannot add the same module a second time.
+            with self.assertRaises(UINoSuchElementError) as context:
+                self.content_views.add_puppet_module(
+                    cv_name,
+                    module_name,
+                    filter_term='Latest'
+                )
+            # ensure that the select location of our module is in the
+            # exception message
+            _, location = locators.contentviews.select_module % module_name
+            self.assertIn(location, context.exception.message)
 
     @run_in_one_thread
     @run_only_on('sat')
