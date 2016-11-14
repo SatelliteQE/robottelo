@@ -197,13 +197,11 @@ class SubnetTestCase(CLITestCase):
 
         @Assert: Subnet is listed
         """
-        # Fetch current total
-        subnets_before = Subnet.list()
         # Make a new subnet
-        make_subnet()
-        # Fetch total again
-        subnets_after = Subnet.list()
-        self.assertGreater(len(subnets_after), len(subnets_before))
+        subnet = make_subnet()
+        # Fetch ids from subnets list
+        subnets_ids = [subnet_['id'] for subnet_ in Subnet.list()]
+        self.assertIn(subnet['id'], subnets_ids)
 
     @run_only_on('sat')
     @tier1
