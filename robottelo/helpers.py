@@ -68,6 +68,7 @@ class ServerFileDownloader(object):
                 raise DownloadFileError('Failed to download file from Server.')
         return self.file_path
 
+
 download_server_file = ServerFileDownloader()
 
 

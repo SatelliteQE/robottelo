@@ -30,5 +30,6 @@ def lint():
     # setup/teardown work to be avoided.
     Run(targets)
 
+
 if __name__ == '__main__':
     lint()
