@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import promote
 from robottelo.cli.factory import (
-    make_content_host,
+    make_fake_host,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
@@ -353,7 +353,7 @@ class HostCollectionTestCase(UITestCase):
             organization=self.organization).create()
         cv.publish()
         promote(cv.read().version[0], lce.id)
-        new_system = make_content_host({
+        new_system = make_fake_host({
             u'content-view-id': cv.id,
             u'lifecycle-environment-id': lce.id,
             u'name': gen_string('alpha'),
@@ -390,7 +390,7 @@ class HostCollectionTestCase(UITestCase):
         cv.publish()
         promote(cv.read().version[0], lce.id)
         new_systems = [
-            make_content_host({
+            make_fake_host({
                 u'content-view-id': cv.id,
                 u'lifecycle-environment-id': lce.id,
                 u'name': gen_string('alpha'),

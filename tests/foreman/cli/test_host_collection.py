@@ -20,8 +20,13 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
-    CLIFactoryError, make_org, make_host_collection, make_content_view,
-    make_lifecycle_environment, make_content_host)
+    CLIFactoryError,
+    make_content_view,
+    make_fake_host,
+    make_host_collection,
+    make_lifecycle_environment,
+    make_org,
+)
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
@@ -88,9 +93,9 @@ class HostCollectionTestCase(CLITestCase):
 
         return make_host_collection(options)
 
-    def _make_content_host_helper(self):
-        """Make a new content host"""
-        return make_content_host({
+    def _make_fake_host_helper(self):
+        """Make a new fake host"""
+        return make_fake_host({
             u'content-view-id': self.default_cv['id'],
             u'lifecycle-environment-id': self.library['id'],
             u'name': gen_string('alpha', 15),
@@ -283,7 +288,7 @@ class HostCollectionTestCase(CLITestCase):
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)
         })
-        new_system = self._make_content_host_helper()
+        new_system = self._make_fake_host_helper()
         no_of_content_host = new_host_col['total-hosts']
         HostCollection.add_host({
             u'host-ids': new_system['id'],
@@ -309,7 +314,7 @@ class HostCollectionTestCase(CLITestCase):
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)
         })
-        new_system = self._make_content_host_helper()
+        new_system = self._make_fake_host_helper()
         HostCollection.add_host({
             u'host-ids': new_system['id'],
             u'id': new_host_col['id'],
@@ -342,7 +347,7 @@ class HostCollectionTestCase(CLITestCase):
         """
         host_col_name = gen_string('alpha', 15)
         new_host_col = self._new_host_collection({'name': host_col_name})
-        new_system = self._make_content_host_helper()
+        new_system = self._make_fake_host_helper()
         no_of_content_host = new_host_col['total-hosts']
         HostCollection.add_host({
             u'host-ids': new_system['id'],
@@ -379,7 +384,7 @@ class HostCollectionTestCase(CLITestCase):
             'name': gen_string('alpha', 15)
         })
         host_ids = ','.join(
-            self._make_content_host_helper()['id'] for i in range(2)
+            self._make_fake_host_helper()['id'] for _ in range(2)
         )
         HostCollection.add_host({
             u'host-ids': host_ids,
