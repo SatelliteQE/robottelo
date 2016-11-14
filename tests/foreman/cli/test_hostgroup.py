@@ -162,7 +162,7 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet CA proxy server assigned
 
         """
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.info({'id': 1})
         hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
         self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
 
@@ -276,7 +276,7 @@ class HostGroupTestCase(CLITestCase):
             'organization-ids': org['id'],
         })
         lce = make_lifecycle_environment({'organization-id': org['id']})
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.info({'id': 1})
         # Content View should be promoted to be used with LC Env
         cv = make_content_view({'organization-id': org['id']})
         ContentView.publish({'id': cv['id']})

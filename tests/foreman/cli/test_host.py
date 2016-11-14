@@ -78,9 +78,7 @@ class HostCreateTestCase(CLITestCase):
         """
         super(HostCreateTestCase, self).setUp()
         # Use the default installation smart proxy
-        result = Proxy.list()
-        self.assertGreater(len(result), 0)
-        self.puppet_proxy = result[0]
+        self.puppet_proxy = Proxy.info({'id': 1})
 
     @tier1
     def test_positive_create_with_name(self):
@@ -157,9 +155,7 @@ class HostDeleteTestCase(CLITestCase):
         """Create a host to use in tests"""
         super(HostDeleteTestCase, self).setUp()
         # Use the default installation smart proxy
-        result = Proxy.list()
-        self.assertGreater(len(result), 0)
-        self.puppet_proxy = result[0]
+        self.puppet_proxy = Proxy.info({'id': 1})
         self.host = entities.Host()
         self.host.create_missing()
         self.host = Host.create({
@@ -210,9 +206,7 @@ class HostUpdateTestCase(CLITestCase):
     def setUp(self):
         """Create a host to reuse later"""
         super(HostUpdateTestCase, self).setUp()
-        self.proxies = Proxy.list()
-        self.assertGreater(len(self.proxies), 0)
-        self.puppet_proxy = self.proxies[0]
+        self.puppet_proxy = Proxy.info({'id': 1})
         # using nailgun to create dependencies
         self.host_args = entities.Host()
         self.host_args.create_missing()
@@ -678,9 +672,7 @@ class HostParameterTestCase(CLITestCase):
     def setUpClass(cls):
         """Create host to tests parameters for"""
         super(HostParameterTestCase, cls).setUpClass()
-        cls.proxies = Proxy.list()
-        assert len(cls.proxies) > 0
-        cls.puppet_proxy = cls.proxies[0]
+        cls.puppet_proxy = Proxy.info({'id': 1})
         # using nailgun to create dependencies
         cls.host = entities.Host()
         cls.host.create_missing()

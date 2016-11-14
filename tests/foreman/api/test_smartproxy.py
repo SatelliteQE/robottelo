@@ -41,9 +41,8 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         existing smart proxy should always succeed.
         """
         super(SmartProxyMissingAttrTestCase, cls).setUpClass()
-        smart_proxies = entities.SmartProxy().search()
-        assert len(smart_proxies) > 0
-        cls.smart_proxy_attrs = set(smart_proxies[0].update_json([]).keys())
+        smart_proxy = entities.SmartProxy(id=1).read()
+        cls.smart_proxy_attrs = set(smart_proxy.update_json([]).keys())
 
     @tier1
     def test_positive_update_loc(self):
