@@ -179,7 +179,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected puppet proxy assigned
         """
-        proxy = entities.SmartProxy().search()[0]
+        proxy = entities.SmartProxy(id=1).read()
         host = entities.Host(puppet_proxy=proxy).create()
         self.assertEqual(host.puppet_proxy.read().name, proxy.name)
 
@@ -192,7 +192,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected puppet CA proxy assigned
         """
-        proxy = entities.SmartProxy().search()[0]
+        proxy = entities.SmartProxy(id=1).read()
         host = entities.Host(puppet_ca_proxy=proxy).create()
         self.assertEqual(host.puppet_ca_proxy.read().name, proxy.name)
 
@@ -587,7 +587,7 @@ class HostTestCase(APITestCase):
         @assert: A host is updated with a new puppet proxy
         """
         host = entities.Host().create()
-        new_proxy = entities.SmartProxy().search()[0]
+        new_proxy = entities.SmartProxy(id=1).read()
         host.puppet_proxy = new_proxy
         host = host.update(['puppet_proxy'])
         self.assertEqual(host.puppet_proxy.read().name, new_proxy.name)
@@ -602,7 +602,7 @@ class HostTestCase(APITestCase):
         @assert: A host is updated with a new puppet CA proxy
         """
         host = entities.Host().create()
-        new_proxy = entities.SmartProxy().search()[0]
+        new_proxy = entities.SmartProxy(id=1).read()
         host.puppet_ca_proxy = new_proxy
         host = host.update(['puppet_ca_proxy'])
         self.assertEqual(host.puppet_ca_proxy.read().name, new_proxy.name)
