@@ -23,6 +23,7 @@ def generate_command_tree(command):
             ))
     return contents
 
+
 settings.configure()
 
 # Generate the json file in the working directory
