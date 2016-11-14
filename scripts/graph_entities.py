@@ -38,5 +38,6 @@ def graph():
             print('{0} [style=dotted]'.format(entity_name))
     print('}')
 
+
 if __name__ == '__main__':
     graph()

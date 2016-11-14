@@ -24,6 +24,7 @@ def _bios_date():
     ten_years_ago = today - datetime.timedelta(3650)
     return gen_date(ten_years_ago, today)
 
+
 ARCHITECTURES = [
     u"i386",
     u"x86_64",
