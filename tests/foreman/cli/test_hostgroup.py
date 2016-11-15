@@ -13,6 +13,7 @@ from robottelo.cli.factory import (
     make_os,
     make_domain, make_lifecycle_environment, make_content_view, make_subnet,
     make_architecture, make_partition_table)
+from robottelo.config import settings
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
@@ -117,7 +118,9 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet CA proxy server assigned
 
         """
-        puppet_proxy = Proxy.info({'id': 1})
+        puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
         self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
 
@@ -131,7 +134,9 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet proxy server assigned
 
         """
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
         self.assertEqual(
             puppet_proxy['id'],
@@ -166,35 +171,12 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = make_hostgroup({'domain-id': domain['id']})
         self.assertEqual(domain['name'], hostgroup['domain'])
 
-    @skip_if_bug_open('bugzilla', 1354568)
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_with_subnet_id(self):
-        """Check if hostgroup with invalid subnet id raises proper error
-
-        @id: c352d7ea-4fc6-4b78-863d-d3ee4c0ad439
-
-        @Assert: Proper error should be raised
-
-        @BZ: 1354568
-        """
-        subnet_id = gen_string('numeric', 4)
-        with self.assertRaises(CLIReturnCodeError) as exception:
-            HostGroup.create({
-                'name': gen_string('alpha'),
-                'subnet-id': subnet_id
-            })
-        self.assertIs(
-            exception.exception.stderr,
-            'Could not find subnet {0}'.format(subnet_id)
-        )
-
     @tier1
     def test_positive_update_name(self):
         """Successfully update an HostGroup.
 
         @Feature: HostGroup
-
+g
         @Assert: HostGroup is updated.
         """
         hostgroup = make_hostgroup()
