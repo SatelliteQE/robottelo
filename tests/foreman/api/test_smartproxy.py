@@ -15,6 +15,7 @@
 @Upstream: No
 """
 from nailgun import entities
+from robottelo.config import settings
 from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
@@ -41,7 +42,9 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         existing smart proxy should always succeed.
         """
         super(SmartProxyMissingAttrTestCase, cls).setUpClass()
-        smart_proxy = entities.SmartProxy(id=1).read()
+        smart_proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         cls.smart_proxy_attrs = set(smart_proxy.update_json([]).keys())
 
     @tier1
