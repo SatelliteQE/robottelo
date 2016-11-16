@@ -115,6 +115,18 @@ class ContentViewTestCase(UITestCase):
         entity_mixins.TASK_TIMEOUT = old_task_timeout
         return repo_id
 
+    def _get_cv_version_environments(self, cv_version):
+        """Return the list of environments promoted to the version of content
+        view. The content view web page must be already opened.
+
+        :param cv_version: The version of the current opened content view
+        :type cv_version: str
+        :rtype: list[str]
+        """
+        environment_elements = self.content_views.find_elements(
+            locators.contentviews.version_environments % cv_version)
+        return [env_element.text for env_element in environment_elements]
+
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
@@ -1300,7 +1312,6 @@ class ContentViewTestCase(UITestCase):
         @CaseLevel: Integration
         """
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_publish_version_changes_in_target_env(self):
@@ -1320,15 +1331,60 @@ class ContentViewTestCase(UITestCase):
         1. publish a view to an environment noting the CV version
         2. edit and republish a new version of a CV
 
-        @assert: Content view version is updated intarget environment.
-
-        @caseautomation: notautomated
-
+        @assert: Content view version is updated in target environment.
 
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        # will promote environment to 3 versions
+        versions_count = 3
+        with Session(self.browser) as session:
+            # create environment lifecycle
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators.content_env.select_name % env_name))
+            # create content view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # begin publishing content view and promoting environment over all
+            # the defined versions
+            for _ in range(versions_count):
+                # before each content view publishing add a new repository
+                repo_name = gen_string('alpha')
+                # create a repository
+                self.setup_to_create_cv(repo_name=repo_name)
+                # add the repository to the created content view
+                self.content_views.add_remove_repos(cv_name, [repo_name])
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators['alert.success_sub_form'])
+                )
+                # publish the content view
+                version_name = self.content_views.publish(cv_name)
+                # assert the content view successfully published
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form']))
+                # find this version environments
+                environments = self._get_cv_version_environments(
+                    version_name)
+                # assert that Library is in environments of this version
+                self.assertIn(ENVIRONMENT, environments)
+                # assert that env_name is not in environments of this version
+                self.assertNotIn(env_name, environments)
+                # promote content view environment to this version
+                self.content_views.promote(cv_name, version_name, env_name)
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form']))
+                # find this version environments
+                environments = self._get_cv_version_environments(
+                    version_name)
+                # assert that Library is still in environments of this version
+                self.assertIn(ENVIRONMENT, environments)
+                # assert that env_name is in environments of this version
+                self.assertIn(env_name, environments)
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_publish_version_changes_in_source_env(self):
@@ -1349,11 +1405,69 @@ class ContentViewTestCase(UITestCase):
 
         @assert: Content view version is updated in source environment.
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        # will promote environment to 3 versions
+        versions_count = 3
+        with Session(self.browser) as session:
+            # create environment lifecycle
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators.content_env.select_name % env_name))
+            # create content view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # for the moment has no source/precedent version
+            precedent_version_name = None
+            # begin publishing content view and promoting environment over all
+            # the defined versions
+            for _ in range(versions_count):
+                repo_name = gen_string('alpha')
+                # create a repository
+                self.setup_to_create_cv(repo_name=repo_name)
+                # add the repository to the created content view
+                self.content_views.add_remove_repos(cv_name, [repo_name])
+                self.assertIsNotNone(
+                    self.content_views.wait_until_element(
+                        common_locators['alert.success_sub_form'])
+                )
+                # publish the content view
+                current_version_name = self.content_views.publish(cv_name)
+                # assert the content view successfully published
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form']))
+                # promote env_name to the current content view version
+                self.content_views.promote(cv_name, current_version_name,
+                                           env_name)
+                # assert env_name successfully promoted
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form']))
+                # find this content view version environments
+                current_version_envs = self._get_cv_version_environments(
+                    current_version_name)
+                # assert that Library is in environments of this version
+                self.assertIn(ENVIRONMENT, current_version_envs)
+                # assert that env_name is in environments of this version
+                self.assertIn(env_name, current_version_envs)
+                # need to assert that the environments are not in the
+                # precedent version
+                if precedent_version_name:
+                    # find the precedent version environments
+                    precedent_version_envs = self._get_cv_version_environments(
+                        precedent_version_name)
+                    # assert that Library is not in environments of the
+                    # precedent version
+                    self.assertNotIn(ENVIRONMENT,
+                                     precedent_version_envs)
+                    # assert that env_name is not in the environments of the
+                    # precedent version
+                    self.assertNotIn(env_name, precedent_version_envs)
+                # as exiting the loop, set the precedent version to this one
+                # as in the nest loop will publish a new one
+                precedent_version_name = current_version_name
 
     @run_only_on('sat')
     @tier2
