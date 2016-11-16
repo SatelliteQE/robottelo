@@ -116,10 +116,9 @@ class ContentViewTestCase(UITestCase):
         return repo_id
 
     def _get_cv_version_environments(self, cv_version):
-        """
-        Return the list of environments promoted to the version of content
-        view.
-        The content view web page must be already opened
+        """Return the list of environments promoted to the version of content
+        view. The content view web page must be already opened.
+
         :param cv_version: The version of the current opened content view
         :type cv_version: str
         :rtype: list[str]
