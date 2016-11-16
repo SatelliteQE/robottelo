@@ -115,6 +115,19 @@ class ContentViewTestCase(UITestCase):
         entity_mixins.TASK_TIMEOUT = old_task_timeout
         return repo_id
 
+    def _get_cv_version_environments(self, cv_version):
+        """
+        Return the list of environments promoted to the version of content
+        view.
+        The content view web page must be already opened
+        :param cv_version: The version of the current opened content view
+        :type cv_version: str
+        :rtype: list[str]
+        """
+        environment_elements = self.content_views.find_elements(
+            locators.contentviews.version_environments % cv_version)
+        return [env_element.text for env_element in environment_elements]
+
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
@@ -1355,10 +1368,8 @@ class ContentViewTestCase(UITestCase):
                 self.assertIsNotNone(self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form']))
                 # find this version environments
-                env_elements = self.content_views.find_elements(
-                    locators.contentviews.version_environments % version_name)
-                environments = [
-                    env_element.text for env_element in env_elements]
+                environments = self._get_cv_version_environments(
+                    version_name)
                 # assert that Library is in environments of this version
                 self.assertIn(ENVIRONMENT, environments)
                 # assert that env_name is not in environments of this version
@@ -1368,10 +1379,8 @@ class ContentViewTestCase(UITestCase):
                 self.assertIsNotNone(self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form']))
                 # find this version environments
-                env_elements = self.content_views.find_elements(
-                    locators.contentviews.version_environments % version_name)
-                environments = [
-                    env_element.text for env_element in env_elements]
+                environments = self._get_cv_version_environments(
+                    version_name)
                 # assert that Library is still in environments of this version
                 self.assertIn(ENVIRONMENT, environments)
                 # assert that env_name is in environments of this version
@@ -1438,33 +1447,25 @@ class ContentViewTestCase(UITestCase):
                 self.assertIsNotNone(self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form']))
                 # find this content view version environments
-                env_elements = self.content_views.find_elements(
-                    locators.contentviews.version_environments
-                    % current_version_name
-                )
-                current_version_environments = [
-                    env_element.text for env_element in env_elements]
+                current_version_envs = self._get_cv_version_environments(
+                    current_version_name)
                 # assert that Library is in environments of this version
-                self.assertIn(ENVIRONMENT, current_version_environments)
+                self.assertIn(ENVIRONMENT, current_version_envs)
                 # assert that env_name is in environments of this version
-                self.assertIn(env_name, current_version_environments)
+                self.assertIn(env_name, current_version_envs)
                 # need to assert that the environments are not in the
                 # precedent version
                 if precedent_version_name:
                     # find the precedent version environments
-                    env_elements = self.content_views.find_elements(
-                        locators.contentviews.version_environments
-                        % precedent_version_name
-                    )
-                    precedent_version_environments = [
-                        env_element.text for env_element in env_elements]
+                    precedent_version_envs = self._get_cv_version_environments(
+                        precedent_version_name)
                     # assert that Library is not in environments of the
                     # precedent version
                     self.assertNotIn(ENVIRONMENT,
-                                     precedent_version_environments)
+                                     precedent_version_envs)
                     # assert that env_name is not in the environments of the
                     # precedent version
-                    self.assertNotIn(env_name, precedent_version_environments)
+                    self.assertNotIn(env_name, precedent_version_envs)
                 # as exiting the loop, set the precedent version to this one
                 # as in the nest loop will publish a new one
                 precedent_version_name = current_version_name
