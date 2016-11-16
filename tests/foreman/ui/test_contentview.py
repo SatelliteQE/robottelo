@@ -1395,11 +1395,9 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.fetch_yum_content_repo_name(copy_cv_name)
             )
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_clone_within_diff_env(self):
-        # Dev note: "not implemented yet"
         """attempt to create new content view based on existing
         view, inside a different environment
 
@@ -1407,11 +1405,63 @@ class ContentViewTestCase(UITestCase):
 
         @assert: Content view can be published
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: Integration
         """
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        copy_cv_name = gen_string('alpha')
+        copy_env_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            # create a repository
+            self.setup_to_create_cv(repo_name=repo_name)
+            # create a lifecycle environment
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            # create a content view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add repository to the created content view
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote env_name to the content view version
+            self.content_views.promote(cv_name, version, env_name)
+            # assert env_name successfully promoted
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # create a new lifecycle environment that we should promote to
+            #  the published version of the copy of content view
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=copy_env_name)
+            # create a copy of content view with a new name
+            self.content_views.copy_view(cv_name, copy_cv_name)
+            # ensure that the copy of the content view exist
+            self.assertIsNotNone(self.content_views.search(copy_cv_name))
+            # ensure that the repository is in the copy of content view
+            self.assertEqual(
+                repo_name,
+                self.content_views.fetch_yum_content_repo_name(copy_cv_name)
+            )
+            # publish the content view copy
+            copy_version = self.content_views.publish(copy_cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote the other environment to the copy of content view version
+            self.content_views.promote(
+                copy_cv_name, copy_version, copy_env_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
