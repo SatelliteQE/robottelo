@@ -2259,6 +2259,11 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='performDeletion()']"),
     "contentviews.version_name": (
         By.XPATH, "//td/a[contains(., '%s')]"),
+    "contentviews.version_environments": (
+        By.XPATH,
+        "//table[@bst-table='table']//tr/td[contains(., '%s')]/"
+        "following-sibling::td/ul/li[@ng-repeat='environment in"
+        " version.environments']"),
     "contentviews.success_rm_alert": (
         By.XPATH,
         ("//div[contains(@class, 'alert-success')]"
