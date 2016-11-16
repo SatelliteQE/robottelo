@@ -1379,9 +1379,9 @@ class ContentViewTestCase(CLITestCase):
         # Actual assert for this test happens HERE
         # Test whether the version1 now belongs to Library
         version1 = ContentView.version_info({u'id': version1_id})
-        self.assertEqual(
-            version1['lifecycle-environments'][0]['label'],
+        self.assertIn(
             ENVIRONMENT,
+            [env['label'] for env in version1['lifecycle-environments']],
             'Version 1 is not in Library',
         )
         # Promotion of version1 to Dev env
@@ -1392,9 +1392,9 @@ class ContentViewTestCase(CLITestCase):
         # The only way to validate whether env has the version is to
         # validate that version has the env.
         version1 = ContentView.version_info({u'id': version1_id})
-        self.assertEqual(
-            version1['lifecycle-environments'][1]['id'],
+        self.assertIn(
             self.env1['id'],
+            [env['id'] for env in version1['lifecycle-environments']],
             'Promotion of version1 not successful to the env',
         )
         # Now Publish version2 of CV
@@ -1405,9 +1405,9 @@ class ContentViewTestCase(CLITestCase):
         version2_id = new_cv['versions'][1]['id']
         # Test whether the version2 now belongs to Library
         version2 = ContentView.version_info({u'id': version2_id})
-        self.assertEqual(
-            version2['lifecycle-environments'][0]['label'],
+        self.assertIn(
             ENVIRONMENT,
+            [env['label'] for env in version2['lifecycle-environments']],
             'Version 2 not in Library'
         )
         # Promotion of version2 to Dev env
@@ -1418,9 +1418,9 @@ class ContentViewTestCase(CLITestCase):
         # Actual assert for this test happens here.
         # Test whether the version2 now belongs to next env
         version2 = ContentView.version_info({u'id': version2_id})
-        self.assertEqual(
-            version2['lifecycle-environments'][1]['id'],
+        self.assertIn(
             self.env1['id'],
+            [env['id'] for env in version2['lifecycle-environments']],
             'Promotion of version2 not successful to the env',
         )
 
@@ -1465,9 +1465,9 @@ class ContentViewTestCase(CLITestCase):
         version1_id = new_cv['versions'][0]['id']
         # Test whether the version1 now belongs to Library
         version = ContentView.version_info({u'id': version1_id})
-        self.assertEqual(
-            version['lifecycle-environments'][0]['label'],
+        self.assertIn(
             ENVIRONMENT,
+            [env['label'] for env in version['lifecycle-environments']],
             'Version 1 is not in Library',
         )
         # Promotion of version1 to Dev env
@@ -1479,9 +1479,9 @@ class ContentViewTestCase(CLITestCase):
         # validate that version has the env.
         # Test whether the version1 now belongs to next env
         version1 = ContentView.version_info({u'id': version1_id})
-        self.assertEqual(
-            version1['lifecycle-environments'][1]['id'],
+        self.assertIn(
             self.env1['id'],
+            [env['id'] for env in version1['lifecycle-environments']],
             'Promotion of version1 not successful to the env',
         )
         # Now Publish version2 of CV
@@ -1496,9 +1496,9 @@ class ContentViewTestCase(CLITestCase):
             1,
             'Version1 may still exist in Library',
         )
-        self.assertNotEqual(
-            version1['lifecycle-environments'][0]['label'],
+        self.assertNotIn(
             ENVIRONMENT,
+            [env['label'] for env in version1['lifecycle-environments']],
             'Version1 still exists in Library',
         )
         # Only after we publish version2 the info is populated.
