@@ -105,8 +105,9 @@ class ContentViewTestCase(UITestCase):
         :type cv_version: str
         :rtype: list[str]
         """
+        strategy, value = locators['contentviews.version_environments']
         environment_elements = self.content_views.find_elements(
-            locators.contentviews.version_environments % cv_version)
+            (strategy, value % cv_version))
         return [env_element.text for env_element in environment_elements]
 
     @run_only_on('sat')
@@ -1031,8 +1032,9 @@ class ContentViewTestCase(UITestCase):
             # create environment lifecycle
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
+            strategy, value = locators['content_env.select_name']
             self.assertIsNotNone(session.nav.wait_until_element(
-                locators.content_env.select_name % env_name))
+                (strategy, value % env_name)))
             # create content view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -1103,8 +1105,9 @@ class ContentViewTestCase(UITestCase):
             # create environment lifecycle
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
+            strategy, value = locators['content_env.select_name']
             self.assertIsNotNone(session.nav.wait_until_element(
-                locators.content_env.select_name % env_name))
+                (strategy, value % env_name)))
             # create content view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
