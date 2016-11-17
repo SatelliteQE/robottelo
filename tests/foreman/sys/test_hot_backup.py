@@ -9,7 +9,7 @@
 
 @CaseComponent: Backup
 
-@TestType: System
+@TestType: functional
 
 @CaseImportance: High
 
