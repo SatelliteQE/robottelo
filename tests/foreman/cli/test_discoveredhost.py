@@ -26,12 +26,19 @@ from robottelo.cli.host import Host
 from robottelo.cli.settings import Settings
 from robottelo.cli.template import Template
 from robottelo.datafactory import gen_string
-from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier3,
+)
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import CLITestCase
 from time import sleep
 
 
+@run_in_one_thread
 class DiscoveredTestCase(CLITestCase):
     """Implements Foreman discovery CLI tests."""
 
@@ -86,6 +93,10 @@ class DiscoveredTestCase(CLITestCase):
 
         # Enable flag to auto provision discovered hosts via discovery rules
         Settings.set({'name': 'discovery_auto', 'value': 'true'})
+
+        # Flag which shows whether environment is fully configured for
+        # discovered host provisioning.
+        cls.configured_env = False
 
     @classmethod
     def tearDownClass(cls):
@@ -208,8 +219,9 @@ class DiscoveredTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        result = configure_env_for_provision(
-            org=self.org, loc=self.loc)
+        if not self.configured_env:
+            self.configured_env = configure_env_for_provision(
+                org=self.org, loc=self.loc)
         with LibvirtGuest(boot_iso=True) as pxe_host:
             hostname = pxe_host.guest_name
             discovered_host = self._assertdiscoveredhost(hostname)
@@ -217,22 +229,26 @@ class DiscoveredTestCase(CLITestCase):
             # Provision just discovered host
             DiscoveredHost.provision({
                 'name': discovered_host['name'],
-                'hostgroup': result['hostgroup']['name'],
+                'hostgroup': self.configured_env['hostgroup']['name'],
                 'root-password': gen_string('alphanumeric'),
             })
-            provisioned_host = Host.info({'name': '{0}.{1}'.format(
-                discovered_host['name'], result['domain']['name'])})
+            provisioned_host = Host.info({
+                'name': '{0}.{1}'.format(
+                    discovered_host['name'],
+                    self.configured_env['domain']['name']
+                )
+            })
             self.assertEqual(
                 provisioned_host['network']['subnet'],
-                result['subnet']['name']
+                self.configured_env['subnet']['name']
             )
             self.assertEqual(
                 provisioned_host['operating-system']['partition-table'],
-                result['ptable']['name']
+                self.configured_env['ptable']['name']
             )
             self.assertEqual(
                 provisioned_host['operating-system']['operating-system'],
-                result['os']['title']
+                self.configured_env['os']['title']
             )
             # Check that provisioned host is not in the list of discovered
             # hosts anymore
@@ -253,8 +269,9 @@ class DiscoveredTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        result = configure_env_for_provision(
-            org=self.org, loc=self.loc)
+        if not self.configured_env:
+            self.configured_env = configure_env_for_provision(
+                org=self.org, loc=self.loc)
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
             discovered_host = self._assertdiscoveredhost(hostname)
@@ -262,22 +279,26 @@ class DiscoveredTestCase(CLITestCase):
             # Provision just discovered host
             DiscoveredHost.provision({
                 'name': discovered_host['name'],
-                'hostgroup': result['hostgroup']['name'],
+                'hostgroup': self.configured_env['hostgroup']['name'],
                 'root-password': gen_string('alphanumeric'),
             })
-            provisioned_host = Host.info({'name': '{0}.{1}'.format(
-                discovered_host['name'], result['domain']['name'])})
+            provisioned_host = Host.info({
+                'name': '{0}.{1}'.format(
+                    discovered_host['name'],
+                    self.configured_env['domain']['name']
+                )
+            })
             self.assertEqual(
                 provisioned_host['network']['subnet'],
-                result['subnet']['name']
+                self.configured_env['subnet']['name']
             )
             self.assertEqual(
                 provisioned_host['operating-system']['partition-table'],
-                result['ptable']['name']
+                self.configured_env['ptable']['name']
             )
             self.assertEqual(
                 provisioned_host['operating-system']['operating-system'],
-                result['os']['title']
+                self.configured_env['os']['title']
             )
             # Check that provisioned host is not in the list of discovered
             # hosts anymore

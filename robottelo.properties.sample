@@ -95,8 +95,8 @@ ssh_key=
 
 # Provide link to rhel6/7 repositories URL as we need all OS packages in order
 # to have real installation media for provisioning procedure
-rhel6_os=http://example.com/yum/rhel6-os/
-rhel7_os=http://example.com/yum/rhel7-os/
+# rhel6_os=http://example.com/yum/rhel6-os/
+# rhel7_os=http://example.com/yum/rhel7-os/
 
 # If capsule and satellite tools repositories available related packages will
 # be pulled from there instead of using the CDN channel. These information is
