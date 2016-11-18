@@ -27,6 +27,8 @@ from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
+    FAKE_1_PUPPET_REPO,
+    FAKE_0_YUM_REPO,
     FAKE_1_YUM_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_TYPE,
@@ -847,8 +849,9 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_promote_composite_with_custom_content(self):
         # Variations:
@@ -864,13 +867,103 @@ class ContentViewTestCase(UITestCase):
 
         @steps: create a composite view containing multiple content types
 
-        @assert: Content view can be promoted
-
-        @caseautomation: notautomated
-
+        @assert: Composite content view can be promoted
 
         @CaseLevel: Integration
         """
+        env_name = gen_string('alpha')
+        cv1_name = gen_string('alpha')
+        cv2_name = gen_string('alpha')
+        cv_composite_name = gen_string('alpha')
+        custom_repo1_name = gen_string('alpha')
+        custom_repo2_name = gen_string('alpha')
+        custom_repo1_url = FAKE_0_YUM_REPO
+        custom_repo2_url = FAKE_1_YUM_REPO
+        puppet_repo1_url = FAKE_0_PUPPET_REPO
+        puppet_repo2_url = FAKE_1_PUPPET_REPO
+        puppet_module1 = 'httpd'
+        puppet_module2 = 'ntp'
+        rh7_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None,
+        }
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create a life cycle environment
+            make_lifecycle_environment(
+                session, org=org.name, name=env_name)
+            # create repositories
+            self.setup_to_create_cv(rh_repo=rh7_repo, org_id=org.id)
+            self.setup_to_create_cv(
+                repo_name=custom_repo1_name,
+                repo_url=custom_repo1_url,
+                org_id=org.id
+            )
+            self.setup_to_create_cv(
+                repo_name=custom_repo2_name,
+                repo_url=custom_repo2_url,
+                org_id=org.id
+            )
+            self.setup_to_create_cv(
+                repo_url=puppet_repo1_url,
+                repo_type=REPO_TYPE['puppet'],
+                org_id=org.id
+            )
+            self.setup_to_create_cv(
+                repo_url=puppet_repo2_url,
+                repo_type=REPO_TYPE['puppet'],
+                org_id=org.id
+            )
+            # create the first content view
+            make_contentview(session, org=org.name, name=cv1_name)
+            self.assertIsNotNone(self.content_views.search(cv1_name))
+            # add repositories to first content view
+            self.content_views.add_remove_repos(
+                cv1_name, [rh7_repo['name'], custom_repo1_name])
+            # add the first puppet module to first content view
+            self.content_views.add_puppet_module(
+                cv1_name,
+                puppet_module1,
+                filter_term='Latest'
+            )
+            # publish the first content
+            self.content_views.publish(cv1_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # create the second content view
+            make_contentview(session, org=org.name, name=cv2_name)
+            self.assertIsNotNone(self.content_views.search(cv2_name))
+            # add repositories to the second content view
+            self.content_views.add_remove_repos(
+                cv2_name, [custom_repo2_name])
+            # add the second puppet module to the second content view
+            self.content_views.add_puppet_module(
+                cv2_name,
+                puppet_module2,
+                filter_term='Latest'
+            )
+            # publish the second content
+            self.content_views.publish(cv2_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # create a composite content view
+            self.content_views.create(cv_composite_name, is_composite=True)
+            self.assertIsNotNone(self.content_views.search(cv_composite_name))
+            # add the first and second content views to the composite one
+            self.content_views.add_remove_cv(
+                cv_composite_name, [cv1_name, cv2_name])
+            # publish the composite content view
+            version_name = self.content_views.publish(cv_composite_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # promote the composite content view
+            self.content_views.promote(
+                cv_composite_name, version_name, env_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
@@ -978,8 +1071,9 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_publish_composite_with_custom_content(self):
         # Variations:
@@ -993,13 +1087,103 @@ class ContentViewTestCase(UITestCase):
 
         @setup: Multiple environments for an org; custom content synced
 
-        @assert: Content view can be published
-
-        @caseautomation: notautomated
-
+        @assert: Composite content view can be published
 
         @CaseLevel: Integration
         """
+        env_name = gen_string('alpha')
+        cv1_name = gen_string('alpha')
+        cv2_name = gen_string('alpha')
+        cv_composite_name = gen_string('alpha')
+        custom_repo1_name = gen_string('alpha')
+        custom_repo2_name = gen_string('alpha')
+        custom_repo1_url = FAKE_0_YUM_REPO
+        custom_repo2_url = FAKE_1_YUM_REPO
+        puppet_repo1_url = FAKE_0_PUPPET_REPO
+        puppet_repo2_url = FAKE_1_PUPPET_REPO
+        puppet_module1 = 'httpd'
+        puppet_module2 = 'ntp'
+        rh7_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None,
+        }
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create a life cycle environment
+            make_lifecycle_environment(
+                session, org=org.name, name=env_name)
+            # create repositories
+            self.setup_to_create_cv(rh_repo=rh7_repo, org_id=org.id)
+            self.setup_to_create_cv(
+                repo_name=custom_repo1_name,
+                repo_url=custom_repo1_url,
+                org_id=org.id
+            )
+            self.setup_to_create_cv(
+                repo_name=custom_repo2_name,
+                repo_url=custom_repo2_url,
+                org_id=org.id
+            )
+            self.setup_to_create_cv(
+                repo_url=puppet_repo1_url,
+                repo_type=REPO_TYPE['puppet'],
+                org_id=org.id
+            )
+            self.setup_to_create_cv(
+                repo_url=puppet_repo2_url,
+                repo_type=REPO_TYPE['puppet'],
+                org_id=org.id
+            )
+            # create the first content view
+            make_contentview(session, org=org.name, name=cv1_name)
+            self.assertIsNotNone(self.content_views.search(cv1_name))
+            # add repositories to first content view
+            self.content_views.add_remove_repos(
+                cv1_name, [rh7_repo['name'], custom_repo1_name])
+            # add the first puppet module to first content view
+            self.content_views.add_puppet_module(
+                cv1_name,
+                puppet_module1,
+                filter_term='Latest'
+            )
+            # publish the first content
+            cv1_version = self.content_views.publish(cv1_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # promote the first content view to environment
+            self.content_views.promote(
+                cv1_name, cv1_version, env_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # create the second content view
+            make_contentview(session, org=org.name, name=cv2_name)
+            self.assertIsNotNone(self.content_views.search(cv2_name))
+            # add repositories to the second content view
+            self.content_views.add_remove_repos(
+                cv2_name, [custom_repo2_name])
+            # add the second puppet module to the second content view
+            self.content_views.add_puppet_module(
+                cv2_name,
+                puppet_module2,
+                filter_term='Latest'
+            )
+            # publish the second content
+            self.content_views.publish(cv2_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # create a composite content view
+            self.content_views.create(cv_composite_name, is_composite=True)
+            self.assertIsNotNone(self.content_views.search(cv_composite_name))
+            # add the first and second content views to the composite one
+            self.content_views.add_remove_cv(
+                cv_composite_name, [cv1_name, cv2_name])
+            # publish the composite content view
+            self.content_views.publish(cv_composite_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
