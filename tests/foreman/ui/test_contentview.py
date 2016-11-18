@@ -1461,7 +1461,12 @@ class ContentViewTestCase(UITestCase):
                 filter_term='Latest'
             )
             # publish the first content
-            self.content_views.publish(cv1_name)
+            cv1_version = self.content_views.publish(cv1_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # promote the first content view to environment
+            self.content_views.promote(
+                cv1_name, cv1_version, env_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             # create the second content view
