@@ -1764,23 +1764,6 @@ class ContentViewTestCase(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_positive_refresh_errata_to_new_view_in_same_env(self):
-        """attempt to refresh errata in a new view, based on
-        an existing view, from within the same  environment
-
-        @id: e990bf30-04d2-4784-a1e0-e0424babbddd
-
-        @assert: Content view can be published
-
-        @caseautomation: notautomated
-
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
     def test_positive_subscribe_system(self):
         # Notes:
         # this should be limited to only those content views
