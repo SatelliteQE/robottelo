@@ -628,12 +628,6 @@ PERMISSIONS = {
         'edit_external_usergroups',
         'destroy_external_usergroups',
     ],
-    'LookupKey': [
-        'view_external_variables',
-        'create_external_variables',
-        'edit_external_variables',
-        'destroy_external_variables',
-    ],
     'FactValue': [
         'view_facts',
         'upload_facts',
@@ -691,14 +685,6 @@ PERMISSIONS = {
     'HostClass': [
         'edit_classes',
     ],
-    'Parameter': [
-        'create_params',
-        'edit_params',
-        'destroy_params',
-        # This permission was removed for downstream version 6.2.
-        # However this change is temporary and the plan is to add it back
-        # 'view_params',
-    ],
     'Hostgroup': [
         'view_hostgroups',
         'create_hostgroups',
@@ -739,6 +725,12 @@ PERMISSIONS = {
         'edit_operatingsystems',
         'destroy_operatingsystems',
     ],
+    'Parameter': [
+        'view_params',
+        'create_params',
+        'edit_params',
+        'destroy_params',
+    ],
     'ProvisioningTemplate': [
         'view_provisioning_templates',
         'create_provisioning_templates',
@@ -760,6 +752,12 @@ PERMISSIONS = {
         'edit_puppetclasses',
         'destroy_puppetclasses',
         'import_puppetclasses',
+    ],
+    'PuppetclassLookupKey': [
+        'view_external_parameters',
+        'create_external_parameters',
+        'edit_external_parameters',
+        'destroy_external_parameters',
     ],
     'Realm': [
         'view_realms',
@@ -825,6 +823,12 @@ PERMISSIONS = {
         'edit_users',
         'destroy_users',
     ],
+    'VariableLookupKey': [
+        'view_external_variables',
+        'create_external_variables',
+        'edit_external_variables',
+        'destroy_external_variables',
+    ],
     'Host': [
         'auto_provision_discovered_hosts',
         'build_hosts',
@@ -847,12 +851,6 @@ PERMISSIONS = {
         'create_activation_keys',
         'edit_activation_keys',
         'destroy_activation_keys',
-    ],
-    'Katello::System': [
-        'view_content_hosts',
-        'create_content_hosts',
-        'edit_content_hosts',
-        'destroy_content_hosts',
     ],
     'Katello::ContentView': [
         'view_content_views',
