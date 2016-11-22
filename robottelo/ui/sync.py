@@ -9,6 +9,7 @@ from functools import partial
 from robottelo.constants import PRDS, REPOSET
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
+from robottelo.ui.navigator import Navigator
 
 
 class Sync(Base):
@@ -129,6 +130,7 @@ class Sync(Base):
         :return: None.
 
         """
+        Navigator(self.browser).go_to_red_hat_repositories()
         strategy, value = locators['rh.prd_expander']
         strategy1, value1 = locators['rh.reposet_expander']
         strategy2, value2 = locators['rh.reposet_checkbox']

@@ -20,26 +20,37 @@ import time
 
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo import manifests
+from robottelo.api.utils import upload_manifest
 from robottelo.constants import (
     CHECKSUM_TYPE,
     DOCKER_REGISTRY_HUB,
+    DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
+    PRDS,
     REPO_DISCOVERY_URL,
     REPO_TYPE,
+    REPOS,
+    SAT6_TOOLS_TREE,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
-    DOWNLOAD_POLICIES
 )
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
     invalid_values_list,
 )
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
@@ -918,3 +929,37 @@ class RepositoryTestCase(UITestCase):
                             locators['repo.download_policy']
                         )
                     )
+
+    @run_in_one_thread
+    @tier2
+    def test_positive_reposet_disable(self):
+        """Enable RH repo, sync it and then disable
+
+        @id: de596c56-1327-49e8-86d5-a1ab907f26aa
+
+        @Assert: RH repo was disabled
+
+        @CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            # Enable RH repository
+            self.sync.enable_rh_repos(repos)
+            session.nav.go_to_sync_status()
+            # Sync the repo and verify sync was successful
+            self.assertTrue(self.sync.sync_noversion_rh_repos(
+                PRDS['rhel'], [REPOS['rhst6']['name']]
+            ))
+            # Click the checkbox once more to disable the repo
+            self.sync.enable_rh_repos(repos)
+            # Verify the repo is disabled
+            strategy, value = locators['rh.repo_checkbox']
+            self.assertFalse(
+                self.sync.wait_until_element((
+                    strategy, value % SAT6_TOOLS_TREE[0][-1]
+                )).is_selected()
+            )
