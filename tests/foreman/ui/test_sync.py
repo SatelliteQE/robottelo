@@ -103,7 +103,6 @@ class SyncTestCase(UITestCase):
             upload_manifest(self.organization.id, manifest.content)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_red_hat_repositories()
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
             session.nav.go_to_sync_status()
             sync = self.sync.sync_rh_repos(repos)
@@ -191,7 +190,6 @@ class SyncTestCase(UITestCase):
             upload_manifest(org.id, manifest.content)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            session.nav.go_to_red_hat_repositories()
             self.sync.enable_rh_repos(repos, repo_tab=REPO_TAB['ostree'])
             session.nav.go_to_sync_status()
             self.assertTrue(self.sync.sync_noversion_rh_repos(

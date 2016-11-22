@@ -9,6 +9,7 @@ from functools import partial
 from robottelo.constants import PRDS, REPOSET
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, tab_locators
+from robottelo.ui.navigator import Navigator
 
 
 class Sync(Base):
@@ -130,6 +131,7 @@ class Sync(Base):
         :return: None.
 
         """
+        Navigator(self.browser).go_to_red_hat_repositories()
         # Locator to select content tabs from Red Hat repositories page
         # e.g. 'RPMs', 'KIckstarts', 'ISOs', 'OSTree'
         repo_tab_locator = 'manifest.{0}_tab'.format(repo_tab.lower())

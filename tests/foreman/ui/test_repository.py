@@ -20,10 +20,12 @@ import time
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo import ssh
+from robottelo import manifests, ssh
+from robottelo.api.utils import upload_manifest
 from robottelo.constants import (
     CHECKSUM_TYPE,
     DOCKER_REGISTRY_HUB,
+    DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
@@ -31,18 +33,27 @@ from robottelo.constants import (
     FAKE_YUM_SRPM_REPO,
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
+    PRDS,
     REPO_DISCOVERY_URL,
+    REPO_TAB,
     REPO_TYPE,
+    REPOS,
+    SAT6_TOOLS_TREE,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
-    DOWNLOAD_POLICIES
 )
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
     invalid_values_list,
 )
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
@@ -929,6 +940,8 @@ class RepositoryTestCase(UITestCase):
         @id: 1967a540-a265-4046-b87b-627524b63688
 
         @Assert: srpms can be listed in repository
+
+        @CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -966,6 +979,8 @@ class RepositoryTestCase(UITestCase):
         @id: 2a57cbde-c616-440d-8bcb-6e18bd2d5c5f
 
         @Assert: srpms can be listed in content view
+
+        @CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -1015,6 +1030,8 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: srpms can be listed in content view in proper lifecycle
         environment
+
+        @CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(
             organization=self.session_org).create()
@@ -1068,6 +1085,8 @@ class RepositoryTestCase(UITestCase):
         @id: 5e703d9a-ea26-4062-9d5c-d31bfbe87417
 
         @Assert: drpms can be listed in repository
+
+        @CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -1105,6 +1124,8 @@ class RepositoryTestCase(UITestCase):
         @id: cffa862c-f972-4aa4-96b2-5a4513cb3eef
 
         @Assert: drpms can be listed in content view
+
+        @CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -1154,6 +1175,8 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: drpms can be listed in content view in proper lifecycle
         environment
+
+        @CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(
             organization=self.session_org).create()
@@ -1199,3 +1222,36 @@ class RepositoryTestCase(UITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
+
+    @run_in_one_thread
+    @tier2
+    def test_positive_reposet_disable(self):
+        """Enable RH repo, sync it and then disable
+
+        @id: de596c56-1327-49e8-86d5-a1ab907f26aa
+
+        @Assert: RH repo was disabled
+
+        @CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            # Enable RH repository
+            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
+            session.nav.go_to_sync_status()
+            # Sync the repo and verify sync was successful
+            self.assertTrue(self.sync.sync_noversion_rh_repos(
+                PRDS['rhel'], [REPOS['rhst6']['name']]
+            ))
+            # Click the checkbox once more to disable the repo
+            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
+            # Verify the repo is disabled
+            self.assertFalse(
+                self.sync.wait_until_element(
+                    locators['rh.repo_checkbox'] % repos[0][0][0]['repo_name']
+                ).is_selected()
+            )
