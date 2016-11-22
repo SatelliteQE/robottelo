@@ -94,7 +94,6 @@ class SyncTestCase(UITestCase):
             upload_manifest(self.organization.id, manifest.content)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_red_hat_repositories()
             self.sync.enable_rh_repos(repos)
             session.nav.go_to_sync_status()
             sync = self.sync.sync_rh_repos(repos)
