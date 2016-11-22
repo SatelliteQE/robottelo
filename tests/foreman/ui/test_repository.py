@@ -719,13 +719,19 @@ class RepositoryTestCase(UITestCase):
         @Assert: YUM repository with a default download policy
         """
         repo_name = gen_string('alphanumeric')
+        default_dl_policy = entities.Setting().search(
+            query={'search': 'name=default_download_policy'}
+        )
+        self.assertTrue(default_dl_policy and
+                        DOWNLOAD_POLICIES.get(default_dl_policy[0].value))
+        default_dl_policy = DOWNLOAD_POLICIES.get(default_dl_policy[0].value)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.search_and_click(self.session_prod.name)
             make_repository(session, name=repo_name, repo_type='yum')
             self.assertTrue(
                 self.repository.validate_field(
-                    repo_name, 'download_policy', 'Immediate'
+                    repo_name, 'download_policy', default_dl_policy
                 )
             )
 
