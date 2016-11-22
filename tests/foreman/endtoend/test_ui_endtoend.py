@@ -213,7 +213,6 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
             # step 2.7: Enable a Red Hat repository
             if self.fake_manifest_is_set:
-                session.nav.go_to_red_hat_repositories()
                 self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
 
             # step 2.8: Synchronize the three repositories
@@ -358,7 +357,6 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             self.assertTrue(session.nav.wait_until_element(
                 common_locators['alert.success']
             ))
-            session.nav.go_to_red_hat_repositories()
             # List of dictionary passed to enable the redhat repos
             # It selects Product->Reposet-> Repo
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])

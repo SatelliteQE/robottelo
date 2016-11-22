@@ -1240,7 +1240,6 @@ class RepositoryTestCase(UITestCase):
         repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            session.nav.go_to_red_hat_repositories()
             # Enable RH repository
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
             session.nav.go_to_sync_status()
@@ -1248,7 +1247,6 @@ class RepositoryTestCase(UITestCase):
             self.assertTrue(self.sync.sync_noversion_rh_repos(
                 PRDS['rhel'], [REPOS['rhst6']['name']]
             ))
-            session.nav.go_to_red_hat_repositories()
             # Click the checkbox once more to disable the repo
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
             # Verify the repo is disabled
