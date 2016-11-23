@@ -32,6 +32,7 @@ from robottelo.cli.factory import (
     CLIFactoryError
 )
 from robottelo.cli.repository import Repository
+from robottelo.cli.settings import Settings
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
     DOCKER_REGISTRY_HUB,
@@ -235,8 +236,14 @@ class RepositoryTestCase(CLITestCase):
 
         @Assert: YUM repository with a default download policy
         """
+        default_dl_policy = Settings.list(
+            {'search': 'name=default_download_policy'}
+        )
+        self.assertTrue(default_dl_policy)
         new_repo = self._make_repository({u'content-type': u'yum'})
-        self.assertEqual(new_repo['download-policy'], 'immediate')
+        self.assertEqual(
+            new_repo['download-policy'], default_dl_policy[0]['value']
+        )
 
     @tier1
     def test_positive_create_immediate_update_to_on_demand(self):

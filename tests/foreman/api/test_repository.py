@@ -186,12 +186,16 @@ class RepositoryTestCase(APITestCase):
 
         @Assert: YUM repository with a default download policy
         """
+
+        default_dl_policy = entities.Setting().search(
+            query={'search': 'name=default_download_policy'}
+        )
+        self.assertTrue(default_dl_policy)
         repo = entities.Repository(
             product=self.product,
             content_type='yum'
         ).create()
-        # this default value can change to 'on_demand' in future
-        self.assertEqual(repo.download_policy, 'immediate')
+        self.assertEqual(repo.download_policy, default_dl_policy[0].value)
 
     @tier1
     def test_positive_create_immediate_update_to_on_demand(self):
