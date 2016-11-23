@@ -100,32 +100,17 @@ class DiscoveredHosts(Base):
                 'Could not find the selected discovered host "{0}"'
                 .format(hostname)
             )
-        drop_locator = locators['discoveredhosts.dropdown']
-        self.click((drop_locator % hostname))
-        reboot_locator = locators['discoveredhosts.reboot']
-        self.click((reboot_locator % hostname), wait_for_ajax=False)
+        self.click(locators['discoveredhosts.dropdown'] % hostname)
+        self.click(
+            locators['discoveredhosts.reboot'] % hostname,
+            wait_for_ajax=False
+        )
 
     def update_org(self, hostnames, new_org):
         """Update the default org or location for bulk of discovered hosts"""
-        select_host = locators['discoveredhosts.select_host']
-        select_action_element = locators['discoveredhosts.select_action']
-        assign_org_element = locators['discoveredhosts.assign_org']
-        bulk_submit_button = locators['discoveredhosts.bulk_submit_button']
         for host in hostnames:
-            self.click((select_host % host))
-        if not self.find_element(select_action_element):
-            raise UIError(
-                'Could not find the select_action dropdown for bulk operations'
-            )
-        self.click(select_action_element)
-        if not self.find_element(assign_org_element):
-            raise UIError(
-                'Could not find the org element from select_action dropdown'
-            )
-        self.click(assign_org_element)
+            self.click(locators['discoveredhosts.select_host'] % host)
+        self.click(locators['discoveredhosts.select_action'])
+        self.click(locators['discoveredhosts.assign_org'])
         self.select(locators['discoveredhosts.select_org'], new_org)
-        if not self.find_element(bulk_submit_button):
-            raise UIError(
-                'Could not find the bulk submit button'
-            )
-        self.click(bulk_submit_button)
+        self.click(locators['discoveredhosts.bulk_submit_button'])
