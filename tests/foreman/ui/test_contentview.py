@@ -66,8 +66,8 @@ from robottelo.test import UITestCase
 from robottelo.ui.base import UIError, UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
-from robottelo.ui.locators.tab import tab_locators
 from robottelo.ui.locators.menu import menu_locators
+from robottelo.ui.locators.tab import tab_locators
 from robottelo.ui.session import Session
 
 
@@ -1855,8 +1855,8 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        # note: the user to create has no permissions to access products
-        # repositories
+        # note: the user to be created should not have permissions to access
+        # products repositories
         repo_name = gen_string('alpha')
         cv_name = gen_string('alpha')
         cv_new_name = gen_string('alpha')
@@ -1919,16 +1919,14 @@ class ContentViewTestCase(UITestCase):
             self.content_views.copy_view(cv_name, cv_copy_name)
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
         # login as the user created above
-        with Session(self.browser, user_login, user_password) as session:
-            # go to content views page
-            session.nav.go_to_content_views()
+        with Session(self.browser, user_login, user_password):
             # assert the user can view the content views
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
             # assert that the user can delete a content view
             self.content_views.delete(cv_copy_name)
             self.assertIsNone(self.content_views.search(cv_copy_name))
-            # assert the user can edit the content view
+            # assert that user can edit the content view entity
             self.content_views.update(cv_name, cv_new_name)
             self.assertIsNotNone(self.content_views.search(cv_new_name))
             # assert that the user can publish and promote the content view
@@ -2003,15 +2001,12 @@ class ContentViewTestCase(UITestCase):
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
-        with Session(self.browser, user_login, user_password) as session:
-            session.nav.go_to_content_views()
+        with Session(self.browser, user_login, user_password):
             # assert the user can view the content view
             cv_element = self.content_views.search(cv_name)
             self.assertIsNotNone(cv_element)
             # assert that the user can view the repo in content view
             self.content_views.click(cv_element)
-            # cv_element.click()
-            self.content_views.wait_for_ajax()
             self.content_views.click(tab_locators.contentviews.tab_content)
             self.content_views.click(locators.contentviews.content_repo)
             self.content_views.text_field_update(
@@ -2037,8 +2032,9 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        # create a content view read only user
-        # with lifecycle environment permissions view and promote content views
+        # create a content view read only user with lifecycle environment
+        # permissions: view_lifecycle_environments and
+        # promote_or_remove_content_views_to_environments
         repo_name = gen_string('alpha')
         cv_name = gen_string('alpha')
         cv_new_name = gen_string('alpha')
@@ -2068,7 +2064,7 @@ class ContentViewTestCase(UITestCase):
             entity
             for entity in env_permissions_entities
             if entity.name in user_env_permissions
-            ]
+        ]
         entities.Filter(
             organization=[self.organization],
             permission=user_env_permissions_entities,
@@ -2100,51 +2096,46 @@ class ContentViewTestCase(UITestCase):
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
-        with Session(self.browser, user_login, user_password) as session:
-            # go to content views page
-            session.nav.go_to_content_views()
+        with Session(self.browser, user_login, user_password):
             # assert the user can view the content views
             self.assertIsNotNone(self.content_views.search(cv_name))
             # assert that the user cannot delete the content view
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.delete(cv_name)
-            # ensure that the delete location is in the exception message
-            _, location = locators.contentviews.remove
-            self.assertIn(location, context.exception.message)
+            # ensure that the delete locator is in the exception message
+            _, locator = locators.contentviews.remove
+            self.assertIn(locator, context.exception.message)
             # ensure the user cannot edit the content view
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.update(cv_name, cv_new_name)
-            # ensure that the edit location is in the exception message
-            _, location = locators.contentviews.edit_name
-            self.assertIn(location, context.exception.message)
+            # ensure that the edit locator is in the exception message
+            _, locator = locators.contentviews.edit_name
+            self.assertIn(locator, context.exception.message)
             # ensure that the content view still exist
             self.assertIsNotNone(self.content_views.search(cv_name))
             # ensure that the user cannot publish the content view
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.publish(cv_new_name)
-            self.assertIn('element None was not found while trying to click',
-                          context.exception.message
-                          )
-        # publish the content views with the main admin account
+            self.assertIn(
+                'element None was not found while trying to click',
+                context.exception.message
+            )
+        # publish the content view with the main admin account
         with Session(self.browser) as session:
             # select the current organisation
             session.nav.go_to_select_org(self.organization.name)
-            # go to content views page
-            session.nav.go_to_content_views()
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
                 self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form'])
             )
         # login as the user created above and try to promote the content view
-        with Session(self.browser, user_login, user_password) as session:
-            # go to content views page
-            session.nav.go_to_content_views()
+        with Session(self.browser, user_login, user_password):
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.promote(
                     cv_name, version, env_name)
-            _, location = locators.contentviews.promote_button % version
-            self.assertIn(location, context.exception.message)
+            _, locator = locators.contentviews.promote_button % version
+            self.assertIn(locator, context.exception.message)
 
     @run_only_on('sat')
     @tier2
@@ -2175,7 +2166,7 @@ class ContentViewTestCase(UITestCase):
             entity
             for entity in cv_permissions_entities
             if entity.name in user_cv_permissions
-            ]
+        ]
         # ensure I have some content views permissions
         self.assertGreater(len(user_cv_permissions_entities), 0)
         self.assertEqual(
@@ -2198,7 +2189,7 @@ class ContentViewTestCase(UITestCase):
             entity
             for entity in env_permissions_entities
             if entity.name in user_env_permissions
-            ]
+        ]
         entities.Filter(
             organization=[self.organization],
             permission=user_env_permissions_entities,
@@ -2216,12 +2207,13 @@ class ContentViewTestCase(UITestCase):
         ).create()
         # login as the user created above
         with Session(self.browser, user_login, user_password) as session:
-            # ensure cannot go to content views via the application menu
+            # ensure that user cannot go to content views via application menu
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_content_views()
-            _, location = menu_locators.menu.content_views
-            self.assertIn(location, context.exception.message)
-            # ensure cannot access content views by the browser URL
+            _, locator = menu_locators.menu.content_views
+            self.assertIn(locator, context.exception.message)
+            # ensure that user cannot access content views page using browser
+            # URL directly
             content_views_url = ''.join(
                 [settings.server.get_url(), '/content_views'])
             self.browser.get(content_views_url)
