@@ -92,12 +92,8 @@ class DiscoveryTestCase(UITestCase):
             output = command.communicate()[0]
             # Checking the return code of ping is 0
             if time.time() > timeup:
-                print('The timout to ping the host {0} has reached!'.format(
-                    host))
                 return False
             if int(output.split()[-1]) == 0:
-                print('SUCCESS !! The given host {0} is reachable!!'.format(
-                    host))
                 return True
             else:
                 time.sleep(5)
