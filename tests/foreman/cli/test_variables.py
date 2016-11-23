@@ -27,6 +27,7 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.smart_variable import SmartVariable
 from robottelo.config import settings
+from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import (
     gen_string,
     invalid_values_list,
@@ -39,6 +40,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
+from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
 
@@ -52,10 +54,14 @@ class SmartVariablesTestCase(CLITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
-        cls.puppet_module = "puppetlabs/ntp"
+        cls.puppet_module = "puppetlabs-ntp"
         cls.host_name = settings.server.hostname
-        ssh.command(
-            'puppet module install --force {0}'.format(cls.puppet_module))
+        ssh.upload_file(
+            local_file=get_data_file(PUPPET_MODULE_NTP_PUPPETLABS),
+            remote_file='/tmp/{0}'.format(PUPPET_MODULE_NTP_PUPPETLABS)
+        )
+        ssh.command('puppet module install --force /tmp/{0}'.format(
+            PUPPET_MODULE_NTP_PUPPETLABS))
         cls.env = Environment.info({u'name': 'production'})
         Proxy.importclasses({
             u'environment': cls.env['name'],
@@ -70,8 +76,12 @@ class SmartVariablesTestCase(CLITestCase):
         module.
         """
         super(SmartVariablesTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
-                            cls.host_name, cls.env['name'])
+        delete_puppet_class(
+            cls.puppet['name'],
+            cls.puppet_module,
+            cls.host_name,
+            cls.env['name']
+        )
 
     @run_only_on('sat')
     @tier2

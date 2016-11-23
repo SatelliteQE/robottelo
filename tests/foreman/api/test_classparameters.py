@@ -25,6 +25,7 @@ from requests import HTTPError
 from robottelo import ssh
 from robottelo.api.utils import delete_puppet_class
 from robottelo.config import settings
+from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
     run_in_one_thread,
@@ -34,6 +35,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
+from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
 
@@ -120,10 +122,14 @@ class SmartClassParametersTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         super(SmartClassParametersTestCase, cls).setUpClass()
-        cls.puppet_module = "puppetlabs/ntp"
+        cls.puppet_module = "puppetlabs-ntp"
         cls.host_name = settings.server.hostname
-        ssh.command(
-            'puppet module install --force {0}'.format(cls.puppet_module))
+        ssh.upload_file(
+            local_file=get_data_file(PUPPET_MODULE_NTP_PUPPETLABS),
+            remote_file='/tmp/{0}'.format(PUPPET_MODULE_NTP_PUPPETLABS)
+        )
+        ssh.command('puppet module install --force /tmp/{0}'.format(
+            PUPPET_MODULE_NTP_PUPPETLABS))
         cls.env = entities.Environment().search(
             query={'search': 'name="production"'}
         )
@@ -149,8 +155,12 @@ class SmartClassParametersTestCase(APITestCase):
         module.
         """
         super(SmartClassParametersTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet.name, cls.puppet_module,
-                            cls.host_name, cls.env.name)
+        delete_puppet_class(
+            cls.puppet.name,
+            cls.puppet_module,
+            cls.host_name,
+            cls.env.name
+        )
 
     @run_only_on('sat')
     @tier2
