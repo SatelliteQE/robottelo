@@ -36,8 +36,9 @@ BZ_1118015_ENTITIES = (
     entities.ContentView, entities.DockerComputeResource, entities.Environment,
     entities.GPGKey, entities.Host, entities.HostCollection,
     entities.HostGroup, entities.LibvirtComputeResource,
-    entities.LifecycleEnvironment, entities.OperatingSystem, entities.Product,
-    entities.Repository, entities.Role, entities.Subnet, entities.User,
+    entities.LifecycleEnvironment, entities.OperatingSystem,
+    entities.Organization, entities.Product, entities.Repository,
+    entities.Role, entities.Subnet, entities.User,
 )
 
 
@@ -170,7 +171,7 @@ class EntityTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_get_status_code arg: %s', entity_cls)
+                self.logger.info('test_get_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 response = client.get(
                     entity_cls().path(),
@@ -197,7 +198,7 @@ class EntityTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_get_unauthorized arg: %s', entity_cls)
+                self.logger.info('test_get_unauthorized arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 response = client.get(
                     entity_cls().path(),
@@ -220,7 +221,7 @@ class EntityTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_post_status_code arg: %s', entity_cls)
+                self.logger.info('test_post_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
 
                 # Libvirt compute resources suffer from BZ 1118015. However,
@@ -252,7 +253,7 @@ class EntityTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_post_unauthorized arg: %s', entity_cls)
+                self.logger.info('test_post_unauthorized arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 server_cfg = get_nailgun_config()
                 server_cfg.auth = ()
@@ -278,7 +279,7 @@ class EntityIdTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_get_status_code arg: %s', entity_cls)
+                self.logger.info('test_get_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 try:
                     entity = entity_cls(id=entity_cls().create_json()['id'])
@@ -306,7 +307,7 @@ class EntityIdTestCase(APITestCase):
             exclude_list += (entities.HostGroup,)
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_put_status_code arg: %s', entity_cls)
+                self.logger.info('test_put_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
 
                 # Create an entity
@@ -343,7 +344,7 @@ class EntityIdTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_delete_status_code arg: %s', entity_cls)
+                self.logger.info('test_delete_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 try:
                     entity = entity_cls(id=entity_cls().create_json()['id'])
@@ -393,7 +394,7 @@ class DoubleCheckTestCase(APITestCase):
             exclude_list += (entities.HostGroup, )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_put_and_get arg: %s', entity_cls)
+                self.logger.info('test_put_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
 
                 # Create an entity.
@@ -432,7 +433,7 @@ class DoubleCheckTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_post_and_get arg: %s', entity_cls)
+                self.logger.info('test_post_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
 
                 entity = entity_cls()
@@ -459,7 +460,7 @@ class DoubleCheckTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_delete_and_get arg: %s', entity_cls)
+                self.logger.info('test_delete_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
 
                 # Create an entity, delete it and get it.
@@ -495,7 +496,7 @@ class EntityReadTestCase(APITestCase):
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
-                logger.debug('test_entity_read arg: %s', entity_cls)
+                self.logger.info('test_entity_read arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 entity_id = entity_cls().create_json()['id']
                 self.assertIsInstance(
