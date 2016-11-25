@@ -1902,7 +1902,7 @@ class ContentViewTestCase(UITestCase):
             login=user_login,
             password=user_password
         ).create()
-        # create a content views with the main admin account
+        # create a content view with the main admin account
         with Session(self.browser) as session:
             # create a lifecycle environment
             make_lifecycle_environment(
@@ -1915,16 +1915,16 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            # create the second content view as a copy of the first
+            # create a second content view as a copy of the first one
             self.content_views.copy_view(cv_name, cv_copy_name)
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
         # login as the user created above
         with Session(self.browser, user_login, user_password):
             # assert that the created user is not a global admin user
-            # try to administer users
+            # check administer->users page
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_users()
-            # assert that the administer users menu was not accessible
+            # assert that the administer->users menu element was not accessible
             _, locator = menu_locators.menu.users
             self.assertIn(locator, context.exception.message)
             # assert the user can access content views via the menu
@@ -1953,7 +1953,7 @@ class ContentViewTestCase(UITestCase):
                     )
                 else:
                     raise err
-            # assert that the deleted content view no more exists
+            # assert that the deleted content view do not exist any more
             self.assertIsNone(self.content_views.search(cv_copy_name))
             # open the content view
             self.content_views.search_and_click(cv_name)
@@ -2014,7 +2014,7 @@ class ContentViewTestCase(UITestCase):
                     )
                 else:
                     raise err
-            # assert that the content view exist with the new name
+            # assert that the content view exists with the new name
             self.assertIsNotNone(self.content_views.search(cv_new_name))
             # assert that the user can publish and promote the content view
             try:
@@ -2096,7 +2096,6 @@ class ContentViewTestCase(UITestCase):
         # create a content view with the main admin account
         with Session(self.browser) as session:
             # create a repository
-            # note: the user created above has not access to repositories
             self.setup_to_create_cv(repo_name=repo_name)
             # create the first content view
             make_contentview(
@@ -2107,10 +2106,10 @@ class ContentViewTestCase(UITestCase):
         # login as the user created above
         with Session(self.browser, user_login, user_password):
             # assert that the created user is not a global admin user
-            # try to administer users
+            # check administer->users page
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_users()
-            # assert that the administer users menu was not accessible
+            # assert that the administer->users menu element was not accessible
             _, locator = menu_locators.menu.users
             self.assertIn(locator, context.exception.message)
             # assert the user can access content views via the menu
@@ -2236,8 +2235,6 @@ class ContentViewTestCase(UITestCase):
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
             # create a repository
-            # note: the user created above has no permissions to access
-            #       products repositories
             self.setup_to_create_cv(repo_name=repo_name)
             # create the first content view
             make_contentview(
