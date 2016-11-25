@@ -1920,22 +1920,126 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
         # login as the user created above
         with Session(self.browser, user_login, user_password):
-            # assert the user can view the content views
+            # assert that the user is not an admin user
+            # try to administer users
+            with self.assertRaises(UINoSuchElementError) as context:
+                session.nav.go_to_users()
+            # assert that the administer users menu was not accessible
+            _, locator = menu_locators.menu.users
+            self.assertIn(locator, context.exception.message)
+            # assert the user can access content views via the menu
+            try:
+                session.nav.go_to_content_views()
+            except UINoSuchElementError as err:
+                if menu_locators.menu.content_views[1] in err.message:
+                    self.fail(
+                        'content view admin user was not able to access'
+                        ' content view via menu: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
+            # assert the user can view all the content views created
+            # by admin user
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
             # assert that the user can delete a content view
-            self.content_views.delete(cv_copy_name)
+            try:
+                self.content_views.delete(cv_copy_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.remove[1] in err.message:
+                    self.fail(
+                        'content view admin user was not able to access'
+                        ' the remove button: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
+            # assert that the deleted content view no more exists
             self.assertIsNone(self.content_views.search(cv_copy_name))
+            # open the content view
+            self.content_views.search_and_click(cv_name)
+            # assert the user can access all the content view tabs
+            tabs_locators = [
+                tab_locators.contentviews.tab_versions,
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_repo),
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_filters),
+                tab_locators.contentviews.tab_file_repositorie,
+                tab_locators.contentviews.tab_puppet_modules,
+                tab_locators.contentviews.tab_docker_content,
+                tab_locators.contentviews.tab_ostree_content,
+                tab_locators.contentviews.tab_history,
+                tab_locators.contentviews.tab_details,
+                tab_locators.contentviews.tab_tasks
+            ]
+            for locator in tabs_locators:
+                try:
+                    if isinstance(locator, tuple):
+                        for sub_locator in locator:
+                            self.content_views.click(sub_locator)
+                    else:
+                        self.content_views.click(locator)
+                except UINoSuchElementError as err:
+                    self.fail(
+                        'content view admin user was not able to access'
+                        ' a content view tab: {0}'.format(err.message)
+                    )
             # assert that user can edit the content view entity
-            self.content_views.update(cv_name, cv_new_name)
+            try:
+                self.content_views.update(cv_name, cv_new_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.edit_name[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the edit name button: {0}'.format(
+                            err.message)
+                    )
+                elif locators.contentviews.save_name[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the edit name save button: {0}'.format(
+                            err.message)
+                    )
+                elif locators.contentviews.edit_description[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the description name button: {0}'.format(
+                            err.message)
+                    )
+                elif locators.contentviews.save_description[1] in err.message:
+                    self.fail(
+                        'the content view admin user was to click on the'
+                        ' description name save button: {0}'.format(
+                            err.message)
+                    )
+                else:
+                    raise err
+            # assert that the new name took effect
             self.assertIsNotNone(self.content_views.search(cv_new_name))
             # assert that the user can publish and promote the content view
-            version = self.content_views.publish(cv_new_name)
+            try:
+                version = self.content_views.publish(cv_new_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.publish[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the publish button: {0}'.format(err.message))
+                else:
+                    raise err
             self.assertIsNotNone(
                 self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form'])
             )
-            self.content_views.promote(cv_new_name, version, env_name)
+            try:
+                self.content_views.promote(cv_new_name, version, env_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.promote_button[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the promote button: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
@@ -2002,11 +2106,57 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
         with Session(self.browser, user_login, user_password):
+            # assert that the user is not an admin user
+            # try to administer users
+            with self.assertRaises(UINoSuchElementError) as context:
+                session.nav.go_to_users()
+            # assert that the administer users menu was not accessible
+            _, locator = menu_locators.menu.users
+            self.assertIn(locator, context.exception.message)
+            # assert the user can access content views via the menu
+            try:
+                session.nav.go_to_content_views()
+            except UINoSuchElementError as err:
+                if menu_locators.menu.content_views[1] in err.message:
+                    self.fail(
+                        'content view read only user was not able to access'
+                        ' content view via menu: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
             # assert the user can view the content view
             cv_element = self.content_views.search(cv_name)
             self.assertIsNotNone(cv_element)
-            # assert that the user can view the repo in content view
+            # open the content view
             self.content_views.click(cv_element)
+            # assert the user can access all the content view tabs
+            tabs_locators = [
+                tab_locators.contentviews.tab_versions,
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_repo),
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_filters),
+                tab_locators.contentviews.tab_file_repositorie,
+                tab_locators.contentviews.tab_puppet_modules,
+                tab_locators.contentviews.tab_docker_content,
+                tab_locators.contentviews.tab_ostree_content,
+                tab_locators.contentviews.tab_history,
+                tab_locators.contentviews.tab_details,
+                tab_locators.contentviews.tab_tasks
+            ]
+            for locator in tabs_locators:
+                try:
+                    if isinstance(locator, tuple):
+                        for sub_locator in locator:
+                            self.content_views.click(sub_locator)
+                    else:
+                        self.content_views.click(locator)
+                except UINoSuchElementError as err:
+                    self.fail(
+                        'content view read only user was not able to access'
+                        ' a content view tab: {0}'.format(err.message)
+                    )
+            # assert that the user can view the repo in content view
             self.content_views.click(tab_locators.contentviews.tab_content)
             self.content_views.click(locators.contentviews.content_repo)
             self.content_views.text_field_update(

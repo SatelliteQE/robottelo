@@ -137,6 +137,9 @@ tab_locators = LocatorDict({
     "contentviews.tab_content_views": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'content-views')]"),
+    "contentviews.tab_file_repositorie": (
+        By.XPATH,
+        "//a[@ui-sref='content-views.details.repositories.file.list']"),
     "contentviews.tab_puppet_modules": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'puppet_modules')]"),
