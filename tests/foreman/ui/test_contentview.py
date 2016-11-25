@@ -1920,7 +1920,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
         # login as the user created above
         with Session(self.browser, user_login, user_password):
-            # assert that the user is not an admin user
+            # assert that the created user is not a global admin user
             # try to administer users
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_users()
@@ -2008,13 +2008,13 @@ class ContentViewTestCase(UITestCase):
                     )
                 elif locators.contentviews.save_description[1] in err.message:
                     self.fail(
-                        'the content view admin user was to click on the'
-                        ' description name save button: {0}'.format(
+                        'the content view admin user was not able to click '
+                        'on the description name save button: {0}'.format(
                             err.message)
                     )
                 else:
                     raise err
-            # assert that the new name took effect
+            # assert that the content view exist with the new name
             self.assertIsNotNone(self.content_views.search(cv_new_name))
             # assert that the user can publish and promote the content view
             try:
@@ -2106,7 +2106,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
         with Session(self.browser, user_login, user_password):
-            # assert that the user is not an admin user
+            # assert that the created user is not a global admin user
             # try to administer users
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_users()
