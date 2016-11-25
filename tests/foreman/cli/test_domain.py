@@ -23,7 +23,7 @@ from robottelo.cli.factory import make_domain, make_location, make_org
 from robottelo.datafactory import (
     filtered_datapoint, invalid_id_list, valid_data_list
 )
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, bz_bug_is_open
 from robottelo.test import CLITestCase
 
 
@@ -45,10 +45,12 @@ def valid_create_params():
 @filtered_datapoint
 def invalid_create_params():
     """Returns a list of invalid domain create parameters"""
-    return [
-        {u'dns-id': '-1'},
+    params = [
         {u'name': gen_string(str_type='utf8', length=256)},
     ]
+    if not bz_bug_is_open(1398392):
+        params.append({u'dns-id': '-1'})
+    return params
 
 
 @filtered_datapoint
@@ -69,11 +71,13 @@ def valid_update_params():
 @filtered_datapoint
 def invalid_update_params():
     """Returns a list of invalid domain update parameters"""
-    return [
+    params = [
         {u'name': ''},
         {u'name': gen_string(str_type='utf8', length=256)},
-        {u'dns-id': '-1'},
     ]
+    if not bz_bug_is_open(1398392):
+        params.append({u'dns-id': '-1'})
+    return params
 
 
 @filtered_datapoint
