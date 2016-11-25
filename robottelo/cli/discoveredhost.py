@@ -29,3 +29,15 @@ class DiscoveredHost(Base):
     """Manipulates Discovery Hosts"""
 
     command_base = 'discovery'
+
+    @classmethod
+    def provision(cls, options=None):
+        """Manually provision discovered host"""
+        cls.command_sub = 'provision'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def facts(cls, options=None):
+        """Get all the facts associated with discovered host"""
+        cls.command_sub = 'facts'
+        return cls.execute(cls._construct_command(options))
