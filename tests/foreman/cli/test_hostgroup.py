@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI."""
-from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.contentview import ContentView
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
@@ -11,15 +9,15 @@ from robottelo.cli.factory import (
     make_location,
     make_org,
     make_os,
-    make_domain, make_lifecycle_environment, make_content_view, make_subnet,
-    make_architecture, make_partition_table)
+    make_domain,
+)
 from robottelo.config import settings
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
     valid_hostgroups_list,
 )
-from robottelo.decorators import run_only_on, tier1, skip_if_bug_open, tier2
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
@@ -176,7 +174,7 @@ class HostGroupTestCase(CLITestCase):
         """Successfully update an HostGroup.
 
         @Feature: HostGroup
-g
+
         @Assert: HostGroup is updated.
         """
         hostgroup = make_hostgroup()

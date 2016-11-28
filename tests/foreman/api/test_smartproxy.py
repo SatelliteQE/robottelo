@@ -29,7 +29,10 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         super(SmartProxyMissingAttrTestCase, cls).setUpClass()
         smart_proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
-        })[0]
+        })
+        # Check that proxy is found and unpack it from the list
+        assert len(smart_proxy) > 0, "No smart proxy is found"
+        smart_proxy = smart_proxy[0]
         cls.smart_proxy_attrs = set(smart_proxy.update_json([]).keys())
 
     @tier1
