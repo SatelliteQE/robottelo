@@ -1,0 +1,16 @@
+vars:
+  admin_user: admin
+  admin_password: changeme
+entities:
+  - model: Organization
+    register: default_orgs
+    data:
+      name: Foo{{item}}
+      label: Bar{{item}}
+    with_items: range(10)
+  - model: User
+    register: default_users
+    data:
+      name: John{{item}}
+      password: 123456
+      default_organization: "{{ default_orgs.1 }}"
