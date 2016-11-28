@@ -317,7 +317,7 @@ class HostGroupTestCase(CLITestCase):
             'organization-ids': org['id'],
         })
 
-        hostgroup = make_hostgroup({
+        make_hostgroup_params = {
             'location-ids': loc['id'],
             'environment-id': env['id'],
             'lifecycle-environment': lce['name'],
@@ -331,7 +331,9 @@ class HostGroupTestCase(CLITestCase):
             'partition-table-id': ptable['id'],
             'medium-id': media['id'],
             'operatingsystem-id': os['id'],
-        })
+        }
+
+        hostgroup = make_hostgroup(make_hostgroup_params)
         self.assertIn(org['name'], hostgroup['organizations'])
         self.assertIn(loc['name'], hostgroup['locations'])
         self.assertEqual(env['name'], hostgroup['environment'])
