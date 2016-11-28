@@ -316,7 +316,7 @@ class HostGroupTestCase(CLITestCase):
             'organization-ids': org['id'],
         })
 
-        hostgroup = make_hostgroup({
+        make_hostgroup_params = {
             'location-ids': loc['id'],
             'environment-id': env['id'],
             'lifecycle-environment': lce['name'],
@@ -325,12 +325,19 @@ class HostGroupTestCase(CLITestCase):
             'content-view-id': cv['id'],
             'domain-id': domain['id'],
             'subnet-id': subnet['id'],
-            'organization-id': org['id'],
+            'organization-ids': org['id'],
             'architecture-id': arch['id'],
             'partition-table-id': ptable['id'],
             'medium-id': media['id'],
             'operatingsystem-id': os['id'],
-        })
+        }
+        # If bug is open provide LCE id as parameter
+        # because LCE name cause errors
+        if bz_bug_is_open(1395254):
+            make_hostgroup_params.pop('lifecycle-environment')
+            make_hostgroup_params['lifecycle-environment-id'] = lce['id']
+
+        hostgroup = make_hostgroup(make_hostgroup_params)
         self.assertIn(org['name'], hostgroup['organizations'])
         self.assertIn(loc['name'], hostgroup['locations'])
         self.assertEqual(env['name'], hostgroup['environment'])
