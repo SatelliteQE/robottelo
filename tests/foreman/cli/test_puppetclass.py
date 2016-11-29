@@ -16,12 +16,13 @@
 @Upstream: No
 """
 
-from robottelo import ssh
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import make_smart_variable
-from robottelo.cli.proxy import Proxy
+from robottelo.cli.factory import (
+    make_org,
+    make_smart_variable,
+    publish_puppet_module)
 from robottelo.cli.puppet import Puppet
-from robottelo.config import settings
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.decorators import (
     tier2,
     run_only_on
@@ -37,14 +38,19 @@ class PuppetClassTestCase(CLITestCase):
         """Import a parametrized puppet class.
         """
         super(PuppetClassTestCase, cls).setUpClass()
-        cls.host_name = settings.server.hostname
-        ssh.command('puppet module install --force puppetlabs/ntp')
-        cls.env = Environment.info({u'name': 'production'})
-        Proxy.importclasses({
-            u'environment': cls.env['name'],
-            u'name': cls.host_name,
+        cls.puppet_modules = [
+            {'author': 'robottelo', 'name': 'generic_1'},
+        ]
+        cls.org = make_org()
+        cv = publish_puppet_module(
+            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
+        cls.env = Environment.list({
+            'search': u'content_view="{0}"'.format(cv['name'])
+        })[0]
+        cls.puppet = Puppet.info({
+            'name': cls.puppet_modules[0]['name'],
+            'environment': cls.env['name'],
         })
-        cls.puppet = Puppet.info({u'name': 'ntp'})
 
     @run_only_on('sat')
     @tier2
