@@ -457,11 +457,17 @@ class Base(object):
         txt_field.send_keys(newtext)
         self.wait_for_ajax()
 
-    def text_field_update(self, locator, newtext):
+    def text_field_update(self, target, newtext):
+        """Function to replace text from textbox using a common locator or
+        WebElement
+
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
         """
-        Function to replace text from textbox using a common locator
-        """
-        txt_field = self.wait_until_element(locator)
+        if isinstance(target, (tuple, Locator)):
+            txt_field = self.wait_until_element(target)
+        else:
+            txt_field = target
         txt_field.clear()
         txt_field.send_keys(newtext)
         self.wait_for_ajax()
@@ -588,21 +594,28 @@ class Base(object):
         self.wait_for_ajax()
         return element.is_displayed()
 
-    def element_type(self, locator):
-        """Determine UI element type using locator tag
+    def element_type(self, target):
+        """Determine UI element type using locator/element tag
 
-        :param locator: The locator of the element
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
         :return: Returns element type value
         :rtype: str
 
         """
         element_type = None
-        element = self.wait_until_element(locator)
+        if isinstance(target, (tuple, Locator)):
+            element = self.wait_until_element(target)
+        else:
+            element = target
         if element is not None:
             element_type = element.tag_name.lower()
             if (element_type == 'input' and
                     element.get_attribute('type') == 'checkbox'):
                 element_type = 'checkbox'
+            if (element_type == 'div' and
+                    'ace_editor' in element.get_attribute('class')):
+                element_type = 'ace_editor'
         return element_type
 
     def click(self, target, wait_for_ajax=True,
@@ -644,12 +657,13 @@ class Base(object):
         if wait_for_ajax:
             self.wait_for_ajax(ajax_timeout)
 
-    def select(self, locator, list_value, wait_for_ajax=True, timeout=30,
+    def select(self, target, list_value, wait_for_ajax=True, timeout=30,
                scroll=True, select_by='visible_text'):
-        """Select the element described by the ``locator``. Current method
-        supports both classical <select> tags and newer jquery-select elements
+        """Select the element. Current method supports both classical <select>
+        tags and newer jquery-select elements
 
-        :param locator: The locator that describes the select list element.
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
         :param list_value: The value to select from the dropdown
         :param wait_for_ajax: Flag that indicates if should wait for AJAX after
             clicking on the element
@@ -658,12 +672,15 @@ class Base(object):
         :param scroll: Decide whether scroll to element in case it is located
             out of the page
         :param select_by: method for select element in the list of options
-             visible_text, index, value
+            visible_text, index, value
 
         """
         # Check whether our select list element has <select> tag
-        if self.element_type(locator) == 'select':
-            element = self.wait_until_element(locator)
+        if self.element_type(target) == 'select':
+            if isinstance(target, (tuple, Locator)):
+                element = self.wait_until_element(target)
+            else:
+                element = target
             if scroll:
                 self.scroll_into_view(element)
             select_element = Select(element)
@@ -673,7 +690,7 @@ class Base(object):
         # If no - treat it like jquery select list
         else:
             self.click(
-                locator,
+                target,
                 wait_for_ajax=wait_for_ajax,
                 ajax_timeout=timeout,
                 scroll=scroll,
@@ -687,7 +704,7 @@ class Base(object):
                 ajax_timeout=timeout,
                 scroll=scroll,
             )
-        self.logger.debug(u'Selected value %s on %s', list_value, locator)
+        self.logger.debug(u'Selected value %s on %s', list_value, str(target))
 
     def perform_action_chain_move(self, locator):
         """Moving the mouse to the middle of an element specified by locator
@@ -717,30 +734,34 @@ class Base(object):
         ActionChains(self.browser).move_by_offset(x, y).perform()
         self.wait_for_ajax()
 
-    def assign_value(self, locator, value):
+    def assign_value(self, target, value):
         """Assign provided value to page element depending on the type of that
         element
 
-        :param locator: The locator that describes the element.
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
         :param value: Value that needs to be assigned to the element
         :raise: ValueError if the element type is unknown to our code.
 
         """
-        element_type = self.element_type(locator)
+        element_type = self.element_type(target)
         if element_type == 'input' or element_type == 'textarea':
-            self.text_field_update(locator, value)
+            self.text_field_update(target, value)
         elif element_type == 'select' or element_type == 'span':
-            self.select(locator, value)
+            self.select(target, value)
         elif element_type == 'checkbox':
-            state = self.wait_until_element(locator).is_selected()
+            if isinstance(target, (tuple, Locator)):
+                state = self.wait_until_element(target).is_selected()
+            else:
+                state = target.is_selected()
             if value != state:
-                self.click(locator)
-        elif element_type == 'div' and 'ace' in locator[1]:
+                self.click(target)
+        elif element_type == 'ace_editor':
             self.browser.execute_script(
                 "Editor.setValue('{0}');".format(value))
         else:
             raise ValueError(
-                u'Provided locator {0} is not supported by framework'
-                .format(locator)
+                u'Provided target {0} is not supported by framework'
+                .format(str(target))
             )
-        self.logger.debug(u'Assigned value %s to %s', value, locator)
+        self.logger.debug(u'Assigned value %s to %s', value, str(target))
