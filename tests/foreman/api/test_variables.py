@@ -21,7 +21,7 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.api.utils import publish_puppet_module
+from robottelo.api.utils import delete_puppet_class, publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
