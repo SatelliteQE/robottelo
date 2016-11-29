@@ -25,7 +25,6 @@ ssh_key=
 # Admin password when accessing API and UI
 # admin_password=changeme
 
-
 # Override robottelo configuration
 # [robottelo]
 # The directory where screenshots will be saved.
@@ -78,6 +77,13 @@ ssh_key=
 # capsule_repo=http://capsule/repo
 # sattools_repo=http://sattools/repo
 
+# Bugzilla data to authenticate API calls
+[bugzilla]
+# username used when accessing Bugzilla's API
+# bz_username=admin
+
+# password used when accessing Bugzilla's API
+# bz_password=changeme
 
 # For LDAP Authentication.
 # [ldap]
