@@ -270,7 +270,8 @@ def _get_bugzilla_bug(bug_id):
         LOGGER.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
         # Make a network connection to the Bugzilla server.
         try:
-            bz_conn = bugzilla.RHBugzilla()
+            bz_conn = bugzilla.RHBugzilla(
+                **settings.bugzilla.get_credentials())
             bz_conn.connect(BUGZILLA_URL)
         except (TypeError, ValueError):
             raise BugFetchError(
@@ -278,7 +279,10 @@ def _get_bugzilla_bug(bug_id):
             )
         # Fetch the bug and place it in the cache.
         try:
-            _bugzilla[bug_id] = bz_conn.getbugsimple(bug_id)
+            _bugzilla[bug_id] = bz_conn.getbug(
+                bug_id,
+                include_fields=['id', 'status', 'whiteboard', 'flags']
+            )
         except Fault as err:
             raise BugFetchError(
                 'Could not fetch bug. Error: {0}'.format(err.faultString)
