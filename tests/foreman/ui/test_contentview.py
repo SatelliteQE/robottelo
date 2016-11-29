@@ -43,12 +43,12 @@ from robottelo.constants import (
     FILTER_TYPE,
     FILTER_ERRATA_TYPE,
     FILTER_ERRATA_DATE,
+    PERMISSIONS,
     PRDS,
     REPOS,
     REPOSET,
     REPO_TYPE,
     ZOO_CUSTOM_GPG_KEY,
-    PERMISSIONS,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
@@ -1923,7 +1923,9 @@ class ContentViewTestCase(UITestCase):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
-                self.content_views.find_element(menu_locators.menu.hosts))
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
             # assert that the created user is not a global admin user
             # check administer->users page
             with self.assertRaises(UINoSuchElementError) as context:
@@ -1968,7 +1970,7 @@ class ContentViewTestCase(UITestCase):
                  locators.contentviews.content_repo),
                 (tab_locators.contentviews.tab_content,
                  locators.contentviews.content_filters),
-                tab_locators.contentviews.tab_file_repositorie,
+                tab_locators.contentviews.tab_file_repositories,
                 tab_locators.contentviews.tab_puppet_modules,
                 tab_locators.contentviews.tab_docker_content,
                 tab_locators.contentviews.tab_ostree_content,
@@ -2112,7 +2114,9 @@ class ContentViewTestCase(UITestCase):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
-                self.content_views.find_element(menu_locators.menu.hosts))
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
             # assert that the created user is not a global admin user
             # check administer->users page
             with self.assertRaises(UINoSuchElementError) as context:
@@ -2143,7 +2147,7 @@ class ContentViewTestCase(UITestCase):
                  locators.contentviews.content_repo),
                 (tab_locators.contentviews.tab_content,
                  locators.contentviews.content_filters),
-                tab_locators.contentviews.tab_file_repositorie,
+                tab_locators.contentviews.tab_file_repositories,
                 tab_locators.contentviews.tab_puppet_modules,
                 tab_locators.contentviews.tab_docker_content,
                 tab_locators.contentviews.tab_ostree_content,
@@ -2255,7 +2259,9 @@ class ContentViewTestCase(UITestCase):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
-                self.content_views.find_element(menu_locators.menu.hosts))
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
             # assert the user can view the content views
             self.assertIsNotNone(self.content_views.search(cv_name))
             # assert that the user cannot delete the content view
@@ -2369,7 +2375,9 @@ class ContentViewTestCase(UITestCase):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
-                self.content_views.find_element(menu_locators.menu.hosts))
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
             # ensure that user cannot go to content views via application menu
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_content_views()
