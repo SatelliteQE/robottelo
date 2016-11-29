@@ -22,12 +22,13 @@ import random
 
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
+from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
 )
-from robottelo import manifests
+from robottelo.config import settings
 from robottelo.constants import (
     CUST_PERMS_LIST,
     DEFAULT_CV,
@@ -42,6 +43,7 @@ from robottelo.constants import (
     FILTER_TYPE,
     FILTER_ERRATA_TYPE,
     FILTER_ERRATA_DATE,
+    PERMISSIONS,
     PRDS,
     REPOS,
     REPOSET,
@@ -60,11 +62,13 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import read_data_file
+from robottelo.test import UITestCase
 from robottelo.ui.base import UIError, UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators.menu import menu_locators
+from robottelo.ui.locators.tab import tab_locators
 from robottelo.ui.session import Session
-from robottelo.test import UITestCase
 
 
 class ContentViewTestCase(UITestCase):
@@ -1830,115 +1834,569 @@ class ContentViewTestCase(UITestCase):
     # ROLES TESTING
     # All this stuff is speculative at best.
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_admin_user_actions(self):
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user with admin permissions
-        # for Content Views
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """attempt to view content views
+        """Attempt to manage content views
 
         @id: c4d270fc-a3e6-4ae2-a338-41d864a5622a
 
-        @setup: create a user with the Content View admin role
+        @steps:
+        with global admin account:
 
-        @assert: User with admin role for content view can perform all
-        Variations above
+        1. create a user with all content views permissions
+        2. create lifecycle environment
+        3. create 2 content views (one to delete, the other to manage)
 
-        @caseautomation: notautomated
+        @setup: create a user with all content views permissions
 
+        @assert: The user can Read, Modify, Delete, Publish, Promote the
+        content views
 
         @CaseLevel: Integration
         """
+        # note: the user to be created should not have permissions to access
+        # products repositories
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        cv_new_name = gen_string('alpha')
+        cv_copy_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        role_name = gen_string('alpha')
+        # create a role with all content views permissions
+        role = entities.Role(name=role_name).create()
+        entities.Filter(
+            organization=[self.organization],
+            permission=entities.Permission(
+                resource_type='Katello::ContentView').search(),
+            role=role,
+            search=None
+        ).create()
+        # create environment permissions with read only and promote access
+        # to content views
+        env_permissions_entities = entities.Permission(
+            resource_type='Katello::KTEnvironment').search()
+        user_env_permissions = [
+            'promote_or_remove_content_views_to_environments',
+            'view_lifecycle_environments'
+        ]
+        user_env_permissions_entities = [
+            entity
+            for entity in env_permissions_entities
+            if entity.name in user_env_permissions
+        ]
+        entities.Filter(
+            organization=[self.organization],
+            permission=user_env_permissions_entities,
+            role=role,
+            # allow access only to the mentioned here environments
+            search='name = {0} or name = {1}'.format(ENVIRONMENT, env_name)
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            default_organization=self.organization,
+            organization=[self.organization],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        # create a content view with the main admin account
+        with Session(self.browser) as session:
+            # create a lifecycle environment
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            # create a repository
+            self.setup_to_create_cv(repo_name=repo_name)
+            # create the first content view
+            make_contentview(
+                session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add repository to the created content view
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            # create a second content view as a copy of the first one
+            self.content_views.copy_view(cv_name, cv_copy_name)
+            self.assertIsNotNone(self.content_views.search(cv_copy_name))
+        # login as the user created above
+        with Session(self.browser, user_login, user_password):
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
+            # assert that the created user is not a global admin user
+            # check administer->users page
+            with self.assertRaises(UINoSuchElementError) as context:
+                session.nav.go_to_users()
+            # assert that the administer->users menu element was not accessible
+            _, locator = menu_locators.menu.users
+            self.assertIn(locator, context.exception.message)
+            # assert the user can access content views via the menu
+            try:
+                session.nav.go_to_content_views()
+            except UINoSuchElementError as err:
+                if menu_locators.menu.content_views[1] in err.message:
+                    self.fail(
+                        'content view admin user was not able to access'
+                        ' content view via menu: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
+            # assert the user can view all the content views created
+            # by admin user
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.search(cv_copy_name))
+            # assert that the user can delete a content view
+            try:
+                self.content_views.delete(cv_copy_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.remove[1] in err.message:
+                    self.fail(
+                        'content view admin user was not able to access'
+                        ' the remove button: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
+            # assert that the deleted content view do not exist any more
+            self.assertIsNone(self.content_views.search(cv_copy_name))
+            # open the content view
+            self.content_views.search_and_click(cv_name)
+            # assert the user can access all the content view tabs
+            tabs_locators = [
+                tab_locators.contentviews.tab_versions,
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_repo),
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_filters),
+                tab_locators.contentviews.tab_file_repositories,
+                tab_locators.contentviews.tab_puppet_modules,
+                tab_locators.contentviews.tab_docker_content,
+                tab_locators.contentviews.tab_ostree_content,
+                tab_locators.contentviews.tab_history,
+                tab_locators.contentviews.tab_details,
+                tab_locators.contentviews.tab_tasks
+            ]
+            for locator in tabs_locators:
+                try:
+                    if isinstance(locator, tuple):
+                        for sub_locator in locator:
+                            self.content_views.click(sub_locator)
+                    else:
+                        self.content_views.click(locator)
+                except UINoSuchElementError as err:
+                    self.fail(
+                        'content view admin user was not able to access'
+                        ' a content view tab: {0}'.format(err.message)
+                    )
+            # assert that user can edit the content view entity
+            try:
+                self.content_views.update(cv_name, cv_new_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.edit_name[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the edit name button: {0}'.format(
+                            err.message)
+                    )
+                elif locators.contentviews.save_name[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the edit name save button: {0}'.format(
+                            err.message)
+                    )
+                elif locators.contentviews.edit_description[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the description name button: {0}'.format(
+                            err.message)
+                    )
+                elif locators.contentviews.save_description[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to click '
+                        'on the description name save button: {0}'.format(
+                            err.message)
+                    )
+                else:
+                    raise err
+            # assert that the content view exists with the new name
+            self.assertIsNotNone(self.content_views.search(cv_new_name))
+            # assert that the user can publish and promote the content view
+            try:
+                version = self.content_views.publish(cv_new_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.publish[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the publish button: {0}'.format(err.message))
+                else:
+                    raise err
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            try:
+                self.content_views.promote(cv_new_name, version, env_name)
+            except UINoSuchElementError as err:
+                if locators.contentviews.promote_button[1] in err.message:
+                    self.fail(
+                        'the content view admin user was not able to '
+                        'click on the promote button: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_readonly_user_actions(self):
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user with read-only permissions
-        # for Content Views
-        # THIS IS EVEN ASSUMING WE HAVE A "READ-ONLY" ROLE IN THE FIRST PLACE
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """attempt to view content views
+        """Attempt to view content views
 
         @id: ebdc37ed-7887-4f64-944c-f2f92c58a206
 
-        @setup: create a user with the Content View read-only role
+        @setup:
 
-        @assert: User with read-only role for content view can perform all
-        Variations above
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
 
-        @caseautomation: notautomated
-
+        @assert: User with read-only role for content view can view the
+        repository in the content view
 
         @CaseLevel: Integration
         """
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        role_name = gen_string('alpha')
+        # create a role with content views read only permissions
+        role = entities.Role(name=role_name).create()
+        entities.Filter(
+            organization=[self.organization],
+            permission=entities.Permission(
+                resource_type='Katello::ContentView').search(
+                filters={'name': 'view_content_views'}),
+            role=role,
+            search=None
+        ).create()
+        # create read only products permissions and assign it to our role
+        entities.Filter(
+            organization=[self.organization],
+            permission=entities.Permission(
+                resource_type='Katello::Product').search(
+                filters={'name': 'view_products'}),
+            role=role,
+            search=None
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            default_organization=self.organization,
+            organization=[self.organization],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        # create a content view with the main admin account
+        with Session(self.browser) as session:
+            # create a repository
+            self.setup_to_create_cv(repo_name=repo_name)
+            # create the first content view
+            make_contentview(
+                session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add repository to the created content view
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+        # login as the user created above
+        with Session(self.browser, user_login, user_password):
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
+            # assert that the created user is not a global admin user
+            # check administer->users page
+            with self.assertRaises(UINoSuchElementError) as context:
+                session.nav.go_to_users()
+            # assert that the administer->users menu element was not accessible
+            _, locator = menu_locators.menu.users
+            self.assertIn(locator, context.exception.message)
+            # assert the user can access content views via the menu
+            try:
+                session.nav.go_to_content_views()
+            except UINoSuchElementError as err:
+                if menu_locators.menu.content_views[1] in err.message:
+                    self.fail(
+                        'content view read only user was not able to access'
+                        ' content view via menu: {0}'.format(err.message)
+                    )
+                else:
+                    raise err
+            # assert the user can view the content view
+            cv_element = self.content_views.search(cv_name)
+            self.assertIsNotNone(cv_element)
+            # open the content view
+            self.content_views.click(cv_element)
+            # assert the user can access all the content view tabs
+            tabs_locators = [
+                tab_locators.contentviews.tab_versions,
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_repo),
+                (tab_locators.contentviews.tab_content,
+                 locators.contentviews.content_filters),
+                tab_locators.contentviews.tab_file_repositories,
+                tab_locators.contentviews.tab_puppet_modules,
+                tab_locators.contentviews.tab_docker_content,
+                tab_locators.contentviews.tab_ostree_content,
+                tab_locators.contentviews.tab_history,
+                tab_locators.contentviews.tab_details,
+                tab_locators.contentviews.tab_tasks
+            ]
+            for locator in tabs_locators:
+                try:
+                    if isinstance(locator, tuple):
+                        for sub_locator in locator:
+                            self.content_views.click(sub_locator)
+                    else:
+                        self.content_views.click(locator)
+                except UINoSuchElementError as err:
+                    self.fail(
+                        'content view read only user was not able to access'
+                        ' a content view tab: {0}'.format(err.message)
+                    )
+            # assert that the user can view the repo in content view
+            self.content_views.click(tab_locators.contentviews.tab_content)
+            self.content_views.click(locators.contentviews.content_repo)
+            self.content_views.text_field_update(
+                locators.contentviews.repo_search, repo_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                locators.contentviews.select_repo % repo_name))
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_negative_non_admin_user_actions(self):
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user withOUT admin permissions
-        # for Content Views
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """attempt to view content views
+        """Attempt to manage content views
 
         @id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
 
-        @setup: create a user with the Content View admin role
+        @setup:
 
-        @assert: User withOUT admin role for content view canNOT perform any
-        Variations above
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
 
-        @caseautomation: notautomated
-
+        @assert: User with read only role for content view cannot Modify,
+         Delete, Publish, Promote the content views
 
         @CaseLevel: Integration
         """
+        # create a content view read only user with lifecycle environment
+        # permissions: view_lifecycle_environments and
+        # promote_or_remove_content_views_to_environments
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        cv_new_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        role_name = gen_string('alpha')
+        # create a role with content views read only permissions
+        role = entities.Role(name=role_name).create()
+        entities.Filter(
+            organization=[self.organization],
+            permission=entities.Permission(
+                resource_type='Katello::ContentView').search(
+                filters={'name': 'view_content_views'}),
+            role=role,
+            search=None
+        ).create()
+        # create environment permissions with read only and promote access
+        # to content views
+        env_permissions_entities = entities.Permission(
+            resource_type='Katello::KTEnvironment').search()
+        user_env_permissions = [
+            'promote_or_remove_content_views_to_environments',
+            'view_lifecycle_environments'
+        ]
+        user_env_permissions_entities = [
+            entity
+            for entity in env_permissions_entities
+            if entity.name in user_env_permissions
+        ]
+        entities.Filter(
+            organization=[self.organization],
+            permission=user_env_permissions_entities,
+            role=role,
+            # allow access only to the mentioned here environments
+            search='name = {0} or name = {1}'.format(ENVIRONMENT, env_name)
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            default_organization=self.organization,
+            organization=[self.organization],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        # create a content views with the main admin account
+        with Session(self.browser) as session:
+            # create a lifecycle environment
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            # create a repository
+            self.setup_to_create_cv(repo_name=repo_name)
+            # create the first content view
+            make_contentview(
+                session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add repository to the created content view
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+        # login as the user created above
+        with Session(self.browser, user_login, user_password):
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
+            # assert the user can view the content views
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # assert that the user cannot delete the content view
+            with self.assertRaises(UINoSuchElementError) as context:
+                self.content_views.delete(cv_name)
+            # ensure that the delete locator is in the exception message
+            _, locator = locators.contentviews.remove
+            self.assertIn(locator, context.exception.message)
+            # ensure the user cannot edit the content view
+            with self.assertRaises(UINoSuchElementError) as context:
+                self.content_views.update(cv_name, cv_new_name)
+            # ensure that the edit locator is in the exception message
+            _, locator = locators.contentviews.edit_name
+            self.assertIn(locator, context.exception.message)
+            # ensure that the content view still exist
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # ensure that the user cannot publish the content view
+            with self.assertRaises(UINoSuchElementError) as context:
+                self.content_views.publish(cv_new_name)
+            self.assertIn(
+                'element None was not found while trying to click',
+                context.exception.message
+            )
+        # publish the content view with the main admin account
+        with Session(self.browser) as session:
+            # select the current organisation
+            session.nav.go_to_select_org(self.organization.name)
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+        # login as the user created above and try to promote the content view
+        with Session(self.browser, user_login, user_password):
+            with self.assertRaises(UINoSuchElementError) as context:
+                self.content_views.promote(
+                    cv_name, version, env_name)
+            _, locator = locators.contentviews.promote_button % version
+            self.assertIn(locator, context.exception.message)
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_negative_non_readonly_user_actions(self):
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user withOUT read-only permissions
-        # for Content Views
-        # THIS IS EVEN ASSUMING WE HAVE A "READ-ONLY" ROLE IN THE FIRST PLACE
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """attempt to view content views
+        """Attempt to view content views
 
         @id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
 
-        @setup: create a user withOUT the Content View read-only role
+        @setup: create a user with the Content View without the content views
+        read role
 
-        @assert: User withOUT read-only role for content view can perform all
-        Variations above
-
-        @caseautomation: notautomated
-
+        @assert: the user cannot access content views web resources
 
         @CaseLevel: Integration
         """
+        env_name = gen_string('alpha')
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        role_name = gen_string('alpha')
+        # create a role with all content views permissions except
+        # view_content_views
+        role = entities.Role(name=role_name).create()
+        cv_permissions_entities = entities.Permission(
+            resource_type='Katello::ContentView').search()
+        user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
+        user_cv_permissions.remove('view_content_views')
+        user_cv_permissions_entities = [
+            entity
+            for entity in cv_permissions_entities
+            if entity.name in user_cv_permissions
+        ]
+        # ensure I have some content views permissions
+        self.assertGreater(len(user_cv_permissions_entities), 0)
+        self.assertEqual(
+            len(user_cv_permissions), len(user_cv_permissions_entities))
+        entities.Filter(
+            organization=[self.organization],
+            permission=user_cv_permissions_entities,
+            role=role,
+            search=None
+        ).create()
+        # create environment permissions with read only and promote access
+        # to content views
+        env_permissions_entities = entities.Permission(
+            resource_type='Katello::KTEnvironment').search()
+        user_env_permissions = [
+            'promote_or_remove_content_views_to_environments',
+            'view_lifecycle_environments'
+        ]
+        user_env_permissions_entities = [
+            entity
+            for entity in env_permissions_entities
+            if entity.name in user_env_permissions
+        ]
+        entities.Filter(
+            organization=[self.organization],
+            permission=user_env_permissions_entities,
+            role=role,
+            # allow access only to the mentioned here environments
+            search='name = {0} or name = {1}'.format(ENVIRONMENT, env_name)
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            default_organization=self.organization,
+            organization=[self.organization],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        # login as the user created above
+        with Session(self.browser, user_login, user_password) as session:
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.wait_until_element(
+                    menu_locators.menu.hosts, timeout=5)
+            )
+            # ensure that user cannot go to content views via application menu
+            with self.assertRaises(UINoSuchElementError) as context:
+                session.nav.go_to_content_views()
+            _, locator = menu_locators.menu.content_views
+            self.assertIn(locator, context.exception.message)
+            # ensure that user cannot access content views page using browser
+            # URL directly
+            content_views_url = ''.join(
+                [settings.server.get_url(), '/content_views'])
+            self.browser.get(content_views_url)
+            # ensure that we have been redirected to some other url
+            self.assertNotEqual(self.browser.current_url, content_views_url)
+            # assert that we were redirected to katello/403
+            self.assertTrue(self.browser.current_url.endswith('katello/403'))
+            # to restore from last navigation and allow the test session
+            # to finish normally with logging out
+            # go to root url, this will allow the session to find the
+            # logout button
+            self.browser.get(settings.server.get_url())
 
     @run_only_on('sat')
     @tier2
