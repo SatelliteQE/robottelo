@@ -42,8 +42,8 @@ from robottelo.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
     DOWNLOAD_POLICIES,
-    REPO_TYPE
-)
+    REPO_TYPE,
+    FAKE_1_PUPPET_REPO)
 from robottelo.datafactory import (
     invalid_http_credentials,
     invalid_names_list,
@@ -869,6 +869,38 @@ class RepositoryTestCase(APITestCase):
                 repo.delete()
                 with self.assertRaises(HTTPError):
                     repo.read()
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_list_puppet_modules_with_multiple_repos(self):
+        """Verify that puppet modules list for specific repo is correct
+        and does not affected by other repositories.
+
+        @id: e9e16ac2-a58d-4d49-b378-59e4f5b3a3ec
+
+        @Assert: Number of modules has no changed after a second repo
+        was synced.
+        """
+        # Create and sync first repo
+        repo1 = entities.Repository(
+            product=self.product,
+            content_type='puppet',
+            url=FAKE_0_PUPPET_REPO,
+        ).create()
+        repo1.sync()
+        # Verify that number of synced modules is correct
+        content_count = repo1.read().content_counts['puppet_module']
+        modules_num = len(repo1.puppet_modules()['results'])
+        self.assertEqual(content_count, modules_num)
+        # Create and sync second repo
+        repo2 = entities.Repository(
+            product=self.product,
+            content_type='puppet',
+            url=FAKE_1_PUPPET_REPO,
+        ).create()
+        repo2.sync()
+        # Verify that number of modules from the first repo has not changed
+        self.assertEqual(modules_num, len(repo1.puppet_modules()['results']))
 
 
 @run_in_one_thread

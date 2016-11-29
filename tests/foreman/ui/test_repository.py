@@ -41,7 +41,7 @@ from robottelo.constants import (
     SAT6_TOOLS_TREE,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
-)
+    FAKE_1_PUPPET_REPO)
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -1228,6 +1228,53 @@ class RepositoryTestCase(UITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier1
+    def test_positive_list_puppet_modules_with_multiple_repos(self):
+        """
+        Verify that puppet modules list for specific repo is correct
+        and does not affected by other repositories.
+
+        @id: 82ef2987-cb71-4164-aee5-4496b974d1bd
+
+        @Assert: Number of modules has no changed after a second repo
+        was synced.
+        """
+        with Session(self.browser):
+            # Create and sync first repo
+            repo1 = entities.Repository(
+                product=self.session_prod,
+                content_type='puppet',
+                url=FAKE_0_PUPPET_REPO,
+            ).create()
+            repo1.sync()
+            # Find modules count
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.search_and_click(repo1.name)
+            content_count = self.repository.find_element(
+                locators['repo.fetch_puppet_modules']).text
+            self.repository.click(
+                locators['repo.manage_content.puppet_modules'])
+            modules_num = len(self.repository.find_elements(
+                locators['repo.content_items']))
+            self.assertEqual(content_count, str(modules_num))
+            # Create and sync second repo
+            repo2 = entities.Repository(
+                product=self.session_prod,
+                content_type='puppet',
+                url=FAKE_1_PUPPET_REPO,
+            ).create()
+            repo2.sync()
+            # Verify that number of modules from the first repo has not changed
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.search_and_click(repo1.name)
+            self.repository.click(
+                locators['repo.manage_content.puppet_modules'])
+            self.assertEqual(
+                modules_num,
+                len(self.repository.find_elements(
+                    locators['repo.content_items']))
+            )
 
     @run_in_one_thread
     @tier2
