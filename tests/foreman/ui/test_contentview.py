@@ -1920,6 +1920,10 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
         # login as the user created above
         with Session(self.browser, user_login, user_password):
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.find_element(menu_locators.menu.hosts))
             # assert that the created user is not a global admin user
             # check administer->users page
             with self.assertRaises(UINoSuchElementError) as context:
@@ -2105,6 +2109,10 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
         with Session(self.browser, user_login, user_password):
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.find_element(menu_locators.menu.hosts))
             # assert that the created user is not a global admin user
             # check administer->users page
             with self.assertRaises(UINoSuchElementError) as context:
@@ -2244,6 +2252,10 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
         with Session(self.browser, user_login, user_password):
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.find_element(menu_locators.menu.hosts))
             # assert the user can view the content views
             self.assertIsNotNone(self.content_views.search(cv_name))
             # assert that the user cannot delete the content view
@@ -2354,6 +2366,10 @@ class ContentViewTestCase(UITestCase):
         ).create()
         # login as the user created above
         with Session(self.browser, user_login, user_password) as session:
+            # to ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.find_element(menu_locators.menu.hosts))
             # ensure that user cannot go to content views via application menu
             with self.assertRaises(UINoSuchElementError) as context:
                 session.nav.go_to_content_views()
