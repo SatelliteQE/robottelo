@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+from functools import partial
 from logging import config
 from nailgun import entities, entity_mixins
 from nailgun.config import ServerConfig
@@ -217,6 +218,32 @@ class ServerSettings(FeatureSettings):
         """
         return urljoin(
             self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
+
+
+class BugzillaSettings(FeatureSettings):
+    """Bugzilla server settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(BugzillaSettings, self).__init__(*args, **kwargs)
+        self.password = None
+        self.username = None
+
+    def read(self, reader):
+        """Read and validate Bugzilla server settings."""
+        get_bz = partial(reader.get, 'bugzilla')
+        self.password = get_bz('bz_password', 'changeme')
+        self.username = get_bz('bz_username', 'admin')
+
+    def get_credentials(self):
+        """Return credentials for interacting with a Bugzilla API.
+
+        :return: A username-password dict.
+        :rtype: dict
+
+        """
+        return {'user': self.username, 'password': self.password}
+
+    def validate(self):
+        return []
 
 
 class ClientsSettings(FeatureSettings):
@@ -592,6 +619,7 @@ class Settings(object):
         self.webdriver_binary = None
         self.webdriver_desired_capabilities = None
 
+        self.bugzilla = BugzillaSettings()
         # Features
         self.clients = ClientsSettings()
         self.compute_resources = LibvirtHostSettings()
@@ -627,47 +655,19 @@ class Settings(object):
         self._read_robottelo_settings()
         self._validation_errors.extend(
             self._validate_robottelo_settings())
-        self.server.read(self.reader)
-        self._validation_errors.extend(self.server.validate())
-        if self.reader.has_section('clients'):
-            self.clients.read(self.reader)
-            self._validation_errors.extend(self.clients.validate())
-        if self.reader.has_section('compute_resources'):
-            self.compute_resources.read(self.reader)
-            self._validation_errors.extend(self.compute_resources.validate())
-        if self.reader.has_section('discovery'):
-            self.discovery.read(self.reader)
-            self._validation_errors.extend(self.discovery.validate())
-        if self.reader.has_section('docker'):
-            self.docker.read(self.reader)
-            self._validation_errors.extend(self.docker.validate())
-        if self.reader.has_section('fake_capsules'):
-            self.fake_capsules.read(self.reader)
-            self._validation_errors.extend(self.fake_capsules.validate())
-        if self.reader.has_section('fake_manifest'):
-            self.fake_manifest.read(self.reader)
-            self._validation_errors.extend(self.fake_manifest.validate())
-        if self.reader.has_section('ldap'):
-            self.ldap.read(self.reader)
-            self._validation_errors.extend(self.ldap.validate())
-        if self.reader.has_section('oscap'):
-            self.oscap.read(self.reader)
-            self._validation_errors.extend(self.oscap.validate())
-        if self.reader.has_section('performance'):
-            self.performance.read(self.reader)
-            self._validation_errors.extend(self.performance.validate())
-        if self.reader.has_section('rhai'):
-            self.rhai.read(self.reader)
-            self._validation_errors.extend(self.rhai.validate())
-        if self.reader.has_section('transition'):
-            self.transition.read(self.reader)
-            self._validation_errors.extend(self.transition.validate())
-        if self.reader.has_section('vlan_networking'):
-            self.vlan_networking.read(self.reader)
-            self._validation_errors.extend(self.vlan_networking.validate())
-        if self.reader.has_section('upgrade'):
-            self.upgrade.read(self.reader)
-            self._validation_errors.extend(self.upgrade.validate())
+
+        attrs = map(
+            lambda attr_name: (attr_name, getattr(self, attr_name)),
+            dir(self)
+        )
+        feature_settings = filter(
+            lambda tpl: isinstance(tpl[1], FeatureSettings),
+            attrs
+        )
+        for name, settings in feature_settings:
+            if self.reader.has_section(name) or name == 'server':
+                settings.read(self.reader)
+                self._validation_errors.extend(settings.validate())
 
         if self._validation_errors:
             raise ImproperlyConfigured(
