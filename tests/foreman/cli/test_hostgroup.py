@@ -35,6 +35,7 @@ from robottelo.cli.factory import (
     make_partition_table,
     make_subnet,
 )
+from robottelo.config import settings
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
@@ -162,7 +163,9 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet CA proxy server assigned
 
         """
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
         self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
 
@@ -175,7 +178,9 @@ class HostGroupTestCase(CLITestCase):
 
         @Assert: Hostgroup is created and has puppet proxy server assigned
         """
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
         self.assertEqual(
             puppet_proxy['id'],
@@ -275,7 +280,9 @@ class HostGroupTestCase(CLITestCase):
             'organization-ids': org['id'],
         })
         lce = make_lifecycle_environment({'organization-id': org['id']})
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         # Content View should be promoted to be used with LC Env
         cv = make_content_view({'organization-id': org['id']})
         ContentView.publish({'id': cv['id']})
@@ -309,7 +316,7 @@ class HostGroupTestCase(CLITestCase):
             'organization-ids': org['id'],
         })
 
-        hostgroup = make_hostgroup({
+        make_hostgroup_params = {
             'location-ids': loc['id'],
             'environment-id': env['id'],
             'lifecycle-environment': lce['name'],
@@ -318,12 +325,19 @@ class HostGroupTestCase(CLITestCase):
             'content-view-id': cv['id'],
             'domain-id': domain['id'],
             'subnet-id': subnet['id'],
-            'organization-id': org['id'],
+            'organization-ids': org['id'],
             'architecture-id': arch['id'],
             'partition-table-id': ptable['id'],
             'medium-id': media['id'],
             'operatingsystem-id': os['id'],
-        })
+        }
+        # If bug is open provide LCE id as parameter
+        # because LCE name cause errors
+        if bz_bug_is_open(1395254):
+            make_hostgroup_params.pop('lifecycle-environment')
+            make_hostgroup_params['lifecycle-environment-id'] = lce['id']
+
+        hostgroup = make_hostgroup(make_hostgroup_params)
         self.assertIn(org['name'], hostgroup['organizations'])
         self.assertIn(loc['name'], hostgroup['locations'])
         self.assertEqual(env['name'], hostgroup['environment'])

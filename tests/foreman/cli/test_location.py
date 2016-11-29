@@ -603,6 +603,7 @@ class LocationTestCase(CLITestCase):
             })
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395110)
     @tier2
     def test_positive_add_capsule_by_name(self):
         """Add a capsule to location by its name
@@ -628,6 +629,7 @@ class LocationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @skip_if_bug_open('bugzilla', 1395110)
     def test_positive_add_capsule_by_id(self):
         """Add a capsule to location by its ID
 
@@ -652,6 +654,7 @@ class LocationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @skip_if_bug_open('bugzilla', 1395110)
     def test_positive_remove_capsule_by_id(self):
         """Remove a capsule from organization by its id
 
@@ -680,6 +683,7 @@ class LocationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @skip_if_bug_open('bugzilla', 1395110)
     def test_positive_remove_capsule_by_name(self):
         """Remove a capsule from organization by its name
 
