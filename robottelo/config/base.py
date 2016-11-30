@@ -844,6 +844,8 @@ class Settings(object):
         )
         self.window_manager_command = self.reader.get(
             'robottelo', 'window_manager_command', None)
+        self.populate_method = self.reader.get(
+            'robottelo', 'populate_method', default='api')
 
     def _validate_robottelo_settings(self):
         """Validate Robottelo's general settings."""

@@ -1,10 +1,15 @@
-from robottelo.data import populate_with
+from robottelo.populate import populate_with
 
 
-def test_decorator_loads_data():
+# def test_decorator_loads_data():
+#
+#     @populate_with('test_data.yaml')
+#     def test_anything():
+#         """Simple function"""
+#
+#     test_anything()
 
-    @populate_with('test_data.yaml')
-    def data_is_loaded():
-        pass
 
-    data_is_loaded()
+@populate_with('test_data.yaml')
+def test_entities_presence():
+    """entities should be present"""
