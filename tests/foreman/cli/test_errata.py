@@ -33,7 +33,6 @@ from robottelo.constants import (
     FAKE_6_YUM_REPO,
 )
 from robottelo.decorators import (
-    run_only_on,
     stubbed,
     tier3,
 )
@@ -546,7 +545,6 @@ class ErrataTestCase(CLITestCase):
                 ]
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
-    @run_only_on('sat')
     @tier3
     def test_positive_list_filter_by_org_id_and_sort_by_issued_date(self):
         """Filter errata by org id and sort by issued date
