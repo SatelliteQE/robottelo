@@ -38,6 +38,7 @@ from robottelo.constants import (
     FAKE_1_PUPPET_REPO,
     FAKE_0_YUM_REPO,
     FAKE_1_YUM_REPO,
+    FAKE_3_YUM_REPO,
     FEDORA23_OSTREE_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_TYPE,
@@ -659,6 +660,82 @@ class ContentViewTestCase(UITestCase):
                     'Version 2.0',
                     'walrus',
                     '5.21'
+                )
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_update_filter_affected_repos(self):
+        """Update content view package filter affected repos
+
+        @id: 8f095b11-fd63-4a23-9586-a85d6191314f
+
+        @assert: Affected repos were updated, after new content view version
+        publishing only updated repos are affected by content view filter
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo1_name = gen_string('alpha')
+        repo2_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo1_name)
+            self.setup_to_create_cv(
+                repo_name=repo2_name, repo_url=FAKE_3_YUM_REPO)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(
+                cv_name, [repo1_name, repo2_name])
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['include'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                ['walrus'],
+                ['Equal To'],
+                ['0.71-1'],
+                [None],
+            )
+            self.content_views.update_filter_affected_repos(
+                cv_name,
+                filter_name,
+                [repo1_name],
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Verify filter affected repo1
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    'walrus',
+                    '0.71'
+                )
+            )
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    'walrus',
+                    '5.21'
+                )
+            )
+            # Verify repo2 was not affected and repo2 packages are present
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    'Walrus',
+                    '5.6.6'
                 )
             )
 

@@ -1683,9 +1683,19 @@ locators = LocatorDict({
          "button[contains(@ng-click, 'handleSave')]")),
     "contentviews.remove_packages": (
         By.XPATH, "//button[@ng-click='removeRules(filter)']"),
-    "contentviews.affected_repos": (
+    "contentviews.affected_repos_radio": (
         By.XPATH,
-        "//a[contains(@ui-sref, 'filters.details.rpm.repositories')]"),
+        ("//input[@type='radio' and @ng-model='showRepos' and "
+         "@ng-value='true']")),
+    "contentviews.affected_repos_checkboxes": (
+        By.XPATH,
+        "//input[@type='checkbox' and @ng-model='repository.selected']"),
+    "contentviews.affected_repo_checkbox": (
+        By.XPATH,
+        ("//input[@type='checkbox' and @ng-model='repository.selected']"
+         "[../following-sibling::td/a[contains(normalize-space(.), '%s')]]")),
+    "contentviews.filter_update_repos": (
+        By.XPATH, "//button[@ng-click='updateRepositories()']"),
     "contentviews.show_repos": (
         By.XPATH, "//input[@ng-model='showRepos']"),
     "contentviews.select_pkg_group_checkbox": (

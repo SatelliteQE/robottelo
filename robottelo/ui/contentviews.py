@@ -495,6 +495,26 @@ class ContentViews(Base):
         self.click(
             package.find_element(*locators['contentviews.package_save']))
 
+    def update_filter_affected_repos(self, cv_name, filter_name,
+                                     new_affected_repos):
+        """Update affected repos of content view filter"""
+        self.go_to_filter_page(cv_name, filter_name)
+        self.click(tab_locators['contentviews.tab_filter_affected_repos'])
+        self.assign_value(
+            locators['contentviews.affected_repos_radio'], True)
+        all_repo_checkboxes = self.find_elements(
+            locators['contentviews.affected_repos_checkboxes'])
+        # Uncheck all the repos first
+        for checkbox in all_repo_checkboxes:
+            self.assign_value(checkbox, False)
+        # Check off passed repos
+        for repo_name in new_affected_repos:
+            self.assign_value(
+                locators['contentviews.affected_repo_checkbox'] % repo_name,
+                True
+            )
+        self.click(locators['contentviews.filter_update_repos'])
+
     def add_remove_package_groups_to_filter(self, cv_name, filter_name,
                                             package_groups, is_add=True):
         """Add/Remove package groups to/from selected filter for
