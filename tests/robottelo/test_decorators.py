@@ -22,6 +22,10 @@ class BzBugIsOpenTestCase(TestCase):
         """Back up objects and generate common values."""
         self.backup = decorators._get_bugzilla_bug
         self.bug_id = gen_integer()
+        self._get_host_sat_version_patcher = mock.patch(
+            'robottelo.decorators.get_host_sat_version')
+        self.get_sat_versions_mock = self._get_host_sat_version_patcher.start()
+        self.get_sat_versions_mock.return_value = '6.3'
 
         self.valid_whiteboard_data = [
             'VERIFIED IN UPSTREAM',
@@ -39,6 +43,7 @@ class BzBugIsOpenTestCase(TestCase):
     def tearDown(self):
         """Restore backed-up objects."""
         decorators._get_bugzilla_bug = self.backup
+        self._get_host_sat_version_patcher.stop()
 
     def test_bug_is_open(self):
         """Assert ``True`` is returned if the bug is 'NEW' or 'ASSIGNED'."""
@@ -46,7 +51,7 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug with an open status."""
             status = 'NEW'
             whiteboard = None
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
+        decorators._get_bugzilla_bug = lambda bug_id: MockBug
         self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
         MockBug.status = 'ASSIGNED'
         self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
@@ -57,7 +62,11 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug with a closed status."""
             status = 'CLOSED'
             whiteboard = None
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
+            flags = [
+                {'status': '', 'name': 'sat-6.2.z'},
+                {'status': '+', 'name': 'sat-6.3.0'},
+            ]
+        decorators._get_bugzilla_bug = lambda bug_id: MockBug
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
         MockBug.status = 'ON_QA'
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
@@ -79,6 +88,7 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug"""
             status = None
             whiteboard = None
+            flags = []
         dec_settings.upstream = True
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         # Assert bug is really closed with valid/invalid whiteboard texts
@@ -105,6 +115,10 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug with a closed status."""
             status = None
             whiteboard = None
+            flags = [
+                {'status': '', 'name': 'sat-6.2.z'},
+                {'status': '+', 'name': 'sat-6.3.0'},
+            ]
         dec_settings.upstream = False
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         for MockBug.status in BZ_OPEN_STATUSES + BZ_CLOSED_STATUSES:
@@ -127,6 +141,10 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug with a closed status."""
             status = None
             whiteboard = None
+            flags = [
+                {'status': '', 'name': 'sat-6.2.z'},
+                {'status': '+', 'name': 'sat-6.3.0'},
+            ]
         dec_settings.upstream = False
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         for MockBug.status in BZ_CLOSED_STATUSES:
@@ -145,12 +163,206 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug"""
             status = None
             whiteboard = None
+            flags = []
         dec_settings.upstream = False
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         for MockBug.status in BZ_OPEN_STATUSES:
             for MockBug.whiteboard in (self.valid_whiteboard_data +
                                        self.invalid_whiteboard_data):
                 self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+
+    @mock.patch('robottelo.decorators.settings')
+    def test_complete_bug_workflow(self, dec_settings):
+        """Assert ``True`` is returned if host version is minor then 6.3,
+        the minor version version with positive status
+        """
+
+        # ------------- Bug found on Satellite 6.2.3, 6.3 is GA version
+        class MockBug(object):  # pylint:disable=R0903
+            """A mock bug"""
+            status = 'NEW'
+            whiteboard = ''
+            flags = [
+                {'status': '?', 'name': 'sat-6.2.z'},
+                {'status': '?', 'name': 'sat-6.3.0'},
+            ]
+
+        # Downstream
+        dec_settings.upstream = False
+        decorators._get_bugzilla_bug = lambda bug_id: MockBug
+
+        for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(self.bug_id),
+                'Should be open for all version because of status NEW'
+            )
+
+        # Upstream
+
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertTrue(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be open because of status NEW'
+        )
+
+        # ------------ Bug is fixed and verified on upstream
+        MockBug.status = 'VERIFIED'
+        MockBug.whiteboard = 'verified in upstream'
+        MockBug.flags = [
+            {'status': '?', 'name': 'sat-6.2.z'},
+            {'status': '+', 'name': 'sat-6.3.0'},
+        ]
+
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(self.bug_id),
+                'Should be open for all versions because it is not on '
+                'downstream'
+            )
+
+        # ------------ Bug landed z stream and we forget to remove verified
+        # on upstream msg
+        MockBug.status = 'VERIFIED'
+        MockBug.whiteboard = 'verified in upstream'
+        MockBug.flags = [
+            {'status': '+', 'name': 'sat-6.2.z'},
+            {'status': '+', 'name': 'sat-6.3.0'},
+        ]
+
+        # Test running against upstream
+        dec_settings.upstream = False
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.2', '6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(self.bug_id),
+                'Should be closed for all versions because it landed z stream'
+            )
+
+        self.get_sat_versions_mock.return_value = '6.1'
+        self.assertTrue(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be open because 6.1 < 6.2 on flags '
+        )
+
+        # ------------ Bug landed downstream snap
+        MockBug.status = 'VERIFIED'
+        MockBug.whiteboard = ''
+        MockBug.flags = [
+            {'status': '?', 'name': 'sat-6.2.z'},
+            {'status': '+', 'name': 'sat-6.3.0'},
+        ]
+
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(self.bug_id),
+                'Should be closed for all versions greater or equals to 6.3, '
+                'version present on flags'
+            )
+
+        # ------------ Bug landed z stream
+        MockBug.status = 'VERIFIED'
+        MockBug.whiteboard = ''
+        MockBug.flags = [
+            {'status': '+', 'name': 'sat-6.2.z'},
+            {'status': '+', 'name': 'sat-6.3.0'},
+        ]
+
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.2', '6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(self.bug_id),
+                'Should be closed for all versions greater or equals to 6.3, '
+                'version present on flags'
+            )
+
+        self.get_sat_versions_mock.return_value = '6.1'
+        self.assertTrue(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be open because 6.1 is less then 6.2, the minor version '
+            'on flags with +'
+        )
+
+        # ------------ Bug is closed
+        MockBug.status = 'CLOSED'
+
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.2', '6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(self.bug_id),
+                'Should be closed for all versions greater or equals to 6.3, '
+                'version present on flags'
+            )
+
+        self.get_sat_versions_mock.return_value = '6.1'
+        self.assertTrue(
+            decorators.bz_bug_is_open(self.bug_id),
+            'Should be open because 6.1 is less then 6.2, the minor version '
+            'on flags with +'
+        )
 
 
 class CacheableTestCase(TestCase):
