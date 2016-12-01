@@ -613,7 +613,10 @@ class Base(object):
             if (element_type == 'input' and
                     element.get_attribute('type') == 'checkbox'):
                 element_type = 'checkbox'
-            if (element_type == 'div' and
+            elif (element_type == 'input' and
+                    element.get_attribute('type') == 'radio'):
+                element_type = 'radio'
+            elif (element_type == 'div' and
                     'ace_editor' in element.get_attribute('class')):
                 element_type = 'ace_editor'
         return element_type
@@ -749,7 +752,7 @@ class Base(object):
             self.text_field_update(target, value)
         elif element_type == 'select' or element_type == 'span':
             self.select(target, value)
-        elif element_type == 'checkbox':
+        elif element_type == 'checkbox' or element_type == 'radio':
             if isinstance(target, (tuple, Locator)):
                 state = self.wait_until_element(target).is_selected()
             else:
