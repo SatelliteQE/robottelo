@@ -3,10 +3,13 @@
 import bugzilla
 import logging
 import pytest
+import re
 import requests
 import unittest2
 
 from functools import wraps
+
+from robottelo.host_info import get_host_sat_version
 from robottelo.config import settings
 from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
 from six.moves.xmlrpc_client import Fault
@@ -131,7 +134,9 @@ def skip_if_not_set(*options):
                 return func(*args, **kwargs)
             raise unittest2.SkipTest(
                 'Missing configuration for: {0}.'.format(', '.join(missing)))
+
         return wrapper
+
     return decorator
 
 
@@ -149,6 +154,7 @@ def stubbed(reason=None):
         # def func(...):
         #     ...
         return unittest2.skip(reason)(pytest.mark.stubbed(func))
+
     return wrapper
 
 
@@ -212,6 +218,7 @@ def run_only_on(project):
         """Wrap test methods in order to skip the test if the test method
         project does not match the settings project.
         """
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             """Wrapper that will skip the test if the test method project does
@@ -246,7 +253,9 @@ def run_only_on(project):
                 )
             else:
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -357,6 +366,40 @@ def _get_redmine_bug_status_id(bug_id):
     return _redmine['issues'][bug_id]
 
 
+def _skip_flags_condition(flags):
+    """Analyse bugzila flags returning False if host version is greater or
+    equal to min positive flag version, True otherwise.
+
+    :param flags: list
+    :return: bool
+    """
+    version_re = re.compile(r'sat-(?P<version>\d(\.\d){1})')
+
+    def to_float_version(flag_name):
+        result = version_re.search(flag_name)
+        if result:
+            return float(result.group('version'))
+
+    positive_flag_versions = (
+        to_float_version(flag['name'])
+        for flag in flags if flag['status'] == '+'
+    )
+    try:
+        min_positive_flag_version = min(
+            filter(lambda version: version is not None, positive_flag_versions)
+        )
+    except ValueError:
+        # If flag regarding sat is not available
+        return True
+    else:
+        try:
+            sat_version = float(get_host_sat_version())
+        except ValueError:
+            return False
+        else:
+            return sat_version < min_positive_flag_version
+
+
 def bz_bug_is_open(bug_id):
     """Tell whether Bugzilla bug ``bug_id`` is open.
 
@@ -368,22 +411,37 @@ def bz_bug_is_open(bug_id):
     :rtype: bool
 
     """
-    bug = None
     try:
         bug = _get_bugzilla_bug(bug_id)
     except BugFetchError as err:
         LOGGER.warning(err)
         return False
-    # NOT_FOUND, ON_QA, VERIFIED, RELEASE_PENDING, CLOSED
-    if bug is None or bug.status not in BZ_OPEN_STATUSES:
+    else:
+        # NEW, ASSIGNED, MODIFIED, POST
+        if bug.status in BZ_OPEN_STATUSES:
+            return True
+        elif settings.upstream:
+            return False
+
         # do not test bugs with whiteboard 'verified in upstream' in downstream
         # until they are in 'CLOSED' state
-        if (not settings.upstream and bug.status != 'CLOSED' and bug.whiteboard
-                and 'verified in upstream' in bug.whiteboard.lower()):
-            return True
-        return False
-    # NEW, ASSIGNED, MODIFIED, POST
-    return True
+
+        # verify all conditions are True, stopping evaluation when
+        # first condition is False
+        zstream_re = re.compile(r'sat-\d\.\d\.z')
+
+        def is_positive_zstream(flag):
+            return flag['status'] == '+' and zstream_re.search(flag['name'])
+
+        def skip_upstream_conditions(flags):
+            for flag in flags:
+                yield not is_positive_zstream(flag)
+            yield bug.status != 'CLOSED'
+            yield bug.whiteboard
+            yield 'verified in upstream' in bug.whiteboard.lower()
+
+        return (all(skip_upstream_conditions(bug.flags)) or
+                _skip_flags_condition(bug.flags))
 
 
 def rm_bug_is_open(bug_id):
