@@ -262,12 +262,12 @@ class ErrataTestCase(CLITestCase):
     def setUpClass(cls):
         """Create 3 organizations
 
-           1- one organization with one product and one repository
+           1- Create an org with one custom product & repository
 
-           2- one organization with one product and one repository
+           2- Create an org2 with an other custom product & repository
 
-           3- one organization with 2 products and one repository for each
-              product
+           3- Create an org3 with two other products, each containing one
+              custom repository
 
            note: all products repositories contain erratum
            """
@@ -358,32 +358,48 @@ class ErrataTestCase(CLITestCase):
             with self.subTest(sort_text):
                 erratum_list = Erratum.list({'order': sort_text,
                                              'per-page': ERRATUM_MAX_IDS_INFO})
+                # note: the erratum_list, contain a list of restraint info
+                # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
+                # build a list of erratum id received from Erratum.list
                 erratum_ids = [
                     errata['id']
                     for errata in erratum_list
                 ]
+                # build a list of errata-id field value in the same order as
+                # received from Erratum.list
                 errata_ids = [
                     errata['errata-id']
                     for errata in erratum_list
                 ]
-                sorted_errata_list = self._get_sorted_erratum_ids_info(
+                # build a sorted more detailed erratum info list, that also
+                # contain the sort field
+                sorted_errata_info_list = self._get_sorted_erratum_ids_info(
                     erratum_ids,
                     sort_by=sort_field,
                     sort_reversed=sort_reversed
                 )
-                sorted_fields = [
+                # build a list of sort field (issued/updated) values in the
+                # same order as received from the detailed sorted erratum info
+                # list
+                sort_field_values = [
                     errata[sort_field]
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the sort field (issued/updated) values are sorted
+                # as needed
                 self.assertEquals(
-                    sorted_fields,
-                    sorted(sorted_fields, reverse=sort_reversed)
+                    sort_field_values,
+                    sorted(sort_field_values, reverse=sort_reversed)
                 )
+                # build a list of errata-id field value in the same order as
+                # received from the detailed sorted errata info list
                 sorted_errata_ids = [
                     errata['errata-id']
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the errata ids received by Erratum.list is sorted
+                # as needed
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
     @tier3
@@ -411,32 +427,48 @@ class ErrataTestCase(CLITestCase):
                     'order': sort_text,
                     'per-page': ERRATUM_MAX_IDS_INFO
                 })
+                # note: the erratum_list, contain a list of restraint info
+                # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
+                # build a list of erratum id received from Erratum.list
                 erratum_ids = [
                     errata['id']
                     for errata in erratum_list
                 ]
+                # build a list of errata-id field value in the same order as
+                # received from Erratum.list
                 errata_ids = [
                     errata['errata-id']
                     for errata in erratum_list
                 ]
-                sorted_errata_list = self._get_sorted_erratum_ids_info(
+                # build a sorted more detailed erratum info list, that also
+                # contain the sort field
+                sorted_errata_info_list = self._get_sorted_erratum_ids_info(
                     erratum_ids,
                     sort_by=sort_field,
                     sort_reversed=sort_reversed
                 )
-                sorted_fields = [
+                # build a list of sort field (issued/updated) values in the
+                # same order as received from the detailed sorted erratum info
+                # list
+                sort_field_values = [
                     errata[sort_field]
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the sort field (issued/updated) values are sorted
+                # as needed
                 self.assertEquals(
-                    sorted_fields,
-                    sorted(sorted_fields, reverse=sort_reversed)
+                    sort_field_values,
+                    sorted(sort_field_values, reverse=sort_reversed)
                 )
+                # build a list of errata-id field value in the same order as
+                # received from the detailed sorted errata info list
                 sorted_errata_ids = [
                     errata['errata-id']
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the errata ids received by Erratum.list is sorted
+                # as needed
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
     @tier3
@@ -464,32 +496,48 @@ class ErrataTestCase(CLITestCase):
                     'order': sort_text,
                     'per-page': ERRATUM_MAX_IDS_INFO
                 })
+                # note: the erratum_list, contain a list of restraint info
+                # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
+                # build a list of erratum id received from Erratum.list
                 erratum_ids = [
                     errata['id']
                     for errata in erratum_list
                 ]
+                # build a list of errata-id field value in the same order as
+                # received from Erratum.list
                 errata_ids = [
                     errata['errata-id']
                     for errata in erratum_list
                 ]
-                sorted_errata_list = self._get_sorted_erratum_ids_info(
+                # build a sorted more detailed erratum info list, that also
+                # contain the sort field
+                sorted_errata_info_list = self._get_sorted_erratum_ids_info(
                     erratum_ids,
                     sort_by=sort_field,
                     sort_reversed=sort_reversed
                 )
-                sorted_fields = [
+                # build a list of sort field (issued/updated) values in the
+                # same order as received from the detailed sorted erratum info
+                # list
+                sort_field_values = [
                     errata[sort_field]
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the sort field (issued/updated) values are sorted
+                # as needed
                 self.assertEquals(
-                    sorted_fields,
-                    sorted(sorted_fields, reverse=sort_reversed)
+                    sort_field_values,
+                    sorted(sort_field_values, reverse=sort_reversed)
                 )
+                # build a list of errata-id field value in the same order as
+                # received from the detailed sorted errata info list
                 sorted_errata_ids = [
                     errata['errata-id']
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the errata ids received by Erratum.list is sorted
+                # as needed
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
     @tier3
@@ -517,32 +565,48 @@ class ErrataTestCase(CLITestCase):
                     'order': sort_text,
                     'per-page': ERRATUM_MAX_IDS_INFO
                 })
+                # note: the erratum_list, contain a list of restraint info
+                # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
+                # build a list of erratum id received from Erratum.list
                 erratum_ids = [
                     errata['id']
                     for errata in erratum_list
                 ]
+                # build a list of errata-id field value in the same order as
+                # received from Erratum.list
                 errata_ids = [
                     errata['errata-id']
                     for errata in erratum_list
                 ]
-                sorted_errata_list = self._get_sorted_erratum_ids_info(
+                # build a sorted more detailed erratum info list, that also
+                # contain the sort field
+                sorted_errata_info_list = self._get_sorted_erratum_ids_info(
                     erratum_ids,
                     sort_by=sort_field,
                     sort_reversed=sort_reversed
                 )
-                sorted_fields = [
+                # build a list of sort field (issued/updated) values in the
+                # same order as received from the detailed sorted erratum info
+                # list
+                sort_field_values = [
                     errata[sort_field]
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the sort field (issued/updated) values are sorted
+                # as needed
                 self.assertEquals(
-                    sorted_fields,
-                    sorted(sorted_fields, reverse=sort_reversed)
+                    sort_field_values,
+                    sorted(sort_field_values, reverse=sort_reversed)
                 )
+                # build a list of errata-id field value in the same order as
+                # received from the detailed sorted errata info list
                 sorted_errata_ids = [
                     errata['errata-id']
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the errata ids received by Erratum.list is sorted
+                # as needed
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
     @tier3
@@ -570,32 +634,48 @@ class ErrataTestCase(CLITestCase):
                     'order': sort_text,
                     'per-page': ERRATUM_MAX_IDS_INFO
                 })
+                # note: the erratum_list, contain a list of restraint info
+                # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
+                # build a list of erratum id received from Erratum.list
                 erratum_ids = [
                     errata['id']
                     for errata in erratum_list
                 ]
+                # build a list of errata-id field value in the same order as
+                # received from Erratum.list
                 errata_ids = [
                     errata['errata-id']
                     for errata in erratum_list
                 ]
-                sorted_errata_list = self._get_sorted_erratum_ids_info(
+                # build a sorted more detailed erratum info list, that also
+                # contain the sort field
+                sorted_errata_info_list = self._get_sorted_erratum_ids_info(
                     erratum_ids,
                     sort_by=sort_field,
                     sort_reversed=sort_reversed
                 )
-                sorted_fields = [
+                # build a list of sort field (issued/updated) values in the
+                # same order as received from the detailed sorted erratum info
+                # list
+                sort_field_values = [
                     errata[sort_field]
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the sort field (issued/updated) values are sorted
+                # as needed
                 self.assertEquals(
-                    sorted_fields,
-                    sorted(sorted_fields, reverse=sort_reversed)
+                    sort_field_values,
+                    sorted(sort_field_values, reverse=sort_reversed)
                 )
+                # build a list of errata-id field value in the same order as
+                # received from the detailed sorted errata info list
                 sorted_errata_ids = [
                     errata['errata-id']
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the errata ids received by Erratum.list is sorted
+                # as needed
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
     @tier3
@@ -623,32 +703,48 @@ class ErrataTestCase(CLITestCase):
                     'order': sort_text,
                     'per-page': ERRATUM_MAX_IDS_INFO
                 })
+                # note: the erratum_list, contain a list of restraint info
+                # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
+                # build a list of erratum id received from Erratum.list
                 erratum_ids = [
                     errata['id']
                     for errata in erratum_list
                 ]
+                # build a list of errata-id field value in the same order as
+                # received from Erratum.list
                 errata_ids = [
                     errata['errata-id']
                     for errata in erratum_list
                 ]
-                sorted_errata_list = self._get_sorted_erratum_ids_info(
+                # build a sorted more detailed erratum info list, that also
+                # contain the sort field
+                sorted_errata_info_list = self._get_sorted_erratum_ids_info(
                     erratum_ids,
                     sort_by=sort_field,
                     sort_reversed=sort_reversed
                 )
-                sorted_fields = [
+                # build a list of sort field (issued/updated) values in the
+                # same order as received from the detailed sorted erratum info
+                # list
+                sort_field_values = [
                     errata[sort_field]
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the sort field (issued/updated) values are sorted
+                # as needed
                 self.assertEquals(
-                    sorted_fields,
-                    sorted(sorted_fields, reverse=sort_reversed)
+                    sort_field_values,
+                    sorted(sort_field_values, reverse=sort_reversed)
                 )
+                # build a list of errata-id field value in the same order as
+                # received from the detailed sorted errata info list
                 sorted_errata_ids = [
                     errata['errata-id']
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the errata ids received by Erratum.list is sorted
+                # as needed
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
     @tier3
@@ -676,32 +772,48 @@ class ErrataTestCase(CLITestCase):
                     'order': sort_text,
                     'per-page': ERRATUM_MAX_IDS_INFO
                 })
+                # note: the erratum_list, contain a list of restraint info
+                # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
+                # build a list of erratum id received from Erratum.list
                 erratum_ids = [
                     errata['id']
                     for errata in erratum_list
                 ]
+                # build a list of errata-id field in the same order as received
+                # from Erratum.list
                 errata_ids = [
                     errata['errata-id']
                     for errata in erratum_list
                 ]
-                sorted_errata_list = self._get_sorted_erratum_ids_info(
+                # build a sorted more detailed erratum info list, that also
+                # contain the sort field
+                sorted_errata_info_list = self._get_sorted_erratum_ids_info(
                     erratum_ids,
                     sort_by=sort_field,
                     sort_reversed=sort_reversed
                 )
-                sorted_fields = [
+                # build a list of sort field (issued/updated) values in the
+                # same order as received from the detailed sorted erratum info
+                # list
+                sort_field_values = [
                     errata[sort_field]
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the sort field (issued/updated) values are sorted
+                # as needed
                 self.assertEquals(
-                    sorted_fields,
-                    sorted(sorted_fields, reverse=sort_reversed)
+                    sort_field_values,
+                    sorted(sort_field_values, reverse=sort_reversed)
                 )
+                # build a list of errata-id field value in the same order as
+                # received from the detailed sorted errata info list
                 sorted_errata_ids = [
                     errata['errata-id']
-                    for errata in sorted_errata_list
+                    for errata in sorted_errata_info_list
                 ]
+                # ensure that the errata ids received by Erratum.list is sorted
+                # as needed
                 self.assertEquals(errata_ids, sorted_errata_ids)
 
     @tier3
