@@ -35,7 +35,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.constants import DEFAULT_ORG, VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
@@ -135,9 +135,7 @@ class TestGPGKey(CLITestCase):
 
         @assert: gpg key is created
         """
-        result = Org.list()
-        self.assertGreater(len(result), 0, 'No organization found')
-        org = result[0]
+        org = Org.info({'name': DEFAULT_ORG})
         for name in valid_data_list():
             with self.subTest(name):
                 gpg_key = make_gpg_key({
