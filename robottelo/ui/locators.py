@@ -1952,9 +1952,29 @@ locators = LocatorDict({
     "repo.fetch_package_groups": (
         By.XPATH, "//td[span[text()='Package Groups']]/following-sibling::td",
     ),
+    "repo.fetch_puppet_modules": (
+        By.XPATH, "//td[span[text()='Puppet Modules']]/following-sibling::td",
+    ),
     "repo.result_spinner": (
         By.XPATH,
         "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
+    "repo.manage_content.packages": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.packages')]"),
+    "repo.manage_content.puppet_modules": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.puppet-modules')]"),
+    "repo.manage_content.docker_manifests": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.docker-manifests')]"),
+    "repo.manage_content.ostree_branches": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.ostree-branches)]"),
+    "repo.content_items": (By.XPATH, "//tr[@row-select='item']"),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
