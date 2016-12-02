@@ -3,9 +3,9 @@
 
 import time
 
-from robottelo.constants import FILTER_ERRATA_TYPE, FILTER_ERRATA_DATE
-from robottelo.ui.base import Base, UIError, UINoSuchElementError
+from robottelo.constants import FILTER_ERRATA_DATE, FILTER_ERRATA_TYPE
 from robottelo.decorators import bz_bug_is_open
+from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
