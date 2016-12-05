@@ -25,7 +25,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
-from robottelo.decorators import tier1
+from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.test import APITestCase
 
 
@@ -64,6 +64,7 @@ class FilterTestCase(APITestCase):
             set(self.perms)
         )
 
+    @skip_if_bug_open('bugzilla', 1401469)
     @tier1
     def test_positive_create_with_org(self):
         """Create a filter and assign it some permissions.
@@ -82,6 +83,7 @@ class FilterTestCase(APITestCase):
         # we expect here only only one organization, i.e. first element
         self.assertEqual(filter_['organizations'][0], org['name'])
 
+    @skip_if_bug_open('bugzilla', 1401469)
     @tier1
     def test_positive_create_with_loc(self):
         """Create a filter and assign it some permissions.
@@ -185,6 +187,7 @@ class FilterTestCase(APITestCase):
         filter_ = Filter.info({'id': filter_['id']})
         self.assertEqual(filter_['role'], new_role['name'])
 
+    @skip_if_bug_open('bugzilla', 1401469)
     @tier1
     def test_positive_update_org_loc(self):
         """Create a filter and assign it to another organization and location.
