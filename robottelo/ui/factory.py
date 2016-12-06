@@ -1,6 +1,9 @@
 # -*- encoding: utf-8 -*-
 from fauxfactory import gen_string, gen_email
-from robottelo.constants import REPO_TYPE, CHECKSUM_TYPE
+from robottelo.constants import (
+    REPO_TYPE,
+    CHECKSUM_TYPE,
+)
 from robottelo.helpers import update_dictionary
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
@@ -397,6 +400,8 @@ def make_discoveryrule(session, org=None, loc=None, force_context=True,
         u'host_limit': None,
         u'priority': None,
         u'enabled': True,
+        u'locations': None,
+        u'organizations': None,
     }
     page = session.nav.go_to_discovery_rules
     core_factory(create_args, kwargs, session, page,

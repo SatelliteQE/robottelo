@@ -1979,6 +1979,9 @@ locators = LocatorDict({
     "discoveredhosts.reboot": (
         By.XPATH, ("//a[contains(@href,'%s') and "
                    "contains(@data-id,'reboot')]")),
+    "discoveredhosts.auto_provision": (
+        By.XPATH, ("//a[contains(@href,'%s') and "
+                   "contains(@data-id,'auto_provision')]")),
     "discoveredhosts.delete": (
         By.XPATH, ("//a[@class='delete' and contains(@data-confirm, '%s')]")),
     "discoveredhosts.delete_from_facts": (
@@ -1991,9 +1994,17 @@ locators = LocatorDict({
                    "input[@type='checkbox']")),
     "discoveredhosts.select_action": (
         By.XPATH, ("//div[@id='submit_multiple']/a[@data-toggle='dropdown']")),
+    "discoveredhosts.select_action_facts": (
+        By.XPATH, ("//div[@id='title_action']//a[@data-toggle='dropdown']")),
+    "discoveredhosts.provision_from_facts": (
+        By.XPATH, ("//div[@id='title_action']//ul/li"
+                   "/a[contains(., 'Provision')]")),
     "discoveredhosts.multi_delete": (
         By.XPATH, ("//a[contains(@onclick, "
                    "'/discovered_hosts/multiple_destroy')]")),
+    "discoveredhosts.auto_provision_all": (
+        By.XPATH, ("//div[@id='submit_multiple']"
+                   "/following::a[contains(@href, 'auto_provision_all')]")),
     "discoveredhosts.assign_org": (
         By.XPATH, ("//a[contains(@onclick, "
                    "'/discovered_hosts/select_multiple_organization')]")),
@@ -2005,6 +2016,9 @@ locators = LocatorDict({
     "discoveredhosts.fetch_interfaces": (
         By.XPATH, ("//div[@id='content']/table/tbody/tr[2]/"
                    "td[contains(.,'eth')]")),
+    "discoveredhosts.fetch_fact": (
+        By.XPATH, ("//div[@id='content']/table/tbody/tr[2]"
+                   "/td[contains(.,'%s')]")),
     "discoveredhosts.fetch_bios": (
         By.XPATH, ("//div[@id='content']/table/tbody/tr[2]"
                    "/td[contains(.,'bios')]")),
@@ -2014,6 +2028,26 @@ locators = LocatorDict({
     "discoveredhosts.bulk_submit_button": (
         By.XPATH, ("//div[@id='confirmation-modal']"
                    "//div[@class='modal-footer']/button[2]")),
+    "discoveredhosts.provision": (
+        By.XPATH, ("//td/span/a[contains(@href, '%s')]/following::td/div[2]"
+                   "/span/a[contains(.,'Provision')]")),
+    "discoveredhosts.select_modal_hostgroup": (
+        By.ID, "s2id_host_hostgroup_id"),
+    "discoveredhosts.select_modal_org": (By.ID, "s2id_host_organization_id"),
+    "discoveredhosts.select_modal_loc": (By.ID, "s2id_host_location_id"),
+    "discoveredhosts.hostgroup_selector": (
+        By.XPATH, ("//div[@id='s2id_host_hostgroup_id']/a")),
+    "discoverehosts.select_choices": (
+        By.XPATH, ("/li[contains(@class, 'select2-result')]"
+                   "/div[contains(., '%s')]")),
+    "discoveredhosts.org_selector": (
+        By.XPATH, ("//div[@id='s2id_host_organization_id']/a/span")),
+    "discoveredhosts.loc_selector": (
+        By.XPATH, ("//div[@id='s2id_host_location_id']/a/span")),
+    "discoveredhosts.quick_create_button": (
+        By.XPATH, ("//input[@value='Quick create']")),
+    "discoveredhosts.create_host_button": (
+        By.XPATH, ("//input[@value='Create host']")),
 
     # LDAP Authentication
     "ldapsource.new": (

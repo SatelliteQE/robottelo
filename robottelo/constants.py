@@ -180,6 +180,8 @@ FILTER = {
     'container_org': 'docker_container_wizard_states_preliminary_organization',
     'cr_loc': 'compute_resource_location',
     'cr_org': 'compute_resource_organization',
+    'discovery_rule_loc': 'discovery_rule_location',
+    'discovery_rule_org': 'discovery_rule_organization',
     'env_org': 'environment_organization',
     'filter_org': 'filter_organization',
     'filter_loc': 'filter_location',

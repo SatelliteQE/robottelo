@@ -28,9 +28,11 @@ tab_locators = LocatorDict({
     "host.tab_puppet_classes": (By.XPATH, "//a[@href='#puppet_klasses']"),
     "host.tab_interfaces": (By.XPATH, "//a[@href='#network']"),
     "host.tab_operating_system": (
-        By.XPATH, "//form[@id='new_host']//a[@href='#os']"),
+        By.XPATH, ("//form[@id='new_host' or contains(@id,'edit_host')]"
+                   "//a[@href='#os']")),
     "host.tab_virtual_machine": (
-        By.XPATH, "//form[@id='new_host']//a[@href='#compute_resource']"),
+        By.XPATH, ("//form[@id='new_host' or contains(@id,'edit_host')]"
+                   "//a[@href='#compute_resource']")),
     "host.tab_params": (By.XPATH, "//a[@href='#params']"),
     "host.tab_additional_information": (By.XPATH, "//a[@href='#info']"),
 
