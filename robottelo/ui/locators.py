@@ -2416,6 +2416,17 @@ locators = LocatorDict({
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
+    "contentviews.erratum_type_checkbox": (
+        By.XPATH, "//input[@ng-model='types.%s']"),
+    "contentviews.erratum_date_type": (
+        By.XPATH, "//input[@type='radio' and @value='%s']"),
+    "contentviews.calendar_date_input": (
+        By.XPATH, "//input[@ng-model='rule.%s']"),
+    "contentviews.calendar_date_button": (
+        By.XPATH, "//input[@ng-model='rule.%s']/../ul"
+                  "//li/button[@ng-click='isOpen = false']"),
+    "contentviews.save_erratum": (
+        By.XPATH, "//button[contains(@ng-click, 'handleSave()')]"),
     "contentviews.add_errata": (
         By.XPATH, "//button[@ng-click='addErrata(filter)']"),
     "contentviews.remove_errata": (
