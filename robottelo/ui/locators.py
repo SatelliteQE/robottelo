@@ -2423,7 +2423,7 @@ locators = LocatorDict({
     "contentviews.calendar_date_input": (
         By.XPATH, "//input[@ng-model='rule.%s']"),
     "contentviews.calendar_date_button": (
-        By.XPATH, "//input[@ng-model='rule.%s']/.."
+        By.XPATH, "//input[@ng-model='rule.%s']/../ul"
                   "//li/button[@ng-click='isOpen = false']"),
     "contentviews.save_erratum": (
         By.XPATH, "//button[contains(@ng-click, 'handleSave()')]"),

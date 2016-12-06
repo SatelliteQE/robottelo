@@ -34,14 +34,18 @@ class ContentViews(Base):
     def set_calendar_date_value(self, name, value):
         """Set the input value of a date field and press the button to hide
          the calendar popup panel"""
+        strategy, calendar_date_input_locator = locators[
+            'contentviews.calendar_date_input']
         self.assign_value(
-            locators.contentviews.calendar_date_input % name,
+            (strategy, calendar_date_input_locator % name),
             value
         )
         # the calendar panel popup and hide other form elements that became
         # unreachable.
         # close the popup calendar panel
-        self.click(locators.contentviews.calendar_date_button % name)
+        strategy, calendar_date_button_locator = locators[
+            'contentviews.calendar_date_button']
+        self.click((strategy, calendar_date_button_locator % name))
 
     def create(self, name, label=None, description=None, is_composite=False):
         """Creates a content view"""
@@ -484,9 +488,11 @@ class ContentViews(Base):
             # will check all selected errata types first, after then uncheck
             # the not selected ones.
             # 1 - check first the types that are in the errata_types
+            strategy, erratum_type_checkbox_locator = locators[
+                'contentviews.erratum_type_checkbox']
             for errata_type in errata_types:
                 self.assign_value(
-                    locators.contentviews.erratum_type_checkbox % errata_type,
+                    (strategy, erratum_type_checkbox_locator % errata_type),
                     True
                 )
             # we are sure now that any check box not in the errata_types
@@ -495,18 +501,20 @@ class ContentViews(Base):
             for errata_type in set(allowed_errata_types).difference(
                     errata_types):
                 self.assign_value(
-                    locators.contentviews.erratum_type_checkbox % errata_type,
+                    (strategy, erratum_type_checkbox_locator % errata_type),
                     False
                 )
         if date_type is not None:
             if date_type not in allowed_date_types:
                 raise UIError('date type "{0}" not allowed'.format(date_type))
-            self.click(locators.contentviews.erratum_date_type % date_type)
+            strategy, erratum_date_type_locator = locators[
+                'contentviews.erratum_date_type']
+            self.click((strategy, erratum_date_type_locator % date_type))
         if start_date is not None:
             self.set_calendar_date_value('start_date', start_date)
         if end_date is not None:
             self.set_calendar_date_value('end_date', end_date)
-        self.click(locators.contentviews.save_erratum)
+        self.click(locators['contentviews.save_erratum'])
 
     def fetch_puppet_module(self, cv_name, module_name):
         """Get added puppet module name from selected content-view"""
