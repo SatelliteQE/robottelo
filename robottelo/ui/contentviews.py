@@ -3,7 +3,8 @@
 
 import time
 
-from robottelo.constants import FILTER_ERRATA_TYPE, FILTER_ERRATA_DATE
+from robottelo.constants import FILTER_ERRATA_DATE, FILTER_ERRATA_TYPE
+from robottelo.decorators import bz_bug_is_open
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -424,10 +425,108 @@ class ContentViews(Base):
     def remove_packages_from_filter(self, cv_name, filter_name, package_names):
         """Removes selected packages from selected package type filter."""
         self.go_to_filter_page(cv_name, filter_name)
-        strategy, value = locators['contentviews.select_pkg_checkbox']
-        for package in package_names:
-            self.click((strategy, value % package))
-            self.click(locators['contentviews.remove_packages'])
+        # On UI there's no attribute or text containing package name, just
+        # disabled input with value set to package name after page loading (so
+        # there's no @value attribute). This makes impossible to form xpath for
+        # specific package and the only remaining option is to locate all the
+        # packages and select only the one whose input contains desired value
+        packages = self.find_elements(locators['contentviews.packages'])
+        checkboxes = [
+            package.find_element(*locators['contentviews.package_checkbox'])
+            for package in packages
+            if package.get_attribute('value') in package_names
+        ]
+        for checkbox in checkboxes:
+            self.click(checkbox)
+        self.click(locators['contentviews.remove_packages'])
+
+    def update_package_filter(self, cv_name, filter_name, package_name,
+                              version_type=None, version_value=None,
+                              new_package_name=None, new_version_type=None,
+                              new_version_value=None):
+        """Update package in a filter"""
+        version_types = {
+            'Equal To': 'equal',
+            'Greater Than': 'greater',
+            'Less Than': 'less',
+            'Range': 'range',
+            'All Versions': 'all',
+        }
+        self.go_to_filter_page(cv_name, filter_name)
+        # As it's impossible to obtain specific filter directly,
+        # getting all the package filters first
+        packages = self.find_elements(locators['contentviews.packages'])
+        # Then selecting the filters with the same package as passed
+        packages = [
+            package for package in packages
+            if package.get_attribute('value') == package_name
+        ]
+        # As there can be multiple filters for the same package, user may want
+        # to specify version type and version of package filter
+        # If version type was passed - filter package list by version type
+        if version_type:
+            packages = [
+                package for package in packages
+                if package.find_element(
+                    *locators['contentviews.package_version_type']
+                ).get_attribute('value') == version_types[version_type]
+            ]
+        # If version was passed - filter package list by version
+        if version_value:
+            packages = [
+                package for package in packages
+                if package.find_element(
+                    *locators['contentviews.package_version_value']
+                ).get_attribute('value') == version_value
+            ]
+        # What's left in package list is probably our package, let's work with
+        # it
+        if packages:
+            package = packages[0]
+        # But if package list is empty - notify user he specified something
+        # wrong
+        else:
+            raise UINoSuchElementError('Package filter not found')
+        # Now just usual stuff - clicking 'edit' button, updating corresponding
+        # fields and clicking 'save' button
+        self.click(
+            package.find_element(*locators['contentviews.package_edit']))
+        if new_package_name:
+            self.assign_value(package, new_package_name)
+        if new_version_type:
+            self.assign_value(
+                package.find_element(
+                    *locators['contentviews.package_version_type']),
+                new_version_type
+            )
+        if new_version_value:
+            self.assign_value(
+                package.find_element(
+                    *locators['contentviews.package_version_value']),
+                new_version_value
+            )
+        self.click(
+            package.find_element(*locators['contentviews.package_save']))
+
+    def update_filter_affected_repos(self, cv_name, filter_name,
+                                     new_affected_repos):
+        """Update affected repos of content view filter"""
+        self.go_to_filter_page(cv_name, filter_name)
+        self.click(tab_locators['contentviews.tab_filter_affected_repos'])
+        self.assign_value(
+            locators['contentviews.affected_repos_radio'], True)
+        all_repo_checkboxes = self.find_elements(
+            locators['contentviews.affected_repos_checkboxes'])
+        # Uncheck all the repos first
+        for checkbox in all_repo_checkboxes:
+            self.assign_value(checkbox, False)
+        # Check off passed repos
+        for repo_name in new_affected_repos:
+            self.assign_value(
+                locators['contentviews.affected_repo_checkbox'] % repo_name,
+                True
+            )
+        self.click(locators['contentviews.filter_update_repos'])
 
     def add_remove_package_groups_to_filter(self, cv_name, filter_name,
                                             package_groups, is_add=True):
@@ -580,3 +679,33 @@ class ContentViews(Base):
             raise UIError(
                 '"Next" button is enabled when it should not'
             )
+
+    def version_search(self, name, version_name):
+        """Search for version in content view"""
+        self.click(self.search(name))
+        self.click(tab_locators['contentviews.tab_versions'])
+        if not bz_bug_is_open(1400535):
+            self.assign_value(
+                common_locators['kt_table_search'], version_name)
+            self.click(common_locators['kt_table_search_button'])
+        return self.wait_until_element(
+            locators['contentviews.version_name'] % version_name)
+
+    def package_search(self, name, version_name, package_name,
+                       package_version=None):
+        """Search for package in content view version"""
+        self.click(self.version_search(name, version_name))
+        self.click(tab_locators['contentviews.tab_version_packages'])
+        # type package version alongside with package name into search field if
+        # it was passed
+        self.assign_value(
+            common_locators['kt_table_search'],
+            package_name if not package_version else
+            'name = "{}" and version = "{}"'.format(
+                package_name,
+                package_version,
+            )
+        )
+        self.click(common_locators['kt_table_search_button'])
+        return self.wait_until_element(
+            locators['contentviews.version.package_name'] % package_name)

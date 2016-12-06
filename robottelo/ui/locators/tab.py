@@ -174,6 +174,14 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@ui-sref, 'available')]"),
     "contentviews.tab_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'list')]"),
+    # Fourth level UI
+    "contentviews.tab_filter_affected_repos": (
+        By.XPATH,
+        ("//a[contains(@ui-sref, 'content-views.details.filters.details.rpm."
+         "repositories')]")),
+    "contentviews.tab_version_packages": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'content-views.details.version.packages')]"),
 
     # Content Hosts
     # Third level UI

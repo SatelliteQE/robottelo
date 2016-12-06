@@ -1659,17 +1659,43 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='rule.min_version']"),
     "contentviews.less_max_value": (
         By.XPATH, "//input[@ng-model='rule.max_version']"),
-    "contentviews.select_pkg_checkbox": (
+    "contentviews.packages": (
         By.XPATH,
-        ("//tr[@row-select='rule']"
-         "//td[contains(normalize-space(.), '%s')]"
-         "/preceding-sibling::td[@class='row-select']"
+        "//tr[@row-select='rule']/td/input[@ng-model='rule.name']"
+    ),
+    "contentviews.package_checkbox": (
+        By.XPATH,
+        ("../preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
+    "contentviews.package_edit": (
+        By.XPATH,
+        ("../following-sibling::td/button[contains(@class, 'btn') and "
+         "contains(@ng-click, 'rule.editMode = true')]")),
+    "contentviews.package_version_type": (
+        By.XPATH,
+        "../following-sibling::td/span/select[@ng-model='rule.type']"),
+    "contentviews.package_version_value": (
+        By.XPATH,
+        "../following-sibling::td/span/span/input[@ng-model='rule.version']"),
+    "contentviews.package_save": (
+        By.XPATH,
+        ("../following-sibling::td/div/"
+         "button[contains(@ng-click, 'handleSave')]")),
     "contentviews.remove_packages": (
         By.XPATH, "//button[@ng-click='removeRules(filter)']"),
-    "contentviews.affected_repos": (
+    "contentviews.affected_repos_radio": (
         By.XPATH,
-        "//a[contains(@ui-sref, 'filters.details.rpm.repositories')]"),
+        ("//input[@type='radio' and @ng-model='showRepos' and "
+         "@ng-value='true']")),
+    "contentviews.affected_repos_checkboxes": (
+        By.XPATH,
+        "//input[@type='checkbox' and @ng-model='repository.selected']"),
+    "contentviews.affected_repo_checkbox": (
+        By.XPATH,
+        ("//input[@type='checkbox' and @ng-model='repository.selected']"
+         "[../following-sibling::td/a[contains(normalize-space(.), '%s')]]")),
+    "contentviews.filter_update_repos": (
+        By.XPATH, "//button[@ng-click='updateRepositories()']"),
     "contentviews.show_repos": (
         By.XPATH, "//input[@ng-model='showRepos']"),
     "contentviews.select_pkg_group_checkbox": (
@@ -1721,6 +1747,14 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "contentviews.yum_repositories": (
         By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'yum.list')]"),
+    "contentviews.version.package_name": (
+        By.XPATH,
+        ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
+         "/td[1][contains(., '%s')]")),
+    "contentviews.version.package_version": (
+        By.XPATH,
+        ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
+         "/td[2][contains(., '%s')]")),
 
     # Packages
     "package.rpm_name": (By.XPATH, "//a[contains(., '%s')]"),
