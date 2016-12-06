@@ -453,11 +453,17 @@ class ContentViews(Base):
             'All Versions': 'all',
         }
         self.go_to_filter_page(cv_name, filter_name)
+        # As it's impossible to obtain specific filter directly,
+        # getting all the package filters first
         packages = self.find_elements(locators['contentviews.packages'])
+        # Then selecting the filters with the same package as passed
         packages = [
             package for package in packages
             if package.get_attribute('value') == package_name
         ]
+        # As there can be multiple filters for the same package, user may want
+        # to specify version type and version of package filter
+        # If version type was passed - filter package list by version type
         if version_type:
             packages = [
                 package for package in packages
@@ -465,6 +471,7 @@ class ContentViews(Base):
                     *locators['contentviews.package_version_type']
                 ).get_attribute('value') == version_types[version_type]
             ]
+        # If version was passed - filter package list by version
         if version_value:
             packages = [
                 package for package in packages
@@ -472,10 +479,16 @@ class ContentViews(Base):
                     *locators['contentviews.package_version_value']
                 ).get_attribute('value') == version_value
             ]
+        # What's left in package list is probably our package, let's work with
+        # it
         if packages:
             package = packages[0]
+        # But if package list is empty - notify user he specified something
+        # wrong
         else:
             raise UINoSuchElementError('Package filter not found')
+        # Now just usual stuff - clicking 'edit' button, updating corresponding
+        # fields and clicking 'save' button
         self.click(
             package.find_element(*locators['contentviews.package_edit']))
         if new_package_name:

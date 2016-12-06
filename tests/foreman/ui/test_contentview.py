@@ -343,6 +343,8 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        package1_name = 'cow'
+        package2_name = 'bear'
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
@@ -358,7 +360,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_packages_to_filter(
                 cv_name,
                 filter_name,
-                ['cow'],
+                [package1_name],
                 ['All Versions'],
                 [None],
                 [None],
@@ -374,7 +376,14 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'cow',
+                    package1_name,
+                )
+            )
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package2_name,
                 )
             )
 
@@ -393,6 +402,8 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        package1_name = 'cow'
+        package2_name = 'bear'
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
@@ -408,7 +419,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_packages_to_filter(
                 cv_name,
                 filter_name,
-                ['cow'],
+                [package1_name],
                 ['All Versions'],
                 [None],
                 [None],
@@ -424,7 +435,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'cow',
+                    package1_name,
                 )
             )
             # Verify other packages were not affected by exclusion filter
@@ -432,7 +443,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'bear',
+                    package2_name,
                 )
             )
 
@@ -451,6 +462,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        package_name = 'cow'
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
@@ -466,15 +478,29 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_packages_to_filter(
                 cv_name,
                 filter_name,
-                ['cow'],
+                [package_name],
                 ['Equal To'],
                 ['2.2-3'],
                 [None],
             )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package_name,
+                )
+            )
             self.content_views.remove_packages_from_filter(
                 cv_name,
                 filter_name,
-                ['cow'],
+                [package_name],
             )
             self.assertIsNotNone(
                 self.content_views.wait_until_element(
@@ -486,8 +512,8 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(
                 self.content_views.package_search(
                     cv_name,
-                    'Version 1.0',
-                    'cow',
+                    'Version 2.0',
+                    package_name,
                 )
             )
 
@@ -506,6 +532,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        package_name = 'walrus'
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
@@ -521,7 +548,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_packages_to_filter(
                 cv_name,
                 filter_name,
-                ['walrus'],
+                [package_name],
                 ['Equal To'],
                 ['0.71-1'],
                 [None],
@@ -533,7 +560,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'walrus',
+                    package_name,
                     '0.71'
                 )
             )
@@ -541,14 +568,14 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'walrus',
+                    package_name,
                     '5.21'
                 )
             )
             self.content_views.update_package_filter(
                 cv_name=cv_name,
                 filter_name=filter_name,
-                package_name='walrus',
+                package_name=package_name,
                 version_type='Equal To',
                 version_value='0.71-1',
                 new_version_value='5.21-1',
@@ -564,7 +591,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 2.0',
-                    'walrus',
+                    package_name,
                     '0.71'
                 )
             )
@@ -572,7 +599,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 2.0',
-                    'walrus',
+                    package_name,
                     '5.21'
                 )
             )
@@ -592,6 +619,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        package_name = 'walrus'
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
@@ -607,7 +635,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_packages_to_filter(
                 cv_name,
                 filter_name,
-                ['walrus'],
+                [package_name],
                 ['Equal To'],
                 ['0.71-1'],
                 [None],
@@ -619,7 +647,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'walrus',
+                    package_name,
                     '0.71'
                 )
             )
@@ -627,14 +655,14 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'walrus',
+                    package_name,
                     '5.21'
                 )
             )
             self.content_views.update_package_filter(
                 cv_name=cv_name,
                 filter_name=filter_name,
-                package_name='walrus',
+                package_name=package_name,
                 version_type='Equal To',
                 version_value='0.71-1',
                 new_version_value='5.21-1',
@@ -650,7 +678,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 2.0',
-                    'walrus',
+                    package_name,
                     '0.71'
                 )
             )
@@ -658,7 +686,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 2.0',
-                    'walrus',
+                    package_name,
                     '5.21'
                 )
             )
@@ -679,6 +707,8 @@ class ContentViewTestCase(UITestCase):
         filter_name = gen_string('alpha')
         repo1_name = gen_string('alpha')
         repo2_name = gen_string('alpha')
+        repo1_package_name = 'walrus'
+        repo2_package_name = 'Walrus'
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo1_name)
             self.setup_to_create_cv(
@@ -697,7 +727,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_packages_to_filter(
                 cv_name,
                 filter_name,
-                ['walrus'],
+                [repo1_package_name],
                 ['Equal To'],
                 ['0.71-1'],
                 [None],
@@ -717,7 +747,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'walrus',
+                    repo1_package_name,
                     '0.71'
                 )
             )
@@ -725,7 +755,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'walrus',
+                    repo1_package_name,
                     '5.21'
                 )
             )
@@ -734,7 +764,7 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.package_search(
                     cv_name,
                     'Version 1.0',
-                    'Walrus',
+                    repo2_package_name,
                     '5.6.6'
                 )
             )
@@ -752,6 +782,7 @@ class ContentViewTestCase(UITestCase):
         """
         cv_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        package_name = 'walrus'
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
@@ -770,7 +801,7 @@ class ContentViewTestCase(UITestCase):
                     self.content_views.add_packages_to_filter(
                         cv_name,
                         filter_name,
-                        ['walrus'],
+                        [package_name],
                         ['Equal To'],
                         ['0.71-1'],
                         [None],
@@ -780,7 +811,7 @@ class ContentViewTestCase(UITestCase):
                     self.content_views.add_packages_to_filter(
                         cv_name,
                         filter_name,
-                        ['walrus'],
+                        [package_name],
                         ['Equal To'],
                         ['0.71-1'],
                         [None],
