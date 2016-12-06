@@ -2615,3 +2615,367 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_cv_version_from_default_env(self):
+        """Remove content view version from Library environment
+
+        @id: 43c83c15-c883-45a7-be05-d9b26da99e3c
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo to it
+
+        3. Publish content view
+
+        4. remove the published version from Library environment
+
+        @Assert: content view version is removed from Library environment
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_renamed_cv_version_from_default_env(self):
+        """Remove version of renamed content view from Library environment
+
+        @id: bd5ca409-f3ab-43b5-bb63-3b747aa75506
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo to the content view
+
+        3. Publish the content view
+
+        4. Rename the content view
+
+        5. remove the published version from Library environment
+
+        @Assert: content view version is removed from Library environment
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_promoted_cv_version_from_default_env(self):
+        """Remove promoted content view version from Library environment
+
+        @id: a8649444-b063-4fb4-b932-a3fae7d4021d
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a puppet module(s) to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view version from Library -> DEV
+
+        5. remove the content view version from Library environment
+
+        @Assert:
+
+        1. Content view version exist only in DEV and not in Library
+
+        2. The puppet module(s) exists in content view version
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_qe_promoted_cv_version_from_default_env(self):
+        """Remove QE promoted content view version from Library environment
+
+        @id: 71ad8b72-68c4-4c98-9387-077f54ef0184
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add docker repo(s) to it
+
+        3. Publish content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE
+
+        5. remove the content view version from Library environment
+
+        @Assert: Content view version exist only in DEV, QE
+                 and not in Library
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
+        """Remove PROD promoted content view version from Library environment
+
+        @id: 6a874041-43c7-4682-ba06-571e49d5bbea
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add yum repositories, puppet modules, docker repositories to CV
+
+        3. Publish content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE -> PROD
+
+        5. remove the content view version from Library environment
+
+        @Assert: Content view version exist only in DEV, QE, PROD
+                 and not in Library
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_cv_version_from_env(self):
+        """Remove promoted content view version from environment
+
+        @id: d1da23ee-a5db-4990-9572-1a0919a9fe1c
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE -> STAGE -> PROD
+
+        5. remove the content view version from PROD environment
+
+        @Assert: content view version exists only in Library, DEV, QE, STAGE
+                   and not in PROD
+
+        7. Promote again from STAGE -> PROD
+
+        @Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
+
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_cv_version_from_multi_env(self):
+        """Remove promoted content view version from multiple environment
+
+        @id: 0d54c256-ac6d-4487-ab09-4e8dd257358e
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE -> STAGE -> PROD
+
+        5. Remove content view version from QE, STAGE and PROD
+
+        @Assert: Content view version exists only in Library, DEV
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier2
+    def test_positive_delete_cv_promoted_to_multi_env(self):
+        """Delete published content view with version promoted to multiple
+         environments
+
+        @id: f16f2db5-7f5b-4ebb-863e-6c18ff745ce4
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view to multiple environment
+           Library -> DEV -> QE -> STAGE -> PROD
+
+        5. Delete the content view, this should delete the content with all
+           it's published/promoted versions from all environments
+
+        @Assert: The content view doesn't exists
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier3
+    def test_positive_remove_cv_version_from_env_with_host_registered(self):
+        """Remove promoted content view version from environment that is used
+        in association of an Activation key and content-host registration.
+
+        @id: a8ca3de1-3f79-4029-8033-00315b6b854f
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view to multiple environment
+           Library -> DEV -> QE
+
+        5. Create an Activation key with the QE environment
+
+        6. Register a content-host using the Activation key
+
+        7. Remove the content view version from QE environment
+
+        8. Verify if the affected Activation key and content-host are
+           functioning properly
+
+        @Assert:
+
+        1. Activation key exists
+
+        2. Content-host exists
+
+        3. Content view does not exist in activation key and content-host
+           association
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier3
+    def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
+        """Delete published content view with version promoted to multiple
+         environments, with one of the environments used in association of an
+         Activation key and content-host registration.
+
+        @id: 73453c99-8f34-413d-8f95-e4a2f4c58a00
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view to multiple environment
+           Library -> DEV -> QE
+
+        5. Create an Activation key with the QE environment
+
+        6. Register a content-host using the Activation key
+
+        7. Delete the content view
+
+        8. Verify if the affected Activation key and content-host are
+           functioning properly
+
+
+        @Assert:
+
+        1. The content view doesn't exist
+
+        2. Activation key exists
+
+        3. Content-host exists
+
+        4. Content view does not exist in activation key and content-host
+           association
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier3
+    def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
+        """Remove promoted content view version from multiple environment,
+        with satellite setup to use capsule
+
+        @id: ba731272-66e6-461e-8e9d-564b4092a92d
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Setup satellite to use a capsule and to sync all lifecycle
+           environments
+
+        3. Add a yum repo, puppet module and a docker repo to the content view
+
+        4. Publish the content view
+
+        5. Promote the content view to multiple environment
+           Library -> DEV -> QE -> PROD
+
+        6. Disconnect the capsule
+
+        7. Remove the content view version from Library and DEV environments
+           and assert successful completion
+
+        8. Bring the capsule back online and assert that the task is completed
+           in capsule
+
+        9. Make sure the capsule is updated
+
+        @Assert: content view version in capsule is removed from Library
+                 and DEV and exists only in QE and PROD
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
