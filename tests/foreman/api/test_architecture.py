@@ -19,7 +19,7 @@ from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -87,6 +87,7 @@ class ArchitectureTestCase(APITestCase):
                 self.assertEqual(name, arch.name)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1401519)
     def test_negative_create_with_invalid_name(self):
         """Create architecture providing an invalid initial name.
         set.
