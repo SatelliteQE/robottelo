@@ -146,7 +146,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_architecture(self):
         """Check if hostgroup with architecture can be created
 
-        @id: 21c619f4-7339-4fb0-9e29-e12dae65f943
+        @Feature: Hostgroup - Positive create
 
         @Assert: Hostgroup should be created and has architecture assigned
 
@@ -161,7 +161,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_domain(self):
         """Check if hostgroup with domain can be created
 
-        @id: c468fcac-9e42-4ee6-a431-abe29b6848ce
+        @Feature: Hostgroup - Positive create
 
         @Assert: Hostgroup should be created and has domain assigned
         """
