@@ -271,8 +271,8 @@ class ActivationKeyTestCase(UITestCase):
 
     @tier2
     def test_positive_add_host_collection_non_admin(self):
-        """Test that hosts can be associated to Activation Keys by non-admin
-        user.
+        """Test that host collection can be associated to Activation Keys
+        by non-admin user.
 
         @id: 417f0b36-fd49-4414-87ab-6f72a09696f2
 
@@ -280,11 +280,11 @@ class ActivationKeyTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        name = gen_string(str_type='alpha')
+        ak_name = gen_string('alpha')
         # create Host Collection using API
-        host_col = entities.HostCollection(
+        hc = entities.HostCollection(
             organization=self.organization,
-            name=gen_string(str_type='alpha'),
+            name=gen_string('alpha'),
         ).create()
         # Create non-admin user with specified permissions
         role = entities.Role().create()
@@ -301,44 +301,37 @@ class ActivationKeyTestCase(UITestCase):
             password=password,
             organization=[self.organization],
         ).create()
-
         with Session(
-                self.browser,
-                user=user.login,
-                password=password
-        ) as session:
-            make_activationkey(
-                session,
-                name=name,
-                env=ENVIRONMENT,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
+                self.browser, user=user.login, password=password) as session:
+            make_activationkey(session, name=ak_name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search(ak_name))
             # add Host Collection
-            self.activationkey.add_host_collection(name, host_col.name)
+            self.activationkey.add_host_collection(ak_name, hc.name)
             self.assertIsNotNone(self.activationkey.find_element(
                 common_locators['alert.success_sub_form']))
             # check added host collection is listed
             self.activationkey.click(tab_locators['ak.host_collections.list'])
             host_collection = self.activationkey.wait_until_element(
-                tab_locators['ak.host_collections.add.select'] % host_col.name)
+                tab_locators['ak.host_collections.add.select'] % hc.name)
             self.assertIsNotNone(host_collection)
 
     @tier2
     def test_positive_remove_host_collection_non_admin(self):
-        """Test that hosts can be removed from Activation Keys by non-admin
-        user.
+        """Test that host collection can be removed from Activation Keys
+        by non-admin user.
 
         @id: 187456ec-5690-4524-9701-8bdb74c7912a
 
-        @Assert: Activation key is created, added host collection is not listed
+        @Assert: Activation key is created, removed host collection
+        is not listed
 
         @CaseLevel: Integration
         """
-        name = gen_string(str_type='alpha')
+        ak_name = gen_string('alpha')
         # create Host Collection using API
-        host_col = entities.HostCollection(
+        hc = entities.HostCollection(
             organization=self.organization,
-            name=gen_string(str_type='alpha'),
+            name=gen_string('alpha'),
         ).create()
         # Create non-admin user with specified permissions
         role = entities.Role().create()
@@ -355,36 +348,27 @@ class ActivationKeyTestCase(UITestCase):
             password=password,
             organization=[self.organization],
         ).create()
-
         with Session(
-                self.browser,
-                user=user.login,
-                password=password
-        ) as session:
-            make_activationkey(
-                session,
-                name=name,
-                env=ENVIRONMENT,
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
+                self.browser, user=user.login, password=password) as session:
+            make_activationkey(session, name=ak_name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search(ak_name))
             # add Host Collection
-            self.activationkey.add_host_collection(name, host_col.name)
+            self.activationkey.add_host_collection(ak_name, hc.name)
             self.assertIsNotNone(self.activationkey.find_element(
                 common_locators['alert.success_sub_form']))
             # check added host collection is listed
             self.activationkey.click(tab_locators['ak.host_collections.list'])
             host_collection = self.activationkey.wait_until_element(
-                tab_locators['ak.host_collections.add.select'] % host_col.name)
+                tab_locators['ak.host_collections.add.select'] % hc.name)
             self.assertIsNotNone(host_collection)
-
             # remove Host Collection
-            self.activationkey.remove_host_collection(name, host_col.name)
+            self.activationkey.remove_host_collection(ak_name, hc.name)
             self.assertIsNotNone(self.activationkey.find_element(
                 common_locators['alert.success_sub_form']))
             # check added host collection is not listed
             self.activationkey.click(tab_locators['ak.host_collections.list'])
             host_collection = self.activationkey.wait_until_element(
-                tab_locators['ak.host_collections.add.select'] % host_col.name)
+                tab_locators['ak.host_collections.add.select'] % hc.name)
             self.assertIsNone(host_collection)
 
     @tier1

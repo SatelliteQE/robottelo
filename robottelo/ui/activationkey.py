@@ -178,23 +178,16 @@ class ActivationKey(Base):
     def remove_host_collection(self, name, host_collection_name):
         """Remove an existing Host Collection from Activation Key."""
         # find activation key
-        activation_key = self.search(name)
-        if activation_key:
-            activation_key.click()
-            self.wait_for_ajax()
-            self.click(tab_locators['ak.host_collections'])
-            self.click(tab_locators['ak.host_collections.list'])
-
-            # select host collection
-            strategy, value = tab_locators['ak.host_collections.add.select']
-            self.click((strategy, value % host_collection_name))
-
-            # add host collection
-            self.click(
-                tab_locators['ak.host_collections.list.remove_selected'])
-        else:
-            raise UINoSuchElementError(
-                "Couldn't find activation key '{0}'".format(name))
+        self.search_and_click(name)
+        self.click(tab_locators['ak.host_collections'])
+        self.click(tab_locators['ak.host_collections.list'])
+        # select host collection
+        self.click(
+            tab_locators['ak.host_collections.add.select']
+            % host_collection_name)
+        # add host collection
+        self.click(
+            tab_locators['ak.host_collections.list.remove_selected'])
 
     def fetch_associated_content_host(self, name):
         """Fetch associated content host from selected activation key."""
