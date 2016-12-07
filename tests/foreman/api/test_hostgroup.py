@@ -317,7 +317,9 @@ class HostGroupTestCase(APITestCase):
 
         @assert: A hostgroup is created with expected puppet CA proxy assigned
         """
-        proxy = entities.SmartProxy().search()[0]
+        proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = entities.HostGroup(
             location=[self.loc],
             organization=[self.org],
@@ -374,7 +376,10 @@ class HostGroupTestCase(APITestCase):
         realm = entities.Realm(
             location=[self.loc],
             organization=[self.org],
-            realm_proxy=entities.SmartProxy().search()[0],
+            realm_proxy=entities.SmartProxy().search(
+                query={'search': 'url = https://{0}:9090'.format(
+                    settings.server.hostname)}
+            )[0]
         ).create()
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -391,7 +396,9 @@ class HostGroupTestCase(APITestCase):
 
         @assert: A hostgroup is created with expected puppet proxy assigned
         """
-        proxy = entities.SmartProxy().search()[0]
+        proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = entities.HostGroup(
             location=[self.loc],
             organization=[self.org],
@@ -407,7 +414,9 @@ class HostGroupTestCase(APITestCase):
 
         @assert: A hostgroup is created with expected content source assigned
         """
-        content_source = entities.SmartProxy().search()[0]
+        content_source = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = entities.HostGroup(
             content_source=content_source,
             location=[self.loc],
@@ -686,7 +695,9 @@ class HostGroupTestCase(APITestCase):
             location=[self.loc],
             organization=[self.org],
         ).create()
-        new_proxy = entities.SmartProxy().search()[0]
+        new_proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup.puppet_ca_proxy = new_proxy
         hostgroup = hostgroup.update(['puppet_ca_proxy'])
         self.assertEqual(hostgroup.puppet_ca_proxy.read().name, new_proxy.name)
@@ -752,7 +763,10 @@ class HostGroupTestCase(APITestCase):
         realm = entities.Realm(
             location=[self.loc],
             organization=[self.org],
-            realm_proxy=entities.SmartProxy().search()[0],
+            realm_proxy=entities.SmartProxy().search(
+                query={'search': 'url = https://{0}:9090'.format(
+                    settings.server.hostname)}
+            )[0]
         ).create()
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -762,7 +776,10 @@ class HostGroupTestCase(APITestCase):
         new_realm = entities.Realm(
             location=[self.loc],
             organization=[self.org],
-            realm_proxy=entities.SmartProxy().search()[0],
+            realm_proxy=entities.SmartProxy().search(
+                query={'search': 'url = https://{0}:9090'.format(
+                    settings.server.hostname)}
+            )[0]
         ).create()
         hostgroup.realm = new_realm
         hostgroup = hostgroup.update(['realm'])
@@ -780,7 +797,9 @@ class HostGroupTestCase(APITestCase):
             location=[self.loc],
             organization=[self.org],
         ).create()
-        new_proxy = entities.SmartProxy().search()[0]
+        new_proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup.puppet_proxy = new_proxy
         hostgroup = hostgroup.update(['puppet_proxy'])
         self.assertEqual(hostgroup.puppet_proxy.read().name, new_proxy.name)
@@ -797,7 +816,9 @@ class HostGroupTestCase(APITestCase):
             location=[self.loc],
             organization=[self.org],
         ).create()
-        new_content_source = entities.SmartProxy().search()[0]
+        new_content_source = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup.content_source = new_content_source
         hostgroup = hostgroup.update(['content_source'])
         self.assertEqual(

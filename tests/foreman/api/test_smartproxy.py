@@ -1,5 +1,6 @@
 """Tests for the ``smart_proxies`` paths."""
 from nailgun import entities
+from robottelo.config import settings
 from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
@@ -26,9 +27,13 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         existing smart proxy should always succeed.
         """
         super(SmartProxyMissingAttrTestCase, cls).setUpClass()
-        smart_proxies = entities.SmartProxy().search()
-        assert len(smart_proxies) > 0
-        cls.smart_proxy_attrs = set(smart_proxies[0].update_json([]).keys())
+        smart_proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })
+        # Check that proxy is found and unpack it from the list
+        assert len(smart_proxy) > 0, "No smart proxy is found"
+        smart_proxy = smart_proxy[0]
+        cls.smart_proxy_attrs = set(smart_proxy.update_json([]).keys())
 
     @tier1
     def test_positive_update_loc(self):

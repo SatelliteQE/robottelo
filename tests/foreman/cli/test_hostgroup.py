@@ -1,16 +1,17 @@
 # -*- encoding: utf-8 -*-
 """Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI."""
-
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
+    make_domain,
     make_environment,
     make_hostgroup,
     make_location,
     make_org,
     make_os,
 )
+from robottelo.config import settings
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
@@ -115,7 +116,9 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet CA proxy server assigned
 
         """
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
         self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
 
@@ -129,12 +132,40 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet proxy server assigned
 
         """
-        puppet_proxy = Proxy.list()[0]
+        puppet_proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
         hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
         self.assertEqual(
             puppet_proxy['id'],
             hostgroup['puppet-master-proxy-id'],
         )
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_architecture(self):
+        """Check if hostgroup with architecture can be created
+
+        @Feature: Hostgroup - Positive create
+
+        @Assert: Hostgroup should be created and has architecture assigned
+        """
+        arch = 'x86_64'
+        hostgroup = make_hostgroup({'architecture': arch})
+        self.assertEqual(arch, hostgroup['architecture'])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_domain(self):
+        """Check if hostgroup with domain can be created
+
+        @Feature: Hostgroup - Positive create
+
+        @Assert: Hostgroup should be created and has domain assigned
+        """
+        domain = make_domain()
+        hostgroup = make_hostgroup({'domain-id': domain['id']})
+        self.assertEqual(domain['name'], hostgroup['domain'])
 
     @tier1
     def test_positive_update_name(self):
