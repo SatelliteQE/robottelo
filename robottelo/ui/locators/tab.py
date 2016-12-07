@@ -251,6 +251,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//button[@ng-click='addHostCollections()']"),
     "ak.host_collections.list": (
         By.XPATH, "//a[contains(@ui-sref, 'host-collections.list')]"),
+    "ak.host_collections.list.remove_selected": (
+        By.XPATH, "//button[@ng-click='removeHostCollections()']"),
     "ak.associations": (
         By.XPATH, "//ul/li[@class='dropdown']/a"),
     "ak.tab_prd_content": (
