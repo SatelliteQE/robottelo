@@ -4,13 +4,14 @@
 import logging
 from collections import defaultdict
 from selenium.webdriver.common.by import By
+from six import text_type, PY3
 from six.moves import reduce
 
 
 logger = logging.getLogger(__name__)
 
 
-class LocatorValue(str):
+class LocatorValue(text_type):
     """Extends str just to allow logging interpolation operator `%`"""
 
     def __mod__(self, other):
@@ -252,7 +253,11 @@ class Locator(defaultdict):
         if keys:
             msg.append("contains=%s" % str(keys))
         msg.append(">")
-        return u"|".join(msg)
+        repr_text = u"|".join(msg)
+        if PY3:
+            return repr_text
+        else:
+            return repr_text.encode('utf-8')
 
     def _repr_pretty_(self, p, cycle):
         """This is __repr__ for iPython, Notebook and other IDEs"""
