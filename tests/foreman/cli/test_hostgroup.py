@@ -4,12 +4,12 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
+    make_domain,
     make_environment,
     make_hostgroup,
     make_location,
     make_org,
     make_os,
-    make_domain,
 )
 from robottelo.config import settings
 from robottelo.datafactory import (
@@ -149,8 +149,6 @@ class HostGroupTestCase(CLITestCase):
         @Feature: Hostgroup - Positive create
 
         @Assert: Hostgroup should be created and has architecture assigned
-
-        @BZ: 1354544
         """
         arch = 'x86_64'
         hostgroup = make_hostgroup({'architecture': arch})
