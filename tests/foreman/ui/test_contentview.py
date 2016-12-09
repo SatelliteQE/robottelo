@@ -3653,6 +3653,7 @@ class ContentViewTestCase(UITestCase):
            is attached to a content-host),
            choose DEV and content view cv1 as a replacement for Content-host
            and for Activation key.
+        8. Refresh content-host subscription
 
         @Assert:
 
@@ -3662,6 +3663,7 @@ class ContentViewTestCase(UITestCase):
            in activation key
         4. QE environment of cv1 was replaced by DEV environment of cv1
            in content-host
+        5. At content-host some package from cv1 is installable
 
         @caseautomation: notautomated
 
@@ -3692,6 +3694,7 @@ class ContentViewTestCase(UITestCase):
            QE environment of cv1 by an other (as QE environment of cv1
            is attached to a content-host), choose DEV and content view cv2
            as a replacement for Content-host and for Activation key.
+        8. Refresh content-host subscription
 
         @Assert:
 
@@ -3702,6 +3705,7 @@ class ContentViewTestCase(UITestCase):
            in activation key
         5. QE environment of cv1 was replaced by DEV environment of cv2
            in content-host
+        6. At content-host some package from cv2 is installable
 
         @caseautomation: notautomated
 
@@ -3726,12 +3730,15 @@ class ContentViewTestCase(UITestCase):
         4. Publish the content view
         5. Promote the content view to multiple environment
            Library -> DEV -> QE -> PROD
-        6. Disconnect the capsule
-        7. Remove the content view version from Library and DEV environments
+        6. Make sure the capsule is updated (content synchronization may be
+           applied)
+        7. Disconnect the capsule
+        8. Remove the content view version from Library and DEV environments
            and assert successful completion
-        8. Bring the capsule back online and assert that the task is completed
+        9. Bring the capsule back online and assert that the task is completed
            in capsule
-        9. Make sure the capsule is updated
+        10. Make sure the capsule is updated (content synchronization may be
+            applied)
 
         @Assert: content view version in capsule is removed from Library
         and DEV and exists only in QE and PROD
@@ -3740,3 +3747,5 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: System
         """
+        # Note: This test case requires complete external capsule
+        #  configuration.
