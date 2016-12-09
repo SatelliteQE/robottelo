@@ -3442,11 +3442,8 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add a yum repo to it
-
         3. Publish content view
-
         4. remove the published version from Library environment
 
         @Assert: content view version is removed from Library environment
@@ -3467,13 +3464,9 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add a yum repo to the content view
-
         3. Publish the content view
-
         4. Rename the content view
-
         5. remove the published version from Library environment
 
         @Assert: content view version is removed from Library environment
@@ -3494,19 +3487,14 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add a puppet module(s) to the content view
-
         3. Publish the content view
-
         4. Promote the content view version from Library -> DEV
-
         5. remove the content view version from Library environment
 
         @Assert:
 
         1. Content view version exist only in DEV and not in Library
-
         2. The puppet module(s) exists in content view version
 
         @caseautomation: notautomated
@@ -3525,18 +3513,14 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add docker repo(s) to it
-
         3. Publish content view
-
         4. Promote the content view version to multiple environments
            Library -> DEV -> QE
-
         5. remove the content view version from Library environment
 
         @Assert: Content view version exist only in DEV, QE
-                 and not in Library
+        and not in Library
 
         @caseautomation: notautomated
 
@@ -3554,18 +3538,14 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add yum repositories, puppet modules, docker repositories to CV
-
         3. Publish content view
-
         4. Promote the content view version to multiple environments
            Library -> DEV -> QE -> PROD
-
         5. remove the content view version from Library environment
 
         @Assert: Content view version exist only in DEV, QE, PROD
-                 and not in Library
+        and not in Library
 
         @caseautomation: notautomated
 
@@ -3583,23 +3563,16 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add a yum repo and a puppet module to the content view
-
         3. Publish the content view
-
         4. Promote the content view version to multiple environments
            Library -> DEV -> QE -> STAGE -> PROD
-
         5. remove the content view version from PROD environment
-
-        @Assert: content view version exists only in Library, DEV, QE, STAGE
-                   and not in PROD
-
+        6. Assert: content view version exists only in Library, DEV, QE, STAGE
+           and not in PROD
         7. Promote again from STAGE -> PROD
 
         @Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
-
 
         @caseautomation: notautomated
 
@@ -3617,14 +3590,10 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add a yum repo and a puppet module to the content view
-
         3. Publish the content view
-
         4. Promote the content view version to multiple environments
            Library -> DEV -> QE -> STAGE -> PROD
-
         5. Remove content view version from QE, STAGE and PROD
 
         @Assert: Content view version exists only in Library, DEV
@@ -3646,14 +3615,10 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Add a yum repo and a puppet module to the content view
-
         3. Publish the content view
-
         4. Promote the content view to multiple environment
            Library -> DEV -> QE -> STAGE -> PROD
-
         5. Delete the content view, this should delete the content with all
            it's published/promoted versions from all environments
 
@@ -3675,36 +3640,32 @@ class ContentViewTestCase(UITestCase):
 
         @Steps:
 
-        1. Create a content view
-
+        1. Create a content view cv1
         2. Add a yum repo and a puppet module to the content view
-
         3. Publish the content view
-
         4. Promote the content view to multiple environment
            Library -> DEV -> QE
-
         5. Create an Activation key with the QE environment
-
         6. Register a content-host using the Activation key
-
-        7. Remove the content view version from QE environment
-
-        8. Verify if the affected Activation key and content-host are
-           functioning properly
+        7. Remove the content view cv1 version from QE environment.
+           The remove environment wizard should propose to replace the current
+           QE environment of cv1 by an other (as QE environment of cv1
+           is attached to a content-host),
+           choose DEV and content view cv1 as a replacement for Content-host
+           and for Activation key.
 
         @Assert:
 
         1. Activation key exists
-
         2. Content-host exists
-
-        3. Content view does not exist in activation key and content-host
-           association
+        3. QE environment of cv1 was replaced by DEV environment of cv1
+           in activation key
+        4. QE environment of cv1 was replaced by DEV environment of cv1
+           in content-host
 
         @caseautomation: notautomated
 
-        @CaseLevel: Integration
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -3719,39 +3680,32 @@ class ContentViewTestCase(UITestCase):
 
         @Steps:
 
-        1. Create a content view
-
-        2. Add a yum repo and a puppet module to the content view
-
-        3. Publish the content view
-
-        4. Promote the content view to multiple environment
+        1. Create two content view cv1 and cv2
+        2. Add a yum repo and a puppet module to both content views
+        3. Publish the content views
+        4. Promote the content views to multiple environment
            Library -> DEV -> QE
-
-        5. Create an Activation key with the QE environment
-
+        5. Create an Activation key with the QE environment and cv1
         6. Register a content-host using the Activation key
-
-        7. Delete the content view
-
-        8. Verify if the affected Activation key and content-host are
-           functioning properly
-
+        7. Delete the content view cv1.
+           The delete content view wizard should propose to replace the current
+           QE environment of cv1 by an other (as QE environment of cv1
+           is attached to a content-host), choose DEV and content view cv2
+           as a replacement for Content-host and for Activation key.
 
         @Assert:
 
-        1. The content view doesn't exist
-
+        1. The content view cv1 doesn't exist
         2. Activation key exists
-
         3. Content-host exists
-
-        4. Content view does not exist in activation key and content-host
-           association
+        4. QE environment of cv1 was replaced by DEV environment of cv2
+           in activation key
+        5. QE environment of cv1 was replaced by DEV environment of cv2
+           in content-host
 
         @caseautomation: notautomated
 
-        @CaseLevel: Integration
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -3766,31 +3720,23 @@ class ContentViewTestCase(UITestCase):
         @Steps:
 
         1. Create a content view
-
         2. Setup satellite to use a capsule and to sync all lifecycle
            environments
-
         3. Add a yum repo, puppet module and a docker repo to the content view
-
         4. Publish the content view
-
         5. Promote the content view to multiple environment
            Library -> DEV -> QE -> PROD
-
         6. Disconnect the capsule
-
         7. Remove the content view version from Library and DEV environments
            and assert successful completion
-
         8. Bring the capsule back online and assert that the task is completed
            in capsule
-
         9. Make sure the capsule is updated
 
         @Assert: content view version in capsule is removed from Library
-                 and DEV and exists only in QE and PROD
+        and DEV and exists only in QE and PROD
 
         @caseautomation: notautomated
 
-        @CaseLevel: Integration
+        @CaseLevel: System
         """
