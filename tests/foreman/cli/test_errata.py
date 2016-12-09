@@ -15,14 +15,26 @@
 @Upstream: No
 """
 from operator import itemgetter
+from fauxfactory import gen_string
+from robottelo import manifests, ssh
 from robottelo.cli.factory import (
+    make_filter,
     make_org,
     make_product,
     make_repository,
+    make_role,
+    make_user,
 )
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.erratum import Erratum
+from robottelo.cli.filter import Filter
+from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
+from robottelo.cli.subscription import Subscription
+from robottelo.cli.user import User
 from robottelo.constants import (
+    DEFAULT_ROLE,
     FAKE_0_ERRATA_ID,
     FAKE_1_ERRATA_ID,
     FAKE_2_ERRATA_ID,
@@ -31,10 +43,18 @@ from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_3_YUM_REPO,
     FAKE_6_YUM_REPO,
+    REAL_4_ERRATA_ID,
+    REAL_4_ERRATA_CVES,
+    REPOS,
+    REPOSET,
+    PRDS,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     stubbed,
     tier3,
+    run_in_one_thread,
+    run_only_on
 )
 from robottelo.test import CLITestCase
 
@@ -1353,7 +1373,9 @@ class ErrataTestCase(CLITestCase):
             set([])
         )
 
-    @stubbed()
+    @run_in_one_thread
+    @run_only_on('sat')
+    @tier3
     def test_positive_list_filter_by_cve(self):
         """Filter errata by CVE
 
@@ -1367,11 +1389,44 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by CVE.
 
-        @caseautomation: notautomated
-
         """
+        org = make_org()
+        with manifests.clone() as manifest:
+            ssh.upload_file(manifest.content, manifest.filename)
+        Subscription.upload({
+            'file': manifest.filename,
+            'organization-id': org['id'],
+        })
+        RepositorySet.enable({
+            'name': REPOSET['rhva6'],
+            'organization-id': org['id'],
+            'product': PRDS['rhel'],
+            'releasever': '6Server',
+            'basearch': 'x86_64',
+        })
+        Repository.synchronize({
+            'name': REPOS['rhva6']['name'],
+            'organization-id': org['id'],
+            'product': PRDS['rhel']
+        })
+        repository_info = Repository.info({
+                u'name': REPOS['rhva6']['name'],
+                u'organization-id': org['id'],
+                u'product': PRDS['rhel'],
+        })
+        erratum = Erratum.list({'repository-id': repository_info['id']})
+        errata_ids = [errata['errata-id'] for errata in erratum]
+        self.assertIn(REAL_4_ERRATA_ID, errata_ids)
+        for errata_cve in REAL_4_ERRATA_CVES:
+            with self.subTest(errata_cve):
+                cve_erratum = Erratum.list({'cve': errata_cve})
+                cve_errata_ids = [
+                    cve_errata['errata-id']
+                    for cve_errata in cve_erratum
+                ]
+                self.assertIn(REAL_4_ERRATA_ID, cve_errata_ids)
 
-    @stubbed()
+    @tier3
     def test_positive_user_permission(self):
         """Show errata only if the User has permissions to view them
 
@@ -1390,9 +1445,79 @@ class ErrataTestCase(CLITestCase):
         @Assert: Check that the new user is able to see errata for one
         product only.
 
-        @caseautomation: notautomated
-
         """
+        user_password = gen_string('alphanumeric')
+        user_name = gen_string('alphanumeric')
+        org = self.org3
+        product = self.org3_product1
+        # get the available permissions
+        permissions = Filter.available_permissions()
+        user_required_permissions_names = ['view_products']
+        # get the user required permissions ids
+        user_required_permissions_ids = [
+            permission['id']
+            for permission in permissions
+            if permission['name'] in user_required_permissions_names
+        ]
+        self.assertGreater(user_required_permissions_ids, 0)
+        # create a role
+        role = make_role()
+        # create a filter with the required permissions for role with product
+        # one only
+        make_filter({
+            'organization-ids': org['id'],
+            'permission-ids': user_required_permissions_ids,
+            'role-id': role['id'],
+            'search': 'name = {0}'.format(product['name'])
+        })
+        # create a new user and assign him the created role permissions
+        user = make_user({
+            'admin': False,
+            'login': user_name,
+            'password': user_password
+        })
+        User.add_role({'id': user['id'], 'role-id': role['id']})
+        # make sure the user is not admin and has only the permissions assigned
+        user = User.info({'id': user['id']})
+        self.assertEqual(user['admin'], 'no')
+        self.assertEqual(set(user['roles']), {DEFAULT_ROLE, role['name']})
+        # try to get organization info
+        # get the info as admin user first
+        org_info = Org.info({'id': org['id']})
+        self.assertEqual(org['id'], org_info['id'])
+        self.assertEqual(org['name'], org_info['name'])
+        # get the organization info as the created user
+        with self.assertRaises(CLIReturnCodeError) as context:
+            Org.with_user(user_name, user_password).info({'id': org['id']})
+        self.assertIn(
+            'Forbidden - server refused to process the request',
+            context.exception.stderr
+        )
+        # try to get the erratum products list by organization id only
+        if not bz_bug_is_open('1403947'):
+            # ensure that all products erratum are accessible by admin user
+            admin_org_erratum_info_list = Erratum.list({
+                'organization-id': org['id']})
+            admin_org_errata_ids = [
+                errata['errata-id']
+                for errata in admin_org_erratum_info_list
+            ]
+            self.assertIn(FAKE_0_ERRATA_ID, admin_org_errata_ids)
+            self.assertIn(FAKE_3_ERRATA_ID, admin_org_errata_ids)
+            # org3_product1 has 4 erratum, org3_product2 has 79 erratum,
+            # the number of erratum of all org3 products = 83
+            self.assertEqual(len(admin_org_errata_ids), 83)
+        # ensure that the created user see only the erratum product that was
+        # assigned in permissions
+        user_org_erratum_info_list = Erratum.with_user(
+            user_name, user_password).list({'organization-id': org['id']})
+        user_org_errata_ids = [
+            errata['errata-id']
+            for errata in user_org_erratum_info_list
+        ]
+        self.assertEqual(len(user_org_errata_ids), 4)
+        self.assertIn(FAKE_0_ERRATA_ID, user_org_errata_ids)
+        self.assertNotIn(FAKE_3_ERRATA_ID, user_org_errata_ids)
 
     @stubbed()
     def test_positive_list_affected_chosts(self):
