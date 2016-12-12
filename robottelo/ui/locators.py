@@ -557,6 +557,14 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@ui-sref, 'available')]"),
     "contentviews.tab_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'list')]"),
+    # Fourth level UI
+    "contentviews.tab_filter_affected_repos": (
+        By.XPATH,
+        ("//a[contains(@ui-sref, 'content-views.details.filters.details.rpm."
+         "repositories')]")),
+    "contentviews.tab_version_packages": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'content-views.details.version.packages')]"),
 
     # Content Hosts
     # Third level UI
@@ -804,6 +812,11 @@ common_locators = LocatorDict({
     "kt_search_button": (
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
+    "kt_table_search": (
+        By.XPATH, "//input[@ng-model='detailsTable.searchTerm']"),
+    "kt_table_search_button": (
+        By.XPATH,
+        "//button[@ng-click='detailsTable.search(detailsTable.searchTerm)']"),
     # Katello common Product and Repo locators
     "gpg_key": (By.ID, "gpg_key_id"),
     "all_values": (By.XPATH,
@@ -1952,9 +1965,29 @@ locators = LocatorDict({
     "repo.fetch_package_groups": (
         By.XPATH, "//td[span[text()='Package Groups']]/following-sibling::td",
     ),
+    "repo.fetch_puppet_modules": (
+        By.XPATH, "//td[span[text()='Puppet Modules']]/following-sibling::td",
+    ),
     "repo.result_spinner": (
         By.XPATH,
         "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
+    "repo.manage_content.packages": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.packages')]"),
+    "repo.manage_content.puppet_modules": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.puppet-modules')]"),
+    "repo.manage_content.docker_manifests": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.docker-manifests')]"),
+    "repo.manage_content.ostree_branches": (
+        By.XPATH,
+        "//button[contains(@ui-sref,"
+        " 'products.details.repositories.manage-content.ostree-branches)]"),
+    "repo.content_items": (By.XPATH, "//tr[@row-select='item']"),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
@@ -2367,17 +2400,42 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='rule.min_version']"),
     "contentviews.less_max_value": (
         By.XPATH, "//input[@ng-model='rule.max_version']"),
-    "contentviews.select_pkg_checkbox": (
+    "contentviews.packages": (
         By.XPATH,
-        ("//tr[@row-select='rule']"
-         "//td[contains(normalize-space(.), '%s')]"
-         "/preceding-sibling::td[@class='row-select']"
+        "//tr[@row-select='rule']/td/input[@ng-model='rule.name']"),
+    "contentviews.package_checkbox": (
+        By.XPATH,
+        ("../preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
+    "contentviews.package_edit": (
+        By.XPATH,
+        ("../following-sibling::td/button[contains(@class, 'btn') and "
+         "contains(@ng-click, 'rule.editMode = true')]")),
+    "contentviews.package_version_type": (
+        By.XPATH,
+        "../following-sibling::td/span/select[@ng-model='rule.type']"),
+    "contentviews.package_version_value": (
+        By.XPATH,
+        "../following-sibling::td/span/span/input[@ng-model='rule.version']"),
+    "contentviews.package_save": (
+        By.XPATH,
+        ("../following-sibling::td/div/"
+         "button[contains(@ng-click, 'handleSave')]")),
     "contentviews.remove_packages": (
         By.XPATH, "//button[@ng-click='removeRules(filter)']"),
-    "contentviews.affected_repos": (
+    "contentviews.affected_repos_radio": (
         By.XPATH,
-        "//a[contains(@ui-sref, 'filters.details.rpm.repositories')]"),
+        ("//input[@type='radio' and @ng-model='showRepos' and "
+         "@ng-value='true']")),
+    "contentviews.affected_repos_checkboxes": (
+        By.XPATH,
+        "//input[@type='checkbox' and @ng-model='repository.selected']"),
+    "contentviews.affected_repo_checkbox": (
+        By.XPATH,
+        ("//input[@type='checkbox' and @ng-model='repository.selected']"
+         "[../following-sibling::td/a[contains(normalize-space(.), '%s')]]")),
+    "contentviews.filter_update_repos": (
+        By.XPATH, "//button[@ng-click='updateRepositories()']"),
     "contentviews.show_repos": (
         By.XPATH, "//input[@ng-model='showRepos']"),
     "contentviews.select_pkg_group_checkbox": (
@@ -2396,6 +2454,17 @@ locators = LocatorDict({
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
+    "contentviews.erratum_type_checkbox": (
+        By.XPATH, "//input[@ng-model='types.%s']"),
+    "contentviews.erratum_date_type": (
+        By.XPATH, "//input[@type='radio' and @value='%s']"),
+    "contentviews.calendar_date_input": (
+        By.XPATH, "//input[@ng-model='rule.%s']"),
+    "contentviews.calendar_date_button": (
+        By.XPATH, "//input[@ng-model='rule.%s']/../ul"
+                  "//li/button[@ng-click='isOpen = false']"),
+    "contentviews.save_erratum": (
+        By.XPATH, "//button[contains(@ng-click, 'handleSave()')]"),
     "contentviews.add_errata": (
         By.XPATH, "//button[@ng-click='addErrata(filter)']"),
     "contentviews.remove_errata": (
@@ -2418,6 +2487,14 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "contentviews.yum_repositories": (
         By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'yum.list')]"),
+    "contentviews.version.package_name": (
+        By.XPATH,
+        ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
+         "/td[1][contains(., '%s')]")),
+    "contentviews.version.package_version": (
+        By.XPATH,
+        ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
+         "/td[2][contains(., '%s')]")),
 
     # Packages
     "package.rpm_name": (By.XPATH, "//a[contains(., '%s')]"),

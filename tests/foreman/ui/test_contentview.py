@@ -27,11 +27,14 @@ from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
-    FAKE_1_PUPPET_REPO,
     FAKE_0_YUM_REPO,
+    FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
+    FAKE_3_YUM_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_TYPE,
+    FILTER_ERRATA_TYPE,
+    FILTER_ERRATA_DATE,
     PRDS,
     REPOS,
     REPOSET,
@@ -42,6 +45,7 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -308,6 +312,498 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_positive_add_package_inclusion_filter_and_publish(self):
+        """Add package to inclusion content views filter, publish CV and verify
+        package was actually filtered
+
+        @id: 58c32cb5-1392-478e-807a-9c023d5ca0ea
+
+        @assert: Package is included in content view version
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        package1_name = 'cow'
+        package2_name = 'bear'
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['include'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                [package1_name],
+                ['All Versions'],
+                [None],
+                [None],
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package1_name,
+                )
+            )
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package2_name,
+                )
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_add_package_exclusion_filter_and_publish(self):
+        """Add package to exclusion content views filter, publish CV and verify
+        package was actually filtered
+
+        @id: 304dfb76-a222-48ab-b6de-578a2c81210c
+
+        @assert: Package is excluded from content view version
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        package1_name = 'cow'
+        package2_name = 'bear'
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['exclude'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                [package1_name],
+                ['All Versions'],
+                [None],
+                [None],
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package1_name,
+                )
+            )
+            # Verify other packages were not affected by exclusion filter
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package2_name,
+                )
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_package_from_exclusion_filter(self):
+        """Remove package from content view exclusion filter
+
+        @id: 2f0adc16-2305-4adf-8582-82e6110fa385
+
+        @assert: Package was successfully removed from content view filter and
+        is present in next published content view version
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        package_name = 'cow'
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['exclude'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                [package_name],
+                ['Equal To'],
+                ['2.2-3'],
+                [None],
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package_name,
+                )
+            )
+            self.content_views.remove_packages_from_filter(
+                cv_name,
+                filter_name,
+                [package_name],
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 2.0',
+                    package_name,
+                )
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_update_inclusive_filter_package_version(self):
+        """Update version of package inside inclusive cv package filter
+
+        @id: 8d6801de-ab82-49d6-bdeb-0f6e5c95b906
+
+        @assert: Version was updated, next content view version contains
+        package with updated version
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        package_name = 'walrus'
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['include'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                [package_name],
+                ['Equal To'],
+                ['0.71-1'],
+                [None],
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package_name,
+                    '0.71'
+                )
+            )
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package_name,
+                    '5.21'
+                )
+            )
+            self.content_views.update_package_filter(
+                cv_name=cv_name,
+                filter_name=filter_name,
+                package_name=package_name,
+                version_type='Equal To',
+                version_value='0.71-1',
+                new_version_value='5.21-1',
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 2.0',
+                    package_name,
+                    '0.71'
+                )
+            )
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 2.0',
+                    package_name,
+                    '5.21'
+                )
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_update_exclusive_filter_package_version(self):
+        """Update version of package inside exclusive cv package filter
+
+        @id: a8aa8864-190a-46c3-aeed-4953c8f3f601
+
+        @assert: Version was updated, next content view version contains
+        package with updated version
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        package_name = 'walrus'
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['exclude'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                [package_name],
+                ['Equal To'],
+                ['0.71-1'],
+                [None],
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package_name,
+                    '0.71'
+                )
+            )
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    package_name,
+                    '5.21'
+                )
+            )
+            self.content_views.update_package_filter(
+                cv_name=cv_name,
+                filter_name=filter_name,
+                package_name=package_name,
+                version_type='Equal To',
+                version_value='0.71-1',
+                new_version_value='5.21-1',
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 2.0',
+                    package_name,
+                    '0.71'
+                )
+            )
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 2.0',
+                    package_name,
+                    '5.21'
+                )
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_update_filter_affected_repos(self):
+        """Update content view package filter affected repos
+
+        @id: 8f095b11-fd63-4a23-9586-a85d6191314f
+
+        @assert: Affected repos were updated, after new content view version
+        publishing only updated repos are affected by content view filter
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo1_name = gen_string('alpha')
+        repo2_name = gen_string('alpha')
+        repo1_package_name = 'walrus'
+        repo2_package_name = 'Walrus'
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo1_name)
+            self.setup_to_create_cv(
+                repo_name=repo2_name, repo_url=FAKE_3_YUM_REPO)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(
+                cv_name, [repo1_name, repo2_name])
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['include'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                [repo1_package_name],
+                ['Equal To'],
+                ['0.71-1'],
+                [None],
+            )
+            self.content_views.update_filter_affected_repos(
+                cv_name,
+                filter_name,
+                [repo1_name],
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Verify filter affected repo1
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    repo1_package_name,
+                    '0.71'
+                )
+            )
+            self.assertIsNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    repo1_package_name,
+                    '5.21'
+                )
+            )
+            # Verify repo2 was not affected and repo2 packages are present
+            self.assertIsNotNone(
+                self.content_views.package_search(
+                    cv_name,
+                    'Version 1.0',
+                    repo2_package_name,
+                    '5.6.6'
+                )
+            )
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1402826)
+    @tier2
+    def test_negative_add_same_package_filter_twice(self):
+        """Update version of package inside exclusive cv package filter
+
+        @id: 5a97de5a-679e-4150-adf7-b4a28290b834
+
+        @assert: Same package filter can not be added again
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        package_name = 'walrus'
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            for filter_type in FILTER_TYPE['exclude'], FILTER_TYPE['include']:
+                with self.subTest(filter_type):
+                    filter_name = gen_string('alpha')
+                    self.content_views.add_filter(
+                        cv_name,
+                        filter_name,
+                        FILTER_CONTENT_TYPE['package'],
+                        filter_type,
+                    )
+                    self.content_views.add_packages_to_filter(
+                        cv_name,
+                        filter_name,
+                        [package_name],
+                        ['Equal To'],
+                        ['0.71-1'],
+                        [None],
+                    )
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.success_sub_form']))
+                    self.content_views.add_packages_to_filter(
+                        cv_name,
+                        filter_name,
+                        [package_name],
+                        ['Equal To'],
+                        ['0.71-1'],
+                        [None],
+                    )
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.error_sub_form']))
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_add_package_group_filter(self):
         """add package group to content views filter
 
@@ -446,8 +942,9 @@ class ContentViewTestCase(UITestCase):
                     self.assertIsNotNone(self.content_views.wait_until_element(
                         common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_edit_rh_custom_spin(self):
         # Variations might be:
@@ -463,11 +960,49 @@ class ContentViewTestCase(UITestCase):
         @assert: edited content view save is successful and info is
         updated
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: System
         """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        rh_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+            # Create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['erratum by date and type'],
+                FILTER_TYPE['exclude']
+            )
+            # this assertion should find/open the cv and search for our filter
+            self.assertIsNotNone(
+                self.content_views.search_filter(cv_name, filter_name))
+            # go to the filter open it, edit it and save
+            self.content_views.edit_erratum_date_range_filter(
+                cv_name,
+                filter_name,
+                errata_types=[FILTER_ERRATA_TYPE['enhancement'],
+                              FILTER_ERRATA_TYPE['bugfix']],
+                date_type=FILTER_ERRATA_DATE['issued'],
+                start_date='2016-01-01',
+                end_date='2016-06-01',
+                open_filter=True
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier1
@@ -590,7 +1125,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier2
@@ -610,11 +1145,53 @@ class ContentViewTestCase(UITestCase):
 
         @assert: Filtered RH content only is available/can be seen in a view
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        rh_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+            # Create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['erratum by date and type'],
+                FILTER_TYPE['exclude']
+            )
+            # The last executed function will create the filter and open the
+            # edit filter form.
+            # will not assert the filter existence here to not exit from the
+            # filter edit form.
+            # will edit the filter fields immediately with open_filter=False
+            self.content_views.edit_erratum_date_range_filter(
+                cv_name,
+                filter_name,
+                errata_types=[FILTER_ERRATA_TYPE['enhancement'],
+                              FILTER_ERRATA_TYPE['bugfix']],
+                date_type=FILTER_ERRATA_DATE['issued'],
+                start_date='2016-01-01',
+                end_date='2016-06-01',
+                open_filter=False
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # this assertion should find/open the cv and search for our filter
+            self.assertIsNotNone(
+                 self.content_views.search_filter(cv_name, filter_name))
 
     @run_only_on('sat')
     @tier2

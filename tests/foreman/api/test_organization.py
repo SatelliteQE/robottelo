@@ -349,9 +349,12 @@ class OrganizationUpdateTestCase(APITestCase):
         @CaseLevel: Integration
         """
         # Every Satellite has a built-in smart proxy, so let's find it
-        smart_proxies = entities.SmartProxy().search()
-        self.assertGreater(len(smart_proxies), 0)
-        smart_proxy = smart_proxies[0]
+        smart_proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })
+        # Check that proxy is found and unpack it from the list
+        self.assertGreater(len(smart_proxy), 0)
+        smart_proxy = smart_proxy[0]
         # By default, newly created organization uses built-in smart proxy,
         # so we need to remove it first
         org = entities.Organization().create()

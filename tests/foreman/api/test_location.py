@@ -265,7 +265,7 @@ class LocationTestCase(APITestCase):
         # Add capsule to cleanup list
         self.addCleanup(capsule_cleanup, proxy_id)
 
-        proxy = entities.SmartProxy(id=proxy_id).search()[0]
+        proxy = entities.SmartProxy(id=proxy_id).read()
         location = entities.Location(smart_proxy=[proxy]).create()
         # Add location to cleanup list
         self.addCleanup(location_cleanup, location.id)
@@ -575,12 +575,12 @@ class LocationTestCase(APITestCase):
         self.addCleanup(capsule_cleanup, proxy_id_1)
         self.addCleanup(capsule_cleanup, proxy_id_2)
 
-        proxy = entities.SmartProxy(id=proxy_id_1).search()[0]
+        proxy = entities.SmartProxy(id=proxy_id_1).read()
         location = entities.Location(smart_proxy=[proxy]).create()
         # Add location to cleanup list
         self.addCleanup(location_cleanup, location.id)
 
-        new_proxy = entities.SmartProxy(id=proxy_id_2).search()[0]
+        new_proxy = entities.SmartProxy(id=proxy_id_2).read()
         location.smart_proxy = [new_proxy]
         location = location.update(['smart_proxy'])
         self.assertEqual(location.smart_proxy[0].id, new_proxy.id)
@@ -640,7 +640,7 @@ class LocationTestCase(APITestCase):
         # Add capsule to cleanup list
         self.addCleanup(capsule_cleanup, proxy_id)
 
-        proxy = entities.SmartProxy(id=proxy_id).search()[0]
+        proxy = entities.SmartProxy(id=proxy_id).read()
         location = entities.Location(smart_proxy=[proxy]).create()
         # Add location to cleanup list
         self.addCleanup(location_cleanup, location.id)
