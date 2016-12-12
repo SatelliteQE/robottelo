@@ -14,10 +14,8 @@
 
 @Upstream: No
 """
-from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
@@ -25,35 +23,6 @@ from robottelo.test import APITestCase
 
 class ArchitectureTestCase(APITestCase):
     """Tests for architectures."""
-
-    @tier2
-    def test_positive_post_hash(self):
-        """Do not wrap API calls in an extra hash.
-
-        @id: 44654ec5-5211-4326-bcad-9824f36a036f
-
-        @Assert: It is possible to associate an activation key with an
-        organization.
-
-        @CaseLevel: Integration
-        """
-        name = gen_string('utf8')
-        os = entities.OperatingSystem().create()
-        response = client.post(
-            entities.Architecture().path(),
-            {u'name': name, u'operatingsystem_ids': [os.id]},
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
-        attrs = response.json()
-
-        # The server will accept some POSTed attributes (name) and silently
-        # ignore others (operatingsystem_ids).
-        self.assertIn('name', attrs)
-        self.assertEqual(name, attrs['name'])
-        self.assertIn('operatingsystems', attrs)
-        self.assertEqual(os.id, attrs['operatingsystems'][0]['id'])
 
     @tier2
     def test_positive_add_os(self):
