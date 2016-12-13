@@ -1938,28 +1938,6 @@ class ContentViewTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_positive_remove_cv_version_from_default_env(self):
-        """Remove content view version from Library environment
-
-        @id: 308e75df-f872-4a87-a5af-5f3b5b076822
-
-        @Steps:
-
-        1. Create a content view
-        2. Add a yum repo to it
-        3. Publish content view
-        4. remove the published version from Library environment
-
-        @Assert: content view version is removed from Library environment
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
@@ -2123,8 +2101,8 @@ class ContentViewTestCase(CLITestCase):
         3. Publish the content view
         4. Promote the content view to multiple environment
            Library -> DEV -> QE -> STAGE -> PROD
-        5. Delete the content view, this should delete the content with all
-           it's published/promoted versions from all environments
+        5. Delete the content view
+           (may delete the published versions environments prior this step)
 
         @Assert: The content view doesn't exists
 
@@ -2152,11 +2130,8 @@ class ContentViewTestCase(CLITestCase):
         5. Create an Activation key with the QE environment
         6. Register a content-host using the Activation key
         7. Remove the content view cv1 version from QE environment.
-           The remove environment wizard should propose to replace the current
-           QE environment of cv1 by an other (as QE environment of cv1
-           is attached to a content-host),
-           choose DEV and content view cv1 as a replacement for Content-host
-           and for Activation key.
+           Note - prior removing replace the current QE environment of cv1 by
+           DEV and content view cv1 for Content-host and for Activation key.
         8. Refresh content-host subscription
 
         @Assert:
@@ -2194,10 +2169,8 @@ class ContentViewTestCase(CLITestCase):
         5. Create an Activation key with the QE environment and cv1
         6. Register a content-host using the Activation key
         7. Delete the content view cv1.
-           The delete content view wizard should propose to replace the current
-           QE environment of cv1 by an other (as QE environment of cv1
-           is attached to a content-host), choose DEV and content view cv2
-           as a replacement for Content-host and for Activation key.
+           Note - prior deleting replace the current QE environment of cv1 by
+           DEV and content view cv2 for Content-host and for Activation key.
         8. Refresh content-host subscription
 
         @Assert:
