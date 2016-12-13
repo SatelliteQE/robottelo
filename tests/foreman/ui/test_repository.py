@@ -951,7 +951,7 @@ class RepositoryTestCase(UITestCase):
             # Create and sync first repo
             repo1 = entities.Repository(
                 product=self.session_prod,
-                content_type='puppet',
+                content_type=REPO_TYPE['puppet'],
                 url=FAKE_0_PUPPET_REPO,
             ).create()
             repo1.sync()
@@ -960,27 +960,25 @@ class RepositoryTestCase(UITestCase):
             self.repository.search_and_click(repo1.name)
             content_count = self.repository.find_element(
                 locators['repo.fetch_puppet_modules']).text
-            self.repository.click(
-                locators['repo.manage_content.puppet_modules'])
+            self.repository.click(locators['repo.manage_content'])
             modules_num = len(self.repository.find_elements(
-                locators['repo.content_items']))
+                locators['repo.content.puppet_modules']))
             self.assertEqual(content_count, str(modules_num))
             # Create and sync second repo
             repo2 = entities.Repository(
                 product=self.session_prod,
-                content_type='puppet',
+                content_type=REPO_TYPE['puppet'],
                 url=FAKE_1_PUPPET_REPO,
             ).create()
             repo2.sync()
             # Verify that number of modules from the first repo has not changed
             self.products.search_and_click(self.session_prod.name)
             self.repository.search_and_click(repo1.name)
-            self.repository.click(
-                locators['repo.manage_content.puppet_modules'])
+            self.repository.click(locators['repo.manage_content'])
             self.assertEqual(
                 modules_num,
                 len(self.repository.find_elements(
-                    locators['repo.content_items']))
+                    locators['repo.content.puppet_modules']))
             )
 
     @run_in_one_thread
