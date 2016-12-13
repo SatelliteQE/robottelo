@@ -27,6 +27,8 @@ from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO,
     FEDORA23_OSTREE_REPO,
+    FILTER_ERRATA_TYPE,
+    PERMISSIONS,
     PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
     REPOS,
@@ -34,7 +36,6 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -45,7 +46,7 @@ from robottelo.decorators import (
     tier3,
 )
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file
+from robottelo.helpers import get_data_file, get_nailgun_config
 from robottelo.test import APITestCase
 
 
@@ -77,6 +78,9 @@ class ContentViewTestCase(APITestCase):
         lc_env = entities.LifecycleEnvironment(organization=org).create()
         content_view = entities.ContentView(organization=org).create()
 
+        # Check that no host associated to just created content view
+        self.assertEqual(content_view.content_host_count, 0)
+
         # Publish the content view.
         content_view.publish()
         content_view = content_view.read()
@@ -94,15 +98,13 @@ class ContentViewTestCase(APITestCase):
             },
             organization=org,
         ).create()
-        # See BZ #1151240
         self.assertEqual(
             host.content_facet_attributes['content_view_id'], content_view.id)
         self.assertEqual(
             host.content_facet_attributes['lifecycle_environment_id'],
             lc_env.id
         )
-        if not bz_bug_is_open(1223494):
-            self.assertEqual(host.organization.id, org.id)
+        self.assertEqual(content_view.read().content_host_count, 1)
 
     @tier2
     @run_only_on('sat')
@@ -178,7 +180,6 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
 
-    @skip_if_bug_open('bugzilla', 1297308)
     @tier2
     @run_only_on('sat')
     def test_negative_add_puppet_content(self):
@@ -271,6 +272,44 @@ class ContentViewTestCase(APITestCase):
                 content_view=content_view,
             ).create()
         self.assertEqual(len(content_view.read().puppet_module), 1)
+
+    @tier2
+    @stubbed()
+    def test_positive_restart_promote_via_dynflow(self):
+        """Attempt to restart a promotion
+
+        @id: 99fc4562-0230-40a5-aef1-f65f02feae65
+
+        @steps:
+
+        1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
+        2. Via Dynflow, restart promotion
+
+        @assert: Promotion is restarted.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @tier2
+    @stubbed()
+    def test_positive_restart_publish_via_dynflow(self):
+        """Attempt to restart a publish
+
+        @id: 8612959e-cd52-404e-88ec-7351c2d282d0
+
+        @steps:
+
+        1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
+        2. Via Dynflow, restart publish
+
+        @assert: Publish is restarted.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
 
 
 class ContentViewCreateTestCase(APITestCase):
@@ -1083,6 +1122,39 @@ class ContentViewRedHatContent(APITestCase):
         self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
 
     @tier2
+    def test_positive_update_rh_custom_spin(self):
+        """Edit content views for a custom rh spin.  For example,
+        modify a filter
+
+        @id: 81d77ecd-8bac-44c6-8bc2-b6e38ad77a0b
+
+        @assert: edited content view save is successful and info is
+        updated
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 1)
+
+        cvf = entities.ErratumContentViewFilter(
+            content_view=content_view,
+        ).create()
+        self.assertEqual(content_view.id, cvf.content_view.id)
+
+        cv_filter_rule = entities.ContentViewFilterRule(
+            content_view_filter=cvf,
+            types=[FILTER_ERRATA_TYPE['enhancement']]
+        ).create()
+        self.assertEqual(
+            cv_filter_rule.types, [FILTER_ERRATA_TYPE['enhancement']])
+
+        cv_filter_rule.types = [FILTER_ERRATA_TYPE['bugfix']]
+        cv_filter_rule = cv_filter_rule.update(['types'])
+        self.assertEqual(cv_filter_rule.types, [FILTER_ERRATA_TYPE['bugfix']])
+
+    @tier2
     def test_positive_publish_rh(self):
         """Attempt to publish a content view containing Red Hat content
 
@@ -1167,226 +1239,259 @@ class ContentViewRedHatContent(APITestCase):
             len(content_view.read().version[0].read().environment), 2)
 
 
-class ContentViewTestCaseStub(APITestCase):
-    """Incomplete tests for content views."""
-    # Each of these tests should be given a better name when they're
-    # implemented. In the meantime, let's not worry about bad names.
+class ContentViewRolesTestCase(APITestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up organization for tests."""
+        super(ContentViewRolesTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
 
     @tier2
-    @stubbed()
-    def test_positive_update_rh_custom_spin(self):
-        """Edit content views for a custom rh spin.  For example,
-        modify a filter
-
-        @id: 81d77ecd-8bac-44c6-8bc2-b6e38ad77a0b
-
-        @assert: edited content view save is successful and info is
-        updated
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-        # Variations might be:
-        #   * A filter on errata date (only content that matches date
-        # in filter)
-        #   * A filter on severity (only content of specific errata
-        # severity.
-
-    @tier2
-    @stubbed()
-    def test_positive_refresh_errata_new_view_same_env(self):
-        """Attempt to refresh errata in a new view, based on an existing view,
-        from within the same  environment
-
-        @id: a34bc7b3-ad56-4708-8520-5111db92a55f
-
-        @assert: Content view can be published
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @tier3
-    @stubbed()
-    def test_positive_subscribe_host(self):
-        """Attempt to  subscribe hosts to content view(s)
-
-        @id: 56b58c3a-b3de-4de4-add9-fb313ff87a86
-
-        @Assert: Hosts can be subscribed to content view(s)
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-        # Notes:
-        # this should be limited to only those content views
-        # to which you have permission, but there are/will be
-        # other tests for that.
-        # Variations:
-        # * rh content
-        # * rh custom spins
-        # * custom content
-        # * composite
-        # * CVs with puppet modules
-
-    @tier3
-    @stubbed()
-    def test_positive_subscribe_host_custom_cv(self):
-        """Attempt to subscribe hosts to content view(s)
-
-        @id: beffb785-986f-4510-87e6-3645d981afde
-
-        @Assert: Hosts can be subscribed to content view(s)
-
-        @CaseLevel: System
-        """
-        # This test is implemented in tests/foreman/smoke/test_api_smoke.py.
-        # See the end of method TestSmoke.test_smoke.
-
-    @tier2
-    @stubbed()
-    def test_positive_restart_promote_via_dynflow(self):
-        """Attempt to restart a promotion
-
-        @id: 99fc4562-0230-40a5-aef1-f65f02feae65
-
-        @steps:
-
-        1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
-        2. Via Dynflow, restart promotion
-
-        @assert: Promotion is restarted.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @tier2
-    @stubbed()
-    def test_positive_restart_publish_via_dynflow(self):
-        """Attempt to restart a publish
-
-        @id: 8612959e-cd52-404e-88ec-7351c2d282d0
-
-        @steps:
-
-        1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
-        2. Via Dynflow, restart publish
-
-        @assert: Publish is restarted.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    # ROLES TESTING
-    # All this stuff is speculative at best.
-
-    @tier2
-    @stubbed()
     def test_positive_admin_user_actions(self):
-        """Attempt to view content views
+        """Attempt to manage content views
 
         @id: 75b638af-d132-4b5e-b034-a373565c72b4
 
-        @setup: create a user with the Content View admin role
+        @steps:
+        with global admin account:
 
-        @assert: User with admin role for content view can perform all
-        Variations above
+        1. create a user with all content views permissions
+        2. create lifecycle environment
+        3. create 2 content views (one to delete, the other to manage)
 
-        @caseautomation: notautomated
+        @setup: create a user with all content views permissions
+
+        @assert: The user can Read, Modify, Delete, Publish, Promote the
+        content views
 
         @CaseLevel: Integration
         """
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user with admin permissions
-        # for Content Views
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify, Delete, Promote Publish, Subscribe
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        # create a role with all content views permissions
+        role = entities.Role().create()
+        for res_type in ['Katello::ContentView', 'Katello::KTEnvironment']:
+            permission = entities.Permission(resource_type=res_type).search()
+            entities.Filter(
+                organization=[self.org],
+                permission=permission,
+                role=role
+            ).create()
+        # create a user and assign the above created role
+        entities.User(
+            organization=[self.org],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        content_view = entities.ContentView(organization=self.org).create()
+        cfg = get_nailgun_config()
+        cfg.auth = (user_login, user_password)
+        # Check that we cannot create random entity due permission restriction
+        with self.assertRaises(HTTPError):
+            entities.Domain(cfg).create()
+        # Check Read functionality
+        content_view = entities.ContentView(cfg, id=content_view.id).read()
+        # Check Modify functionality
+        entities.ContentView(
+            cfg, id=content_view.id, name=gen_string('alpha')).update(['name'])
+        # Publish the content view.
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        # Promote the content view version.
+        promote(content_view.version[0], lce.id)
+        # Check Delete functionality
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view = entities.ContentView(cfg, id=content_view.id).read()
+        content_view.delete()
+        with self.assertRaises(HTTPError):
+            content_view.read()
 
     @tier2
-    @stubbed()
     def test_positive_readonly_user_actions(self):
         """Attempt to view content views
 
         @id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
 
-        @setup: create a user with the Content View read-only role
+        @setup:
 
-        @assert: User with read-only role for content view can perform all
-        Variations above
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
 
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user with read-only permissions
-        # for Content Views
-        # THIS IS EVEN ASSUMING WE HAVE A "READ-ONLY" ROLE IN THE FIRST PLACE
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify,  Promote?, Publish?, Subscribe??
-
-    @tier2
-    @stubbed()
-    def test_negative_non_admin_user_actions(self):
-        """Attempt to view content views
-
-        @id: fbfe2215-67fe-4147-89ec-5fa84eb299c1
-
-        @setup: create a user with the Content View admin role
-
-        @assert: User withOUT admin role for content view canNOT perform any
-        Variations above
-
-        @caseautomation: notautomated
+        @assert: User with read-only role for content view can view the
+        repository in the content view
 
         @CaseLevel: Integration
         """
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user withOUT admin permissions
-        # for Content Views
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify, Delete, Promote Publish, Subscribe
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        # create a role with content views read only permissions
+        role = entities.Role().create()
+        entities.Filter(
+            organization=[self.org],
+            permission=entities.Permission(
+                resource_type='Katello::ContentView').search(
+                filters={'name': 'view_content_views'}),
+            role=role,
+        ).create()
+        # create read only products permissions and assign it to our role
+        entities.Filter(
+            organization=[self.org],
+            permission=entities.Permission(
+                resource_type='Katello::Product').search(
+                filters={'name': 'view_products'}),
+            role=role,
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            organization=[self.org],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        # Create new content view entity using admin user
+        content_view = entities.ContentView(organization=self.org).create()
+        # add repository to the created content view
+        product = entities.Product(organization=self.org).create()
+        yum_repo = entities.Repository(product=product).create()
+        yum_repo.sync()
+        content_view.repository = [yum_repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 1)
+        cfg = get_nailgun_config()
+        cfg.auth = (user_login, user_password)
+        # Check that we can read content view repository information using user
+        # with read only permissions
+        content_view = entities.ContentView(cfg, id=content_view.id).read()
+        self.assertEqual(len(content_view.repository), 1)
+        self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
 
     @tier2
-    @stubbed()
+    def test_negative_readonly_user_actions(self):
+        """Attempt to manage content views
+
+        @id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
+
+        @setup:
+
+        1. create a user with the Content View read-only role
+        2. create content view
+        3. add a custom repository to content view
+
+        @assert: User with read only role for content view cannot Modify,
+        Delete, Publish, Promote the content views
+
+        @CaseLevel: Integration
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        # create a role with content views read only permissions
+        role = entities.Role().create()
+        entities.Filter(
+            organization=[self.org],
+            permission=entities.Permission(
+                resource_type='Katello::ContentView').search(
+                filters={'name': 'view_content_views'}),
+            role=role,
+        ).create()
+        # create environment permissions and assign it to our role
+        entities.Filter(
+            organization=[self.org],
+            permission=entities.Permission(
+                resource_type='Katello::KTEnvironment').search(),
+            role=role,
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            organization=[self.org],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        # Create new content view entity using admin user
+        content_view = entities.ContentView(organization=self.org).create()
+        cfg = get_nailgun_config()
+        cfg.auth = (user_login, user_password)
+        # Check that we cannot create content view due read-only permission
+        with self.assertRaises(HTTPError):
+            entities.ContentView(cfg, organization=self.org).create()
+        # Check that we can read our content view with custom user
+        content_view = entities.ContentView(cfg, id=content_view.id).read()
+        # Check that we cannot modify content view with custom user
+        with self.assertRaises(HTTPError):
+            entities.ContentView(
+                cfg, id=content_view.id, name=gen_string('alpha')
+            ).update(['name'])
+        # Check that we cannot delete content view due read-only permission
+        with self.assertRaises(HTTPError):
+            content_view.delete()
+        # Check that we cannot publish content view
+        with self.assertRaises(HTTPError):
+            content_view.publish()
+        # Check that we cannot promote content view
+        content_view = entities.ContentView(id=content_view.id).read()
+        content_view.publish()
+        content_view = entities.ContentView(cfg, id=content_view.id).read()
+        self.assertEqual(len(content_view.version), 1)
+        with self.assertRaises(HTTPError):
+            promote(content_view.version[0], lce.id)
+
+    @tier2
     def test_negative_non_readonly_user_actions(self):
         """Attempt to view content views
 
-        @id: 85d3f02e-3bd5-4c31-9c64-76a45a3c30a6
+        @id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
 
-        @setup: create a user withOUT the Content View read-only role
-        @assert: User withOUT read-only role for content view can perform all
-        Variations above
+        @setup: create a user with all Content View permissions except 'view'
+        role
 
-        @caseautomation: notautomated
+        @assert: the user can perform different operations against content
+        view, but not read it
 
         @CaseLevel: Integration
         """
-        # Note:
-        # Obviously all of this stuff should work with 'admin' user
-        # but these tests require creating a user withOUT read-only permissions
-        # for Content Views
-        # THIS IS EVEN ASSUMING WE HAVE A "READ-ONLY" ROLE IN THE FIRST PLACE
-        # Dev note: none of this stuff is integrated with foreman rbac yet
-        # As such, all variations in here subject to change.
-        # Variations:
-        #  * Read, Modify,  Promote?, Publish?, Subscribe??
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        # create a role with all content views permissions except
+        # view_content_views
+        role = entities.Role().create()
+        cv_permissions_entities = entities.Permission(
+            resource_type='Katello::ContentView').search()
+        user_cv_permissions = list(PERMISSIONS['Katello::ContentView'])
+        user_cv_permissions.remove('view_content_views')
+        user_cv_permissions_entities = [
+            entity
+            for entity in cv_permissions_entities
+            if entity.name in user_cv_permissions
+        ]
+        entities.Filter(
+            organization=[self.org],
+            permission=user_cv_permissions_entities,
+            role=role,
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            organization=[self.org],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        # Create new content view entity using admin user
+        content_view = entities.ContentView(organization=self.org).create()
+        cfg = get_nailgun_config()
+        cfg.auth = (user_login, user_password)
+        # Check that we cannot read our content view with custom user
+        with self.assertRaises(HTTPError):
+            entities.ContentView(cfg, id=content_view.id).read()
+        # Check that we have permission to remove the entity
+        entities.ContentView(cfg, id=content_view.id).delete()
+        with self.assertRaises(HTTPError):
+            entities.ContentView(id=content_view.id).read()
 
 
 class OstreeContentViewTestCase(APITestCase):
