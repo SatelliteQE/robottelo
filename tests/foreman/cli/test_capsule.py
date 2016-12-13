@@ -23,8 +23,13 @@ from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
-    run_only_on, stubbed, tier1, tier2, skip_if_not_set
-    )
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.helpers import (
     default_url_on_new_port,
     get_available_capsule_port
@@ -87,7 +92,14 @@ class CapsuleTestCase(CLITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 proxy = make_proxy({u'name': name})
-                Proxy.delete({u'id': proxy['id']})
+                if bz_bug_is_open(1398695):
+                    try:
+                        Proxy.delete({'id': proxy['id']})
+                    except CLIReturnCodeError as err:
+                        if err.return_code != 70:
+                            raise err
+                else:
+                    Proxy.delete({'id': proxy['id']})
                 with self.assertRaises(CLIReturnCodeError):
                     Proxy.info({u'id': proxy['id']})
 
