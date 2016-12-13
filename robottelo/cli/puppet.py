@@ -42,7 +42,10 @@ class Puppet(Base):
              --search SEARCH                    filter results
         """
         cls.command_sub = 'sc-params'
-        return cls.execute(cls._construct_command(options))
+        return cls.execute(
+                cls._construct_command(options),
+                output_format='csv'
+        )
 
     @classmethod
     def smart_variables(cls, options=None):
@@ -59,4 +62,7 @@ class Puppet(Base):
              --search SEARCH                    filter results
          """
         cls.command_sub = 'smart-variables'
-        return cls.execute(cls._construct_command(options))
+        return cls.execute(
+                cls._construct_command(options),
+                output_format='csv'
+        )
