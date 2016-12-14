@@ -39,6 +39,10 @@ from robottelo.constants import (
     FAKE_1_ERRATA_ID,
     FAKE_2_ERRATA_ID,
     FAKE_3_ERRATA_ID,
+    FAKE_0_YUM_ERRATUM_COUNT,
+    FAKE_1_YUM_ERRATUM_COUNT,
+    FAKE_3_YUM_ERRATUM_COUNT,
+    FAKE_6_YUM_ERRATUM_COUNT,
     FAKE_0_YUM_REPO,
     FAKE_1_YUM_REPO,
     FAKE_3_YUM_REPO,
@@ -282,12 +286,10 @@ class ErrataTestCase(CLITestCase):
     def setUpClass(cls):
         """Create 3 organizations
 
-           1- Create an org with one custom product & repository
-
-           2- Create an org2 with an other custom product & repository
-
-           3- Create an org3 with two other products, each containing one
-              custom repository
+           1. Create an org with one custom product & repository
+           2. Create an other org with an other custom product & repository
+           3. Create a multi products org with two other products, each
+              containing one custom repository
 
            note: all products repositories contain erratum
            """
@@ -295,47 +297,58 @@ class ErrataTestCase(CLITestCase):
         cls.org = make_org()
         cls.org_product = make_product(
             options={'organization-id': cls.org['id']})
-        cls.org_custom_repo = make_repository({
+        repo = make_repository({
             'download-policy': 'immediate',
             'organization-id': cls.org['id'],
             'product-id': cls.org_product['id'],
             'url': FAKE_6_YUM_REPO
         })
-        Repository.synchronize({'id': cls.org_custom_repo['id']})
-        cls.org2 = make_org()
-        cls.org2_product = make_product(
-            options={'organization-id': cls.org2['id']})
-        cls.org2_custom_repo = make_repository({
+        Repository.synchronize({'id': repo['id']})
+        cls.org_product_erratum_count = FAKE_6_YUM_ERRATUM_COUNT
+        cls.org_product_errata_id = FAKE_2_ERRATA_ID
+        # create an other org
+        cls.errata_org = make_org()
+        cls.errata_org_product = make_product(
+            options={'organization-id': cls.errata_org['id']})
+        repo = make_repository({
             'download-policy': 'immediate',
-            'organization-id': cls.org2['id'],
-            'product-id': cls.org2_product['id'],
+            'organization-id': cls.errata_org['id'],
+            'product-id': cls.errata_org_product['id'],
             'url': FAKE_1_YUM_REPO
         })
-        Repository.synchronize({'id': cls.org2_custom_repo['id']})
-        cls.org3 = make_org()
-        cls.org3_product1 = make_product(
-            options={'organization-id': cls.org3['id']})
-        cls.org3_custom_repo1 = make_repository({
+        Repository.synchronize({'id': repo['id']})
+        cls.errata_org_product_erratum_count = FAKE_1_YUM_ERRATUM_COUNT
+        cls.errata_org_product_errata_id = FAKE_1_ERRATA_ID
+        # create org_multi, a new org with multi products
+        cls.org_multi = make_org()
+        cls.org_multi_product_small = make_product(
+            options={'organization-id': cls.org_multi['id']})
+        repo = make_repository({
             'download-policy': 'immediate',
-            'organization-id': cls.org3['id'],
-            'product-id': cls.org3_product1['id'],
+            'organization-id': cls.org_multi['id'],
+            'product-id': cls.org_multi_product_small['id'],
             'url': FAKE_0_YUM_REPO
         })
-        Repository.synchronize({'id': cls.org3_custom_repo1['id']})
-        cls.org3_product2 = make_product(
-            options={'organization-id': cls.org3['id']})
-        cls.org3_custom_repo2 = make_repository({
+        Repository.synchronize({'id': repo['id']})
+        cls.org_multi_product_small_erratum_count = FAKE_0_YUM_ERRATUM_COUNT
+        cls.org_multi_product_small_errata_id = FAKE_0_ERRATA_ID
+        cls.org_multi_product_big = make_product(
+            options={'organization-id': cls.org_multi['id']})
+        repo = make_repository({
             'download-policy': 'immediate',
-            'organization-id': cls.org3['id'],
-            'product-id': cls.org3_product2['id'],
+            'organization-id': cls.org_multi['id'],
+            'product-id': cls.org_multi_product_big['id'],
             'url': FAKE_3_YUM_REPO
         })
-        Repository.synchronize({'id': cls.org3_custom_repo2['id']})
+        Repository.synchronize({'id': repo['id']})
+        cls.org_multi_product_big_erratum_count = FAKE_3_YUM_ERRATUM_COUNT
+        cls.org_multi_product_big_errata_id = FAKE_3_ERRATA_ID
 
     @staticmethod
     def _get_sorted_erratum_ids_info(erratum_ids, sort_by='issued',
                                      sort_reversed=False):
         """Query hammer for erratum ids info
+
         :param erratum_ids: a list of errata id
         :param sort_by: the field to sort by the results (issued or updated)
         :param sort_reversed: whether the sort should be reversed
@@ -376,8 +389,10 @@ class ErrataTestCase(CLITestCase):
             sort_text = '{0} {1}'.format(sort_field, sort_order)
             sort_reversed = True if sort_order == 'DESC' else False
             with self.subTest(sort_text):
-                erratum_list = Erratum.list({'order': sort_text,
-                                             'per-page': ERRATUM_MAX_IDS_INFO})
+                erratum_list = Erratum.list({
+                    'order': sort_text,
+                    'per-page': ERRATUM_MAX_IDS_INFO
+                })
                 # note: the erratum_list, contain a list of restraint info
                 # (id, errata-id, type, title) about each errata
                 self.assertGreater(len(erratum_list), 0)
@@ -408,7 +423,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
-                self.assertEquals(
+                self.assertEqual(
                     sort_field_values,
                     sorted(sort_field_values, reverse=sort_reversed)
                 )
@@ -420,7 +435,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
-                self.assertEquals(errata_ids, sorted_errata_ids)
+                self.assertEqual(errata_ids, sorted_errata_ids)
 
     @tier3
     def test_positive_list_filter_by_org_id_and_sort_by_updated_date(self):
@@ -477,7 +492,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
-                self.assertEquals(
+                self.assertEqual(
                     sort_field_values,
                     sorted(sort_field_values, reverse=sort_reversed)
                 )
@@ -489,7 +504,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
-                self.assertEquals(errata_ids, sorted_errata_ids)
+                self.assertEqual(errata_ids, sorted_errata_ids)
 
     @tier3
     def test_positive_list_filter_by_org_name_and_sort_by_updated_date(self):
@@ -546,7 +561,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
-                self.assertEquals(
+                self.assertEqual(
                     sort_field_values,
                     sorted(sort_field_values, reverse=sort_reversed)
                 )
@@ -558,7 +573,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
-                self.assertEquals(errata_ids, sorted_errata_ids)
+                self.assertEqual(errata_ids, sorted_errata_ids)
 
     @tier3
     def test_positive_list_filter_by_org_label_and_sort_by_updated_date(self):
@@ -615,7 +630,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
-                self.assertEquals(
+                self.assertEqual(
                     sort_field_values,
                     sorted(sort_field_values, reverse=sort_reversed)
                 )
@@ -627,7 +642,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
-                self.assertEquals(errata_ids, sorted_errata_ids)
+                self.assertEqual(errata_ids, sorted_errata_ids)
 
     @tier3
     def test_positive_list_filter_by_org_id_and_sort_by_issued_date(self):
@@ -684,7 +699,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
-                self.assertEquals(
+                self.assertEqual(
                     sort_field_values,
                     sorted(sort_field_values, reverse=sort_reversed)
                 )
@@ -696,7 +711,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
-                self.assertEquals(errata_ids, sorted_errata_ids)
+                self.assertEqual(errata_ids, sorted_errata_ids)
 
     @tier3
     def test_positive_list_filter_by_org_name_and_sort_by_issued_date(self):
@@ -753,7 +768,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
-                self.assertEquals(
+                self.assertEqual(
                     sort_field_values,
                     sorted(sort_field_values, reverse=sort_reversed)
                 )
@@ -765,7 +780,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
-                self.assertEquals(errata_ids, sorted_errata_ids)
+                self.assertEqual(errata_ids, sorted_errata_ids)
 
     @tier3
     def test_positive_list_filter_by_org_label_and_sort_by_issued_date(self):
@@ -822,7 +837,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the sort field (issued/updated) values are sorted
                 # as needed
-                self.assertEquals(
+                self.assertEqual(
                     sort_field_values,
                     sorted(sort_field_values, reverse=sort_reversed)
                 )
@@ -834,7 +849,7 @@ class ErrataTestCase(CLITestCase):
                 ]
                 # ensure that the errata ids received by Erratum.list is sorted
                 # as needed
-                self.assertEquals(errata_ids, sorted_errata_ids)
+                self.assertEqual(errata_ids, sorted_errata_ids)
 
     @tier3
     def test_positive_list_filter_by_product_id(self):
@@ -850,28 +865,33 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by product id.
         """
-        product_erratum_list = Erratum.list({
+        org_product_erratum_list = Erratum.list({
             'product-id': self.org_product['id'],
             'per-page': 1000
         })
-        product_errata_ids = {
+        org_product_errata_ids = {
             errata['errata-id']
-            for errata in product_erratum_list
+            for errata in org_product_erratum_list
             }
-        product2_erratum_list = Erratum.list({
-            'product-id': self.org2_product['id'],
+        errata_org_product_erratum_list = Erratum.list({
+            'product-id': self.errata_org_product['id'],
             'per-page': 1000
         })
-        product2_errata_ids = {
+        errata_org_product_errata_ids = {
             errata['errata-id']
-            for errata in product2_erratum_list
+            for errata in errata_org_product_erratum_list
         }
-        self.assertEquals(len(product_errata_ids), 4)
-        self.assertEquals(len(product2_errata_ids), 4)
-        self.assertIn(FAKE_2_ERRATA_ID, product_errata_ids)
-        self.assertIn(FAKE_1_ERRATA_ID, product2_errata_ids)
-        self.assertSetEqual(
-            product_errata_ids.intersection(product2_errata_ids),
+        self.assertEqual(
+            len(org_product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(errata_org_product_errata_ids),
+            self.errata_org_product_erratum_count
+        )
+        self.assertIn(self.org_product_errata_id, org_product_errata_ids)
+        self.assertIn(
+            self.errata_org_product_errata_id, errata_org_product_errata_ids)
+        self.assertEqual(
+            org_product_errata_ids.intersection(errata_org_product_errata_ids),
             set([])
         )
 
@@ -889,49 +909,61 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by product id and Org id.
         """
-        org_product_erratum_list = Erratum.list({
+        product_erratum_list = Erratum.list({
             'organization-id': self.org['id'],
             'product-id': self.org_product['id'],
             'per-page': 1000
         })
-        org_product_errata_ids = {
+        product_errata_ids = {
             errata['errata-id']
-            for errata in org_product_erratum_list
+            for errata in product_erratum_list
         }
-        org3_product1_erratum_list = Erratum.list({
-            'organization-id': self.org3['id'],
-            'product-id': self.org3_product1['id'],
+        product_small_erratum_list = Erratum.list({
+            'organization-id': self.org_multi['id'],
+            'product-id': self.org_multi_product_small['id'],
             'per-page': 1000
         })
-        org3_product1_errata_ids = {
+        product_small_errata_ids = {
             errata['errata-id']
-            for errata in org3_product1_erratum_list
+            for errata in product_small_erratum_list
         }
-        org3_product2_erratum_list = Erratum.list({
-            'organization-id': self.org3['id'],
-            'product-id': self.org3_product2['id'],
+        product_big_erratum_list = Erratum.list({
+            'organization-id': self.org_multi['id'],
+            'product-id': self.org_multi_product_big['id'],
             'per-page': 1000
         })
-        org3_product2_errata_ids = {
+        product_big_errata_ids = {
             errata['errata-id']
-            for errata in org3_product2_erratum_list
+            for errata in product_big_erratum_list
         }
-        self.assertEquals(len(org_product_errata_ids), 4)
-        self.assertEquals(len(org3_product1_errata_ids), 4)
-        self.assertEquals(len(org3_product2_errata_ids), 79)
-        self.assertIn(FAKE_2_ERRATA_ID, org_product_errata_ids)
-        self.assertIn(FAKE_0_ERRATA_ID, org3_product1_errata_ids)
-        self.assertIn(FAKE_3_ERRATA_ID, org3_product2_errata_ids)
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product1_errata_ids),
+        self.assertEqual(
+            len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(product_small_errata_ids),
+            self.org_multi_product_small_erratum_count
+        )
+        self.assertEqual(
+            len(product_big_errata_ids),
+            self.org_multi_product_big_erratum_count
+        )
+        self.assertIn(self.org_product_errata_id, product_errata_ids)
+        self.assertIn(
+            self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(
+            self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(
+            product_errata_ids.intersection(
+                product_small_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_errata_ids.intersection(
+                product_big_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org3_product1_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_small_errata_ids.intersection(
+                product_big_errata_ids),
             set([])
         )
 
@@ -949,49 +981,60 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by product id and Org name.
         """
-        org_product_erratum_list = Erratum.list({
+        product_erratum_list = Erratum.list({
             'organization': self.org['name'],
             'product-id': self.org_product['id'],
             'per-page': 1000
         })
-        org_product_errata_ids = {
+        product_errata_ids = {
             errata['errata-id']
-            for errata in org_product_erratum_list
+            for errata in product_erratum_list
         }
-        org3_product1_erratum_list = Erratum.list({
-            'organization': self.org3['name'],
-            'product-id': self.org3_product1['id'],
+        product_small_erratum_list = Erratum.list({
+            'organization': self.org_multi['name'],
+            'product-id': self.org_multi_product_small['id'],
             'per-page': 1000
         })
-        org3_product1_errata_ids = {
+        product_small_errata_ids = {
             errata['errata-id']
-            for errata in org3_product1_erratum_list
+            for errata in product_small_erratum_list
         }
-        org3_product2_erratum_list = Erratum.list({
-            'organization': self.org3['name'],
-            'product-id': self.org3_product2['id'],
+        product_big_erratum_list = Erratum.list({
+            'organization': self.org_multi['name'],
+            'product-id': self.org_multi_product_big['id'],
             'per-page': 1000
         })
-        org3_product2_errata_ids = {
+        product_big_errata_ids = {
             errata['errata-id']
-            for errata in org3_product2_erratum_list
+            for errata in product_big_erratum_list
         }
-        self.assertEquals(len(org_product_errata_ids), 4)
-        self.assertEquals(len(org3_product1_errata_ids), 4)
-        self.assertEquals(len(org3_product2_errata_ids), 79)
-        self.assertIn(FAKE_2_ERRATA_ID, org_product_errata_ids)
-        self.assertIn(FAKE_0_ERRATA_ID, org3_product1_errata_ids)
-        self.assertIn(FAKE_3_ERRATA_ID, org3_product2_errata_ids)
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product1_errata_ids),
+        self.assertEqual(
+            len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(product_small_errata_ids),
+            self.org_multi_product_small_erratum_count
+        )
+        self.assertEqual(
+            len(product_big_errata_ids),
+            self.org_multi_product_big_erratum_count
+        )
+        self.assertIn(self.org_product_errata_id, product_errata_ids)
+        self.assertIn(
+            self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(
+            self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(
+            product_errata_ids.intersection(product_small_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_errata_ids.intersection(
+                product_big_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org3_product1_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_small_errata_ids.intersection(
+                product_big_errata_ids),
             set([])
         )
 
@@ -1010,49 +1053,58 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by product id and Org label
         """
-        org_product_erratum_list = Erratum.list({
+        product_erratum_list = Erratum.list({
             'organization-label': self.org['label'],
             'product-id': self.org_product['id'],
             'per-page': 1000
         })
-        org_product_errata_ids = {
+        product_errata_ids = {
             errata['errata-id']
-            for errata in org_product_erratum_list
+            for errata in product_erratum_list
         }
-        org3_product1_erratum_list = Erratum.list({
-            'organization-label': self.org3['label'],
-            'product-id': self.org3_product1['id'],
+        product_small_erratum_list = Erratum.list({
+            'organization-label': self.org_multi['label'],
+            'product-id': self.org_multi_product_small['id'],
             'per-page': 1000
         })
-        org3_product1_errata_ids = {
+        product_small_errata_ids = {
             errata['errata-id']
-            for errata in org3_product1_erratum_list
+            for errata in product_small_erratum_list
         }
-        org3_product2_erratum_list = Erratum.list({
-            'organization-label': self.org3['label'],
-            'product-id': self.org3_product2['id'],
+        product_big_erratum_list = Erratum.list({
+            'organization-label': self.org_multi['label'],
+            'product-id': self.org_multi_product_big['id'],
             'per-page': 1000
         })
-        org3_product2_errata_ids = {
+        product_big_errata_ids = {
             errata['errata-id']
-            for errata in org3_product2_erratum_list
+            for errata in product_big_erratum_list
         }
-        self.assertEquals(len(org_product_errata_ids), 4)
-        self.assertEquals(len(org3_product1_errata_ids), 4)
-        self.assertEquals(len(org3_product2_errata_ids), 79)
-        self.assertIn(FAKE_2_ERRATA_ID, org_product_errata_ids)
-        self.assertIn(FAKE_0_ERRATA_ID, org3_product1_errata_ids)
-        self.assertIn(FAKE_3_ERRATA_ID, org3_product2_errata_ids)
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product1_errata_ids),
+        self.assertEqual(
+            len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(product_small_errata_ids),
+            self.org_multi_product_small_erratum_count
+        )
+        self.assertEqual(
+            len(product_big_errata_ids),
+            self.org_multi_product_big_erratum_count
+        )
+        self.assertIn(self.org_product_errata_id, product_errata_ids)
+        self.assertIn(
+            self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(
+            self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(
+            product_errata_ids.intersection(product_small_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org3_product1_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_small_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
 
@@ -1089,49 +1141,58 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by product name and Org id.
         """
-        org_product_erratum_list = Erratum.list({
+        product_erratum_list = Erratum.list({
             'organization-id': self.org['id'],
             'product': self.org_product['name'],
             'per-page': 1000
         })
-        org_product_errata_ids = {
+        product_errata_ids = {
             errata['errata-id']
-            for errata in org_product_erratum_list
+            for errata in product_erratum_list
         }
-        org3_product1_erratum_list = Erratum.list({
-            'organization-id': self.org3['id'],
-            'product': self.org3_product1['name'],
+        product_small_erratum_list = Erratum.list({
+            'organization-id': self.org_multi['id'],
+            'product': self.org_multi_product_small['name'],
             'per-page': 1000
         })
-        org3_product1_errata_ids = {
+        product_small_errata_ids = {
             errata['errata-id']
-            for errata in org3_product1_erratum_list
+            for errata in product_small_erratum_list
         }
-        org3_product2_erratum_list = Erratum.list({
-            'organization-id': self.org3['id'],
-            'product': self.org3_product2['name'],
+        product_big_erratum_list = Erratum.list({
+            'organization-id': self.org_multi['id'],
+            'product': self.org_multi_product_big['name'],
             'per-page': 1000
         })
-        org3_product2_errata_ids = {
+        product_big_errata_ids = {
             errata['errata-id']
-            for errata in org3_product2_erratum_list
+            for errata in product_big_erratum_list
         }
-        self.assertEquals(len(org_product_errata_ids), 4)
-        self.assertEquals(len(org3_product1_errata_ids), 4)
-        self.assertEquals(len(org3_product2_errata_ids), 79)
-        self.assertIn(FAKE_2_ERRATA_ID, org_product_errata_ids)
-        self.assertIn(FAKE_0_ERRATA_ID, org3_product1_errata_ids)
-        self.assertIn(FAKE_3_ERRATA_ID, org3_product2_errata_ids)
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product1_errata_ids),
+        self.assertEqual(
+            len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(product_small_errata_ids),
+            self.org_multi_product_small_erratum_count
+        )
+        self.assertEqual(
+            len(product_big_errata_ids),
+            self.org_multi_product_big_erratum_count
+        )
+        self.assertIn(self.org_product_errata_id, product_errata_ids)
+        self.assertIn(
+            self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(
+            self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(
+            product_errata_ids.intersection(product_small_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org3_product1_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_small_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
 
@@ -1149,49 +1210,58 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by product name and Org name.
         """
-        org_product_erratum_list = Erratum.list({
+        product_erratum_list = Erratum.list({
             'organization': self.org['name'],
             'product': self.org_product['name'],
             'per-page': 1000
         })
-        org_product_errata_ids = {
+        product_errata_ids = {
             errata['errata-id']
-            for errata in org_product_erratum_list
+            for errata in product_erratum_list
         }
-        org3_product1_erratum_list = Erratum.list({
-            'organization': self.org3['name'],
-            'product': self.org3_product1['name'],
+        product_small_erratum_list = Erratum.list({
+            'organization': self.org_multi['name'],
+            'product': self.org_multi_product_small['name'],
             'per-page': 1000
         })
-        org3_product1_errata_ids = {
+        product_small_errata_ids = {
             errata['errata-id']
-            for errata in org3_product1_erratum_list
+            for errata in product_small_erratum_list
         }
-        org3_product2_erratum_list = Erratum.list({
-            'organization': self.org3['name'],
-            'product': self.org3_product2['name'],
+        product_big_erratum_list = Erratum.list({
+            'organization': self.org_multi['name'],
+            'product': self.org_multi_product_big['name'],
             'per-page': 1000
         })
-        org3_product2_errata_ids = {
+        product_big_errata_ids = {
             errata['errata-id']
-            for errata in org3_product2_erratum_list
+            for errata in product_big_erratum_list
         }
-        self.assertEquals(len(org_product_errata_ids), 4)
-        self.assertEquals(len(org3_product1_errata_ids), 4)
-        self.assertEquals(len(org3_product2_errata_ids), 79)
-        self.assertIn(FAKE_2_ERRATA_ID, org_product_errata_ids)
-        self.assertIn(FAKE_0_ERRATA_ID, org3_product1_errata_ids)
-        self.assertIn(FAKE_3_ERRATA_ID, org3_product2_errata_ids)
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product1_errata_ids),
+        self.assertEqual(
+            len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(product_small_errata_ids),
+            self.org_multi_product_small_erratum_count
+        )
+        self.assertEqual(
+            len(product_big_errata_ids),
+            self.org_multi_product_big_erratum_count
+        )
+        self.assertIn(self.org_product_errata_id, product_errata_ids)
+        self.assertIn(
+            self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(
+            self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(
+            product_errata_ids.intersection(product_small_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org3_product1_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_small_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
 
@@ -1210,49 +1280,58 @@ class ErrataTestCase(CLITestCase):
 
         @Assert: Errata is filtered by product name and Org label.
         """
-        org_product_erratum_list = Erratum.list({
+        product_erratum_list = Erratum.list({
             'organization-label': self.org['label'],
             'product': self.org_product['name'],
             'per-page': 1000
         })
-        org_product_errata_ids = {
+        product_errata_ids = {
             errata['errata-id']
-            for errata in org_product_erratum_list
+            for errata in product_erratum_list
         }
-        org3_product1_erratum_list = Erratum.list({
-            'organization-label': self.org3['label'],
-            'product': self.org3_product1['name'],
+        product_small_erratum_list = Erratum.list({
+            'organization-label': self.org_multi['label'],
+            'product': self.org_multi_product_small['name'],
             'per-page': 1000
         })
-        org3_product1_errata_ids = {
+        product_small_errata_ids = {
             errata['errata-id']
-            for errata in org3_product1_erratum_list
+            for errata in product_small_erratum_list
         }
-        org3_product2_erratum_list = Erratum.list({
-            'organization-label': self.org3['label'],
-            'product': self.org3_product2['name'],
+        product_big_erratum_list = Erratum.list({
+            'organization-label': self.org_multi['label'],
+            'product': self.org_multi_product_big['name'],
             'per-page': 1000
         })
-        org3_product2_errata_ids = {
+        product_big_errata_ids = {
             errata['errata-id']
-            for errata in org3_product2_erratum_list
+            for errata in product_big_erratum_list
         }
-        self.assertEquals(len(org_product_errata_ids), 4)
-        self.assertEquals(len(org3_product1_errata_ids), 4)
-        self.assertEquals(len(org3_product2_errata_ids), 79)
-        self.assertIn(FAKE_2_ERRATA_ID, org_product_errata_ids)
-        self.assertIn(FAKE_0_ERRATA_ID, org3_product1_errata_ids)
-        self.assertIn(FAKE_3_ERRATA_ID, org3_product2_errata_ids)
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product1_errata_ids),
+        self.assertEqual(
+            len(product_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(product_small_errata_ids),
+            self.org_multi_product_small_erratum_count
+        )
+        self.assertEqual(
+            len(product_big_errata_ids),
+            self.org_multi_product_big_erratum_count
+        )
+        self.assertIn(self.org_product_errata_id, product_errata_ids)
+        self.assertIn(
+            self.org_multi_product_small_errata_id, product_small_errata_ids)
+        self.assertIn(
+            self.org_multi_product_big_errata_id, product_big_errata_ids)
+        self.assertEqual(
+            product_errata_ids.intersection(product_small_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org_product_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
-        self.assertSetEqual(
-            org3_product1_errata_ids.intersection(org3_product2_errata_ids),
+        self.assertEqual(
+            product_small_errata_ids.intersection(product_big_errata_ids),
             set([])
         )
 
@@ -1278,20 +1357,21 @@ class ErrataTestCase(CLITestCase):
             errata['errata-id']
             for errata in org_erratum_list
         }
-        org2_erratum_list = Erratum.list({
-            'organization-id': self.org2['id'],
+        errata_org_erratum_list = Erratum.list({
+            'organization-id': self.errata_org['id'],
             'per-page': 1000
         })
-        org2_product_errata_ids = {
+        errata_org_errata_ids = {
             errata['errata-id']
-            for errata in org2_erratum_list
+            for errata in errata_org_erratum_list
         }
-        self.assertEquals(len(org_errata_ids), 4)
-        self.assertEquals(len(org2_product_errata_ids), 4)
-        self.assertIn(FAKE_2_ERRATA_ID, org_errata_ids)
-        self.assertIn(FAKE_1_ERRATA_ID, org2_product_errata_ids)
-        self.assertSetEqual(
-            org_errata_ids.intersection(org2_product_errata_ids),
+        self.assertEqual(len(org_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(errata_org_errata_ids), self.errata_org_product_erratum_count)
+        self.assertIn(self.org_product_errata_id, org_errata_ids)
+        self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
+        self.assertEqual(
+            org_errata_ids.intersection(errata_org_errata_ids),
             set([])
         )
 
@@ -1317,20 +1397,21 @@ class ErrataTestCase(CLITestCase):
             errata['errata-id']
             for errata in org_erratum_list
         }
-        org2_erratum_list = Erratum.list({
-            'organization': self.org2['name'],
+        errata_org_erratum_list = Erratum.list({
+            'organization': self.errata_org['name'],
             'per-page': 1000
         })
-        org2_product_errata_ids = {
+        errata_org_errata_ids = {
             errata['errata-id']
-            for errata in org2_erratum_list
+            for errata in errata_org_erratum_list
         }
-        self.assertEquals(len(org_errata_ids), 4)
-        self.assertEquals(len(org2_product_errata_ids), 4)
-        self.assertIn(FAKE_2_ERRATA_ID, org_errata_ids)
-        self.assertIn(FAKE_1_ERRATA_ID, org2_product_errata_ids)
-        self.assertSetEqual(
-            org_errata_ids.intersection(org2_product_errata_ids),
+        self.assertEqual(len(org_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(errata_org_errata_ids), self.errata_org_product_erratum_count)
+        self.assertIn(self.org_product_errata_id, org_errata_ids)
+        self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
+        self.assertEqual(
+            org_errata_ids.intersection(errata_org_errata_ids),
             set([])
         )
 
@@ -1356,20 +1437,21 @@ class ErrataTestCase(CLITestCase):
             errata['errata-id']
             for errata in org_erratum_list
         }
-        org2_erratum_list = Erratum.list({
-            'organization-label': self.org2['label'],
+        errata_org_erratum_list = Erratum.list({
+            'organization-label': self.errata_org['label'],
             'per-page': 1000
         })
-        org2_product_errata_ids = {
+        errata_org_errata_ids = {
             errata['errata-id']
-            for errata in org2_erratum_list
+            for errata in errata_org_erratum_list
         }
-        self.assertEquals(len(org_errata_ids), 4)
-        self.assertEquals(len(org2_product_errata_ids), 4)
-        self.assertIn(FAKE_2_ERRATA_ID, org_errata_ids)
-        self.assertIn(FAKE_1_ERRATA_ID, org2_product_errata_ids)
-        self.assertSetEqual(
-            org_errata_ids.intersection(org2_product_errata_ids),
+        self.assertEqual(len(org_errata_ids), self.org_product_erratum_count)
+        self.assertEqual(
+            len(errata_org_errata_ids), self.errata_org_product_erratum_count)
+        self.assertIn(self.org_product_errata_id, org_errata_ids)
+        self.assertIn(self.errata_org_product_errata_id, errata_org_errata_ids)
+        self.assertEqual(
+            org_errata_ids.intersection(errata_org_errata_ids),
             set([])
         )
 
@@ -1448,8 +1530,8 @@ class ErrataTestCase(CLITestCase):
         """
         user_password = gen_string('alphanumeric')
         user_name = gen_string('alphanumeric')
-        org = self.org3
-        product = self.org3_product1
+        org = self.org_multi
+        product = self.org_multi_product_small
         # get the available permissions
         permissions = Filter.available_permissions()
         user_required_permissions_names = ['view_products']
@@ -1502,11 +1584,13 @@ class ErrataTestCase(CLITestCase):
                 errata['errata-id']
                 for errata in admin_org_erratum_info_list
             ]
-            self.assertIn(FAKE_0_ERRATA_ID, admin_org_errata_ids)
-            self.assertIn(FAKE_3_ERRATA_ID, admin_org_errata_ids)
-            # org3_product1 has 4 erratum, org3_product2 has 79 erratum,
-            # the number of erratum of all org3 products = 83
-            self.assertEqual(len(admin_org_errata_ids), 83)
+            self.assertIn(
+                self.org_multi_product_small_errata_id, admin_org_errata_ids)
+            self.assertIn(
+                self.org_multi_product_big_errata_id, admin_org_errata_ids)
+            org_erratum_count = (self.org_multi_product_small_erratum_count +
+                                 self.org_multi_product_big_erratum_count)
+            self.assertEqual(len(admin_org_errata_ids), org_erratum_count)
         # ensure that the created user see only the erratum product that was
         # assigned in permissions
         user_org_erratum_info_list = Erratum.with_user(
@@ -1515,9 +1599,14 @@ class ErrataTestCase(CLITestCase):
             errata['errata-id']
             for errata in user_org_erratum_info_list
         ]
-        self.assertEqual(len(user_org_errata_ids), 4)
-        self.assertIn(FAKE_0_ERRATA_ID, user_org_errata_ids)
-        self.assertNotIn(FAKE_3_ERRATA_ID, user_org_errata_ids)
+        self.assertEqual(
+            len(user_org_errata_ids),
+            self.org_multi_product_small_erratum_count
+        )
+        self.assertIn(
+            self.org_multi_product_small_errata_id, user_org_errata_ids)
+        self.assertNotIn(
+            self.org_multi_product_big_errata_id, user_org_errata_ids)
 
     @stubbed()
     def test_positive_list_affected_chosts(self):
