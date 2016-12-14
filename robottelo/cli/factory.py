@@ -23,7 +23,6 @@ from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import (
     ContentView,
     ContentViewFilter,
@@ -1097,49 +1096,6 @@ def make_sync_plan(options=None):
     }
 
     return create_object(SyncPlan, args, options)
-
-
-@cacheable
-def make_content_host(options=None):
-    """Register a content host by running ``hammer host subscription
-    register``.
-
-    Return the information about the created content host by running ``hammer
-    content-host info``.
-    """
-    # Organization ID is a required field.
-    if not options:
-        raise CLIFactoryError('Please provide required parameters')
-
-    # Do we have at least one organization field?
-    if not any(options.get(key) for key in ORG_KEYS):
-        raise CLIFactoryError('Please provide a valid organization field.')
-
-    # Do we have at least one content view field?
-    if not any(options.get(key) for key in CONTENT_VIEW_KEYS):
-        raise CLIFactoryError(
-            'Please provide one of {0}.'.format(', '.join(CONTENT_VIEW_KEYS)))
-
-    # Do we have at least one lifecycle-environment field?
-    if not any(options.get(key) for key in LIFECYCLE_KEYS):
-        raise CLIFactoryError(
-            'Please provide one of {0}.'.format(', '.join(LIFECYCLE_KEYS)))
-
-    args = {
-        u'content-view': None,
-        u'content-view-id': None,
-        u'hypervisor-guest-uuids': None,
-        u'lifecycle-environment': None,
-        u'lifecycle-environment-id': None,
-        u'name': gen_string('alpha', 20),
-        u'organization': None,
-        u'organization-id': None,
-        u'organization-label': None,
-        u'release-version': None,
-        u'service-level': None,
-        u'uuid': None,
-    }
-    return create_object(ContentHost, args, options)
 
 
 @cacheable

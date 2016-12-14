@@ -33,11 +33,6 @@
 
 .. automodule:: tests.foreman.cli.test_computeresource
 
-:mod:`tests.foreman.cli.test_contenthost`
------------------------------------------
-
-.. automodule:: tests.foreman.cli.test_contenthost
-
 :mod:`tests.foreman.cli.test_contentviewfilter`
 -----------------------------------------------
 

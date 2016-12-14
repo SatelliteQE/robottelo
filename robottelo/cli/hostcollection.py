@@ -26,8 +26,6 @@ Subcommands::
 """
 
 from robottelo.cli.base import Base
-from robottelo.cli.contenthost import ContentHost
-from robottelo.cli.host import Host
 
 
 class HostCollection(Base):
@@ -36,33 +34,15 @@ class HostCollection(Base):
     command_base = 'host-collection'
 
     @classmethod
-    def transform_ids(cls, options=None):
-        """Workaround host unification feature not being completed to use host
-        id instead content host uuid
-        """
-        if 'host-ids' in options:
-            host_ids = [
-                host_id if host_id.isdigit() else
-                Host.info({
-                    'name': ContentHost.info({'id': host_id})['name'].lower()
-                })['id']
-                for host_id in options.get('host-ids').split(',')
-            ]
-            if host_ids:
-                options['host-ids'] = ','.join(host_ids)
-
-    @classmethod
     def add_host(cls, options=None):
         """Add host to the host collection"""
         cls.command_sub = 'add-host'
-        cls.transform_ids(options)
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_host(cls, options=None):
         """Remove hosts from the host collection"""
         cls.command_sub = 'remove-host'
-        cls.transform_ids(options)
         return cls.execute(cls._construct_command(options))
 
     @classmethod

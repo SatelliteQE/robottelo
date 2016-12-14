@@ -18,12 +18,15 @@ from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
+    CLIFactoryError,
     make_activation_key,
     make_architecture,
     make_content_view,
     make_domain,
     make_environment,
+    make_fake_host,
     make_lifecycle_environment,
     make_medium,
     make_org,
@@ -32,12 +35,15 @@ from robottelo.cli.factory import (
     setup_org_for_a_rh_repo,
 )
 from robottelo.cli.host import Host
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_CV,
     DISTRO_RHEL7,
+    ENVIRONMENT,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -72,6 +78,33 @@ from robottelo.vm import VirtualMachine
 
 class HostCreateTestCase(CLITestCase):
     """Tests for creating the hosts via CLI."""
+
+    @classmethod
+    def setUpClass(cls):
+        """"""
+        super(HostCreateTestCase, cls).setUpClass()
+        cls.new_org = make_org()
+        cls.new_lce = make_lifecycle_environment({
+            'organization-id': cls.new_org['id']})
+        cls.LIBRARY = LifecycleEnvironment.info({
+            'organization-id': cls.new_org['id'],
+            'name': ENVIRONMENT,
+        })
+        cls.DEFAULT_CV = ContentView.info({
+            'organization-id': cls.new_org['id'],
+            'name': DEFAULT_CV,
+        })
+        cls.new_cv = make_content_view({'organization-id': cls.new_org['id']})
+        ContentView.publish({'id': cls.new_cv['id']})
+        version_id = ContentView.version_list({
+            'content-view-id': cls.new_cv['id'],
+        })[0]['id']
+        ContentView.version_promote({
+            'id': version_id,
+            'to-lifecycle-environment-id': cls.new_lce['id'],
+            'organization-id': cls.new_org['id'],
+        })
+        cls.promoted_cv = cls.new_cv
 
     def setUp(self):
         """Find an existing puppet proxy.
@@ -116,6 +149,248 @@ class HostCreateTestCase(CLITestCase):
                     '{0}.{1}'.format(name, host.domain.read().name),
                     result['name'],
                 )
+
+    @tier1
+    def test_positive_create_with_org_name(self):
+        """Check if host can be created with organization name
+
+        @id: c08b0dac-9820-4261-bb0b-8a78f5c78a74
+
+        @Assert: Host is created using organization name
+        """
+        new_host = make_fake_host({
+            'content-view-id': self.DEFAULT_CV['id'],
+            'lifecycle-environment-id': self.LIBRARY['id'],
+            'organization': self.new_org['name'],
+        })
+        self.assertEqual(new_host['organization'], self.new_org['name'])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_cv_default(self):
+        """Check if host can be created with content view name
+
+        @id: bb69a70e-17f9-4639-802d-90e6a4520afa
+
+        @Assert: Host is created using content view name
+        """
+        new_host = make_fake_host({
+            'content-view-id': self.DEFAULT_CV['id'],
+            'lifecycle-environment-id': self.LIBRARY['id'],
+            'organization-id': self.new_org['id'],
+        })
+        self.assertEqual(
+            new_host['content-information']['content-view'],
+            self.DEFAULT_CV['name'],
+        )
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_create_with_lce_library(self):
+        """Check if host can be created with lifecycle name
+
+        @id: 0093be1c-3664-448e-87f5-758bab34958a
+
+        @Assert: Host is created using lifecycle name
+        """
+        new_host = make_fake_host({
+            'content-view-id': self.DEFAULT_CV['id'],
+            'lifecycle-environment-id': self.LIBRARY['id'],
+            'organization-id': self.new_org['id'],
+        })
+        self.assertEqual(
+            new_host['content-information']['lifecycle-environment'],
+            self.LIBRARY['name'],
+        )
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_create_with_lce(self):
+        """Check if host can be created with new lifecycle
+
+        @id: e102b034-0011-471d-ba21-5ef8d129a61f
+
+        @Assert: Host is created using new lifecycle
+        """
+        new_host = make_fake_host({
+            'content-view-id': self.promoted_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-id': self.new_org['id'],
+        })
+        self.assertEqual(
+            new_host['content-information']['lifecycle-environment'],
+            self.new_lce['name'],
+        )
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_create_with_cv(self):
+        """Check if host can be created with new content view
+
+        @id: f90873b9-fb3a-4c93-8647-4b1aea0a2c35
+
+        @Assert: Host is created using new published, promoted cv
+        """
+        new_host = make_fake_host({
+            'content-view-id': self.promoted_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-id': self.new_org['id'],
+        })
+        self.assertEqual(
+            new_host['content-information']['content-view'],
+            self.promoted_cv['name'],
+        )
+
+    @tier1
+    def test_negative_create_with_name(self):
+        """Check if host can be created with random long names
+
+        @id: f92b6070-b2d1-4e3e-975c-39f1b1096697
+
+        @Assert: Host is not created
+        """
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIFactoryError):
+                    make_fake_host({
+                        'name': name,
+                        'organization-id': self.new_org['id'],
+                        'content-view-id': self.DEFAULT_CV['id'],
+                        'lifecycle-environment-id': self.LIBRARY['id'],
+                    })
+
+    @tier1
+    @run_only_on('sat')
+    def test_negative_create_with_unpublished_cv(self):
+        """Check if host can be created using unpublished cv
+
+        @id: 9997383d-3c27-4f14-94f9-4b8b51180eb6
+
+        @Assert: Host is not created using new unpublished cv
+        """
+        cv = make_content_view({'organization-id': self.new_org['id']})
+        env = self.new_lce['id']
+        with self.assertRaises(CLIFactoryError):
+            make_fake_host({
+                'content-view-id': cv['id'],
+                'lifecycle-environment-id': env,
+                'organization-id': self.new_org['id'],
+            })
+
+    @tier3
+    def test_positive_register_with_no_ak(self):
+        """Register host to satellite without activation key
+
+        @id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
+
+        @Assert: Host successfully registered to appropriate org
+
+        @CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            result = client.register_contenthost(
+                self.new_org['label'],
+                lce='{}/{}'.format(
+                    self.new_lce['label'], self.promoted_cv['label']),
+            )
+            self.assertEqual(result.return_code, 0)
+
+    @tier3
+    def test_negative_register_twice(self):
+        """Attempt to register a host twice to Satellite
+
+        @id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
+
+        @Assert: host cannot be registered twice
+
+        @CaseLevel: System
+        """
+        activation_key = make_activation_key({
+            'content-view-id': self.promoted_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-id': self.new_org['id'],
+        })
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.new_org['label'],
+                activation_key['name'],
+            )
+            result = client.register_contenthost(
+                self.new_org['label'],
+                activation_key['name'],
+                force=False,
+            )
+            # Depending on distro version, successful return_code may be 0 or
+            # 1, so we can't verify host wasn't registered by return_code != 0
+            # check. Verifying return_code == 64 here, which stands for content
+            # host being already registered.
+            self.assertEqual(result.return_code, 64)
+
+    @tier3
+    def test_positive_list(self):
+        """List hosts for a given org
+
+        @id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
+
+        @Assert: Hosts are listed for the given org
+
+        @CaseLevel: System
+        """
+        activation_key = make_activation_key({
+            'content-view-id': self.promoted_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-id': self.new_org['id'],
+        })
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.new_org['label'],
+                activation_key['name'],
+            )
+            hosts = Host.list({
+                'organization-id': self.new_org['id'],
+                'environment-id': self.new_lce['id'],
+            })
+            self.assertGreaterEqual(len(hosts), 1)
+            self.assertIn(client.hostname, [host['name'] for host in hosts])
+
+    @tier3
+    def test_positive_unregister(self):
+        """Unregister a host
+
+        @id: c5ce988d-d0ea-4958-9956-5a4b039b285c
+
+        @Assert: Host is successfully unregistered. Unlike content host, host
+        has not disappeared from list of hosts after unregistering.
+
+        @CaseLevel: System
+        """
+        activation_key = make_activation_key({
+            'content-view-id': self.promoted_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-id': self.new_org['id'],
+        })
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.new_org['label'],
+                activation_key['name'],
+            )
+            hosts = Host.list({
+                'organization-id': self.new_org['id'],
+                'environment-id': self.new_lce['id'],
+            })
+            self.assertGreaterEqual(len(hosts), 1)
+            self.assertIn(client.hostname, [host['name'] for host in hosts])
+            result = client.run('subscription-manager unregister')
+            self.assertEqual(result.return_code, 0)
+            hosts = Host.list({
+                'organization-id': self.new_org['id'],
+                'environment-id': self.new_lce['id'],
+            })
+            self.assertIn(client.hostname, [host['name'] for host in hosts])
 
     @skip_if_not_set('compute_resources')
     @tier1
