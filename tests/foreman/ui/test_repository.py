@@ -1019,7 +1019,7 @@ class RepositoryTestCase(UITestCase):
             )
 
     @tier1
-    def test_positive_upload_yum(self):
+    def test_positive_upload_rpm(self):
         """Create yum repository and upload rpm package
 
         @id: 201d5742-cb1a-4534-ac02-91b5a4669d22
@@ -1050,7 +1050,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
 
     @tier1
-    def test_negative_upload_yum(self):
+    def test_negative_upload_rpm(self):
         """Create yum repository but upload any content except rpm
 
         @id: 77a098c2-3f63-4e9f-88b9-f0657b721611
