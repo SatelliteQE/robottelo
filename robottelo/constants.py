@@ -129,7 +129,7 @@ CUST_PERMS_LIST = [
 ]
 
 DISTRO_RHEL6 = "rhel68"
-DISTRO_RHEL7 = "rhel72"
+DISTRO_RHEL7 = "rhel73"
 
 FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',
