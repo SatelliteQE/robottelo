@@ -926,6 +926,17 @@ class RepositoryTestCase(CLITestCase):
             result[0]['message'],
         )
 
+
+class SRPMRepositoryTestCase(CLITestCase):
+    """Tests specific to using repositories containing source RPMs."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(SRPMRepositoryTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({'organization-id': cls.org['id']})
+
     @skip_if_bug_open('bugzilla', 1378442)
     @tier1
     def test_positive_upload_content_srpm(self):
@@ -948,17 +959,6 @@ class RepositoryTestCase(CLITestCase):
             "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD),
             result[0]['message'],
         )
-
-
-class SRPMRepositoryTestCase(CLITestCase):
-    """Tests specific to using repositories containing source RPMs."""
-
-    @classmethod
-    def setUpClass(cls):
-        """Create a product and an org which can be re-used in tests."""
-        super(SRPMRepositoryTestCase, cls).setUpClass()
-        cls.org = make_org()
-        cls.product = make_product({'organization-id': cls.org['id']})
 
     @tier2
     def test_positive_sync(self):
