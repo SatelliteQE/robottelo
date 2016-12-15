@@ -81,7 +81,9 @@ class HostCreateTestCase(CLITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """"""
+        """Create organization, lifecycle environment, content view, publish
+        and promote new version to re-use in tests.
+        """
         super(HostCreateTestCase, cls).setUpClass()
         cls.new_org = make_org()
         cls.new_lce = make_lifecycle_environment({
@@ -168,11 +170,12 @@ class HostCreateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_cv_default(self):
-        """Check if host can be created with content view name
+        """Check if host can be created with default content view ('Default
+        Organization View')
 
         @id: bb69a70e-17f9-4639-802d-90e6a4520afa
 
-        @Assert: Host is created using content view name
+        @Assert: Host is created, default content view is associated
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
@@ -187,11 +190,12 @@ class HostCreateTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_lce_library(self):
-        """Check if host can be created with lifecycle name
+        """Check if host can be created with default lifecycle environment
+        ('Library')
 
         @id: 0093be1c-3664-448e-87f5-758bab34958a
 
-        @Assert: Host is created using lifecycle name
+        @Assert: Host is created, default lifecycle environment is associated
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
