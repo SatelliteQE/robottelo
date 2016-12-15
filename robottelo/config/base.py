@@ -1,8 +1,10 @@
 """Define and instantiate the configuration class for Robottelo."""
 import logging
+
 import os
 import sys
 
+from functools import partial
 from logging import config
 from nailgun import entities, entity_mixins
 from nailgun.config import ServerConfig
@@ -43,9 +45,11 @@ class INIReader(object):
     """ConfigParser wrapper able to cast value when reading INI options."""
     # Helper casters
     cast_boolean = casts.Boolean()
+    cast_dict = casts.Dict()
     cast_list = casts.List()
     cast_logging_level = casts.LoggingLevel()
     cast_tuple = casts.Tuple()
+    cast_webdriver_desired_capabilities = casts.WebdriverDesiredCapabilities()
 
     def __init__(self, path):
         self.config_parser = ConfigParser()
@@ -78,6 +82,8 @@ class INIReader(object):
             if cast is not None:
                 if cast is bool:
                     value = self.cast_boolean(value)
+                elif cast is dict:
+                    value = self.cast_dict(value)
                 elif cast is list:
                     value = self.cast_list(value)
                 elif cast is tuple:
@@ -215,6 +221,32 @@ class ServerSettings(FeatureSettings):
             self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
 
 
+class BugzillaSettings(FeatureSettings):
+    """Bugzilla server settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(BugzillaSettings, self).__init__(*args, **kwargs)
+        self.password = None
+        self.username = None
+
+    def read(self, reader):
+        """Read and validate Bugzilla server settings."""
+        get_bz = partial(reader.get, 'bugzilla')
+        self.password = get_bz('bz_password', 'changeme')
+        self.username = get_bz('bz_username', 'admin')
+
+    def get_credentials(self):
+        """Return credentials for interacting with a Bugzilla API.
+
+        :return: A username-password dict.
+        :rtype: dict
+
+        """
+        return {'user': self.username, 'password': self.password}
+
+    def validate(self):
+        return []
+
+
 class ClientsSettings(FeatureSettings):
     """Clients settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -244,20 +276,28 @@ class DockerSettings(FeatureSettings):
         super(DockerSettings, self).__init__(*args, **kwargs)
         self.unix_socket = None
         self.external_url = None
+        self.external_registry_1 = None
+        self.external_registry_2 = None
 
     def read(self, reader):
         """Read docker settings."""
         self.unix_socket = reader.get(
             'docker', 'unix_socket', False, bool)
         self.external_url = reader.get('docker', 'external_url')
+        self.external_registry_1 = reader.get('docker', 'external_registry_1')
+        self.external_registry_2 = reader.get('docker', 'external_registry_2')
 
     def validate(self):
         """Validate docker settings."""
         validation_errors = []
-        if not any(vars(self).values()):
+        if not any((self.unix_socket, self.external_url)):
             validation_errors.append(
                 'Either [docker] unix_socket or external_url options must '
                 'be provided or enabled.')
+        if not all((self.external_registry_1, self.external_registry_2)):
+            validation_errors.append(
+                'Both [docker] external_registry_1 and external_registry_2 '
+                'options must be provided.')
         return validation_errors
 
     def get_unix_socket_url(self):
@@ -360,6 +400,116 @@ class LibvirtHostSettings(FeatureSettings):
         return validation_errors
 
 
+class FakeCapsuleSettings(FeatureSettings):
+    """Fake Capsule settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(FakeCapsuleSettings, self).__init__(*args, **kwargs)
+        self.port_range = None
+
+    def read(self, reader):
+        """Read fake capsule settings"""
+        self.port_range = reader.get(
+            'fake_capsules', 'port_range', cast=tuple
+        )
+
+    def validate(self):
+        """Validate fake capsule settings."""
+        validation_errors = []
+        if self.port_range is None:
+            validation_errors.append(
+                '[fake_capsules] port_range option must be provided.'
+            )
+        return validation_errors
+
+
+class RHEVSettings(FeatureSettings):
+    """RHEV settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(RHEVSettings, self).__init__(*args, **kwargs)
+        # Compute Resource Information
+        self.hostname = None
+        self.username = None
+        self.password = None
+        self.datacenter = None
+        self.vm_name = None
+        # Image Information
+        self.image_os = None
+        self.image_arch = None
+        self.image_username = None
+        self.image_password = None
+        self.image_name = None
+
+    def read(self, reader):
+        """Read rhev settings."""
+        # Compute Resource Information
+        self.hostname = reader.get('rhev', 'hostname')
+        self.username = reader.get('rhev', 'username')
+        self.password = reader.get('rhev', 'password')
+        self.datacenter = reader.get('rhev', 'datacenter')
+        self.vm_name = reader.get('rhev', 'vm_name')
+        # Image Information
+        self.image_os = reader.get('rhev', 'image_os')
+        self.image_arch = reader.get('rhev', 'image_arch')
+        self.image_username = reader.get('rhev', 'image_username')
+        self.image_password = reader.get('rhev', 'image_password')
+        self.image_name = reader.get('rhev', 'image_name')
+
+    def validate(self):
+        """Validate rhev settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [rhev] hostname, username, password, datacenter, '
+                'vm_name, image_name, image_os, image_arch, image_usernam, '
+                'image_name options must be provided.'
+            )
+        return validation_errors
+
+
+class VmWareSettings(FeatureSettings):
+    """VmWare settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(VmWareSettings, self).__init__(*args, **kwargs)
+        # Compute Resource Information
+        self.vcenter = None
+        self.username = None
+        self.password = None
+        self.datacenter = None
+        self.vm_name = None
+        # Image Information
+        self.image_os = None
+        self.image_arch = None
+        self.image_username = None
+        self.image_password = None
+        self.image_name = None
+
+    def read(self, reader):
+        """Read vmware settings."""
+        # Compute Resource Information
+        self.vcenter = reader.get('vmware', 'hostname')
+        self.username = reader.get('vmware', 'username')
+        self.password = reader.get('vmware', 'password')
+        self.datacenter = reader.get('vmware', 'datacenter')
+        self.vm_name = reader.get('vmware', 'vm_name')
+        # Image Information
+        self.image_os = reader.get('vmware', 'image_os')
+        self.image_arch = reader.get('vmware', 'image_arch')
+        self.image_username = reader.get('vmware', 'image_username')
+        self.image_password = reader.get('vmware', 'image_password')
+        self.image_name = reader.get('vmware', 'image_name')
+
+    def validate(self):
+        """Validate vmware settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [vmware] hostname, username, password, datacenter, '
+                'vm_name, image_name, image_os, image_arch, image_usernam, '
+                'image_name options must be provided.'
+            )
+        return validation_errors
+
+
 class DiscoveryISOSettings(FeatureSettings):
     """Discovery ISO name settings definition."""
     def __init__(self, *args, **kwargs):
@@ -396,6 +546,26 @@ class OscapSettings(FeatureSettings):
         if self.content_path is None:
             validation_errors.append(
                 '[oscap] content_path option must be provided.'
+            )
+        return validation_errors
+
+
+class OstreeSettings(FeatureSettings):
+    """Ostree settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(OstreeSettings, self).__init__(*args, **kwargs)
+        self.ostree_installer = None
+
+    def read(self, reader):
+        """Read Ostree settings."""
+        self.ostree_installer = reader.get('ostree', 'ostree_installer')
+
+    def validate(self):
+        """Validate Ostree settings."""
+        validation_errors = []
+        if self.ostree_installer is None:
+            validation_errors.append(
+                '[ostree] ostree_installer option must be provided.'
             )
         return validation_errors
 
@@ -517,6 +687,23 @@ class VlanNetworkSettings(FeatureSettings):
         return validation_errors
 
 
+class UpgradeSettings(FeatureSettings):
+    """Satellite upgrade settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(UpgradeSettings, self).__init__(*args, **kwargs)
+        self.upgrade_data = None
+
+    def read(self, reader):
+        """Read and validate Satellite server settings."""
+        self.upgrade_data = reader.get('upgrade', 'upgrade_data')
+
+    def validate(self):
+        validation_errors = []
+        if self.upgrade_data is None:
+            validation_errors.append('[upgrade] data must be provided.')
+        return validation_errors
+
+
 class Settings(object):
     """Robottelo's settings representation."""
 
@@ -530,6 +717,8 @@ class Settings(object):
         self.reader = None
         self.rhel6_repo = None
         self.rhel7_repo = None
+        self.rhel6_os = None
+        self.rhel7_os = None
         self.screenshots_path = None
         self.saucelabs_key = None
         self.saucelabs_user = None
@@ -539,19 +728,26 @@ class Settings(object):
         self.verbosity = None
         self.webdriver = None
         self.webdriver_binary = None
+        self.webdriver_desired_capabilities = None
 
+        self.bugzilla = BugzillaSettings()
         # Features
         self.clients = ClientsSettings()
         self.compute_resources = LibvirtHostSettings()
         self.discovery = DiscoveryISOSettings()
         self.docker = DockerSettings()
+        self.fake_capsules = FakeCapsuleSettings()
         self.fake_manifest = FakeManifestSettings()
         self.ldap = LDAPSettings()
         self.oscap = OscapSettings()
+        self.ostree = OstreeSettings()
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
+        self.rhev = RHEVSettings()
         self.transition = TransitionSettings()
         self.vlan_networking = VlanNetworkSettings()
+        self.upgrade = UpgradeSettings()
+        self.vmware = VmWareSettings()
 
     def configure(self):
         """Read the settings file and parse the configuration.
@@ -573,41 +769,19 @@ class Settings(object):
         self._read_robottelo_settings()
         self._validation_errors.extend(
             self._validate_robottelo_settings())
-        self.server.read(self.reader)
-        self._validation_errors.extend(self.server.validate())
-        if self.reader.has_section('clients'):
-            self.clients.read(self.reader)
-            self._validation_errors.extend(self.clients.validate())
-        if self.reader.has_section('compute_resources'):
-            self.compute_resources.read(self.reader)
-            self._validation_errors.extend(self.compute_resources.validate())
-        if self.reader.has_section('discovery'):
-            self.discovery.read(self.reader)
-            self._validation_errors.extend(self.discovery.validate())
-        if self.reader.has_section('docker'):
-            self.docker.read(self.reader)
-            self._validation_errors.extend(self.docker.validate())
-        if self.reader.has_section('fake_manifest'):
-            self.fake_manifest.read(self.reader)
-            self._validation_errors.extend(self.fake_manifest.validate())
-        if self.reader.has_section('ldap'):
-            self.ldap.read(self.reader)
-            self._validation_errors.extend(self.ldap.validate())
-        if self.reader.has_section('oscap'):
-            self.oscap.read(self.reader)
-            self._validation_errors.extend(self.oscap.validate())
-        if self.reader.has_section('performance'):
-            self.performance.read(self.reader)
-            self._validation_errors.extend(self.performance.validate())
-        if self.reader.has_section('rhai'):
-            self.rhai.read(self.reader)
-            self._validation_errors.extend(self.rhai.validate())
-        if self.reader.has_section('transition'):
-            self.transition.read(self.reader)
-            self._validation_errors.extend(self.transition.validate())
-        if self.reader.has_section('vlan_networking'):
-            self.vlan_networking.read(self.reader)
-            self._validation_errors.extend(self.vlan_networking.validate())
+
+        attrs = map(
+            lambda attr_name: (attr_name, getattr(self, attr_name)),
+            dir(self)
+        )
+        feature_settings = filter(
+            lambda tpl: isinstance(tpl[1], FeatureSettings),
+            attrs
+        )
+        for name, settings in feature_settings:
+            if self.reader.has_section(name) or name == 'server':
+                settings.read(self.reader)
+                self._validation_errors.extend(settings.validate())
 
         if self._validation_errors:
             raise ImproperlyConfigured(
@@ -622,16 +796,31 @@ class Settings(object):
 
     def _read_robottelo_settings(self):
         """Read Robottelo's general settings."""
+        self.log_driver_commands = self.reader.get(
+            'robottelo',
+            'log_driver_commands',
+            ['newSession',
+             'windowMaximize',
+             'get',
+             'findElement',
+             'sendKeysToElement',
+             'clickElement',
+             'mouseMoveTo'],
+            list
+        )
         self.browser = self.reader.get(
             'robottelo', 'browser', 'selenium')
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
         self.project = self.reader.get('robottelo', 'project', 'sat')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
+        self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
+        self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.run_one_datapoint = self.reader.get(
             'robottelo', 'run_one_datapoint', False, bool)
+        self.cleanup = self.reader.get('robottelo', 'cleanup', False, bool)
         self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
         self.verbosity = self.reader.get(
             'robottelo',
@@ -647,6 +836,12 @@ class Settings(object):
             'robottelo', 'saucelabs_key', None)
         self.webdriver_binary = self.reader.get(
             'robottelo', 'webdriver_binary', None)
+        self.webdriver_desired_capabilities = self.reader.get(
+            'robottelo',
+            'webdriver_desired_capabilities',
+            None,
+            cast=INIReader.cast_webdriver_desired_capabilities
+        )
         self.window_manager_command = self.reader.get(
             'robottelo', 'window_manager_command', None)
 

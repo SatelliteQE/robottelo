@@ -2,6 +2,7 @@ alabaster==0.7.7
 apipkg==1.4
 astroid==1.4.4
 Babel==2.2.0
+cachetools==2.0.0
 colorama==0.3.6
 coverage==4.0.3
 coveralls==1.1
