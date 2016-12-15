@@ -157,3 +157,11 @@ class Repos(Base):
             return (self.wait_until_element(locators[
                 'repo.fetch_' + field_name]).text == expected_field_value)
         return False
+
+    def upload_content(self, repo_name, file_path):
+        """Upload content to a repository."""
+        self.search_and_click(repo_name)
+        browse_element = self.wait_until_element(
+            locators['repo.upload.file_path'])
+        browse_element.send_keys(file_path)
+        self.click(locators['repo.upload'])

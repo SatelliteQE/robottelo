@@ -1973,23 +1973,15 @@ locators = LocatorDict({
     "repo.result_spinner": (
         By.XPATH,
         "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
-    "repo.manage_content.packages": (
+    "repo.manage_content": (
         By.XPATH,
         "//button[contains(@ui-sref,"
-        " 'products.details.repositories.manage-content.packages')]"),
-    "repo.manage_content.puppet_modules": (
-        By.XPATH,
-        "//button[contains(@ui-sref,"
-        " 'products.details.repositories.manage-content.puppet-modules')]"),
-    "repo.manage_content.docker_manifests": (
-        By.XPATH,
-        "//button[contains(@ui-sref,"
-        " 'products.details.repositories.manage-content.docker-manifests')]"),
-    "repo.manage_content.ostree_branches": (
-        By.XPATH,
-        "//button[contains(@ui-sref,"
-        " 'products.details.repositories.manage-content.ostree-branches)]"),
-    "repo.content_items": (By.XPATH, "//tr[@row-select='item']"),
+        " 'products.details.repositories.manage-content')"
+        " and not(contains(@class, 'ng-hide'))]"),
+    "repo.content.packages": (By.XPATH, "//tr[@row-select='package']"),
+    "repo.content.puppet_modules": (By.XPATH, "//tr[@row-select='item']"),
+    "repo.upload.file_path": (By.XPATH, ("//input[@name='content[]']")),
+    "repo.upload": (By.XPATH, ("//button[@upload-submit]")),
     # Activation Keys
 
     "ak.new": (By.XPATH, "//button[@ui-sref='activation-keys.new']"),
