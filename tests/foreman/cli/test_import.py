@@ -26,9 +26,9 @@ from random import sample
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_org
+from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.import_ import Import
 from robottelo.cli.org import Org
@@ -1520,13 +1520,12 @@ class TestImport(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1238247)
     @tier1
-    def test_positive_import_chosts_default(self):
-        """Import all content hosts from
-        the predefined dataset
+    def test_positive_import_hosts_default(self):
+        """Import all hosts from the predefined dataset
 
         @id: 90662be7-335f-43a4-816c-b6bb906614fd
 
-        @assert: Profiles for all Content Hosts created
+        @assert: Profiles for all Hosts created
 
         """
         for test_data in gen_import_chost_data():
@@ -1544,20 +1543,19 @@ class TestImport(CLITestCase):
                 # now to check whether all cont. hosts appeared in satellite
                 for imp_org in imp_orgs:
                     self.assertNotEqual(
-                        ContentHost.list({'organization-id': imp_org['sat6']}),
+                        Host.list({'organization-id': imp_org['sat6']}),
                         []
                     )
                 clean_transdata()
 
     @skip_if_bug_open('bugzilla', 1238247)
     @tier1
-    def test_negative_reimport_chosts(self):
-        """Repetitive Import of all content hosts from
-        the predefined dataset
+    def test_negative_reimport_hosts(self):
+        """Repetitive Import of all hosts from the predefined dataset
 
         @id: b98ef26e-e938-40c2-805d-6292b12b64d5
 
-        @assert: Profiles for all Content Hosts created only once
+        @assert: Profiles for all Hosts created only once
 
         """
         for test_data in gen_import_chost_data():
@@ -1573,7 +1571,7 @@ class TestImport(CLITestCase):
                     imports['organizations'][1]
                 )
                 chosts_before = [
-                    ContentHost.list({'organization-id': imp_org['sat6']})
+                    Host.list({'organization-id': imp_org['sat6']})
                     for imp_org in imp_orgs
                 ]
                 Import.content_host_with_tr_data({
@@ -1583,7 +1581,7 @@ class TestImport(CLITestCase):
                 })
                 self.assertEqual(
                     [
-                        ContentHost.list({'organization-id': imp_org['sat6']})
+                        Host.list({'organization-id': imp_org['sat6']})
                         for imp_org in imp_orgs
                     ],
                     chosts_before

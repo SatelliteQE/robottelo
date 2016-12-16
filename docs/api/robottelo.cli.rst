@@ -25,11 +25,6 @@ Submodules:
 
 .. automodule:: robottelo.cli.computeresource
 
-:mod:`robottelo.cli.contenthost`
---------------------------------
-
-.. automodule:: robottelo.cli.contenthost
-
 :mod:`robottelo.cli.contentview`
 --------------------------------
 

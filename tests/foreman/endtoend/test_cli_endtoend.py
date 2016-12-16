@@ -21,7 +21,6 @@ from fauxfactory import gen_alphanumeric, gen_ipaddr
 from robottelo import manifests, ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import make_user
@@ -351,19 +350,17 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             u'organization-id': org['id'],
         })
         if bz_bug_is_open(1328202):
-            results = ContentHost.with_user(
+            results = Host.with_user(
                 user['login'],
                 user['password']
-            ).list({
-                'organization-id': org['id']
-            })
+            ).list({'organization-id': org['id']})
             # Content host registration converts the name to lowercase, make
             # sure to use the same format while matching against the result
             content_host_name = content_host_name.lower()
             for result in results:
                 if result['name'] == content_host_name:
                     content_host = result
-        content_host = ContentHost.with_user(
+        content_host = Host.with_user(
             user['login'],
             user['password']
         ).info({'id': content_host['id']})
