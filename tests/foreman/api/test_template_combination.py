@@ -54,8 +54,8 @@ class TemplateCombinationTestCase(APITestCase):
         self.template_combination = entities.TemplateCombination(
             id=template_combination_dct['id'],
             environment=self.env,
-            config_template=self.template.id,
-            hostgroup=self.hostgroup.id
+            config_template=self.template,
+            hostgroup=self.hostgroup
         )
 
     def tearDown(self):
