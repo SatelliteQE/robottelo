@@ -25,6 +25,14 @@ def org_cleanup(org_id=None):
     entities.Organization(id=org_id).delete()
 
 
+def vm_cleanup(vm):
+    """Destroys virtual machine
+
+    :param robottelo.vm.VirtualMachine vm: virtual machine to destroy
+    """
+    vm.destroy()
+
+
 class EntitiesCleaner(object):
     """Register and clean entities for cleanup using signals"""
 
