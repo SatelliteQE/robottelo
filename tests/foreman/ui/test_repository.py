@@ -1032,7 +1032,8 @@ class RepositoryTestCase(UITestCase):
             self.products.search(self.session_prod.name).click()
             make_repository(session, name=repo_name)
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.upload(repo_name, get_data_file(RPM_TO_UPLOAD))
+            self.repository.upload_content(
+                repo_name, get_data_file(RPM_TO_UPLOAD))
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1063,7 +1064,7 @@ class RepositoryTestCase(UITestCase):
             self.products.search(self.session_prod.name).click()
             make_repository(session, name=repo_name)
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.upload(
+            self.repository.upload_content(
                 repo_name, get_data_file(PUPPET_MODULE_NTP_PUPPETLABS))
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
@@ -1088,7 +1089,7 @@ class RepositoryTestCase(UITestCase):
             make_repository(
                 session, name=repo_name, repo_type=REPO_TYPE['puppet'])
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.upload(
+            self.repository.upload_content(
                 repo_name, get_data_file(PUPPET_MODULE_NTP_PUPPETLABS))
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
@@ -1122,7 +1123,8 @@ class RepositoryTestCase(UITestCase):
             make_repository(
                 session, name=repo_name, repo_type=REPO_TYPE['puppet'])
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.upload(repo_name, get_data_file(RPM_TO_UPLOAD))
+            self.repository.upload_content(
+                repo_name, get_data_file(RPM_TO_UPLOAD))
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error_sub_form']))
