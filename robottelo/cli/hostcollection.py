@@ -99,3 +99,17 @@ class HostCollection(Base):
         cls.command_sub = 'hosts'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def erratum_install(cls, options):
+        """Schedule errata for installation"""
+        cls.command_sub = 'erratum install'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def package_install(cls, options):
+        """Schedule package for installation"""
+        cls.command_sub = 'package install'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
