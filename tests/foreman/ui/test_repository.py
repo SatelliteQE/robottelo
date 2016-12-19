@@ -20,7 +20,8 @@ import time
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo import manifests
+
+from robottelo import manifests, ssh
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import (
     CHECKSUM_TYPE,
@@ -30,6 +31,8 @@ from robottelo.constants import (
     FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
+    FAKE_YUM_DRPM_REPO,
+    FAKE_YUM_SRPM_REPO,
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
     PRDS,
@@ -57,7 +60,7 @@ from robottelo.decorators import (
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_repository, set_context
+from robottelo.ui.factory import make_contentview, make_repository, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 from selenium.common.exceptions import NoSuchElementException
@@ -79,7 +82,7 @@ class RepositoryTestCase(UITestCase):
     """Implements Repos tests in UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         super(RepositoryTestCase, cls).setUpClass()
         # create instances to be shared across the sessions
         cls.session_loc = entities.Location().create()
@@ -938,6 +941,284 @@ class RepositoryTestCase(UITestCase):
                             locators['repo.download_policy']
                         )
                     )
+
+    @tier2
+    def test_positive_srpm_sync(self):
+        """Synchronize repository with SRPMs
+
+        @id: 1967a540-a265-4046-b87b-627524b63688
+
+        @Assert: srpms can be listed in repository
+        """
+        product = entities.Product(organization=self.session_org).create()
+        repo_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            self.products.search(product.name).click()
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_YUM_SRPM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/ | grep .src.rpm'
+            .format(
+                self.session_org.label,
+                product.label,
+                repo_name,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_srpm_sync_publish_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view
+        and publish content view
+
+        @id: 2a57cbde-c616-440d-8bcb-6e18bd2d5c5f
+
+        @Assert: srpms can be listed in content view
+        """
+        product = entities.Product(organization=self.session_org).create()
+        repo_name = gen_string('alphanumeric')
+        cv_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            self.products.search(product.name).click()
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_YUM_SRPM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
+
+            make_contentview(session, org=self.session_org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+            '/1.0/custom/{}/{}/ | grep .src.rpm'
+            .format(
+                self.session_org.label,
+                cv_name,
+                product.label,
+                repo_name,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_srpm_sync_publish_promote_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view,
+        publish and promote content view to lifecycle environment
+
+        @id: 4563d1c1-cdce-4838-a67f-c0a5d4e996a6
+
+        @Assert: srpms can be listed in content view in proper lifecycle
+        environment
+        """
+        lce = entities.LifecycleEnvironment(
+            organization=self.session_org).create()
+        product = entities.Product(organization=self.session_org).create()
+        repo_name = gen_string('alphanumeric')
+        cv_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            self.products.search(product.name).click()
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_YUM_SRPM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
+
+            make_contentview(session, org=self.session_org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
+            self.content_views.promote(cv_name, 'Version 1', lce.name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
+            ' | grep .src.rpm'
+            .format(
+                self.session_org.label,
+                lce.name,
+                cv_name,
+                product.label,
+                repo_name,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_drpm_sync(self):
+        """Synchronize repository with DRPMs
+
+        @id: 5e703d9a-ea26-4062-9d5c-d31bfbe87417
+
+        @Assert: drpms can be listed in repository
+        """
+        product = entities.Product(organization=self.session_org).create()
+        repo_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            self.products.search(product.name).click()
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_YUM_DRPM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.session_org.label,
+                product.label,
+                repo_name,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_drpm_sync_publish_cv(self):
+        """Synchronize repository with DRPMs, add repository to content view
+        and publish content view
+
+        @id: cffa862c-f972-4aa4-96b2-5a4513cb3eef
+
+        @Assert: drpms can be listed in content view
+        """
+        product = entities.Product(organization=self.session_org).create()
+        repo_name = gen_string('alphanumeric')
+        cv_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            self.products.search(product.name).click()
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_YUM_DRPM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
+
+            make_contentview(session, org=self.session_org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+            '/1.0/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.session_org.label,
+                cv_name,
+                product.label,
+                repo_name,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_drpm_sync_publish_promote_cv(self):
+        """Synchronize repository with DRPMs, add repository to content view,
+        publish and promote content view to lifecycle environment
+
+        @id: e33ee07c-4677-4be8-bd53-73689edfda34
+
+        @Assert: drpms can be listed in content view in proper lifecycle
+        environment
+        """
+        lce = entities.LifecycleEnvironment(
+            organization=self.session_org).create()
+        product = entities.Product(organization=self.session_org).create()
+        repo_name = gen_string('alphanumeric')
+        cv_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            self.products.search(product.name).click()
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_YUM_DRPM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
+
+            make_contentview(session, org=self.session_org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
+            self.content_views.promote(cv_name, 'Version 1', lce.name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}'
+            '/drpms/ | grep .drpm'
+            .format(
+                self.session_org.label,
+                lce.name,
+                cv_name,
+                product.label,
+                repo_name,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier1
     def test_positive_list_puppet_modules_with_multiple_repos(self):
