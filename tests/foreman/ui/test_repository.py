@@ -27,6 +27,7 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     DOWNLOAD_POLICIES,
     FAKE_0_PUPPET_REPO,
+    FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     FAKE_YUM_DRPM_REPO,
@@ -34,14 +35,16 @@ from robottelo.constants import (
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
     PRDS,
+    PUPPET_MODULE_NTP_PUPPETLABS,
     REPO_DISCOVERY_URL,
     REPO_TAB,
     REPO_TYPE,
     REPOS,
+    RPM_TO_UPLOAD,
     SAT6_TOOLS_TREE,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
-    FAKE_1_PUPPET_REPO)
+)
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -50,12 +53,13 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
 )
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import read_data_file
+from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_contentview, make_repository, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -1244,7 +1248,7 @@ class RepositoryTestCase(UITestCase):
             # Create and sync first repo
             repo1 = entities.Repository(
                 product=self.session_prod,
-                content_type='puppet',
+                content_type=REPO_TYPE['puppet'],
                 url=FAKE_0_PUPPET_REPO,
             ).create()
             repo1.sync()
@@ -1253,27 +1257,25 @@ class RepositoryTestCase(UITestCase):
             self.repository.search_and_click(repo1.name)
             content_count = self.repository.find_element(
                 locators['repo.fetch_puppet_modules']).text
-            self.repository.click(
-                locators['repo.manage_content.puppet_modules'])
+            self.repository.click(locators['repo.manage_content'])
             modules_num = len(self.repository.find_elements(
-                locators['repo.content_items']))
+                locators['repo.content.puppet_modules']))
             self.assertEqual(content_count, str(modules_num))
             # Create and sync second repo
             repo2 = entities.Repository(
                 product=self.session_prod,
-                content_type='puppet',
+                content_type=REPO_TYPE['puppet'],
                 url=FAKE_1_PUPPET_REPO,
             ).create()
             repo2.sync()
             # Verify that number of modules from the first repo has not changed
             self.products.search_and_click(self.session_prod.name)
             self.repository.search_and_click(repo1.name)
-            self.repository.click(
-                locators['repo.manage_content.puppet_modules'])
+            self.repository.click(locators['repo.manage_content'])
             self.assertEqual(
                 modules_num,
                 len(self.repository.find_elements(
-                    locators['repo.content_items']))
+                    locators['repo.content.puppet_modules']))
             )
 
     @run_in_one_thread
@@ -1308,6 +1310,122 @@ class RepositoryTestCase(UITestCase):
                     locators['rh.repo_checkbox'] % repos[0][0][0]['repo_name']
                 ).is_selected()
             )
+
+    @tier1
+    @skip_if_bug_open('bugzilla', 1394390)
+    def test_positive_upload_rpm(self):
+        """Create yum repository and upload rpm package
+
+        @id: 201d5742-cb1a-4534-ac02-91b5a4669d22
+
+        @Assert: Upload is successful and package is listed
+        """
+        repo_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=self.session_org.name)
+            self.products.search_and_click(self.session_prod.name)
+            make_repository(session, name=repo_name)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.upload_content(
+                repo_name, get_data_file(RPM_TO_UPLOAD))
+            # Check alert
+            self.assertIsNotNone(self.activationkey.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Check packages number
+            number = self.repository.find_element(
+                locators['repo.fetch_packages'])
+            self.assertGreater(int(number.text), 0)
+            # Check packages list
+            self.repository.click(locators['repo.manage_content'])
+            packages = [
+                package.text for package in
+                self.repository.find_elements(
+                    locators['repo.content.packages'])
+            ]
+            self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
+
+    @tier1
+    def test_negative_upload_rpm(self):
+        """Create yum repository but upload any content except rpm
+
+        @id: 77a098c2-3f63-4e9f-88b9-f0657b721611
+
+        @Assert: Error is raised during upload and file is not listed
+        """
+        repo_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=self.session_org.name)
+            self.products.search(self.session_prod.name).click()
+            make_repository(session, name=repo_name)
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.upload_content(
+                repo_name, get_data_file(PUPPET_MODULE_NTP_PUPPETLABS))
+            # Check alert
+            self.assertIsNotNone(self.activationkey.wait_until_element(
+                common_locators['alert.error_sub_form']))
+            # Check packages number
+            number = self.repository.find_element(
+                locators['repo.fetch_packages'])
+            self.assertEqual(int(number.text), 0)
+
+    @tier1
+    def test_positive_upload_puppet(self):
+        """Create puppet repository and upload puppet module
+
+        @id: 2da4ddeb-3d6a-4b77-b44a-190a0c20a4f6
+
+        @Assert: Upload is successful and module is listed
+        """
+        repo_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=self.session_org.name)
+            self.products.search(self.session_prod.name).click()
+            make_repository(
+                session, name=repo_name, repo_type=REPO_TYPE['puppet'])
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.upload_content(
+                repo_name, get_data_file(PUPPET_MODULE_NTP_PUPPETLABS))
+            # Check alert
+            self.assertIsNotNone(self.activationkey.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Check packages number
+            number = self.repository.find_element(
+                locators['repo.fetch_puppet_modules'])
+            self.assertGreater(int(number.text), 0)
+            # Check packages list
+            self.repository.click(locators['repo.manage_content'])
+            # Select all modules names from modules table
+            packages = [
+                package.text.split()[0] for package in
+                self.repository.find_elements(
+                    locators['repo.content.puppet_modules'])
+            ]
+            self.assertIn('ntp', packages)
+
+    @tier1
+    def test_negative_upload_puppet(self):
+        """Create puppet repository but upload any content except puppet module
+
+        @id: 79ebea29-2c5c-476d-8d1a-54e6b9d49e17
+
+        @Assert: Error is raised during upload and file is not listed
+        """
+        repo_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=self.session_org.name)
+            self.products.search(self.session_prod.name).click()
+            make_repository(
+                session, name=repo_name, repo_type=REPO_TYPE['puppet'])
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.upload_content(
+                repo_name, get_data_file(RPM_TO_UPLOAD))
+            # Check alert
+            self.assertIsNotNone(self.activationkey.wait_until_element(
+                common_locators['alert.error_sub_form']))
+            # Check packages number
+            number = self.repository.find_element(
+                locators['repo.fetch_puppet_modules'])
+            self.assertEqual(int(number.text), 0)
 
 
 class GitPuppetMirrorTestCase(UITestCase):
