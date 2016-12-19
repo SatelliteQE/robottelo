@@ -17,6 +17,7 @@
 from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
@@ -1394,6 +1395,7 @@ class KatelloAgentTestCase(CLITestCase):
         super(KatelloAgentTestCase, self).setUp()
         # Create VM and register content host
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
+        self.addCleanup(vm_cleanup, self.client)
         self.client.create()
         self.client.install_katello_ca()
         # Register content host, install katello-agent
@@ -1404,11 +1406,6 @@ class KatelloAgentTestCase(CLITestCase):
         self.host = Host.info({'name': self.client.hostname})
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
-
-    def tearDown(self):
-        """Destroy the VM"""
-        self.client.destroy()
-        super(KatelloAgentTestCase, self).tearDown()
 
     @tier3
     @run_only_on('sat')

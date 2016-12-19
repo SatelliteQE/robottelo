@@ -16,6 +16,7 @@
 @Upstream: No
 """
 from nailgun import entities
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
@@ -87,6 +88,7 @@ class ContentHostTestCase(UITestCase):
         katello-ca and katello-agent packages"""
         super(ContentHostTestCase, self).setUp()
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
+        self.addCleanup(vm_cleanup, self.client)
         self.client.create()
         self.client.install_katello_ca()
         result = self.client.register_contenthost(
@@ -94,11 +96,6 @@ class ContentHostTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
-
-    def tearDown(self):
-        """Destroy the VM"""
-        self.client.destroy()
-        super(ContentHostTestCase, self).tearDown()
 
     @tier3
     def test_positive_install_package(self):
