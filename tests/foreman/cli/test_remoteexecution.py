@@ -18,6 +18,7 @@
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from robottelo import ssh
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -183,6 +184,7 @@ class RemoteExecutionTestCase(CLITestCase):
             '''echo 'getenforce' > {0}'''.format(TEMPLATE_FILE)
         )
         cls.client = VirtualMachine(distro=DISTRO_RHEL7)
+        cls.addCleanup(vm_cleanup, cls.client)
         cls.client.create()
         cls.client.install_katello_ca()
         cls.client.register_contenthost(
@@ -192,12 +194,6 @@ class RemoteExecutionTestCase(CLITestCase):
         cls.client.enable_repo(REPOS['rhst7']['id'])
         cls.client.install_katello_agent()
         add_remote_execution_ssh_key(cls.client.hostname)
-
-    @classmethod
-    def tearDownClass(cls):
-        """Remove the VM used for testing remote execution"""
-        cls.client.destroy()
-        super(RemoteExecutionTestCase, cls).tearDownClass()
 
     @tier2
     def test_positive_run_default_job_template(self):
