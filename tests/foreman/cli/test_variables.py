@@ -19,7 +19,6 @@ from random import choice
 
 from nailgun import entities
 
-from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
@@ -77,11 +76,16 @@ class SmartVariablesTestCase(CLITestCase):
                 cls.puppet_class['name'], cls.env['name'])
         })
 
-    @classmethod
-    def tearDownClass(cls):
-        """Removes puppet class."""
-        super(SmartVariablesTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet_class['name'])
+    # TearDown brakes parallel tests run as every test depends on the same
+    # puppet class that will be removed during TearDown
+    # Uncomment for developing or debugging and do not forget to import
+    # `robottelo.api.utils.delete_puppet_class`.
+    #
+    # @classmethod
+    # def tearDownClass(cls):
+    #     """Removes puppet class."""
+    #     super(SmartVariablesTestCase, cls).tearDownClass()
+    #     delete_puppet_class(cls.puppet_class['name'])
 
     @run_only_on('sat')
     @tier2
