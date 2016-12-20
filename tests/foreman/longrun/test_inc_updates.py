@@ -36,6 +36,7 @@ from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid, promote, upload_manifest
 )
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
@@ -195,6 +196,7 @@ class IncrementalUpdateTestCase(TestCase):
         # Create client machine and register it to satellite with
         # rhel_6_partial_ak
         self.vm = VirtualMachine(distro=DISTRO_RHEL6, tag='incupdate')
+        self.addCleanup(vm_cleanup, self.vm)
         self.setup_vm(self.vm, rhel_6_partial_ak.name, self.org.label)
         self.vm.enable_repo(REPOS['rhva6']['id'])
         self.vm.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
@@ -204,11 +206,6 @@ class IncrementalUpdateTestCase(TestCase):
         self.partial_hosts = []
         for host in hosts:
             self.partial_hosts.append(host)
-
-    def tearDown(self):
-        """Destroys provisioned vm"""
-        self.vm.destroy()
-        super(IncrementalUpdateTestCase, self).tearDown()
 
     @staticmethod
     def setup_vm(client, act_key, org_name):

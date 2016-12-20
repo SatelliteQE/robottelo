@@ -19,6 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import promote
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.factory import (
     make_content_host,
     setup_org_for_a_custom_repo,
@@ -466,6 +467,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         self.hosts = []
         for _ in range(self.hosts_number):
             client = VirtualMachine(distro=DISTRO_RHEL7)
+            self.addCleanup(vm_cleanup, client)
             self.hosts.append(client)
             client.create()
             client.install_katello_ca()
@@ -483,12 +485,6 @@ class HostCollectionPackageManagementTest(UITestCase):
             host=host_ids,
             organization=self.session_org,
         ).create()
-
-    def tearDown(self):
-        """Destroy all the VMs"""
-        for client in self.hosts:
-            client.destroy()
-        super(HostCollectionPackageManagementTest, self).tearDown()
 
     def _validate_package_installed(self, hosts, package_name,
                                     expected_installed=True, timeout=120):

@@ -1092,8 +1092,8 @@ class KatelloAgentTestCase(CLITestCase):
         super(KatelloAgentTestCase, self).setUp()
         # Create VM and register content host
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
-        self.client.create()
         self.addCleanup(vm_cleanup, self.client)
+        self.client.create()
         self.client.install_katello_ca()
         # Register content host, install katello-agent
         self.client.register_contenthost(
