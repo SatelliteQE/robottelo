@@ -1778,6 +1778,7 @@ locators = LocatorDict({
     "package.build_time": (
         By.XPATH, "//span[text()='Build Time']/../.."
                   "/span[contains(@class, 'info-value')]"),
+    "package.content_file": (By.XPATH, "//div[contains(., '%s')]"),
 
     # System Groups
     "system-groups.new": (

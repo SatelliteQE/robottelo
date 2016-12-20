@@ -2,7 +2,7 @@
 """Implements Packages UI"""
 
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -45,3 +45,11 @@ class Package(Base):
                     ' expected to have "{2}"'.format(
                         parameter_name, actual_text, parameter_value)
                 )
+
+    def check_file_list(self, name, file_list):
+        """Check whether necessary file(s) are present in the package"""
+        self.click(self.search(name))
+        self.click(tab_locators['package.tab_files'])
+        for package_file in file_list:
+            self.wait_until_element(
+                locators['package.content_file'] % package_file)
