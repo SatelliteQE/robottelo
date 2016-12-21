@@ -58,7 +58,8 @@ from robottelo.decorators import (
     stubbed,
     tier3,
     run_in_one_thread,
-    run_only_on
+    run_only_on,
+    skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
 
@@ -851,6 +852,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
+    @skip_if_bug_open('bugzilla', 1402767)
     @tier3
     def test_positive_list_filter_by_product_id(self):
         """Filter errata by product id
