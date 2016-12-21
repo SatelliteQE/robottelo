@@ -351,4 +351,12 @@ tab_locators = LocatorDict({
     "puppet_class.tab_smart_variable": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href, 'smart_vars')]"),
+
+    # Packages
+    "package.tab_details": (
+        By.XPATH, "//a[contains(@href, 'info')]/span"),
+    "package.tab_files": (
+        By.XPATH, "//a[contains(@href, 'files')]/span"),
+    "package.tab_dependencies": (
+        By.XPATH, "//a[contains(@href, 'dependencies')]/span"),
 })

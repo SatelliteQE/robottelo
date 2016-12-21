@@ -18,8 +18,16 @@
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.constants import FAKE_0_YUM_REPO, FAKE_3_YUM_REPO
-from robottelo.decorators import tier2
+from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
+from robottelo.constants import (
+    FAKE_0_YUM_REPO,
+    FAKE_3_YUM_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
+from robottelo.decorators import skip_if_not_set, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -121,5 +129,70 @@ class PackagesTestCase(UITestCase):
                     ['Source RPM', 'gorilla-0.62-1.src.rpm'],
                     ['Build Host', 'smqe-ws15'],
                     ['Build Time', '1331831364'],
+                ]
+            )
+
+
+class RHPackagesTestCase(UITestCase):
+    """Implement tests for packages via UI"""
+
+    @classmethod
+    @skip_if_not_set('fake_manifest')
+    def setUpClass(cls):
+        super(RHPackagesTestCase, cls).setUpClass()
+        cls.organization = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(cls.organization.id, manifest.content)
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=cls.organization.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        entities.Repository(id=repo_id).sync()
+
+    @tier2
+    def test_positive_search_in_rh_repo(self):
+        """Synchronize one of RH repos (for example Satellite Tools). Search
+        for packages inside of it
+
+        @id: 8eae9cc1-6902-49ed-a474-ef175fe5ab5f
+
+        @Assert: Content search functionality works as intended and expected
+        packages are present inside of repository
+
+        @CaseLevel: System
+        """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.package.select_repo(REPOS['rhst7']['name'])
+            self.assertIsNotNone(self.package.search('facter'))
+            self.assertIsNotNone(self.package.search('katello-agent'))
+
+    @tier2
+    def test_positive_check_file_list(self):
+        """Synchronize one of RH repos (for example Satellite Tools). Search
+        for packages inside of it. Open one of the package and check list of
+        file inside of it
+
+        @id: 01c9dccb-2b2b-4b90-b277-047e772e56e7
+
+        @Assert: Content search functionality works as intended and package
+        contains expected list of files
+
+        @CaseLevel: System
+        """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.package.select_repo(REPOS['rhst7']['name'])
+            self.package.check_file_list(
+                'katello-agent',
+                [
+                    '/usr/lib/gofer/plugins/katelloplugin.py',
+                    '/usr/lib/yum-plugins',
+                    '/usr/lib/yum-plugins/package_upload.py',
+                    '/usr/sbin/katello-package-upload',
                 ]
             )
