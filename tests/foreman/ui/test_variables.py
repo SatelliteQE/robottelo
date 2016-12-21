@@ -17,19 +17,13 @@
 """
 
 import yaml
-from fauxfactory import gen_string
 from random import choice, uniform
 
-from robottelo import ssh
-from robottelo.api.utils import delete_puppet_class
-from robottelo.cli.environment import Environment
-from robottelo.cli.factory import make_hostgroup
-from robottelo.cli.host import Host
-from robottelo.cli.hostgroup import HostGroup
-from robottelo.cli.proxy import Proxy
-from robottelo.cli.puppet import Puppet
-from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
+from fauxfactory import gen_string
+from nailgun import entities
+
+from robottelo.api.utils import publish_puppet_module
+from robottelo.constants import ANY_CONTEXT, CUSTOM_PUPPET_REPO
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -57,7 +51,7 @@ def valid_sc_variable_data():
         },
         {
             u'sc_type': 'integer',
-            u'value': gen_string('numeric', 5),
+            u'value': gen_string('numeric', 5).lstrip('0'),
         },
         {
             u'sc_type': 'real',
@@ -67,7 +61,7 @@ def valid_sc_variable_data():
             u'sc_type': 'array',
             u'value': u'["{0}","{1}","{2}"]'.format(
                 gen_string('alpha'),
-                gen_string('numeric'),
+                gen_string('numeric').lstrip('0'),
                 gen_string('html'),
             ),
         },
@@ -85,7 +79,7 @@ def valid_sc_variable_data():
             u'sc_type': 'json',
             u'value': u'{{"{0}":"{1}","{2}":"{3}"}}'.format(
                 gen_string('alpha'),
-                gen_string('numeric'),
+                gen_string('numeric').lstrip('0'),
                 gen_string('alpha'),
                 gen_string('alphanumeric')
             ),
@@ -126,7 +120,7 @@ def invalid_sc_variable_data():
             u'sc_type': 'json',
             u'value': u'{{{0}:{1},{2}:{3}}}'.format(
                 gen_string('alpha'),
-                gen_string('numeric'),
+                gen_string('numeric').lstrip('0'),
                 gen_string('alpha'),
                 gen_string('alphanumeric')
             ),
@@ -144,33 +138,42 @@ class SmartVariablesTestCase(UITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
-        cls.puppet_module = "puppetlabs/ntp"
-        cls.host_name = settings.server.hostname
-        _, _, cls.domain_name = cls.host_name.partition('.')
-        ssh.command(
-            'puppet module install --force {0}'.format(cls.puppet_module))
-        cls.env = Environment.info({u'name': 'production'})
-        Proxy.importclasses({
-            u'environment': cls.env['name'],
-            u'name': cls.host_name,
-        })
-        cls.puppet = Puppet.info({u'name': 'ntp'})
-        # Add found puppet classes to default Host
-        Host.update({
-            u'name': cls.host_name,
-            u'puppet-classes': cls.puppet['name']
+        cls.puppet_modules = [
+            {'author': 'robottelo', 'name': 'ui_test_variables'},
+        ]
+        cls.org = entities.Organization().create()
+        cv = publish_puppet_module(
+           cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
+        cls.env = entities.Environment().search(
+           query={'search': u'content_view="{0}"'.format(cv.name)}
+        )[0]
+        # Find imported puppet class
+        cls.puppet_class = entities.PuppetClass().search(query={
+           'search': u'name = "{0}" and environment = "{1}"'.format(
+               cls.puppet_modules[0]['name'], cls.env.name)
+        })[0]
+        # And all its subclasses
+        cls.puppet_subclasses = entities.PuppetClass().search(query={
+            'search': u'name ~ "{0}::" and environment = "{1}"'.format(
+                cls.puppet_modules[0]['name'], cls.env.name)
         })
 
-    @classmethod
-    def tearDownClass(cls):
-        """Removes entire module from the system and re-imports classes into
-        proxy. This is required as other types of tests (API/UI) use the same
-        module.
-        """
-        super(SmartVariablesTestCase, cls).tearDownClass()
+        cls.host = entities.Host(organization=cls.org).create()
+        cls.host.environment = cls.env
+        cls.host.update(['environment'])
+        cls.host.add_puppetclass(data={'puppetclass_id': cls.puppet_class.id})
+        cls.domain_name = entities.Domain(id=cls.host.domain.id).read().name
 
-        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
-                            cls.host_name, cls.env['name'])
+    # TearDown brakes parallel tests run as every test depends on the same
+    # puppet class that will be removed during TearDown.
+    # Uncomment for developing or debugging and do not forget to import
+    # `robottelo.api.utils.delete_puppet_class`.
+    #
+    # @classmethod
+    # def tearDownClass(cls):
+    #     """Removes puppet class."""
+    #     super(SmartVariablesTestCase, cls).tearDownClass()
+    #     delete_puppet_class(cls.puppet_class.name)
 
     @tier1
     def test_positive_create(self):
@@ -190,7 +193,7 @@ class SmartVariablesTestCase(UITestCase):
                     make_smart_variable(
                         session,
                         name=name,
-                        puppet_class=self.puppet['name'],
+                        puppet_class=self.puppet_class.name,
                     )
                     self.assertIsNotNone(self.smart_variable.search(name))
 
@@ -222,21 +225,21 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=value,
             )
             self.assertIsNotNone(self.smart_variable.search(name))
             # Verify that corresponding entry is present in YAML output
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], value)
             # Verify smart variable value on Host page
             sv_value = self.hosts.get_smart_variable_value(
-                self.host_name, name).text
+                self.host.name, name).text
             self.assertEqual(sv_value, value)
             # Verify puppet class value for corresponding smart variable
             sv_puppet_class = self.hosts.wait_until_element(
                 locators['host.smart_variable_puppet_class'] % name).text
-            self.assertEqual(sv_puppet_class, self.puppet['name'])
+            self.assertEqual(sv_puppet_class, self.puppet_class.name)
 
     @run_only_on('sat')
     @tier1
@@ -260,7 +263,7 @@ class SmartVariablesTestCase(UITestCase):
                     make_smart_variable(
                         session,
                         name=name,
-                        puppet_class=self.puppet['name'],
+                        puppet_class=self.puppet_class.name,
                         default_value=gen_string('alpha')
                     )
                     self.assertIsNotNone(
@@ -295,17 +298,17 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=value,
             )
             self.assertIsNotNone(self.smart_variable.search(name))
             self.smart_variable.delete(name)
             # Verify that corresponding entry is not present in YAML output
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertNotIn(name, output['parameters'])
             # Verify that smart variable is not present on Host page
             sv_value = self.hosts.get_smart_variable_value(
-                self.host_name, name)
+                self.host.name, name)
             self.assertIsNone(sv_value)
 
     @run_only_on('sat')
@@ -329,7 +332,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=old_name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
             )
             self.assertIsNotNone(self.smart_variable.search(old_name))
             for new_name in generate_strings_list():
@@ -358,12 +361,13 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            self.smart_variable.update(name, puppet_class='ntp::config')
+            new_puppet_class = choice(self.puppet_subclasses).name
+            self.smart_variable.update(name, puppet_class=new_puppet_class)
             self.assertTrue(self.smart_variable.validate_smart_variable(
-                name, 'puppet_class', 'ntp::config'))
+                name, 'puppet_class', new_puppet_class))
 
     @run_only_on('sat')
     @tier1
@@ -392,7 +396,7 @@ class SmartVariablesTestCase(UITestCase):
                 make_smart_variable(
                     session,
                     name=name,
-                    puppet_class=self.puppet['name'],
+                    puppet_class=self.puppet_class.name,
                 )
             self.assertIsNotNone(
                 self.smart_variable.wait_until_element(
@@ -423,7 +427,7 @@ class SmartVariablesTestCase(UITestCase):
                 session,
                 name=name,
                 default_value=gen_string('alpha'),
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
             )
             for data in valid_sc_variable_data():
                 with self.subTest(data):
@@ -467,7 +471,7 @@ class SmartVariablesTestCase(UITestCase):
                 session,
                 name=name,
                 default_value=initial_value,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
             )
             for data in invalid_sc_variable_data():
                 with self.subTest(data):
@@ -505,7 +509,7 @@ class SmartVariablesTestCase(UITestCase):
         with Session(self.browser) as session:
             make_smart_variable(
                 session,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('alpha'),
                 validator_type='regexp',
                 validator_rule='[0-9]',
@@ -536,7 +540,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('numeric'),
                 validator_type='regexp',
                 validator_rule='[0-9]',
@@ -564,7 +568,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('numeric'),
                 validator_type='regexp',
                 validator_rule='[0-9]',
@@ -601,7 +605,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('numeric'),
                 validator_type='regexp',
                 validator_rule='[0-9]',
@@ -636,7 +640,7 @@ class SmartVariablesTestCase(UITestCase):
         with Session(self.browser) as session:
             make_smart_variable(
                 session,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('alphanumeric'),
                 validator_type='list',
                 validator_rule='45, test',
@@ -667,7 +671,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='test1',
                 validator_type='list',
                 validator_rule='true, 50, test1',
@@ -696,7 +700,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='50',
                 validator_type='list',
                 validator_rule='25, example, 50',
@@ -732,7 +736,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='example',
                 validator_type='list',
                 validator_rule='test, example, 30',
@@ -763,7 +767,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='true',
                 key_type='boolean',
                 matcher=[{
@@ -797,7 +801,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='true',
                 key_type='boolean',
                 matcher=[{
@@ -827,7 +831,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('alpha'),
                 key_type='integer',
                 matcher=[{
@@ -863,7 +867,7 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('alpha'),
                 matcher=[{
                     'matcher_attribute': 'hostgroup={0}'.format(
@@ -906,23 +910,22 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=default_value,
                 matcher=[{
-                    'matcher_attribute': 'fqdn={0}'.format(
-                        self.host_name),
+                    'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                     'matcher_value': override_value
                 }]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
             # Verify that overridden value is present for just created smart
             # variable in YAML output
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertNotEqual(output['parameters'][name], default_value)
             self.assertEqual(output['parameters'][name], override_value)
             # Verify that smart variable has overridden value on Host page
             sv_value = self.hosts.get_smart_variable_value(
-                self.host_name, name).text
+                self.host.name, name).text
             self.assertEqual(sv_value, override_value)
 
     @run_only_on('sat')
@@ -954,13 +957,12 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('alpha'),
                 matcher_priority='fqdn\nhostgroup\nos\ndomain',
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -972,7 +974,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], override_value)
 
     @run_only_on('sat')
@@ -1008,13 +1010,12 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('alpha'),
                 matcher_priority='domain\nhostgroup\nos\nfqdn',
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -1026,7 +1027,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], override_value2)
             self.assertNotEqual(output['parameters'][name], override_value)
 
@@ -1066,14 +1067,13 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='[20]',
                 key_type='array',
                 matcher_merge_overrides=True,
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -1085,7 +1085,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], [80, 90, 90, 100])
 
     @run_only_on('sat')
@@ -1125,14 +1125,13 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='[20]',
                 key_type='array',
                 matcher_merge_overrides=True,
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -1143,7 +1142,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], [80, 90])
 
     @run_only_on('sat')
@@ -1183,15 +1182,14 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='[test]',
                 key_type='array',
                 matcher_merge_overrides=True,
                 matcher_merge_default=True,
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -1203,7 +1201,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(
                 output['parameters'][name], ['test', 80, 90, 90, 100])
 
@@ -1244,15 +1242,14 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='[]',
                 key_type='array',
                 matcher_merge_overrides=True,
                 matcher_merge_default=True,
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -1264,7 +1261,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], [80, 90, 90, 100])
 
     @run_only_on('sat')
@@ -1304,15 +1301,14 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='[20]',
                 key_type='array',
                 matcher_merge_overrides=True,
                 matcher_merge_avoid=True,
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -1324,7 +1320,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], [80, 90, 100])
 
     @run_only_on('sat')
@@ -1363,15 +1359,14 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value='[20]',
                 key_type='array',
                 matcher_merge_overrides=True,
                 matcher_merge_avoid=True,
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                     {
@@ -1383,7 +1378,7 @@ class SmartVariablesTestCase(UITestCase):
                 ]
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertEqual(output['parameters'][name], [70, 80, 90, 100])
 
     @run_only_on('sat')
@@ -1408,7 +1403,7 @@ class SmartVariablesTestCase(UITestCase):
                 name=name,
                 default_value=gen_string('numeric'),
                 key_type='integer',
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
             )
             self.assertFalse(
                 self.smart_variable.validate_checkbox(name, 'Merge Overrides'))
@@ -1437,7 +1432,7 @@ class SmartVariablesTestCase(UITestCase):
                 name=name,
                 default_value='true',
                 key_type='boolean',
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
             )
             self.assertFalse(
                 self.smart_variable.validate_checkbox(name, 'Merge Overrides'))
@@ -1466,37 +1461,35 @@ class SmartVariablesTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        name = gen_string('alpha')
-        hostgroup = make_hostgroup({
-            'name': gen_string('alpha'),
-            'environment-id': self.env['id'],
-            'puppet-class-ids': self.puppet['id']
-        })
+        sv_name = gen_string('alpha')
+        hg_name = gen_string('alpha')
+        hostgroup = entities.HostGroup(
+            name=hg_name, environment=self.env).create()
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
         with Session(self.browser) as session:
             make_smart_variable(
                 session,
-                name=name,
-                puppet_class=self.puppet['name'],
-                matcher=[
-                    {
+                name=sv_name,
+                puppet_class=self.puppet_class.name,
+                matcher=[{
                         'matcher_attribute': 'hostgroup={0}'.format(
-                            hostgroup['name']),
+                            hostgroup.name),
                         'matcher_value': gen_string('alpha')
                     },
                 ]
             )
             self.assertTrue(self.smart_variable.validate_smart_variable(
-                name, 'overrides_number', '1'))
-            HostGroup.delete({'id': hostgroup['id']})
+                sv_name, 'overrides_number', '1'))
+            hostgroup.delete()
             self.assertTrue(self.smart_variable.validate_smart_variable(
-                name, 'overrides_number', '0'))
-            make_hostgroup({
-                'name': gen_string('alpha'),
-                'environment-id': self.env['id'],
-                'puppet-class-ids': self.puppet['id']
-            })
+                sv_name, 'overrides_number', '0'))
+            hostgroup = entities.HostGroup(
+                name=hg_name, environment=self.env).create()
+            hostgroup.add_puppetclass(
+                data={'puppetclass_id': self.puppet_class.id})
             self.assertTrue(self.smart_variable.validate_smart_variable(
-                name, 'overrides_number', '0'))
+                sv_name, 'overrides_number', '0'))
 
     @run_only_on('sat')
     @tier2
@@ -1525,12 +1518,12 @@ class SmartVariablesTestCase(UITestCase):
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
             )
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'overrides_number', '0'))
             self.hosts.set_smart_variable_value(
-                self.host_name, name, gen_string('alpha'))
+                self.host.name, name, gen_string('alpha'))
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'overrides_number', '1'))
 
@@ -1557,21 +1550,23 @@ class SmartVariablesTestCase(UITestCase):
         @CaseLevel: Integration
         """
         name = gen_string('alpha')
+        default_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
                 key_type='integer',
-                default_value=gen_string('numeric'),
-                puppet_class=self.puppet['name'],
+                default_value=default_value,
+                puppet_class=self.puppet_class.name,
             )
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'overrides_number', '0'))
             self.hosts.set_smart_variable_value(
-                self.host_name, name, gen_string('alpha'))
+                self.host.name, name, gen_string('alpha'))
             self.assertIsNotNone(
-                self.hosts.wait_until_element(locators['host.override_error']))
+                self.hosts.wait_until_element(
+                    locators['host.override_error'] % default_value))
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'overrides_number', '0'))
 
@@ -1598,19 +1593,18 @@ class SmartVariablesTestCase(UITestCase):
         @CaseLevel: Integration
         """
         name = gen_string('alpha')
-        host_override_value = gen_string('numeric')
+        host_override_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('numeric'),
                 key_type='integer',
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': gen_string('numeric')
                     },
                 ]
@@ -1618,7 +1612,7 @@ class SmartVariablesTestCase(UITestCase):
             self.assertIsNotNone(self.smart_variable.search(name))
             # Change matcher value for smart variable from Host page
             self.hosts.set_smart_variable_value(
-                self.host_name, name, host_override_value, override=False)
+                self.host.name, name, host_override_value, override=False)
             # Check that matcher value was changed from smart variable
             # interface
             self.smart_variable.click(self.smart_variable.search(name))
@@ -1650,20 +1644,19 @@ class SmartVariablesTestCase(UITestCase):
         @CaseLevel: Integration
         """
         name = gen_string('alpha')
-        override_value = gen_string('numeric')
+        override_value = gen_string('numeric').lstrip('0')
         host_override_value = gen_string('alpha')
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=gen_string('numeric'),
                 key_type='integer',
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                 ]
@@ -1672,9 +1665,9 @@ class SmartVariablesTestCase(UITestCase):
             # Attempt to change matcher value from Host page using invalid
             # value
             self.hosts.set_smart_variable_value(
-                self.host_name, name, host_override_value, override=False)
-            self.assertIsNotNone(
-                self.hosts.wait_until_element(locators['host.override_error']))
+                self.host.name, name, host_override_value, override=False)
+            self.assertIsNotNone(self.hosts.wait_until_element(
+                    locators['host.override_error'] % override_value))
             # Verify that matcher value was not changed
             self.smart_variable.click(self.smart_variable.search(name))
             sv_matcher_value = self.smart_variable.wait_until_element(
@@ -1704,15 +1697,14 @@ class SmartVariablesTestCase(UITestCase):
                 session,
                 name=name,
                 default_value=value,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 hidden_value=True,
             )
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value_hidden'])
+                locators['smart_variable.default_value'])
             self.assertEqual(default_value.get_attribute('value'), value)
-            self.assertEqual(default_value.get_attribute('type'), 'password')
-            self.assertIn('***', default_value.get_attribute('placeholder'))
+            self.assertIn('masked-input', default_value.get_attribute('class'))
 
     @run_only_on('sat')
     @tier1
@@ -1739,18 +1731,19 @@ class SmartVariablesTestCase(UITestCase):
                 session,
                 name=name,
                 default_value=value,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 hidden_value=True,
             )
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.search_and_click(name)
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value_hidden'])
-            self.assertEqual(default_value.get_attribute('type'), 'password')
+                locators['smart_variable.default_value'])
+            self.assertIn('masked-input', default_value.get_attribute('class'))
             self.smart_variable.update(name, hidden_value=False)
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value'])
-            self.assertEqual(default_value.get_attribute('type'), 'textarea')
+            self.assertNotIn(
+                'masked-input', default_value.get_attribute('class'))
             self.assertEqual(default_value.get_attribute('value'), value)
 
     @run_only_on('sat')
@@ -1777,24 +1770,24 @@ class SmartVariablesTestCase(UITestCase):
         @CaseLevel: Integration
         """
         name = gen_string('alpha')
-        default_value = gen_string('numeric')
+        default_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=default_value,
                 hidden_value=True,
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            self.hosts.click(self.hosts.search(self.host_name))
+            self.hosts.search_and_click(self.host.name)
             self.hosts.click(locators['host.edit'])
             self.hosts.click(tab_locators['host.tab_params'])
             sv_value = self.hosts.get_smart_variable_value(
-                self.host_name, name, hidden=True)
+                self.host.name, name)
             self.assertEqual(sv_value.get_attribute('value'), default_value)
-            self.assertEqual(sv_value.get_attribute('type'), 'password')
+            self.assertIn('masked-input', sv_value.get_attribute('class'))
             self.assertIn(
                 '***', sv_value.get_attribute('data-hidden-value'))
             self.assertTrue(self.smart_variable.is_element_enabled(
@@ -1828,20 +1821,20 @@ class SmartVariablesTestCase(UITestCase):
         @CaseLevel: Integration
         """
         name = gen_string('alpha')
-        default_value = gen_string('numeric')
+        default_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=default_value,
                 hidden_value=True,
             )
             self.assertIsNotNone(self.smart_variable.search(name))
             sv_value = self.hosts.get_smart_variable_value(
-                self.host_name, name, hidden=True)
-            self.assertEqual(sv_value.get_attribute('type'), 'password')
+                self.host.name, name)
+            self.assertIn('masked-input', sv_value.get_attribute('class'))
             self.hosts.click(locators['host.smart_variable_unhide'] % name)
             self.assertTrue(self.smart_variable.is_element_enabled(
                 locators['host.smart_variable_override'] % name))
@@ -1850,8 +1843,8 @@ class SmartVariablesTestCase(UITestCase):
             self.hosts.click(common_locators['submit'])
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value_hidden'])
-            self.assertEqual(default_value.get_attribute('type'), 'password')
+                locators['smart_variable.default_value'])
+            self.assertIn('masked-input', default_value.get_attribute('class'))
 
     @run_only_on('sat')
     @tier1
@@ -1881,21 +1874,21 @@ class SmartVariablesTestCase(UITestCase):
                 session,
                 name=name,
                 default_value=value,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 hidden_value=True,
             )
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value_hidden'])
-            self.assertEqual(default_value.get_attribute('type'), 'password')
+                locators['smart_variable.default_value'])
+            self.assertIn('masked-input', default_value.get_attribute('class'))
             self.assertEqual(default_value.get_attribute('value'), value)
             self.smart_variable.assign_value(
-                locators['smart_variable.default_value_hidden'], new_value)
+                locators['smart_variable.default_value'], new_value)
             self.smart_variable.click(common_locators['submit'])
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value_hidden'])
-            self.assertEqual(default_value.get_attribute('type'), 'password')
+                locators['smart_variable.default_value'])
+            self.assertIn('masked-input', default_value.get_attribute('class'))
             self.assertEqual(default_value.get_attribute('value'), new_value)
 
     @run_only_on('sat')
@@ -1924,41 +1917,42 @@ class SmartVariablesTestCase(UITestCase):
         @CaseLevel: Integration
         """
         name = gen_string('alpha')
-        default_value = gen_string('numeric')
+        default_value = gen_string('numeric').lstrip('0')
         host_override_value = gen_string('alpha')
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 default_value=default_value,
                 hidden_value=True,
             )
             self.assertIsNotNone(self.smart_variable.search(name))
             sv_value = self.hosts.get_smart_variable_value(
-                self.host_name, name, hidden=True)
-            self.assertEqual(sv_value.get_attribute('type'), 'password')
+                self.host.name, name)
+            self.assertIn('masked-input', sv_value.get_attribute('class'))
             self.assertEqual(sv_value.get_attribute('value'), default_value)
             self.hosts.set_smart_variable_value(
-                self.host_name, name, host_override_value, hidden=True)
+                self.host.name, name, host_override_value)
             sv_value = self.hosts.get_smart_variable_value(
-                self.host_name, name, hidden=True)
-            self.assertEqual(sv_value.get_attribute('type'), 'password')
+                self.host.name, name)
+            self.assertIn('masked-input', sv_value.get_attribute('class'))
             self.assertEqual(
                 sv_value.get_attribute('value'), host_override_value)
-            self.smart_variable.click(self.smart_variable.search(name))
+            self.smart_variable.search_and_click(name)
             default_value_element = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value_hidden'])
+                locators['smart_variable.default_value'])
             self.assertEqual(
                 default_value_element.get_attribute('value'), default_value)
-            self.assertEqual(
-                default_value_element.get_attribute('type'), 'password')
+            self.assertIn(
+                'masked-input', default_value_element.get_attribute('class'))
             matcher_element = self.smart_variable.wait_until_element(
-                locators['smart_variable.matcher_value_hidden'] % 1)
+                locators['smart_variable.matcher_value'] % 1)
             self.assertEqual(
                 matcher_element.get_attribute('value'), host_override_value)
-            self.assertEqual(matcher_element.get_attribute('type'), 'password')
+            self.assertIn(
+                'masked-input', matcher_element.get_attribute('class'))
 
     @run_only_on('sat')
     @tier1
@@ -1987,25 +1981,23 @@ class SmartVariablesTestCase(UITestCase):
                 session,
                 name=name,
                 default_value='',
-                puppet_class=self.puppet['name'],
+                puppet_class=self.puppet_class.name,
                 hidden_value=True,
                 matcher=[
                     {
-                        'matcher_attribute': 'fqdn={0}'.format(
-                            self.host_name),
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
                         'matcher_value': override_value
                     },
                 ]
             )
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value_hidden'])
-            self.assertEqual(default_value.get_attribute('type'), 'password')
+                locators['smart_variable.default_value'])
+            self.assertIn('masked-input', default_value.get_attribute('class'))
             self.assertEqual(default_value.get_attribute('value'), '')
-            self.assertEqual(default_value.get_attribute('placeholder'), '')
             # Check matcher state and value
             matcher_element = self.smart_variable.wait_until_element(
-                locators['smart_variable.matcher_value_hidden'] % 1)
+                locators['smart_variable.matcher_value'] % 1)
             self.assertEqual(
                 matcher_element.get_attribute('value'), override_value)
-            self.assertEqual(matcher_element.get_attribute('type'), 'password')
+            self.assertIn('masked-input', default_value.get_attribute('class'))
