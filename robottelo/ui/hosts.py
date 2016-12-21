@@ -214,8 +214,6 @@ class Hosts(Base):
         :param str host_name: Name of Host to get smart variable information
             from
         :param str sv_name: Name of Smart Variable to be read
-        :param bool hidden: Specify whether it is expected that read value is
-            hidden on UI or not
         """
         self.click(self.search(host_name))
         self.click(locators['host.edit'])
@@ -230,10 +228,9 @@ class Hosts(Base):
         :param str host_name: Name of Host where smart variable value should be
             modified
         :param str sv_name: Name of Smart Variable to be modified
+        :param str sv_value: Value of Smart Variable that should be set
         :param bool override: Specify whether it is expected to override smart
             value or just edit its value
-        :param bool hidden: Specify whether it is expected that smart variable
-            value is hidden on UI or not
         """
         self.click(self.search(host_name))
         self.click(locators['host.edit'])

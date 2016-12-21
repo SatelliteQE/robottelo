@@ -336,11 +336,11 @@ class SmartVariablesTestCase(CLITestCase):
             with self.subTest(new_name):
                 SmartVariable.update({
                     'id': smart_variable['id'],
-                    'new-name': new_name,
+                    'new-variable': new_name,
                     'puppet-class': self.puppet_class['name']
                 })
                 updated_sv = SmartVariable.info({'id': smart_variable['id']})
-                self.assertEqual(updated_sv['name'], new_name)
+                self.assertEqual(updated_sv['variable'], new_name)
 
     @run_only_on('sat')
     @tier1
@@ -540,7 +540,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         @assert: Variable is created for matched validator rule.
         """
-        value = gen_string('numeric')
+        value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': gen_string('alpha')
@@ -597,7 +597,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         @assert: Matcher is created for matched validator rule.
         """
-        value = gen_string('numeric')
+        value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': gen_string('numeric'),
