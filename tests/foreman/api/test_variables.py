@@ -21,7 +21,7 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.api.utils import delete_puppet_class, publish_puppet_module
+from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
@@ -60,15 +60,20 @@ class SmartVariablesTestCase(APITestCase):
         })[0]
         # And all its subclasses
         cls.puppet_subclasses = entities.PuppetClass().search(query={
-            'search': u'name = "{0}::" and environment = "{1}"'.format(
+            'search': u'name ~ "{0}::" and environment = "{1}"'.format(
                 cls.puppet_modules[0]['name'], cls.env.name)
         })
 
-    @classmethod
-    def tearDownClass(cls):
-        """Removes puppet class."""
-        super(SmartVariablesTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet_class.name)
+    # TearDown brakes parallel tests run as every test depends on the same
+    # puppet class that will be removed during TearDown.
+    # Uncomment for developing or debugging and do not forget to import
+    # `robottelo.api.utils.delete_puppet_class`.
+    #
+    # @classmethod
+    # def tearDownClass(cls):
+    #     """Removes puppet class."""
+    #     super(SmartVariablesTestCase, cls).tearDownClass()
+    #     delete_puppet_class(cls.puppet_class.name)
 
     @run_only_on('sat')
     @tier1

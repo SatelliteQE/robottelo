@@ -19,7 +19,6 @@ from random import choice
 
 from nailgun import entities
 
-from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
@@ -77,11 +76,16 @@ class SmartVariablesTestCase(CLITestCase):
                 cls.puppet_class['name'], cls.env['name'])
         })
 
-    @classmethod
-    def tearDownClass(cls):
-        """Removes puppet class."""
-        super(SmartVariablesTestCase, cls).tearDownClass()
-        delete_puppet_class(cls.puppet_class['name'])
+    # TearDown brakes parallel tests run as every test depends on the same
+    # puppet class that will be removed during TearDown
+    # Uncomment for developing or debugging and do not forget to import
+    # `robottelo.api.utils.delete_puppet_class`.
+    #
+    # @classmethod
+    # def tearDownClass(cls):
+    #     """Removes puppet class."""
+    #     super(SmartVariablesTestCase, cls).tearDownClass()
+    #     delete_puppet_class(cls.puppet_class['name'])
 
     @run_only_on('sat')
     @tier2
@@ -332,11 +336,11 @@ class SmartVariablesTestCase(CLITestCase):
             with self.subTest(new_name):
                 SmartVariable.update({
                     'id': smart_variable['id'],
-                    'new-name': new_name,
+                    'new-variable': new_name,
                     'puppet-class': self.puppet_class['name']
                 })
                 updated_sv = SmartVariable.info({'id': smart_variable['id']})
-                self.assertEqual(updated_sv['name'], new_name)
+                self.assertEqual(updated_sv['variable'], new_name)
 
     @run_only_on('sat')
     @tier1
@@ -536,7 +540,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         @assert: Variable is created for matched validator rule.
         """
-        value = gen_string('numeric')
+        value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': gen_string('alpha')
@@ -593,7 +597,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         @assert: Matcher is created for matched validator rule.
         """
-        value = gen_string('numeric')
+        value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': gen_string('numeric'),
