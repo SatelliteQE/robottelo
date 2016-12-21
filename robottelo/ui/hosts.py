@@ -208,44 +208,35 @@ class Hosts(Base):
         self.wait_for_ajax()
         return output
 
-    def get_smart_variable_value(self, host_name, sv_name, hidden=False):
+    def get_smart_variable_value(self, host_name, sv_name):
         """Return smart variable value element for specific host
 
         :param str host_name: Name of Host to get smart variable information
             from
         :param str sv_name: Name of Smart Variable to be read
-        :param bool hidden: Specify whether it is expected that read value is
-            hidden on UI or not
         """
         self.click(self.search(host_name))
         self.click(locators['host.edit'])
         self.click(tab_locators['host.tab_params'])
-        if hidden:
-            locator = locators['host.smart_variable_value_hidden'] % sv_name
-        else:
-            locator = locators['host.smart_variable_value'] % sv_name
-        return self.wait_until_element(locator)
+        return self.wait_until_element(
+            locators['host.smart_variable_value'] % sv_name)
 
     def set_smart_variable_value(self, host_name, sv_name, sv_value,
-                                 override=True, hidden=False):
+                                 override=True):
         """Set smart variable value for specific host
 
         :param str host_name: Name of Host where smart variable value should be
             modified
         :param str sv_name: Name of Smart Variable to be modified
+        :param str sv_value: Value of Smart Variable that should be set
         :param bool override: Specify whether it is expected to override smart
             value or just edit its value
-        :param bool hidden: Specify whether it is expected that smart variable
-            value is hidden on UI or not
         """
         self.click(self.search(host_name))
         self.click(locators['host.edit'])
         self.click(tab_locators['host.tab_params'])
         if override:
             self.click(locators['host.smart_variable_override'] % sv_name)
-        if hidden:
-            locator = locators['host.smart_variable_value_hidden'] % sv_name
-        else:
-            locator = locators['host.smart_variable_value'] % sv_name
-        self.assign_value(locator, sv_value)
+        self.assign_value(
+            locators['host.smart_variable_value'] % sv_name, sv_value)
         self.click(common_locators['submit'])
