@@ -1,8 +1,11 @@
 import os
+import logging
 from collections import Sequence
 from six import string_types
 from jinja2 import Template
 from robottelo.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def render_single(data, context):
@@ -11,7 +14,13 @@ def render_single(data, context):
     for k, v in data.items():
         if isinstance(v, dict):
             if 'from_registry' in v:
-                data[k] = eval(v['from_registry'], None, context)
+                try:
+                    data[k] = eval(v['from_registry'], None, context)
+                except NameError as e:
+                    logger.error(str(e))
+                    raise NameError(
+                        "{0}: Please check if the reference "
+                        "was added to the registry".format(str(e)))
             else:
                 render_single(v, context)
         elif isinstance(v, string_types):
@@ -19,13 +28,13 @@ def render_single(data, context):
                 data[k] = Template(v).render(**context)
 
 
-def render(entity, context):
+def render(raw_entity, context):
     """Takes an entity description and strips 'data' out to
     perform single rendering and also handle repetitions"""
-    if 'data' not in entity:
+    if 'data' not in raw_entity:
         raise ValueError('entity misses `data` key')
 
-    items = entity.get('with_items')
+    items = raw_entity.get('with_items')
     entities = []
 
     if items and isinstance(items, list):
@@ -37,18 +46,23 @@ def render(entity, context):
     else:
         # as there is no with_items, a single item list will
         # ensure the addition of a single one.
-        items = [None,]
+        items = [None, ]
 
     for loop_index, item in enumerate(items):
         new_context = {}
         new_context.update(context)
         new_context['item'] = item
         new_context['loop_index'] = loop_index
-        new_entity_data = entity['data'].copy()
+        new_entity_data = raw_entity['data'].copy()
+        # loop index should be removed before creation
+        # that is performed in render_search_data
+        new_entity_data['loop_index'] = loop_index
+
         render_single(
             new_entity_data,
             new_context
         )
+
         entities.append(new_entity_data)
 
     return entities
@@ -58,6 +72,7 @@ class BasePopulator(object):
     """Base class for API and CLI populator"""
 
     def __init__(self, data):
+        self.logger = logger
         self.vars = data.get('vars', {})
         self.entities = data['entities']
         self.registry = {}
@@ -65,10 +80,16 @@ class BasePopulator(object):
         if not settings.configured:
             settings.configure()
 
-        self.admin_user = self.vars.get(
+        self.admin_username = self.vars.get(
             'admin_username', settings.server.admin_username)
         self.admin_password = self.vars.get(
             'admin_password', settings.server.admin_password)
+
+        self.context = {
+            'settings': settings,
+            'env': os.environ
+        }
+        self.context.update(self.vars)
 
     def add_to_registry(self, entity, result):
         """Once an entity is created this method adds it to the registry"""
@@ -88,11 +109,101 @@ class BasePopulator(object):
     def render_entities(self, entity):
         """Get an entity dict and render each string using jinja and
         assign relations from_registry"""
+        return render(entity, context=self.context)
 
-        context = {
-            'settings': settings,
-            'env': os.environ
-        }
-        context.update(self.vars)
-        context.update(self.registry)
-        return render(entity, context=context)
+    def render_search_data(self, entity_data, raw_entity):
+        """Creates a dictionary for Nailgun search mixin as in the example:
+        `{'query': {'search':'name=Orgcompanyone,label=Orgcompanyone,id=28'}}`
+        By default that dict will use all fields provided in entity_data
+        if `validate_fields` is available then use that provided fields/values
+        """
+        # if with_items, get current loop_index reference or 0
+        loop_index = entity_data.pop('loop_index', 0)
+
+        if 'validate_fields' not in raw_entity:
+            data = {
+                key: value for key, value in entity_data.items()
+                if isinstance(value, string_types) and
+                key not in ['password']
+            }
+        else:
+            if isinstance(raw_entity['validate_fields'], dict):
+                items = raw_entity.get('with_items')
+
+                if items and isinstance(items, list):
+                    items = [
+                        Template(item).render(**self.context)
+                        for item in items
+                    ]
+                elif items and isinstance(items, string_types):
+                    items = eval(items, None, self.context)
+                    if not isinstance(items, Sequence):
+                        raise AttributeError(
+                            "with_items must be sequence type")
+                else:
+                    # as there is no with_items, a single item list will
+                    # ensure the addition of a single one.
+                    items = [None, ]
+
+                new_context = {}
+                new_context.update(self.context)
+                new_context['item'] = items[loop_index]
+                new_context['loop_index'] = loop_index
+
+                data = {
+                    key: Template(value).render(**new_context)
+                    for key, value in raw_entity['validate_fields'].items()
+                }
+
+            elif isinstance(raw_entity['validate_fields'], Sequence):
+                data = {
+                    key: entity_data[key]
+                    for key in raw_entity['validate_fields']
+                }
+            else:
+                raise ValueError("validate_fields bad formatted")
+
+        search_query = ",".join(
+            ["{0}={1}".format(key, value) for key, value in data.items()]
+        )
+        search_query = Template(search_query).render(**self.context)
+        return {'query': {'search': search_query}}
+
+    def execute(self):
+        """reads the list of entities and populates the
+        system"""
+
+        for raw_entity in self.entities:
+            entities_list = self.render_entities(raw_entity)
+            for entity_data in entities_list:
+                model_name = raw_entity['model'].lower()
+                method = getattr(self, 'populate_{0}'.format(model_name), None)
+                search_data = self.render_search_data(entity_data, raw_entity)
+                if method:
+                    method(entity_data, raw_entity, search_data)
+                else:
+                    self.populate(entity_data, raw_entity, search_data)
+
+                # ensure context is updated with latest created entities
+                self.context.update(self.registry)
+
+    def populate(self, entity_data, raw_entity, search_data):
+        """Should be implemented in sub classes"""
+        raise NotImplementedError()
+
+    def populate_modelname(self, entity_data, raw_entity, search_data):
+        """Example on how to implement custom populate methods
+           e.g: `def populate_organization`
+        This method should take care of all validations and errors.
+        """
+
+        result = (
+            "Implement your own populate method here,"
+            "This method should take care of `validate_fields`"
+            "to check the existence of entity before creation"
+            "and should return a valid Nailgun entity object"
+            "containing a valid `id`"
+        )
+
+        # always add the result to registry to allow references
+        self.add_to_registry(raw_entity, result)

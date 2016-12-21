@@ -1,18 +1,29 @@
+config:
+  populators:
+    api:
+      module: robottelo.populate.api.APIPopulator
+    cli:
+      module: robottelo.populate.cli.CLIPopulator
+
 vars:
   admin_username: admin
   admin_password: changeme
   org_list:
-    - maca3
-    - tomilho3
+    - company3
+    - company4
 
 entities:
 
   - model: Organization
     register: default_orgs
+    via: api
     data:
       name: Org{{item}}
       label: Org{{item}}
     with_items: org_list
+    validate_fields:
+      name: Org{{item}}
+      label: Org{{item}}
 
   - model: User
     register: default_users
@@ -26,5 +37,15 @@ entities:
       default_organization:
           from_registry: default_orgs[loop_index]
     with_items:
-      - verdeclaro2
-      - verdeceleste2
+      - user3
+      - user4
+
+#  - model: Repository
+#    data:
+#      url:
+#        from_object: robottelo.constants.FAKE_REPO_1
+#      thing: "{{ gen_string }}"
+#      name:
+#        from_search:
+#          term: bla
+
