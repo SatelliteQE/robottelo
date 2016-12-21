@@ -284,6 +284,7 @@ DEFAULT_CV = "Default Organization View"
 DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
+DEFAULT_ROLE = 'Anonymous'
 
 LANGUAGES = [
     u'zh_TW',
@@ -335,6 +336,9 @@ FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
 FAKE_3_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo01'
 FAKE_4_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo02'
 FAKE_5_YUM_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
+FAKE_6_YUM_REPO = (
+    u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
+)
 FAKE_YUM_DRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
 )
@@ -362,6 +366,8 @@ FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
+FAKE_2_ERRATA_ID = 'RHEA-2012:0055'  # for FAKE_6_YUM_REPO
+FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhst6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
 FAKE_0_YUM_ERRATUM_COUNT = 4
