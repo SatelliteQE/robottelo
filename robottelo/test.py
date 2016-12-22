@@ -79,6 +79,7 @@ from robottelo.ui.packages import Package
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
+from robottelo.ui.puppetmodule import PuppetModule
 from robottelo.ui.registry import Registry
 from robottelo.ui.repository import Repos
 from robottelo.ui.rhai import RHAI
@@ -323,6 +324,7 @@ class UITestCase(TestCase):
         self.package = Package(self.browser)
         self.partitiontable = PartitionTable(self.browser)
         self.puppetclasses = PuppetClasses(self.browser)
+        self.puppetmodule = PuppetModule(self.browser)
         self.products = Products(self.browser)
         self.registry = Registry(self.browser)
         self.repository = Repos(self.browser)

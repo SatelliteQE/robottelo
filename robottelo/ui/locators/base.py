@@ -1779,6 +1779,38 @@ locators = LocatorDict({
                   "/span[contains(@class, 'info-value')]"),
     "package.content_file": (By.XPATH, "//div[contains(., '%s')]"),
 
+    # Puppet Module
+    "puppet.module_name": (By.XPATH, "//a[contains(., '%s')]"),
+    "puppet.author": (
+        By.XPATH, "//span[text()='Author']/../"
+                  "following-sibling::span[contains(@class, 'info-value')][1]"
+    ),
+    "puppet.version": (
+        By.XPATH, "//span[text()='Version']/../"
+                  "following-sibling::span[contains(@class, 'info-value')][1]"
+    ),
+    "puppet.source": (
+        By.XPATH, "//span[text()='Source']/../"
+                  "following-sibling::span[contains(@class, 'info-value')][1]"
+    ),
+    "puppet.project_page": (
+        By.XPATH, "//span[text()='Project Page']/../"
+                  "following-sibling::span[contains(@class, 'info-value')][1]/"
+                  "a"
+    ),
+    "puppet.license": (
+        By.XPATH, "//span[text()='License']/../"
+                  "following-sibling::span[contains(@class, 'info-value')][1]"
+    ),
+    "puppet.description": (
+        By.XPATH, "//span[text()='Description']/../"
+                  "following-sibling::p[contains(@class, 'info-paragraph')][1]"
+    ),
+    "puppet.summary": (
+        By.XPATH, "//span[text()='Summary']/../"
+                  "following-sibling::p[contains(@class, 'info-paragraph')][1]"
+    ),
+
     # System Groups
     "system-groups.new": (
         By.XPATH, "//button[@ui-sref='system-groups.new.form']"),

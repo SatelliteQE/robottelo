@@ -228,6 +228,11 @@
 
 .. automodule:: tests.foreman.ui.test_puppetclass
 
+:mod:`tests.foreman.ui.test_puppetmodule`
+-----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_puppetmodule
+
 :mod:`tests.foreman.ui.test_remoteexecution`
 --------------------------------------------
 

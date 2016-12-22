@@ -173,6 +173,11 @@
 
 .. automodule:: robottelo.ui.puppetclasses
 
+:mod:`robottelo.ui.puppetmodule`
+--------------------------------
+
+.. automodule:: robottelo.ui.puppetmodule
+
 :mod:`robottelo.ui.registry`
 ------------------------------
 
