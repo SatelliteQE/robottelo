@@ -70,3 +70,31 @@ class Tuple(List):
     """
     def __call__(self, value):
         return tuple(super(Tuple, self).__call__(value))
+
+
+class Dict(List):
+    """Cast a comma separated list of key=value to a dict.
+
+    :param str value: A comma separated string to cast to a dict.
+    """
+    def __call__(self, value):
+        return dict(v.split('=') for v in super(Dict, self).__call__(value))
+
+
+class WebdriverDesiredCapabilities(Dict):
+    """Cast a comma separated list of key=value to a
+    webdriver.DesiredCapabilities dict.
+
+    Convert values ``true`` and ``false`` (ignore case) to a proper boolean.
+
+    :param str value: A comma separated string to cast to a
+        webdriver.DesiredCapabilities dict.
+    """
+    def __call__(self, value):
+        desired_capabilities = super(
+            WebdriverDesiredCapabilities, self).__call__(value)
+        for k, v in desired_capabilities.items():
+            v = v.lower()
+            if v in ('true', 'false'):
+                desired_capabilities[k] = v == 'true'
+        return desired_capabilities

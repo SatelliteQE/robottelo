@@ -3,10 +3,13 @@
 import bugzilla
 import logging
 import pytest
+import re
 import requests
 import unittest2
 
 from functools import wraps
+
+from robottelo.host_info import get_host_sat_version
 from robottelo.config import settings
 from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
 from six.moves.xmlrpc_client import Fault
@@ -26,6 +29,11 @@ tier2 = pytest.mark.tier2
 tier3 = pytest.mark.tier3
 # Long running tests
 tier4 = pytest.mark.tier4
+# Backup & restore tests
+backup = pytest.mark.backup
+
+# Tests to be executed in 1 thread
+run_in_one_thread = pytest.mark.run_in_one_thread
 
 # A dict mapping bug IDs to python-bugzilla bug objects.
 _bugzilla = {}
@@ -39,6 +47,18 @@ _redmine = {
     'closed_statuses': None,
     'issues': {},
 }
+
+
+def setting_is_set(option):
+    """Return either ``True`` or ``False`` if a Robottelo section setting is
+    set or not respectively.
+    """
+    if not settings.configured:
+        settings.configure()
+    # Example: `settings.clients`
+    if getattr(settings, option).validate():
+        return False
+    return True
 
 
 def skip_if_not_set(*options):
@@ -104,19 +124,19 @@ def skip_if_not_set(*options):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            if not settings.configured:
-                settings.configure()
             missing = []
             for option in options:
                 # Example: `settings.clients`
-                if getattr(settings, option).validate():
+                if not setting_is_set(option):
                     # List of all sections that are not fully configured
                     missing.append(option)
             if not missing:
                 return func(*args, **kwargs)
             raise unittest2.SkipTest(
                 'Missing configuration for: {0}.'.format(', '.join(missing)))
+
         return wrapper
+
     return decorator
 
 
@@ -134,6 +154,7 @@ def stubbed(reason=None):
         # def func(...):
         #     ...
         return unittest2.skip(reason)(pytest.mark.stubbed(func))
+
     return wrapper
 
 
@@ -197,6 +218,7 @@ def run_only_on(project):
         """Wrap test methods in order to skip the test if the test method
         project does not match the settings project.
         """
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             """Wrapper that will skip the test if the test method project does
@@ -231,7 +253,9 @@ def run_only_on(project):
                 )
             else:
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -255,7 +279,8 @@ def _get_bugzilla_bug(bug_id):
         LOGGER.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
         # Make a network connection to the Bugzilla server.
         try:
-            bz_conn = bugzilla.RHBugzilla()
+            bz_conn = bugzilla.RHBugzilla(
+                **settings.bugzilla.get_credentials())
             bz_conn.connect(BUGZILLA_URL)
         except (TypeError, ValueError):
             raise BugFetchError(
@@ -263,7 +288,10 @@ def _get_bugzilla_bug(bug_id):
             )
         # Fetch the bug and place it in the cache.
         try:
-            _bugzilla[bug_id] = bz_conn.getbugsimple(bug_id)
+            _bugzilla[bug_id] = bz_conn.getbug(
+                bug_id,
+                include_fields=['id', 'status', 'whiteboard', 'flags']
+            )
         except Fault as err:
             raise BugFetchError(
                 'Could not fetch bug. Error: {0}'.format(err.faultString)
@@ -338,6 +366,40 @@ def _get_redmine_bug_status_id(bug_id):
     return _redmine['issues'][bug_id]
 
 
+def _skip_flags_condition(flags):
+    """Analyse bugzila flags returning False if host version is greater or
+    equal to min positive flag version, True otherwise.
+
+    :param flags: list
+    :return: bool
+    """
+    version_re = re.compile(r'sat-(?P<version>\d(\.\d){1})')
+
+    def to_float_version(flag_name):
+        result = version_re.search(flag_name)
+        if result:
+            return float(result.group('version'))
+
+    positive_flag_versions = (
+        to_float_version(flag['name'])
+        for flag in flags if flag['status'] == '+'
+    )
+    try:
+        min_positive_flag_version = min(
+            filter(lambda version: version is not None, positive_flag_versions)
+        )
+    except ValueError:
+        # If flag regarding sat is not available
+        return True
+    else:
+        try:
+            sat_version = float(get_host_sat_version())
+        except ValueError:
+            return False
+        else:
+            return sat_version < min_positive_flag_version
+
+
 def bz_bug_is_open(bug_id):
     """Tell whether Bugzilla bug ``bug_id`` is open.
 
@@ -349,22 +411,37 @@ def bz_bug_is_open(bug_id):
     :rtype: bool
 
     """
-    bug = None
     try:
         bug = _get_bugzilla_bug(bug_id)
     except BugFetchError as err:
         LOGGER.warning(err)
         return False
-    # NOT_FOUND, ON_QA, VERIFIED, RELEASE_PENDING, CLOSED
-    if bug is None or bug.status not in BZ_OPEN_STATUSES:
+    else:
+        # NEW, ASSIGNED, MODIFIED, POST
+        if bug.status in BZ_OPEN_STATUSES:
+            return True
+        elif settings.upstream:
+            return False
+
         # do not test bugs with whiteboard 'verified in upstream' in downstream
         # until they are in 'CLOSED' state
-        if (not settings.upstream and bug.status != 'CLOSED' and bug.whiteboard
-                and 'verified in upstream' in bug.whiteboard.lower()):
-            return True
-        return False
-    # NEW, ASSIGNED, MODIFIED, POST
-    return True
+
+        # verify all conditions are True, stopping evaluation when
+        # first condition is False
+        zstream_re = re.compile(r'sat-\d\.\d\.z')
+
+        def is_positive_zstream(flag):
+            return flag['status'] == '+' and zstream_re.search(flag['name'])
+
+        def skip_upstream_conditions(flags):
+            for flag in flags:
+                yield not is_positive_zstream(flag)
+            yield bug.status != 'CLOSED'
+            yield bug.whiteboard
+            yield 'verified in upstream' in bug.whiteboard.lower()
+
+        return (all(skip_upstream_conditions(bug.flags)) or
+                _skip_flags_condition(bug.flags))
 
 
 def rm_bug_is_open(bug_id):

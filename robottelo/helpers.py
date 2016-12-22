@@ -3,10 +3,17 @@
 import logging
 import os
 import re
+import six
 
 from nailgun.config import ServerConfig
 from robottelo import ssh
 from robottelo.config import settings
+
+# This conditional is here to centralize use of lru_cache
+if six.PY3:  # pragma: no cover
+    from functools import lru_cache  # noqa
+else:  # pragma: no cover
+    from cachetools.func import lru_cache  # noqa
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,10 +37,9 @@ def get_server_software():
     :rtype: str
 
     """
-    return_code = ssh.command(
-        '[ -f /usr/share/foreman/lib/satellite/version.rb ]'
-    ).return_code
-    return 'downstream' if return_code == 0 else 'upstream'
+    if ssh.command('rpm -q satellite &>/dev/null').return_code == 0:
+        return 'downstream'
+    return 'upstream'
 
 
 def get_server_version():
