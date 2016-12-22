@@ -17,14 +17,14 @@
 """
 from itertools import chain
 
-from fauxfactory import gen_string, gen_alpha
+from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment
-from robottelo.ui.locators.base import locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -158,14 +158,20 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         @caseautomation: notautomated
         """
 
-    def test_positive_env_list_fits_screen(self):
+    @tier1
+    def test_positive_env_list_fits_browser_screen(self):
         """Check if long list of lifecycle environments fits into screen
+
+        @id: 63b985b0-c847-11e6-92ad-68f72889dc7f
+
+        @Setup: save 8+ chained lifecycles environments
 
         @BZ: 1295922
 
+        @Assert: lifecycle environments table fits screen
         """
         with Session(self.browser) as session:
-            env_names = [gen_alpha() for _ in range(11)]
+            env_names = [gen_string('alpha') for _ in range(11)]
             for name, prior in zip(env_names, chain([None], env_names)):
                 make_lifecycle_environment(
                     session,
@@ -173,6 +179,10 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                     name=name,
                     prior=prior
                 )
-                envs_table=session.nav.wait_until_element(locator=locators[
-                    'content_env.table'])
-                print(envs_table)
+            envs_table = session.nav.wait_until_element(
+                locator=locators['content_env.table']
+            )
+            table_width = envs_table.size['width']
+            body = session.nav.find_element(common_locators['body'])
+            body_width = body.size['width']
+            self.assertGreaterEqual(body_width - table_width, 0)
