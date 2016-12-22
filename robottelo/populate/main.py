@@ -30,4 +30,23 @@ def populate(data, **extra_options):
     else:
         populator = CLIPopulator(data=data)
 
-    populator.execute()
+    populator.execute(mode='populate')
+
+    return populator
+
+
+def validate(data, **extra_options):
+    """Given the populate_method validates the system
+    using data values
+    """
+    if not settings.configured:
+        settings.configure()
+
+    if settings.populate_method == 'api':
+        populator = APIPopulator(data=data)
+    else:
+        populator = CLIPopulator(data=data)
+
+    populator.execute(mode='validate')
+
+    return populator

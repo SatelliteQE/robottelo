@@ -9,8 +9,8 @@ vars:
   admin_username: admin
   admin_password: changeme
   org_list:
-    - company3
-    - company4
+    - company7
+    - company8
 
 entities:
 
@@ -37,8 +37,8 @@ entities:
       default_organization:
           from_registry: default_orgs[loop_index]
     with_items:
-      - user3
-      - user4
+      - user7
+      - user8
 
 #  - model: Repository
 #    data:

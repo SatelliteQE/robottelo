@@ -35,9 +35,15 @@ groups:
       short_help: Commands to interactively browse UI
       help_text: |
         Commands to interactively browse UI.
+  - data:
+      short_help: Commands to interact with data population and validation
+      help_text: |
+        Commands to interact with system data.
 
 click_commands:
   - module: robottelo.commands.ui
     group: ui
+  - module: robottelo.commands.data
+    group: data
 
 inline_commands: []

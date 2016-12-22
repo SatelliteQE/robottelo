@@ -76,6 +76,9 @@ class BasePopulator(object):
         self.vars = data.get('vars', {})
         self.entities = data['entities']
         self.registry = {}
+        self.validation_errors = []
+        self.total_created = 0
+        self.total_existing = 0
 
         if not settings.configured:
             settings.configure()
@@ -90,6 +93,11 @@ class BasePopulator(object):
             'env': os.environ
         }
         self.context.update(self.vars)
+
+        self.context.update(
+            {'admin_username': self.admin_username,
+             'admin_password': self.admin_password}
+        )
 
     def add_to_registry(self, entity, result):
         """Once an entity is created this method adds it to the registry"""
@@ -169,25 +177,35 @@ class BasePopulator(object):
         search_query = Template(search_query).render(**self.context)
         return {'query': {'search': search_query}}
 
-    def execute(self):
-        """reads the list of entities and populates the
-        system"""
+    def execute(self, mode='populate'):
+        """Iterates the entities property described in YAML file
+        and parses its values, variables and substitutions
+        depending on `mode` execute `populate` or `validate`
+
+        """
 
         for raw_entity in self.entities:
             entities_list = self.render_entities(raw_entity)
             for entity_data in entities_list:
                 model_name = raw_entity['model'].lower()
-                method = getattr(self, 'populate_{0}'.format(model_name), None)
+                method = getattr(
+                    self, '{0}_{1}'.format(mode, model_name), None
+                )
                 search_data = self.render_search_data(entity_data, raw_entity)
                 if method:
                     method(entity_data, raw_entity, search_data)
                 else:
-                    self.populate(entity_data, raw_entity, search_data)
+                    # execute self.populate or self.validate
+                    getattr(self, mode)(entity_data, raw_entity, search_data)
 
                 # ensure context is updated with latest created entities
                 self.context.update(self.registry)
 
     def populate(self, entity_data, raw_entity, search_data):
+        """Should be implemented in sub classes"""
+        raise NotImplementedError()
+
+    def validate(self, entity_data, raw_entity, search_data):
         """Should be implemented in sub classes"""
         raise NotImplementedError()
 
@@ -207,3 +225,22 @@ class BasePopulator(object):
 
         # always add the result to registry to allow references
         self.add_to_registry(raw_entity, result)
+
+    def validate_modelname(self, entity_data, raw_entity, search_data):
+        """Example on how to implement custom validate methods
+           e.g: `def validate_organization`
+        This method should take care of all validations and errors.
+        """
+
+        result = (
+            "Implement your own validate method here,"
+            "This method should use `validate_fields`"
+            "to check the existence of entities"
+            "and should add valid Nailgun entity object to self.registry"
+            "and errors to self.validation_errors"
+        )
+
+        # always add the result to registry to allow references
+        self.add_to_registry(raw_entity, result)
+
+        self.validation_errors.append("message")
