@@ -63,6 +63,11 @@ class TemplateCombinationTestCase(APITestCase):
     def tearDown(self):
         """Delete ConfigTemplate used on tests"""
         super(TemplateCombinationTestCase, self).tearDown()
+        # Clean combination if it is not already deleted
+        try:
+            self.template_combination.delete()
+        except HTTPError:
+            pass
         self.template.delete()
 
     @tier1
@@ -81,7 +86,6 @@ class TemplateCombinationTestCase(APITestCase):
         self.assertEqual(self.template.id, combination.config_template.id)
         self.assertEqual(self.env.id, combination.environment.id)
         self.assertEqual(self.hostgroup.id, combination.hostgroup.id)
-        combination.delete()
 
     @tier1
     @skip_if_bug_open('bugzilla', 1369737)
