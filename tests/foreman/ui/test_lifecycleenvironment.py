@@ -15,13 +15,16 @@
 
 @Upstream: No
 """
+from itertools import chain
 
-from fauxfactory import gen_string
+from fauxfactory import gen_string, gen_alpha
 from nailgun import entities
+
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment
+from robottelo.ui.locators.base import locators
 from robottelo.ui.session import Session
 
 
@@ -154,3 +157,22 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         @caseautomation: notautomated
         """
+
+    def test_positive_env_list_fits_screen(self):
+        """Check if long list of lifecycle environments fits into screen
+
+        @BZ: 1295922
+
+        """
+        with Session(self.browser) as session:
+            env_names = [gen_alpha() for _ in range(11)]
+            for name, prior in zip(env_names, chain([None], env_names)):
+                make_lifecycle_environment(
+                    session,
+                    org=self.org_name,
+                    name=name,
+                    prior=prior
+                )
+                envs_table=session.nav.wait_until_element(locator=locators[
+                    'content_env.table'])
+                print(envs_table)

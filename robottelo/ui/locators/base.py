@@ -1461,6 +1461,9 @@ locators = LocatorDict({
     "content_env.edit_description_textarea.save": (
         By.XPATH,
         "//form[@bst-edit-textarea='environment.description']//button"),
+    "content_env.table": (
+        By.XPATH,
+        "//table[contains(@class,'environment-table')]"),
 
     # GPG Key
     "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpg-keys.new']"),
