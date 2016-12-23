@@ -9,6 +9,8 @@ common_locators = LocatorDict({
 
     # common locators
 
+    "body": (By.CSS_SELECTOR, "body"),
+
     # Notifications
     "notif.error": (
         By.XPATH, "//div[contains(@class, 'jnotify-notification-error')]"),
