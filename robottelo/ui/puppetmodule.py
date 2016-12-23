@@ -32,7 +32,7 @@ class PuppetModule(Base):
             ]
 
         """
-        self.click(self.search(name))
+        self.search_and_click(name)
         for parameter_name, parameter_value in parameter_list:
             param_locator = '.'.join((
                 'puppet',
@@ -50,11 +50,8 @@ class PuppetModule(Base):
         """Check whether puppet module is present in necessary
         repository/repositories
         """
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['puppet_module.tab_library_repositories'])
         for repo in repos_list:
-            searchbox = self.wait_until_element(locators['repo.search'])
-            if searchbox:
-                searchbox.clear()
-                searchbox.send_keys(repo)
-                self.wait_until_element(locators['repo.select'] % repo)
+            self.assign_value(locators['repo.search'], repo)
+            self.wait_until_element(locators['repo.select'] % repo)

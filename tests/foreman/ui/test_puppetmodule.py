@@ -16,7 +16,6 @@
 @Upstream: No
 """
 
-from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.decorators import tier1
@@ -31,15 +30,20 @@ class PuppetModuleTestCase(UITestCase):
     @classmethod
     def setUpClass(cls):
         super(PuppetModuleTestCase, cls).setUpClass()
-        cls.organization = entities.Organization().create()
-        product = entities.Product(organization=cls.organization).create()
+        product = entities.Product(organization=cls.session_org).create()
         cls.repo = entities.Repository(
-            name=gen_string('alpha'),
             product=product,
             content_type='puppet',
         ).create()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             cls.repo.upload_content(files={'content': handle})
+
+    @classmethod
+    def set_session_org(cls):
+        """Creates new organization to be used for current session the
+        session_user will login automatically with this org in context
+        """
+        cls.session_org = entities.Organization().create()
 
     @tier1
     def test_positive_search_in_repo(self):
@@ -51,8 +55,7 @@ class PuppetModuleTestCase(UITestCase):
         @Assert: Content search functionality works as intended and expected
         puppet modules are present inside of repository
         """
-        with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
+        with Session(self.browser):
             self.assertIsNotNone(self.puppetmodule.search('ntp'))
 
     @tier1
@@ -66,8 +69,7 @@ class PuppetModuleTestCase(UITestCase):
         @Assert: Puppet module is present inside of repository and has all
         expected values in details section
         """
-        with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
+        with Session(self.browser):
             self.puppetmodule.check_puppet_details(
                 'ntp',
                 [
@@ -99,6 +101,5 @@ class PuppetModuleTestCase(UITestCase):
         @Assert: Puppet module is present inside of repository and has proper
         repositories assigned to
         """
-        with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
+        with Session(self.browser):
             self.puppetmodule.check_repo('ntp', [self.repo.name])
