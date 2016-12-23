@@ -359,4 +359,12 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@href, 'files')]/span"),
     "package.tab_dependencies": (
         By.XPATH, "//a[contains(@href, 'dependencies')]/span"),
+
+    # Puppet Module
+    "puppet_module.tab_details": (
+        By.XPATH, "//a[contains(@href, 'info')]/span"),
+    "puppet_module.tab_library_repositories": (
+        By.XPATH, "//a[contains(@href, 'repositories')]/span"),
+    "puppet_module.tab_content_views": (
+        By.XPATH, "//a[contains(@href, 'content_views')]/span"),
 })
