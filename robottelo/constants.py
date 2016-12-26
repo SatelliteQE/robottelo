@@ -552,6 +552,11 @@ PERMISSIONS = {
         'view_statistics',
         'view_tasks',
     ],
+    'AnsibleRole': [
+        'destroy_ansible_roles',
+        'import_ansible_roles',
+        'view_ansible_roles',
+    ],
     'Architecture': [
         'view_architectures',
         'create_architectures',
@@ -851,6 +856,7 @@ PERMISSIONS = {
         'power_hosts',
         'provision_discovered_hosts',
         'puppetrun_hosts',
+        'play_roles',
         'submit_discovered_hosts',
         'view_discovered_hosts',
         'view_hosts',
