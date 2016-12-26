@@ -18,8 +18,7 @@ class ComputeProfile(Base):
     def create(self, name):
         """Creates new compute profile entity"""
         self.click(locators['profile.new'])
-        self.wait_until_element(locators['profile.name']).send_keys(name)
-        self.wait_for_ajax()
+        self.assign_value(locators['profile.name'], name)
         self.click(common_locators['submit'])
 
     def update(self, old_name, new_name):
@@ -29,11 +28,8 @@ class ComputeProfile(Base):
             raise UINoSuchElementError(
                 'Could not find compute profile {0}'.format(old_name))
         if element:
-            strategy, value = locators['profile.dropdown']
-            self.click((strategy, value % old_name))
-            strategy, value = locators['profile.rename']
-            self.click((strategy, value % old_name))
-            self.field_update('profile.name', new_name)
+            self.click(locators['profile.rename'] % old_name)
+            self.assign_value(locators['profile.name'], new_name)
             self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
@@ -52,14 +48,8 @@ class ComputeProfile(Base):
         resource (e.g. '2-Medium' or '1-Small')
         :param res_name: Name of compute resource to select from the list
         :param res_type: Type of compute resource (e.g. 'Libvirt' or 'Docker')
-
         """
-        profile = self.search(profile_name)
-        if profile is None:
-            raise UINoSuchElementError(
-                u'Could not find the profile {0}'.format(profile_name))
-        profile.click()
+        self.search_and_click(profile_name)
         resource = u'{0} ({1})'.format(res_name, res_type)
-        strategy, value = locators['profile.resource_name']
-        self.click((strategy, value % resource))
+        self.click(locators['profile.resource_name'] % resource)
         return self.wait_until_element(locators['profile.resource_form'])
