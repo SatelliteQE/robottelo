@@ -132,7 +132,7 @@ class Errata(Base):
                 (parameter_name.lower()).replace(' ', '_')
             ))
             actual_text = self.wait_until_element(locators[param_locator]).text
-            if actual_text != parameter_value:
+            if parameter_value not in actual_text:
                 raise UIError(
                     'Actual text for "{0}" parameter is "{1}", but it is'
                     ' expected to have "{2}"'.format(

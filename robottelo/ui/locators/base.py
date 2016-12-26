@@ -2352,9 +2352,6 @@ locators = LocatorDict({
     "errata.filter_applicable": (
         By.XPATH, "//input[@ng-model='showApplicable']"),
     "errata.select_name": (By.XPATH, "//a[contains(., '%s')]"),
-    "errata.cves": (
-        By.XPATH,
-        "//span[text()='CVEs']/../../span[contains(@class, 'info-value')]"),
     "errata.content_hosts.installable": (
         By.XPATH, "//input[@ng-model='restrictInstallable']"),
     "errata.content_hosts.env_filter": (
@@ -2375,6 +2372,54 @@ locators = LocatorDict({
         ("//a[contains(@href, 'repositories') and contains(., '%s')]"
          "[../following-sibling::td/a[contains(@ui-sref, 'products.details') "
          "and contains(., '%s')]]")),
+    "errata.advisory": (
+        By.XPATH,
+        "//span[text()='Advisory']/../../span[contains(@class, 'info-value')]"
+    ),
+    "errata.cves": (
+        By.XPATH,
+        "//span[text()='CVEs']/../../span[contains(@class, 'info-value')]"),
+    "errata.type": (
+        By.XPATH,
+        "//span[text()='Type']/../../span[contains(@class, 'info-value')]"
+    ),
+    "errata.severity": (
+        By.XPATH,
+        "//span[text()='Severity']/../../span[contains(@class, 'info-value')]"
+    ),
+    "errata.issued": (
+        By.XPATH,
+        "//span[text()='Issued']/../../span[contains(@class, 'info-value')]"
+    ),
+    "errata.last_updated_on": (
+        By.XPATH,
+        "//span[text()='Last Updated On']/../.."
+        "/span[contains(@class, 'info-value')]"),
+    "errata.reboot_suggested": (
+        By.XPATH,
+        "//span[text()='Reboot Suggested?']/../.."
+        "/span[contains(@class, 'info-value')]"),
+    "errata.topic": (
+        By.XPATH,
+        "//span[text()='Topic']/.."
+        "/following-sibling::p[contains(@class, 'info-paragraph')][1]"
+    ),
+    "errata.description": (
+        By.XPATH,
+        "//span[text()='Description']/.."
+        "/following-sibling::p[contains(@class, 'info-paragraph')][1]"
+    ),
+    "errata.solution": (
+        By.XPATH,
+        "//span[text()='Solution']/.."
+        "/following-sibling::p[contains(@class, 'info-paragraph')][1]"
+    ),
+    "errata.affected_packages": (
+        By.XPATH,
+        "//span[text()='Affected Packages']/.."
+        "/following-sibling::ul[1]/li/a[contains(., '%s')]"
+    ),
+
 
     # Smart Variable
     "smart_variable.new": (By.XPATH, "//a[contains(., '+ Add Variable')]"),

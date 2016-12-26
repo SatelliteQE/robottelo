@@ -1187,3 +1187,23 @@ BACKUP_FILES = [
     u'pulp_data.tar',
     u'pulp.snar',
 ]
+
+TOOLS_ERRATA_DETAILS = [
+    ['Advisory', 'RHBA-2016:1503'],
+    ['CVEs', 'N/A'],
+    ['Type', 'Bug Fix Advisory'],
+    ['Severity', 'None'],
+    ['Issued', '7/27/16'],
+    ['Last Updated On', '7/27/16'],
+    ['Reboot Suggested', 'No'],
+    [
+        'Topic',
+        'Red Hat Satellite 6.2 now available for Red Hat Enterprise Linux 6 '
+        'and 7'
+    ],
+    ['Description', 'This update provides Satellite 6.2 client tooling'],
+    [
+        'Solution',
+        'Before applying this update, make sure all previously released errata'
+    ],
+]
