@@ -42,5 +42,4 @@ class ConfigGroups(Base):
             name,
             really,
             locators['config_groups.delete'],
-            drop_locator=locators['config_groups.dropdown'],
         )
