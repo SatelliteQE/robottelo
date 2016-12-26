@@ -2419,6 +2419,8 @@ locators = LocatorDict({
         "//span[text()='Affected Packages']/.."
         "/following-sibling::ul[1]/li/a[contains(., '%s')]"
     ),
+    "errata.table_value": (
+        By.XPATH, "//td[contains(normalize-space(.), '%s')]"),
 
 
     # Smart Variable

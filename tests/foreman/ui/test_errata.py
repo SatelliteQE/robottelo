@@ -43,6 +43,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
     TOOLS_ERRATA_DETAILS,
+    TOOLS_ERRATA_TABLE_DETAILS,
 )
 from robottelo.decorators import (
     run_in_one_thread,
@@ -284,6 +285,30 @@ class ErrataTestCase(UITestCase):
                 for client in clients:
                     self.assertIsNotNone(self.contenthost.package_search(
                         client.hostname, FAKE_2_CUSTOM_PACKAGE))
+
+    @tier2
+    def test_positive_view(self):
+        """View erratum similar to RH Customer portal
+
+        @id: 7d0814fd-70e8-4451-ac96-c632cae55731
+
+        @Setup: Errata synced on satellite server.
+
+        @Steps:
+
+        1. Go to Content -> Errata. Review the Errata page.
+
+        @Assert: The following fields: Errata Id, Title, Type, Affected Content
+        Hosts, Updated has expected values for errata table.
+
+        @CaseLevel: Integration
+        """
+        with Session(self.browser):
+            self.errata.validate_table_fields(
+                REAL_0_ERRATA_ID,
+                only_applicable=False,
+                values_list=TOOLS_ERRATA_TABLE_DETAILS
+            )
 
     @tier2
     def test_positive_view_details(self):

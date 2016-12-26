@@ -1207,3 +1207,11 @@ TOOLS_ERRATA_DETAILS = [
         'Before applying this update, make sure all previously released errata'
     ],
 ]
+
+TOOLS_ERRATA_TABLE_DETAILS = [
+    'RHBA-2016:1503',
+    'Satellite 6.2 Tools Release',
+    'Bug Fix Advisory',
+    'Installable',
+    '7/27/16'
+]
