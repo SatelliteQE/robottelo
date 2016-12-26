@@ -92,10 +92,9 @@ class ConfigGroupTestCase(UITestCase):
         @id: 50879d3c-7c38-4294-aae4-0f3f146c9613
 
         @Assert: Config-Groups is deleted
-
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=8):
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_config_groups(session, name=name)
                     self.configgroups.delete(name)
