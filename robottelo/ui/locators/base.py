@@ -219,7 +219,7 @@ locators = LocatorDict({
     "profile.rename": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
-         "/following::td/div/ul/li/a[text()='Rename']")),
+         "/following::td/div/span/a[text()='Rename']")),
     "profile.delete": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
