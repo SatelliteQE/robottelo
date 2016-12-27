@@ -50,54 +50,6 @@ class Org(Base):
     command_base = 'organization'
 
     @classmethod
-    def add_subnet(cls, options=None):
-        """Adds existing subnet to an org"""
-        cls.command_sub = 'add-subnet'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_subnet(cls, options=None):
-        """Removes a subnet from an org"""
-        cls.command_sub = 'remove-subnet'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def add_domain(cls, options=None):
-        """Adds a domain to an org"""
-        cls.command_sub = 'add-domain'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_domain(cls, options=None):
-        """Removes a domain from an org"""
-        cls.command_sub = 'remove-domain'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def add_user(cls, options=None):
-        """Adds an user to an org"""
-        cls.command_sub = 'add-user'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_user(cls, options=None):
-        """Removes an user from an org"""
-        cls.command_sub = 'remove-user'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def add_hostgroup(cls, options=None):
-        """Adds a hostgroup to an org"""
-        cls.command_sub = 'add-hostgroup'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_hostgroup(cls, options=None):
-        """Removes a hostgroup from an org"""
-        cls.command_sub = 'remove-hostgroup'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
     def add_compute_resource(cls, options=None):
         """Adds a computeresource to an org"""
         cls.command_sub = 'add-compute-resource'
@@ -107,18 +59,6 @@ class Org(Base):
     def remove_compute_resource(cls, options=None):
         """Removes a computeresource from an org"""
         cls.command_sub = 'remove-compute-resource'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def add_medium(cls, options=None):
-        """Adds a medium to an org"""
-        cls.command_sub = 'add-medium'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_medium(cls, options=None):
-        """Removes a medium from an org"""
-        cls.command_sub = 'remove-medium'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
@@ -134,6 +74,18 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def add_domain(cls, options=None):
+        """Adds a domain to an org"""
+        cls.command_sub = 'add-domain'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_domain(cls, options=None):
+        """Removes a domain from an org"""
+        cls.command_sub = 'remove-domain'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def add_environment(cls, options=None):
         """Adds an environment to an org"""
         cls.command_sub = 'add-environment'
@@ -146,15 +98,15 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def add_smart_proxy(cls, options=None):
-        """Adds a smartproxy to an org"""
-        cls.command_sub = 'add-smart-proxy'
+    def add_hostgroup(cls, options=None):
+        """Adds a hostgroup to an org"""
+        cls.command_sub = 'add-hostgroup'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def remove_smart_proxy(cls, options=None):
-        """Removes a smartproxy from an org"""
-        cls.command_sub = 'remove-smart-proxy'
+    def remove_hostgroup(cls, options=None):
+        """Removes a hostgroup from an org"""
+        cls.command_sub = 'remove-hostgroup'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
@@ -170,11 +122,58 @@ class Org(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def add_medium(cls, options=None):
+        """Adds a medium to an org"""
+        cls.command_sub = 'add-medium'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_medium(cls, options=None):
+        """Removes a medium from an org"""
+        cls.command_sub = 'remove-medium'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def add_smart_proxy(cls, options=None):
+        """Adds a smartproxy to an org"""
+        cls.command_sub = 'add-smart-proxy'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_smart_proxy(cls, options=None):
+        """Removes a smartproxy from an org"""
+        cls.command_sub = 'remove-smart-proxy'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def add_subnet(cls, options=None):
+        """Adds existing subnet to an org"""
+        cls.command_sub = 'add-subnet'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_subnet(cls, options=None):
+        """Removes a subnet from an org"""
+        cls.command_sub = 'remove-subnet'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def add_user(cls, options=None):
+        """Adds an user to an org"""
+        cls.command_sub = 'add-user'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_user(cls, options=None):
+        """Removes an user from an org"""
+        cls.command_sub = 'remove-user'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def set_parameter(cls, options=None):
         """Create or update parameter for an organization."""
         cls.command_sub = 'set-parameter'
         return cls.execute(cls._construct_command(options))
-
 
     @classmethod
     def delete_parameter(cls, options=None):
