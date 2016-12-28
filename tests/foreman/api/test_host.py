@@ -26,7 +26,7 @@ from six.moves import http_client
 
 from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
 from robottelo.datafactory import (
     invalid_values_list,
     valid_hosts_list,
@@ -52,7 +52,7 @@ class HostTestCase(APITestCase):
         super(HostTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
-        # Content View and repository reloated entities
+        # Content View and repository related entities
         cls.cv = publish_puppet_module(
             [{'author': 'robottelo', 'name': 'generic_1'}],
             CUSTOM_PUPPET_REPO,
@@ -62,8 +62,8 @@ class HostTestCase(APITestCase):
             query={'search': u'content_view="{0}"'.format(cls.cv.name)}
         )[0].read()
         cls.lce = entities.LifecycleEnvironment().search(query={
-            'search': 'name=Library and organization_id={0}'.format(
-                cls.org.id)
+            'search': 'name={0} and organization_id={1}'.format(
+                ENVIRONMENT, cls.org.id)
         })[0].read()
         cls.puppet_classes = entities.PuppetClass().search(query={
             'search': u'name ~ "{0}" and environment = "{1}"'.format(
