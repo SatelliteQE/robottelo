@@ -15,10 +15,18 @@
 
 from fauxfactory import gen_string
 from nailgun import entities
+
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on, tier1, tier2, tier3, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
@@ -29,6 +37,7 @@ class RhevComputeResourceTestCase(UITestCase):
     """Implements Compute Resource tests in UI"""
 
     @classmethod
+    @skip_if_not_set('rhev')
     def setUpClass(cls):
         super(RhevComputeResourceTestCase, cls).setUpClass()
         cls.rhev_url = settings.rhev.hostname

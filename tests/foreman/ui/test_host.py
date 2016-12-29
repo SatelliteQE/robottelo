@@ -724,7 +724,7 @@ class AtomicHostTestCase(UITestCase):
 
     @classmethod
     @skip_if_os('RHEL6')
-    @skip_if_not_set('vlan_networking', 'compute_resources')
+    @skip_if_not_set('vlan_networking', 'compute_resources', 'ostree')
     def setUpClass(cls):
         """Steps required to create a Atomic host on libvirt
 

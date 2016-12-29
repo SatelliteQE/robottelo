@@ -22,6 +22,7 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
+from robottelo.decorators import skip_if_not_set
 from robottelo.performance.constants import MANIFEST_FILE_NAME
 from robottelo.test import TestCase
 
@@ -39,6 +40,7 @@ class StandardPrepTestCase(TestCase):
     """
 
     @classmethod
+    @skip_if_not_set('performance')
     def setUpClass(cls):
         super(StandardPrepTestCase, cls).setUpClass()
 
