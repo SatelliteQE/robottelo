@@ -473,9 +473,7 @@ class Base(object):
         self.wait_for_ajax()
 
     def set_parameter(self, param_name, param_value):
-        """
-        Function to set parameters for different
-        entities like OS and Domain
+        """Function to set parameters for different entities like OS and Domain
         """
         self.click(common_locators['parameter_tab'])
         self.click(common_locators['add_parameter'])
@@ -493,8 +491,7 @@ class Base(object):
         Domain.
         """
         self.click(common_locators['parameter_tab'])
-        strategy, value = common_locators['parameter_remove']
-        self.click((strategy, value % param_name))
+        self.click(common_locators['parameter_remove'] % param_name)
         self.click(common_locators['submit'])
         self.logger.debug(u'Removed param: %s', param_name)
 
