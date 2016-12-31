@@ -1,6 +1,7 @@
 """Implements API populator"""
 from robottelo.populate.base import BasePopulator
 from nailgun import entities
+from nailgun.entity_mixins import EntitySearchMixin
 from requests.exceptions import HTTPError
 
 
@@ -13,6 +14,9 @@ class APIPopulator(BasePopulator):
         takes care of adding valid entity to the registry
         """
         model = getattr(entities, raw_entity['model'])
+
+        if not issubclass(model, EntitySearchMixin):
+            raise TypeError("{0} not searchable".format(model))
 
         try:
             # 1) check if entity already exists
@@ -43,6 +47,9 @@ class APIPopulator(BasePopulator):
         raw_entity['validate_fields'] searches the system
         and validates the existence of all entities"""
         model = getattr(entities, raw_entity['model'])
+
+        if not issubclass(model, EntitySearchMixin):
+            raise TypeError("{0} not searchable".format(model))
 
         try:
             # 1) check if entity exists

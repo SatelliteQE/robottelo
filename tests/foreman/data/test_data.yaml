@@ -40,12 +40,63 @@ entities:
       - user7
       - user8
 
+  - model: User
+    register: my_user
+    data:
+      firstname: Bruno
+      login: bruno
+      mail: bruno@rocha.com
+      password: "123456"
+      organization:
+        from_search:
+          model: Organization
+          all: true
+          options:
+            per_page: 40
+          # filters: {}
+          register: bruno_orgs
+      default_organization:
+        from_search:
+          model: Organization
+          data:
+            name: Orgcompany5
+
+  - model: Product
+    data:
+      name: prodtest
+      organization:
+        from_registry: default_orgs[0]
+
 #  - model: Repository
 #    data:
 #      url:
 #        from_object: robottelo.constants.FAKE_REPO_1
-#      thing: "{{ gen_string }}"
-#      name:
-#        from_search:
-#          term: bla
+#      thing: "{{ fauxfactory.gen_string() }}"
+#      # Save last generated strings in a file
+#      # for validation.
 
+#      organization:
+#        from_search:
+#          model: Organization
+#          data:
+#            name: Orgcompany7
+#          all: true
+#          silent_errors: true
+
+#      product:
+#        from_search:
+#          model: Product
+#          data:
+#            organization:
+#              from_registry: default_orgs[0]
+#          all: false  # default
+
+#  - action: register
+#    data:
+#       organization_bla: default_orgs[0]
+
+#  - action: update
+#    model: Organization
+#      data:
+#        name: org_bla
+#        value: default_orgs[1]
