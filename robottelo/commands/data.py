@@ -62,7 +62,7 @@ def validate(datafile):
     if result.validation_errors:
         for error in result.validation_errors:
             result.logger.error(error['message'])
-            result.logger.error(error['search_data'])
+            result.logger.error(error['search_query'])
         sys.exit("System entities did not validated!")
     else:
         result.logger.info(

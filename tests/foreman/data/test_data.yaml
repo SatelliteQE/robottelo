@@ -12,7 +12,7 @@ vars:
     - company7
     - company8
 
-entities:
+actions:
 
   - model: Organization
     register: default_orgs
@@ -24,49 +24,51 @@ entities:
     validate_fields:
       name: Org{{item}}
       label: Org{{item}}
+#
+#  - model: User
+#    register: default_users
+#    data:
+#      firstname: user{{item}}
+#      login: user{{item}}
+#      mail: user{{item}}@acme.com
+#      password: "123456"
+#      organization:
+#          from_registry: default_orgs
+#      default_organization:
+#          from_registry: default_orgs[loop_index]
+#    with_items:
+#      - user7
+#      - user8
+#
+#  - model: User
+#    register: my_user
+#    data:
+#      firstname: Bruno
+#      login: bruno
+#      mail: bruno@rocha.com
+#      password: "123456"
+#      organization:
+#        from_search:
+#          model: Organization
+#          all: true
+#          options:
+#            per_page: 40
+#          # filters: {}
+#          register: bruno_orgs
+#      default_organization:
+#        from_search:
+#          model: Organization
+#          data:
+#            name: Orgcompany5
+#
+#  - model: Product
+#    data:
+#      name: prodtest
+#      organization:
+#        from_registry: default_orgs[0]
 
-  - model: User
-    register: default_users
-    data:
-      firstname: user{{item}}
-      login: user{{item}}
-      mail: user{{item}}@acme.com
-      password: "123456"
-      organization:
-          from_registry: default_orgs
-      default_organization:
-          from_registry: default_orgs[loop_index]
-    with_items:
-      - user7
-      - user8
 
-  - model: User
-    register: my_user
-    data:
-      firstname: Bruno
-      login: bruno
-      mail: bruno@rocha.com
-      password: "123456"
-      organization:
-        from_search:
-          model: Organization
-          all: true
-          options:
-            per_page: 40
-          # filters: {}
-          register: bruno_orgs
-      default_organization:
-        from_search:
-          model: Organization
-          data:
-            name: Orgcompany5
-
-  - model: Product
-    data:
-      name: prodtest
-      organization:
-        from_registry: default_orgs[0]
-
+# TODO
 #  - model: Repository
 #    data:
 #      url:
@@ -91,12 +93,31 @@ entities:
 #              from_registry: default_orgs[0]
 #          all: false  # default
 
-#  - action: register
-#    data:
-#       organization_bla: default_orgs[0]
+
 
 #  - action: update
 #    model: Organization
 #      data:
 #        name: org_bla
 #        value: default_orgs[1]
+
+
+  - action: register
+    data:
+      name: Bruno
+      email: rochacbruno@gmail.com
+
+  - action: register
+    data:
+       organization_bla:
+         from_registry: default_orgs[0]
+       organization_5:
+         from_search:
+           model: Organization
+           data:
+             name: Orgcompany5
+
+  - action: unregister
+    data:
+      - name
+      - email

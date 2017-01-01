@@ -8,19 +8,19 @@ from requests.exceptions import HTTPError
 class APIPopulator(BasePopulator):
     """Populates system using API/Nailgun"""
 
-    def populate(self, entity_data, raw_entity, search_data):
+    def populate(self, entity_data, action_data, search_query, action):
         """Populates the System using Nailgun
         threats and logs Exceptions
         takes care of adding valid entity to the registry
         """
-        model = getattr(entities, raw_entity['model'])
+        model = getattr(entities, action_data['model'])
 
         if not issubclass(model, EntitySearchMixin):
             raise TypeError("{0} not searchable".format(model))
 
         try:
             # 1) check if entity already exists
-            search_result = model().search(**search_data)
+            search_result = model().search(**search_query)
             if search_result:
                 if len(search_result) > 1:
                     self.logger.info(search_result)
@@ -40,20 +40,20 @@ class APIPopulator(BasePopulator):
             if hasattr(e, 'response'):
                 self.logger.info(e.response.content)
         else:
-            self.add_to_registry(raw_entity, result)
+            self.add_to_registry(action_data, result)
 
-    def validate(self, entity_data, raw_entity, search_data):
+    def validate(self, entity_data, action_data, search_query, action):
         """Based on predefined `search_data` or using
         raw_entity['validate_fields'] searches the system
         and validates the existence of all entities"""
-        model = getattr(entities, raw_entity['model'])
+        model = getattr(entities, action_data['model'])
 
         if not issubclass(model, EntitySearchMixin):
             raise TypeError("{0} not searchable".format(model))
 
         try:
             # 1) check if entity exists
-            search_result = model().search(**search_data)
+            search_result = model().search(**search_query)
             if search_result:
                 if len(search_result) > 1:
                     self.logger.info(search_result)
@@ -73,19 +73,19 @@ class APIPopulator(BasePopulator):
                 error_message += e.response.content
             self.logger.error(error_message)
             self.validation_errors.append({
-                'search_data': search_data,
+                'search_query': search_query,
                 'message': error_message,
                 'entity_data':  entity_data,
-                'raw_entity': raw_entity
+                'action_data': action_data
             })
         else:
             if result:
-                self.add_to_registry(raw_entity, result)
+                self.add_to_registry(action_data, result)
             else:
-                self.add_to_registry(raw_entity, None)
+                self.add_to_registry(action_data, None)
                 self.validation_errors.append({
-                    'search_data': search_data,
+                    'search_query': search_query,
                     'message': 'entity does not exist in the system',
                     'entity_data':  entity_data,
-                    'raw_entity': raw_entity
+                    'action_data': action_data
                 })

@@ -15,6 +15,8 @@ INVALID_FOR_SEARCH = {
     'user': ['password', 'default_organization']
 }
 APPEND_ID = ['organization']
+SPECIAL_ACTIONS = ('register', 'unregister', 'assertion')
+CRUD_ACTIONS = ('create', 'update', 'delete')
 
 
 def parse_field_name(key):
@@ -39,7 +41,7 @@ class BasePopulator(object):
     def __init__(self, data):
         self.logger = logger
         self.vars = data.get('vars', {})
-        self.entities = data['entities']
+        self.actions = data['actions']
         self.registry = {}
         self.validation_errors = []
         self.total_created = 0
@@ -65,14 +67,14 @@ class BasePopulator(object):
              'admin_password': self.admin_password}
         )
 
-    def add_to_registry(self, entity, result):
+    def add_to_registry(self, action_data, result):
         """Once an entity is created this method adds it to the registry"""
-        if not entity.get('register'):
+        if not action_data.get('register'):
             return
 
-        registry_key = entity['register']
+        registry_key = action_data['register']
 
-        if entity.get('with_items'):
+        if action_data.get('with_items'):
             if registry_key in self.registry:
                 self.registry[registry_key].append(result)
             else:
@@ -80,20 +82,22 @@ class BasePopulator(object):
         else:
             self.registry[registry_key] = result
 
-    def search_entity(self, entity_data, context):
+        self.logger.info("register: %s added to registry", registry_key)
+
+    def search_entity(self, action_data, context):
         """Gets fields and perform a search to return Entity object
         used when 'from_search' directive is used in YAML file"""
 
-        model_name = entity_data['model']
-        options = entity_data.get('options', {})
-        get_all = entity_data.get('all', False)
+        model_name = action_data['model']
+        options = action_data.get('options', {})
+        get_all = action_data.get('all', False)
 
         model = getattr(entities, model_name)
         if not issubclass(model, EntitySearchMixin):
             raise TypeError("{0} not searchable".format(model))
 
-        if 'data' in entity_data:
-            rendered_data = entity_data['data'].copy()
+        if 'data' in action_data:
+            rendered_data = action_data['data'].copy()
             self.render_single(rendered_data, context)
 
             query_data = {
@@ -115,17 +119,17 @@ class BasePopulator(object):
                    org_id = rendered_data['organization'].id
                    query['query']['organization_id'] = org_id
 
-            if 'filters' in entity_data:
-                query['filters'] = entity_data['filters']
+            if 'filters' in action_data:
+                query['filters'] = action_data['filters']
             search_result = model().search(**query)
         else:
             # empty search
             query = {'query': options}
-            if 'filters' in entity_data:
-                query['filters'] = entity_data['filters']
+            if 'filters' in action_data:
+                query['filters'] = action_data['filters']
             search_result = model().search(**query)
 
-        silent_errors = entity_data.get('silent_errors', False)
+        silent_errors = action_data.get('silent_errors', False)
 
         if not search_result:
             if silent_errors:
@@ -133,10 +137,10 @@ class BasePopulator(object):
             raise RuntimeError("Search returned no objects")
 
         if get_all:
-            self.add_to_registry(entity_data, search_result)
+            self.add_to_registry(action_data, search_result)
             return search_result
         else:
-            self.add_to_registry(entity_data, search_result[0])
+            self.add_to_registry(action_data, search_result[0])
             return search_result[0]
 
 
@@ -171,13 +175,13 @@ class BasePopulator(object):
                 if '{{' in v and '}}' in v:
                     data[k] = Template(v).render(**context)
 
-    def render(self, raw_entity):
+    def render(self, action_data, action):
         """Takes an entity description and strips 'data' out to
         perform single rendering and also handle repetitions"""
-        if 'data' not in raw_entity:
+        if 'data' not in action_data:
             raise ValueError('entity misses `data` key')
 
-        items = raw_entity.get('with_items')
+        items = action_data.get('with_items')
         context = self.context
         entities = []
 
@@ -197,21 +201,28 @@ class BasePopulator(object):
             new_context.update(context)
             new_context['item'] = item
             new_context['loop_index'] = loop_index
-            new_entity_data = raw_entity['data'].copy()
+
+            # data can be dict on CRUD or list on SPECIAL_ACTIONS
+            data = action_data['data']
+            if isinstance(data, dict):
+                entity_data = data.copy()
+            else:
+                entity_data = {'values': data}
+
             # loop index should be removed before creation
-            # that is performed in render_search_data
-            new_entity_data['loop_index'] = loop_index
+            # that is performed in build_search_query
+            entity_data['loop_index'] = loop_index
 
             self.render_single(
-                new_entity_data,
+                entity_data,
                 new_context
             )
 
-            entities.append(new_entity_data)
+            entities.append(entity_data)
 
         return entities
 
-    def render_search_data(self, entity_data, raw_entity):
+    def build_search_query(self, entity_data, action_data):
         """Creates a dictionary for Nailgun search mixin as in the example:
         `{'query': {'search':'name=Orgcompanyone,label=Orgcompanyone,id=28'}}`
         By default that dict will use all fields provided in entity_data
@@ -219,8 +230,8 @@ class BasePopulator(object):
         """
         # if with_items, get current loop_index reference or 0
         loop_index = entity_data.pop('loop_index', 0)
-        model_name = raw_entity['model'].lower()
-        if 'validate_fields' not in raw_entity:
+        model_name = action_data['model'].lower()
+        if 'validate_fields' not in action_data:
             data = {
                 parse_field_name(key): parse_field_value(value)
                 for key, value in entity_data.items()
@@ -228,8 +239,8 @@ class BasePopulator(object):
                 isinstance(value, (string_types, Entity))
             }
         else:
-            if isinstance(raw_entity['validate_fields'], dict):
-                items = raw_entity.get('with_items')
+            if isinstance(action_data['validate_fields'], dict):
+                items = action_data.get('with_items')
 
                 if items and isinstance(items, list):
                     items = [
@@ -253,13 +264,13 @@ class BasePopulator(object):
 
                 data = {
                     key: Template(value).render(**new_context)
-                    for key, value in raw_entity['validate_fields'].items()
+                    for key, value in action_data['validate_fields'].items()
                 }
 
-            elif isinstance(raw_entity['validate_fields'], Sequence):
+            elif isinstance(action_data['validate_fields'], Sequence):
                 data = {
                     key: entity_data[key]
-                    for key in raw_entity['validate_fields']
+                    for key in action_data['validate_fields']
                 }
             else:
                 raise ValueError("validate_fields bad formatted")
@@ -282,32 +293,68 @@ class BasePopulator(object):
 
         """
 
-        for raw_entity in self.entities:
-            entities_list = self.render(raw_entity)
+        for action_data in self.actions:
+            action = action_data.get('action', 'create')
+            entities_list = self.render(action_data, action)
             for entity_data in entities_list:
-                model_name = raw_entity['model'].lower()
+
+                if action in SPECIAL_ACTIONS:
+                    # find the method named as action name
+                    getattr(self, action)(
+                        entity_data, action_data, action
+                    )
+
+                    # execute above method and continue to next item
+                    continue
+
+                # Executed only for create, update, delete actions
+                model_name = action_data['model'].lower()
                 method = getattr(
                     self, '{0}_{1}'.format(mode, model_name), None
                 )
-                search_data = self.render_search_data(entity_data, raw_entity)
+                search_query = self.build_search_query(
+                    entity_data, action_data
+                )
                 if method:
-                    method(entity_data, raw_entity, search_data)
+                    method(entity_data, action_data, search_query, action)
                 else:
                     # execute self.populate or self.validate
-                    getattr(self, mode)(entity_data, raw_entity, search_data)
+                    getattr(self, mode)(
+                        entity_data, action_data, search_query, action
+                    )
 
                 # ensure context is updated with latest created entities
                 self.context.update(self.registry)
 
-    def populate(self, entity_data, raw_entity, search_data):
+    def unregister(self, entity_data, action_data, action):
+        """Remove data from registry"""
+        for value in entity_data['values']:
+            if self.registry.pop(value, None):
+                self.logger.info("unregister: %s unregistered", value)
+            else:
+                self.logger.info("unregister: %s not was registered", value)
+
+    def register(self, entity_data, action_data, action):
+        """Should be implemented in sub classes"""
+        loop_index = entity_data.pop('loop_index', 0)
+        for key, value in entity_data.items():
+            data = action_data.copy()
+            data['register'] = key
+            self.add_to_registry(data, value)
+
+    def populate(self, entity_data, raw_entity, search_query, action):
         """Should be implemented in sub classes"""
         raise NotImplementedError()
 
-    def validate(self, entity_data, raw_entity, search_data):
+    def validate(self, entity_data, raw_entity, search_query, action):
         """Should be implemented in sub classes"""
         raise NotImplementedError()
 
-    def populate_modelname(self, entity_data, raw_entity, search_data):
+    def assertion(self, entity_data, action_data, action):
+        """Should be implemented in sub classes"""
+        raise NotImplementedError
+
+    def populate_modelname(self, entity_data, action_data, search_query, action):
         """Example on how to implement custom populate methods
            e.g: `def populate_organization`
         This method should take care of all validations and errors.
@@ -322,9 +369,9 @@ class BasePopulator(object):
         )
 
         # always add the result to registry to allow references
-        self.add_to_registry(raw_entity, result)
+        self.add_to_registry(action_data, result)
 
-    def validate_modelname(self, entity_data, raw_entity, search_data):
+    def validate_modelname(self, entity_data, action_data, search_query, action):
         """Example on how to implement custom validate methods
            e.g: `def validate_organization`
         This method should take care of all validations and errors.
@@ -339,6 +386,12 @@ class BasePopulator(object):
         )
 
         # always add the result to registry to allow references
-        self.add_to_registry(raw_entity, result)
+        self.add_to_registry(action_data, result)
 
-        self.validation_errors.append("message")
+        # add errors to validation_errors
+        self.validation_errors.append({
+            'search_query': search_query,
+            'message': 'entity does not validate in the system',
+            'entity_data':  entity_data,
+            'action_data': action_data
+        })
