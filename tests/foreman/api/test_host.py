@@ -22,7 +22,11 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
+from six.moves import http_client
+
+from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
+from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
 from robottelo.datafactory import (
     invalid_values_list,
     valid_hosts_list,
@@ -37,11 +41,41 @@ from robottelo.decorators import (
     tier3,
 )
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 class HostTestCase(APITestCase):
     """Tests for ``entities.Host().path()``."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup common entities."""
+        super(HostTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.loc = entities.Location(organization=[cls.org]).create()
+        # Content View and repository related entities
+        cls.cv = publish_puppet_module(
+            [{'author': 'robottelo', 'name': 'generic_1'}],
+            CUSTOM_PUPPET_REPO,
+            organization_id=cls.org.id
+        )
+        cls.env = entities.Environment().search(
+            query={'search': u'content_view="{0}"'.format(cls.cv.name)}
+        )[0].read()
+        cls.lce = entities.LifecycleEnvironment().search(query={
+            'search': 'name={0} and organization_id={1}'.format(
+                ENVIRONMENT, cls.org.id)
+        })[0].read()
+        cls.puppet_classes = entities.PuppetClass().search(query={
+            'search': u'name ~ "{0}" and environment = "{1}"'.format(
+                'generic_1', cls.env.name)
+        })
+        # Compute Resource related entities
+        cls.compresource_libvirt = entities.LibvirtComputeResource(
+            organization=[cls.org],
+            location=[cls.loc],
+        ).create()
+        cls.image = entities.Image(
+            compute_resource=cls.compresource_libvirt).create()
 
     @run_only_on('sat')
     @tier1
@@ -199,6 +233,26 @@ class HostTestCase(APITestCase):
         })[0]
         host = entities.Host(puppet_ca_proxy=proxy).create()
         self.assertEqual(host.puppet_ca_proxy.read().name, proxy.name)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_create_with_puppet_class(self):
+        """Create a host with associated puppet classes
+
+        @id: 2690d6b0-441b-44c5-b7d2-4093616e037e
+
+        @assert: A host is created with expected puppet classes
+        """
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            environment=self.env,
+            puppetclass=self.puppet_classes,
+        ).create()
+        self.assertEqual(
+            {puppet_class.id for puppet_class in host.puppetclass},
+            {puppet_class.id for puppet_class in self.puppet_classes}
+        )
 
     @run_only_on('sat')
     @tier2
@@ -381,6 +435,95 @@ class HostTestCase(APITestCase):
         profile = entities.ComputeProfile().create()
         host = entities.Host(compute_profile=profile).create()
         self.assertEqual(host.compute_profile.read().name, profile.name)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_create_with_content_view(self):
+        """Create a host with a content view specified
+
+        @id: 10f69c7a-088e-474c-b869-1ad12deda2ad
+
+        @Assert: A host is created with expected content view assigned
+
+        @CaseLevel: Integration
+        """
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            content_facet_attributes={
+                'content_view_id': self.cv.id,
+                'lifecycle_environment_id': self.lce.id,
+            }
+        ).create()
+        self.assertEqual(
+            host.content_facet_attributes['content_view_id'], self.cv.id)
+        self.assertEqual(
+            host.content_facet_attributes['lifecycle_environment_id'],
+            self.lce.id
+        )
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_host_parameters(self):
+        """Create a host with a host parameters specified
+
+        @id: e3af6718-4016-4756-bbb0-e3c24ac1e340
+
+        @Assert: A host is created with expected host parameters
+        """
+        parameters = [{
+            'name': gen_string('alpha'), 'value': gen_string('alpha')
+        }]
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            host_parameters_attributes=parameters,
+        ).create()
+        self.assertEqual(
+            host.host_parameters_attributes[0]['name'], parameters[0]['name'])
+        self.assertEqual(
+            host.host_parameters_attributes[0]['value'],
+            parameters[0]['value']
+        )
+        self.assertIn('id', host.host_parameters_attributes[0])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_create_with_image(self):
+        """Create a host with an image specified
+
+        @id: 38b17b4d-d9d8-4ea1-aa0f-558496b990fc
+
+        @Assert: A host is created with expected image
+
+        @CaseLevel: Integration
+        """
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            image=self.image,
+        ).create()
+        self.assertEqual(host.image.id, self.image.id)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_provision_method(self):
+        """Create a host with provision method specified
+
+        @id: c2243c30-f70a-4063-a4a4-f67b598a892b
+
+        @Assert: A host is created with expected provision method
+        """
+        for method in ['build', 'image']:
+            with self.subTest(method):
+                # Compute resource is required for 'image' method
+                host = entities.Host(
+                    organization=self.org,
+                    location=self.loc,
+                    compute_resource=self.compresource_libvirt,
+                    provision_method=method,
+                ).create()
+                self.assertEqual(host.provision_method, method)
 
     @run_only_on('sat')
     @tier1
@@ -616,6 +759,25 @@ class HostTestCase(APITestCase):
         self.assertEqual(host.puppet_ca_proxy.read().name, new_proxy.name)
 
     @run_only_on('sat')
+    @tier1
+    def test_positive_update_puppet_class(self):
+        """Update a host with a new puppet classes
+
+        @id: 73f9efce-3807-4196-b4e3-a6bfbfe95c99
+
+        @assert: A host is update with a new puppet classes
+        """
+        host = entities.Host(organization=self.org, location=self.loc).create()
+        self.assertEqual(len(host.puppetclass), 0)
+        host.environment = self.env
+        host.puppetclass = self.puppet_classes
+        host = host.update(['environment', 'puppetclass'])
+        self.assertEqual(
+            {puppet_class.id for puppet_class in host.puppetclass},
+            {puppet_class.id for puppet_class in self.puppet_classes}
+        )
+
+    @run_only_on('sat')
     @tier2
     def test_positive_update_subnet(self):
         """Update a host with a new subnet
@@ -837,6 +999,72 @@ class HostTestCase(APITestCase):
         host.compute_profile = new_cprofile
         host = host.update(['compute_profile'])
         self.assertEqual(host.compute_profile.read().name, new_cprofile.name)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_update_content_view(self):
+        """Update a host with a new content view
+
+        @id: f51612fd-cbbc-4f9f-b85b-a4104a0501e5
+
+        @assert: A host is updated with a new content view
+
+        @CaseLevel: Integration
+        """
+        host = entities.Host(organization=self.org, location=self.loc).create()
+        self.assertFalse(hasattr(host, 'content_facet_attributes'))
+        host.content_facet_attributes = {
+            'content_view_id': self.cv.id,
+            'lifecycle_environment_id': self.lce.id,
+        }
+        host = host.update(['content_facet_attributes'])
+        self.assertEqual(
+            host.content_facet_attributes['content_view_id'], self.cv.id)
+        self.assertEqual(
+            host.content_facet_attributes['lifecycle_environment_id'],
+            self.lce.id
+        )
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update_host_parameters(self):
+        """Update a host with a new host parameters
+
+        @id: db0f5731-b0cc-4429-85fb-4032cb43ce4a
+
+        @assert: A host is updated with a new host parameters
+        """
+        parameters = [{
+            'name': gen_string('alpha'), 'value': gen_string('alpha')
+        }]
+        host = entities.Host(organization=self.org, location=self.loc).create()
+        self.assertEqual(host.host_parameters_attributes, [])
+        host.host_parameters_attributes = parameters
+        host = host.update(['host_parameters_attributes'])
+        self.assertEqual(
+            host.host_parameters_attributes[0]['name'], parameters[0]['name'])
+        self.assertEqual(
+            host.host_parameters_attributes[0]['value'],
+            parameters[0]['value']
+        )
+        self.assertIn('id', host.host_parameters_attributes[0])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_update_image(self):
+        """Update a host with a new image
+
+        @id: e5d8a5b0-7834-4099-9047-8290c7008931
+
+        @assert: A host is updated with a new image
+
+        @CaseLevel: Integration
+        """
+        host = entities.Host(organization=self.org, location=self.loc).create()
+        self.assertIsNone(host.image)
+        host.image = self.image
+        host = host.update(['image'])
+        self.assertEqual(host.image.id, self.image.id)
 
     @run_only_on('sat')
     @tier1
