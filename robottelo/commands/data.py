@@ -59,11 +59,22 @@ def validate(datafile):
     """
     data = load_data(datafile)
     result = execute_validate(data)
+
+    if result.assertion_errors:
+        for error in result.assertion_errors:
+            data = error['data']
+            result.logger.error(
+                'assertion: %s is NOT %s to %s',
+                data['value'], error['operator'], data['other']
+            )
+        sys.exit("System entities did not validated!")
+
     if result.validation_errors:
         for error in result.validation_errors:
             result.logger.error(error['message'])
             result.logger.error(error['search_query'])
         sys.exit("System entities did not validated!")
+
     else:
         result.logger.info(
             "{0} entities found in the system".format(

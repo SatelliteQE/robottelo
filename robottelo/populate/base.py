@@ -8,6 +8,7 @@ from jinja2 import Template
 from nailgun import entities
 from nailgun.entity_mixins import Entity, EntitySearchMixin, EntityReadMixin
 from robottelo.config import settings
+from robottelo.populate import assertion_operators
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ class BasePopulator(object):
         self.actions = data['actions']
         self.registry = {}
         self.validation_errors = []
+        self.assertion_errors = []
         self.total_created = 0
         self.total_existing = 0
 
@@ -98,7 +100,7 @@ class BasePopulator(object):
 
         if 'data' in action_data:
             rendered_data = action_data['data'].copy()
-            self.render_single(rendered_data, context)
+            self.render_action_data(rendered_data, context)
 
             query_data = self.parse_fields_and_values(rendered_data,
                                                       model_name.lower())
@@ -150,14 +152,14 @@ class BasePopulator(object):
 
 
         entity_data = action_data['data'].copy()
-        self.render_single(entity_data, context)
+        self.render_action_data(entity_data, context)
 
         entity = model(**entity_data).read()
 
         self.add_to_registry(action_data, entity)
         return entity
 
-    def render_single(self, data, context):
+    def render_action_data(self, data, context):
         """Gets a single entity description and perform inplace template
         rendering or reference evaluation for single data sets."""
         for k, v in data.items():
@@ -172,32 +174,55 @@ class BasePopulator(object):
                             "was added to the registry".format(str(e)))
                 elif 'from_object' in v:
                     try:
-                        data[k] = import_string(v['from_object'])
+                        result = import_string(v['from_object']['name'])
+                        self.resolve_result_attr(
+                            data, 'from_object', k, v, result
+                        )
                     except ImportError as e:
                         logger.error(str(e))
                         raise
                 elif 'from_search' in v:
                     try:
-                        data[k] = self.from_search(v['from_search'], context)
+                        result = self.from_search(
+                            v['from_search'], context
+                        )
+                        self.resolve_result_attr(
+                            data, 'from_search', k, v, result
+                        )
+
                     except Exception as e:
                         logger.error(str(e))
                         raise
                 elif 'from_read' in v:
                     try:
-                        data[k] = self.from_read(v['from_read'], context)
+                        result = self.from_read(v['from_read'], context)
+                        self.resolve_result_attr(
+                            data, 'from_read', k, v, result
+                        )
                     except Exception as e:
                         logger.error(str(e))
                         raise
                 else:
-                    self.render_single(v, context)
+                    self.render_action_data(v, context)
             elif isinstance(v, string_types):
                 if '{{' in v and '}}' in v:
                     data[k] = Template(v).render(**context)
 
+    def resolve_result_attr(self, data, from_where, k, v, result):
+        attr = v[from_where].get('attr')
+        if not attr:
+            data[k] = result
+        elif isinstance(attr, string_types):
+            data[k] = getattr(result, attr)
+        elif isinstance(attr, dict):
+            data[k] = getattr(result, attr.keys()[0])(**attr.values()[0])
+        else:
+            raise RuntimeError('attr must be string or dict')
+
     def render(self, action_data, action):
         """Takes an entity description and strips 'data' out to
         perform single rendering and also handle repetitions"""
-        if action != 'delete' and 'data' not in action_data:
+        if action not in ('delete', 'assertion') and 'data' not in action_data:
             raise ValueError('entity misses `data` key')
 
         items = action_data.get('with_items')
@@ -226,13 +251,13 @@ class BasePopulator(object):
             if isinstance(data, dict):
                 entity_data = data.copy()
             else:
-                entity_data = {'values': data}
+                entity_data = {'_values': data}
 
             # loop index should be removed before creation
             # that is performed in build_search_query
             entity_data['loop_index'] = loop_index
 
-            self.render_single(
+            self.render_action_data(
                 entity_data,
                 new_context
             )
@@ -278,7 +303,7 @@ class BasePopulator(object):
                 new_context['loop_index'] = loop_index
 
                 data = search_data.copy()
-                self.render_single(data, new_context)
+                self.render_action_data(data, new_context)
                 data = self.parse_fields_and_values(data, model_name)
 
             elif isinstance(search_data, Sequence):
@@ -323,14 +348,14 @@ class BasePopulator(object):
 
         for action_data in self.actions:
             action = action_data.get('action', 'create')
+            if action_data.get('log'):
+                self.logger.info("%s: %s", action, action_data['log'])
             entities_list = self.render(action_data, action)
             for entity_data in entities_list:
 
                 if action in SPECIAL_ACTIONS:
                     # find the method named as action name
-                    getattr(self, action)(
-                        entity_data, action_data, action
-                    )
+                    getattr(self, action)(entity_data, action_data)
 
                     # execute above method and continue to next item
                     continue
@@ -354,21 +379,46 @@ class BasePopulator(object):
                 # ensure context is updated with latest created entities
                 self.context.update(self.registry)
 
-    def unregister(self, entity_data, action_data, action):
+    def unregister(self, entity_data, action_data):
         """Remove data from registry"""
-        for value in entity_data['values']:
+        for value in entity_data['_values']:
             if self.registry.pop(value, None):
                 self.logger.info("unregister: %s unregistered", value)
             else:
                 self.logger.info("unregister: %s not was registered", value)
 
-    def register(self, entity_data, action_data, action):
+    def register(self, entity_data, action_data):
         """Should be implemented in sub classes"""
         loop_index = entity_data.pop('loop_index', 0)
         for key, value in entity_data.items():
             data = action_data.copy()
             data['register'] = key
             self.add_to_registry(data, value)
+
+    def assertion(self, entity_data, action_data):
+        """Should be implemented in sub classes"""
+        new_context = self.context.copy()
+        new_context['loop_index'] = loop_index = entity_data.get('loop_index')
+        new_context['item'] = action_data.get('with_items', [None])[loop_index]
+        operator = action_data.get('operator', 'eq')
+        assertion_function = getattr(assertion_operators, operator)
+        data = {
+            'value' if index == 0 else 'other': value
+            for index, value in enumerate(action_data['data'])
+        }
+        self.render_action_data(data, new_context)
+
+        if assertion_function(**data):
+            self.logger.info(
+                'assertion: %s is %s to %s',
+                data['value'], operator, data['other']
+            )
+        else:
+            self.assertion_errors.append({
+                'data': data,
+                'operator': operator,
+                'action_data': action_data
+            })
 
     def populate(self, entity_data, raw_entity, search_query, action):
         """Should be implemented in sub classes"""
@@ -377,10 +427,6 @@ class BasePopulator(object):
     def validate(self, entity_data, raw_entity, search_query, action):
         """Should be implemented in sub classes"""
         raise NotImplementedError()
-
-    def assertion(self, entity_data, action_data, action):
-        """Should be implemented in sub classes"""
-        raise NotImplementedError
 
     def populate_modelname(self, entity_data, action_data, search_query, action):
         """Example on how to implement custom populate methods

@@ -95,7 +95,6 @@ class APIPopulator(BasePopulator):
 
         model(id=entity_id).delete()
 
-
     def validate(self, entity_data, action_data, search_query, action):
         """Based on predefined `search_data` or using
         raw_entity['search_data'] searches the system
