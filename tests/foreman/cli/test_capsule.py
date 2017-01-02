@@ -23,8 +23,13 @@ from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
-    run_only_on, stubbed, tier1, tier2, skip_if_not_set
-    )
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.helpers import (
     default_url_on_new_port,
     get_available_capsule_port
@@ -73,6 +78,7 @@ class CapsuleTestCase(CLITestCase):
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_delete_by_id(self):
         """Proxy deletion with the home proxy
