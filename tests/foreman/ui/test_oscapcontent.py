@@ -37,6 +37,15 @@ class OpenScapContentTestCase(UITestCase):
         super(OpenScapContentTestCase, cls).setUpClass()
         path = settings.oscap.content_path
         cls.content_path = get_data_file(path)
+        org = entities.Organization(name=gen_string('alpha')).create()
+        cls.org_name = org.name
+        proxy = entities.SmartProxy().search(
+            query={
+                u'search': u'name={0}'.format(
+                    settings.server.hostname)
+            }
+        )[0]
+        proxy.organization = [org]
 
     @tier1
     def test_positive_create(self):
@@ -58,6 +67,7 @@ class OpenScapContentTestCase(UITestCase):
                         session,
                         name=content_name,
                         content_path=self.content_path,
+                        content_org=self.org_name,
                     )
                     self.assertIsNotNone(
                         self.oscapcontent.search(content_name))
@@ -85,6 +95,7 @@ class OpenScapContentTestCase(UITestCase):
                         session,
                         name=content_name,
                         content_path=self.content_path,
+                        content_org=self.org_name,
                     )
                     self.assertIsNotNone(session.nav.wait_until_element(
                         common_locators['haserror']))
@@ -134,6 +145,7 @@ class OpenScapContentTestCase(UITestCase):
                 session,
                 name=content_name,
                 content_path=self.content_path,
+                content_org=self.org_name,
             )
             self.oscapcontent.update(content_name, content_org=org.name)
             session.nav.go_to_select_org(org.name)
@@ -161,6 +173,7 @@ class OpenScapContentTestCase(UITestCase):
                         session,
                         name=content_name,
                         content_path=self.content_path,
+                        content_org=self.org_name,
                     )
                     self.assertIsNotNone(
                         self.oscapcontent.search(content_name))
