@@ -21,51 +21,56 @@ actions:
       name: Org{{item}}
       label: Org{{item}}
     with_items: org_list
-    validate_fields:
+    search_data:
       name: Org{{item}}
       label: Org{{item}}
+
+  - model: User
+    register: default_users
+    data:
+      firstname: user{{item}}
+      login: user{{item}}
+      mail: user{{item}}@acme.com
+      password: "123456"
+      organization:
+          from_registry: default_orgs
+      default_organization:
+          from_registry: default_orgs[loop_index]
+    with_items:
+      - user7
+      - user8
+
+  - model: User
+    register: my_user
+    data:
+      firstname: Bruno
+      login: bruno
+      mail: bruno@rocha.com
+      password: "123456"
+      organization:
+        from_search:
+          model: Organization
+          all: true
+          options:
+            per_page: 40
+          # filters: {}
+          register: bruno_orgs
+      default_organization:
+        from_search:
+          model: Organization
+          data:
+            name: Orgcompany5
 #
-#  - model: User
-#    register: default_users
-#    data:
-#      firstname: user{{item}}
-#      login: user{{item}}
-#      mail: user{{item}}@acme.com
-#      password: "123456"
+  - model: Product
+    data:
+      name: new_prodtest
+      organization:
+        from_registry: default_orgs[0]
 #      organization:
-#          from_registry: default_orgs
-#      default_organization:
-#          from_registry: default_orgs[loop_index]
-#    with_items:
-#      - user7
-#      - user8
-#
-#  - model: User
-#    register: my_user
-#    data:
-#      firstname: Bruno
-#      login: bruno
-#      mail: bruno@rocha.com
-#      password: "123456"
-#      organization:
-#        from_search:
-#          model: Organization
-#          all: true
-#          options:
-#            per_page: 40
-#          # filters: {}
-#          register: bruno_orgs
-#      default_organization:
-#        from_search:
+#        from_read:
 #          model: Organization
 #          data:
-#            name: Orgcompany5
-#
-#  - model: Product
-#    data:
-#      name: prodtest
-#      organization:
-#        from_registry: default_orgs[0]
+#            id: 28
 
 
 # TODO
@@ -95,12 +100,22 @@ actions:
 
 
 
-#  - action: update
-#    model: Organization
-#      data:
-#        name: org_bla
-#        value: default_orgs[1]
+  - action: update
+    model: Product
+    data:
+      name: new_prodtest
+    search_data:
+      name: new_prodtest
+      organization:
+        from_registry: default_orgs[0]
+#    silent_errors: true
 
+  - action: delete
+    model: Product
+    search_data:
+      name: new_prodtest
+      organization:
+        from_registry: default_orgs[0]
 
   - action: register
     data:
@@ -116,6 +131,9 @@ actions:
            model: Organization
            data:
              name: Orgcompany5
+       fake_repo:
+         from_object: robottelo.constants.FAKE_0_YUM_REPO
+       random: "{{ fauxfactory.gen_string('alpha') }}"
 
   - action: unregister
     data:
