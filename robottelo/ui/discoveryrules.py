@@ -3,7 +3,7 @@
 from robottelo.constants import FILTER
 from robottelo.decorators import bz_bug_is_open
 from robottelo.ui.base import Base
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -52,7 +52,8 @@ class DiscoveryRules(Base):
         self.assign_value(locators['discoveryrules.search'], search_rule)
         self.assign_value(
             locators['discoveryrules.hostgroup_dropdown'], hostgroup)
-        self._configure_discovery(hostname, host_limit, priority, enabled)
+        self._configure_discovery(
+            hostname, host_limit, priority, enabled, locations, organizations)
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):

@@ -75,20 +75,19 @@ class DiscoveredHosts(Base):
         self.click(locators['discoveredhosts.dropdown'] % hostname)
         self.click(locators['discoveredhosts.refresh_facts'] % hostname)
 
-    def assertdiscoveredhost(self, hostname):
-        """
-        Check if host is visible under 'Discovered Hosts' on UI
+    def waitfordiscoveredhost(self, hostname):
+        """Check if host is visible under 'Discovered Hosts' on UI
 
         Introduced a delay of 300secs by polling every 10 secs to see if
         unknown host gets discovered and become visible on UI
         """
-        discovered_host = self.search(hostname)
         for _ in range(30):
-            if discovered_host is None:
-                sleep(10)
-                discovered_host = self.search(hostname)
+            discovered_host = self.search(hostname)
+            if discovered_host:
+                return True
             else:
-                break
+                sleep(10)
+        return False
 
     def fetch_fact_value(self, hostname, element):
         """Fetch the value of selected fact from discovered hosts page"""
@@ -132,8 +131,16 @@ class DiscoveredHosts(Base):
         self.click(locators['discoveredhosts.dropdown'] % hostname)
         self.click(locators['discoveredhosts.auto_provision'] % hostname)
 
+    def auto_provision_all(self):
+        """Auto provision all the discovered hosts"""
+        self.navigate_to_entity()
+        self.discoveredhosts.click(
+            locators["discoveredhosts.auto_provision_all"]
+        )
+
     def update_org_loc(self, hostnames, new_org=None, new_loc=None):
         """Update the default org or location for bulk of discovered hosts"""
+        self.navigate_to_entity()
         for host in hostnames:
             self.click(locators['discoveredhosts.select_host'] % host)
         self.click(locators['discoveredhosts.select_action'])
@@ -158,12 +165,12 @@ class DiscoveredHosts(Base):
             self.click(locators['discoveredhosts.provision_from_facts'])
         else:
             self.click(locators['discoveredhosts.provision'] % hostname)
-        self.select(
+        self.assign_value(
             locators['discoveredhosts.select_modal_hostgroup'],
             hostgroup
         )
-        self.select(locators['discoveredhosts.select_modal_org'], org)
-        self.select(locators['discoveredhosts.select_modal_loc'], loc)
+        self.assign_value(locators['discoveredhosts.select_modal_org'], org)
+        self.assign_value(locators['discoveredhosts.select_modal_loc'], loc)
         if not quick_create:
             self.click(locators['discoveredhosts.create_host_button'])
             if new_name is not None:

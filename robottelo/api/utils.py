@@ -215,46 +215,32 @@ def configure_provisioning(org=None, loc=None):
     """
     # Create new organization and location in case they were not passed
     if org is None:
-        org = entities.Organization(name=gen_string('alpha')).create()
-        # org_name = org.name
+        org = entities.Organization().create()
     if loc is None:
-        loc = entities.Location(
-            name=gen_string('alpha'),
-            organization=[org],
-        ).create()
-        # loc_name = loc.name
+        loc = entities.Location(organization=[org]).create()
     # Create a new Life-Cycle environment
-    lc_env = entities.LifecycleEnvironment(
-        name=gen_string('alpha'),
-        organization=org
-    ).create()
+    lc_env = entities.LifecycleEnvironment(organization=org).create()
     # Create a Product, Repository for custom RHEL6 contents
-    product = entities.Product(
-        name=gen_string('alpha'),
-        organization=org
-    ).create()
+    product = entities.Product(organization=org).create()
     repo = entities.Repository(
-        name=gen_string('alpha'),
         product=product,
         url=settings.rhel7_os
     ).create()
 
     # Increased timeout value for repo sync
-    old_task_timeout = entity_mixins.TASK_TIMEOUT
-    entity_mixins.TASK_TIMEOUT = 3600
-    repo.sync()
-
-    # Create, Publish and promote CV
-    content_view = entities.ContentView(
-        name=gen_string('alpha'),
-        organization=org
-    ).create()
-    content_view.repository = [repo]
-    content_view = content_view.update(['repository'])
-    content_view.publish()
-    content_view = content_view.read()
-    promote(content_view.version[0], lc_env.id)
-    entity_mixins.TASK_TIMEOUT = old_task_timeout
+    try:
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        entity_mixins.TASK_TIMEOUT = 3600
+        repo.sync()
+        # Create, Publish and promote CV
+        content_view = entities.ContentView(organization=org).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], lc_env.id)
+    finally:
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
     # Search for puppet environment and associate location
     environment = entities.Environment(
         organization=[org.id]).search()[0]
@@ -322,7 +308,6 @@ def configure_provisioning(org=None, loc=None):
     else:
         # Create new subnet
         subnet = entities.Subnet(
-            name=gen_string('alpha'),
             network=network,
             mask=settings.vlan_networking.netmask,
             domain=[domain],
@@ -354,7 +339,6 @@ def configure_provisioning(org=None, loc=None):
     else:
         # Create Libvirt compute-resource
         computeresource = entities.LibvirtComputeResource(
-            name=gen_string('alpha'),
             provider=u'libvirt',
             url=resource_url,
             set_console_password=False,
@@ -435,7 +419,6 @@ def configure_provisioning(org=None, loc=None):
         lifecycle_environment=lc_env.id,
         content_view=content_view.id,
         location=[loc.id],
-        name=gen_string('alpha'),
         environment=environment.id,
         puppet_proxy=proxy,
         puppet_ca_proxy=proxy,

@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
 from fauxfactory import gen_string, gen_email
-from robottelo.constants import (
-    REPO_TYPE,
-    CHECKSUM_TYPE,
-)
+from robottelo.constants import CHECKSUM_TYPE, REPO_TYPE
 from robottelo.helpers import update_dictionary
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture

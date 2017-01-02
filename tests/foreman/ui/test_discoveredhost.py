@@ -112,8 +112,6 @@ class DiscoveryTestCase(UITestCase):
             name=gen_string('alpha'),
             organization=[cls.org],
         ).create()
-        cls.loc_name = cls.loc.name
-
         # Update default org and location params to place discovered host
         cls.discovery_loc = entities.Setting().search(
             query={'search': 'name="discovery_location"'})[0]
@@ -162,7 +160,9 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
     @run_only_on('sat')
@@ -186,7 +186,9 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest(boot_iso=True) as pxe_less_host:
                 hostname = pxe_less_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
     @run_only_on('sat')
@@ -327,7 +329,9 @@ class DiscoveryTestCase(UITestCase):
             self._edit_discovery_fact_column_param(session, "interfaces")
             with LibvirtGuest(boot_iso=True, extra_nic=True) as pxe_less_host:
                 hostname = pxe_less_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
                 element = locators['discoveredhosts.fetch_interfaces']
                 host_interfaces = self.discoveredhosts.fetch_fact_value(
@@ -400,7 +404,9 @@ class DiscoveryTestCase(UITestCase):
             self._edit_discovery_fact_column_param(session, "interfaces")
             with LibvirtGuest(extra_nic=True) as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
                 element = locators['discoveredhosts.fetch_interfaces']
                 host_interfaces = self.discoveredhosts.fetch_fact_value(
@@ -430,7 +436,9 @@ class DiscoveryTestCase(UITestCase):
             self._edit_discovery_fact_column_param(session, param_value)
             with LibvirtGuest(boot_iso=True) as pxe_less_host:
                 hostname = pxe_less_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 element = locators['discoveredhosts.fetch_custom_fact']
                 custom_fact = self.discoveredhosts.fetch_fact_value(
                     hostname, element)
@@ -455,12 +463,14 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+                )
                 self.discoveredhosts.provision_discoveredhost(
                     hostname=host_name,
                     hostgroup=self.config_env['host_group'],
                     org=self.org_name,
-                    loc=self.loc_name,
+                    loc=self.loc.name,
                     facts_page=True,
                     quick_create=True)
                 self.assertIsNotNone(self.discoveredhosts.wait_until_element(
@@ -475,7 +485,7 @@ class DiscoveryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
-    def test_positive_delete(self):
+    def test_positive_delete_1(self):
         """Delete the selected discovered host
 
         @id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
@@ -484,14 +494,15 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Selected host should be removed successfully
 
-
         @CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.discoveredhosts.delete(hostname)
 
     @run_only_on('sat')
@@ -505,14 +516,15 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Selected host should be removed successfully
 
-
         @CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.discoveredhosts.delete_from_facts(hostname)
                 self.assertIsNone(self.discoveredhosts.search(hostname))
 
@@ -535,10 +547,14 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_1_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_1_name)
+                )
                 with LibvirtGuest() as pxe_2_host:
                     host_2_name = pxe_2_host.guest_name
-                    self.discoveredhosts.assertdiscoveredhost(host_2_name)
+                    self.assertTrue(
+                        self.discoveredhosts.waitfordiscoveredhost(host_2_name)
+                    )
                     hostnames = [host_1_name, host_2_name]
                     for hostname in hostnames:
                         host = self.discoveredhosts.search(hostname)
@@ -576,7 +592,9 @@ class DiscoveryTestCase(UITestCase):
             self._edit_discovery_fact_column_param(session, param_value)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
                 # To add a new network interface on discovered host
                 pxe_host.attach_nic()
@@ -607,7 +625,9 @@ class DiscoveryTestCase(UITestCase):
             self._edit_discovery_fact_column_param(session, 'interfaces')
             with LibvirtGuest(boot_iso=True) as pxe_less_host:
                 hostname = pxe_less_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
                 # To add a new network interface on discovered host
                 pxe_less_host.attach_nic()
@@ -636,7 +656,9 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 element = (locators['discoveredhosts.fetch_ip'] % hostname)
                 # Get the IP of discovered host
                 host_ip = self.discoveredhosts.fetch_fact_value(
@@ -668,19 +690,18 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_1_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_1_name)
+                )
                 with LibvirtGuest() as pxe_2_host:
                     host_2_name = pxe_2_host.guest_name
-                    self.discoveredhosts.assertdiscoveredhost(host_2_name)
+                    self.assertTrue(
+                        self.discoveredhosts.waitfordiscoveredhost(host_2_name)
+                    )
                     hostnames = [host_1_name, host_2_name]
                     for hostname in hostnames:
-                        host = self.discoveredhosts.search(hostname)
-                        if not host:
-                            raise UIError(
-                                'Could not find the selected discovered host '
-                                '"{0}"'.format(hostname)
-                            )
-                    self.discoveredhosts.navigate_to_entity()
+                        self.assertIsNotNone(
+                            self.discoveredhosts.search(hostname))
                     self.discoveredhosts.update_org_loc(hostnames, new_org)
 
     @run_only_on('sat')
@@ -698,26 +719,25 @@ class DiscoveryTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        loc = gen_string('alpha')
-        entities.Location(name=loc).create()
+        loc = entities.Location().create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_1_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_1_name)
+                )
                 with LibvirtGuest() as pxe_2_host:
                     host_2_name = pxe_2_host.guest_name
-                    self.discoveredhosts.assertdiscoveredhost(host_2_name)
+                    self.assertTrue(
+                        self.discoveredhosts.waitfordiscoveredhost(host_2_name)
+                    )
                     hostnames = [host_1_name, host_2_name]
                     for hostname in hostnames:
-                        host = self.discoveredhosts.search(hostname)
-                        if not host:
-                            raise UIError(
-                                'Could not find the selected discovered host '
-                                '"{0}"'.format(hostname)
-                            )
-                    self.discoveredhosts.navigate_to_entity()
-                    self.discoveredhosts.update_org_loc(hostnames, new_loc=loc)
+                        self.assertIsNotNone(
+                            self.discoveredhosts.search(hostname))
+                    self.discoveredhosts.update_org_loc(
+                        hostnames, new_loc=loc.name)
 
     @run_only_on('sat')
     @tier3
@@ -739,7 +759,6 @@ class DiscoveryTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier3
     def test_positive_manual_provision_host_with_rule(self):
         """Create a new discovery rule and manually provision a discovered host using
@@ -761,7 +780,9 @@ class DiscoveryTestCase(UITestCase):
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
                 self.discoveredhosts.assertdiscoveredhost(host_name)
-                self.assertIsNotNone(self.discoveredhosts.search(host_name))
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+                )
                 element = (locators['discoveredhosts.fetch_ip'] % host_name)
                 # Get the IP of discovered host
                 host_ip = self.discoveredhosts.fetch_fact_value(
@@ -773,16 +794,14 @@ class DiscoveryTestCase(UITestCase):
                         host_limit=1,
                         hostgroup=self.config_env['host_group'],
                         search_rule=host_ip,
-                        locations=[self.loc_name],
+                        locations=[self.loc.name],
                 )
                 self.assertIsNotNone(self.discoveryrules.search(rule_name))
                 self.discoveredhosts.auto_provision(host_name)
                 self.assertIsNotNone(self.discoveredhosts.wait_until_element(
                     common_locators['notif.success']))
-                search = self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])
-                )
-                self.assertIsNotNone(search)
+                self.assertIsNotNone(self.hosts.search(
+                    u'{0}.{1}'.format(host_name, self.config_env['domain'])))
                 # Check that provisioned host is not in the list of discovered
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))
@@ -842,8 +861,9 @@ class DiscoveryTestCase(UITestCase):
         # Disable flag to auto provision discovered hosts via discovery rules
         discovery_auto = entities.Setting().search(
             query={'search': 'name="discovery_auto"'})[0]
+        default_discovery_auto = discovery_auto.value
         discovery_auto.value = 'False'
-        discovery_auto.update({'value'})
+        discovery_auto.update(['value'])
         rule_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -854,22 +874,26 @@ class DiscoveryTestCase(UITestCase):
                 host_limit=1,
                 hostgroup=self.config_env['host_group'],
                 search_rule='cpu_count = 1',
-                locations=[self.loc_name],
+                locations=[self.loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(rule_name))
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(host_name))
                 # Check that host shouldn't list under all hosts
-                search = self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])
-                )
-                self.assertIsNone(search)
+                self.assertIsNone(self.hosts.search(
+                    u'{0}.{1}'.format(host_name, self.config_env['domain'])))
                 # Check that host still listed under discovered hosts
                 self.assertIsNotNone(self.discoveredhosts.search(host_name))
+                # Revert the discovery_auto flag to default value
+                discovery_auto.value = default_discovery_auto
+                discovery_auto.update(['value'])
 
     @run_only_on('sat')
+    @stubbed()
     @tier3
     def test_negative_create_discovery_rule(self):
         """Create a discovery rule with invalid query
@@ -941,17 +965,17 @@ class DiscoveryTestCase(UITestCase):
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
                 self.discoveredhosts.assertdiscoveredhost(host_name)
-                self.assertIsNotNone(self.discoveredhosts.search(host_name))
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+                )
                 self.discoveredhosts.provision_discoveredhost(
                     hostname=host_name,
                     hostgroup=self.config_env['host_group'],
                     org=self.org_name,
-                    loc=self.loc_name,
+                    loc=self.loc.name,
                     new_name=name)
-                search = self.hosts.search(
-                    u'{0}.{1}'.format(name, self.config_env['domain'])
-                )
-                self.assertIsNotNone(search)
+                self.assertIsNotNone(self.hosts.search(
+                    u'{0}.{1}'.format(name, self.config_env['domain'])))
                 # Check that provisioned host is not in the list of discovered
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))
@@ -972,10 +996,14 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_1_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_1_name)
+                )
                 with LibvirtGuest() as pxe_2_host:
                     host_2_name = pxe_2_host.guest_name
-                    self.discoveredhosts.assertdiscoveredhost(host_2_name)
+                    self.assertTrue(
+                        self.discoveredhosts.waitfordiscoveredhost(host_2_name)
+                    )
                     # Define a discovery rule
                     make_discoveryrule(
                         session,
@@ -983,19 +1011,15 @@ class DiscoveryTestCase(UITestCase):
                         host_limit=2,
                         hostgroup=self.config_env['host_group'],
                         search_rule='cpu_count = 1',
-                        locations=[self.loc_name],
+                        locations=[self.loc.name],
                     )
                     self.assertIsNotNone(self.discoveryrules.search(rule_name))
-                    session.nav.go_to_discovered_hosts()
-                    self.discoveredhosts.click(
-                        locators["discoveredhosts.auto_provision_all"])
+                    self.discoveredhosts.auto_provision_all()
                     hostnames = [host_1_name, host_2_name]
                     for hostname in hostnames:
-                        search = self.hosts.search(
+                        self.assertIsNotNone(self.hosts.search(
                             u'{0}.{1}'.format(
-                                hostname, self.config_env['domain'])
-                        )
-                        self.assertIsNotNone(search)
+                                hostname, self.config_env['domain'])))
                         # Check that provisioned host is not in the list of
                         # discovered hosts anymore
                         self.assertIsNone(
@@ -1029,7 +1053,9 @@ class DiscoveryTestCase(UITestCase):
             self._edit_discovery_fact_column_param(session, param_value)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 element = locators['discoveredhosts.fetch_bios']
                 host_bios = self.discoveredhosts.fetch_fact_value(
                     hostname, element)
@@ -1062,7 +1088,9 @@ class DiscoveryTestCase(UITestCase):
             self._edit_discovery_fact_column_param(session, param_value)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(hostname)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(hostname)
+                )
                 element = (
                     locators['discoveredhosts.fetch_fact'] % expected_value
                 )
@@ -1185,17 +1213,17 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(host_name))
                 self.discoveredhosts.provision_discoveredhost(
                     hostname=host_name,
                     hostgroup=self.config_env['host_group'],
                     org=self.org_name,
-                    loc=self.loc_name)
-                search = self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])
-                )
-                self.assertIsNotNone(search)
+                    loc=self.loc.name)
+                self.assertIsNotNone(self.hosts.search(
+                    u'{0}.{1}'.format(host_name, self.config_env['domain'])))
                 # Check that provisioned host is not in the list of discovered
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))
@@ -1222,18 +1250,18 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(host_name))
                 self.discoveredhosts.provision_discoveredhost(
                     hostname=host_name,
                     hostgroup=self.config_env['host_group'],
                     org=self.org_name,
-                    loc=self.loc_name,
+                    loc=self.loc.name,
                     quick_create=True)
-                search = self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])
-                )
-                self.assertIsNotNone(search)
+                self.assertIsNotNone(self.hosts.search(
+                    u'{0}.{1}'.format(host_name, self.config_env['domain'])))
                 # Check that provisioned host is not in the list of discovered
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))
@@ -1412,6 +1440,7 @@ class DiscoveryPrefixTestCase(UITestCase):
 
     @classmethod
     def setUpClass(cls):
+        """Update discovery prefix with some string than default 'mac'"""
         super(DiscoveryPrefixTestCase, cls).setUpClass()
         cls.org = entities.Organization(name=gen_string('alpha')).create()
         cls.org_name = cls.org.name
@@ -1421,17 +1450,17 @@ class DiscoveryPrefixTestCase(UITestCase):
             query={'search': 'name="discovery_prefix"'})[0]
         cls.default_prefix = str(cls.discovery_prefix.value)
         cls.discovery_prefix.value = cls.prefix
-        cls.discovery_prefix.update({'value'})
+        cls.discovery_prefix.update(['value'])
         cls.discovery_org = entities.Setting().search(
             query={'search': 'name="discovery_organization"'})[0]
         cls.discovery_org.value = cls.org.name
-        cls.discovery_org.update({'value'})
+        cls.discovery_org.update(['value'])
 
     @classmethod
     def tearDownClass(cls):
         """Restore default 'hostname_prefix' global setting's value"""
         cls.discovery_prefix.value = cls.default_prefix
-        cls.discovery_prefix.update({'value'})
+        cls.discovery_prefix.update(['value'])
 
         super(DiscoveryPrefixTestCase, cls).tearDownClass()
 
@@ -1460,5 +1489,7 @@ class DiscoveryPrefixTestCase(UITestCase):
                 host_name = '{0}{1}'.format(
                     self.prefix, host_mac.replace(':', "")
                 )
-                self.discoveredhosts.assertdiscoveredhost(host_name)
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+                )
                 self.assertIsNotNone(self.discoveredhosts.search(host_name))

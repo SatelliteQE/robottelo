@@ -2011,8 +2011,9 @@ locators = LocatorDict({
     "discoveredhosts.assign_loc": (
         By.XPATH, ("//a[contains(@onclick, "
                    "'/discovered_hosts/select_multiple_location')]")),
-    "discoveredhosts.select_org": (By.ID, "organization_id"),
-    "discoveredhosts.select_loc": (By.ID, "location_id"),
+    "discoveredhosts.select_org": (
+        By.XPATH, ("//select[@id='organization_id']")),
+    "discoveredhosts.select_loc": (By.XPATH, "//select[@id='location_id']"),
     "discoveredhosts.fetch_interfaces": (
         By.XPATH, ("//div[@id='content']/table/tbody/tr[2]/"
                    "td[contains(.,'eth')]")),
@@ -2032,18 +2033,14 @@ locators = LocatorDict({
         By.XPATH, ("//td/span/a[contains(@href, '%s')]/following::td/div[2]"
                    "/span/a[contains(.,'Provision')]")),
     "discoveredhosts.select_modal_hostgroup": (
-        By.ID, "s2id_host_hostgroup_id"),
-    "discoveredhosts.select_modal_org": (By.ID, "s2id_host_organization_id"),
-    "discoveredhosts.select_modal_loc": (By.ID, "s2id_host_location_id"),
-    "discoveredhosts.hostgroup_selector": (
-        By.XPATH, ("//div[@id='s2id_host_hostgroup_id']/a")),
+        By.XPATH, ("//div[@id='s2id_host_hostgroup_id']/a/span")),
+    "discoveredhosts.select_modal_org": (
+        By.XPATH, ("//div[@id='s2id_host_organization_id']/a/span")),
+    "discoveredhosts.select_modal_loc": (
+        By.XPATH, ("//div[@id='s2id_host_location_id']/a/span")),
     "discoverehosts.select_choices": (
         By.XPATH, ("/li[contains(@class, 'select2-result')]"
                    "/div[contains(., '%s')]")),
-    "discoveredhosts.org_selector": (
-        By.XPATH, ("//div[@id='s2id_host_organization_id']/a/span")),
-    "discoveredhosts.loc_selector": (
-        By.XPATH, ("//div[@id='s2id_host_location_id']/a/span")),
     "discoveredhosts.quick_create_button": (
         By.XPATH, ("//input[@value='Quick create']")),
     "discoveredhosts.create_host_button": (
