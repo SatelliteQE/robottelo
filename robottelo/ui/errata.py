@@ -132,12 +132,22 @@ class Errata(Base):
                 (parameter_name.lower()).replace(' ', '_')
             ))
             actual_text = self.wait_until_element(locators[param_locator]).text
-            if actual_text != parameter_value:
+            if parameter_value not in actual_text:
                 raise UIError(
                     'Actual text for "{0}" parameter is "{1}", but it is'
                     ' expected to have "{2}"'.format(
                         parameter_name, actual_text, parameter_value)
                 )
+
+    def validate_table_fields(
+            self, errata_id, only_applicable=None, values_list=None):
+        """Check that errata table fields has appropriate values"""
+        if only_applicable is not None:
+            self.navigate_to_entity()
+            self.show_only_applicable(only_applicable)
+        self.search(errata_id)
+        for value in values_list:
+            self.wait_until_element(locators['errata.table_value'] % value)
 
     def auto_complete_search(self, errata_id, partial_id=None,
                              only_applicable=None):

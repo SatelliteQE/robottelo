@@ -42,6 +42,8 @@ from robottelo.constants import (
     REAL_0_RH_PACKAGE,
     REPOS,
     REPOSET,
+    TOOLS_ERRATA_DETAILS,
+    TOOLS_ERRATA_TABLE_DETAILS,
 )
 from robottelo.decorators import (
     run_in_one_thread,
@@ -284,7 +286,6 @@ class ErrataTestCase(UITestCase):
                     self.assertIsNotNone(self.contenthost.package_search(
                         client.hostname, FAKE_2_CUSTOM_PACKAGE))
 
-    @stubbed()
     @tier2
     def test_positive_view(self):
         """View erratum similar to RH Customer portal
@@ -297,16 +298,18 @@ class ErrataTestCase(UITestCase):
 
         1. Go to Content -> Errata. Review the Errata page.
 
-        @Assert: The following fields are displayed: Errata Id, Title, Type,
-        Affected Content Hosts, Updated.
-
-        @caseautomation: notautomated
-
+        @Assert: The following fields: Errata Id, Title, Type, Affected Content
+        Hosts, Updated has expected values for errata table.
 
         @CaseLevel: Integration
         """
+        with Session(self.browser):
+            self.errata.validate_table_fields(
+                REAL_0_ERRATA_ID,
+                only_applicable=False,
+                values_list=TOOLS_ERRATA_TABLE_DETAILS
+            )
 
-    @stubbed()
     @tier2
     def test_positive_view_details(self):
         """View erratum details similar to RH Customer portal
@@ -323,11 +326,14 @@ class ErrataTestCase(UITestCase):
         Severity, Issued, Last Update on, Reboot Suggested, Topic, Description,
         Solution, Affected Packages.
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: Integration
         """
+        with Session(self.browser):
+            self.errata.check_errata_details(
+                REAL_0_ERRATA_ID,
+                TOOLS_ERRATA_DETAILS,
+                only_applicable=False,
+            )
 
     @tier2
     def test_positive_view_products_and_repos(self):
