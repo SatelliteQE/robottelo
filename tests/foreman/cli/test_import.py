@@ -41,6 +41,7 @@ from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
     skip_if_bug_open,
+    skip_if_not_set,
     tier1,
     tier3,
 )
@@ -513,6 +514,7 @@ class TestImport(CLITestCase):
 
     """
     @classmethod
+    @skip_if_not_set('transition')
     def setUpClass(cls):
         super(TestImport, cls).setUpClass()
         # prepare the default dataset

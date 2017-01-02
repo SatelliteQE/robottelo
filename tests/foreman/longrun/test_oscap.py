@@ -173,7 +173,11 @@ class OpenScapTestCase(UITestCase):
 
         @CaseLevel: System
         """
+        if settings.rhel6_repo is None:
+            self.skipTest('Missing configuration for rhel6_repo')
         rhel6_repo = settings.rhel6_repo
+        if settings.rhel7_repo is None:
+            self.skipTest('Missing configuration for rhel7_repo')
         rhel7_repo = settings.rhel7_repo
         rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']

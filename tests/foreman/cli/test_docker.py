@@ -1191,6 +1191,7 @@ class DockerClientTestCase(CLITestCase):
             ssh.command('docker rmi {0}'.format(repo['published-at']))
 
     @run_only_on('sat')
+    @skip_if_not_set('docker')
     @tier3
     def test_positive_upload_image(self):
         """A Docker-enabled client can create a new ``Dockerfile``
