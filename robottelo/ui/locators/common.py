@@ -67,6 +67,9 @@ common_locators = LocatorDict({
         By.XPATH,
         ("//span[@class='help-block']/ul/"
          "li[contains(@ng-repeat,'error.messages')]")),
+    "table_haserror": (
+        By.XPATH,
+        "//tr[contains(@class,'has-error')]/td/span"),
     "common_invalid": (
         By.XPATH,
         "//input[@id='name' and contains(@class,'ng-invalid')]"),
