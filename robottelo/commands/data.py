@@ -31,13 +31,14 @@ from robottelo.populate.main import validate as execute_validate
 
 @click.command()
 @click.argument('datafile', required=True, type=click.Path())
-def populate(datafile):
+@click.option('-v', '--verbose', count=True)
+def populate(datafile, verbose):
     """Populate using the data described in `datafile`:\n
     populated the system with needed entities.\n
         example: $ manage data populate test_data.yaml\n
     """
     data = load_data(datafile)
-    result = execute_populate(data)
+    result = execute_populate(data, verbose=verbose)
     result.logger.info(
         "{0} entities already existing in the system".format(
             result.total_existing
@@ -52,13 +53,22 @@ def populate(datafile):
 
 @click.command()
 @click.argument('datafile', required=True, type=click.Path())
-def validate(datafile):
+@click.option('-v', '--verbose', count=True)
+def validate(datafile, verbose):
     """Validate using the data described in `datafile`:\n
     populated the system with needed entities.\n
         example: $ manage data populate test_data.yaml\n
+
+    verbosity:
+       0 (omit all logs)
+       1 -v (show populate logs)
+       2 -vv (include nailgun logs)
+       3 -vvv (include ssh logs)
+
     """
+
     data = load_data(datafile)
-    result = execute_validate(data)
+    result = execute_validate(data, verbose=verbose)
 
     if result.assertion_errors:
         for error in result.assertion_errors:

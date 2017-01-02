@@ -18,6 +18,23 @@ INVALID_FOR_SEARCH = {
 APPEND_ID = ['organization']
 SPECIAL_ACTIONS = ('register', 'unregister', 'assertion')
 CRUD_ACTIONS = ('create', 'update', 'delete')
+LOGGERS = {
+    'nailgun': 'nailgun.client',
+    'populate': 'robottelo.populate.base',
+    'ssh': 'robottelo.ssh'
+}
+
+
+def set_logger(verbose):
+    """Set logger verbosity used when client is called with -vvvv"""
+    if verbose == 0:
+        for logger_name in LOGGERS.values():
+            logging.getLogger(logger_name).disabled = True
+    elif verbose == 1:
+        logging.getLogger(LOGGERS['nailgun']).disabled = True
+        logging.getLogger(LOGGERS['ssh']).disabled = True
+    elif verbose == 2:
+        logging.getLogger(LOGGERS['ssh']).disabled = True
 
 
 def parse_field_name(key):
@@ -39,8 +56,10 @@ def parse_field_value(value):
 class BasePopulator(object):
     """Base class for API and CLI populator"""
 
-    def __init__(self, data):
+    def __init__(self, data, verbose=None):
         self.logger = logger
+        set_logger(verbose)
+
         self.vars = data.get('vars', {})
         self.actions = data['actions']
         self.registry = {}
@@ -350,6 +369,8 @@ class BasePopulator(object):
             action = action_data.get('action', 'create')
             if action_data.get('log'):
                 self.logger.info("%s: %s", action, action_data['log'])
+            else:
+                self.logger.info('%s: Running...', action)
             entities_list = self.render(action_data, action)
             for entity_data in entities_list:
 

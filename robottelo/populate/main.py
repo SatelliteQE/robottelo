@@ -26,9 +26,11 @@ def populate(data, **extra_options):
         settings.configure()
 
     if settings.populate_method == 'api':
-        populator = APIPopulator(data=data)
+        populator = APIPopulator(data=data,
+                                 verbose=extra_options.get('verbose'))
     else:
-        populator = CLIPopulator(data=data)
+        populator = CLIPopulator(data=data,
+                                 verbose=extra_options.get('verbose'))
 
     populator.execute(mode='populate')
 
@@ -43,9 +45,11 @@ def validate(data, **extra_options):
         settings.configure()
 
     if settings.populate_method == 'api':
-        populator = APIPopulator(data=data)
+        populator = APIPopulator(data=data,
+                                 verbose=extra_options.get('verbose'))
     else:
-        populator = CLIPopulator(data=data)
+        populator = CLIPopulator(data=data,
+                                 verbose=extra_options.get('verbose'))
 
     populator.execute(mode='validate')
 
