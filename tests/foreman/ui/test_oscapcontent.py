@@ -21,7 +21,12 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+    tier2,
+)
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_oscapcontent
@@ -33,6 +38,7 @@ class OpenScapContentTestCase(UITestCase):
     """Implements Oscap Content tests in UI."""
 
     @classmethod
+    @skip_if_not_set('oscap')
     def setUpClass(cls):
         super(OpenScapContentTestCase, cls).setUpClass()
         path = settings.oscap.content_path

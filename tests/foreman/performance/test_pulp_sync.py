@@ -19,6 +19,7 @@
 import csv
 
 from robottelo.config import settings
+from robottelo.decorators import skip_if_not_set
 from robottelo.performance.constants import (
     RAW_SYNC_FILE_NAME,
     STAT_SYNC_FILE_NAME
@@ -57,6 +58,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
 
     """
     @classmethod
+    @skip_if_not_set('performance')
     def setUpClass(cls):
         super(ConcurrentSyncTestCase, cls).setUpClass()
 
