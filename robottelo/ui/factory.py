@@ -661,14 +661,16 @@ def make_ldapauth(session, **kwargs):
     LdapAuthSource(session.browser).create(**create_args)
 
 
-def make_oscapcontent(session, **kwargs):
+def make_oscapcontent(session, org=None, loc=None, **kwargs):
     """Creates an OSCAP Content"""
     create_args = {
         u'name': None,
         u'content_path': None,
+        u'content_org': None,
+        u'content_loc': None,
     }
     page = session.nav.go_to_oscap_content
-    core_factory(create_args, kwargs, session, page)
+    core_factory(create_args, kwargs, session, page, org=org, loc=loc)
     OpenScapContent(session.browser).create(**create_args)
 
 
