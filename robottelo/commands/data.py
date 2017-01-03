@@ -24,7 +24,6 @@ entities::
 """
 import sys
 import click
-from robottelo.populate.main import load_data
 from robottelo.populate.main import populate as execute_populate
 from robottelo.populate.main import validate as execute_validate
 
@@ -43,8 +42,7 @@ def populate(datafile, verbose):
        2 -vv (include nailgun logs)
        3 -vvv (include ssh logs)
     """
-    data = load_data(datafile)
-    result = execute_populate(data, verbose=verbose)
+    result = execute_populate(datafile, verbose=verbose)
     result.logger.info(
         "{0} entities already existing in the system".format(
             result.total_existing
@@ -73,8 +71,7 @@ def validate(datafile, verbose):
 
     """
 
-    data = load_data(datafile)
-    result = execute_validate(data, verbose=verbose)
+    result = execute_validate(datafile, verbose=verbose)
 
     if result.assertion_errors:
         for error in result.assertion_errors:

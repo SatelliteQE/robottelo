@@ -11,25 +11,18 @@ import os
 from collections import Sequence
 from jinja2 import Template
 from nailgun import entities
-from nailgun.entity_mixins import Entity, EntitySearchMixin, EntityReadMixin
+from nailgun.entity_mixins import EntitySearchMixin, EntityReadMixin
 from robottelo.config import settings
 from robottelo.populate import assertion_operators
+from robottelo.populate.constants import (
+    FORCE_RAW_SEARCH,
+    LOGGERS,
+    RAW_SEARCH_RULES,
+    ACTIONS_SPECIAL
+)
 from six import string_types
 
 logger = logging.getLogger(__name__)
-
-INVALID_FOR_SEARCH = {
-    'user': ['password', 'default_organization'],
-    'repository': ['url', 'organization_id']
-}
-APPEND_ID = ['organization']
-SPECIAL_ACTIONS = ('register', 'unregister', 'assertion')
-CRUD_ACTIONS = ('create', 'update', 'delete')
-LOGGERS = {
-    'nailgun': 'nailgun.client',
-    'populate': 'robottelo.populate.base',
-    'ssh': 'robottelo.ssh'
-}
 
 
 def set_logger(verbose):
@@ -44,30 +37,15 @@ def set_logger(verbose):
         logging.getLogger(LOGGERS['ssh']).disabled = True
 
 
-def parse_field_name(key):
-    """Transform field name for search, appending _id when necessary
-    example: organization turns to organization_id
-    """
-    if key in APPEND_ID:
-        return "{0}_id".format(key)
-    return key
-
-
-def parse_field_value(value):
-    """Turn objects in to IDS for search"""
-    if isinstance(value, Entity):
-        return value.id
-    return value
-
-
 class BasePopulator(object):
     """Base class for API and CLI populators"""
 
-    def __init__(self, data, verbose=None):
+    def __init__(self, data, verbose=None, mode='populate'):
         """Reads YAML and initialize populator"""
         self.logger = logger
         set_logger(verbose)
 
+        self.mode = mode
         self.vars = data.get('vars', {})
         self.actions = data['actions']
         self.registry = {}
@@ -120,39 +98,22 @@ class BasePopulator(object):
         """
 
         model_name = action_data['model']
-        options = action_data.get('options', {})
+        unique = action_data.get('unique', True)
         get_all = action_data.get('all', False)
-
+        index = action_data.get('index', None)
         model = getattr(entities, model_name)
-        if not issubclass(model, EntitySearchMixin):
-            raise TypeError("{0} not searchable".format(model))
 
         if 'data' in action_data:
-            rendered_data = action_data['data'].copy()
-            self.render_action_data(rendered_data, context)
-
-            query_data = self.parse_fields_and_values(rendered_data,
-                                                      model_name.lower())
-
-            search_query = ",".join(
-                ["{0}={1}".format(key, value)
-                 for key, value in query_data.items()
-                 if key not in ['organization', 'organization_id']]
+            data = action_data['data'].copy()
+            self.render_action_data(data, context)
+            search = self.build_search(data, action_data, context)
+            search_result = self.get_search_result(
+                model, search, unique=unique
             )
-
-            query = {'query': {'search': search_query}}
-            query['query'].update(options)
-            self.add_org_id(rendered_data, query)
-
-            if 'filters' in action_data:
-                query['filters'] = action_data['filters']
-            search_result = model().search(**query)
         else:
-            # empty search
-            query = {'query': options}
-            if 'filters' in action_data:
-                query['filters'] = action_data['filters']
-            search_result = model().search(**query)
+            # empty search returns all when used with filters={}
+            options = self.build_search_options({}, action_data)
+            search_result = model().search(**options)
 
         silent_errors = action_data.get('silent_errors', False)
 
@@ -161,12 +122,12 @@ class BasePopulator(object):
                 return None
             raise RuntimeError("Search returned no objects")
 
-        if get_all:
+        if unique or get_all:
             self.add_to_registry(action_data, search_result)
             return search_result
-        else:
-            self.add_to_registry(action_data, search_result[0])
-            return search_result[0]
+
+        self.add_to_registry(action_data, search_result[index or 0])
+        return search_result[index or 0]
 
     def from_read(self, action_data, context):
         """Gets fields and perform a read to return Entity object
@@ -303,18 +264,29 @@ class BasePopulator(object):
 
         return entities
 
-    def build_search_query(self, entity_data, action_data):
-        """Creates a dictionary for Nailgun search mixin as in the example:
-            `{'query': {'search':'name=name,label=label,id=28'}}`
+    def build_search(self, entity_data, action_data, context=None):
+        """Build search data and returns a dict containing elements
 
-        By default that dict will use all fields provided in data
-        if `search_query` is available then use it.
+        data:
+        Dictionary of parsed entity_data to be used to instantiate an object
+        to searched without raw_query.
+
+        options:
+        if `search_options` are specified it is passed to .search(**options)
+
+        searchable:
+        Returns boolean True if model inherits from EntitySearchMixin, else
+        alternative search must be implemented.
+
+        if `search_query` is available in action_data it will be used instead
+        od entity_data.
         """
+
         # if with_items, get current loop_index reference or 0
         loop_index = entity_data.pop('loop_index', 0)
-        model_name = action_data['model'].lower()
+
         if 'search_query' not in action_data:
-            data = self.parse_fields_and_values(entity_data, model_name)
+            data = entity_data
         else:
             search_data = action_data['search_query']
             if isinstance(search_data, dict):
@@ -337,12 +309,11 @@ class BasePopulator(object):
 
                 new_context = {}
                 new_context.update(self.context)
+                new_context.update(context or {})
                 new_context['item'] = items[loop_index]
                 new_context['loop_index'] = loop_index
-
                 data = search_data.copy()
                 self.render_action_data(data, new_context)
-                data = self.parse_fields_and_values(data, model_name)
 
             elif isinstance(search_data, Sequence):
                 data = {
@@ -352,41 +323,111 @@ class BasePopulator(object):
             else:
                 raise ValueError("search_query bad formatted")
 
-        search_query = ",".join(
-            ["{0}={1}".format(key, value) for key, value in data.items()
-             if key not in ['organization', 'organization_id']]
-        )
-        search_query = Template(search_query).render(**self.context)
-        query = {'query': {'search': search_query}}
-        self.add_org_id(entity_data, query)
-        self.add_org_id(data, query)
-        return query
+        model_name = action_data['model']
+        model = getattr(entities, model_name)
+        options = self.build_search_options(data, action_data)
 
-    def parse_fields_and_values(self, entity_data, model_name):
-        """Keys and Values can have specific transformations"""
-        data = {
-            parse_field_name(key): parse_field_value(value)
-            for key, value in entity_data.items()
-            if key not in INVALID_FOR_SEARCH.get(model_name, []) and
-            isinstance(value, (string_types, Entity))
+        return {
+            'data': data,
+            'options': options,
+            'searchable': issubclass(model, EntitySearchMixin)
         }
-        return data
 
-    def add_org_id(self, data, query):
-        """API Search call demands explicit organization_id along with search
-        provide it for some entities
+    def build_raw_query(self, data, action_data):
+        """Builds nailgun raw_query for search"""
+        search_data = data.copy()
+
+        rules = RAW_SEARCH_RULES.get(action_data['model'].lower())
+        if rules:
+            for field_name, rule in rules.items():
+                if field_name not in search_data:
+                    continue
+
+                if rule.get('rename'):
+                    value = search_data[field_name]
+
+                    attr = rule.get('attr')
+                    index = rule.get('index')
+                    key = rule.get('key')
+
+                    if index is not None:
+                        value = value[index]
+
+                    if key is not None:
+                        value = value[key]
+
+                    if attr:
+                        search_data[rule['rename']] = getattr(value, attr)
+                    else:
+                        search_data[rule['rename']] = value
+
+                if rule.get('remove') or rule.get('rename'):
+                    del search_data[field_name]
+
+        query_items = [
+            "{0}={1}".format(k, v) for k, v in search_data.items()
+        ]
+        raw_query = ",".join(query_items)
+        return {'search': raw_query}
+
+    def build_search_options(self, data, action_data):
+        """Builds nailgun options for search
+        raw_query:
+        Some API endpoints demands a raw_query, so build it as in example:
+        `{'query': {'search':'name=name,label=label,id=28'}}`
+
+        force_raw:
+        Returns a boolean if action_data.force_raw is explicitly specified
+
         """
-        if 'organization_id' in data:
-            query['query']['organization_id'] = data['organization_id']
-        elif 'organization' in data:
-            if isinstance(data['organization'], Entity):
-                query['query']['organization_id'] = data['organization'].id
+        options = action_data.get('search_options', {})
 
-    def execute(self, mode='populate'):
+        force_raw = options.pop(
+            'force_raw', False
+        ) or action_data['model'].lower() in FORCE_RAW_SEARCH
+
+        if force_raw:
+            options['query'] = self.build_raw_query(data, action_data)
+
+        per_page = options.pop('per_page', None)
+        if per_page:
+            if 'query' in options:
+                options['query']['perpage'] = per_page
+            else:
+                options['query'] = {'per_page': per_page}
+
+        return options
+
+    def get_search_result(self, model, search, unique=False,
+                          silent_errors=False):
+        """Perform a search"""
+        if not search['searchable']:
+            if silent_errors:
+                return
+            raise TypeError("{0} not searchable".format(model))
+
+        result = model(**search['data']).search(**search['options'])
+
+        if not result:
+            return
+
+        if unique:
+            if len(result) > 1 and not silent_errors:
+                self.logger.info(result)
+                raise RuntimeError(
+                    "More than 1 item returned "
+                    "search is not unique"
+                )
+            return result[0]
+
+        return result
+
+    def execute(self, mode=None):
         """Iterates the entities property described in YAML file
         and parses its values, variables and substitutions
         depending on `mode` execute `populate` or `validate`
         """
+        mode = mode or self.mode
         for action_data in self.actions:
             action = action_data.get('action', 'create')
             if action_data.get('log'):
@@ -396,7 +437,7 @@ class BasePopulator(object):
             entities_list = self.render(action_data, action)
             for entity_data in entities_list:
 
-                if action in SPECIAL_ACTIONS:
+                if action in ACTIONS_SPECIAL:
                     # find the method named as action name
                     getattr(self, action)(entity_data, action_data)
 
@@ -408,19 +449,21 @@ class BasePopulator(object):
                 method = getattr(
                     self, '{0}_{1}'.format(mode, model_name), None
                 )
-                search_query = self.build_search_query(
+                search = self.build_search(
                     entity_data, action_data
                 )
                 if method:
-                    method(entity_data, action_data, search_query, action)
+                    method(entity_data, action_data, search, action)
                 else:
                     # execute self.populate or self.validate
                     getattr(self, mode)(
-                        entity_data, action_data, search_query, action
+                        entity_data, action_data, search, action
                     )
 
                 # ensure context is updated with latest created entities
                 self.context.update(self.registry)
+
+    # special methods
 
     def unregister(self, entity_data, action_data):
         """Remove data from registry"""

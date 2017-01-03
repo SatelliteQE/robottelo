@@ -1,4 +1,5 @@
 config:
+  populator: api
   populators:
     api:
       module: robottelo.populate.api.APIPopulator
@@ -13,6 +14,14 @@ vars:
     - company8
 
 actions:
+
+  - model: Organization
+    register: org_1
+    data:
+      name: MyOrg
+      label: MyOrg
+#    search_options:
+#      force_raw: true
 
   - model: Organization
     register: default_orgs
@@ -51,9 +60,9 @@ actions:
         from_search:
           model: Organization
           all: true
-          options:
+          search_options:
             per_page: 40
-          # filters: {}
+            filters: {}
           register: bruno_orgs
       default_organization:
         from_search:
@@ -65,44 +74,34 @@ actions:
     echo: Creating product
     register: product
     data:
-      name: other_prodtest
+      name: stroncio
       organization:
         from_registry: default_orgs[0]
 
   - model: Repository
-    register: repository_{{ registry.product.name }}
+    register: reps_{{ registry.product.name }}
     data:
-      name: new_repo_{{ registry.product.name }}
-      product:
-        from_registry: product
-    search_query:
-      organization:
-        from_registry: product.organization
-      name: new_repo_{{ registry.product.name }}
+      name: reps_{{ registry.product.name }}
       product:
         from_registry: product
 
+
   - model: Repository
-    register: yum_repository_{{ registry.product.name }}
+    register: yum_reps_{{ registry.product.name }}
     data:
-      name: yum_repo_{{ registry.product.name }}
+      name: yum_reps_{{ registry.product.name }}
       product:
         from_registry: product
       content_type: yum
       url:
         from_object:
           name: robottelo.constants.FAKE_2_YUM_REPO
-    search_query:
-      organization:
-        from_registry: product.organization
-      name: yum_repo_{{ registry.product.name }}
-      product:
-        from_registry: product
+
 
   - model: Repository
-    register: yum_repository_dp_{{ registry.product.name }}
+    register: yum_reps_dp_{{ registry.product.name }}
     data:
-      name: yum_repo_dp_{{ registry.product.name }}
+      name: yum_reps_dp_{{ registry.product.name }}
       product:
         from_registry: product
       content_type: yum
@@ -110,18 +109,13 @@ actions:
       url:
         from_object:
           name: robottelo.constants.FAKE_0_YUM_REPO
-    search_query:
-      organization:
-        from_registry: product.organization
-      name: yum_repo_dp_{{ registry.product.name }}
-      product:
-        from_registry: product
+
 
   - action: register
     data:
       name: Bruno
       email: rochacbruno@gmail.com
-#
+
   - action: register
     data:
        organization_bla:
@@ -168,7 +162,6 @@ actions:
       - a
       - b
 
-
 # DANGER:
 #  - action: update
 #    model: Product
@@ -186,8 +179,6 @@ actions:
 #      name: new_prodtest
 #      organization:
 #        from_registry: default_orgs[0]
-
-
 
 # TODOC:
 #  - model: Repository
@@ -214,4 +205,3 @@ actions:
 #            organization:
 #              from_registry: default_orgs[0]
 #          all: false  # default
-
