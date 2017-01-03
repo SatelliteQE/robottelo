@@ -1,8 +1,9 @@
-"""Implements API populator"""
-from robottelo.populate.base import BasePopulator
+# coding: utf-8
+"""Implements API populator using Nailgun"""
 from nailgun import entities
 from nailgun.entity_mixins import EntitySearchMixin
 from requests.exceptions import HTTPError
+from robottelo.populate.base import BasePopulator
 
 
 class APIPopulator(BasePopulator):
@@ -10,8 +11,8 @@ class APIPopulator(BasePopulator):
 
     def populate(self, entity_data, action_data, search_query, action):
         """Populates the System using Nailgun
-        threats and logs Exceptions
-        takes care of adding valid entity to the registry
+        based on value provided in `action` argument gets the
+        proper CRUD method to execute dynamically
         """
         model = getattr(entities, action_data['model'])
         silent_errors = action_data.get('silent_errors', False)
@@ -38,15 +39,15 @@ class APIPopulator(BasePopulator):
             self.add_to_registry(action_data, result)
 
     def create(self, entity_data, action_data, search_query, model):
-        """Creates new entity if does not exists"""
-        # 1) check if entity already exists
+        """Creates new entity if does not exists or get existing
+        entity and return Entity object"""
         search_result = model().search(**search_query)
         if search_result:
             if len(search_result) > 1:
                 self.logger.info(search_result)
                 raise RuntimeError(
                     "More than 1 item returned "
-                    "search_data query is not unique"
+                    "search_query is not unique"
                 )
             # existent entity should be unique, so it is the first
             # item in search_result
@@ -58,9 +59,9 @@ class APIPopulator(BasePopulator):
         return result
 
     def update(self, entity_data, action_data, search_query, model):
-        """Updates an entity"""
+        """Updates an existing entity"""
 
-        search_data = action_data.get('search_data')
+        search_data = action_data.get('search_query')
         entity_id = action_data.get('id')
 
         if not entity_id and not search_data:
@@ -78,9 +79,9 @@ class APIPopulator(BasePopulator):
         return entity
 
     def delete(self, entity_data, action_data, search_query, model):
-        """Deletes an entity"""
+        """Deletes an existing entity"""
 
-        search_data = action_data.get('search_data')
+        search_data = action_data.get('search_query')
         entity_id = action_data.get('id')
 
         if not entity_id and not search_data:
@@ -93,14 +94,16 @@ class APIPopulator(BasePopulator):
 
             entity_id = search_result[0].id
 
+        # currently only works based on a single id
+        # should iterate all results and delete one by one?
         model(id=entity_id).delete()
 
     def validate(self, entity_data, action_data, search_query, action):
-        """Based on predefined `search_data` or using
-        raw_entity['search_data'] searches the system
-        and validates the existence of all entities"""
+        """Based on action fields or using action_data['search_query']
+        searches the system and validates the existence of all entities
+        """
         if action != 'create' or action_data.get('skip_validation'):
-            # validate only create actions
+            # validate only create crud action
             return
 
         model = getattr(entities, action_data['model'])
@@ -116,7 +119,7 @@ class APIPopulator(BasePopulator):
                     self.logger.info(search_result)
                     raise RuntimeError(
                         "More than 1 item returned "
-                        "search_data query is not unique"
+                        "search_query is not unique"
                     )
                 # existent entity should be unique, so it is the first
                 # item in search_result

@@ -1,3 +1,7 @@
+# coding: utf-8
+"""
+Tests for robottelo.populate module and commands
+"""
 from robottelo.populate import populate_with
 
 

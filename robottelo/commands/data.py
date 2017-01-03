@@ -36,6 +36,12 @@ def populate(datafile, verbose):
     """Populate using the data described in `datafile`:\n
     populated the system with needed entities.\n
         example: $ manage data populate test_data.yaml\n
+
+    verbosity:
+       0 (omit all logs)
+       1 -v (show populate logs)
+       2 -vv (include nailgun logs)
+       3 -vvv (include ssh logs)
     """
     data = load_data(datafile)
     result = execute_populate(data, verbose=verbose)

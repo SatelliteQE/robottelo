@@ -21,7 +21,7 @@ actions:
       name: Org{{item}}
       label: Org{{item}}
     with_items: org_list
-    search_data:
+    search_query:
       name: Org{{item}}
       label: Org{{item}}
 
@@ -62,63 +62,61 @@ actions:
             name: Orgcompany5
 
   - model: Product
+    echo: Creating product
+    register: product
     data:
-      name: new_prodtest
+      name: other_prodtest
       organization:
         from_registry: default_orgs[0]
 
-#      organization:
-#        from_read:
-#          model: Organization
-#          data:
-#            id: 28
+  - model: Repository
+    register: repository_{{ registry.product.name }}
+    data:
+      name: new_repo_{{ registry.product.name }}
+      product:
+        from_registry: product
+    search_query:
+      organization:
+        from_registry: product.organization
+      name: new_repo_{{ registry.product.name }}
+      product:
+        from_registry: product
 
+  - model: Repository
+    register: yum_repository_{{ registry.product.name }}
+    data:
+      name: yum_repo_{{ registry.product.name }}
+      product:
+        from_registry: product
+      content_type: yum
+      url:
+        from_object:
+          name: robottelo.constants.FAKE_2_YUM_REPO
+    search_query:
+      organization:
+        from_registry: product.organization
+      name: yum_repo_{{ registry.product.name }}
+      product:
+        from_registry: product
 
-# TODO
-#  - model: Repository
-#    data:
-#      url:
-#        from_object:
-#          name: robottelo.constants.FAKE_REPO_1
-#      thing: "{{ fauxfactory.gen_string() }}"
-#      # Save last generated strings in a file
-#      # for validation.
+  - model: Repository
+    register: yum_repository_dp_{{ registry.product.name }}
+    data:
+      name: yum_repo_dp_{{ registry.product.name }}
+      product:
+        from_registry: product
+      content_type: yum
+      download_policy: on_demand
+      url:
+        from_object:
+          name: robottelo.constants.FAKE_0_YUM_REPO
+    search_query:
+      organization:
+        from_registry: product.organization
+      name: yum_repo_dp_{{ registry.product.name }}
+      product:
+        from_registry: product
 
-#      organization:
-#        from_search:
-#          model: Organization
-#          data:
-#            name: Orgcompany7
-#          all: true
-#          silent_errors: true
-
-#      product:
-#        from_search:
-#          model: Product
-#          data:
-#            organization:
-#              from_registry: default_orgs[0]
-#          all: false  # default
-
-
-
-#  - action: update
-#    model: Product
-#    data:
-#      name: new_prodtest
-#    search_data:
-#      name: new_prodtest
-#      organization:
-#        from_registry: default_orgs[0]
-##    silent_errors: true
-#
-#  - action: delete
-#    model: Product
-#    search_data:
-#      name: new_prodtest
-#      organization:
-#        from_registry: default_orgs[0]
-#
   - action: register
     data:
       name: Bruno
@@ -144,14 +142,14 @@ actions:
       - email
 
   - action: assertion
-    operator: eq  # eq, ne, gt, lt, gte, lte, raises
+    operator: eq  # eq, ne, gt, lt, gte, lte, identity
     data:
       - from_registry: default_orgs[0].name
       - Orgcompany7
 
   - action: assertion
     log: Hey Ho Lets Go!
-    operator: eq  # eq, ne, gt, lt, gte, lte, raises, identity
+    operator: eq  # eq, ne, gt, lt, gte, lte, identity
     data:
       - from_object:
           name: robottelo.constants.FAKE_0_YUM_REPO
@@ -171,4 +169,49 @@ actions:
       - b
 
 
+# DANGER:
+#  - action: update
+#    model: Product
+#    data:
+#      name: new_prodtest
+#    search_query:
+#      name: new_prodtest
+#      organization:
+#        from_registry: default_orgs[0]
+#    silent_errors: true
+
+#  - action: delete
+#    model: Product
+#    search_query:
+#      name: new_prodtest
+#      organization:
+#        from_registry: default_orgs[0]
+
+
+
+# TODOC:
+#  - model: Repository
+#    data:
+#      url:
+#        from_object:
+#          name: robottelo.constants.FAKE_REPO_1
+#      thing: "{{ fauxfactory.gen_string() }}"
+#      # Save last generated strings in a file
+#      # for validation.
+
+#      organization:
+#        from_search:
+#          model: Organization
+#          data:
+#            name: Orgcompany7
+#          all: true
+#          silent_errors: true
+
+#      product:
+#        from_search:
+#          model: Product
+#          data:
+#            organization:
+#              from_registry: default_orgs[0]
+#          all: false  # default
 

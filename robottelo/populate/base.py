@@ -1,19 +1,26 @@
-import os
-import logging
+# coding: utf-8
+"""
+Base module for robottelo.populate
+reads the YAML definition and perform all the rendering and basic actions.
+"""
 import fauxfactory
 import import_string
+import logging
+import os
+
 from collections import Sequence
-from six import string_types
 from jinja2 import Template
 from nailgun import entities
 from nailgun.entity_mixins import Entity, EntitySearchMixin, EntityReadMixin
 from robottelo.config import settings
 from robottelo.populate import assertion_operators
+from six import string_types
 
 logger = logging.getLogger(__name__)
 
 INVALID_FOR_SEARCH = {
-    'user': ['password', 'default_organization']
+    'user': ['password', 'default_organization'],
+    'repository': ['url', 'organization_id']
 }
 APPEND_ID = ['organization']
 SPECIAL_ACTIONS = ('register', 'unregister', 'assertion')
@@ -38,7 +45,7 @@ def set_logger(verbose):
 
 
 def parse_field_name(key):
-    """transform field name for search, appending _id when necessary
+    """Transform field name for search, appending _id when necessary
     example: organization turns to organization_id
     """
     if key in APPEND_ID:
@@ -54,9 +61,10 @@ def parse_field_value(value):
 
 
 class BasePopulator(object):
-    """Base class for API and CLI populator"""
+    """Base class for API and CLI populators"""
 
     def __init__(self, data, verbose=None):
+        """Reads YAML and initialize populator"""
         self.logger = logger
         set_logger(verbose)
 
@@ -79,7 +87,8 @@ class BasePopulator(object):
         self.context = {
             'settings': settings,
             'env': os.environ,
-            'fauxfactory': fauxfactory
+            'fauxfactory': fauxfactory,
+            'registry': self.registry
         }
         self.context.update(self.vars)
 
@@ -89,11 +98,11 @@ class BasePopulator(object):
         )
 
     def add_to_registry(self, action_data, result):
-        """Once an entity is created this method adds it to the registry"""
+        """Add objects to the internal registry"""
         if not action_data.get('register'):
             return
 
-        registry_key = action_data['register']
+        registry_key = Template(action_data['register']).render(**self.context)
 
         if action_data.get('with_items'):
             if registry_key in self.registry:
@@ -107,7 +116,8 @@ class BasePopulator(object):
 
     def from_search(self, action_data, context):
         """Gets fields and perform a search to return Entity object
-        used when 'from_search' directive is used in YAML file"""
+        used when 'from_search' directive is used in YAML file
+        """
 
         model_name = action_data['model']
         options = action_data.get('options', {})
@@ -126,7 +136,8 @@ class BasePopulator(object):
 
             search_query = ",".join(
                 ["{0}={1}".format(key, value)
-                 for key, value in query_data.items()]
+                 for key, value in query_data.items()
+                 if key not in ['organization', 'organization_id']]
             )
 
             query = {'query': {'search': search_query}}
@@ -159,7 +170,8 @@ class BasePopulator(object):
 
     def from_read(self, action_data, context):
         """Gets fields and perform a read to return Entity object
-        used when 'from_read' directive is used in YAML file"""
+        used when 'from_read' directive is used in YAML file
+        """
 
         if 'id' not in action_data['data']:
             raise RuntimeError("read operations demands an id")
@@ -168,7 +180,6 @@ class BasePopulator(object):
         model = getattr(entities, model_name)
         if not issubclass(model, EntityReadMixin):
             raise TypeError("{0} not readable".format(model))
-
 
         entity_data = action_data['data'].copy()
         self.render_action_data(entity_data, context)
@@ -179,8 +190,9 @@ class BasePopulator(object):
         return entity
 
     def render_action_data(self, data, context):
-        """Gets a single entity description and perform inplace template
-        rendering or reference evaluation for single data sets."""
+        """Gets a single action_data and perform inplace template
+        rendering or reference evaluation depending on directive being used.
+        """
         for k, v in data.items():
             if isinstance(v, dict):
                 if 'from_registry' in v:
@@ -228,6 +240,10 @@ class BasePopulator(object):
                     data[k] = Template(v).render(**context)
 
     def resolve_result_attr(self, data, from_where, k, v, result):
+        """Used in `from_search` and `from_object` to get specific
+         attribute from object e.g: name. Or to invoke a method when
+         attr is a dictionary of parameters.
+        """
         attr = v[from_where].get('attr')
         if not attr:
             data[k] = result
@@ -240,7 +256,9 @@ class BasePopulator(object):
 
     def render(self, action_data, action):
         """Takes an entity description and strips 'data' out to
-        perform single rendering and also handle repetitions"""
+        perform single rendering and also handle repetitions defined
+        in `with_items`
+        """
         if action not in ('delete', 'assertion') and 'data' not in action_data:
             raise ValueError('entity misses `data` key')
 
@@ -287,17 +305,18 @@ class BasePopulator(object):
 
     def build_search_query(self, entity_data, action_data):
         """Creates a dictionary for Nailgun search mixin as in the example:
-        `{'query': {'search':'name=Orgcompanyone,label=Orgcompanyone,id=28'}}`
-        By default that dict will use all fields provided in entity_data
-        if `search_data` is available then use that provided fields/values
+            `{'query': {'search':'name=name,label=label,id=28'}}`
+
+        By default that dict will use all fields provided in data
+        if `search_query` is available then use it.
         """
         # if with_items, get current loop_index reference or 0
         loop_index = entity_data.pop('loop_index', 0)
         model_name = action_data['model'].lower()
-        if 'search_data' not in action_data:
+        if 'search_query' not in action_data:
             data = self.parse_fields_and_values(entity_data, model_name)
         else:
-            search_data = action_data['search_data']
+            search_data = action_data['search_query']
             if isinstance(search_data, dict):
                 items = action_data.get('with_items')
 
@@ -331,10 +350,11 @@ class BasePopulator(object):
                     for key in search_data
                 }
             else:
-                raise ValueError("search_data bad formatted")
+                raise ValueError("search_query bad formatted")
 
         search_query = ",".join(
-            ["{0}={1}".format(key, value) for key, value in data.items()]
+            ["{0}={1}".format(key, value) for key, value in data.items()
+             if key not in ['organization', 'organization_id']]
         )
         search_query = Template(search_query).render(**self.context)
         query = {'query': {'search': search_query}}
@@ -343,15 +363,19 @@ class BasePopulator(object):
         return query
 
     def parse_fields_and_values(self, entity_data, model_name):
+        """Keys and Values can have specific transformations"""
         data = {
             parse_field_name(key): parse_field_value(value)
             for key, value in entity_data.items()
             if key not in INVALID_FOR_SEARCH.get(model_name, []) and
-               isinstance(value, (string_types, Entity))
+            isinstance(value, (string_types, Entity))
         }
         return data
 
     def add_org_id(self, data, query):
+        """API Search call demands explicit organization_id along with search
+        provide it for some entities
+        """
         if 'organization_id' in data:
             query['query']['organization_id'] = data['organization_id']
         elif 'organization' in data:
@@ -362,9 +386,7 @@ class BasePopulator(object):
         """Iterates the entities property described in YAML file
         and parses its values, variables and substitutions
         depending on `mode` execute `populate` or `validate`
-
         """
-
         for action_data in self.actions:
             action = action_data.get('action', 'create')
             if action_data.get('log'):
@@ -409,15 +431,15 @@ class BasePopulator(object):
                 self.logger.info("unregister: %s not was registered", value)
 
     def register(self, entity_data, action_data):
-        """Should be implemented in sub classes"""
-        loop_index = entity_data.pop('loop_index', 0)
+        """Register arbitrary items to the registry"""
+        entity_data.pop('loop_index', 0)
         for key, value in entity_data.items():
             data = action_data.copy()
             data['register'] = key
             self.add_to_registry(data, value)
 
     def assertion(self, entity_data, action_data):
-        """Should be implemented in sub classes"""
+        """Run assert operations"""
         new_context = self.context.copy()
         new_context['loop_index'] = loop_index = entity_data.get('loop_index')
         new_context['item'] = action_data.get('with_items', [None])[loop_index]
@@ -441,6 +463,8 @@ class BasePopulator(object):
                 'action_data': action_data
             })
 
+    # sub class methods
+
     def populate(self, entity_data, raw_entity, search_query, action):
         """Should be implemented in sub classes"""
         raise NotImplementedError()
@@ -449,7 +473,8 @@ class BasePopulator(object):
         """Should be implemented in sub classes"""
         raise NotImplementedError()
 
-    def populate_modelname(self, entity_data, action_data, search_query, action):
+    def populate_modelname(self, entity_data, action_data,
+                           search_query, action):
         """Example on how to implement custom populate methods
            e.g: `def populate_organization`
         This method should take care of all validations and errors.
@@ -457,7 +482,7 @@ class BasePopulator(object):
 
         result = (
             "Implement your own populate method here,"
-            "This method should take care of `search_data`"
+            "This method should take care of `search_query`"
             "to check the existence of entity before creation"
             "and should return a valid Nailgun entity object"
             "containing a valid `id`"
@@ -466,7 +491,8 @@ class BasePopulator(object):
         # always add the result to registry to allow references
         self.add_to_registry(action_data, result)
 
-    def validate_modelname(self, entity_data, action_data, search_query, action):
+    def validate_modelname(self, entity_data, action_data,
+                           search_query, action):
         """Example on how to implement custom validate methods
            e.g: `def validate_organization`
         This method should take care of all validations and errors.
@@ -474,7 +500,7 @@ class BasePopulator(object):
 
         result = (
             "Implement your own validate method here,"
-            "This method should use `search_data`"
+            "This method should use `search_query`"
             "to check the existence of entities"
             "and should add valid Nailgun entity object to self.registry"
             "and errors to self.validation_errors"
