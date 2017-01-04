@@ -1335,6 +1335,11 @@ class OrganizationTestCase(CLITestCase):
             'organization': org['name'],
         })
         result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        Org.delete_parameter({
+            'name': param_name,
+            'organization': org['name'],
+        })
         self.assertEqual(len(result['parameters']), 0)
         self.assertNotIn(param_name.lower(), result['parameters'])
 
