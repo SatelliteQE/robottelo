@@ -1,5 +1,5 @@
 # coding: utf8
-
+"""Point of entry for populate and validate used in scripts"""
 import import_string
 import os
 import yaml
@@ -18,6 +18,7 @@ def load_data(datafile):
 
 
 def get_populator(data, verbose):
+    """Gets an instance of populator dynamically"""
     if not isinstance(data, dict):
         data = load_data(data)
 

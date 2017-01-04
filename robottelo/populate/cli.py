@@ -1,6 +1,8 @@
-from robottelo.populate.base import BasePopulator
+"""To be implemented: a populator using CLI"""
 
-
-class CLIPopulator(BasePopulator):
-    """Populates system using hammer"""
-    # TO BE IMPLEMENTED
+# from robottelo.populate.base import BasePopulator
+#
+#
+# class CLIPopulator(BasePopulator):
+#     """Populates system using hammer"""
+#     # TO BE IMPLEMENTED

@@ -21,6 +21,8 @@ entities::
 
     $ manage data validate /path/to/file.yaml
 
+Use :code:`$ manage data --help` and
+:code:`$ manage data populate --help` for more info
 """
 import sys
 import click

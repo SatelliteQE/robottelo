@@ -55,9 +55,9 @@ actions:
   - model: User
     register: my_user
     data:
-      firstname: Bruno
-      login: bruno
-      mail: bruno@rocha.com
+      firstname: McLovin
+      login: mclovin
+      mail: mc@lovin.com
       password: "123456"
       organization:
         from_search:
@@ -66,7 +66,7 @@ actions:
           search_options:
             per_page: 40
             # filters: {}
-          register: bruno_orgs
+          register: mc_orgs
       default_organization:
         from_search:
           model: Organization
@@ -77,7 +77,7 @@ actions:
     log: Creating product
     register: product
     data:
-      name: stroncio
+      name: a_simple_product
       organization:
         from_registry: default_orgs[0]
 

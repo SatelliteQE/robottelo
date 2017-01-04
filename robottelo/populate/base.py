@@ -298,19 +298,20 @@ class BasePopulator(object):
     def build_search(self, entity_data, action_data, context=None):
         """Build search data and returns a dict containing elements
 
-        data:
-        Dictionary of parsed entity_data to be used to instantiate an object
-        to searched without raw_query.
+        - data
+          Dictionary of parsed entity_data to be used to instantiate an object
+          to searched without raw_query.
 
-        options:
-        if `search_options` are specified it is passed to .search(**options)
+        - options
+          if `search_options` are specified it is passed to
+          `.search(**options)`
 
-        searchable:
-        Returns boolean True if model inherits from EntitySearchMixin, else
-        alternative search must be implemented.
+        - searchable
+          Returns boolean True if model inherits from EntitySearchMixin, else
+          alternative search must be implemented.
 
         if `search_query` is available in action_data it will be used instead
-        od entity_data.
+        of entity_data.
         """
 
         # if with_items, get current loop_index reference or 0
@@ -606,7 +607,7 @@ class BasePopulator(object):
     def populate_modelname(self, entity_data, action_data,
                            search_query, action):
         """Example on how to implement custom populate methods
-           e.g: `def populate_organization`
+        e.g: `def populate_organization`
         This method should take care of all validations and errors.
         """
 
@@ -624,7 +625,7 @@ class BasePopulator(object):
     def validate_modelname(self, entity_data, action_data,
                            search_query, action):
         """Example on how to implement custom validate methods
-           e.g: `def validate_organization`
+        e.g:: `def validate_organization`
         This method should take care of all validations and errors.
         """
 

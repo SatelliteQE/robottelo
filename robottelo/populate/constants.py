@@ -1,4 +1,5 @@
 # coding: utf-8
+"""Constants for populate"""
 
 ACTIONS_CRUD = ('create', 'update', 'delete')
 ACTIONS_SPECIAL = ('register', 'unregister', 'assertion')

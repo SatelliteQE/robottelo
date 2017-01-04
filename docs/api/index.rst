@@ -8,6 +8,7 @@ source code.
     :maxdepth: 3
 
     robottelo
+    robottelo.populate
     tests
 
 .. Robottelo is a sizeable project, and it is therefore helpful to have some
