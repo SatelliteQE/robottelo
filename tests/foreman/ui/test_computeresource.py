@@ -20,7 +20,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, skip_if_not_set, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
@@ -31,6 +31,7 @@ class ComputeResourceTestCase(UITestCase):
     """Implements Compute Resource tests in UI"""
 
     @classmethod
+    @skip_if_not_set('compute_resources')
     def setUpClass(cls):
         super(ComputeResourceTestCase, cls).setUpClass()
         cls.current_libvirt_url = (

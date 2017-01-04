@@ -640,6 +640,7 @@ class OrganizationTestCase(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
+    @skip_if_not_set('compute_resources')
     @tier2
     def test_positive_remove_compresource(self):
         """Remove compute resource using the organization name and
@@ -848,6 +849,7 @@ class OrganizationTestCase(UITestCase):
         """
 
     @run_only_on('sat')
+    @skip_if_not_set('compute_resources')
     @tier2
     def test_positive_add_compresource(self):
         """Add compute resource using the organization
