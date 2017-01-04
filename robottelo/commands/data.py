@@ -45,12 +45,12 @@ def populate(datafile, verbose):
     result = execute_populate(datafile, verbose=verbose)
     result.logger.info(
         "{0} entities already existing in the system".format(
-            result.total_existing
+            len(result.found)
         )
     )
     result.logger.info(
         "{0} entities were created in the system".format(
-            result.total_created
+            len(result.created)
         )
     )
 
@@ -87,10 +87,9 @@ def validate(datafile, verbose):
             result.logger.error(error['message'])
             result.logger.error(error['search_query'])
         sys.exit("System entities did not validated!")
-
     else:
         result.logger.info(
-            "{0} entities found in the system".format(
-                result.total_existing
+            "{0} entities validated in the system".format(
+                len(result.found)
             )
         )

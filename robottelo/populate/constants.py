@@ -16,8 +16,9 @@ DEFAULT_CONFIG = {
 FORCE_RAW_SEARCH = ['organization', 'user']
 
 LOGGERS = {
-    'nailgun': 'nailgun.client',
-    'populate': 'robottelo.populate.base',
+    'root': 'root',
+    'nailgun': 'nailgun',
+    'robottelo': 'robottelo',
     'ssh': 'robottelo.ssh'
 }
 

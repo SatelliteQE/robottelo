@@ -23,10 +23,11 @@ class APIPopulator(BasePopulator):
                 entity_data, action_data, search, model, silent_errors
             )
         except HTTPError as e:
-            self.logger.error(str(e))
+            self.logger.error("populate: %s %s", str(e), action_data)
             if hasattr(e, 'response'):
-                self.logger.info(e.response.content)
-        except Exception:
+                self.logger.debug(e.response.content)
+        except Exception as e:
+            self.logger.error("populate: %s %s", str(e), action_data)
             if silent_errors:
                 return
             raise
@@ -40,10 +41,18 @@ class APIPopulator(BasePopulator):
             model, search, unique=True, silent_errors=silent_errors
         )
         if result:
-            self.total_existing += 1
+            self.logger.info(
+                "create: Entity already exists: %s %s",
+                model.__name__,
+                result.id
+            )
+            self.found.append(result)
         else:
             result = model(**entity_data).create()
-            self.total_created += 1
+            self.logger.info(
+                "create: Entity created: %s %s", model.__name__, result.id
+            )
+            self.created.append(result)
         return result
 
     def update(self, entity_data, action_data, search, model, silent_errors):
@@ -66,6 +75,7 @@ class APIPopulator(BasePopulator):
 
         entity = model(id=entity_id, **entity_data)
         entity.update(entity_data.keys())
+        self.logger.info("update: %s %s", model, entity_id)
         return entity
 
     def delete(self, entity_data, action_data, search, model, silent_errors):
@@ -89,6 +99,7 @@ class APIPopulator(BasePopulator):
         # currently only works based on a single id
         # should iterate all results and delete one by one?
         model(id=entity_id).delete()
+        self.logger.info("delete: %s %s", model, entity_id)
 
     def validate(self, entity_data, action_data, search, action):
         """Based on action fields or using action_data['search_query']
@@ -103,17 +114,13 @@ class APIPopulator(BasePopulator):
         model = getattr(entities, action_data['model'])
 
         if not issubclass(model, EntitySearchMixin):
-            raise TypeError("{0} not searchable".format(model))
+            raise TypeError("{0} not searchable".format(model.__name__))
 
         try:
             # 1) check if entity exists
             result = self.get_search_result(
                 model, search, unique=True, silent_errors=silent_errors
             )
-            if result:
-                self.total_existing += 1
-            else:
-                result = None
         except HTTPError as e:
             error_message = str(e)
             if hasattr(e, 'response'):
@@ -127,9 +134,18 @@ class APIPopulator(BasePopulator):
             })
         else:
             if result:
+                self.logger.info(
+                    "validate: Entity found: %s %s", model.__name__, result.id
+                )
+                self.found.append(result)
                 self.add_to_registry(action_data, result)
             else:
                 # should add None to registry, else references fail
+                self.logger.info(
+                    "validate: result not found for query %s %s",
+                    model.__name__,
+                    action_data
+                )
                 self.add_to_registry(action_data, None)
                 self.validation_errors.append({
                     'search': search,

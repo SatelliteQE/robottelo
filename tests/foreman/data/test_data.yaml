@@ -1,10 +1,10 @@
-config:
-  populator: api
-  populators:
-    api:
-      module: robottelo.populate.api.APIPopulator
-    cli:
-      module: robottelo.populate.cli.CLIPopulator
+#config:
+#  populator: api
+#  populators:
+#    api:
+#      module: robottelo.populate.api.APIPopulator
+#    cli:
+#      module: robottelo.populate.cli.CLIPopulator
 
 vars:
   admin_username: admin
@@ -15,7 +15,10 @@ vars:
 
 actions:
 
+# CREATE ACTIONS
+
   - model: Organization
+    log: The first organization...
     register: org_1
     data:
       name: MyOrg
@@ -25,7 +28,7 @@ actions:
 
   - model: Organization
     register: default_orgs
-    via: api
+    # via: api # TODO:
     data:
       name: Org{{item}}
       label: Org{{item}}
@@ -62,7 +65,7 @@ actions:
           all: true
           search_options:
             per_page: 40
-            filters: {}
+            # filters: {}
           register: bruno_orgs
       default_organization:
         from_search:
@@ -71,7 +74,7 @@ actions:
             name: Orgcompany5
 
   - model: Product
-    echo: Creating product
+    log: Creating product
     register: product
     data:
       name: stroncio
@@ -110,11 +113,46 @@ actions:
         from_object:
           name: robottelo.constants.FAKE_0_YUM_REPO
 
-
+  # A TEST CASE USING SPECIAL ACTIONS
+  # Create a plain vanilla activation key
+  # Check that activation key is created and its "unlimited_hosts"
+  # attribute defaults to true
+  # in the end of the validation the return code will be 0
+  # and validation_errors will have the data to report
+  # create is always the default action if not specified
+  - action: create
+    log: Create a plain vanilla activation key
+    model: ActivationKey
+    register: vanilla_key
+    data:
+       name: vanilla
+       organization:
+         from_registry: default_orgs[0]
+  - action: assertion
+    log: |
+      Check that activation key is created and its "unlimited_hosts"
+      attribute defaults to true
+    operation: eq
+    register: vanilla_key_unlimited_hosts
+    data:
+      - from_registry: vanilla_key.unlimited_hosts
+      - false
+  - action: echo
+    log: Vanilla Key Unlimited Host is False!!!!
+    level: error
+    print: true
+    when: vanilla_key_unlimited_hosts == False
+  - action: echo
+    log: Vanilla Key Unlimited Host is True!!!!
+    level: info
+    print: true
+    when: vanilla_key_unlimited_hosts
   - action: register
     data:
-      name: Bruno
-      email: rochacbruno@gmail.com
+      you_must_update_vanilla_key: true
+    when: vanilla_key_unlimited_hosts == False
+
+# SPECIAL ACTIONS
 
   - action: register
     data:
@@ -129,11 +167,16 @@ actions:
          from_object:
            name: robottelo.constants.FAKE_0_YUM_REPO
        random: "{{ fauxfactory.gen_string('alpha') }}"
+       default_organization:
+         from_read:
+           model: Organization
+           data:
+             id: 1
 
   - action: unregister
     data:
-      - name
-      - email
+      - you_must_update_vanilla_key
+      - random
 
   - action: assertion
     operator: eq  # eq, ne, gt, lt, gte, lte, identity
@@ -163,6 +206,12 @@ actions:
       - b
 
 # DANGER:
+
+# update and delete actions can break validation
+# validation uses entity 'create' description and if
+# entity is updated or deleted it will break validation.
+
+
 #  - action: update
 #    model: Product
 #    data:

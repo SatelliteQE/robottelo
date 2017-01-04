@@ -22,19 +22,42 @@ from robottelo.populate.constants import (
 )
 from six import string_types
 
+try:
+    # coloredlogs is optional, used only when installed
+    import coloredlogs
+except ImportError:
+    coloredlogs = None
+
 logger = logging.getLogger(__name__)
 
 
 def set_logger(verbose):
     """Set logger verbosity used when client is called with -vvvv"""
+    if coloredlogs is not None:
+        for logger_name in LOGGERS.values():
+            _logger = logging.getLogger(logger_name)
+            _logger.propagate = False
+
+            handler = logging.StreamHandler()
+            formatter = coloredlogs.ColoredFormatter(
+                fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+            handler.setFormatter(formatter)
+            _logger.handlers = [handler]
+
     if verbose == 0:
         for logger_name in LOGGERS.values():
             logging.getLogger(logger_name).disabled = True
+            logging.getLogger(logger_name).setLevel(logging.CRITICAL)
     elif verbose == 1:
         logging.getLogger(LOGGERS['nailgun']).disabled = True
+        logging.getLogger(LOGGERS['nailgun']).setLevel(logging.CRITICAL)
         logging.getLogger(LOGGERS['ssh']).disabled = True
+        logging.getLogger(LOGGERS['ssh']).setLevel(logging.CRITICAL)
     elif verbose == 2:
         logging.getLogger(LOGGERS['ssh']).disabled = True
+        logging.getLogger(LOGGERS['ssh']).setLevel(logging.CRITICAL)
 
 
 class BasePopulator(object):
@@ -42,20 +65,21 @@ class BasePopulator(object):
 
     def __init__(self, data, verbose=None, mode='populate'):
         """Reads YAML and initialize populator"""
+        if not settings.configured:
+            settings.configure()
+
         self.logger = logger
         set_logger(verbose)
 
         self.mode = mode
         self.vars = data.get('vars', {})
+        self.config = data.get('config', {})
         self.actions = data['actions']
         self.registry = {}
         self.validation_errors = []
         self.assertion_errors = []
-        self.total_created = 0
-        self.total_existing = 0
-
-        if not settings.configured:
-            settings.configure()
+        self.created = []
+        self.found = []
 
         self.admin_username = self.vars.get(
             'admin_username', settings.server.admin_username)
@@ -72,7 +96,7 @@ class BasePopulator(object):
 
         self.context.update(
             {'admin_username': self.admin_username,
-             'admin_password': self.admin_password}
+                'admin_password': self.admin_password}
         )
 
     def add_to_registry(self, action_data, result):
@@ -85,12 +109,13 @@ class BasePopulator(object):
         if action_data.get('with_items'):
             if registry_key in self.registry:
                 self.registry[registry_key].append(result)
+                self.logger.info("registry: %s eppended", registry_key)
             else:
                 self.registry[registry_key] = [result]
+                self.logger.info("registry: %s registered", registry_key)
         else:
             self.registry[registry_key] = result
-
-        self.logger.info("register: %s added to registry", registry_key)
+            self.logger.info("registry: %s registered", registry_key)
 
     def from_search(self, action_data, context):
         """Gets fields and perform a search to return Entity object
@@ -113,11 +138,17 @@ class BasePopulator(object):
         else:
             # empty search returns all when used with filters={}
             options = self.build_search_options({}, action_data)
+            self.logger.info(
+                "search: getting entities in %s with options %s",
+                model_name,
+                options
+            )
             search_result = model().search(**options)
 
         silent_errors = action_data.get('silent_errors', False)
 
         if not search_result:
+            self.logger.error("search: returned no objects %s", action_data)
             if silent_errors:
                 return None
             raise RuntimeError("Search returned no objects")
@@ -368,7 +399,7 @@ class BasePopulator(object):
             "{0}={1}".format(k, v) for k, v in search_data.items()
         ]
         raw_query = ",".join(query_items)
-        return {'search': raw_query}
+        return {'search': raw_query or None}
 
     def build_search_options(self, data, action_data):
         """Builds nailgun options for search
@@ -392,7 +423,7 @@ class BasePopulator(object):
         per_page = options.pop('per_page', None)
         if per_page:
             if 'query' in options:
-                options['query']['perpage'] = per_page
+                options['query']['per_page'] = per_page
             else:
                 options['query'] = {'per_page': per_page}
 
@@ -402,24 +433,52 @@ class BasePopulator(object):
                           silent_errors=False):
         """Perform a search"""
         if not search['searchable']:
+            self.logger.error('search: %s not searchable', model.__name__)
             if silent_errors:
                 return
-            raise TypeError("{0} not searchable".format(model))
+            raise TypeError("{0} not searchable".format(model.__name__))
 
         result = model(**search['data']).search(**search['options'])
 
+        options_to_log = search['options'] or {
+            k: getattr(v, 'id', v) for k, v in search['data'].items()
+        }
+
         if not result:
+            self.logger.info(
+                "search: %s %s returned empty result",
+                model.__name__,
+                options_to_log
+            )
             return
 
         if unique:
-            if len(result) > 1 and not silent_errors:
-                self.logger.info(result)
-                raise RuntimeError(
-                    "More than 1 item returned "
-                    "search is not unique"
+            if len(result) > 1:
+                self.logger.error(
+                    "search: %s %s is not unique",
+                    model.__name__,
+                    options_to_log
                 )
+                self.logger.debug(result)
+                if not silent_errors:
+                    raise RuntimeError(
+                        "More than 1 item returned "
+                        "search is not unique"
+                    )
+
+            self.logger.info(
+                "search: %s %s found unique item",
+                model.__name__,
+                options_to_log,
+            )
             return result[0]
 
+        self.logger.info(
+            "search: %s %s found %s items",
+            model.__name__,
+            options_to_log,
+            len(result)
+        )
         return result
 
     def execute(self, mode=None):
@@ -430,16 +489,38 @@ class BasePopulator(object):
         mode = mode or self.mode
         for action_data in self.actions:
             action = action_data.get('action', 'create')
-            if action_data.get('log'):
-                self.logger.info("%s: %s", action, action_data['log'])
-            else:
-                self.logger.info('%s: Running...', action)
+
+            if action_data.get('when'):
+                if not eval(action_data.get('when'), None, self.context):
+                    continue
+
+            log_message = Template(
+                action_data.get(
+                    'log', action_data.get('register', 'executing...')
+                )
+            ).render(**self.context)
+
+            getattr(self.logger, action_data.get('level', 'info').lower())(
+                '%s: %s',
+                action.upper() if not (
+                    mode == 'validate' and action == 'create'
+                ) else "VALIDATE",
+                log_message
+            )
+
+            if action == 'echo':
+                if action_data.get('print'):
+                    print(log_message)  # noqa
+                continue
+
             entities_list = self.render(action_data, action)
             for entity_data in entities_list:
 
                 if action in ACTIONS_SPECIAL:
                     # find the method named as action name
                     getattr(self, action)(entity_data, action_data)
+
+                    self.context.update(self.registry)
 
                     # execute above method and continue to next item
                     continue
@@ -469,9 +550,9 @@ class BasePopulator(object):
         """Remove data from registry"""
         for value in entity_data['_values']:
             if self.registry.pop(value, None):
-                self.logger.info("unregister: %s unregistered", value)
+                self.logger.info("unregister: %s OK", value)
             else:
-                self.logger.info("unregister: %s not was registered", value)
+                self.logger.error("unregister: %s IS NOT REGISTERED", value)
 
     def register(self, entity_data, action_data):
         """Register arbitrary items to the registry"""
@@ -494,17 +575,23 @@ class BasePopulator(object):
         }
         self.render_action_data(data, new_context)
 
-        if assertion_function(**data):
+        assertion_result = assertion_function(**data)
+        if assertion_result:
             self.logger.info(
                 'assertion: %s is %s to %s',
                 data['value'], operator, data['other']
             )
         else:
+            self.logger.error(
+                'assertion: %s is NOT %s to %s',
+                data['value'], operator, data['other']
+            )
             self.assertion_errors.append({
                 'data': data,
                 'operator': operator,
                 'action_data': action_data
             })
+        self.add_to_registry(action_data, assertion_result)
 
     # sub class methods
 
@@ -556,6 +643,6 @@ class BasePopulator(object):
         self.validation_errors.append({
             'search_query': search_query,
             'message': 'entity does not validate in the system',
-            'entity_data':  entity_data,
+            'entity_data': entity_data,
             'action_data': action_data
         })

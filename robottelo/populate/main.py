@@ -18,6 +18,9 @@ def load_data(datafile):
 
 
 def get_populator(data, verbose):
+    if not isinstance(data, dict):
+        data = load_data(data)
+
     config = DEFAULT_CONFIG.copy()
     config.update(data.get('config', {}))
     verbose = verbose or config.get('verbose')
@@ -30,29 +33,18 @@ def get_populator(data, verbose):
 
 
 def populate(data, **extra_options):
-    """Given the populate_method populates the system
-    using data values
-    """
-
-    if not isinstance(data, dict):
-        data = load_data(data)
-
+    """Loads and execute populator in populate mode"""
     verbose = extra_options.get('verbose')
     populator = get_populator(data, verbose)
     populator.execute(mode='populate')
+    populator.logger.info("THE END!")
     return populator
 
 
 def validate(data, **extra_options):
-    """Given the populate_method validates the system
-    using data values
-    """
-
-    if not isinstance(data, dict):
-        data = load_data(data)
-
+    """Loads and execute populator in validate mode"""
     verbose = extra_options.get('verbose')
     populator = get_populator(data, verbose)
     populator.execute(mode='validate')
-
+    populator.logger.info("THE END!")
     return populator
