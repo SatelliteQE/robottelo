@@ -395,6 +395,7 @@ API_PATHS = {
         u'/api/hosts/:id',
         u'/api/hosts/:id',
         u'/api/hosts/:id',
+        u'/api/hosts/:id/enc',
         u'/api/hosts/:id/boot',
         u'/api/hosts/:id/disassociate',
         u'/api/hosts/:id/power',
