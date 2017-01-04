@@ -47,21 +47,32 @@ help:
 	@echo "  logs-join                  to join xdist log files into one"
 	@echo "  logs-clean                 to delete all xdist log files in the root"
 	@echo "  pyc-clean                  to delete all temporary artifacts"
+	@echo "  uuid-check                 to check for duplicated or empty @id: in testimony docstring tags"
+	@echo "  uuid-fix                   to fix all duplicated or empty @id: in testimony docstring tags"
+	@echo "  can-i-push?                to check if local changes are suitable to push"
+	@echo "  install-commit-hook        to install pre-commit hook to check if changes are suitable to push"
+	@echo "  gitflake8                  to check flake8 styling only for modified files"
+	@echo "  clean-cache                to clean pytest cache files"
+	@echo "  clean-all                  to clean cache, pyc, logs and docs"
 
 docs:
 	@cd docs; $(MAKE) html
 
 docs-clean:
+	$(info "Cleaning docs...")
 	@cd docs; $(MAKE) clean
 
-test-docstrings:
+test-docstrings: uuid-check
+	$(info "Checking for errors in docstrings and testimony tags...")
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/api
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/cli
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhai
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys
 
 test-robottelo:
+	$(info "Running robottelo framework unit tests...")
 	$$(which py.test) -s  $(ROBOTTELO_TESTS_PATH)
 
 test-robottelo-coverage:
@@ -113,16 +124,44 @@ lint:
 	scripts/lint.py
 
 pyc-clean: ## remove Python file artifacts
+	$(info "Removing unused Python compiled files, caches and ~ backups...")
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -fr {} +
 
 logs-join:
+	$(info "Joining worker logs in to one master file...")
 	-cat robottelo_gw*.log > robottelo_master.log
 
 logs-clean:
+	$(info "Removing pytest worker logs...")
 	-rm -f robottelo_gw*.log
+
+uuid-check:  ## list duplicated or empty uuids
+	$(info "Checking for empty or duplicated @id: in docstrings...")
+	@scripts/fix_uuids.sh --check
+
+uuid-fix:
+	@scripts/fix_uuids.sh
+
+gitflake8:
+	$(info "Checking style and syntax errors with flake8 linter...")
+	@flake8 $(shell git diff --name-only) --show-source
+
+can-i-push?: gitflake8 uuid-check test-docstrings test-robottelo
+	$(info "!!! Congratulations your changes are good to fly, make a great PR! ${USER}++ !!!")
+
+install-commit-hook:
+	$(info "Installing git pre-commit hook...")
+	@grep -q '^make uuid-fix' .git/hooks/pre-commit || echo "make uuid-fix" >> .git/hooks/pre-commit
+	@grep -q '^make can-i-push?' .git/hooks/pre-commit || echo "make can-i-push?" >> .git/hooks/pre-commit
+
+clean-cache:
+	$(info "Cleaning the .cache directory...")
+	rm -rf .cache
+
+clean-all: docs-clean logs-clean pyc-clean clean-cache
 
 # Special Targets -------------------------------------------------------------
 
@@ -131,4 +170,6 @@ logs-clean:
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
-        graph-entities lint logs-join logs-clean pyc-clean
+        graph-entities lint logs-join logs-clean pyc-clean \
+        uuid-check uuid-fix can-i-push? install-commit-hook gitflake8 \
+        clean-cache clean-all
