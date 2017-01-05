@@ -86,7 +86,8 @@ class MyAccountTestCase(UITestCase):
                 with self.logged_test_user():
                     self.my_account.navigate_to_entity()
                     self.my_account.wait_until_element(locator)
-                    self.my_account.field_update(locator_name, new_value)
+                    self.my_account.assign_value(
+                        locator[locator_name], new_value)
                     self.my_account.click(common_locators['submit'])
                     self.my_account.navigate_to_entity()
 
@@ -194,11 +195,10 @@ class MyAccountTestCase(UITestCase):
                     self.my_account.navigate_to_entity()
                     self.my_account.wait_until_element(
                         locators['users.password'])
-                    self.my_account.field_update('users.password', password)
-                    self.my_account.field_update(
-                        'users.password_confirmation',
-                        password
-                    )
+                    self.my_account.assign_value(
+                        locators['users.password'], password)
+                    self.my_account.assign_value(
+                        locators['users.password_confirmation'], password)
                     self.my_account.click(common_locators['submit'])
                     self.login.logout()
                     self.login.login(self.account_user.login, password)

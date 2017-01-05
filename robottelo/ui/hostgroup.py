@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Host Group UI."""
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
@@ -12,9 +12,7 @@ class Hostgroup(Base):
                puppet_ca=None, puppet_master=None):
         """Creates a new hostgroup from UI."""
         self.click(locators['hostgroups.new'])
-        if not self.wait_until_element(locators['hostgroups.name']):
-            raise UIError('Could not create new hostgroup.')
-        self.text_field_update(locators['hostgroups.name'], name)
+        self.assign_value(locators['hostgroups.name'], name)
         if parent:
             self.assign_value(locators['hostgroups.parent'], parent)
         if environment:
@@ -48,15 +46,11 @@ class Hostgroup(Base):
 
     def update(self, name, new_name=None, parent=None, environment=None):
         """Updates existing hostgroup from UI."""
-        element = self.search(name)
-        if not element:
-            raise UIError('Could not find hostgroup "{0}"'.format(name))
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(name)
         if parent:
-            self.select(locators['hostgroups.parent'], parent)
+            self.assign_value(locators['hostgroups.parent'], parent)
         if environment:
-            self.select(locators['hostgroups.environment'], environment)
+            self.assign_value(locators['hostgroups.environment'], environment)
         if new_name:
-            self.text_field_update(locators['hostgroups.name'], new_name)
+            self.assign_value(locators['hostgroups.name'], new_name)
         self.click(common_locators['submit'])

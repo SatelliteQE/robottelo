@@ -38,7 +38,7 @@ class HostgroupTestCase(UITestCase):
         @Assert: Hostgroup is created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=4):
+            for name in generate_strings_list():
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
                     self.assertIsNotNone(self.hostgroup.search(name))
@@ -56,8 +56,10 @@ class HostgroupTestCase(UITestCase):
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
-                    self.assertIsNotNone(self.hostgroup.wait_until_element
-                                         (common_locators['name_haserror']))
+                    self.assertIsNotNone(
+                        self.hostgroup.wait_until_element(
+                            common_locators['name_haserror'])
+                    )
 
     @run_only_on('sat')
     @tier1
@@ -73,8 +75,10 @@ class HostgroupTestCase(UITestCase):
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
             make_hostgroup(session, name=name)
-            self.assertIsNotNone(self.hostgroup.wait_until_element
-                                 (common_locators['name_haserror']))
+            self.assertIsNotNone(
+                self.hostgroup.wait_until_element(
+                    common_locators['name_haserror'])
+            )
 
     @run_only_on('sat')
     @tier1

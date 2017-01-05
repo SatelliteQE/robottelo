@@ -21,29 +21,16 @@ class HostCollection(Base):
     def create(self, name, limit=None, description=None):
         """Creates new Host Collection from UI."""
         self.click(locators['hostcollection.new'])
-
-        if self.wait_until_element(common_locators['name']) is None:
-            raise UIError(
-                u'Could not create new host collection "{0}"'.format(name)
-            )
-
-        self.text_field_update(common_locators['name'], name)
+        self.assign_value(common_locators['name'], name)
         if limit:
             self.set_limit(limit)
         if description:
-            self.text_field_update(
-                common_locators['description'], description)
+            self.assign_value(common_locators['description'], description)
         self.click(common_locators['create'])
 
     def update(self, name, new_name=None, description=None, limit=None):
         """Updates an existing Host Collection."""
-        element = self.search(name)
-        if element is None:
-            raise UIError(
-                u'Could not find host collection "{0}" to update'.format(name))
-
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(name)
         if new_name:
             self.edit_entity(
                 locators['hostcollection.edit_name'],
@@ -80,17 +67,10 @@ class HostCollection(Base):
         :param str field_value: Expected field value
         :return bool result: Return True in case field contains expected value
             and False otherwise
-
         """
-        element = self.search(name)
-        if element is None:
-            raise UIError(
-                u'Could not find host collection "{0}" to verify'.format(name))
-        element.click()
-        self.wait_for_ajax()
-        strategy, value = locators[
-            'hostcollection.{0}_field'.format(field_name)]
-        return self.wait_until_element((strategy, value % field_value))
+        self.search_and_click(name)
+        loc = locators['hostcollection.{0}_field'.format(field_name)]
+        return self.wait_until_element(loc % field_value)
 
     def delete(self, name, really=True):
         """Deletes an existing Host Collection entity."""
@@ -102,13 +82,7 @@ class HostCollection(Base):
 
     def copy(self, name, new_name):
         """Copies an existing Host Collection entity"""
-        element = self.search(name)
-        if element is None:
-            raise UIError(
-                u'Could not find host collection "{0}" to copy'.format(name))
-
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(name)
         self.edit_entity(
             locators['hostcollection.copy'],
             locators['hostcollection.copy_name'],
@@ -119,15 +93,14 @@ class HostCollection(Base):
     def add_host(self, name, host_name):
         """Add content host to existing Host Collection entity."""
         host_name = host_name.lower()
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['hostcollection.hosts'])
         self.click(tab_locators['hostcollection.tab_host_add'])
-        strategy, value = locators['hostcollection.select_host']
-        self.click((strategy, value % host_name))
+        loc = locators['hostcollection.select_host']
+        self.click(loc % host_name)
         self.click(locators['hostcollection.add_host'])
         self.click(tab_locators['hostcollection.tab_host_remove'])
-        element = self.wait_until_element(
-            (strategy, value % host_name), timeout=8)
+        element = self.wait_until_element(loc % host_name, timeout=8)
         if element is None:
             raise UIError("Adding host {0} is failed".format(host_name))
 
@@ -162,7 +135,7 @@ class HostCollection(Base):
         if org_name:
             Navigator(self.browser).go_to_select_org(org_name, force=False)
 
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['hostcollection.collection_actions'])
         self.click(locators['hostcollection.collection_actions.packages'])
 
@@ -217,8 +190,7 @@ class HostCollection(Base):
         self.click(tab_locators['hostcollection.collection_actions'])
         self.click(locators['hostcollection.collection_actions.errata'])
 
-        strategy, value = locators['hostcollection.errata.errata_select']
-        self.click((strategy, value % errata_id))
+        self.click(locators['hostcollection.errata.errata_select'] % errata_id)
 
         strategy, action_link_locator_path = locators[
             'contenthost.bulk_actions.errata.via_{0}'.format(action_via)]

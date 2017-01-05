@@ -25,7 +25,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -140,7 +140,6 @@ class OperatingSystemTestCase(UITestCase):
                         common_locators['name_haserror']))
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1328935)
     @tier1
     def test_negative_create_with_too_long_description(self):
         """OS - Create a new OS with description containing
@@ -154,7 +153,7 @@ class OperatingSystemTestCase(UITestCase):
         with Session(self.browser) as session:
             make_os(
                 session,
-                name=gen_string('alpha', 6),
+                name=gen_string('alpha'),
                 major_version=gen_string('numeric', 1),
                 minor_version=gen_string('numeric', 1),
                 description=gen_string('alphanumeric', 256),
@@ -249,8 +248,8 @@ class OperatingSystemTestCase(UITestCase):
                 os_family='Red Hat',
                 archs=['x86_64']
             )
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators['haserror']))
+            self.assertIsNotNone(self.operatingsys.wait_until_element(
+                common_locators['haserror']))
 
     @run_only_on('sat')
     @tier1

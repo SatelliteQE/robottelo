@@ -261,8 +261,7 @@ class Base(object):
         if not searched:
             raise UIError(u'Could not search the entity "{0}"'.format(name))
         if self.is_katello:
-            searched.click()
-            self.wait_for_ajax()
+            self.click(searched)
             self.click(del_locator)
             if really:
                 self.click(common_locators['confirm_remove'])
@@ -270,10 +269,8 @@ class Base(object):
                 self.click(common_locators['cancel'])
         else:
             if drop_locator:
-                strategy, value = drop_locator
-                self.click((strategy, value % name))
-            strategy, value = del_locator
-            self.click((strategy, value % name), wait_for_ajax=False)
+                self.click(drop_locator % name)
+            self.click(del_locator % name, wait_for_ajax=False)
             self.handle_alert(really)
         # Make sure that element is really removed from UI. It is necessary to
         # verify that fact few times as sometimes 1 second is not enough for
@@ -448,16 +445,7 @@ class Base(object):
             element,
         )
 
-    def field_update(self, loc_string, newtext):
-        """
-        Function to replace the existing/default text from textbox
-        """
-        txt_field = self.find_element(locators[loc_string])
-        txt_field.clear()
-        txt_field.send_keys(newtext)
-        self.wait_for_ajax()
-
-    def text_field_update(self, target, newtext):
+    def input(self, target, newtext):
         """Function to replace text from textbox using a common locator or
         WebElement
 
@@ -477,12 +465,8 @@ class Base(object):
         """
         self.click(common_locators['parameter_tab'])
         self.click(common_locators['add_parameter'])
-        if self.wait_until_element(common_locators['parameter_name']):
-            pname = self.find_element(common_locators['parameter_name'])
-            pname.send_keys(param_name)
-        if self.wait_until_element(common_locators['parameter_value']):
-            pvalue = self.find_element(common_locators['parameter_value'])
-            pvalue.send_keys(param_value)
+        self.assign_value(common_locators['parameter_name'], param_name)
+        self.assign_value(common_locators['parameter_value'], param_value)
         self.click(common_locators['submit'])
         self.logger.debug(u'Param: %s set to: %s', param_name, param_value)
 
@@ -498,7 +482,7 @@ class Base(object):
     def edit_entity(self, edit_loc, edit_text_loc, entity_value, save_loc):
         """Function to edit the selected entity's  text and save it."""
         self.click(edit_loc)
-        self.text_field_update(edit_text_loc, entity_value)
+        self.assign_value(edit_text_loc, entity_value)
         self.click(save_loc)
 
     def set_limit(self, limit):
@@ -507,7 +491,7 @@ class Base(object):
         """
         self.click(common_locators['usage_limit_checkbox'])
         if limit != 'Unlimited':
-            self.text_field_update(common_locators['usage_limit'], limit)
+            self.assign_value(common_locators['usage_limit'], limit)
 
     def select_repo(self, repo_name):
         """Select specific repository for packages or errata search
@@ -529,15 +513,13 @@ class Base(object):
 
         """
         go_to_page()
-        self.text_field_update(
+        self.assign_value(
             common_locators['search'],
             search_key + " = " + partial_name
         )
-        strategy, value = common_locators['auto_search']
-        self.click((strategy, value % name))
+        self.click(common_locators['auto_search'] % name)
         self.click(common_locators['search_button'])
-        strategy1, value1 = entity_locator
-        return self.wait_until_element((strategy1, value1 % name))
+        return self.wait_until_element(entity_locator % name)
 
     def check_all_values(self, go_to_page, entity_name, entity_locator,
                          tab_locator, context=None):
@@ -560,9 +542,8 @@ class Base(object):
             raise UINoSuchElementError('Entity not found via search.')
         searched.click()
         self.click(tab_locator)
-        strategy, value = common_locators['all_values']
         selected = self.find_element(
-            (strategy, value % context)).is_selected()
+            common_locators['all_values'] % context).is_selected()
         return selected
 
     def is_element_enabled(self, locator):
@@ -695,11 +676,10 @@ class Base(object):
                 ajax_timeout=timeout,
                 scroll=scroll,
             )
-            self.text_field_update(
+            self.assign_value(
                 common_locators['select_list_search_box'], list_value)
-            strategy, value = common_locators['entity_select_list']
             self.click(
-                (strategy, value % list_value),
+                common_locators['entity_select_list'] % list_value,
                 wait_for_ajax=wait_for_ajax,
                 ajax_timeout=timeout,
                 scroll=scroll,
@@ -746,7 +726,7 @@ class Base(object):
         """
         element_type = self.element_type(target)
         if element_type == 'input' or element_type == 'textarea':
-            self.text_field_update(target, value)
+            self.input(target, value)
         elif element_type == 'select' or element_type == 'span':
             self.select(target, value)
         elif element_type == 'checkbox' or element_type == 'radio':

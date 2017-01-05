@@ -23,9 +23,9 @@ class OpenScapPolicy(Base):
         self.click(locators['oscap.new_policy'])
         if not self.wait_until_element(locators['oscap.name_policy']):
             raise UIError(u'Could not create new policy {0}'.format(name))
-        self.text_field_update(locators['oscap.name_policy'], name)
+        self.assign_value(locators['oscap.name_policy'], name)
         if desc:
-            self.text_field_update(locators['oscap.desc_policy'], desc)
+            self.assign_value(locators['oscap.desc_policy'], desc)
         self.click(common_locators['submit'])
         if self.wait_until_element(common_locators['haserror']):
             return
@@ -41,7 +41,7 @@ class OpenScapPolicy(Base):
             self.select(
                 locators['oscap.dayofmonth_policy'], period_value)
         else:
-            self.text_field_update(
+            self.assign_value(
                 locators['oscap.custom_policy'], period_value)
         self.click(common_locators['submit'])
         if loc:
@@ -61,15 +61,12 @@ class OpenScapPolicy(Base):
         element = self.search(name)
         if not element:
             raise UIError('Could not find oscap policy {0}'.format(name))
-        strategy, value = locators['oscap.dropdown_policy']
-        self.click((strategy, value % name))
-        strategy, value = locators['oscap.edit_policy']
-        self.click((strategy, value % name), waiter_timeout=60)
-        if new_name or new_desc:
-            if new_name:
-                self.text_field_update(locators['oscap.name_policy'], new_name)
-            if new_desc:
-                self.text_field_update(locators['oscap.desc_policy'], new_desc)
+        self.click(locators['oscap.dropdown_policy'] % name)
+        self.click(locators['oscap.edit_policy'] % name, waiter_timeout=60)
+        if new_name:
+            self.assign_value(locators['oscap.name_policy'], new_name)
+        if new_desc:
+            self.assign_value(locators['oscap.desc_policy'], new_desc)
         if content or profile:
             self.click(tab_locators['oscap.content'])
             if content:
@@ -82,10 +79,10 @@ class OpenScapPolicy(Base):
             if period == 'Weekly':
                 self.select(locators['oscap.weekday_policy'], period_value)
             elif period == 'Monthly':
-                self.text_field_update(
+                self.assign_value(
                     locators['oscap.dayofmonth_policy'], period_value)
             else:
-                self.text_field_update(
+                self.assign_value(
                     locators['oscap.custom_policy'], period_value)
         if loc:
             self.click(tab_locators['tab_loc'])

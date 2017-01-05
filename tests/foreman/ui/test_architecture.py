@@ -58,8 +58,11 @@ class ArchitectureTestCase(UITestCase):
                 with self.subTest(test_data):
                     entities.OperatingSystem(
                         name=test_data['os_name']).create()
-                    make_arch(session, name=test_data['name'],
-                              os_names=[test_data['os_name']])
+                    make_arch(
+                        session,
+                        name=test_data['name'],
+                        os_names=[test_data['os_name']]
+                    )
                     self.assertIsNotNone(
                         self.architecture.search(test_data['name']))
 
@@ -123,12 +126,11 @@ class ArchitectureTestCase(UITestCase):
         @Assert: Architecture is deleted
         """
         os = entities.OperatingSystem(name=gen_string('alpha')).create()
-        with Session(self.browser) as session:
+        with Session(self.browser):
             for name in generate_strings_list():
                 with self.subTest(name):
                     entities.Architecture(
                         name=name, operatingsystem=[os]).create()
-                    session.nav.go_to_architectures()
                     self.architecture.delete(name)
 
     @run_only_on('sat')
@@ -141,13 +143,13 @@ class ArchitectureTestCase(UITestCase):
         @Assert: Architecture is updated
         """
         old_name = gen_string('alpha')
+        os_name = gen_string('alpha')
+        entities.OperatingSystem(name=os_name).create()
         with Session(self.browser) as session:
             make_arch(session, name=old_name)
             self.assertIsNotNone(self.architecture.search(old_name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
-                    os_name = gen_string('alpha')
-                    entities.OperatingSystem(name=os_name).create()
                     self.architecture.update(
                         old_name, new_name, new_os_names=[os_name])
                     self.assertIsNotNone(self.architecture.search(new_name))

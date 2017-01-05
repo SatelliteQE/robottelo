@@ -73,7 +73,6 @@ class Bookmark(Base):
         """Check that bookmark field has expected value"""
         bm_element = self.search(controller, name)
         self.click(bm_element)
-        self.wait_for_ajax()
         if field_name in ['name', 'query']:
             return (
                 self.wait_until_element(locators['bookmark.' + field_name])

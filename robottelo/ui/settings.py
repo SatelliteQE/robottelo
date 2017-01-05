@@ -26,20 +26,19 @@ class Settings(Base):
 
         @raise UINoSuchElementError: Raise an exception when UI element is
         not found
-
         """
         if self.wait_until_element(tab_locator) is None:
             raise UINoSuchElementError(
                 "Couldn't find the tab with name: '%s'" % tab_locator)
         self.click(tab_locator)
 
-        strategy, value = locators['settings.edit_param']
-        if self.wait_until_element((strategy, value % param_name)) is None:
+        loc = locators['settings.edit_param']
+        if self.wait_until_element(loc % param_name) is None:
             raise UINoSuchElementError(
                 'Could not find edit button to update selected param'
             )
         else:
-            self.click((strategy, value % param_name))
+            self.click(loc % param_name)
             self.assign_value(locators['settings.edit_value'], param_value)
             self.click(locators['settings.save'])
 
@@ -48,8 +47,8 @@ class Settings(Base):
         self.navigate_to_entity()
         if self.wait_until_element(tab_locator):
             self.click(tab_locator)
-            strategy, value = locators['settings.edit_param']
-            element = self.wait_until_element((strategy, value % param_name))
+            element = self.wait_until_element(
+                locators['settings.edit_param'] % param_name)
             if element:
                 if element.text.lower().startswith('Empty'):
                     return ''

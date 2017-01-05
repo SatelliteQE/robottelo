@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements User groups UI."""
 from robottelo.constants import FILTER
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -21,10 +21,7 @@ class UserGroup(Base):
                ext_usergrp=None, ext_authsourceid=None):
         """Creates new usergroup."""
         self.click(locators['usergroups.new'])
-
-        if self.wait_until_element(locators['usergroups.name']) is None:
-            raise UIError('Could not create new usergroup "{0}"'.format(name))
-        self.find_element(locators['usergroups.name']).send_keys(name)
+        self.assign_value(locators['usergroups.name'], name)
         self.configure_entity(users, FILTER['usergroup_user'])
         if roles:
             self.click(tab_locators['usergroups.tab_roles'])
@@ -35,7 +32,7 @@ class UserGroup(Base):
         if ext_usergrp:
             self.click(tab_locators['usergroups.tab_external'])
             self.click(locators['usergroups.addexternal_usergrp'])
-            self.text_field_update(
+            self.assign_value(
                 locators['usergroups.ext_usergroup_name'],
                 ext_usergrp
             )
@@ -58,9 +55,9 @@ class UserGroup(Base):
             roles = []
         if new_roles is None:
             new_roles = []
-        self.click(self.search(old_name))
-        if new_name and self.wait_until_element(locators['usergroups.name']):
-            self.field_update('usergroups.name', new_name)
+        self.search_and_click(old_name)
+        if new_name:
+            self.assign_value(locators['usergroups.name'], new_name)
         self.configure_entity(
             users, FILTER['usergroup_user'], new_entity_list=new_users)
         if roles or new_roles:
@@ -78,7 +75,6 @@ class UserGroup(Base):
 
     def refresh_ext_group(self, name, ext_group_name):
         """Refresh external usergroup entity"""
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['usergroups.tab_external'])
-        strategy, value = locators['usergroups.ext_refresh']
-        self.click((strategy, value % ext_group_name))
+        self.click(locators['usergroups.ext_refresh'] % ext_group_name)

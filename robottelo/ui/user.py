@@ -62,13 +62,13 @@ class User(Base):
                default_org=None, default_loc=None, select=True, submit=True):
         """Create new user from UI."""
         self.click(locators['users.new'])
-        self.text_field_update(locators['users.username'], username)
+        self.assign_value(locators['users.username'], username)
         if first_name:
-            self.text_field_update(locators['users.firstname'], first_name)
+            self.assign_value(locators['users.firstname'], first_name)
         if last_name:
-            self.text_field_update(locators['users.lastname'], last_name)
+            self.assign_value(locators['users.lastname'], last_name)
         if email:
-            self.text_field_update(locators['users.email'], email)
+            self.assign_value(locators['users.email'], email)
         if timezone:
             self.select(locators['users.timezone_dropdown'], timezone)
         if locale:
@@ -76,10 +76,11 @@ class User(Base):
         if authorized_by:
             self.select(locators['users.authorized_by'], authorized_by)
             if self.wait_until_element(locators['users.password']):
-                self.field_update('users.password', password1)
+                self.assign_value(locators['users.password'], password1)
             if self.wait_until_element(
                     locators['users.password_confirmation']):
-                self.field_update('users.password_confirmation', password2)
+                self.assign_value(
+                    locators['users.password_confirmation'], password2)
         if edit:
             self._configure_user(
                 roles=roles,
@@ -115,13 +116,13 @@ class User(Base):
         """Update user related fields from UI"""
         self.click(self.search(username))
         if new_username:
-            self.field_update('users.username', new_username)
+            self.assign_value(locators['users.username'], new_username)
         if email:
-            self.field_update('users.email', email)
+            self.assign_value(locators['users.email'], email)
         if first_name:
-            self.field_update('users.firstname', first_name)
+            self.assign_value(locators['users.firstname'], first_name)
         if last_name:
-            self.field_update('users.lastname', last_name)
+            self.assign_value(locators['users.lastname'], last_name)
         if locale:
             self.select(locators['users.language_dropdown'], locale)
         if timezone:
@@ -129,9 +130,9 @@ class User(Base):
         if authorized_by:
             self.select(locators['users.authorized_by'], authorized_by)
         if new_password:
-            self.text_field_update(locators['users.password'], new_password)
+            self.assign_value(locators['users.password'], new_password)
         if password_confirmation:
-            self.text_field_update(
+            self.assign_value(
                 locators['users.password_confirmation'], password_confirmation)
         self._configure_user(
             roles=roles,
@@ -185,9 +186,8 @@ class User(Base):
                 'Unable to find the username "{0}".'.format(username)
             )
         if validate_index_page:
-            strategy, value = locators['users.table_value']
             searched = self.wait_until_element(
-                (strategy, value % field_value))
+                locators['users.table_value'] % field_value)
             if searched is None:
                 raise UINoSuchElementError(
                     'User "{0}" field in the table has not "{1}" value.'

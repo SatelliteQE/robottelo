@@ -14,23 +14,23 @@ class ContentViews(Base):
     """Manipulates Content Views from UI"""
     is_katello = True
 
+    def navigate_to_entity(self):
+        """Navigate to Content Views entity page"""
+        Navigator(self.browser).go_to_content_views()
+
+    def _search_locator(self):
+        """Specify locator for Content Views entity search procedure"""
+        return locators["contentviews.key_name"]
+
     def go_to_filter_page(self, cv_name, filter_name):
         """Navigates UI to selected Filter page"""
-        element = self.search(cv_name)
-        if not element:
-            raise UIError(
-                'Could not find the selected CV "{0}"'.format(cv_name)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_content'])
         self.click(locators['contentviews.content_filters'])
-        self.text_field_update(
+        self.assign_value(
             locators['contentviews.search_filters'], filter_name)
         self.click(locators['contentviews.search_button'])
-        strategy, value = locators['contentviews.select_filter_name']
-        self.click((strategy, value % filter_name))
+        self.click(locators['contentviews.select_filter_name'] % filter_name)
 
     def set_calendar_date_value(self, name, value):
         """Set the input value of a date field and press the button to hide
@@ -47,25 +47,15 @@ class ContentViews(Base):
     def create(self, name, label=None, description=None, is_composite=False):
         """Creates a content view"""
         self.click(locators['contentviews.new'])
-
-        if not self.wait_until_element(common_locators['name']):
-            raise UIError(
-                'Could not create new content view "{0}"'.format(name)
-            )
-
-        self.find_element(
-            common_locators['name']).send_keys(name)
+        self.assign_value(common_locators['name'], name)
         timeout = 60 if len(name) > 50 else 30
         self.wait_for_ajax(timeout)
-
         if label is not None:
-            self.find_element(common_locators['label']).send_keys(label)
+            self.assign_value(common_locators['label'], label)
         if description is not None:
-            self.find_element(
-                common_locators['description']).send_keys(description)
+            self.assign_value(common_locators['description'], description)
         if is_composite:
             self.click(locators['contentviews.composite'])
-        self.wait_for_ajax()
         self.click(common_locators['create'])
 
     def delete(self, name, really=True):
@@ -80,59 +70,33 @@ class ContentViews(Base):
         """Move affected components to another environment or content view.
         Activation keys and content hosts are examples of affected components.
         """
-        strategy, value = locators['contentviews.change_env']
-        self.click((strategy, value % env))
+        self.click(locators['contentviews.change_env'] % env)
         self.select(locators['contentviews.change_cv'], cv)
         self.click(locators['contentviews.next_button'])
 
     def delete_version(self, name, version):
         """Deletes published content view's version"""
-        self.click(self.search(name))
-        strategy, value = locators['contentviews.remove_ver']
-        self.click((strategy, value % version))
+        self.search_and_click(name)
+        self.click(locators['contentviews.remove_ver'] % version)
         self.click(locators['contentviews.completely_remove_checkbox'])
         self.click(locators['contentviews.next_button'])
         self.click(locators['contentviews.confirm_remove_ver'])
 
-    def navigate_to_entity(self):
-        """Navigate to ContentViews entity page"""
-        Navigator(self.browser).go_to_content_views()
-
-    def _search_locator(self):
-        """Specify locator for ContentViews entity search procedure"""
-        return locators["contentviews.key_name"]
-
     def search_filter(self, cv_name, filter_name):
         """Uses search box to locate the filters"""
-        element = self.search(cv_name)
-        if not element:
-            raise UINoSuchElementError(
-                'Could not find the %s content view.' % cv_name)
-
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_content'])
         self.click(locators['contentviews.content_filters'])
-        self.text_field_update(
+        self.assign_value(
             locators['contentviews.search_filters'], filter_name)
-        self.wait_for_ajax()
         self.click(locators['contentviews.search_button'])
-        strategy, value = locators['contentviews.filter_name']
-        element = self.wait_until_element(
-            (strategy, value % filter_name))
-        return element
+        return self.wait_until_element(
+            locators['contentviews.filter_name'] % filter_name)
 
     def update(self, name, new_name=None, new_description=None):
         """Updates an existing content view"""
-        element = self.search(name)
-
-        if element is None:
-            raise UINoSuchElementError(
-                'Could not update the content view {0}'.format(name))
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(name)
         self.click(tab_locators['contentviews.tab_details'])
-
         if new_name:
             self.edit_entity(
                 locators['contentviews.edit_name'],
@@ -155,14 +119,7 @@ class ContentViews(Base):
         When 'add_repo' Flag is set then add_repository will be performed,
         otherwise remove_repository
         """
-        element = self.search(cv_name)
-        if not element:
-            raise UIError(
-                'Could not find the selected CV "{0}"'.format(cv_name)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(cv_name)
         if repo_type == 'yum':
             self.click(tab_locators['contentviews.tab_content'])
             self.click(locators['contentviews.content_repo'])
@@ -170,36 +127,26 @@ class ContentViews(Base):
             self.click(tab_locators['contentviews.tab_docker_content'])
         elif repo_type == 'ostree':
             self.click(tab_locators['contentviews.tab_ostree_content'])
-        strategy, value = locators['contentviews.select_repo']
+        locator = locators['contentviews.select_repo']
         for repo_name in repo_names:
             if add_repo:
                 self.click(tab_locators['contentviews.tab_repo_add'])
             else:
                 self.click(tab_locators['contentviews.tab_repo_remove'])
-            self.text_field_update(
+            self.assign_value(
                 locators['contentviews.repo_search'], repo_name)
-            element = self.wait_until_element(
-                (strategy, value % repo_name))
-            if not element:
-                raise UIError(
-                    'Could not find repo "{0}" to add into CV'
-                    .format(repo_name)
-                )
-            element.click()
-            self.wait_for_ajax()
+            self.click(locator % repo_name)
             if add_repo:
                 self.click(locators['contentviews.add_repo'])
                 self.click(tab_locators['contentviews.tab_repo_remove'])
-                element = self.wait_until_element(
-                    (strategy, value % repo_name))
+                element = self.wait_until_element(locator % repo_name)
                 if element is None:
                     raise UINoSuchElementError(
                         "Adding repo {0} failed".format(repo_name))
             else:
                 self.click(locators['contentviews.remove_repo'])
                 self.click(tab_locators['contentviews.tab_repo_add'])
-                element = self.wait_until_element(
-                    (strategy, value % repo_name))
+                element = self.wait_until_element(locator % repo_name)
                 if element is None:
                     raise UINoSuchElementError(
                         "Removing repo {0} fails".format(repo_name))
@@ -226,7 +173,7 @@ class ContentViews(Base):
         """Publishes to create new version of CV and promotes the contents to
         'Library' environment
         """
-        self.click(self.search(cv_name))
+        self.search_and_click(cv_name)
         self.click(locators['contentviews.publish'])
         version_label = self.wait_until_element(
             locators['contentviews.ver_label'])
@@ -235,9 +182,8 @@ class ContentViews(Base):
         # To fetch the publish version e.g. 'Version 1'
         version = '{0} {1}'.format(version_label.text, version_number.text)
         if comment:
-            self.find_element(
-                locators['contentviews.publish_comment']
-            ).send_keys(comment)
+            self.assign_value(
+                locators['contentviews.publish_comment'], comment)
         self.click(common_locators['create'])
         self.check_progress_bar_status(version)
         return version
@@ -245,12 +191,10 @@ class ContentViews(Base):
     def promote(self, cv_name, version, env):
         """Promotes the selected version of content-view to given environment.
         """
-        self.click(self.search(cv_name))
+        self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_versions'])
-        strategy, value = locators['contentviews.promote_button']
-        self.click((strategy, value % version))
-        strategy, value = locators['contentviews.env_to_promote']
-        self.click((strategy, value % env))
+        self.click(locators['contentviews.promote_button'] % version)
+        self.click(locators['contentviews.env_to_promote'] % env)
         self.click(locators['contentviews.promote_version'])
         self.check_progress_bar_status(version)
 
@@ -261,29 +205,27 @@ class ContentViews(Base):
         Filter_term can be used to filter the module by 'author'
         or by 'version'.
         """
-        self.click(self.search(cv_name))
+        self.search_and_click(cv_name)
         if self.wait_until_element(
                 tab_locators['contentviews.tab_puppet_modules']):
             self.click(tab_locators['contentviews.tab_puppet_modules'])
         else:
             raise UIError('Could not find tab to add puppet_modules')
         self.click(locators['contentviews.add_module'])
-        self.text_field_update(
+        self.assign_value(
             locators['contentviews.search_filters'], module_name)
         self.click(locators['contentviews.search_button'])
-        strategy, value = locators['contentviews.select_module']
-        self.click((strategy, value % module_name))
-        self.text_field_update(
+        self.click(locators['contentviews.select_module'] % module_name)
+        self.assign_value(
             locators['contentview.version_filter'], filter_term)
-        strategy, value = locators['contentviews.select_module_ver']
-        self.click((strategy, value % filter_term))
+        self.click(locators['contentviews.select_module_ver'] % filter_term)
 
     def add_remove_cv(self, composite_cv, cv_names, is_add=True):
         """Add or Remove content-views to/from selected composite view.
         When 'is_add' Flag is set then add_contentView will be performed,
         otherwise remove_contentView
         """
-        self.click(self.search(composite_cv))
+        self.search_and_click(composite_cv)
         if self.wait_until_element(
                 tab_locators['contentviews.tab_content_views']):
             self.click(tab_locators['contentviews.tab_content_views'])
@@ -297,21 +239,19 @@ class ContentViews(Base):
                 self.click(tab_locators['contentviews.tab_cv_add'])
             else:
                 self.click(tab_locators['contentviews.tab_cv_remove'])
-            strategy, value = locators['contentviews.select_cv']
-            self.click((strategy, value % cv_name))
+            locator = locators['contentviews.select_cv']
+            self.click(locator % cv_name)
             if is_add:
                 self.click(locators['contentviews.add_cv'])
                 self.click(tab_locators['contentviews.tab_cv_remove'])
-                element = self.wait_until_element(
-                    (strategy, value % cv_name))
+                element = self.wait_until_element(locator % cv_name)
                 if element is None:
                     raise UINoSuchElementError(
                         "Adding CV {0} failed".format(cv_name))
             else:
                 self.click(locators['contentviews.remove_cv'])
                 self.click(tab_locators['contentviews.tab_cv_add'])
-                element = self.wait_until_element(
-                    (strategy, value % cv_name))
+                element = self.wait_until_element(locator % cv_name)
                 if element is None:
                     raise UINoSuchElementError(
                         "Removing CV {0} fails".format(cv_name))
@@ -321,22 +261,11 @@ class ContentViews(Base):
         """Creates content-view filter of given 'type'(include/exclude) and
         'content-type'(package/package-group/errata)
         """
-        element = self.search(cv_name)
-        if not element:
-            raise UIError(
-                'Could not find the content view "{0}"'.format(cv_name)
-            )
-
-        element.click()
+        self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_content'])
         self.click(locators['contentviews.content_filters'])
         self.click(locators['contentviews.new_filter'])
-
-        if not self.wait_until_element(common_locators['name']):
-            raise UIError('Could not create filter without name')
-
-        self.find_element(
-            common_locators['name']).send_keys(filter_name)
+        self.assign_value(common_locators['name'], filter_name)
         if content_type:
             self.select(locators['contentviews.content_type'], content_type)
         else:
@@ -351,20 +280,12 @@ class ContentViews(Base):
                 'type'
             )
         if description:
-            self.find_element(
-                common_locators['description']).send_keys(description)
+            self.assign_value(common_locators['description'], description)
         self.click(common_locators['create'])
 
     def remove_filter(self, cv_name, filter_names):
         """Removes selected filter from selected content-view."""
-        element = self.search(cv_name)
-        if not element:
-            raise UIError(
-                'Could not find the content view "{0}"'.format(cv_name)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_content'])
         self.click(locators['contentviews.content_filters'])
 
@@ -372,10 +293,9 @@ class ContentViews(Base):
         # from search box
         self.find_element(locators['contentviews.search_filters']).clear()
         self.click(locators['contentviews.search_button'])
-
-        strategy, value = locators['contentviews.select_filter_checkbox']
         for filter_name in filter_names:
-            self.click((strategy, value % filter_name))
+            self.click(
+                locators['contentviews.select_filter_checkbox'] % filter_name)
         self.click(locators['contentviews.remove_filter'])
 
     def select_package_version_value(
@@ -390,19 +310,19 @@ class ContentViews(Base):
         versions.
         """
         if version_type == 'Equal To':
-            self.find_element(
-                locators['contentviews.equal_value']).send_keys(value1)
+            self.assign_value(
+                locators['contentviews.equal_value'], value1)
         elif version_type == 'Greater Than':
-            self.find_element(
-                locators['contentviews.greater_min_value']).send_keys(value1)
+            self.assign_value(
+                locators['contentviews.greater_min_value'], value1)
         elif version_type == 'Less Than':
-            self.find_element(
-                locators['contentviews.less_max_value']).send_keys(value1)
+            self.assign_value(
+                locators['contentviews.less_max_value'], value1)
         elif version_type == 'Range':
-            self.find_element(
-                locators['contentviews.greater_min_value']).send_keys(value1)
-            self.find_element(
-                locators['contentviews.less_max_value']).send_keys(value2)
+            self.assign_value(
+                locators['contentviews.greater_min_value'], value1)
+            self.assign_value(
+                locators['contentviews.less_max_value'], value2)
         else:
             raise UIError('Could not find valid version type')
 
@@ -412,9 +332,8 @@ class ContentViews(Base):
         self.go_to_filter_page(cv_name, filter_name)
         for package_name, version_type, value, max_value in zip(
                 package_names, version_types, values, max_values):
-            self.find_element(
-                locators['contentviews.input_pkg_name']
-            ).send_keys(package_name)
+            self.assign_value(
+                locators['contentviews.input_pkg_name'], package_name)
             self.select(
                 locators['contentviews.select_pkg_version'], version_type)
             if not version_type == 'All Versions':
@@ -538,9 +457,11 @@ class ContentViews(Base):
             self.click(tab_locators['contentviews.tab_pkg_group_add'])
         else:
             self.click(tab_locators['contentviews.tab_pkg_group_remove'])
-        strategy, value = locators['contentviews.select_pkg_group_checkbox']
         for package_group in package_groups:
-            self.click((strategy, value % package_group))
+            self.click(
+                locators['contentviews.select_pkg_group_checkbox']
+                % package_group
+            )
         if is_add:
             self.click(locators['contentviews.add_pkg_group'])
         else:
@@ -554,9 +475,9 @@ class ContentViews(Base):
             self.click(tab_locators['contentviews.tab_add'])
         else:
             self.click(tab_locators['contentviews.tab_remove'])
-        strategy, value = locators['contentviews.select_errata_checkbox']
         for errata_id in errata_ids:
-            self.click((strategy, value % errata_id))
+            self.click(
+                locators['contentviews.select_errata_checkbox'] % errata_id)
         if is_add:
             self.click(locators['contentviews.add_errata'])
         else:
@@ -608,38 +529,27 @@ class ContentViews(Base):
 
     def fetch_puppet_module(self, cv_name, module_name):
         """Get added puppet module name from selected content-view"""
-        self.click(self.search(cv_name))
+        self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_puppet_modules'])
-        self.text_field_update(
+        self.assign_value(
             locators['contentviews.search_filters'], module_name)
-        strategy, value = locators['contentviews.get_module_name']
-        element = self.wait_until_element(
-            (strategy, value % module_name))
-        return element
+        return self.wait_until_element(
+            locators['contentviews.get_module_name'] % module_name)
 
-    def copy_view(self, name, new_name=None):
+    def copy_view(self, name, new_name):
         """Copies an existing Content View."""
-        cv = self.search(name)
-        if (cv is not None) and (new_name is not None):
-            cv.click()
-            self.wait_for_ajax()
-            self.edit_entity(
-                locators['contentviews.copy'],
-                locators['contentviews.copy_name'],
-                new_name,
-                locators['ak.copy_create']
-            )
-        else:
-            raise UIError('Could not copy the Content View %s .', name)
+        self.search_and_click(name)
+        self.edit_entity(
+            locators['contentviews.copy'],
+            locators['contentviews.copy_name'],
+            new_name,
+            locators['ak.copy_create']
+        )
 
     def fetch_yum_content_repo_name(self, cv_name):
         """Fetch associated yum repository info from selected content view."""
         # find content_view
-        cv = self.search(cv_name)
-        if cv is None:
-            raise UINoSuchElementError('Could not find CV %s', cv_name)
-        cv.click()
-        self.wait_for_ajax()
+        self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_content'])
         self.click(locators['contentviews.yum_repositories'])
         if self.wait_until_element(locators['contentviews.repo_name']):
@@ -650,13 +560,9 @@ class ContentViews(Base):
 
     def validate_version_deleted(self, cv_name, version):
         """Ensures the version is deleted from selected CV"""
-        element = self.search(cv_name)
-        if element is None:
-            raise UINoSuchElementError('Could not find CV %s', cv_name)
-        element.click()
-        self.wait_for_ajax()
-        strategy, value = locators['contentviews.version_name']
-        removed_version = self.find_element((strategy, value % version))
+        self.search_and_click(cv_name)
+        removed_version = self.find_element(
+            locators['contentviews.version_name'] % version)
         if removed_version:
             raise UIError(
                 'Selected version "{0}" was not deleted successfully'
@@ -667,9 +573,8 @@ class ContentViews(Base):
         """Check that version cannot be deleted from selected CV, because it
         has activation key or content host assigned to it
         """
-        self.click(self.search(name))
-        strategy, value = locators['contentviews.remove_ver']
-        self.click((strategy, value % version))
+        self.search_and_click(name)
+        self.click(locators['contentviews.remove_ver'] % version)
         self.click(locators['contentviews.next_button'])
         self.wait_until_element(locators['contentviews.affected_button'])
         self.wait_for_ajax()
@@ -682,7 +587,7 @@ class ContentViews(Base):
 
     def version_search(self, name, version_name):
         """Search for version in content view"""
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['contentviews.tab_versions'])
         if not bz_bug_is_open(1400535):
             self.assign_value(

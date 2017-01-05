@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Monitor->Trends UI"""
 
-from robottelo.ui.base import Base, UIError, UINoSuchElementError
+from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
@@ -26,7 +26,7 @@ class Trend(Base):
             if trendable is not None:
                 self.select(locators['trend.trendable'], trendable)
             if name is not None and trendable is not None:
-                self.find_element(locators['trend.name']).send_keys(name)
+                self.assign_value(locators['trend.name'], name)
 
         self.click(common_locators['submit'])
 
@@ -37,17 +37,9 @@ class Trend(Base):
             raise UIError(
                 'Could not find necessary trend "{0}"'.format(trend_name)
             )
-        strategy, value = locators['trend.edit']
-        self.click((strategy, value % trend_name))
-        strategy, value = locators['trend.edit_entity']
-        txt_fld = self.wait_until_element((strategy, value % entity_name))
-        if txt_fld is None:
-            raise UINoSuchElementError(
-                u'Could not find the entity "{0}" for update procedure.'
-                .format(entity_name)
-            )
-        txt_fld.clear()
-        txt_fld.send_keys(entity_value)
+        self.click(locators['trend.edit'] % trend_name)
+        self.assign_value(
+            locators['trend.edit_entity'] % entity_name, entity_value)
         self.click(common_locators['submit'])
 
     def search(self, tr_type):
@@ -56,11 +48,9 @@ class Trend(Base):
         As we do not have search field for trend UI screen, so it is impossible
         to re-use search functionality that was used for all application
         testing logic.
-
         """
         self.navigate_to_entity()
-        strategy, value = self._search_locator()
-        return self.wait_until_element((strategy, value % tr_type))
+        return self.wait_until_element(self._search_locator() % tr_type)
 
     def delete(self, name, really=True):
         """Deletes the trend."""

@@ -7,6 +7,14 @@ from robottelo.ui.navigator import Navigator
 class Hosts(Base):
     """Provides the CRUD functionality for Host."""
 
+    def navigate_to_entity(self):
+        """Navigate to Hosts entity page"""
+        Navigator(self.browser).go_to_hosts()
+
+    def _search_locator(self):
+        """Specify locator for Hosts entity search procedure"""
+        return locators['host.select_name']
+
     def _configure_hosts_parameters(self, parameters_list):
         """Provide configuration capabilities for host entity generic
         properties.
@@ -40,14 +48,14 @@ class Hosts(Base):
             elif parameter_name == 'Deploy on' and ' (' in parameter_value:
                 self.click(param_locator)
                 # typing compute resource name without parenthesis part
-                self.text_field_update(
+                self.assign_value(
                     common_locators['select_list_search_box'],
                     parameter_value.split(' (')[0]
                 )
-                strategy, value = common_locators['entity_select_list']
                 # selecting compute resource by its full name (with parenthesis
                 # part)
-                self.click((strategy, value % parameter_value))
+                self.click(
+                    common_locators['entity_select_list'] % parameter_value)
                 continue
             self.assign_value(param_locator, parameter_value)
 
@@ -77,11 +85,9 @@ class Hosts(Base):
         tab.
         """
         self.click(tab_locators['host.tab_puppet_classes'])
-        strategy1, value1 = locators['host.select_puppetmodule']
-        strategy2, value2 = locators['host.select_puppetclass']
         for puppet_module in puppet_modules_list:
-            self.click((strategy1, value1 % puppet_module))
-            self.click((strategy2, value2 % puppet_module))
+            self.click(locators['host.select_puppetmodule'] % puppet_module)
+            self.click(locators['host.select_puppetclass'] % puppet_module)
 
     def _add_host_parameters(self, parameters_list):
         """Add new host parameters for 'parameters' tab. Example::
@@ -91,21 +97,20 @@ class Hosts(Base):
 
         """
         self.click(tab_locators['host.tab_params'])
-        strategy1, value1 = locators['host.host_parameter_name']
-        strategy2, value2 = locators['host.host_parameter_value']
         index = 1
         for parameter_name, parameter_value in parameters_list:
             self.click(locators['host.add_new_host_parameter'])
-            self.text_field_update((strategy1, value1 % index), parameter_name)
-            self.text_field_update(
-                (strategy2, value2 % index), parameter_value)
+            self.assign_value(
+                locators['host.host_parameter_name'] % index, parameter_name)
+            self.assign_value(
+                locators['host.host_parameter_value'] % index, parameter_value)
             index += 1
 
     def create(self, name, parameters_list=None, puppet_classes=None,
                interface_parameters=None, host_parameters=None, ):
         """Creates a host."""
         self.click(locators['host.new'])
-        self.text_field_update(locators['host.name'], name)
+        self.assign_value(locators['host.name'], name)
         if parameters_list is not None:
             self._configure_hosts_parameters(parameters_list)
         if puppet_classes is not None:
@@ -124,12 +129,10 @@ class Hosts(Base):
                puppet_classes=None, interface_parameters=None,
                host_parameters=None):
         """Updates a Host."""
-        element = self.search(u'{0}.{1}'.format(name, domain_name))
-        self.click(element)
+        self.search_and_click(u'{0}.{1}'.format(name, domain_name))
         self.click(locators['host.edit'])
         if new_name:
-            self.wait_until_element(locators['host.name'])
-            self.field_update('host.name', new_name)
+            self.assign_value(locators['host.name'], new_name)
         if parameters_list is not None:
             self._configure_hosts_parameters(parameters_list)
         if puppet_classes is not None:
@@ -143,14 +146,6 @@ class Hosts(Base):
         self.wait_until_element_is_not_visible(
             common_locators['modal_background'])
         self.click(common_locators['submit'])
-
-    def navigate_to_entity(self):
-        """Navigate to Hosts entity page"""
-        Navigator(self.browser).go_to_hosts()
-
-    def _search_locator(self):
-        """Specify locator for Hosts entity search procedure"""
-        return locators['host.select_name']
 
     def delete(self, name, really=True):
         """Deletes a host."""
@@ -175,11 +170,9 @@ class Hosts(Base):
             [{'command': 'ls'}]
         """
         for host in hosts:
-            strategy, value = locators['host.checkbox']
-            self.click((strategy, value % host))
+            self.click(locators['host.checkbox'] % host)
         self.click(locators['host.select_action_list'])
-        strategy, value = locators['host.select_action']
-        self.click((strategy, value % action))
+        self.click(locators['host.select_action'] % action)
         if parameters_list:
             for parameter in parameters_list:
                 if action == 'Assign Organization':
@@ -201,7 +194,7 @@ class Hosts(Base):
 
         :param str name: Name of Host to read information from
         """
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(locators['host.yaml_button'])
         output = self.wait_until_element(locators['host.yaml_output']).text
         self.browser.back()
@@ -232,7 +225,7 @@ class Hosts(Base):
         :param bool override: Specify whether it is expected to override smart
             value or just edit its value
         """
-        self.click(self.search(host_name))
+        self.search_and_click(host_name)
         self.click(locators['host.edit'])
         self.click(tab_locators['host.tab_params'])
         if override:

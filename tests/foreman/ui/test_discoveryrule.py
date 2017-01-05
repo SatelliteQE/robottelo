@@ -824,11 +824,12 @@ class DiscoveryRuleRoleTestCase(UITestCase):
             self.assertIsNotNone(element)
             # With non-admin user, delete button won't be visible on webUI
             with self.assertRaises(UINoSuchElementError):
-                drop_locator = locators['discoveryrules.dropdown']
-                self.discoveryrules.click((drop_locator % self.rule_name))
-                del_locator = locators['discoveryrules.rule_delete']
                 self.discoveryrules.click(
-                    (del_locator % self.rule_name), wait_for_ajax=False)
+                    locators['discoveryrules.dropdown'] % self.rule_name)
+                self.discoveryrules.click(
+                    locators['discoveryrules.rule_delete'] % self.rule_name,
+                    wait_for_ajax=False
+                )
                 self.handle_alert(really=True)
 
     @run_only_on('sat')

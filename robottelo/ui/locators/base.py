@@ -1093,7 +1093,7 @@ locators = LocatorDict({
     "puppetclass.update": (
         By.XPATH, "//input[@value='Update']"),
     "puppetclass.paramfilter": (
-        By.XPATH, "//input[contains(@placeholder,'Filter')]"),
+        By.XPATH, "//input[contains(@placeholder,'Filter by name')]"),
     "puppetclass.param_description": (
         By.XPATH, "//textarea[contains(@id,'description')]"),
     "puppetclass.cancel": (

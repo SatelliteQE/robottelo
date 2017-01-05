@@ -1,6 +1,6 @@
 """Implements Puppet Classes UI"""
 
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -19,25 +19,18 @@ class PuppetClasses(Base):
     def create(self, name, environment=None):
         """Creates the Puppet-classes."""
         self.click(locators['puppetclass.new'])
-        if self.wait_until_element(locators['puppetclass.name']):
-            self.find_element(locators['puppetclass.name']).send_keys(name)
-        if environment:
-            self.find_element(
-                locators['puppetclass.environments']).send_keys(environment)
+        self.assign_value(locators['puppetclass.name'], name)
+        self.assign_value(locators['puppetclass.environments'], environment)
         self.click(common_locators['submit'])
 
     def update(self, old_name, new_name=None, new_env=None):
         """Updates the Puppet-classes."""
-        element = self.search(old_name)
-        if element:
-            element.click()
-            if (self.wait_until_element(locators['puppetclass.name']) and
-               new_name):
-                self.field_update('puppetclass.name', new_name)
-            if new_env:
-                self.text_field_update(locators['puppetclass.environments'],
-                                       new_env)
-            self.click(common_locators['submit'])
+        self.search_and_click(old_name)
+        if new_name:
+            self.assign_value(locators['puppetclass.name'], new_name)
+        if new_env:
+            self.assign_value(locators['puppetclass.environments'], new_env)
+        self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
         """Deletes the puppet-classes."""
@@ -59,48 +52,28 @@ class PuppetClasses(Base):
         else:
             self.click(locators['puppetclass.cancel'])
 
-    def update_class_parameter_description(
+    def update_class_parameter(
             self, class_name=None, parameter_name=None, description=None):
-        """Updates the description field of a given puppet class parameter."""
-        puppet_class = self.search(class_name)
-        if puppet_class is None:
-            raise UINoSuchElementError(
-                "Couldn't find the puppet class '{0}'.".format(class_name)
-            )
-        puppet_class.click()
-        if self.wait_until_element(tab_locators['puppetclass.parameters']):
-            self.click(tab_locators['puppetclass.parameters'])
-        if self.wait_until_element(
-            locators['puppetclass.paramfilter']
-        ) and parameter_name:
-            self.field_update('puppetclass.paramfilter', parameter_name)
-        if self.wait_until_element(
-            locators['puppetclass.param_description']
-        ) and description:
-            self.field_update('puppetclass.param_description', description)
+        """Updates given puppet class parameter."""
+        self.search_and_click(class_name)
+        self.click(tab_locators['puppetclass.parameters'])
+        if parameter_name:
+            self.assign_value(
+                locators['puppetclass.paramfilter'], parameter_name)
+        if description:
+            self.assign_value(
+                locators['puppetclass.param_description'], description)
         self.click(common_locators['submit'])
 
     def fetch_class_parameter_description(
             self, class_name=None, parameter_name=None):
         """Fetches the description of a given puppet class parameter."""
-        description = None
-        puppet_class = self.search(class_name)
-        if puppet_class is None:
-            raise UINoSuchElementError(
-                "Couldn't find the puppet class '{0}'.".format(class_name)
-            )
-        puppet_class.click()
-        self.wait_for_ajax()
+        self.search_and_click(class_name)
         self.click(tab_locators['puppetclass.parameters'])
-        if self.wait_until_element(
-            locators['puppetclass.paramfilter']
-        ) and parameter_name:
-            self.field_update('puppetclass.paramfilter', parameter_name)
-        if self.wait_until_element(
-            locators['puppetclass.param_description']
-        ):
-            description = self.find_element(
-                locators['puppetclass.param_description']
-            ).text
+        if parameter_name:
+            self.assign_value(
+                locators['puppetclass.paramfilter'], parameter_name)
+        description = self.wait_until_element(
+            locators['puppetclass.param_description']).text
         self.click(locators['puppetclass.cancel'])
         return description

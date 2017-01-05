@@ -202,7 +202,6 @@ class UserTestCase(UITestCase):
 
         @Assert: User is created successfully
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         role = entities.Role().create()
         with Session(self.browser) as session:
@@ -210,7 +209,7 @@ class UserTestCase(UITestCase):
             self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             element = self.user.wait_until_element(
-                (strategy, value % role.name))
+                common_locators['entity_deselect'] % role.name)
             self.assertIsNotNone(element)
 
     @tier2
@@ -223,7 +222,6 @@ class UserTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         role1 = gen_string('alpha')
         role2 = gen_string('alpha')
@@ -234,9 +232,10 @@ class UserTestCase(UITestCase):
             self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in [role1, role2]:
-                element = self.user.wait_until_element(
-                    (strategy, value % role))
-                self.assertIsNotNone(element)
+                self.assertIsNotNone(
+                    self.user.wait_until_element(
+                        common_locators['entity_deselect'] % role
+                    ))
 
     @tier2
     def test_positive_create_with_all_roles(self):
@@ -248,7 +247,6 @@ class UserTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name, roles=ROLES, edit=True)
@@ -256,7 +254,7 @@ class UserTestCase(UITestCase):
             self.user.click(tab_locators['users.tab_roles'])
             for role in ROLES:
                 self.assertIsNotNone(self.user.wait_until_element(
-                    (strategy, value % role)))
+                    common_locators['entity_deselect'] % role))
 
     @tier1
     def test_positive_create_with_one_org(self):
@@ -266,7 +264,6 @@ class UserTestCase(UITestCase):
 
         @Assert: User is created successfully
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         org_name = gen_string('alpha')
         entities.Organization(name=org_name).create()
@@ -276,7 +273,7 @@ class UserTestCase(UITestCase):
             self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element(
-                (strategy, value % org_name))
+                common_locators['entity_deselect'] % org_name)
             self.assertIsNotNone(element)
 
     @tier2
@@ -289,7 +286,6 @@ class UserTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         org_name1 = gen_string('alpha')
         org_name2 = gen_string('alpha')
@@ -303,11 +299,11 @@ class UserTestCase(UITestCase):
                 organizations=[org_name1, org_name2],
                 edit=True,
             )
-            self.user.click(self.user.search(name))
+            self.user.search_and_click(name)
             self.user.click(tab_locators['users.tab_organizations'])
             for org_name in [org_name1, org_name2, DEFAULT_ORG]:
                 element = self.user.wait_until_element(
-                    (strategy, value % org_name))
+                    common_locators['entity_deselect'] % org_name)
                 self.assertIsNotNone(element)
 
     @tier1
@@ -318,17 +314,16 @@ class UserTestCase(UITestCase):
 
         @Assert: User is created with default Org selected.
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         org_name = gen_string('alpha')
         entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True, default_org=org_name)
-            self.user.click(self.user.search(name))
+            self.user.search_and_click(name)
             self.user.click(tab_locators['users.tab_organizations'])
             element = session.nav.wait_until_element(
-                (strategy, value % org_name))
+                common_locators['entity_deselect'] % org_name)
             self.assertIsNotNone(element)
             # Check that default organization value was really chosen
             self.assertEqual(org_name, session.nav.find_element(
@@ -342,17 +337,16 @@ class UserTestCase(UITestCase):
 
         @Assert: User is created with default Location selected.
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         loc_name = gen_string('alpha')
         entities.Location(name=loc_name).create()
         with Session(self.browser) as session:
             make_user(session, username=name, locations=[loc_name],
                       edit=True, default_loc=loc_name)
-            self.user.click(self.user.search(name))
+            self.user.search_and_click(name)
             self.user.click(tab_locators['users.tab_locations'])
             element = session.nav.wait_until_element(
-                (strategy, value % loc_name))
+                common_locators['entity_deselect'] % loc_name)
             self.assertIsNotNone(element)
             # Check that default location value was really chosen
             self.assertEqual(loc_name, session.nav.find_element(
@@ -661,7 +655,6 @@ class UserTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         role_names = [
             entities.Role().create().name
@@ -670,11 +663,13 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=role_names)
-            self.user.click(self.user.search(name))
+            self.user.search_and_click(name)
             self.user.click(tab_locators['users.tab_roles'])
             for role in role_names:
                 self.assertIsNotNone(
-                    self.user.wait_until_element((strategy, value % role)))
+                    self.user.wait_until_element(
+                        common_locators['entity_deselect'] % role)
+                )
 
     @tier2
     def test_positive_update_with_all_roles(self):
@@ -686,16 +681,17 @@ class UserTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=ROLES)
-            self.user.click(self.user.search(name))
+            self.user.search_and_click(name)
             self.user.click(tab_locators['users.tab_roles'])
             for role in ROLES:
                 self.assertIsNotNone(
-                    self.user.wait_until_element((strategy, value % role)))
+                    self.user.wait_until_element(
+                        common_locators['entity_deselect'] % role)
+                )
 
     @tier1
     def test_positive_update_org(self):
@@ -705,17 +701,16 @@ class UserTestCase(UITestCase):
 
         @Assert: User is updated successfully
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         org_name = gen_string('alpha')
         entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_organizations=[org_name])
-            self.user.click(self.user.search(name))
+            self.user.search_and_click(name)
             self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element(
-                (strategy, value % org_name))
+                common_locators['entity_deselect'] % org_name)
             self.assertIsNotNone(element)
 
     @tier2
@@ -728,7 +723,6 @@ class UserTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         org_names = [
             entities.Organization().create().name
@@ -741,7 +735,9 @@ class UserTestCase(UITestCase):
             self.user.click(tab_locators['users.tab_organizations'])
             for org in org_names:
                 self.assertIsNotNone(
-                    self.user.wait_until_element((strategy, value % org)))
+                    self.user.wait_until_element(
+                        common_locators['entity_deselect'] % org)
+                )
 
     @tier1
     def test_negative_update_username(self):

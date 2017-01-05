@@ -22,10 +22,8 @@ class OpenScapContent(Base):
                content_org=None, content_loc=None):
         """Creates new oscap Content from UI"""
         self.click(locators['oscap.upload_content'])
-        self.text_field_update(locators['oscap.content_title'], name)
-        self.wait_until_element(
-            locators['oscap.content_path']
-        ).send_keys(content_path)
+        self.assign_value(locators['oscap.content_title'], name)
+        self.assign_value(locators['oscap.content_path'], content_path)
         if content_org:
             self.click(tab_locators['tab_org'])
             self.configure_entity([content_org], FILTER['oscap_org'])
@@ -48,8 +46,7 @@ class OpenScapContent(Base):
         element = self.search(name)
         if not element:
             raise UIError(u'Could not find oscap content {0}'.format(name))
-        strategy, value = locators['oscap.content_edit']
-        self.click((strategy, value % name))
+        self.click(locators['oscap.content_edit'] % name)
         if content_org:
             self.click(tab_locators['tab_org'])
             self.configure_entity([content_org], FILTER['oscap_org'])

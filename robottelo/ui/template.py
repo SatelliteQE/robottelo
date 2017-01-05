@@ -17,17 +17,12 @@ class Template(Base):
         """Specify locator for Template entity search procedure"""
         return locators['provision.template_select']
 
-    def create(self, name, template_path=None, custom_really=None,
+    def create(self, name, template_path, custom_really=None,
                audit_comment=None, template_type=None, snippet=None,
                os_list=None):
         """Creates a provisioning template from UI."""
         self.click(locators['provision.template_new'])
-        self.wait_until_element(
-            locators['provision.template_name']).send_keys(name)
-        if not template_path:
-            raise UIError(
-                u'Could not create blank template "{0}"'.format(name)
-            )
+        self.assign_value(locators['provision.template_name'], name)
         self.click(tab_locators['tab_primary'])
         self.wait_until_element(
             locators['provision.template_template']
@@ -35,9 +30,8 @@ class Template(Base):
         self.handle_alert(custom_really)
         self.scroll_page()
         if audit_comment:
-            self.wait_until_element(
-                locators['provision.audit_comment']
-            ).send_keys(audit_comment)
+            self.assign_value(
+                locators['provision.audit_comment'], audit_comment)
         if template_type:
             self.click(tab_locators['provision.tab_type'])
             self.select(locators['provision.template_type'], template_type)
@@ -59,9 +53,9 @@ class Template(Base):
                template_path=None, template_type=None,
                os_list=None, new_os_list=None, clone=False):
         """Updates a given template."""
-        self.click(self.search(name))
+        self.search_and_click(name)
         if new_name:
-            self.field_update('provision.template_name', new_name)
+            self.assign_value(locators['provision.template_name'], new_name)
         if template_path:
             self.wait_until_element(
                 locators['provision.template_template']
@@ -72,7 +66,7 @@ class Template(Base):
             self.select(locators['provision.template_type'], template_type)
         if clone:
             self.click(locators['provision.template_clone'])
-            self.field_update('provision.template_name', new_name)
+            self.assign_value(locators['provision.template_name'], new_name)
         self.configure_entity(
             os_list,
             FILTER['template_os'],
@@ -93,7 +87,7 @@ class Template(Base):
                 u'Could not clone provisioning template "{0}"'
                 .format(name)
             )
-        self.field_update('provision.template_name', clone_name)
+        self.assign_value(locators['provision.template_name'], clone_name)
         if template_path:
             self.find_element(
                 locators['provision.template_template']

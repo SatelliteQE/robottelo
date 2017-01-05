@@ -75,7 +75,7 @@ class SyncPlanTestCase(UITestCase):
             presence. Delay between each attempt is 10 seconds. Default is 10
             attempts.
         """
-        self.products.search(product).click()
+        self.products.search_and_click(product)
         for _ in range(max_attempts):
             try:
                 for content in content_types:

@@ -42,8 +42,8 @@ class MediumTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
-                    make_media(session, name=name, path=path,
-                               os_family='Red Hat')
+                    make_media(
+                        session, name=name, path=path, os_family='Red Hat')
                     self.assertIsNotNone(self.medium.search(name))
 
     @run_only_on('sat')
@@ -76,8 +76,8 @@ class MediumTestCase(UITestCase):
         with Session(self.browser) as session:
             for name in '', '  ':
                 with self.subTest(name):
-                    make_media(session, name=name, path=path,
-                               os_family='Red Hat')
+                    make_media(
+                        session, name=name, path=path, os_family='Red Hat')
                     self.assertIsNotNone(
                         self.medium.wait_until_element(
                             common_locators['name_haserror'])

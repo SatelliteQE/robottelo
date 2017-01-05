@@ -135,8 +135,7 @@ class JobTemplate(Base):
             self, name, clone_name, template_content=None, template_type=None):
         """Clones a given job template."""
         self.search(name)
-        strategy, value = locators['job.template_dropdown']
-        self.click((strategy, value % name))
+        self.click(locators['job.template_dropdown'] % name)
         self.click(locators['job.template_clone'])
         self.assign_value(locators['job.template_name'], clone_name)
         if template_content:

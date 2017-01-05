@@ -138,7 +138,6 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             make_partitiontable(
                 session,
@@ -148,11 +147,12 @@ class PartitionTableTestCase(UITestCase):
             )
             self.assertIsNotNone(self.partitiontable.search(name))
             entities.Organization(name=org_name).create()
-            session.nav.click(self.org.search(org_name))
+            self.org.search_and_click(org_name)
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(
-                session.nav.wait_until_element((strategy1, value1 % name))
+                session.nav.wait_until_element(
+                    common_locators['entity_deselect'] % name)
             )
 
     @run_only_on('sat')
@@ -170,7 +170,6 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
-        strategy1, value1 = common_locators['entity_select']
         with Session(self.browser) as session:
             make_partitiontable(
                 session,
@@ -180,11 +179,12 @@ class PartitionTableTestCase(UITestCase):
             )
             self.assertIsNotNone(self.partitiontable.search(name))
             entities.Organization(name=org_name).create()
-            session.nav.click(self.org.search(org_name))
+            self.org.search_and_click(org_name)
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'All Items' list and not Selected Items' list.
             self.assertIsNotNone(
-                session.nav.wait_until_element((strategy1, value1 % name))
+                session.nav.wait_until_element(
+                    common_locators['entity_select'] % name)
             )
 
     @run_only_on('sat')
@@ -202,7 +202,6 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         loc_name = gen_string('alpha')
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             make_partitiontable(
                 session,
@@ -212,11 +211,12 @@ class PartitionTableTestCase(UITestCase):
             )
             self.assertIsNotNone(self.partitiontable.search(name))
             entities.Location(name=loc_name).create()
-            session.nav.click(self.location.search(loc_name))
+            self.location.search_and_click(loc_name)
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(
-                session.nav.wait_until_element((strategy1, value1 % name))
+                session.nav.wait_until_element(
+                    common_locators['entity_deselect'] % name)
             )
 
     @run_only_on('sat')
@@ -234,7 +234,6 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
-        strategy1, value1 = common_locators['entity_select']
         with Session(self.browser) as session:
             make_partitiontable(
                 session,
@@ -244,11 +243,12 @@ class PartitionTableTestCase(UITestCase):
             )
             self.assertIsNotNone(self.partitiontable.search(name))
             entities.Location(name=org_name).create()
-            session.nav.click(self.location.search(org_name))
+            self.location.search_and_click(org_name)
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'All Items' list and not Selected Items' list.
             self.assertIsNotNone(
-                session.nav.wait_until_element((strategy1, value1 % name))
+                session.nav.wait_until_element(
+                    common_locators['entity_select'] % name)
             )
 
     @run_only_on('sat')
@@ -299,8 +299,8 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 os_family=os_family,
             )
-            self.assertIsNotNone(self.partitiontable.wait_until_element
-                                 (common_locators['name_haserror']))
+            self.assertIsNotNone(self.partitiontable.wait_until_element(
+                common_locators['name_haserror']))
 
     @run_only_on('sat')
     @tier1
@@ -315,8 +315,8 @@ class PartitionTableTestCase(UITestCase):
         with Session(self.browser) as session:
             make_partitiontable(
                 session, name=name, template_path='', os_family='Red Hat')
-            self.assertIsNotNone(self.partitiontable.wait_until_element
-                                 (common_locators['haserror']))
+            self.assertIsNotNone(self.partitiontable.wait_until_element(
+                common_locators['haserror']))
             self.assertIsNone(self.partitiontable.search(name))
 
     @run_only_on('sat')

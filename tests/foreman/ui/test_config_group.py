@@ -77,12 +77,13 @@ class ConfigGroupTestCase(UITestCase):
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
+            make_config_groups(session, name=name)
+            self.assertIsNotNone(self.configgroups.search(name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
-                    make_config_groups(session, name=name)
-                    self.assertIsNotNone(self.configgroups.search(name))
                     self.configgroups.update(name, new_name)
                     self.assertIsNotNone(self.configgroups.search(new_name))
+                    name = new_name
 
     @run_only_on('sat')
     @tier1

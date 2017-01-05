@@ -26,20 +26,21 @@ class LdapAuthSource(Base):
             return
         self.click(locators['ldapsource.new'])
         if self.wait_until_element(locators['ldapserver.name']):
-            self.field_update('ldapserver.name', name)
-            self.field_update('ldapserver.server', server)
+            self.assign_value(locators['ldapserver.name'], name)
+            self.assign_value(locators['ldapserver.server'], server)
             if ldaps:
                 self.click(locators['ldapserver.ldaps'])
             if port:
-                self.field_update('ldapserver.port', port)
+                self.assign_value(locators['ldapserver.port'], port)
             self.select(locators['ldapserver.server_type'], server_type)
         self.click(tab_locators['ldapserver.tab_account'])
         if self.wait_until_element(locators['ldapserver.acc_user']) is None:
             raise UINoSuchElementError(u'Could not select the attributes Tab.')
-        self.field_update('ldapserver.acc_user', account_user)
-        self.field_update('ldapserver.acc_passwd', account_passwd)
-        self.field_update('ldapserver.basedn', account_basedn)
-        self.field_update('ldapserver.group_basedn', account_grpbasedn)
+        self.assign_value(locators['ldapserver.acc_user'], account_user)
+        self.assign_value(locators['ldapserver.acc_passwd'], account_passwd)
+        self.assign_value(locators['ldapserver.basedn'], account_basedn)
+        self.assign_value(
+            locators['ldapserver.group_basedn'], account_grpbasedn)
         if ldap_filter:
             self.click(locators['ldapserver.ldap_filter'])
         if otf_register:
@@ -47,12 +48,12 @@ class LdapAuthSource(Base):
         self.click(tab_locators['ldapserver.tab_attributes'])
         if self.wait_until_element(locators['ldapserver.loginname']) is None:
             raise UINoSuchElementError(u'Could not select the account Tab.')
-        self.field_update('ldapserver.loginname', login_name)
-        self.field_update('ldapserver.firstname', first_name)
-        self.field_update('ldapserver.surname', surname)
-        self.field_update('ldapserver.mail', mail)
+        self.assign_value(locators['ldapserver.loginname'], login_name)
+        self.assign_value(locators['ldapserver.firstname'], first_name)
+        self.assign_value(locators['ldapserver.surname'], surname)
+        self.assign_value(locators['ldapserver.mail'], mail)
         if photo:
-            self.field_update('ldapserver.photo', photo)
+            self.assign_value(locators['ldapserver.photo'], photo)
         self.click(common_locators['submit'])
 
     def search(self, name):
@@ -61,8 +62,7 @@ class LdapAuthSource(Base):
 
         """
         self.navigate_to_entity()
-        strategy1, value1 = self._search_locator()
-        return self.wait_until_element((strategy1, value1 % (name, name)))
+        return self.wait_until_element(self._search_locator() % (name, name))
 
     def delete(self, name, really=True):
         """Deletes existing ldap auth source from UI."""

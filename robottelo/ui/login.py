@@ -15,11 +15,9 @@ class Login(Base):
     def login(self, username, password, organization=None, location=None):
         """Logins user from UI"""
         if self.wait_until_element(locators['login.username']):
-            self.field_update('login.username', username)
-            self.field_update('login.password', password)
-
+            self.assign_value(locators['login.username'], username)
+            self.assign_value(locators['login.password'], password)
             self.click(common_locators['submit'])
-
             if self.find_element(common_locators['notif.error']):
                 return
             if location:

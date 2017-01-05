@@ -200,15 +200,12 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             # Create Life-cycle environment
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
-            self.assertIsNotNone(
-                session.nav.wait_until_element(
-                    (strategy, value % env_name))
-            )
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators['content_env.select_name'] % env_name))
             # Creates a CV along with product and sync'ed repository
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
@@ -1500,14 +1497,13 @@ class ContentViewTestCase(UITestCase):
             'releasever': None,
         }
         env_name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         # Create new org to import manifest
         org = entities.Organization().create()
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
             self.assertIsNotNone(session.nav.wait_until_element(
-                (strategy, value % env_name)))
+                (locators['content_env.select_name'] % env_name)))
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
@@ -1605,12 +1601,13 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
-            self.assertIsNotNone(session.nav.wait_until_element
-                                 ((strategy, value % env_name)))
+            self.assertIsNotNone(
+                session.nav.wait_until_element(
+                    locators['content_env.select_name'] % env_name)
+            )
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -1861,12 +1858,11 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
             self.assertIsNotNone(session.nav.wait_until_element(
-                (strategy, value % env_name)))
+                locators['content_env.select_name'] % env_name))
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -2662,7 +2658,7 @@ class ContentViewTestCase(UITestCase):
             # assert that the user can view the repo in content view
             self.content_views.click(tab_locators.contentviews.tab_content)
             self.content_views.click(locators.contentviews.content_repo)
-            self.content_views.text_field_update(
+            self.content_views.assign_value(
                 locators.contentviews.repo_search, repo_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 locators.contentviews.select_repo % repo_name))

@@ -37,7 +37,7 @@ class PuppetClassTestCase(UITestCase):
         @Assert: Puppet-Classes is updated successfully.
         """
         class_name = 'foreman_scap_client'
-        param_name = 'ca file'
+        param_name = 'ca_file'
         with Session(self.browser):
             for description in valid_data_list():
                 with self.subTest(description):
@@ -46,8 +46,8 @@ class PuppetClassTestCase(UITestCase):
                     if self.puppetclasses.search(class_name) is None:
                         self.puppetclasses.import_scap_client_puppet_classes()
                     self.assertIsNotNone(self.puppetclasses.search(class_name))
-                    self.puppetclasses.update_class_parameter_description(
-                        class_name, param_name, description)
+                    self.puppetclasses.update_class_parameter(
+                        class_name, param_name, description=description)
                     self.assertEqual(
                         description,
                         self.puppetclasses.fetch_class_parameter_description(
