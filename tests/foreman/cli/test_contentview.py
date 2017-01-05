@@ -44,6 +44,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_ROLE,
     DOCKER_REGISTRY_HUB,
+    DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -120,6 +121,18 @@ class ContentViewTestCase(CLITestCase):
             # propagate.
             ContentViewTestCase.rhel_content_org = None
             raise
+
+    @staticmethod
+    def _get_content_view_version_lce_names_set(content_view_id, version_id):
+        """returns a set of content view version lifecycle environment names
+
+        :rtype: set
+        """
+        lifecycle_environments = ContentView.version_info({
+            'content-view-id': content_view_id,
+            'id': version_id
+        })['lifecycle-environments']
+        return {lce['name'] for lce in lifecycle_environments}
 
     # pylint: disable=unexpected-keyword-arg
     def setUp(self):
@@ -2294,7 +2307,6 @@ class ContentViewTestCase(CLITestCase):
 
         """
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_remove_renamed_cv_version_from_default_env(self):
@@ -2312,12 +2324,60 @@ class ContentViewTestCase(CLITestCase):
 
         @Assert: content view version is removed from Library environment
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        new_name = gen_string('alpha')
+        org = make_org()
+        custom_yum_product = make_product({u'organization-id': org['id']})
+        custom_yum_repo = make_repository({
+            u'content-type': 'yum',
+            u'product-id': custom_yum_product['id'],
+            u'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'repository-id': custom_yum_repo['id'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        # ensure that the published content version is in Library environment
+        content_view_versions = ContentView.info({
+            u'id': content_view['id']
+        })['versions']
+        self.assertGreater(len(content_view_versions), 0)
+        content_view_version = content_view_versions[-1]
+        self.assertIn(
+            ENVIRONMENT,
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
+        # rename the content view
+        ContentView.update({
+            'id': content_view['id'],
+            'new-name': new_name
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(new_name, content_view['name'])
+        # remove content view version from Library lifecycle environment
+        ContentView.remove_from_environment({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'lifecycle-environment': ENVIRONMENT
+        })
+        # ensure that the published content version is not in Library
+        # environment
+        self.assertNotIn(
+            ENVIRONMENT,
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_remove_promoted_cv_version_from_default_env(self):
@@ -2338,12 +2398,84 @@ class ContentViewTestCase(CLITestCase):
         1. Content view version exist only in DEV and not in Library
         2. The puppet module(s) exists in content view version
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = make_org()
+        lce_dev = make_lifecycle_environment({'organization-id': org['id']})
+        puppet_product = make_product({u'organization-id': org['id']})
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': puppet_product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list({
+            u'repository-id': puppet_repository['id'],
+            u'per-page': False,
+        })
+        self.assertGreater(len(puppet_modules), 0)
+        puppet_module = random.choice(puppet_modules)
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'uuid': puppet_module['uuid'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view_versions = ContentView.info({
+            u'id': content_view['id']
+        })['versions']
+        self.assertGreater(len(content_view_versions), 0)
+        content_view_version = content_view_versions[-1]
+        ContentView.version_promote({
+            'id': content_view_version['id'],
+            'to-lifecycle-environment-id': lce_dev['id']
+        })
+        # ensure that the published content version is in Library and DEV
+        # environments
+        content_view_version_info = ContentView.version_info({
+            'organization-id': org['id'],
+            'content-view-id': content_view['id'],
+            'id': content_view_version['id']
+        })
+        content_view_version_lce_names = {
+            lce['name']
+            for lce in content_view_version_info['lifecycle-environments']
+        }
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name']},
+            content_view_version_lce_names
+        )
+        initial_puppet_modules_ids = {
+            puppet_module['id']
+            for puppet_module in content_view_version_info.get(
+                'puppet-modules', [])
+        }
+        self.assertGreater(len(initial_puppet_modules_ids), 0)
+        # remove content view version from Library lifecycle environment
+        ContentView.remove_from_environment({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'lifecycle-environment': ENVIRONMENT
+        })
+        # ensure content view version not in Library and only in DEV
+        # environment and that puppet module still exist
+        content_view_version_info = ContentView.version_info({
+            'organization-id': org['id'],
+            'content-view-id': content_view['id'],
+            'id': content_view_version['id']
+        })
+        content_view_version_lce_names = {
+            lce['name']
+            for lce in content_view_version_info['lifecycle-environments']
+        }
+        self.assertEqual({lce_dev['name']}, content_view_version_lce_names)
+        puppet_modules_ids = {
+                puppet_module['id']
+                for puppet_module in content_view_version_info.get(
+                    'puppet-modules', [])
+        }
+        self.assertEqual(initial_puppet_modules_ids, puppet_modules_ids)
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_remove_qe_promoted_cv_version_from_default_env(self):
@@ -2363,12 +2495,65 @@ class ContentViewTestCase(CLITestCase):
         @Assert: Content view version exist only in DEV, QE
         and not in Library
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = make_org()
+        lce_dev = make_lifecycle_environment({'organization-id': org['id']})
+        lce_qe = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_dev['name']
+        })
+        docker_product = make_product({u'organization-id': org['id']})
+        docker_repository = make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+            'name': gen_string('alpha', 20),
+            'product-id': docker_product['id'],
+            'url': DOCKER_REGISTRY_HUB,
+        })
+        Repository.synchronize({'id': docker_repository['id']})
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'repository-id': docker_repository['id'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view_versions = ContentView.info({
+            u'id': content_view['id']
+        })['versions']
+        self.assertGreater(len(content_view_versions), 0)
+        content_view_version = content_view_versions[-1]
+        for lce in [lce_dev, lce_qe]:
+            ContentView.version_promote({
+                'id': content_view_version['id'],
+                'to-lifecycle-environment-id': lce['id']
+            })
+        # ensure that the published content version is in Library, DEV and QE
+        # environments
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name'], lce_qe['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
+        # remove content view version from Library lifecycle environment
+        ContentView.remove_from_environment({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'lifecycle-environment': ENVIRONMENT
+        })
+        # ensure content view version is not in Library and only in DEV and QE
+        # environments
+        self.assertEqual(
+            {lce_dev['name'], lce_qe['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
@@ -2388,12 +2573,94 @@ class ContentViewTestCase(CLITestCase):
         @Assert: Content view version exist only in DEV, QE, PROD
         and not in Library
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = make_org()
+        lce_dev = make_lifecycle_environment({'organization-id': org['id']})
+        lce_qe = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_dev['name']
+        })
+        lce_prod = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_qe['name']
+        })
+        custom_yum_product = make_product({u'organization-id': org['id']})
+        custom_yum_repo = make_repository({
+            u'content-type': 'yum',
+            u'product-id': custom_yum_product['id'],
+            u'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        puppet_product = make_product({u'organization-id': org['id']})
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': puppet_product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list({
+            u'repository-id': puppet_repository['id'],
+            u'per-page': False,
+        })
+        self.assertGreater(len(puppet_modules), 0)
+        puppet_module = random.choice(puppet_modules)
+        docker_product = make_product({u'organization-id': org['id']})
+        docker_repository = make_repository({
+            'content-type': 'docker',
+            'docker-upstream-name': DOCKER_UPSTREAM_NAME,
+            'name': gen_string('alpha', 20),
+            'product-id': docker_product['id'],
+            'url': DOCKER_REGISTRY_HUB,
+        })
+        Repository.synchronize({'id': docker_repository['id']})
+        content_view = make_content_view({u'organization-id': org['id']})
+        for repo in [custom_yum_repo, docker_repository]:
+            ContentView.add_repository({
+                'id': content_view['id'],
+                'organization-id': org['id'],
+                'repository-id': repo['id'],
+            })
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'uuid': puppet_module['uuid'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view_versions = ContentView.info({
+            u'id': content_view['id']
+        })['versions']
+        self.assertGreater(len(content_view_versions), 0)
+        content_view_version = content_view_versions[-1]
+        for lce in [lce_dev, lce_qe, lce_prod]:
+            ContentView.version_promote({
+                'id': content_view_version['id'],
+                'to-lifecycle-environment-id': lce['id']
+            })
+        # ensure that the published content version is in Library, DEV, QE and
+        # PROD environments
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name'], lce_qe['name'], lce_prod['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
+        # remove content view version from Library lifecycle environment
+        ContentView.remove_from_environment({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'lifecycle-environment': ENVIRONMENT
+        })
+        # ensure content view version is not in Library and only in DEV, QE
+        # and PROD environments
+        self.assertEqual(
+            {lce_dev['name'], lce_qe['name'], lce_prod['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_remove_cv_version_from_env(self):
@@ -2415,12 +2682,102 @@ class ContentViewTestCase(CLITestCase):
 
         @Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = make_org()
+        lce_dev = make_lifecycle_environment({'organization-id': org['id']})
+        lce_qe = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_dev['name']
+        })
+        lce_stage = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_qe['name']
+        })
+        lce_prod = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_stage['name']
+        })
+        custom_yum_product = make_product({u'organization-id': org['id']})
+        custom_yum_repo = make_repository({
+            u'content-type': 'yum',
+            u'product-id': custom_yum_product['id'],
+            u'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        puppet_product = make_product({u'organization-id': org['id']})
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': puppet_product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list({
+            u'repository-id': puppet_repository['id'],
+            u'per-page': False,
+        })
+        self.assertGreater(len(puppet_modules), 0)
+        puppet_module = random.choice(puppet_modules)
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'repository-id': custom_yum_repo['id'],
+        })
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'uuid': puppet_module['uuid'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view_versions = ContentView.info({
+            u'id': content_view['id']
+        })['versions']
+        self.assertGreater(len(content_view_versions), 0)
+        content_view_version = content_view_versions[-1]
+        for lce in [lce_dev, lce_qe, lce_stage, lce_prod]:
+            ContentView.version_promote({
+                'id': content_view_version['id'],
+                'to-lifecycle-environment-id': lce['id']
+            })
+        # ensure that the published content version is in Library, DEV, QE,
+        # STAGE and PROD environments
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name'], lce_qe['name'], lce_stage['name'],
+             lce_prod['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
+        # remove content view version from PROD lifecycle environment
+        ContentView.remove_from_environment({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'lifecycle-environment': lce_prod['name']
+        })
+        # ensure content view version is not in PROD and only in Library, DEV,
+        # QE and STAGE environments
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name'], lce_qe['name'], lce_stage['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
+        # promote content view version to PROD environment again
+        ContentView.version_promote({
+            'id': content_view_version['id'],
+            'to-lifecycle-environment-id': lce_prod['id']
+        })
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name'], lce_qe['name'], lce_stage['name'],
+             lce_prod['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_remove_cv_version_from_multi_env(self):
@@ -2439,12 +2796,91 @@ class ContentViewTestCase(CLITestCase):
 
         @Assert: Content view version exists only in Library, DEV
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = make_org()
+        lce_dev = make_lifecycle_environment({'organization-id': org['id']})
+        lce_qe = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_dev['name']
+        })
+        lce_stage = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_qe['name']
+        })
+        lce_prod = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_stage['name']
+        })
+        custom_yum_product = make_product({u'organization-id': org['id']})
+        custom_yum_repo = make_repository({
+            u'content-type': 'yum',
+            u'product-id': custom_yum_product['id'],
+            u'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        puppet_product = make_product({u'organization-id': org['id']})
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': puppet_product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list({
+            u'repository-id': puppet_repository['id'],
+            u'per-page': False,
+        })
+        self.assertGreater(len(puppet_modules), 0)
+        puppet_module = random.choice(puppet_modules)
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'repository-id': custom_yum_repo['id'],
+        })
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'uuid': puppet_module['uuid'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view_versions = ContentView.info({
+            u'id': content_view['id']
+        })['versions']
+        self.assertGreater(len(content_view_versions), 0)
+        content_view_version = content_view_versions[-1]
+        for lce in [lce_dev, lce_qe, lce_stage, lce_prod]:
+            ContentView.version_promote({
+                'id': content_view_version['id'],
+                'to-lifecycle-environment-id': lce['id']
+            })
+        # ensure that the published content version is in Library, DEV, QE,
+        # STAGE and PROD environments
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name'], lce_qe['name'], lce_stage['name'],
+             lce_prod['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
+        # remove content view version from QE, STAGE, PROD lifecycle
+        # environments
+        for lce in [lce_qe, lce_stage, lce_prod]:
+            ContentView.remove_from_environment({
+                'id': content_view['id'],
+                'organization-id': org['id'],
+                'lifecycle-environment': lce['name']
+            })
+        # ensure content view version is not in PROD and only in Library, DEV,
+        # QE and STAGE environments
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name']},
+            self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        )
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_delete_cv_promoted_to_multi_env(self):
@@ -2465,10 +2901,95 @@ class ContentViewTestCase(CLITestCase):
 
         @Assert: The content view doesn't exists
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = make_org()
+        lce_dev = make_lifecycle_environment({'organization-id': org['id']})
+        lce_qe = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_dev['name']
+        })
+        lce_stage = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_qe['name']
+        })
+        lce_prod = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': lce_stage['name']
+        })
+        custom_yum_product = make_product({u'organization-id': org['id']})
+        custom_yum_repo = make_repository({
+            u'content-type': 'yum',
+            u'product-id': custom_yum_product['id'],
+            u'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': custom_yum_repo['id']})
+        puppet_product = make_product({u'organization-id': org['id']})
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': puppet_product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list({
+            u'repository-id': puppet_repository['id'],
+            u'per-page': False,
+        })
+        self.assertGreater(len(puppet_modules), 0)
+        puppet_module = random.choice(puppet_modules)
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'repository-id': custom_yum_repo['id'],
+        })
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'uuid': puppet_module['uuid'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view_versions = ContentView.info({
+            u'id': content_view['id']
+        })['versions']
+        self.assertGreater(len(content_view_versions), 0)
+        content_view_version = content_view_versions[-1]
+        for lce in [lce_dev, lce_qe, lce_stage, lce_prod]:
+            ContentView.version_promote({
+                'id': content_view_version['id'],
+                'to-lifecycle-environment-id': lce['id']
+            })
+        # ensure that the published content version is in Library, DEV, QE,
+        # STAGE and PROD environments
+        promoted_lce_names_set = self._get_content_view_version_lce_names_set(
+                content_view['id'],
+                content_view_version['id']
+            )
+        self.assertEqual(
+            {ENVIRONMENT, lce_dev['name'], lce_qe['name'], lce_stage['name'],
+             lce_prod['name']},
+            promoted_lce_names_set
+        )
+        # remove from all promoted lifecycle environments
+        for lce_name in promoted_lce_names_set:
+            ContentView.remove_from_environment({
+                'id': content_view['id'],
+                'organization-id': org['id'],
+                'lifecycle-environment': lce_name
+            })
+        # ensure content view in content views list
+        content_views = ContentView.list({'organization-id': org['id']})
+        self.assertIn(
+            content_view['name'],
+            [cv['name'] for cv in content_views]
+        )
+        # delete the content view
+        ContentView.delete({'id': content_view['id']})
+        # ensure the content view is not in content views list
+        content_views = ContentView.list({'organization-id': org['id']})
+        self.assertNotIn(
+            content_view['name'],
+            [cv['name'] for cv in content_views]
+        )
 
     @stubbed()
     @run_only_on('sat')
