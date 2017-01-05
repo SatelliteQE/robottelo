@@ -46,6 +46,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_only_on,
+    skip_if_not_set,
     tier1,
     tier2,
 )
@@ -559,6 +560,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(hostgroup['name'], org['hostgroups'])
 
     @run_only_on('sat')
+    @skip_if_not_set('compute_resources')
     @tier2
     def test_positive_add_compresource_by_name(self):
         """Add a compute resource to organization by its name
@@ -619,6 +621,7 @@ class OrganizationTestCase(CLITestCase):
             self.assertIn(resource['name'], org['compute-resources'])
 
     @run_only_on('sat')
+    @skip_if_not_set('compute_resources')
     @tier2
     def test_positive_remove_compresource_by_id(self):
         """Remove a compute resource from organization by its ID
@@ -648,6 +651,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(compute_res['name'], org['compute-resources'])
 
     @run_only_on('sat')
+    @skip_if_not_set('compute_resources')
     @tier2
     def test_positive_remove_compresource_by_name(self):
         """Remove a compute resource from organization by its name

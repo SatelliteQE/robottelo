@@ -24,7 +24,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, skip_if_not_set, tier1, tier2
 from robottelo.constants import (
     DEFAULT_ORG,
     INSTALL_MEDIUM_URL,
@@ -439,6 +439,7 @@ class LocationTestCase(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
+    @skip_if_not_set('compute_resources')
     @tier2
     def test_positive_add_compresource(self):
         """Add compute resource using the location name and compute resource
@@ -780,6 +781,7 @@ class LocationTestCase(UITestCase):
                     self.assertIsNone(element)
 
     @run_only_on('sat')
+    @skip_if_not_set('compute_resources')
     @tier2
     def test_positive_remove_compresource(self):
         """Remove compute resource by using the location name and compute

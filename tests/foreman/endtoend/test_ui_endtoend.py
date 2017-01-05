@@ -108,6 +108,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         with Session(self.browser):
             self.assertTrue(self.user.user_admin_role_toggle('admin'))
 
+    @skip_if_not_set('compute_resources')
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 
@@ -341,6 +342,8 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         puppet_repository_name = gen_string('alpha')
         repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
         rhel_prd = DEFAULT_SUBSCRIPTION_NAME
+        if settings.rhel6_repo is None:
+            self.skipTest('Missing configuration for rhel6_repo')
         rhel6_repo = settings.rhel6_repo
         with Session(self.browser) as session:
             # Create New organization

@@ -35,12 +35,18 @@ Subcommands::
 import random
 
 from fauxfactory import gen_string, gen_url
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import make_location, make_compute_resource
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+)
 from robottelo.test import CLITestCase
 
 
@@ -104,6 +110,7 @@ class ComputeResourceTestCase(CLITestCase):
     """ComputeResource CLI tests."""
 
     @classmethod
+    @skip_if_not_set('compute_resources')
     def setUpClass(cls):
         super(ComputeResourceTestCase, cls).setUpClass()
         cls.current_libvirt_url = (
