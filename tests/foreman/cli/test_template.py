@@ -25,7 +25,7 @@ from robottelo.cli.factory import (
     make_template,
 )
 from robottelo.cli.template import Template
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -131,6 +131,7 @@ class TemplateTestCase(CLITestCase):
         self.assertIn(os_string, new_template['operating-systems'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_os_by_id(self):
         """Check if operating system can be removed from a template

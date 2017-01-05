@@ -48,6 +48,7 @@ class ConfigTemplateTestCase(APITestCase):
         response.raise_for_status()
         self.assertIsInstance(response.json(), dict)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_add_orgs(self):
         """Associate a config template with organizations.

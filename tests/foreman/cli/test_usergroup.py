@@ -30,7 +30,7 @@ from robottelo.datafactory import (
     valid_data_list,
     valid_usernames_list,
 )
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -466,6 +466,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(user_group['user-groups'][0], sub_user_group['name'])
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_role_by_id(self):
         """Create new user group using valid role attached to that group. Then
@@ -487,6 +488,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['roles']), 0)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_role_by_name(self):
         """Create new user group using valid role attached to that group. Then
@@ -508,6 +510,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['roles']), 0)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_user_by_id(self):
         """Create new user group using valid user attached to that group. Then
@@ -529,6 +532,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['users']), 0)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_user_by_name(self):
         """Create new user group using valid user attached to that group. Then
@@ -550,6 +554,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['users']), 0)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_usergroup_by_id(self):
         """Create new user group using another user group attached to the
@@ -571,6 +576,7 @@ class UserGroupTestCase(CLITestCase):
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 0)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_usergroup_by_name(self):
         """Create new user group using another user group attached to the
