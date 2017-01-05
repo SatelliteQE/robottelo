@@ -19,14 +19,16 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 @Upstream: No
 """
+from random import randint
+
 from fauxfactory import gen_string
 from nailgun import entities
-from random import randint
 from requests.exceptions import HTTPError
+
 from robottelo.config import settings
 from robottelo.constants import LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import skip_if_not_set, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -34,6 +36,7 @@ class ComputeResourceTestCase(APITestCase):
     """Tests for ``katello/api/v2/compute_resources``."""
 
     @classmethod
+    @skip_if_not_set('compute_resources')
     def setUpClass(cls):
         """Set up organization and location for tests."""
         super(ComputeResourceTestCase, cls).setUpClass()

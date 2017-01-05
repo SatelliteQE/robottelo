@@ -47,7 +47,11 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.config import settings
-from robottelo.decorators import bz_bug_is_open, setting_is_set
+from robottelo.decorators import (
+    bz_bug_is_open,
+    setting_is_set,
+    skip_if_not_set,
+)
 from robottelo.test import CLITestCase
 
 from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
@@ -93,6 +97,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         self.assertEqual(result['login'], 'admin')
         self.assertEqual(result['admin'], 'yes')
 
+    @skip_if_not_set('compute_resources')
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 
