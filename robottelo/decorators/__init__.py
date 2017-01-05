@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Implements various decorators"""
 import logging
-from functools import wraps
-from xml.parsers.expat import ExpatError, ErrorString
 
 import bugzilla
 import pytest
 import re
 import requests
 import unittest2
-from six.moves.xmlrpc_client import Fault
-
+from functools import wraps
 from robottelo.config import settings
 from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
 from robottelo.host_info import get_host_sat_version
+from six.moves.xmlrpc_client import Fault
+from xml.parsers.expat import ExpatError, ErrorString
+
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 LOGGER = logging.getLogger(__name__)
