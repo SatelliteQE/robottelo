@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Implements various decorators"""
-import bugzilla
 import logging
+
+import bugzilla
 import pytest
 import re
 import requests
 import unittest2
-
 from functools import wraps
-
-from robottelo.host_info import get_host_sat_version
 from robottelo.config import settings
 from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
+from robottelo.host_info import get_host_sat_version
 from six.moves.xmlrpc_client import Fault
 from xml.parsers.expat import ExpatError, ErrorString
+
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 LOGGER = logging.getLogger(__name__)
@@ -263,6 +263,23 @@ class BugFetchError(Exception):
     """Indicates an error occurred while fetching information about a bug."""
 
 
+class BZUnauthenticatedCall(Exception):
+    """Indicates unauthenticated call was made into Bugzilla API"""
+
+    def __init__(self, bug, *args, **kwargs):
+        """Unauthenticated calls can be done but will not retrieve flag info.
+        So basic bug data can still be checked and that is the reason a bug
+        must be provided as parameter so one handling this exceptions can
+        still have access to it
+
+        :param bug: bug returned on API call
+        :param args: args to be passed to Exception __init__ method
+        :param kwargs: kwargs to be passed to Exception __init__ method
+        """
+        super(BZUnauthenticatedCall, self).__init__(*args, **kwargs)
+        self.bug = bug
+
+
 def _get_bugzilla_bug(bug_id):
     """Fetch bug ``bug_id``.
 
@@ -278,9 +295,12 @@ def _get_bugzilla_bug(bug_id):
     else:
         LOGGER.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
         # Make a network connection to the Bugzilla server.
+        bz_credentials = settings.bugzilla.get_credentials()
+        if any(value is None for value in bz_credentials.values()):
+            bz_credentials = {}
         try:
             bz_conn = bugzilla.RHBugzilla(
-                **settings.bugzilla.get_credentials())
+                **bz_credentials)
             bz_conn.connect(BUGZILLA_URL)
         except (TypeError, ValueError):
             raise BugFetchError(
@@ -292,6 +312,12 @@ def _get_bugzilla_bug(bug_id):
                 bug_id,
                 include_fields=['id', 'status', 'whiteboard', 'flags']
             )
+            if not bz_credentials:
+                raise BZUnauthenticatedCall(
+                    _bugzilla[bug_id],
+                    'Unauthenticated call made to BZ API, no flags data will '
+                    'be available'
+                )
         except Fault as err:
             raise BugFetchError(
                 'Could not fetch bug. Error: {0}'.format(err.faultString)
@@ -416,32 +442,44 @@ def bz_bug_is_open(bug_id):
     except BugFetchError as err:
         LOGGER.warning(err)
         return False
+    except BZUnauthenticatedCall as err:
+        LOGGER.warning(err)
+        return _check_skip_conditions(err.bug, False)
     else:
-        # NEW, ASSIGNED, MODIFIED, POST
-        if bug.status in BZ_OPEN_STATUSES:
-            return True
-        elif settings.upstream:
-            return False
+        return _check_skip_conditions(bug)
 
-        # do not test bugs with whiteboard 'verified in upstream' in downstream
-        # until they are in 'CLOSED' state
 
-        # verify all conditions are True, stopping evaluation when
-        # first condition is False
-        zstream_re = re.compile(r'sat-\d\.\d\.z')
+def _check_skip_conditions(bug, consider_flags=True):
+    """Check bug skip conditions. It will not take into account bug's flags
+    if consider_flags parameter is False
 
-        def is_positive_zstream(flag):
-            return flag['status'] == '+' and zstream_re.search(flag['name'])
+    :param bug: bug to analyse conditions
+    :return: boolean indicating if it must be skipped or not
+    """
+    # NEW, ASSIGNED, MODIFIED, POST
+    if bug.status in BZ_OPEN_STATUSES:
+        return True
+    elif settings.upstream:
+        return False
 
-        def skip_upstream_conditions(flags):
-            for flag in flags:
-                yield not is_positive_zstream(flag)
-            yield bug.status != 'CLOSED'
-            yield bug.whiteboard
-            yield 'verified in upstream' in bug.whiteboard.lower()
+    # do not test bugs with whiteboard 'verified in upstream' in downstream
+    # until they are in 'CLOSED' state
+    # verify all conditions are True, stopping evaluation when
+    # first condition is False
+    zstream_re = re.compile(r'sat-\d\.\d\.z')
 
-        return (all(skip_upstream_conditions(bug.flags)) or
-                _skip_flags_condition(bug.flags))
+    def is_positive_zstream(flag):
+        return flag['status'] == '+' and zstream_re.search(flag['name'])
+
+    def skip_upstream_conditions(flags):
+        for flag in flags:
+            yield not is_positive_zstream(flag)
+        yield bug.status != 'CLOSED'
+        yield bug.whiteboard
+        yield 'verified in upstream' in bug.whiteboard.lower()
+
+    return (all(skip_upstream_conditions(bug.flags)) or
+            (consider_flags and _skip_flags_condition(bug.flags)))
 
 
 def rm_bug_is_open(bug_id):
