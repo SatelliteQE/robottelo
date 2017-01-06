@@ -27,6 +27,7 @@ from robottelo.cli.factory import (
     make_domain,
     make_hostgroup,
     make_lifecycle_environment,
+    make_location,
     make_medium,
     make_org,
     make_proxy,
@@ -46,6 +47,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -1165,6 +1167,181 @@ class OrganizationTestCase(CLITestCase):
         })
         org = Org.info({'name': org['name']})
         self.assertNotIn(proxy['name'], org['smart-proxies'])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_add_location_by_id(self):
+        """Add a location to organization by its id
+
+        @id: 83848f18-2cca-457c-af57-e6249386c81c
+
+        @Assert: Location is added to the org
+
+        @CaseLevel: Integration
+        """
+        org = make_org()
+        loc = make_location()
+        Org.add_location({
+            'location-id': loc['id'],
+            'name': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['locations']), 1)
+        self.assertIn(loc['name'], result['locations'])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_add_location_by_name(self):
+        """Add a location to organization by its name
+
+        @id: f39522e8-5280-429e-b954-79153c2c73c2
+
+        @Assert: Location is added to the org
+
+        @CaseLevel: Integration
+        """
+        org = make_org()
+        loc = make_location()
+        Org.add_location({
+            'location': loc['name'],
+            'name': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['locations']), 1)
+        self.assertIn(loc['name'], result['locations'])
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
+    @tier2
+    def test_positive_remove_location_by_id(self):
+        """Remove a location from organization by its id
+
+        @id: 37b63e5c-8fd5-439c-9540-972b597b590a
+
+        @Assert: Location is removed from the org
+
+        @CaseLevel: Integration
+        """
+        org = make_org()
+        loc = make_location()
+        Org.add_location({
+            'location-id': loc['id'],
+            'name': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['locations']), 1)
+        self.assertIn(loc['name'], result['locations'])
+        Org.remove_location({
+            'location-id': loc['id'],
+            'id': org['id'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['locations']), 0)
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
+    @tier2
+    def test_positive_remove_location_by_name(self):
+        """Remove a location from organization by its name
+
+        @id: 35770afa-1623-448c-af4f-a702851063db
+
+        @Assert: Location is removed from the org
+
+        @CaseLevel: Integration
+        """
+        org = make_org()
+        loc = make_location()
+        Org.add_location({
+            'location': loc['name'],
+            'name': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['locations']), 1)
+        self.assertIn(loc['name'], result['locations'])
+        Org.remove_location({
+            'location': loc['name'],
+            'id': org['id'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['locations']), 0)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_add_parameter(self):
+        """Add a parameter to organization
+
+        @id: b0b59650-5718-45e2-8724-151dc52b1486
+
+        @Assert: Parameter is added to the org
+        """
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        org = make_org()
+        Org.set_parameter({
+            'name': param_name,
+            'value': param_value,
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        self.assertEqual(param_value, result['parameters'][param_name.lower()])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update_parameter(self):
+        """Update a parameter associated with organization
+
+        @id: 4a7ed165-a0c5-4ba6-833a-5a1b3ee47ace
+
+        @Assert: Parameter is updated
+        """
+        param_name = gen_string('alpha')
+        param_new_value = gen_string('alpha')
+        org = make_org()
+        # Create parameter
+        Org.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        Org.set_parameter({
+            'name': param_name,
+            'value': param_new_value,
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        self.assertEqual(
+            param_new_value, result['parameters'][param_name.lower()])
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
+    @tier1
+    def test_positive_remove_parameter(self):
+        """Remove a parameter from organization
+
+        @id: e4099279-4e73-4c14-9e7c-912b3787b99f
+
+        @Assert: Parameter is removed from the org
+        """
+        param_name = gen_string('alpha')
+        org = make_org()
+        Org.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        Org.delete_parameter({
+            'name': param_name,
+            'organization': org['name'],
+        })
+        self.assertEqual(len(result['parameters']), 0)
+        self.assertNotIn(param_name.lower(), result['parameters'])
 
     # Negative Create
 
