@@ -171,6 +171,40 @@ class BzBugIsOpenTestCase(TestCase):
                                        self.invalid_whiteboard_data):
                 self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
+    @mock.patch('robottelo.decorators.bugzilla.RHBugzilla')
+    @mock.patch('robottelo.decorators.settings')
+    def test_unauthenticated_bz_call(self, dec_settings, RHBugzilla):
+        """Assert flags are not taken into account if bz credentials section is
+        not present on robottelo.properties
+
+        """
+        dec_settings.upstream = False
+        # Missing password
+        bz_credentials = {'user': 'foo', 'password': None}
+        dec_settings.bugzilla.get_credentials.return_value = bz_credentials
+
+        class MockBug(object):  # pylint:disable=R0903
+            """A mock bug if empty flags"""
+            status = 'VERIFIED'
+            whiteboard = None
+            flags = []
+
+        bz_conn_mock = mock.Mock()
+        RHBugzilla.return_value = bz_conn_mock
+        bz_conn_mock.getbug.return_value = MockBug
+
+        self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+        RHBugzilla.assert_called_once_with()
+        bz_conn_mock.getbug.assert_called_once_with(
+            self.bug_id,
+            include_fields=['id', 'status', 'whiteboard', 'flags']
+        )
+        MockBug.status = 'NEW'
+        # Missing user
+        bz_credentials.update({'user': None, 'password': 'foo'})
+        # avoiding cache adding 1 to id
+        self.assertTrue(decorators.bz_bug_is_open(self.bug_id + 1))
+
     @mock.patch('robottelo.decorators.settings')
     def test_complete_bug_workflow(self, dec_settings):
         """Assert ``True`` is returned if host version is minor then 6.3,
