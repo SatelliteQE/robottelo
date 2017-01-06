@@ -245,6 +245,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(new_subnet['name'], org['subnets'][0])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_subnet_by_name(self):
         """Remove a subnet from organization by its name
@@ -272,6 +273,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(org['subnets']), 0)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_subnet_by_id(self):
         """Remove a subnet from organization by its ID
@@ -336,6 +338,7 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'id': org['id']})
         self.assertIn(user['login'], org['users'])
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_user_by_id(self):
         """Remove an user from organization by its ID
@@ -359,6 +362,7 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'id': org['id']})
         self.assertNotIn(user['login'], org['users'])
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_user_by_name(self):
         """Remove an user from organization by its login and organization name
@@ -424,6 +428,7 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'name': org['name']})
         self.assertIn(user['login'], org['users'])
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_admin_user_by_id(self):
         """Remove an admin user from organization by user ID and the
@@ -449,6 +454,7 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'id': org['id']})
         self.assertNotIn(user['login'], org['users'])
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_admin_user_by_name(self):
         """Remove an admin user from organization by user login and the
@@ -514,6 +520,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(hostgroup['name'], org['hostgroups'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_hostgroup_by_name(self):
         """Remove a hostgroup from an organization by its name
@@ -538,6 +545,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(hostgroup['name'], org['hostgroups'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_hostgroup_by_id(self):
         """Remove a hostgroup from an organization by its ID
@@ -624,6 +632,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_not_set('compute_resources')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_compresource_by_id(self):
         """Remove a compute resource from organization by its ID
@@ -654,6 +663,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_not_set('compute_resources')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_compresource_by_name(self):
         """Remove a compute resource from organization by its name
@@ -723,6 +733,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(medium['name'], org['installation-media'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_medium_by_id(self):
         """Remove a medium from organization by its ID
@@ -747,6 +758,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(medium['name'], org['installation-media'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_medium_by_name(self):
         """Remove a medium from organization by its name
@@ -959,6 +971,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(domain['name'], result['domains'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_domain_by_name(self):
         """Remove a domain from organization by its name
@@ -986,6 +999,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(result['domains']), 0)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_domain_by_id(self):
         """Remove a domain from organization by its ID

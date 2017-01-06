@@ -319,6 +319,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(org.hostgroup), 1)
         self.assertEqual(org.hostgroup[0].id, hostgroup.id)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_hostgroup(self):
         """Add a hostgroup to an organization and then remove it
@@ -370,6 +371,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(org.smart_proxy), 1)
         self.assertEqual(org.smart_proxy[0].id, smart_proxy.id)
 
+    @skip_if_bug_open('bugzilla', 1395229)
     @tier2
     def test_positive_remove_smart_proxy(self):
         """Remove a smart proxy from an organization
