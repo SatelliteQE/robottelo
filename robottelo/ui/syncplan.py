@@ -48,11 +48,11 @@ class Syncplan(Base):
                new_sync_interval=None, add_products=None,
                rm_products=None):
         """Updates Sync Plans from UI."""
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['sp.tab_details'])
         if new_name:
             self.click(locators['sp.name_edit'])
-            self.text_field_update(locators['sp.name_update'], new_name)
+            self.assign_value(locators['sp.name_update'], new_name)
             self.click(common_locators['save'])
         if new_desc:
             self.click(locators['sp.desc_edit'])

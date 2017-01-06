@@ -55,16 +55,10 @@ class ComputeResource(Base):
                 (parameter_name.lower()).replace(' ', '_')
             ))
             self.wait_until_element(locators[param_locator])
-            if parameter_type == 'field':
-                self.text_field_update(
+            if parameter_type != 'special select':
+                self.assign_value(
                     locators[param_locator], parameter_value)
-            elif parameter_type == 'select':
-                self.select(locators[param_locator], parameter_value)
-            elif parameter_type == 'checkbox':
-                if (self.find_element(locators[param_locator]).is_selected() !=
-                        parameter_value):
-                    self.click(locators[param_locator])
-            elif parameter_type == 'special select':
+            else:
                 button_locator = '.'.join((
                     'resource',
                     (parameter_name.lower()).replace(' ', '_'),
@@ -106,8 +100,7 @@ class ComputeResource(Base):
                orgs=None, org_select=None, locations=None, loc_select=None):
         """Creates a compute resource."""
         self.click(locators['resource.new'])
-        if self.wait_until_element(locators['resource.name']):
-            self.find_element(locators['resource.name']).send_keys(name)
+        self.assign_value(locators['resource.name'], name)
         self._configure_resource_provider(provider_type, parameter_list)
         if locations:
             self._configure_locations(locations, loc_select)
@@ -122,11 +115,10 @@ class ComputeResource(Base):
         if element is None:
             raise UINoSuchElementError(
                 'Could not find the resource {0}'.format(name))
-        strategy, value = locators['resource.edit']
-        self.click((strategy, value % name))
+        self.click(locators['resource.edit'] % name)
         self.wait_until_element(locators['resource.name'])
         if newname:
-            self.field_update('resource.name', newname)
+            self.assign_value(locators['resource.name'], newname)
         self._configure_resource_provider(parameter_list=parameter_list)
         if locations:
             self._configure_locations(locations, loc_select)
@@ -147,26 +139,26 @@ class ComputeResource(Base):
         """Searches for specific container located in compute resource under
         'Containers' tab
         """
-        self.click(self.search(cr_name))
+        self.search_and_click(cr_name)
         self.click(tab_locators['resource.tab_containers'])
-        self.text_field_update(
+        self.assign_value(
             locators['resource.filter_containers'], container_name)
-        strategy, value = locators['resource.select_container']
-        return self.wait_until_element((strategy, value % container_name))
+        return self.wait_until_element(
+            locators['resource.select_container'] % container_name)
 
     def list_vms(self, res_name):
         """Lists vms of a particular compute resource.
 
         Note: Currently lists only vms that show up on the first page.
         """
-        self.click(self.search(res_name))
+        self.search_and_click(res_name)
         self.click(tab_locators['resource.tab_virtual_machines'])
         vm_elements = self.find_elements(locators['resource.vm_list'])
         return [vm.text for vm in vm_elements]
 
     def add_image(self, res_name, parameter_list):
         """Adds an image to a compute resource."""
-        self.click(self.search(res_name))
+        self.search_and_click(res_name)
         self.click(locators['resource.image_add'])
         self.wait_until_element(locators['resource.image_name'])
         for parameter_name, parameter_value in parameter_list:
@@ -182,14 +174,14 @@ class ComputeResource(Base):
 
         Note: Currently lists only images that show up on the first page.
         """
-        self.click(self.search(res_name))
+        self.search_and_click(res_name)
         self.click(tab_locators['resource.tab_images'])
         image_elements = self.find_elements(locators['resource.image_list'])
         return [image.text for image in image_elements]
 
     def vm_action_toggle(self, res_name, vm_name, really):
         """Toggle power status of a vm on the compute resource."""
-        self.click(self.search(res_name))
+        self.search_and_click(res_name)
         self.click(tab_locators['resource.tab_virtual_machines'])
         button = self.find_element(
             locators['resource.vm_power_button'] % vm_name
@@ -200,7 +192,7 @@ class ComputeResource(Base):
 
     def vm_delete(self, res_name, vm_name, really):
         """Removes a vm from the compute resource."""
-        self.click(self.search(res_name))
+        self.search_and_click(res_name)
         self.click(tab_locators['resource.tab_virtual_machines'])
         for locator in [locators['resource.vm_delete_button_dropdown'],
                         locators['resource.vm_delete_button']]:
@@ -213,9 +205,9 @@ class ComputeResource(Base):
         resource tab before searching for particular Virtual machine and also,
         there is no search button to click
         """
-        self.click(self.search(resource_name))
+        self.search_and_click(resource_name)
         self.click(tab_locators['resource.tab_virtual_machines'])
-        self.text_field_update(
+        self.assign_value(
             locators['resource.search_filter'], vm_name)
         strategy, value = self._search_locator()
         return self.wait_until_element((strategy, value % vm_name))

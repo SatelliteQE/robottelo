@@ -157,7 +157,7 @@ class Errata(Base):
             self.show_only_applicable(only_applicable)
         if partial_id is None:
             partial_id = errata_id[:len(errata_id)/2]
-        self.text_field_update(
+        self.assign_value(
             common_locators['kt_search'],
             self.search_key + " = " + partial_id
         )

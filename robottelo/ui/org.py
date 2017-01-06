@@ -27,7 +27,6 @@ class Org(Base):
                        new_envs=None, new_hostgroups=None, new_locations=None,
                        select=None):
         """Configures different entities of selected organization."""
-
         loc = tab_locators
 
         if users or new_users:
@@ -92,16 +91,15 @@ class Org(Base):
                hostgroups=None, locations=None, select=True):
         """Create Organization in UI."""
         self.click(locators['org.new'])
-        if self.wait_until_element(locators['org.name']):
-            self.field_update('org.name', org_name)
+        self.assign_value(locators['org.name'], org_name)
         if label:
-            self.field_update('org.label', label)
+            self.assign_value(locators['org.label'], label)
         if desc:
-            self.field_update('org.desc', desc)
+            self.assign_value(locators['org.desc'], desc)
         self.click(common_locators['submit'])
         edit_locator = self.wait_until_element(locators['org.proceed_to_edit'])
         if edit_locator:
-            edit_locator.click()
+            self.click(edit_locator)
             self._configure_org(
                 users=users, capsules=capsules, subnets=subnets,
                 resources=resources, medias=medias, templates=templates,
@@ -121,10 +119,9 @@ class Org(Base):
         """Update Organization in UI."""
         self.click(self.search(org_name))
         if new_name:
-            if self.wait_until_element(locators['org.name']):
-                self.field_update('org.name', new_name)
+            self.assign_value(locators['org.name'], new_name)
         if new_desc:
-            self.field_update('org.desc', new_desc)
+            self.assign_value(locators['org.desc'], new_desc)
         self._configure_org(
             users=users, capsules=capsules,
             subnets=subnets, resources=resources,

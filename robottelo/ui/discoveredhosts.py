@@ -34,7 +34,7 @@ class DiscoveredHosts(Base):
                 'Could not find the selected discovered host "{0}"'
                 .format(hostname)
             )
-        host.click()
+        self.click(host)
         strategy, value = locators['discoveredhosts.delete_from_facts']
         self.click((strategy, value % hostname), wait_for_ajax=False)
         self.handle_alert(really)
@@ -71,10 +71,8 @@ class DiscoveredHosts(Base):
                 'Could not find the selected discovered host "{0}"'
                 .format(hostname)
             )
-        strategy, value = locators['discoveredhosts.dropdown']
-        self.click((strategy, value % hostname))
-        strategy, value = locators['discoveredhosts.refresh_facts']
-        self.click((strategy, value % hostname))
+        self.click(locators['discoveredhosts.dropdown'] % hostname)
+        self.click(locators['discoveredhosts.refresh_facts'] % hostname)
 
     def fetch_fact_value(self, hostname, element):
         """Fetch the value of selected fact from discovered hosts page"""

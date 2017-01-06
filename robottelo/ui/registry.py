@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Registry UI"""
 from robottelo.constants import FILTER
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -21,15 +21,14 @@ class Registry(Base):
                orgs=None, org_select=True, locs=None, loc_select=True):
         """Creates the registry."""
         self.click(locators['registry.new'])
-        self.text_field_update(locators['registry.name'], name)
-        self.text_field_update(locators['registry.url'], url)
+        self.assign_value(locators['registry.name'], name)
+        self.assign_value(locators['registry.url'], url)
         if description:
-            self.text_field_update(
-                locators['registry.description'], description)
+            self.assign_value(locators['registry.description'], description)
         if username:
-            self.text_field_update(locators['registry.username'], username)
+            self.assign_value(locators['registry.username'], username)
         if password:
-            self.text_field_update(locators['registry.password'], password)
+            self.assign_value(locators['registry.password'], password)
         if orgs:
             self.configure_entity(
                 orgs,
@@ -50,22 +49,17 @@ class Registry(Base):
                new_username=None, new_pass=None, orgs=None, new_orgs=None,
                org_select=False, locs=None, new_locs=None, loc_select=False):
         """Updates a registry."""
-        element = self.search(name)
-        if not element:
-            raise UIError(
-                'Could not find necessary registry "{0}"'.format(name)
-            )
-        element.click()
+        self.search_and_click(name)
         if new_name:
-            self.text_field_update(locators['registry.name'], new_name)
+            self.assign_value(locators['registry.name'], new_name)
         if new_url:
-            self.text_field_update(locators['registry.url'], new_url)
+            self.assign_value(locators['registry.url'], new_url)
         if new_desc:
-            self.text_field_update(locators['registry.description'], new_desc)
+            self.assign_value(locators['registry.description'], new_desc)
         if new_username:
-            self.text_field_update(locators['registry.username'], new_username)
+            self.assign_value(locators['registry.username'], new_username)
         if new_pass:
-            self.text_field_update(locators['registry.password'], new_pass)
+            self.assign_value(locators['registry.password'], new_pass)
         self.configure_entity(
             orgs,
             FILTER['reg_org'],

@@ -388,7 +388,7 @@ class GPGKey(UITestCase):
 
         @assert: gpg key is not updated
         """
-        name = gen_string('alpha', 6)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_gpgkey(
                 session,
@@ -635,7 +635,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(
                 self.gpgkey.assert_product_repo(name, product=True)

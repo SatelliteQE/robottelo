@@ -33,7 +33,7 @@ class ContentHost(Base):
     def update(self, name, new_name=None, add_subscriptions=None,
                rm_subscriptions=None):
         """Updates an existing content host"""
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['contenthost.tab_details'])
 
         if new_name:
@@ -58,7 +58,7 @@ class ContentHost(Base):
 
     def unregister(self, name, really=True):
         """Unregisters a content host."""
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(locators['contenthost.unregister'])
         if really:
             self.click(common_locators['confirm_remove'])
@@ -70,7 +70,7 @@ class ContentHost(Base):
         needed as deletion works through unregistering menu, by selecting
         appropriate radio button."""
         self.logger.debug(u'Deleting entity %s', name)
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(locators['contenthost.unregister'])
         self.click(locators['contenthost.confirm_deletion'])
         if really:
@@ -152,8 +152,7 @@ class ContentHost(Base):
         """
         self.click(self.search(name))
         self.click(tab_locators['contenthost.tab_errata'])
-        strategy, value = locators['contenthost.errata_select']
-        self.click((strategy, value % errata_id))
+        self.click(locators['contenthost.errata_select'] % errata_id)
         self.click(locators['contenthost.errata_apply'])
         self.click(locators['contenthost.confirm_errata'])
         result = self.wait_until_element(
@@ -168,7 +167,6 @@ class ContentHost(Base):
         """Search for installed package on specific content host"""
         self.click(self.search(name))
         self.click(tab_locators['contenthost.tab_packages'])
-        self.wait_until_element(locators['contenthost.package_search_box'])
         self.assign_value(
             locators['contenthost.package_search_box'], package_name)
         self.click(locators['contenthost.package_search_button'])
@@ -177,7 +175,7 @@ class ContentHost(Base):
 
     def errata_search(self, name, errata_id, environment_name=None):
         """Search for errata applicable for specific content host"""
-        self.click(self.search(name))
+        self.search_and_click(name)
         self.click(tab_locators['contenthost.tab_errata'])
         if environment_name is not None:
             self.click(

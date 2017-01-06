@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Lifecycle content environments."""
 
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
@@ -20,47 +20,32 @@ class LifecycleEnvironment(Base):
     def create(self, name, description=None, prior=None):
         """Creates new life cycle environment."""
         if prior:
-            strategy, value = locators['content_env.env_link']
-            self.click((strategy, value % prior))
+            self.click(locators['content_env.env_link'] % prior)
         else:
             self.click(locators['content_env.new'])
-        if self.wait_until_element(common_locators['name']) is None:
-            raise UINoSuchElementError(
-                'Could not create new environment {0}'.format(name))
-        self.text_field_update(common_locators['name'], name)
+        self.assign_value(common_locators['name'], name)
         if description:
-            self.text_field_update(
-                common_locators['description'], description)
+            self.assign_value(common_locators['description'], description)
         self.click(common_locators['create'])
 
     def search(self, name):
         """Search for an existing environment. It is necessary to use custom
         search here as we don't have search bar, search button and entities
         list.
-
         """
         self.navigate_to_entity()
-        strategy, value = self._search_locator()
-        return self.wait_until_element((strategy, value % name))
+        return self.wait_until_element(self._search_locator() % name)
 
     def delete(self, name):
         """Deletes an existing environment. We don't have confirmation dialog
         for current operation, so it is necessary to use custom method
         """
-        element = self.search(name)
-        if not element:
-            raise UINoSuchElementError(
-                'Could not find the %s lifecycle environment.' % name)
-        element.click()
+        self.search_and_click(name)
         self.click(locators['content_env.remove'])
 
     def update(self, name, new_name=None, description=None):
         """Updates an existing environment."""
-        element = self.search(name)
-        if not element:
-            raise UINoSuchElementError(
-                'Could not find the %s lifecycle environment.' % name)
-        element.click()
+        self.search_and_click(name)
         if new_name:
             self.edit_entity(
                 locators['content_env.edit_name'],

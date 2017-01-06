@@ -59,8 +59,7 @@ class ComputeResourceTestCase(UITestCase):
                             ['URL', self.current_libvirt_url, 'field']
                         ],
                     )
-                    search = self.compute_resource.search(name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @tier1
@@ -84,8 +83,7 @@ class ComputeResourceTestCase(UITestCase):
                             ['Description', description, 'field']
                         ],
                     )
-                    search = self.compute_resource.search(name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @tier1
@@ -109,8 +107,7 @@ class ComputeResourceTestCase(UITestCase):
                             ['Display Type', display_type, 'select']
                         ],
                     )
-                    search = self.compute_resource.search(name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @tier1
@@ -135,8 +132,7 @@ class ComputeResourceTestCase(UITestCase):
                             ['Console Passwords', console_password, 'checkbox']
                         ],
                     )
-                    search = self.compute_resource.search(name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @tier1
@@ -187,11 +183,9 @@ class ComputeResourceTestCase(UITestCase):
                             ['URL', self.current_libvirt_url, 'field']
                         ],
                     )
-                    search = self.compute_resource.search(name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.compute_resource.search(name))
                     self.compute_resource.update(name=name, newname=newname)
-                    search = self.compute_resource.search(newname)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.compute_resource.search(newname))
 
     @run_only_on('sat')
     @tier1
@@ -213,8 +207,7 @@ class ComputeResourceTestCase(UITestCase):
                 orgs=[entities.Organization().create().name],
                 org_select=True
             )
-            search = self.compute_resource.search(name)
-            self.assertIsNotNone(search)
+            self.assertIsNotNone(self.compute_resource.search(name))
             self.compute_resource.update(
                 name=name,
                 orgs=[entities.Organization().create().name],

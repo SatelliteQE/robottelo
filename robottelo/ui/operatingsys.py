@@ -27,13 +27,11 @@ class OperatingSys(Base):
         tab_medium_locator = tab_locators['operatingsys.tab_medium']
 
         if minor_version:
-            if self.wait_until_element(
-                    locators['operatingsys.minor_version']):
-                self.field_update('operatingsys.minor_version', minor_version)
+            self.assign_value(
+                locators['operatingsys.minor_version'], minor_version)
         if description:
-            if self.wait_until_element(
-                    locators['operatingsys.description']):
-                self.field_update('operatingsys.description', description)
+            self.assign_value(
+                locators['operatingsys.description'], description)
         if os_family:
             self.select(locators['operatingsys.family'], os_family)
         if archs or arch_list:
@@ -69,35 +67,24 @@ class OperatingSys(Base):
                archs=None, ptables=None, mediums=None, select=True,
                template=None):
         """Create operating system from UI."""
-        new_os = self.wait_until_element(locators['operatingsys.new'])
-        if new_os:
-            new_os.click()
-            os_name_locator = locators['operatingsys.name']
-            os_major_locator = locators['operatingsys.major_version']
-            if self.wait_until_element(os_name_locator):
-                self.find_element(os_name_locator).send_keys(name)
-            if self.wait_until_element(os_major_locator):
-                self.find_element(os_major_locator).send_keys(major_version)
-                self._configure_os(
-                    archs,
-                    ptables,
-                    mediums,
-                    select,
-                    minor_version,
-                    description,
-                    os_family,
-                    template,
-                    arch_list=None,
-                    ptable_list=None,
-                    medium_list=None
-                )
-                self.click(common_locators['submit'])
-            else:
-                raise UIError(u'Could not create OS without major_version')
-        else:
-            raise UIError(
-                u'Could not create new operating system "{0}"'.format(name)
-            )
+        self.click(locators['operatingsys.new'])
+        self.assign_value(locators['operatingsys.name'], name)
+        self.assign_value(
+            locators['operatingsys.major_version'], major_version)
+        self._configure_os(
+            archs,
+            ptables,
+            mediums,
+            select,
+            minor_version,
+            description,
+            os_family,
+            template,
+            arch_list=None,
+            ptable_list=None,
+            medium_list=None
+        )
+        self.click(common_locators['submit'])
 
     def delete(self, os_name, really=True):
         """Delete operating system from UI."""
@@ -114,16 +101,12 @@ class OperatingSys(Base):
                new_ptables=None, new_mediums=None, select=False,
                template=None):
         """Update all entities(arch, Partition table, medium) of OS from UI."""
-        element = self.search(os_name)
-        self.click(element)
+        self.search_and_click(os_name)
         if new_name:
-            if self.wait_until_element(locators['operatingsys.name']):
-                self.field_update('operatingsys.name', new_name)
+            self.assign_value(locators['operatingsys.name'], new_name)
         if major_version:
-            if self.wait_until_element(
-                    locators['operatingsys.major_version']):
-                self.field_update(
-                    'operatingsys.major_version', major_version)
+            self.assign_value(
+                locators['operatingsys.major_version'], major_version)
         self._configure_os(
             archs,
             ptables,
@@ -141,14 +124,12 @@ class OperatingSys(Base):
 
     def set_os_parameter(self, os_name, param_name, param_value):
         """Add new OS parameter."""
-        element = self.search(os_name)
-        self.click(element)
+        self.search_and_click(os_name)
         self.set_parameter(param_name, param_value)
 
     def remove_os_parameter(self, os_name, param_name):
         """Remove selected OS parameter."""
-        element = self.search(os_name)
-        self.click(element)
+        self.search_and_click(os_name)
         self.remove_parameter(param_name)
 
     def get_selected_entities(self):
@@ -173,15 +154,13 @@ class OperatingSys(Base):
         minor_ver_loc = locators['operatingsys.minor_version']
         os_family_loc = locators['operatingsys.fetch_family']
 
-        element = self.search(os_name)
-        self.click(element)
+        self.search_and_click(os_name)
         if self.wait_until_element(locators['operatingsys.name']):
             result = dict([('name', None), ('major', None),
                            ('minor', None), ('os_family', None),
                            ('ptable', None), ('template', None),
                            ('medium', None)])
-            result['name'] = self.find_element(
-                name_loc).get_attribute('value')
+            result['name'] = self.find_element(name_loc).get_attribute('value')
             result['major'] = self.find_element(
                 major_ver_loc).get_attribute('value')
             result['minor'] = self.find_element(

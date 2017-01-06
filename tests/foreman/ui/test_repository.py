@@ -99,19 +99,16 @@ class RepositoryTestCase(UITestCase):
 
     def setup_navigate_syncnow(self, session, prd_name, repo_name):
         """Helps with Navigation for syncing via the repos page."""
-        strategy1, value1 = locators['repo.select']
-        strategy2, value2 = locators['repo.select_checkbox']
         session.nav.go_to_select_org(self.session_org.name, force=False)
         session.nav.go_to_products()
-        session.nav.click((strategy1, value1 % prd_name))
-        session.nav.click((strategy2, value2 % repo_name))
+        session.nav.click(locators['repo.select'] % prd_name)
+        session.nav.click(locators['repo.select_checkbox'] % repo_name)
         session.nav.click(locators['repo.sync_now'])
 
     def prd_sync_is_ok(self, repo_name):
         """Asserts whether the sync Result is successful."""
-        strategy1, value1 = locators['repo.select_event']
         self.repository.click(tab_locators['prd.tab_tasks'])
-        self.repository.click((strategy1, value1 % repo_name))
+        self.repository.click(locators['repo.select_event'] % repo_name)
         timeout = time.time() + 60 * 10
         spinner = self.repository.wait_until_element(
             locators['repo.result_spinner'], 20)
@@ -141,7 +138,7 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(prod.name).click()
+                    self.products.search_and_click(prod.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -167,7 +164,7 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product_1.name).click()
+                    self.products.search_and_click(product_1.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -175,7 +172,7 @@ class RepositoryTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
                     set_context(session, org=org_2.name)
-                    self.products.search(product_2.name).click()
+                    self.products.search_and_click(product_2.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -200,7 +197,7 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -225,7 +222,7 @@ class RepositoryTestCase(UITestCase):
             with self.subTest(repo_name):
                 with Session(self.browser) as session:
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -248,14 +245,14 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
                 url=FAKE_1_YUM_REPO,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -278,7 +275,7 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -287,9 +284,9 @@ class RepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(repo_name))
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'url', FAKE_1_YUM_REPO))
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     self.repository.update(repo_name, new_url=FAKE_2_YUM_REPO)
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'url', FAKE_2_YUM_REPO))
 
@@ -317,7 +314,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -327,9 +324,9 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'gpgkey', gpgkey_1.name))
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             self.repository.update(repo_name, new_gpg_key=gpgkey_2.name)
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'gpgkey', gpgkey_2.name))
 
@@ -348,7 +345,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -357,10 +354,10 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'checksum', checksum_default))
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             self.repository.update(
                 repo_name, new_repo_checksum=checksum_update)
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'checksum', checksum_update))
 
@@ -378,7 +375,7 @@ class RepositoryTestCase(UITestCase):
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -567,7 +564,7 @@ class RepositoryTestCase(UITestCase):
                 with self.subTest(repo_name):
                     session.nav.go_to_select_org(
                         self.session_org.name, force=False)
-                    self.products.click(self.products.search(prod.name))
+                    self.products.search_and_click(prod.name)
                     make_repository(
                         session,
                         name=repo_name,
@@ -631,7 +628,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.update(
                 repo_name, new_name=new_repo_name)
-            self.products.click(self.products.search(prod.name))
+            self.products.search_and_click(prod.name)
             self.assertIsNotNone(self.repository.search(new_repo_name))
 
     @run_only_on('sat')
@@ -658,13 +655,13 @@ class RepositoryTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
-            self.products.click(self.products.search(prod.name))
+            self.products.search_and_click(prod.name)
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.update(
                 repo_name,
                 new_url=FEDORA23_OSTREE_REPO
             )
-            self.products.click(self.products.search(prod.name))
+            self.products.search_and_click(prod.name)
             # Validate the new repo URL
             self.assertTrue(
                 self.repository.validate_field(
@@ -956,7 +953,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -996,7 +993,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -1049,7 +1046,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -1101,7 +1098,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -1141,7 +1138,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -1194,7 +1191,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             make_repository(
                 session,
                 name=repo_name,
@@ -1355,7 +1352,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(self.session_prod.name).click()
+            self.products.search_and_click(self.session_prod.name)
             make_repository(session, name=repo_name)
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.upload_content(
@@ -1379,7 +1376,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(self.session_prod.name).click()
+            self.products.search_and_click(self.session_prod.name)
             make_repository(
                 session, name=repo_name, repo_type=REPO_TYPE['puppet'])
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -1413,7 +1410,7 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             set_context(session, org=self.session_org.name)
-            self.products.search(self.session_prod.name).click()
+            self.products.search_and_click(self.session_prod.name)
             make_repository(
                 session, name=repo_name, repo_type=REPO_TYPE['puppet'])
             self.assertIsNotNone(self.repository.search(repo_name))

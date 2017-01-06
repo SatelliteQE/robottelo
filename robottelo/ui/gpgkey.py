@@ -22,16 +22,13 @@ class GPGKey(Base):
     def create(self, name, upload_key=False, key_path=None, key_content=None):
         """Creates a gpg key from UI."""
         self.click(locators['gpgkey.new'])
-        self.wait_until_element(
-            common_locators['name']).send_keys(name)
+        self.assign_value(common_locators['name'], name)
         if upload_key:
             self.click(locators['gpgkey.upload'])
-            self.wait_until_element(
-                locators['gpgkey.file_path']).send_keys(key_path)
+            self.assign_value(locators['gpgkey.file_path'], key_path)
         elif key_content:
             self.click(locators['gpgkey.content'])
-            self.wait_until_element(
-                locators['gpgkey.content']).send_keys(key_content)
+            self.assign_value(locators['gpgkey.content'], key_content)
         else:
             raise UIError(
                 u'Could not create new gpgkey "{0}" without contents'
@@ -50,8 +47,7 @@ class GPGKey(Base):
 
     def update(self, name, new_name=None, new_key=None):
         """Updates an existing GPG key."""
-        element = self.search(name)
-        self.click(element)
+        self.search_and_click(name)
         if new_name:
             self.edit_entity(
                 locators['gpgkey.edit_name'],
@@ -59,10 +55,8 @@ class GPGKey(Base):
                 new_name,
                 locators['gpgkey.save_name']
             )
-            self.wait_for_ajax()
         if new_key:
-            self.wait_until_element(
-                locators['gpgkey.file_path']).send_keys(new_key)
+            self.assign_value(locators['gpgkey.file_path'], new_key)
             self.click(locators['gpgkey.upload_button'])
 
     def assert_product_repo(self, key_name, product):
@@ -71,8 +65,7 @@ class GPGKey(Base):
         Here product is a boolean variable when product = True; validation
         assert product tab otherwise assert repo tab.
         """
-        element = self.search(key_name)
-        self.click(element)
+        self.search_and_click(key_name)
         if product:
             self.click(tab_locators['gpgkey.tab_products'])
         else:
@@ -87,8 +80,7 @@ class GPGKey(Base):
         self.click(prd_element)
         if repo is not None:
             self.click(tab_locators['prd.tab_repos'])
-            strategy, value = locators['repo.select']
-            self.click((strategy, value % repo))
+            self.click(locators['repo.select'] % repo)
             self.click(locators['repo.gpg_key_edit'])
             element = Select(
                 self.find_element(locators['repo.gpg_key_update'])

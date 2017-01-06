@@ -29,7 +29,7 @@ class Subscriptions(Base):
         self.click(locators['subs.manage_manifest'])
         if repo_url:
             self.click(locators['subs.repo_url_edit'])
-            self.text_field_update(locators['subs.repo_url_update'], repo_url)
+            self.assign_value(locators['subs.repo_url_update'], repo_url)
             self.click(common_locators['save'])
         browse_element = self.wait_until_element(locators['subs.file_path'])
         # File fields requires a file path in order to upload it. Create an

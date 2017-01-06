@@ -19,28 +19,16 @@
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
 from robottelo.datafactory import (
-    filtered_datapoint,
     generate_strings_list,
     invalid_values_list,
+    valid_data_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_subnet
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
-
-
-@filtered_datapoint
-def valid_long_names():
-    """Returns a list of valid long subnet names"""
-    return [
-        {'name': gen_string('alphanumeric', 255)},
-        {'name': gen_string('alpha', 255)},
-        {'name': gen_string('numeric', 255)},
-        {'name': gen_string('latin1', 255)},
-        {'name': gen_string('utf8', 255), u'bz-bug': 1180066}
-    ]
 
 
 class SubnetTestCase(UITestCase):
@@ -61,7 +49,7 @@ class SubnetTestCase(UITestCase):
         @Assert: Subnet is created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=8):
+            for name in generate_strings_list():
                 with self.subTest(name):
                     make_subnet(
                         session,
@@ -81,21 +69,16 @@ class SubnetTestCase(UITestCase):
         @Assert: Subnet is created with 255 chars
         """
         with Session(self.browser) as session:
-            for test_data in valid_long_names():
-                with self.subTest(test_data):
-                    bug_id = test_data.pop('bz-bug', None)
-                    if bug_id is not None and bz_bug_is_open(bug_id):
-                        self.skipTest(
-                            'Bugzilla bug {0} is open.'.format(bug_id)
-                        )
+            for name in valid_data_list():
+                with self.subTest(name):
                     make_subnet(
                         session,
-                        subnet_name=test_data['name'],
+                        subnet_name=name,
                         subnet_network=gen_ipaddr(ip3=True),
                         subnet_mask=gen_netmask(),
                     )
                     self.assertIsNotNone(
-                        self.subnet.search(test_data['name']))
+                        self.subnet.search(name))
 
     @run_only_on('sat')
     @tier2
@@ -108,8 +91,6 @@ class SubnetTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy1, value1 = common_locators['entity_deselect']
-        strategy2, value2 = common_locators['entity_checkbox']
         name = gen_string('alpha')
         domain = entities.Domain(
             organization=[self.organization]
@@ -123,13 +104,12 @@ class SubnetTestCase(UITestCase):
                 subnet_mask=gen_netmask(),
                 domains=[domain.name],
             )
-            subnet = self.subnet.search(name)
-            session.nav.click(subnet)
-            session.nav.click(tab_locators['subnet.tab_domain'])
-            element = session.nav.wait_until_element(
-                (strategy1, value1 % domain.name))
-            checkbox_element = session.nav.wait_until_element(
-                (strategy2, value2 % domain.name))
+            self.subnet.search_and_click(name)
+            self.subnet.click(tab_locators['subnet.tab_domain'])
+            element = self.subnet.wait_until_element(
+                common_locators['entity_deselect'] % domain.name)
+            checkbox_element = self.subnet.wait_until_element(
+                common_locators['entity_checkbox'] % domain.name)
             # Depending upon the number of domains either, checkbox or
             # selection list appears.
             if element is None and checkbox_element is None:
@@ -198,7 +178,7 @@ class SubnetTestCase(UITestCase):
         @Assert: Subnet is deleted
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=8):
+            for name in generate_strings_list():
                 with self.subTest(name):
                     make_subnet(
                         session,
@@ -245,7 +225,7 @@ class SubnetTestCase(UITestCase):
                 subnet_network=gen_ipaddr(ip3=True),
                 subnet_mask=gen_netmask(),
             )
-            for new_name in generate_strings_list(length=8):
+            for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     self.subnet.update(name, new_subnet_name=new_name)
                     result_object = self.subnet.search_and_validate(new_name)

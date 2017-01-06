@@ -93,7 +93,7 @@ class Location(Base):
                organizations=None, select=True):
         """Creates new Location from UI."""
         self.click(locators['location.new'])
-        self.text_field_update(locators['location.name'], name)
+        self.assign_value(locators['location.name'], name)
         if parent:
             self.select(locators['location.parent'], parent)
         self.click(common_locators['submit'])
@@ -117,11 +117,9 @@ class Location(Base):
                new_ptables=None, new_domains=None, new_envs=None,
                new_hostgroups=None, select=False):
         """Update Location in UI."""
-        org_object = self.search(loc_name)
-        self.click(org_object)
+        self.search_and_click(loc_name)
         if new_name:
-            if self.wait_until_element(locators['location.name']):
-                self.field_update('location.name', new_name)
+            self.assign_value(locators['location.name'], new_name)
         self._configure_location(users=users, capsules=capsules,
                                  subnets=subnets, resources=resources,
                                  medias=medias, templates=templates,

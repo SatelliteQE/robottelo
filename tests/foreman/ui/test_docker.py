@@ -90,7 +90,7 @@ def _create_repository(session, org, name, product, upstream_name=None):
     if upstream_name is None:
         upstream_name = u'busybox'
     set_context(session, org=org)
-    Products(session.browser).search(product).click()
+    Products(session.browser).search_and_click(product)
     make_repository(
         session,
         name=name,
@@ -184,7 +184,7 @@ class DockerRepositoryTestCase(UITestCase):
                     name=name,
                     product=product.name,
                 )
-                self.products.search(product.name).click()
+                self.products.search_and_click(product.name)
                 self.assertIsNotNone(self.repository.search(name))
 
     @run_only_on('sat')
@@ -208,7 +208,7 @@ class DockerRepositoryTestCase(UITestCase):
                         name=name,
                         product=pr.name,
                     )
-                    self.products.search(pr.name).click()
+                    self.products.search_and_click(pr.name)
                     self.assertIsNotNone(self.repository.search(name))
 
     @run_only_on('sat')
@@ -262,7 +262,7 @@ class DockerRepositoryTestCase(UITestCase):
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.repository.update(name, new_name=new_name)
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     self.assertIsNotNone(self.repository.search(new_name))
                     name = new_name
 
@@ -290,10 +290,10 @@ class DockerRepositoryTestCase(UITestCase):
                 repo_name, 'upstream', 'busybox'))
             for new_upstream_name in valid_docker_upstream_names():
                 with self.subTest(new_upstream_name):
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     self.repository.update(
                         repo_name, new_upstream_name=new_upstream_name)
-                    self.products.search(product.name).click()
+                    self.products.search_and_click(product.name)
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'upstream', new_upstream_name))
 
@@ -321,9 +321,9 @@ class DockerRepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(name))
             self.assertTrue(self.repository.validate_field(
                 name, 'url', DOCKER_REGISTRY_HUB))
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             self.repository.update(name, new_url=new_url)
-            self.products.search(product.name).click()
+            self.products.search_and_click(product.name)
             self.assertTrue(self.repository.validate_field(
                 name, 'url', new_url))
 
@@ -388,13 +388,13 @@ class DockerRepositoryTestCase(UITestCase):
             shuffle(entities_list)
             del_entity = entities_list.pop()
             self.navigator.go_to_products()
-            self.products.search(del_entity[0]).click()
+            self.products.search_and_click(del_entity[0])
             self.repository.delete(del_entity[1])
             self.assertIsNone(self.repository.search(del_entity[1]))
 
             # Check if others repositories are not touched
             for product_name, repo_name in entities_list:
-                self.products.search(product_name).click()
+                self.products.search_and_click(product_name)
                 self.assertIsNotNone(self.repository.search(repo_name))
 
 
@@ -1508,7 +1508,7 @@ class DockerRegistryTestCase(UITestCase):
                 self.assertIsNotNone(self.registry.search(name))
                 new_url = settings.docker.external_registry_2
                 self.registry.update(name, new_url=new_url)
-                self.registry.search(name).click()
+                self.registry.search_and_click(name)
                 self.assertIsNotNone(self.registry.wait_until_element(
                     locators['registry.url']).text, new_url)
             finally:
@@ -1537,7 +1537,7 @@ class DockerRegistryTestCase(UITestCase):
                 self.assertIsNotNone(self.registry.search(name))
                 new_description = gen_string('utf8')
                 self.registry.update(name, new_desc=new_description)
-                self.registry.search(name).click()
+                self.registry.search_and_click(name)
                 self.assertIsNotNone(self.registry.wait_until_element(
                     locators['registry.description']).text, new_description)
             finally:
@@ -1566,7 +1566,7 @@ class DockerRegistryTestCase(UITestCase):
                 self.assertIsNotNone(self.registry.search(name))
                 new_username = gen_string('utf8')
                 self.registry.update(name, new_username=new_username)
-                self.registry.search(name).click()
+                self.registry.search_and_click(name)
                 self.assertIsNotNone(self.registry.wait_until_element(
                     locators['registry.username']).text, new_username)
             finally:

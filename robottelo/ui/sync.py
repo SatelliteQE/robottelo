@@ -74,11 +74,9 @@ class Sync(Base):
         :param repos: The list of repositories to sync.
 
         """
-        strategy, value = locators['sync.prd_expander']
-        strategy1, value1 = locators['sync.repo_checkbox']
-        self.click((strategy, value % product))
+        self.click(locators['sync.prd_expander'] % product)
         for repo in repos:
-            self.click((strategy1, value1 % repo))
+            self.click(locators['sync.repo_checkbox'] % repo)
         self.click(locators['sync.sync_now'])
         return self.assert_sync(repos)
 

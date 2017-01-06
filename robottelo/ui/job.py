@@ -68,8 +68,7 @@ class Job(Base):
                     option['value']
                 )
         if schedule:
-            strategy, value = locators['job_invocation.schedule_type']
-            self.click((strategy, value % schedule))
+            self.click(locators['job_invocation.schedule_type'] % schedule)
         if schedule_options:
             for option in schedule_options:
                 self.assign_value(
@@ -77,12 +76,11 @@ class Job(Base):
                     option['value']
                 )
         self.click(common_locators['submit'])
-        strategy, value = locators['job_invocation.status']
         # It will be hard to return state and perform verification on test
         # level as we have to wait for specific state due existence of
         # intermediate states (like 'pending')
         if self.wait_until_element(
-                (strategy, value % result), 180) is not None:
+                locators['job_invocation.status'] % result, 180) is not None:
             return True
         else:
             return False

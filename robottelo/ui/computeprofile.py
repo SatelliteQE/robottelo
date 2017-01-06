@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
@@ -23,14 +23,10 @@ class ComputeProfile(Base):
 
     def update(self, old_name, new_name):
         """Updates existing compute profile entity"""
-        element = self.search(old_name)
-        if element is None:
-            raise UINoSuchElementError(
-                'Could not find compute profile {0}'.format(old_name))
-        if element:
-            self.click(locators['profile.rename'] % old_name)
-            self.assign_value(locators['profile.name'], new_name)
-            self.click(common_locators['submit'])
+        self.search(old_name)
+        self.click(locators['profile.rename'] % old_name)
+        self.assign_value(locators['profile.name'], new_name)
+        self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
         """Deletes existing compute profile entity"""

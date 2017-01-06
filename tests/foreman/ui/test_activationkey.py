@@ -50,7 +50,6 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -264,9 +263,8 @@ class ActivationKeyTestCase(UITestCase):
 
             # check added host collection is listed
             self.activationkey.click(tab_locators['ak.host_collections.list'])
-            strategy, value = tab_locators['ak.host_collections.add.select']
             host_collection = self.activationkey.wait_until_element(
-                (strategy, value % host_col.name))
+                tab_locators['ak.host_collections.add.select'] % host_col.name)
             self.assertIsNotNone(host_collection)
 
     @tier2
@@ -1165,7 +1163,6 @@ class ActivationKeyTestCase(UITestCase):
             )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1342057)
     @skip_if_not_set('clients')
     @tier3
     def test_positive_add_multiple_aks_to_system(self):
@@ -1253,7 +1250,6 @@ class ActivationKeyTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        pass
 
     @run_only_on('sat')
     @tier1
@@ -1268,7 +1264,6 @@ class ActivationKeyTestCase(UITestCase):
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     set_context(session, org=self.organization.name)
-                    self.navigator.go_to_activation_keys()
                     self.assertIsNotNone(
                         self.activationkey.search(self.base_key_name))
                     self.activationkey.copy(self.base_key_name, new_name)
@@ -1288,7 +1283,6 @@ class ActivationKeyTestCase(UITestCase):
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     set_context(session, org=self.organization.name)
-                    self.navigator.go_to_activation_keys()
                     self.assertIsNotNone(
                         self.activationkey.search(self.base_key_name))
                     self.activationkey.copy(self.base_key_name, new_name)

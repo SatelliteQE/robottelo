@@ -193,7 +193,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             self.assertIsNotNone(self.products.search(product_name))
 
             # step 2.5: Create custom YUM repository
-            self.products.search(product_name).click()
+            self.products.search_and_click(product_name)
             make_repository(
                 session,
                 name=yum_repository_name,
@@ -202,7 +202,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             self.assertIsNotNone(self.repository.search(yum_repository_name))
 
             # step 2.6: Create custom PUPPET repository
-            self.products.search(product_name).click()
+            self.products.search_and_click(product_name)
             make_repository(
                 session,
                 name=puppet_repository_name,

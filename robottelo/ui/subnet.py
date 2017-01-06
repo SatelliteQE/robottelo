@@ -23,16 +23,16 @@ class Subnet(Base):
                           subnet_secondarydns=None):
         """Configures the subnet."""
         if subnet_network:
-            self.text_field_update(locators['subnet.network'], subnet_network)
+            self.assign_value(locators['subnet.network'], subnet_network)
         if subnet_mask:
-            self.text_field_update(locators['subnet.mask'], subnet_mask)
+            self.assign_value(locators['subnet.mask'], subnet_mask)
         if subnet_gateway:
-            self.text_field_update(locators['subnet.gateway'], subnet_gateway)
+            self.assign_value(locators['subnet.gateway'], subnet_gateway)
         if subnet_primarydns:
-            self.text_field_update(
+            self.assign_value(
                 locators['subnet.primarydns'], subnet_primarydns)
         if subnet_secondarydns:
-            self.text_field_update(
+            self.assign_value(
                 locators['subnet.secondarydns'], subnet_secondarydns)
         if domains:
             self.configure_entity(
@@ -46,7 +46,7 @@ class Subnet(Base):
                subnet_secondarydns=None, domains=None, org_select=True):
         """Create Subnet from UI"""
         self.click(locators['subnet.new'])
-        self.wait_until_element(locators['subnet.name']).send_keys(subnet_name)
+        self.assign_value(locators['subnet.name'], subnet_name)
         self._configure_subnet(subnet_network, subnet_mask, domains,
                                subnet_gateway, subnet_primarydns,
                                subnet_secondarydns)
@@ -70,8 +70,7 @@ class Subnet(Base):
     def search_and_validate(self, subnet_name):
         """Search Subnet name, network and mask to validate results."""
         result = None
-        subnet_object = self.search(subnet_name)
-        self.click(subnet_object)
+        self.search_and_click(subnet_name)
         if self.wait_until_element(locators['subnet.name']):
             result = dict(
                 [('name', None), ('network', None), ('mask', None)])
@@ -87,11 +86,9 @@ class Subnet(Base):
                new_subnet_name=None, new_subnet_network=None,
                new_subnet_mask=None):
         """Update subnet name, network and mask from UI."""
-        subnet_object = self.search(subnet_name)
-        self.click(subnet_object)
+        self.search_and_click(subnet_name)
         if new_subnet_name:
-            if self.wait_until_element(locators['subnet.name']):
-                self.field_update('subnet.name', new_subnet_name)
+            self.assign_value(locators['subnet.name'], new_subnet_name)
         self._configure_subnet(new_subnet_network, new_subnet_mask)
         self.configure_entity(
             orgs,

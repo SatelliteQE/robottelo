@@ -265,7 +265,7 @@ class LocationTestCase(UITestCase):
                     make_loc(session, name=loc_name)
                     self.assertIsNotNone(self.location.search(loc_name))
                     self.location.update(loc_name, new_subnets=[subnet_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy, value % subnet_name))
@@ -292,7 +292,7 @@ class LocationTestCase(UITestCase):
                     make_loc(session, name=loc_name)
                     self.assertIsNotNone(self.location.search(loc_name))
                     self.location.update(loc_name, new_domains=[domain_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy, value % domain_name))
@@ -328,7 +328,7 @@ class LocationTestCase(UITestCase):
                     make_loc(session, name=loc_name)
                     self.assertIsNotNone(self.location.search(loc_name))
                     self.location.update(loc_name, new_users=[user_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy, value % user_name))
@@ -376,7 +376,7 @@ class LocationTestCase(UITestCase):
                     self.assertEqual(host_grp.name, host_grp_name)
                     make_loc(session, name=loc_name)
                     self.assertIsNotNone(self.location.search(loc_name))
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -404,7 +404,7 @@ class LocationTestCase(UITestCase):
                     self.assertIsNotNone(self.location.search(loc_name))
                     self.location.update(
                         loc_name, new_organizations=[org_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(
                         tab_locators['context.tab_organizations'])
                     element = session.nav.wait_until_element(
@@ -432,7 +432,7 @@ class LocationTestCase(UITestCase):
                     make_loc(session, name=loc_name)
                     self.assertIsNotNone(self.location.search(loc_name))
                     self.location.update(loc_name, new_envs=[env_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy, value % env_name))
@@ -465,7 +465,7 @@ class LocationTestCase(UITestCase):
                     self.assertIsNotNone(self.location.search(loc_name))
                     self.location.update(
                         loc_name, new_resources=[resource_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
                         (strategy, value % resource_name))
@@ -496,7 +496,7 @@ class LocationTestCase(UITestCase):
                     make_loc(session, name=loc_name)
                     self.assertIsNotNone(self.location.search(loc_name))
                     self.location.update(loc_name, new_medias=[medium_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy, value % medium_name))
@@ -547,7 +547,7 @@ class LocationTestCase(UITestCase):
                         template_type='Provisioning template',
                     )
                     self.assertIsNotNone(self.template.search(template))
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy, value % template))
@@ -581,7 +581,7 @@ class LocationTestCase(UITestCase):
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % env_name))
@@ -589,7 +589,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, envs=[env_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
                         (strategy, value % env_name))
@@ -626,7 +626,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         subnets=[subnet_name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % subnet_name))
@@ -634,7 +634,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, subnets=[subnet_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     self.location.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
                         (strategy, value % subnet_name))
@@ -671,7 +671,7 @@ class LocationTestCase(UITestCase):
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % domain_name))
@@ -679,7 +679,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, domains=[domain_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
                         (strategy, value % domain_name))
@@ -721,7 +721,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         users=[user_name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % user_name))
@@ -729,7 +729,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, users=[user_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
                         (strategy, value % user_name))
@@ -764,7 +764,7 @@ class LocationTestCase(UITestCase):
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -772,7 +772,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.hostgroup.delete(host_grp_name)
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
                         (strategy, value % host_grp_name))
@@ -813,7 +813,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         resources=[resource_name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = self.location.wait_until_element(
                         (strategy1, value1 % resource_name))
@@ -821,7 +821,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, resources=[resource_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
                         (strategy, value % resource_name))
@@ -859,7 +859,7 @@ class LocationTestCase(UITestCase):
                         organizations=[self.org_.name],
                         name=loc_name,
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy1, value1 % medium_name))
@@ -867,7 +867,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.location.update(loc_name, medias=[medium_name])
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
                         (strategy, value % medium_name))
@@ -904,7 +904,7 @@ class LocationTestCase(UITestCase):
                         name=loc_name,
                         organizations=[self.org_.name],
                     )
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy, value % template_name))
@@ -912,7 +912,7 @@ class LocationTestCase(UITestCase):
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.template.delete(template_name)
-                    self.location.search(loc_name).click()
+                    self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
                         (strategy, value % template_name))

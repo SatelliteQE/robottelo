@@ -76,14 +76,13 @@ class Container(Base):
         if ' (' in resource_name:
             self.click(locators['container.resource_name'])
             # typing compute resource name without parenthesis part
-            self.text_field_update(
+            self.assign_value(
                 common_locators['select_list_search_box'],
                 resource_name.split(' (')[0]
             )
-            strategy, value = common_locators['entity_select_list']
             # selecting compute resource by its full name (with parenthesis
             # part)
-            self.click((strategy, value % resource_name))
+            self.click(common_locators['entity_select_list'] % resource_name)
         else:
             self.assign_value(
                 locators['container.resource_name'], resource_name)
@@ -127,8 +126,8 @@ class Container(Base):
                     parameter['value']
                 )
         self.click(locators['container.next_section'])
-        strategy, value = locators['container.created_container_name']
-        element = self.wait_until_element((strategy, value % name))
+        element = self.wait_until_element(
+            locators['container.created_container_name'] % name)
         if element is None:
             raise UINoSuchElementError(
                 'Container with name {0} was not created successfully'
@@ -143,12 +142,10 @@ class Container(Base):
 
         """
         self.navigate_to_entity()
-        strategy, value = locators['container.resource_search_tab']
-        self.click((strategy, value % resource_name))
-        self.text_field_update(
+        self.click(locators['container.resource_search_tab'] % resource_name)
+        self.assign_value(
             locators['container.search_filter'], container_name)
-        strategy, value = self._search_locator()
-        return self.wait_until_element((strategy, value % container_name))
+        return self.wait_until_element(self._search_locator() % container_name)
 
     def delete(self, resource_name, container_name, really=True):
         """Removes the container entity"""
@@ -156,8 +153,7 @@ class Container(Base):
         if element is None:
             raise UIError(
                 'Could not find container "{0}"'.format(container_name))
-        element.click()
-        self.wait_for_ajax()
+        self.click(element)
         self.click(locators['container.delete'], wait_for_ajax=False)
         self.handle_alert(really)
 

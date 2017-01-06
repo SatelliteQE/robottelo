@@ -128,7 +128,7 @@ class OrganizationTestCase(UITestCase):
                     org_name = gen_string('alphanumeric')
                     make_org(
                         session, org_name=org_name, label=label)
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     name = session.nav.wait_until_element(
                         locators['org.name']).get_attribute('value')
                     label = session.nav.wait_until_element(
@@ -147,7 +147,7 @@ class OrganizationTestCase(UITestCase):
             for item in valid_labels():
                 with self.subTest(item):
                     make_org(session, org_name=item, label=item)
-                    self.org.search(item).click()
+                    self.org.search_and_click(item)
                     name = self.org.wait_until_element(
                         locators['org.name']).get_attribute('value')
                     label = self.org.wait_until_element(
@@ -171,7 +171,7 @@ class OrganizationTestCase(UITestCase):
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     label = session.nav.wait_until_element(
                         locators['org.label'])
                     label_value = label.get_attribute('value')
@@ -365,8 +365,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for domain_name in generate_strings_list():
                 with self.subTest(domain_name):
@@ -374,18 +372,18 @@ class OrganizationTestCase(UITestCase):
                     domain = entities.Domain(name=domain_name).create()
                     self.assertEqual(domain.name, domain_name)
                     make_org(session, org_name=org_name, domains=[domain_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % domain_name))
+                        common_locators['entity_deselect'] % domain_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, domains=[domain_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % domain_name))
+                        common_locators['entity_select'] % domain_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
@@ -401,8 +399,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for user_name in valid_users():
                 with self.subTest(user_name):
@@ -416,19 +412,19 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(user.login, user_name)
                     make_org(session, org_name=org_name, users=[user_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % user_name))
+                        common_locators['entity_deselect'] % user_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(
                         org_name, users=[user_name], new_users=None)
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % user_name))
+                        common_locators['entity_select'] % user_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
@@ -445,8 +441,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for host_grp_name in generate_strings_list():
                 with self.subTest(host_grp_name):
@@ -456,10 +450,10 @@ class OrganizationTestCase(UITestCase):
                     self.assertEqual(host_grp.name, host_grp_name)
                     make_org(
                         session, org_name=org_name, hostgroups=[host_grp_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % host_grp_name))
+                        common_locators['entity_deselect'] % host_grp_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
@@ -468,10 +462,10 @@ class OrganizationTestCase(UITestCase):
                         hostgroups=[host_grp_name],
                         new_hostgroups=None
                     )
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % host_grp_name))
+                        common_locators['entity_select'] % host_grp_name)
                     # Item is listed in 'All Items' list and not
                     # Selected Items' list.
                     self.assertIsNotNone(element)
@@ -502,7 +496,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for subnet_name in generate_strings_list():
                 with self.subTest(subnet_name):
@@ -517,10 +510,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_subnets=[subnet_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % subnet_name))
+                        common_locators['entity_deselect'] % subnet_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -534,7 +527,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for domain_name in generate_strings_list():
                 with self.subTest(domain_name):
@@ -544,10 +536,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_domains=[domain_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % domain_name))
+                        common_locators['entity_deselect'] % domain_name)
                     self.assertIsNotNone(element)
 
     @tier2
@@ -561,7 +553,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for user_name in valid_users():
                 with self.subTest(user_name):
@@ -576,10 +567,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_users=[user_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % user_name))
+                        common_locators['entity_deselect'] % user_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -594,7 +585,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for host_grp_name in generate_strings_list():
                 with self.subTest(host_grp_name):
@@ -605,10 +595,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_hostgroups=[host_grp_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % host_grp_name))
+                        common_locators['entity_deselect'] % host_grp_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -623,7 +613,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for location_name in generate_strings_list():
                 with self.subTest(location_name):
@@ -633,10 +622,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_locations=[location_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_locations'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % location_name))
+                        common_locators['entity_deselect'] % location_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -652,8 +641,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
@@ -668,10 +655,10 @@ class OrganizationTestCase(UITestCase):
                     self.assertEqual(resource.name, resource_name)
                     make_org(
                         session, org_name=org_name, resources=[resource_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % resource_name))
+                        common_locators['entity_deselect'] % resource_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
@@ -680,10 +667,10 @@ class OrganizationTestCase(UITestCase):
                         resources=[resource_name],
                         new_resources=None
                     )
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % resource_name))
+                        common_locators['entity_select'] % resource_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
@@ -699,8 +686,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for medium_name in generate_strings_list():
                 with self.subTest(medium_name):
@@ -713,20 +698,19 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(medium.name, medium_name)
                     make_org(session, org_name=org_name, medias=[medium_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % medium_name))
+                        common_locators['entity_deselect'] % medium_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
-                    self.navigator.go_to_org()
                     self.org.update(
                         org_name, medias=[medium_name], new_medias=None)
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % medium_name))
+                        common_locators['entity_select'] % medium_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
@@ -742,8 +726,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for template_name in generate_strings_list():
                 with self.subTest(template_name):
@@ -752,18 +734,18 @@ class OrganizationTestCase(UITestCase):
                     entities.ConfigTemplate(name=template_name).create()
                     make_org(
                         session, org_name=org_name, templates=[template_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % template_name))
+                        common_locators['entity_deselect'] % template_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, templates=[template_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_template'])
                     element = self.org.wait_until_element(
-                        (strategy, value % template_name))
+                        common_locators['entity_select'] % template_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
@@ -779,8 +761,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for ptable_name in generate_strings_list():
                 with self.subTest(ptable_name):
@@ -792,7 +772,7 @@ class OrganizationTestCase(UITestCase):
                     self.org.click(self.org.search(org_name))
                     self.org.click(tab_locators['context.tab_ptable'])
                     element = self.org.wait_until_element(
-                        (strategy1, value1 % ptable_name))
+                        common_locators['entity_deselect'] % ptable_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
@@ -800,7 +780,7 @@ class OrganizationTestCase(UITestCase):
                     self.org.click(self.org.search(org_name))
                     self.org.click(tab_locators['context.tab_ptable'])
                     element = self.org.wait_until_element(
-                        (strategy, value % ptable_name))
+                        common_locators['entity_select'] % ptable_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
@@ -816,20 +796,19 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for env_name in valid_env_names():
                 with self.subTest(env_name):
                     org_name = gen_string('alpha')
-                    env = entities.Environment(name=env_name).create_json()
-                    self.assertEqual(env['name'], env_name)
+                    env = entities.Environment(name=env_name).create()
+                    self.assertEqual(env.name, env_name)
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_envs=[env_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % env_name))
+                        common_locators['entity_deselect'] % env_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -861,7 +840,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
@@ -877,10 +855,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_resources=[resource_name])
-                    self.org.search(org_name).click()
-                    session.nav.click(tab_locators['context.tab_resources'])
+                    self.org.search_and_click(org_name)
+                    self.org.click(tab_locators['context.tab_resources'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % resource_name))
+                        common_locators['entity_deselect'] % resource_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -894,7 +872,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for medium_name in generate_strings_list():
                 with self.subTest(medium_name):
@@ -909,10 +886,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_medias=[medium_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % medium_name))
+                        common_locators['entity_deselect'] % medium_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -927,7 +904,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for template_name in generate_strings_list():
                 with self.subTest(template_name):
@@ -937,10 +913,10 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
                     self.org.update(org_name, new_templates=[template_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % template_name))
+                        common_locators['entity_deselect'] % template_name)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -954,28 +930,26 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for env_name in valid_env_names():
                 with self.subTest(env_name):
                     org_name = gen_string('alpha')
                     # Create environment using nailgun
-                    env = entities.Environment(name=env_name).create_json()
-                    self.assertEqual(env['name'], env_name)
+                    env = entities.Environment(name=env_name).create()
+                    self.assertEqual(env.name, env_name)
                     make_org(session, org_name=org_name, envs=[env_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % env_name))
+                        common_locators['entity_deselect'] % env_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, envs=[env_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % env_name))
+                        common_locators['entity_select'] % env_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
@@ -991,8 +965,6 @@ class OrganizationTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        strategy, value = common_locators['entity_select']
-        strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             for subnet_name in generate_strings_list():
                 with self.subTest(subnet_name):
@@ -1005,18 +977,18 @@ class OrganizationTestCase(UITestCase):
                     ).create()
                     self.assertEqual(subnet.name, subnet_name)
                     make_org(session, org_name=org_name, subnets=[subnet_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
-                        (strategy1, value1 % subnet_name))
+                        common_locators['entity_deselect'] % subnet_name)
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
                     self.org.update(org_name, subnets=[subnet_name])
-                    self.org.search(org_name).click()
+                    self.org.search_and_click(org_name)
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
-                        (strategy, value % subnet_name))
+                        common_locators['entity_select'] % subnet_name)
                     # Item is listed in 'All Items' list and not
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)

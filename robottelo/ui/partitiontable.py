@@ -33,7 +33,7 @@ class PartitionTable(Base):
                template_path=None, os_family=None, snippet=None):
         """Creates new partition table from UI."""
         self.click(locators['ptable.new'])
-        self.wait_until_element(locators['ptable.name']).send_keys(name)
+        self.assign_value(locators['ptable.name'], name)
         if template_path:
             self.wait_until_element(
                 locators['ptable.layout_template']).send_keys(template_path)
@@ -59,9 +59,9 @@ class PartitionTable(Base):
                new_os_family=None, audit_comment=None, default=None,
                snippet=None):
         """Updates partition table parameters"""
-        self.click(self.search(old_name))
+        self.search_and_click(old_name)
         if new_name:
-            self.text_field_update(locators['ptable.name'], new_name)
+            self.assign_value(locators['ptable.name'], new_name)
         if new_template_path:
             self.wait_until_element(
                 locators['ptable.layout_template']
