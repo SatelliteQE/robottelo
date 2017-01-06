@@ -13,7 +13,7 @@
 @Upstream: No
 """
 
-from robottelo.decorators import run_only_on, tier1, tier2, tier3, stubbed
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
 from robottelo.test import UITestCase
 
 

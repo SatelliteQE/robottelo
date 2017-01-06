@@ -39,6 +39,7 @@ from robottelo.constants import (
 from robottelo.decorators import (
     bz_bug_is_open,
     setting_is_set,
+    skip_if_not_set,
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import TestCase
@@ -931,6 +932,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             u'Not all services seem to be up and running!'
         )
 
+    @skip_if_not_set('compute_resources')
     def test_positive_end_to_end(self):
         """Perform end to end smoke tests using RH and custom repos.
 
