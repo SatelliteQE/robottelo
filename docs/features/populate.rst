@@ -59,15 +59,54 @@ Decorator
 Other way to use populate is via decorator, it is useful to decorate a test_case
 forcing a populate or validate operation to be performed.
 
-.. code-block:: console
+    Having a data_file like::
 
-  from robottelo.populate.decorators import populate_with
+        actions:
+          - model: Organization
+            register: organization_1
+            data:
+              name: My Org
 
-  class TestCase(unittest.TestCase):
+    Then you can use in decorators::
 
-      @populate_with('filename.yaml')
-      def test_anything_that_needs_data(self):
-          """Now write a test"""
+        @populate_with('file.yaml')
+        def test_case_(self):
+            'My Org exists in system test anything here'
+
+    And getting the populated entities inside the test_case::
+
+        @populate_with('file.yaml', context=True)
+        def test_case_(self, context):
+            assert context.entities.organization_1.name == 'My Org'
+
+    You can also set a name to the context argument::
+
+        @populate_with('file.yaml', context='my_context')
+        def test_case_(self, my_context):
+            assert my_context.organization_1.name == 'My Org'
+
+
+And if you dont want to have YAML file you can provide a dict::
+
+    data = {
+        'actions': [
+            {
+                'model': 'Organization',
+                'register': 'organization_1',
+                'data': {
+                    'name': 'My Organization 1',
+                    'label': 'my_organization_1'
+                }
+            },
+        ]
+    }
+
+
+    @populate_with(data, context=True, verbose=1)
+    def test_org_1(context):
+        """a test with populated data"""
+        assert context.registry['organization_1'].name == "MyOrganization1"
+
 
 The YAML data file
 ------------------

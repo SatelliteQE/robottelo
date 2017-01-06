@@ -101,10 +101,12 @@ class BasePopulator(object):
 
     def add_to_registry(self, action_data, result):
         """Add objects to the internal registry"""
-        if not action_data.get('register'):
+        if not action_data.get('register', action_data.get('registry')):
             return
 
-        registry_key = Template(action_data['register']).render(**self.context)
+        registry_key = Template(
+            action_data.get('register', action_data.get('registry'))
+        ).render(**self.context)
 
         if action_data.get('with_items'):
             if registry_key in self.registry:
@@ -397,7 +399,7 @@ class BasePopulator(object):
                     del search_data[field_name]
 
         query_items = [
-            "{0}={1}".format(k, v) for k, v in search_data.items()
+            '{0}="{1}"'.format(k, v) for k, v in search_data.items()
         ]
         raw_query = ",".join(query_items)
         return {'search': raw_query or None}

@@ -11,10 +11,12 @@ base_path = os.path.join('tests', 'foreman', 'data')
 
 def load_data(datafile):
     """Loads YAML file as a dictionary"""
-    if not datafile.startswith('/'):
-        datafile = os.path.join(base_path, datafile)
-    with open(datafile) as datafile:
-        return yaml.load(datafile)
+    if datafile.endswith(('.yml', '.yaml', 'json')):
+        if not datafile.startswith('/'):
+            datafile = os.path.join(base_path, datafile)
+        with open(datafile) as datafile:
+            return yaml.load(datafile)
+    return yaml.load(datafile)
 
 
 def get_populator(data, verbose):
@@ -38,7 +40,7 @@ def populate(data, **extra_options):
     verbose = extra_options.get('verbose')
     populator = get_populator(data, verbose)
     populator.execute(mode='populate')
-    populator.logger.info("THE END!")
+    populator.logger.info("Populator finished!")
     return populator
 
 
@@ -47,5 +49,10 @@ def validate(data, **extra_options):
     verbose = extra_options.get('verbose')
     populator = get_populator(data, verbose)
     populator.execute(mode='validate')
-    populator.logger.info("THE END!")
+    populator.logger.info("Validator finished!")
     return populator
+
+
+def wrap_context(context):
+    """Takes the result of populator and keeps only useful data"""
+    return context
