@@ -1,10 +1,10 @@
-#config:
-#  populator: api
-#  populators:
-#    api:
-#      module: robottelo.populate.api.APIPopulator
-#    cli:
-#      module: robottelo.populate.cli.CLIPopulator
+config:
+  populator: api
+  populators:
+    api:
+      module: robottelo.populate.api.APIPopulator
+    cli:
+      module: robottelo.populate.cli.CLIPopulator
 
 vars:
   admin_username: admin
@@ -82,17 +82,17 @@ actions:
         from_registry: default_orgs[0]
 
   - model: Repository
-    register: reps_{{ registry.product.name }}
+    register: reps_{{ product.name }}
     data:
-      name: reps_{{ registry.product.name }}
+      name: reps_{{ product.name }}
       product:
         from_registry: product
 
 
   - model: Repository
-    register: yum_reps_{{ registry.product.name }}
+    register: yum_reps_{{ product.name }}
     data:
-      name: yum_reps_{{ registry.product.name }}
+      name: yum_reps_{{ product.name }}
       product:
         from_registry: product
       content_type: yum
@@ -102,9 +102,9 @@ actions:
 
 
   - model: Repository
-    register: yum_reps_dp_{{ registry.product.name }}
+    register: yum_reps_dp_{{ product.name }}
     data:
-      name: yum_reps_dp_{{ registry.product.name }}
+      name: yum_reps_dp_{{ product.name }}
       product:
         from_registry: product
       content_type: yum
@@ -167,6 +167,8 @@ actions:
          from_object:
            name: robottelo.constants.FAKE_0_YUM_REPO
        random: "{{ fauxfactory.gen_string('alpha') }}"
+       current_user: "{{ env.USER }}"
+       current_dir: "{{ env.PWD }}"
        default_organization:
          from_read:
            model: Organization

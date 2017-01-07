@@ -3,10 +3,8 @@
 Base module for robottelo.populate
 reads the YAML definition and perform all the rendering and basic actions.
 """
-import fauxfactory
 import import_string
 import logging
-import os
 
 from collections import Sequence
 from jinja2 import Template
@@ -15,89 +13,83 @@ from nailgun.entity_mixins import EntitySearchMixin, EntityReadMixin
 from robottelo.config import settings
 from robottelo.populate import assertion_operators
 from robottelo.populate.constants import (
-    FORCE_RAW_SEARCH,
-    LOGGERS,
-    RAW_SEARCH_RULES,
-    ACTIONS_SPECIAL
+    DEFAULT_CONFIG,
+    REQUIRED_MODULES,
+    RAW_SEARCH_RULES
 )
+from robottelo.populate.utils import set_logger, SmartDict
 from six import string_types
 
-try:
-    # coloredlogs is optional, used only when installed
-    import coloredlogs
-except ImportError:
-    coloredlogs = None
-
 logger = logging.getLogger(__name__)
-
-
-def set_logger(verbose):
-    """Set logger verbosity used when client is called with -vvvv"""
-    if coloredlogs is not None:
-        for logger_name in LOGGERS.values():
-            _logger = logging.getLogger(logger_name)
-            _logger.propagate = False
-
-            handler = logging.StreamHandler()
-            formatter = coloredlogs.ColoredFormatter(
-                fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-            handler.setFormatter(formatter)
-            _logger.handlers = [handler]
-
-    if verbose == 0:
-        for logger_name in LOGGERS.values():
-            logging.getLogger(logger_name).disabled = True
-            logging.getLogger(logger_name).setLevel(logging.CRITICAL)
-    elif verbose == 1:
-        logging.getLogger(LOGGERS['nailgun']).disabled = True
-        logging.getLogger(LOGGERS['nailgun']).setLevel(logging.CRITICAL)
-        logging.getLogger(LOGGERS['ssh']).disabled = True
-        logging.getLogger(LOGGERS['ssh']).setLevel(logging.CRITICAL)
-    elif verbose == 2:
-        logging.getLogger(LOGGERS['ssh']).disabled = True
-        logging.getLogger(LOGGERS['ssh']).setLevel(logging.CRITICAL)
 
 
 class BasePopulator(object):
     """Base class for API and CLI populators"""
 
-    def __init__(self, data, verbose=None, mode='populate'):
+    def __init__(self, data, verbose=None, mode='populate', config=None):
         """Reads YAML and initialize populator"""
         if not settings.configured:
             settings.configure()
 
-        self.logger = logger
-        set_logger(verbose)
+        self.data = data
+        self.custom_config = config or {}
+        self._config = None
 
         self.mode = mode
-        self.vars = data.get('vars', {})
-        self.config = data.get('config', {})
+        self.vars = SmartDict(data.get('vars', {}))
         self.actions = data['actions']
-        self.registry = {}
+
+        self.logger = logger
+        set_logger(verbose or 0)
+
+        self.registry = SmartDict()
         self.validation_errors = []
         self.assertion_errors = []
         self.created = []
         self.found = []
 
-        self.admin_username = self.vars.get(
-            'admin_username', settings.server.admin_username)
-        self.admin_password = self.vars.get(
-            'admin_password', settings.server.admin_password)
-
-        self.context = {
-            'settings': settings,
-            'env': os.environ,
-            'fauxfactory': fauxfactory,
-            'registry': self.registry
-        }
+        self.context = {'registry': self.registry}
+        self.add_modules_to_context()
         self.context.update(self.vars)
 
-        self.context.update(
-            {'admin_username': self.admin_username,
-                'admin_password': self.admin_password}
-        )
+        self.load_raw_search_rules()
+
+    @property
+    def config(self):
+        """Return config dynamically because it can be overwritten by
+        user in datafile or by custom populator"""
+        if not self._config:
+            self._config = DEFAULT_CONFIG.copy()
+            self._config.update(self.custom_config)
+            self._config.update(self.data.get('config', {}))
+        return self._config
+
+    @property
+    def crud_actions(self):
+        """Return a list of crud_actions, actions that gets `data`
+        and perform nailgun crud operations so custom populators can
+        overwrite this list to add new crud actions."""
+        return ['create', 'update', 'delete']
+
+    def load_raw_search_rules(self):
+        """Reads default search rules then update first with
+        custom populator defined rules and then user defined in datafile.
+        """
+        self.search_rules = RAW_SEARCH_RULES
+        self.search_rules.update(self.raw_search_rules)
+        self.search_rules.update(self.config.get('raw_search_rules') or {})
+
+        self.force_raw_search = [
+            entity for entity, data in self.search_rules.items()
+            if data.get('_force_raw') is True
+        ]
+
+    def add_modules_to_context(self):
+        """Add modules dynamically to render context"""
+        modules_to_add = self.config.get('add_to_context', {})
+        modules_to_add.update(REQUIRED_MODULES)
+        for name, module in modules_to_add.items():
+            self.context[name] = import_string(module)
 
     def add_to_registry(self, action_data, result):
         """Add objects to the internal registry"""
@@ -191,7 +183,16 @@ class BasePopulator(object):
             if isinstance(v, dict):
                 if 'from_registry' in v:
                     try:
-                        data[k] = eval(v['from_registry'], None, context)
+                        if isinstance(v['from_registry'], dict):
+                            result = eval(
+                                v['from_registry']['name'], None, context
+                            )
+                            self.resolve_result_attr(
+                                data, 'from_registry', k, v, result
+                            )
+                        else:
+                            data[k] = eval(v['from_registry'], None, context)
+
                     except NameError as e:
                         logger.error(str(e))
                         raise NameError(
@@ -199,10 +200,13 @@ class BasePopulator(object):
                             "was added to the registry".format(str(e)))
                 elif 'from_object' in v:
                     try:
-                        result = import_string(v['from_object']['name'])
-                        self.resolve_result_attr(
-                            data, 'from_object', k, v, result
-                        )
+                        if isinstance(v['from_object'], dict):
+                            result = import_string(v['from_object']['name'])
+                            self.resolve_result_attr(
+                                data, 'from_object', k, v, result
+                            )
+                        else:
+                            data[k] = import_string(v['from_object'])
                     except ImportError as e:
                         logger.error(str(e))
                         raise
@@ -239,6 +243,11 @@ class BasePopulator(object):
          attr is a dictionary of parameters.
         """
         attr = v[from_where].get('attr')
+        # args = v[from_where].get('args')
+        # keys = v[from_where].get('keys')
+
+        # TODO: implement this ^^^^
+
         if not attr:
             data[k] = result
         elif isinstance(attr, string_types):
@@ -253,8 +262,11 @@ class BasePopulator(object):
         perform single rendering and also handle repetitions defined
         in `with_items`
         """
-        if action not in ('delete', 'assertion') and 'data' not in action_data:
-            raise ValueError('entity misses `data` key')
+
+        # TODO: validate required keys marshmallow? voluptuous?
+        # if action not in ('delete', 'assertion') and 'data' not
+        # in action_data:
+        #     raise ValueError('entity misses `data` key')
 
         items = action_data.get('with_items')
         context = self.context
@@ -371,7 +383,7 @@ class BasePopulator(object):
         """Builds nailgun raw_query for search"""
         search_data = data.copy()
 
-        rules = RAW_SEARCH_RULES.get(action_data['model'].lower())
+        rules = self.search_rules.get(action_data['model'].lower())
         if rules:
             for field_name, rule in rules.items():
                 if field_name not in search_data:
@@ -418,7 +430,7 @@ class BasePopulator(object):
 
         force_raw = options.pop(
             'force_raw', False
-        ) or action_data['model'].lower() in FORCE_RAW_SEARCH
+        ) or action_data['model'].lower() in self.force_raw_search
 
         if force_raw:
             options['query'] = self.build_raw_query(data, action_data)
@@ -497,7 +509,7 @@ class BasePopulator(object):
                 if not eval(action_data.get('when'), None, self.context):
                     continue
 
-            log_message = Template(
+            log_message = action_data['log_message'] = Template(
                 action_data.get(
                     'log', action_data.get('register', 'executing...')
                 )
@@ -511,24 +523,19 @@ class BasePopulator(object):
                 log_message
             )
 
-            if action == 'echo':
-                if action_data.get('print'):
-                    print(log_message)  # noqa
-                continue
-
             entities_list = self.render(action_data, action)
             for entity_data in entities_list:
-
-                if action in ACTIONS_SPECIAL:
-                    # find the method named as action name
-                    getattr(self, action)(entity_data, action_data)
+                if action not in self.crud_actions:
+                    # find the method named as action_name
+                    action_name = "action_{0}".format(action.lower())
+                    getattr(self, action_name)(entity_data, action_data)
 
                     self.context.update(self.registry)
 
                     # execute above method and continue to next item
                     continue
 
-                # Executed only for create, update, delete actions
+                # Executed only for crud_actions
                 model_name = action_data['model'].lower()
                 method = getattr(
                     self, '{0}_{1}'.format(mode, model_name), None
@@ -549,7 +556,7 @@ class BasePopulator(object):
 
     # special methods
 
-    def unregister(self, entity_data, action_data):
+    def action_unregister(self, entity_data, action_data):
         """Remove data from registry"""
         for value in entity_data['_values']:
             if self.registry.pop(value, None):
@@ -557,7 +564,7 @@ class BasePopulator(object):
             else:
                 self.logger.error("unregister: %s IS NOT REGISTERED", value)
 
-    def register(self, entity_data, action_data):
+    def action_register(self, entity_data, action_data):
         """Register arbitrary items to the registry"""
         entity_data.pop('loop_index', 0)
         for key, value in entity_data.items():
@@ -565,7 +572,7 @@ class BasePopulator(object):
             data['register'] = key
             self.add_to_registry(data, value)
 
-    def assertion(self, entity_data, action_data):
+    def action_assertion(self, entity_data, action_data):
         """Run assert operations"""
         new_context = self.context.copy()
         new_context['loop_index'] = loop_index = entity_data.get('loop_index')
@@ -596,7 +603,17 @@ class BasePopulator(object):
             })
         self.add_to_registry(action_data, assertion_result)
 
+    def action_echo(self, entity_data, action_data):
+        """After message is echoed to log, check if needs print"""
+        if action_data.get('print'):
+            print(action_data.get('log_message'))  # noqa
+
     # sub class methods
+
+    @property
+    def raw_search_rules(self):
+        """Subclasses of custom populators can extend this rules"""
+        return {}
 
     def populate(self, entity_data, raw_entity, search_query, action):
         """Should be implemented in sub classes"""

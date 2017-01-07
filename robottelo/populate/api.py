@@ -18,8 +18,8 @@ class APIPopulator(BasePopulator):
         silent_errors = action_data.get('silent_errors', False)
 
         try:
-            # self.create|update|delete
-            result = getattr(self, action)(
+            # self.action_create|action_update|action_delete
+            result = getattr(self, "action_{0}".format(action))(
                 entity_data, action_data, search, model, silent_errors
             )
         except HTTPError as e:
@@ -34,7 +34,8 @@ class APIPopulator(BasePopulator):
         else:
             self.add_to_registry(action_data, result)
 
-    def create(self, entity_data, action_data, search, model, silent_errors):
+    def action_create(self, entity_data, action_data, search, model,
+                      silent_errors):
         """Creates new entity if does not exists or get existing
         entity and return Entity object"""
         result = self.get_search_result(
@@ -55,7 +56,8 @@ class APIPopulator(BasePopulator):
             self.created.append(result)
         return result
 
-    def update(self, entity_data, action_data, search, model, silent_errors):
+    def action_update(self, entity_data, action_data, search, model,
+                      silent_errors):
         """Updates an existing entity"""
 
         search_data = action_data.get('search_query')
@@ -78,7 +80,8 @@ class APIPopulator(BasePopulator):
         self.logger.info("update: %s %s", model, entity_id)
         return entity
 
-    def delete(self, entity_data, action_data, search, model, silent_errors):
+    def action_delete(self, entity_data, action_data, search, model,
+                      silent_errors):
         """Deletes an existing entity"""
 
         search_data = action_data.get('search_query')
@@ -129,7 +132,7 @@ class APIPopulator(BasePopulator):
             self.validation_errors.append({
                 'search': search,
                 'message': error_message,
-                'entity_data':  entity_data,
+                'entity_data': entity_data,
                 'action_data': action_data
             })
         else:
@@ -150,6 +153,6 @@ class APIPopulator(BasePopulator):
                 self.validation_errors.append({
                     'search': search,
                     'message': 'entity does not exist in the system',
-                    'entity_data':  entity_data,
+                    'entity_data': entity_data,
                     'action_data': action_data
                 })

@@ -76,19 +76,19 @@ forcing a populate or validate operation to be performed.
     And getting the populated entities inside the test_case::
 
         @populate_with('file.yaml', context=True)
-        def test_case_(self, context):
-            assert context.entities.organization_1.name == 'My Org'
+        def test_case_(self, context=None):
+            assert context.organization_1.name == 'My Org'
 
     You can also set a name to the context argument::
 
         @populate_with('file.yaml', context='my_context')
-        def test_case_(self, my_context):
+        def test_case_(self, my_context=None):
             assert my_context.organization_1.name == 'My Org'
 
 
 And if you dont want to have YAML file you can provide a dict::
 
-    data = {
+    data_in_dict = {
         'actions': [
             {
                 'model': 'Organization',
@@ -102,11 +102,56 @@ And if you dont want to have YAML file you can provide a dict::
     }
 
 
-    @populate_with(data, context=True, verbose=1)
-    def test_org_1(context):
+    @populate_with(data_in_dict, context=True, verbose=1)
+    def test_org_1(context=None):
         """a test with populated data"""
-        assert context.registry['organization_1'].name == "MyOrganization1"
+        assert context.organization_1.name == "MyOrganization1"
 
+And finally it also accepts bare YAML string for testing purposes::
+
+
+    data_in_string = """
+    actions:
+    - model: Organization
+      registry: organization_3
+      data:
+        name: My Organization 3
+        label: my_organization_3
+    """
+
+    @populate_with(data_in_string, context=True, verbose=1)
+    def test_org_3(context=None):
+        """a test with populated data"""
+        assert context.organization_3.name == "My Organization 3"
+        assert context.organization_3.label == "my_organization_3"
+
+NOTE::
+
+    That is important that ``context`` argument always be declared using
+    either a default value ``my_context=None`` or handle in ``**kwargs``
+    Otherwise ``py.test`` may try to use this as a fixture placeholder.
+
+
+Decorating UnitTest setUp and test_cases::
+
+    class MyTestCase(TestCase):
+        """
+        This test populates data in setUp and also in individual tests
+        """
+        @populate_with(data_in_string, context=True)
+        def setUp(self, context=None):
+            self.context = context
+
+        def test_with_setup_data(self):
+            self.assertEqual(
+                self.context.organization_3.name, "My Organization 3"
+            )
+
+        @populate_with(data_in_dict, context='test_context')
+        def test_with_isolated_data(self, test_context=None):
+            self.assertEqual(
+                test_context.organization_1.name, "My Organization 1"
+            )
 
 The YAML data file
 ------------------
@@ -213,7 +258,7 @@ on the action type.
 For any key you can use ``Jinja`` to provide a dynamic value as in::
 
   value: "{{ get_something }}"
-  value: "{{ fauxfactory.gen_string('alpha')}}"
+  value: "{{ fauxfactory.gen_string('alpha') }}"
   value: user_{{ item }}
 
 For some actions you can provide a ``data`` key, that data is used to create

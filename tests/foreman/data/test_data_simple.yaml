@@ -1,0 +1,88 @@
+actions:
+
+  - action: echo
+    log: Starting!!!
+    level: info
+    print: true
+
+# CREATE ACTIONS
+
+  - model: Organization
+    log: The first organization...
+    register: org_1
+    data:
+      name: MyOrg
+      label: MyOrg
+
+# SPECIAL ACTIONS
+
+  - action: register
+    data:
+       organization_bla:
+         from_registry: org_1
+       organization_foo:
+         from_registry:
+           name: org_1
+       organization_5:
+         from_search:
+           model: Organization
+           data:
+             name: MyOrg
+       fake_repo:
+         from_object:
+           name: robottelo.constants.FAKE_0_YUM_REPO
+       fake_repo_2:
+         from_object: robottelo.constants.FAKE_0_YUM_REPO
+       blabla:
+         from_object:
+           name: random.randint
+           args:
+             - 23
+             - 34
+       random: "{{ fauxfactory.gen_string('alpha') }}"
+       default_organization:
+         from_read:
+           model: Organization
+           data:
+             id: 1
+
+  - action: echo
+    log: "{{ blabla }}"
+
+  - action: echo
+    log: "{{ fake_repo_2 }}"
+
+  - action: echo
+    log: "{{ organization_foo }}"
+
+  - action: unregister
+    data:
+      - you_must_update_vanilla_key
+      - random
+
+  - action: assertion
+    operator: eq  # eq, ne, gt, lt, gte, lte, identity
+    data:
+      - bla
+      - Orgcompany7
+
+  - action: assertion
+    log: Hey Ho Lets Go!
+    operator: eq  # eq, ne, gt, lt, gte, lte, identity
+    data:
+      - from_object:
+          name: robottelo.constants.FAKE_0_YUM_REPO
+      - http://inecas.fedorapeople.org/fakerepos/zoo/
+
+  - action: assertion
+    operator: ne
+    data:
+      - OrgAnything_{{item}}
+      - from_search:
+          model: Organization
+          data:
+            name: Orgcompany7
+          attr: name
+    with_items:
+      - a
+      - b

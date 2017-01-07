@@ -23,14 +23,20 @@ def populate_with(data, context=None, **extra_options):
     And getting the populated entities inside the test_case::
 
         @populate_with('file.yaml', context=True)
-        def test_case_(self, context):
+        def test_case_(self, context=None):
             assert context.entities.organization_1.name == 'My Org'
 
     You can also set a name to the context argument::
 
         @populate_with('file.yaml', context='my_context')
-        def test_case_(self, my_context):
+        def test_case_(self, my_context=None):
             assert my_context.organization_1.name == 'My Org'
+
+    NOTE::
+
+        That is important that ``context`` argument always be declared using
+        either a default value ``my_context=None`` or handle in ``**kwargs``
+        Otherwise ``py.test`` may try to use this as a fixture placeholder.
 
     """
 

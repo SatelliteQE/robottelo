@@ -11,7 +11,7 @@ populate
 A command to populate the system based in an YAML file describing the
 entities::
 
-    $ manage data populate /path/to/file.yaml
+    $ manage data populate /path/to/file.yaml -vv
 
 validate
 --------
@@ -19,7 +19,7 @@ validate
 A command to validate the system based in an YAML file describing the
 entities::
 
-    $ manage data validate /path/to/file.yaml
+    $ manage data validate /path/to/file.yaml -vv
 
 Use :code:`$ manage data --help` and
 :code:`$ manage data populate --help` for more info
@@ -36,13 +36,14 @@ from robottelo.populate.main import validate as execute_validate
 def populate(datafile, verbose):
     """Populate using the data described in `datafile`:\n
     populated the system with needed entities.\n
-        example: $ manage data populate test_data.yaml\n
+        example: $ manage data populate test_data.yaml -vv\n
 
-    verbosity:
-       0 (omit all logs)
-       1 -v (show populate logs)
-       2 -vv (include nailgun logs)
-       3 -vvv (include ssh logs)
+    verbosity:\n
+       -v = INFO (only info)\n
+       -vv = DEBUG\n
+       -vvv = WARNING\n
+       -vvvv = ERROR\n
+       -vvvvv = CRITICAL\n
     """
     result = execute_populate(datafile, verbose=verbose)
     result.logger.info(
@@ -63,18 +64,20 @@ def populate(datafile, verbose):
 def validate(datafile, verbose):
     """Validate using the data described in `datafile`:\n
     populated the system with needed entities.\n
-        example: $ manage data populate test_data.yaml\n
+        example: $ manage data populate test_data.yaml -vv\n
 
-    verbosity:
-       0 (omit all logs)
-       1 -v (show populate logs)
-       2 -vv (include nailgun logs)
-       3 -vvv (include ssh logs)
+    verbosity:\n
+       -v = DEBUG\n
+       -vv = INFO\n
+       -vvv = WARNING\n
+       -vvvv = ERROR\n
+       -vvvvv = CRITICAL\n
 
     """
 
     result = execute_validate(datafile, verbose=verbose)
-
+    result.logger.warning('testing')
+    result.logger.critical('testing')
     if result.assertion_errors:
         for error in result.assertion_errors:
             data = error['data']

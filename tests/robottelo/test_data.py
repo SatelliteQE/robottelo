@@ -1,7 +1,8 @@
-# coding: utf-8
-"""
-Tests for robottelo.populate module and commands
-"""
+# # coding: utf-8
+# """
+# Tests for robottelo.populate module and commands
+# """
+# from unittest2 import TestCase
 # from robottelo.populate import populate_with
 #
 #
@@ -37,19 +38,40 @@ Tests for robottelo.populate module and commands
 #
 #
 # @populate_with(data_in_dict, context=True, verbose=1)
-# def test_org_1(context):
+# def test_org_1(context=None):
 #     """a test with populated data"""
-#     assert context.registry['organization_1'].name == "My Organization 1"
+#     assert context.organization_1.name == "My Organization 1"
 #
 #
 # @populate_with(data_in_dict, context=True, verbose=1)
-# def test_org_2(context):
+# def test_org_2(context=None):
 #     """a test with populated data"""
-#     assert context.registry['organization_2'].label == "my_organization_2"
+#     assert context.organization_2.label == "my_organization_2"
 #
 #
 # @populate_with(data_in_string, context=True, verbose=1)
-# def test_org_3(context):
+# def test_org_3(**kwargs):
 #     """a test with populated data"""
-#     assert context.registry['organization_3'].name == "My Organization 3"
-#     assert context.registry['organization_3'].label == "my_organization_3"
+#     context = kwargs['context']
+#     assert context.organization_3.name == "My Organization 3"
+#     assert context.organization_3.label == "my_organization_3"
+#
+#
+# class MyTestCase(TestCase):
+#     """
+#     THis test populates data in setUp and also in individual tests
+#     """
+#     @populate_with(data_in_string, context=True)
+#     def setUp(self, context=None):
+#         self.context = context
+#
+#     def test_with_setup_data(self):
+#         self.assertEqual(
+#             self.context.organization_3.name, "My Organization 3"
+#         )
+#
+#     @populate_with(data_in_dict, context='test_context')
+#     def test_with_isolated_data(self, test_context=None):
+#         self.assertEqual(
+#             test_context.organization_1.name, "My Organization 1"
+#         )

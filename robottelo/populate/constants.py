@@ -1,36 +1,29 @@
 # coding: utf-8
-"""Constants for populate"""
+"""Default base config values"""
+from robottelo.populate.utils import SmartDict
 
-ACTIONS_CRUD = ('create', 'update', 'delete')
-ACTIONS_SPECIAL = ('register', 'unregister', 'assertion')
 
-DEFAULT_CONFIG = {
-    'populator': 'api',
-    'populators': {
-        'api': {
-            'module': 'robottelo.populate.api.APIPopulator'
-        }
-    },
-    'verbose': 0
-}
-
-FORCE_RAW_SEARCH = ['organization', 'user']
-
-LOGGERS = {
-    'root': 'root',
-    'nailgun': 'nailgun',
-    'robottelo': 'robottelo',
-    'ssh': 'robottelo.ssh'
+REQUIRED_MODULES = {
+    'fauxfactory': 'fauxfactory',
+    'env': 'os.environ'
 }
 
 RAW_SEARCH_RULES = {
+    # force Organization to always perform raw_search
+    'organization': {'_force_raw': True},
     'user': {
+        '_force_raw': True,
         'organization': {
+            # rename organization Entity to organization_id
             'rename': 'organization_id',
+            # and get the attr 'id' from object
             'attr': 'id',
+            # using object in index 0 (because it is a list)
             'index': 0,
+            # if was dict key_name here
             # 'key': 'name_of_key'
         },
+        # remove fields from search
         'password': {'remove': True},
         'default_organization': {'remove': True}
     },
@@ -38,3 +31,13 @@ RAW_SEARCH_RULES = {
         'url': {'remove': True},
     }
 }
+
+DEFAULT_CONFIG = SmartDict({
+    'populator': 'api',
+    'populators': {
+        'api': {
+            'module': 'robottelo.populate.api.APIPopulator'
+        }
+    },
+    'verbose': 0
+})

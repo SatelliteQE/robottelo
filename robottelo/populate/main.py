@@ -31,7 +31,7 @@ def get_populator(data, verbose):
     populator_name = config['populator']
     populator_module_name = config['populators'][populator_name]['module']
     populator_class = import_string(populator_module_name)
-    populator = populator_class(data=data, verbose=verbose)
+    populator = populator_class(data=data, verbose=verbose, config=config)
     return populator
 
 
@@ -53,6 +53,12 @@ def validate(data, **extra_options):
     return populator
 
 
-def wrap_context(context):
-    """Takes the result of populator and keeps only useful data"""
+def wrap_context(result):
+    """Takes the result of populator and keeps only useful data
+    e.g. in decorators context.registered_name, context.config.verbose and
+    context.vars.admin_username will all be available.
+    """
+    context = result.registry
+    context.config = result.config
+    context.vars = result.vars
     return context
