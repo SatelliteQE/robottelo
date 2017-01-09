@@ -217,7 +217,7 @@ class ContentHostTestCase(UITestCase):
     def test_positive_install_errata(self):
         """Install a errata to a host remotely
 
-        @id: 13b9422d-4b7a-4068-9a57-a94602cd6410
+        @id: 42bb96fb-1319-4542-af42-9f3ee24065ea
 
         @assert: Errata was successfully installed
 

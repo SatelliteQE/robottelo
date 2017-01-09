@@ -695,7 +695,7 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
-        @id: 8037a68b-66b8-4b42-a80b-fb08495f948d
+        @id: f91c4fb8-301d-4f28-8a32-bbc52b907e1f
 
         @Assert: YUM repository with a download policy is created
         """
