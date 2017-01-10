@@ -410,7 +410,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_run_custom_job_template(self):
         """Run a job template against a single host
 
-        @id: 7f0cdd1a-c87c-4324-ae9c-dbc30abad217
+        @id: df66038a-6cf3-4f6f-9baf-76952f79fa06
 
         @Setup: Create a working job template.
 

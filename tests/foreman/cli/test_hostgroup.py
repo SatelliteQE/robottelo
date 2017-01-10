@@ -222,7 +222,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_lifecycle_environment(self):
         """Check if hostgroup with lifecyle environment can be created
 
-        @id: c468fcac-9e42-4ee6-a431-abe29b6848ce
+        @id: b400a37b-240b-4d57-9772-6d0221929deb
 
         @Assert: Hostgroup should be created and has lifecycle env assigned
 
@@ -244,7 +244,7 @@ class HostGroupTestCase(CLITestCase):
         """Check if hostgroup with multiple organizations can be created
         if one of them is associated with lifecycle environment
 
-        @id: 32be4630-0032-4f5f-89d4-44f8d05fe585
+        @id: bfcd4ef2-05f0-4661-a039-6c2b1eb46e73
 
         @Assert: Hostgroup is created, has both new organizations assigned
         and has lifecycle env assigned
