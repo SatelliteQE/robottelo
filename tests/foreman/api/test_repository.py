@@ -394,6 +394,37 @@ class RepositoryTestCase(APITestCase):
         repo2 = entities.Repository(name=repo1.name).create()
         self.assertEqual(repo1.name, repo2.name)
 
+    @tier2
+    def test_positive_create_puppet_repo_same_url_different_orgs(self):
+        """Create two repos with the same URL in two different organizations.
+
+        @id: 7c74c2b8-732a-4c47-8ad9-697121db05be
+
+        @Assert: Repositories are created and puppet modules are visible from
+        different organizations.
+
+        @CaseLevel: Integration
+        """
+        url = 'https://omaciel.fedorapeople.org/7c74c2b8/'
+        # Create first repo
+        repo = entities.Repository(
+            url=url,
+            product=self.product,
+            content_type='puppet',
+        ).create()
+        repo.sync()
+        self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
+        # Create another org and repo
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            url=url,
+            product=product,
+            content_type='puppet',
+        ).create()
+        repo.sync()
+        self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
+
     @tier1
     @run_only_on('sat')
     def test_negative_create_name(self):
