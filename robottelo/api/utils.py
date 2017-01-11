@@ -243,8 +243,8 @@ def configure_provisioning(org=None, loc=None):
         entity_mixins.TASK_TIMEOUT = old_task_timeout
     # Search for puppet environment and associate location
     environment = entities.Environment(
-        organization=[org.id]).search()[0]
-    environment.location = [loc]
+        organization=[org.id]).search()[0].read()
+    environment.location.append(loc)
     environment = environment.update(['location'])
 
     # Search for SmartProxy, and associate location
@@ -253,10 +253,11 @@ def configure_provisioning(org=None, loc=None):
             u'search': u'name={0}'.format(
                 settings.server.hostname)
         }
-    )[0]
-    proxy.location = [loc]
+    )
+    proxy = proxy[0].read()
+    proxy.location.append(loc)
     proxy = proxy.update(['location'])
-    proxy.organization = [org]
+    proxy.organization.append(org)
     proxy = proxy.update(['organization'])
 
     # Search for existing domain or create new otherwise. Associate org,
@@ -288,14 +289,14 @@ def configure_provisioning(org=None, loc=None):
         query={u'search': u'network={0}'.format(network)}
     )
     if len(subnet) == 1:
-        subnet = subnet[0]
+        subnet = subnet[0].read()
         subnet.domain = [domain]
-        subnet.location = [loc]
-        subnet.organization = [org]
-        subnet.dns = proxy
-        subnet.dhcp = proxy
-        subnet.tftp = proxy
-        subnet.discovery = proxy
+        subnet.location.append(loc)
+        subnet.organization.append(org)
+        subnet.dns = [proxy]
+        subnet.dhcp = [proxy]
+        subnet.tftp = [proxy]
+        subnet.discovery = [proxy]
         subnet = subnet.update([
             'domain',
             'discovery',
@@ -352,23 +353,24 @@ def configure_provisioning(org=None, loc=None):
         query={
             u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
         }
-    )[0]
+    )[0].read()
 
     # Get the OS ID
     os = entities.OperatingSystem().search(query={
         u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
         .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-        })[0]
+        })[0].read()
 
     # Get the Provisioning template_ID and update with OS, Org, Location
     provisioning_template = entities.ConfigTemplate().search(
         query={
             u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)
         }
-    )[0]
-    provisioning_template.operatingsystem = [os]
-    provisioning_template.organization = [org]
-    provisioning_template.location = [loc]
+    )
+    provisioning_template = provisioning_template[0].read()
+    provisioning_template.operatingsystem.append(os)
+    provisioning_template.organization.append(org)
+    provisioning_template.location.append(loc)
     provisioning_template = provisioning_template.update([
         'location',
         'operatingsystem',
@@ -380,10 +382,11 @@ def configure_provisioning(org=None, loc=None):
         query={
             u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)
         }
-    )[0]
-    pxe_template.operatingsystem = [os]
-    pxe_template.organization = [org]
-    pxe_template.location = [loc]
+    )
+    pxe_template = pxe_template[0].read()
+    pxe_template.operatingsystem.append(os)
+    pxe_template.organization.append(org)
+    pxe_template.location.append(loc)
     pxe_template = pxe_template.update(
         ['location', 'operatingsystem', 'organization']
     )
@@ -391,7 +394,7 @@ def configure_provisioning(org=None, loc=None):
     # Get the arch ID
     arch = entities.Architecture().search(
         query={u'search': u'name="x86_64"'}
-    )[0]
+    )[0].read()
 
     # Get the media and update its location
     media = entities.Media(organization=[org]).search()[0].read()
@@ -399,11 +402,11 @@ def configure_provisioning(org=None, loc=None):
     media.organization.append(org)
     media = media.update(['location', 'organization'])
     # Update the OS to associate arch, ptable, templates
-    os.architecture = [arch]
-    os.ptable = [ptable]
-    os.config_template = [provisioning_template]
-    os.config_template = [pxe_template]
-    os.medium = [media]
+    os.architecture.append(arch)
+    os.ptable.append(ptable)
+    os.config_template.append(provisioning_template)
+    os.config_template.append(pxe_template)
+    os.medium.append(media)
     os = os.update([
         'architecture',
         'config_template',

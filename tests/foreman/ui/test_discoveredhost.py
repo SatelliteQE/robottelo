@@ -64,13 +64,13 @@ class DiscoveryTestCase(UITestCase):
             tab_locator, param_name)
         self.assertEqual(param_value, saved_element)
 
-    def _ping_host(self, host, timeout=1):
+    def _ping_host(self, host, timeout=60):
         """Helper to ensure given IP/hostname is reachable after reboot.
 
         :param host: A string. The IP or hostname of host.
-        :param int timeout: The polling timeout in minutes.
+        :param int timeout: The polling timeout in seconds.
         """
-        timeup = time.time() + int(timeout) * 60
+        timeup = time.time() + int(timeout)
         while True:
             command = subprocess.Popen(
                 'ping -c1 {0}; echo $?'.format(host),
@@ -485,7 +485,7 @@ class DiscoveryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
-    def test_positive_delete_1(self):
+    def test_positive_delete(self):
         """Delete the selected discovered host
 
         @id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
@@ -666,9 +666,13 @@ class DiscoveryTestCase(UITestCase):
                 # Check if host is reachable via IP
                 self.assertTrue(self._ping_host(host_ip))
                 self.discoveredhosts.reboot_host(hostname)
-                sleep(10)
-                # Check if host is still reachable via IP after reboot
-                self.assertFalse(self._ping_host(host_ip))
+                for _ in range(12):
+                    response = self._ping_host(host_ip, timeout=5)
+                    if not response:
+                        break
+                    sleep(5)
+                else:
+                    self.fail('Host was not stopped')
 
     @run_only_on('sat')
     @tier3
@@ -740,6 +744,7 @@ class DiscoveryTestCase(UITestCase):
                         hostnames, new_loc=loc.name)
 
     @run_only_on('sat')
+    @stubbed()
     @tier3
     def test_positive_auto_provision_host_with_rule(self):
         """Create a new discovery rule and provision a discovered host using
@@ -779,7 +784,6 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_name)
                 self.assertTrue(
                     self.discoveredhosts.waitfordiscoveredhost(host_name)
                 )
@@ -858,39 +862,44 @@ class DiscoveryTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        # Disable flag to auto provision discovered hosts via discovery rules
-        discovery_auto = entities.Setting().search(
-            query={'search': 'name="discovery_auto"'})[0]
-        default_discovery_auto = discovery_auto.value
-        discovery_auto.value = 'False'
-        discovery_auto.update(['value'])
-        rule_name = gen_string('alpha')
-        with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
-            # Define a discovery rule
-            make_discoveryrule(
-                session,
-                name=rule_name,
-                host_limit=1,
-                hostgroup=self.config_env['host_group'],
-                search_rule='cpu_count = 1',
-                locations=[self.loc.name],
-            )
-            self.assertIsNotNone(self.discoveryrules.search(rule_name))
-            with LibvirtGuest() as pxe_host:
-                host_name = pxe_host.guest_name
-                self.assertTrue(
-                    self.discoveredhosts.waitfordiscoveredhost(host_name)
+        try:
+            # Disable flag to auto provision
+            discovery_auto = entities.Setting().search(
+                query={'search': 'name="discovery_auto"'})[0]
+            default_discovery_auto = discovery_auto.value
+            discovery_auto.value = 'False'
+            discovery_auto.update(['value'])
+            rule_name = gen_string('alpha')
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.org_name)
+                # Define a discovery rule
+                make_discoveryrule(
+                    session,
+                    name=rule_name,
+                    host_limit=1,
+                    hostgroup=self.config_env['host_group'],
+                    search_rule='cpu_count = 1',
+                    locations=[self.loc.name],
                 )
-                self.assertIsNotNone(self.discoveredhosts.search(host_name))
-                # Check that host shouldn't list under all hosts
-                self.assertIsNone(self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])))
-                # Check that host still listed under discovered hosts
-                self.assertIsNotNone(self.discoveredhosts.search(host_name))
-                # Revert the discovery_auto flag to default value
-                discovery_auto.value = default_discovery_auto
-                discovery_auto.update(['value'])
+                self.assertIsNotNone(self.discoveryrules.search(rule_name))
+                with LibvirtGuest() as pxe_host:
+                    host_name = pxe_host.guest_name
+                    self.assertTrue(
+                        self.discoveredhosts.waitfordiscoveredhost(host_name)
+                    )
+                    self.assertIsNotNone(
+                        self.discoveredhosts.search(host_name))
+                    # Check that host shouldn't list under all hosts
+                    self.assertIsNone(self.hosts.search(
+                        u'{0}.{1}'.format(host_name, self.config_env['domain'])
+                    ))
+                    # Check that host still listed under discovered hosts
+                    self.assertIsNotNone(
+                        self.discoveredhosts.search(host_name))
+        finally:
+            # Revert the discovery_auto flag to default value
+            discovery_auto.value = default_discovery_auto
+            discovery_auto.update(['value'])
 
     @run_only_on('sat')
     @stubbed()
@@ -964,7 +973,6 @@ class DiscoveryTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
-                self.discoveredhosts.assertdiscoveredhost(host_name)
                 self.assertTrue(
                     self.discoveredhosts.waitfordiscoveredhost(host_name)
                 )
@@ -974,8 +982,9 @@ class DiscoveryTestCase(UITestCase):
                     org=self.org_name,
                     loc=self.loc.name,
                     new_name=name)
-                self.assertIsNotNone(self.hosts.search(
-                    u'{0}.{1}'.format(name, self.config_env['domain'])))
+                new_host_name = (
+                    u'{0}.{1}'.format(name, self.config_env['domain']))
+                self.assertIsNotNone(self.hosts.search(new_host_name))
                 # Check that provisioned host is not in the list of discovered
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))

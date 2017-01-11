@@ -53,7 +53,7 @@ class DiscoveryRules(Base):
         self.assign_value(
             locators['discoveryrules.hostgroup_dropdown'], hostgroup)
         self._configure_discovery(
-            hostname, host_limit, priority, enabled, locations, organizations)
+            hostname, host_limit, priority, locations, organizations)
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):

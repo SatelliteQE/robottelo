@@ -134,9 +134,7 @@ class DiscoveredHosts(Base):
     def auto_provision_all(self):
         """Auto provision all the discovered hosts"""
         self.navigate_to_entity()
-        self.discoveredhosts.click(
-            locators["discoveredhosts.auto_provision_all"]
-        )
+        self.click(locators["discoveredhosts.auto_provision_all"])
 
     def update_org_loc(self, hostnames, new_org=None, new_loc=None):
         """Update the default org or location for bulk of discovered hosts"""
@@ -165,16 +163,16 @@ class DiscoveredHosts(Base):
             self.click(locators['discoveredhosts.provision_from_facts'])
         else:
             self.click(locators['discoveredhosts.provision'] % hostname)
-        self.assign_value(
+        self.select(
             locators['discoveredhosts.select_modal_hostgroup'],
             hostgroup
         )
-        self.assign_value(locators['discoveredhosts.select_modal_org'], org)
-        self.assign_value(locators['discoveredhosts.select_modal_loc'], loc)
+        self.select(locators['discoveredhosts.select_modal_org'], org)
+        self.select(locators['discoveredhosts.select_modal_loc'], loc)
         if not quick_create:
             self.click(locators['discoveredhosts.create_host_button'])
             if new_name is not None:
-                self.text_field_update(locators['host.name'], new_name)
+                self.assign_value(locators['host.name'], new_name)
             if parameters_list is not None:
                 self.hosts._configure_hosts_parameters(parameters_list)
             self.wait_until_element_is_not_visible(

@@ -178,6 +178,7 @@ class LibvirtGuest(object):
             '--model=virtio',
             '--mac={vm_mac}',
             '--config',
+            '--live',
         ]
         command = u' '.join(command_args).format(
             vm_name=self.hostname,

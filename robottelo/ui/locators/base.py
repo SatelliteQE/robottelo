@@ -2033,11 +2033,11 @@ locators = LocatorDict({
         By.XPATH, ("//td/span/a[contains(@href, '%s')]/following::td/div[2]"
                    "/span/a[contains(.,'Provision')]")),
     "discoveredhosts.select_modal_hostgroup": (
-        By.XPATH, ("//div[@id='s2id_host_hostgroup_id']/a/span")),
+        By.ID, "s2id_host_hostgroup_id"),
     "discoveredhosts.select_modal_org": (
-        By.XPATH, ("//div[@id='s2id_host_organization_id']/a/span")),
+        By.ID, "s2id_host_organization_id"),
     "discoveredhosts.select_modal_loc": (
-        By.XPATH, ("//div[@id='s2id_host_location_id']/a/span")),
+        By.ID, "s2id_host_location_id"),
     "discoverehosts.select_choices": (
         By.XPATH, ("/li[contains(@class, 'select2-result')]"
                    "/div[contains(., '%s')]")),
