@@ -406,24 +406,17 @@ class RepositoryTestCase(APITestCase):
         @CaseLevel: Integration
         """
         url = 'https://omaciel.fedorapeople.org/7c74c2b8/'
-        # Create first repo
-        repo = entities.Repository(
-            url=url,
-            product=self.product,
-            content_type='puppet',
-        ).create()
-        repo.sync()
-        self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
-        # Create another org and repo
+        # Use setup product for the first repo and create new org/product
+        # for the second one
         org = entities.Organization().create()
-        product = entities.Product(organization=org).create()
-        repo = entities.Repository(
-            url=url,
-            product=product,
-            content_type='puppet',
-        ).create()
-        repo.sync()
-        self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
+        products = (self.product, entities.Product(organization=org).create())
+        # Create repositories within different organizations/products
+        for product in products:
+            repo = entities.Repository(
+                url=url, product=product, content_type='puppet').create()
+            repo.sync()
+            self.assertGreaterEqual(
+                repo.read().content_counts['puppet_module'], 1)
 
     @tier1
     @run_only_on('sat')
