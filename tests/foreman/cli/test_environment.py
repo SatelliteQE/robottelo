@@ -54,6 +54,108 @@ class EnvironmentTestCase(CLITestCase):
                 self.assertEqual(len(result), 1)
                 self.assertEqual(result[0]['name'], name)
 
+    @tier2
+    @run_only_on('sat')
+    def test_positive_list_with_org_and_loc(self):
+        """Test Environment List filtering.
+
+        @id: 962c6750-f203-4478-8827-651db208ff92
+
+        @Assert: Results that match both organization and location are returned
+
+        @CaseLevel: Integration
+
+        @BZ: 1337947
+        """
+        # Create 2 envs with the same organization but different locations
+        org = make_org()
+        locs = [make_location() for _ in range(2)]
+        envs = [make_environment({
+            'name': gen_string('alpha'),
+            'organization-ids': org['id'],
+            'location-ids': loc['id'],
+        }) for loc in locs]
+        results = Environment.list({
+            'organization': org['name'],
+        })
+        # List environments for the whole organization
+        self.assertEqual(len(results), 2)
+        self.assertEqual(
+            {env['name'] for env in envs},
+            {result['name'] for result in results}
+        )
+        # List environments with additional location filtering
+        results = Environment.list({
+            'organization': org['name'],
+            'location': locs[0]['name'],
+        })
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['name'], envs[0]['name'])
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_list_with_org_and_loc(self):
+        """Test Environment List filtering.
+
+        @id: b1659c48-302b-4fe3-a38b-cd34c0fd4878
+
+        @Assert: Server returns empty result as there is no environment
+        associated with location or organization
+
+        @CaseLevel: Integration
+
+        @BZ: 1337947
+        """
+        # Create env with specified organization and location
+        org = make_org()
+        locs = [make_location() for _ in range(2)]
+        make_environment({
+            'name': gen_string('alpha'),
+            'organization-ids': org['id'],
+            'location-ids': locs[0]['id'],
+        })
+        # But filter by another location
+        results = Environment.list({
+            'organization': org['name'],
+            'location': locs[1]['name'],
+        })
+        self.assertEqual(len(results), 0)
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_list_with_non_existing_org_and_loc(self):
+        """Test Environment List filtering parameters validation.
+
+        @id: 97872953-e1aa-44bd-9ce0-a04bccbc9e94
+
+        @Assert: Server returns empty result as there is no environment
+        associated with location
+
+        @CaseLevel: Integration
+
+        @BZ: 1337947
+        """
+        # Create env with specified organization and location
+        org = make_org()
+        loc = make_location()
+        make_environment({
+            'name': gen_string('alpha'),
+            'organization-ids': org['id'],
+            'location-ids': loc['id'],
+        })
+        # Filter by non-existing location and existing organization
+        with self.assertRaises(CLIReturnCodeError):
+            Environment.list({
+                'organization': org['name'],
+                'location': gen_string('alpha')
+            })
+        # Filter by non-existing organization and existing location
+        with self.assertRaises(CLIReturnCodeError):
+            Environment.list({
+                'organization': gen_string('alpha'),
+                'location': loc['name']
+            })
+
     @tier1
     def test_positive_create_with_name(self):
         """Successfully creates an Environment.
