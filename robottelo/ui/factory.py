@@ -364,6 +364,7 @@ def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
         u'content_source': None,
         u'puppet_ca': None,
         u'puppet_master': None,
+        u'oscap_capsule': None,
     }
     page = session.nav.go_to_host_groups
     core_factory(create_args, kwargs, session, page,

@@ -23,10 +23,17 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
+from robottelo.config import settings
 
 
 class HostgroupTestCase(UITestCase):
     """Implements HostGroup tests from UI"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up class for hostgroup UI test cases"""
+        super(HostgroupTestCase, cls).setUpClass()
+        cls.sat6_hostname = settings.server.hostname
 
     @run_only_on('sat')
     @tier1
@@ -113,3 +120,24 @@ class HostgroupTestCase(UITestCase):
                     self.hostgroup.update(name, new_name=new_name)
                     self.assertIsNotNone(self.hostgroup.search(new_name))
                     name = new_name  # for next iteration
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_oscap_capsule(self):
+        """Create new hostgroup with oscap capsule
+
+        @id: c0ab1148-93ff-41d3-93c3-2ff139349884
+
+        @Assert: Hostgroup is created with oscap capsule
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_hostgroup(
+                    session,
+                    content_source=self.sat6_hostname,
+                    name=name,
+                    puppet_ca=self.sat6_hostname,
+                    puppet_master=self.sat6_hostname,
+                    oscap_capsule=self.sat6_hostname,
+                )
+            self.assertIsNotNone(self.hostgroup.search(name))
