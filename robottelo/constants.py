@@ -508,12 +508,6 @@ PERMISSIONS = {
         'edit_external_usergroups',
         'destroy_external_usergroups',
     ],
-    'LookupKey': [
-        'view_external_variables',
-        'create_external_variables',
-        'edit_external_variables',
-        'destroy_external_variables',
-    ],
     'FactValue': [
         'view_facts',
         'upload_facts',
@@ -641,6 +635,12 @@ PERMISSIONS = {
         'destroy_puppetclasses',
         'import_puppetclasses',
     ],
+    'PuppetclassLookupKey': [
+        'view_external_parameters',
+        'edit_external_parameters',
+        'create_external_parameters',
+        'destroy_external_parameters',
+    ],
     'Realm': [
         'view_realms',
         'create_realms',
@@ -704,6 +704,12 @@ PERMISSIONS = {
         'create_users',
         'edit_users',
         'destroy_users',
+    ],
+    'VariableLookupKey': [
+        'destroy_external_variables',
+        'create_external_variables',
+        'edit_external_variables',
+        'view_external_variables',
     ],
     'Host': [
         'auto_provision_discovered_hosts',
