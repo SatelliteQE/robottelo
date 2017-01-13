@@ -3,6 +3,7 @@
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator
+from time import sleep
 
 
 class DiscoveredHosts(Base):
@@ -76,6 +77,20 @@ class DiscoveredHosts(Base):
         strategy, value = locators['discoveredhosts.refresh_facts']
         self.click((strategy, value % hostname))
 
+    def waitfordiscoveredhost(self, hostname):
+        """Check if host is visible under 'Discovered Hosts' on UI
+
+        Introduced a delay of 300secs by polling every 10 secs to see if
+        unknown host gets discovered and become visible on UI
+        """
+        for _ in range(30):
+            discovered_host = self.search(hostname)
+            if discovered_host:
+                return True
+            else:
+                sleep(10)
+        return False
+
     def fetch_fact_value(self, hostname, element):
         """Fetch the value of selected fact from discovered hosts page"""
         host = self.search(hostname)
@@ -105,8 +120,27 @@ class DiscoveredHosts(Base):
         strategy, value = locators['discoveredhosts.reboot']
         self.click((strategy, value % hostname), wait_for_ajax=False)
 
+    def auto_provision(self, hostname):
+        """Auto provision the discovered host from dropdown"""
+        host = self.search(hostname)
+        if not host:
+            raise UIError(
+                'Could not find the selected discovered host "{0}"'
+                .format(hostname)
+            )
+        # Manually provision the host by selecting 'auto_provision' option
+        strategy, value = locators['discoveredhosts.dropdown']
+        self.click((strategy, value % hostname))
+        strategy, value = locators['discoveredhosts.auto_provision']
+        self.click((strategy, value % hostname))
+
+    def auto_provision_all(self):
+        """Auto provision all the discovered hosts"""
+        self.navigate_to_entity()
+        self.click(locators["discoveredhosts.auto_provision_all"])
+
     def update_org(self, hostnames, new_org):
-        """Update the default org or location for bulk of discovered hosts"""
+        """Update the default org for bulk of discovered hosts"""
         select_action_element = locators['discoveredhosts.select_action']
         assign_org_element = locators['discoveredhosts.assign_org']
         bulk_submit_button = locators['discoveredhosts.bulk_submit_button']

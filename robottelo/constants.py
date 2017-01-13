@@ -71,6 +71,8 @@ FILTER = {
     'container_org': 'docker_container_wizard_states_preliminary_organization',
     'cr_loc': 'compute_resource_location',
     'cr_org': 'compute_resource_organization',
+    'discovery_rule_loc': 'discovery_rule_location',
+    'discovery_rule_org': 'discovery_rule_organization',
     'env_org': 'environment_organization',
     'loc_capsules': 'location_smart_proxy',
     'loc_domain': 'location_domain',
@@ -313,6 +315,7 @@ SAT6_TOOLS_TREE = [
 
 SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 
+DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_ORG_ID = 1
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
@@ -320,6 +323,8 @@ DEFAULT_ORG = "Default Organization"
 DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
 DEFAULT_PTABLE = "Kickstart default"
+DEFAULT_TEMPLATE = "Satellite Kickstart Default"
+DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
 DEFAULT_ROLE = 'Anonymous'
