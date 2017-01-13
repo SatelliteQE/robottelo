@@ -57,6 +57,9 @@ class DiscoveryRuleTestCase(UITestCase):
     @classmethod
     def set_session_org(cls):
         cls.session_org = entities.Organization().create()
+        cls.session_loc = entities.Location(
+            organization=[cls.session_org]
+        ).create()
 
     @classmethod
     def setUpClass(cls):
@@ -68,7 +71,9 @@ class DiscoveryRuleTestCase(UITestCase):
         cls.per_page.value = '100000'
         cls.per_page.update({'value'})
         cls.host_group = entities.HostGroup(
-            organization=[cls.session_org]).create()
+            organization=[cls.session_org],
+            location=[cls.session_loc],
+        ).create()
 
     @classmethod
     def tearDownClass(cls):
@@ -137,6 +142,7 @@ class DiscoveryRuleTestCase(UITestCase):
             make_discoveryrule(
                 session,
                 name=name,
+                locations=[self.session_loc.name],
                 hostgroup=self.host_group.name,
                 hostname=hostname,
             )

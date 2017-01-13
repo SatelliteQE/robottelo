@@ -2,9 +2,18 @@
 """Module containing convenience functions for working with the API."""
 import time
 
+from fauxfactory import gen_string
 from inflector import Inflector
-from nailgun import entities
+from nailgun import entities, entity_mixins
 from robottelo import ssh
+from robottelo.config import settings
+from robottelo.constants import (
+    DEFAULT_PTABLE,
+    DEFAULT_PXE_TEMPLATE,
+    DEFAULT_TEMPLATE,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
+)
 from robottelo.decorators import bz_bug_is_open
 
 
@@ -189,3 +198,242 @@ def one_to_many_names(name):
 
     """
     return set((name, name + '_ids', Inflector().pluralize(name)))
+
+
+def configure_provisioning(org=None, loc=None):
+    """Create and configure org, loc, product, repo, cv, env. Update proxy,
+    domain, subnet, compute resource, provision templates and medium with
+    previously created entities and create a hostgroup using all mentioned
+    entities.
+
+    :param org: Default Organization that should be used in both host
+        discovering and host provisioning procedures
+    :param loc: Default Location that should be used in both host
+        discovering and host provisioning procedures
+    :return: List of created entities that can be re-used further in
+        provisioning or validation procedure (e.g. hostgroup or domain)
+    """
+    # Create new organization and location in case they were not passed
+    if org is None:
+        org = entities.Organization().create()
+    if loc is None:
+        loc = entities.Location(organization=[org]).create()
+    # Create a new Life-Cycle environment
+    lc_env = entities.LifecycleEnvironment(organization=org).create()
+    # Create a Product, Repository for custom RHEL6 contents
+    product = entities.Product(organization=org).create()
+    repo = entities.Repository(
+        product=product,
+        url=settings.rhel7_os
+    ).create()
+
+    # Increased timeout value for repo sync
+    try:
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        entity_mixins.TASK_TIMEOUT = 3600
+        repo.sync()
+        # Create, Publish and promote CV
+        content_view = entities.ContentView(organization=org).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], lc_env.id)
+    finally:
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
+    # Search for puppet environment and associate location
+    environment = entities.Environment(
+        organization=[org.id]).search()[0].read()
+    environment.location.append(loc)
+    environment = environment.update(['location'])
+
+    # Search for SmartProxy, and associate location
+    proxy = entities.SmartProxy().search(
+        query={
+            u'search': u'name={0}'.format(
+                settings.server.hostname)
+        }
+    )
+    proxy = proxy[0].read()
+    proxy.location.append(loc)
+    proxy = proxy.update(['location'])
+    proxy.organization.append(org)
+    proxy = proxy.update(['organization'])
+
+    # Search for existing domain or create new otherwise. Associate org,
+    # location and dns to it
+    _, _, domain = settings.server.hostname.partition('.')
+    domain = entities.Domain().search(
+        query={
+            u'search': u'name="{0}"'.format(domain)
+        }
+    )
+    if len(domain) == 1:
+        domain = domain[0].read()
+        domain.location.append(loc)
+        domain.organization.append(org)
+        domain.dns = proxy
+        domain = domain.update(['dns', 'location', 'organization'])
+    else:
+        domain = entities.Domain(
+            dns=proxy,
+            location=[loc],
+            organization=[org],
+        ).create()
+
+    # Search if subnet is defined with given network.
+    # If so, just update its relevant fields otherwise,
+    # Create new subnet
+    network = settings.vlan_networking.subnet
+    subnet = entities.Subnet().search(
+        query={u'search': u'network={0}'.format(network)}
+    )
+    if len(subnet) == 1:
+        subnet = subnet[0].read()
+        subnet.domain = [domain]
+        subnet.location.append(loc)
+        subnet.organization.append(org)
+        subnet.dns = [proxy]
+        subnet.dhcp = [proxy]
+        subnet.tftp = [proxy]
+        subnet.discovery = [proxy]
+        subnet = subnet.update([
+            'domain',
+            'discovery',
+            'dhcp',
+            'dns',
+            'location',
+            'organization',
+            'tftp',
+        ])
+    else:
+        # Create new subnet
+        subnet = entities.Subnet(
+            network=network,
+            mask=settings.vlan_networking.netmask,
+            domain=[domain],
+            location=[loc],
+            organization=[org],
+            dns=proxy,
+            dhcp=proxy,
+            tftp=proxy,
+            discovery=proxy
+        ).create()
+
+    # Search if Libvirt compute-resource already exists
+    # If so, just update its relevant fields otherwise,
+    # Create new compute-resource with 'libvirt' provider.
+    resource_url = u'qemu+ssh://root@{0}/system'.format(
+        settings.compute_resources.libvirt_hostname
+    )
+    comp_res = [
+        res for res in entities.LibvirtComputeResource().search()
+        if res.provider == 'Libvirt' and res.url == resource_url
+    ]
+    if len(comp_res) >= 1:
+        computeresource = entities.LibvirtComputeResource(
+            id=comp_res[0].id).read()
+        computeresource.location.append(loc)
+        computeresource.organization.append(org)
+        computeresource = computeresource.update([
+            'location', 'organization'])
+    else:
+        # Create Libvirt compute-resource
+        computeresource = entities.LibvirtComputeResource(
+            provider=u'libvirt',
+            url=resource_url,
+            set_console_password=False,
+            display_type=u'VNC',
+            location=[loc.id],
+            organization=[org.id],
+        ).create()
+
+    # Get the Partition table ID
+    ptable = entities.PartitionTable().search(
+        query={
+            u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
+        }
+    )[0].read()
+
+    # Get the OS ID
+    os = entities.OperatingSystem().search(query={
+        u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
+        .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+        })[0].read()
+
+    # Get the Provisioning template_ID and update with OS, Org, Location
+    provisioning_template = entities.ConfigTemplate().search(
+        query={
+            u'search': u'name="{0}"'.format(DEFAULT_TEMPLATE)
+        }
+    )
+    provisioning_template = provisioning_template[0].read()
+    provisioning_template.operatingsystem.append(os)
+    provisioning_template.organization.append(org)
+    provisioning_template.location.append(loc)
+    provisioning_template = provisioning_template.update([
+        'location',
+        'operatingsystem',
+        'organization'
+    ])
+
+    # Get the PXE template ID and update with OS, Org, location
+    pxe_template = entities.ConfigTemplate().search(
+        query={
+            u'search': u'name="{0}"'.format(DEFAULT_PXE_TEMPLATE)
+        }
+    )
+    pxe_template = pxe_template[0].read()
+    pxe_template.operatingsystem.append(os)
+    pxe_template.organization.append(org)
+    pxe_template.location.append(loc)
+    pxe_template = pxe_template.update(
+        ['location', 'operatingsystem', 'organization']
+    )
+
+    # Get the arch ID
+    arch = entities.Architecture().search(
+        query={u'search': u'name="x86_64"'}
+    )[0].read()
+
+    # Get the media and update its location
+    media = entities.Media(organization=[org]).search()[0].read()
+    media.location.append(loc)
+    media.organization.append(org)
+    media = media.update(['location', 'organization'])
+    # Update the OS to associate arch, ptable, templates
+    os.architecture.append(arch)
+    os.ptable.append(ptable)
+    os.config_template.append(provisioning_template)
+    os.config_template.append(pxe_template)
+    os.medium.append(media)
+    os = os.update([
+        'architecture',
+        'config_template',
+        'ptable',
+        'medium',
+    ])
+
+    # Create Hostgroup
+    host_group = entities.HostGroup(
+        architecture=arch,
+        domain=domain.id,
+        subnet=subnet.id,
+        lifecycle_environment=lc_env.id,
+        content_view=content_view.id,
+        location=[loc.id],
+        environment=environment.id,
+        puppet_proxy=proxy,
+        puppet_ca_proxy=proxy,
+        content_source=proxy,
+        medium=media,
+        root_pass=gen_string('alphanumeric'),
+        operatingsystem=os.id,
+        organization=[org.id],
+        ptable=ptable.id,
+    ).create()
+
+    return {
+        'host_group': host_group.name,
+        'domain': domain.name,
+    }
