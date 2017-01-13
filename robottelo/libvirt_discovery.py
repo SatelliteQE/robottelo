@@ -177,7 +177,6 @@ class LibvirtGuest(object):
             '--source={vm_bridge}',
             '--model=virtio',
             '--mac={vm_mac}',
-            '--config',
             '--live',
         ]
         command = u' '.join(command_args).format(
