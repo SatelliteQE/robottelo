@@ -20,6 +20,8 @@ from fauxfactory import gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.package import Package
+from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.task import Task
 from robottelo.cli.factory import (
     make_content_view,
@@ -56,6 +58,7 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -799,6 +802,80 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
+    @tier2
+    def test_positive_resynchronize_rpm_repo(self):
+        """Check that that repository content is resynced after packages were
+        removed from repository
+
+        @id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
+
+        @Assert: Repository have updated non-zero packages counts
+
+        @CaseLevel: Integration
+
+        @BZ: 1318004
+        """
+        # Create repository and synchronize it
+        repo = self._make_repository({
+            u'content-type': u'yum',
+            u'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '32')
+        # Find repo packages and remove them
+        packages = Package.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [package['id'] for package in packages],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['packages'], '0')
+        # Re-synchronize repository
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '32')
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_resynchronize_puppet_repo(self):
+        """Check that that repository content is resynced after puppet modules
+        were removed from repository
+
+        @id: 9e28f0ae-3875-4c1e-ad8b-d068f4409fe3
+
+        @Assert: Repository have updated non-zero puppet modules counts
+
+        @CaseLevel: Integration
+
+        @BZ: 1318004
+        """
+        # Create repository and synchronize it
+        repo = self._make_repository({
+            u'content-type': u'puppet',
+            u'url': FAKE_1_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['puppet-modules'], '2')
+        # Find repo packages and remove them
+        modules = PuppetModule.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [module['id'] for module in modules],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['puppet-modules'], '0')
+        # Re-synchronize repository
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['puppet-modules'], '2')
+
+    @run_only_on('sat')
     @tier1
     def test_positive_update_url(self):
         """Update the original url for a repository
@@ -965,6 +1042,103 @@ class RepositoryTestCase(CLITestCase):
                 Repository.delete({u'id': new_repo['id']})
                 with self.assertRaises(CLIReturnCodeError):
                     Repository.info({u'id': new_repo['id']})
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_remove_content_by_repo_name(self):
+        """Synchronize repository and remove rpm content from using repo name
+
+        @id: a8b6f17d-3b13-4185-920a-2558ace59458
+
+        @Assert: Content Counts shows zero packages
+
+        @BZ: 1349646, 1413145
+        """
+        # Create repository and synchronize it
+        repo = self._make_repository({
+            'content-type': u'yum',
+            'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({
+            'name': repo['name'],
+            'product': self.product['name'],
+            'organization': self.org['name']
+        })
+        repo = Repository.info({
+            'name': repo['name'],
+            'product': self.product['name'],
+            'organization': self.org['name']
+        })
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '32')
+        # Find repo packages and remove them
+        packages = Package.list({'repository': repo['name']})
+        remove_options = {
+            'name': repo['name'],
+            'product': self.product['name'],
+            'organization': self.org['name'],
+            'ids': [package['id'] for package in packages],
+        }
+        if bz_bug_is_open(1413145):
+            remove_options.pop('product')
+            remove_options.pop('organization')
+        Repository.remove_content(remove_options)
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['packages'], '0')
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_remove_content_rpm(self):
+        """Synchronize repository and remove rpm content from it
+
+        @id: c4bcda0e-c0d6-424c-840d-26684ca7c9f1
+
+        @Assert: Content Counts shows zero packages
+        """
+        # Create repository and synchronize it
+        repo = self._make_repository({
+            u'content-type': u'yum',
+            u'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['packages'], '32')
+        # Find repo packages and remove them
+        packages = Package.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [package['id'] for package in packages],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['packages'], '0')
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_remove_content_puppet(self):
+        """Synchronize repository and remove puppet content from it
+
+        @id: b025ccd0-9beb-4ac0-9fbf-21340c90650e
+
+        @Assert: Content Counts shows zero puppet modules
+        """
+        # Create repository and synchronize it
+        repo = self._make_repository({
+            u'content-type': u'puppet',
+            u'url': FAKE_1_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['sync']['status'], 'Success')
+        self.assertEqual(repo['content-counts']['puppet-modules'], '2')
+        # Find puppet modules and remove them from repository
+        modules = PuppetModule.list({'repository-id': repo['id']})
+        Repository.remove_content({
+            'id': repo['id'],
+            'ids': [module['id'] for module in modules],
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['puppet-modules'], '0')
 
     @skip_if_bug_open('bugzilla', 1343006)
     @tier1

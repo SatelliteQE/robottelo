@@ -700,6 +700,30 @@ class RepositoryTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
+    def test_positive_remove_contents(self):
+        """Synchronize a repository and remove rpm content.
+
+        @id: f686b74b-7ee9-4806-b999-bc05ffe61a9d
+
+        @Assert: The repository's content is removed and content counts shows
+        zero packages
+        """
+        # Create repository and synchronize it
+        repo = entities.Repository(
+            url=FAKE_2_YUM_REPO,
+            content_type='yum',
+            product=self.product,
+        ).create()
+        repo.sync()
+        self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
+        # Find repo packages and remove them
+        packages = entities.Package(repository=repo).search(
+            query={'per_page': 1000})
+        repo.remove_content(data={'ids': [package.id for package in packages]})
+        self.assertEqual(repo.read().content_counts['rpm'], 0)
+
+    @run_only_on('sat')
+    @tier1
     def test_negative_update_name(self):
         """Attempt to update repository name to invalid one
 
@@ -876,6 +900,68 @@ class RepositoryTestCase(APITestCase):
                 # Verify it has finished
                 self.assertEqual(
                     repo.read().content_counts['puppet_module'], 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_resynchronize_rpm_repo(self):
+        """Check that that repository content is resynced after packages were
+        removed from repository
+
+        @id: e3a62529-edbd-4062-9246-bef5f33bdcf0
+
+        @Assert: Repository have updated non-zero packages counts
+
+        @CaseLevel: Integration
+
+        @BZ: 1318004
+        """
+        # Create repository and synchronize it
+        repo = entities.Repository(
+            url=FAKE_2_YUM_REPO,
+            content_type='yum',
+            product=self.product,
+        ).create()
+        repo.sync()
+        self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
+        # Find repo packages and remove them
+        packages = entities.Package(repository=repo).search(
+            query={'per_page': 1000})
+        repo.remove_content(data={'ids': [package.id for package in packages]})
+        self.assertEqual(repo.read().content_counts['rpm'], 0)
+        # Re-synchronize repository
+        repo.sync()
+        self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_resynchronize_puppet_repo(self):
+        """Check that that repository content is resynced after puppet modules
+        were removed from repository
+
+        @id: db50beb0-de73-4783-abc8-57e61188b6c7
+
+        @Assert: Repository have updated non-zero puppet modules counts
+
+        @CaseLevel: Integration
+
+        @BZ: 1318004
+        """
+        # Create repository and synchronize it
+        repo = entities.Repository(
+            url=FAKE_1_PUPPET_REPO,
+            content_type='puppet',
+            product=self.product,
+        ).create()
+        repo.sync()
+        self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
+        # Find repo packages and remove them
+        modules = entities.PuppetModule(repository=[repo]).search(
+            query={'per_page': 1000})
+        repo.remove_content(data={'ids': [module.id for module in modules]})
+        self.assertEqual(repo.read().content_counts['puppet_module'], 0)
+        # Re-synchronize repository
+        repo.sync()
+        self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
 
     @tier1
     @run_only_on('sat')

@@ -138,6 +138,14 @@ class Repos(Base):
                 'repo.fetch_' + field_name]).text == expected_field_value)
         return False
 
+    def remove_content(self, repo_name):
+        """Remove content from a repository."""
+        self.search_and_click(repo_name)
+        self.click(locators['repo.manage_content'])
+        self.click(locators['repo.content.select_all'])
+        self.click(locators['repo.content.remove'])
+        self.click(locators['repo.content.confirm_remove'])
+
     def upload_content(self, repo_name, file_path):
         """Upload content to a repository."""
         self.search_and_click(repo_name)
