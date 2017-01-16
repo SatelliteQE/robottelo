@@ -1516,6 +1516,18 @@
                   "value": "LDAP_FILTER"
                 },
                 {
+                  "help": "REPLACE locations with given ids",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
                   "help": "",
                   "name": "name",
                   "shortname": null,
@@ -1526,6 +1538,18 @@
                   "name": "onthefly-register",
                   "shortname": null,
                   "value": "ONTHEFLY_REGISTER"
+                },
+                {
+                  "help": "REPLACE organizations with given ids.",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
                 },
                 {
                   "help": "defaults to 389",
@@ -1615,10 +1639,34 @@
               "name": "list",
               "options": [
                 {
+                  "help": "Location name",
+                  "name": "location",
+                  "shortname": null,
+                  "value": "LOCATION_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "location-id",
+                  "shortname": null,
+                  "value": "LOCATION_ID"
+                },
+                {
                   "help": "sort results",
                   "name": "order",
                   "shortname": null,
                   "value": "ORDER"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
                 },
                 {
                   "help": "paginate results",
@@ -1724,6 +1772,18 @@
                   "value": "LDAP_FILTER"
                 },
                 {
+                  "help": "REPLACE locations with given ids",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
                   "help": "Name to search by",
                   "name": "name",
                   "shortname": null,
@@ -1740,6 +1800,18 @@
                   "name": "onthefly-register",
                   "shortname": null,
                   "value": "ONTHEFLY_REGISTER"
+                },
+                {
+                  "help": "REPLACE organizations with given ids.",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
                 },
                 {
                   "help": "defaults to 389",
@@ -6308,6 +6380,12 @@
               "value": "FILE_NAME"
             },
             {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
               "help": "print help",
               "name": "help",
               "shortname": "h",
@@ -6326,6 +6404,12 @@
           "description": "import or export content hosts",
           "name": "content-hosts",
           "options": [
+            {
+              "help": "Comma separated list of column names to export",
+              "name": "columns",
+              "shortname": null,
+              "value": "COLUMN_NAMES"
+            },
             {
               "help": "Continue processing even if individual resource error",
               "name": "continue-on-error",
@@ -6351,6 +6435,12 @@
               "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
               "name": "file",
               "value": "FILE_NAME"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
             },
             {
               "help": "print help",
@@ -6394,6 +6484,12 @@
                 "name": "organization",
                 "shortname": null,
                 "value": "ORGANIZATION"
+              },
+              {
+                "help": "Only export search results",
+                "name": "search",
+                "shortname": null,
+                "value": "SEARCH"
               },
               {
                 "help": "print help",
@@ -6510,6 +6606,12 @@
               "name": "organization",
               "shortname": null,
               "value": "ORGANIZATION"
+            },
+            {
+              "help": "Only export search results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
             },
             {
               "help": "print help",
