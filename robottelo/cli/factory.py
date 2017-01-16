@@ -2125,20 +2125,23 @@ def make_environment(options=None):
 
     Options::
 
-        --location-ids LOCATION_IDS   REPLACE locations with given ids
-                                      Comma separated list of values.
-        --name NAME
-        --organization-ids ORGANIZATION_IDS   REPLACE organizations with
-                                              given ids.
-                                              Comma separated list of values.
-        -h, --help                            print help
+         --location-ids LOCATION_IDS         REPLACE locations with given ids
+                                             Comma separated list of values.
+         --locations LOCATION_NAMES          Comma separated list of values.
+         --name NAME
+         --organization-ids ORGANIZATION_IDS REPLACE organizations with given
+                                             ids.
+                                             Comma separated list of values.
+         --organizations ORGANIZATION_NAMES  Comma separated list of values.
 
     """
     # Assigning default values for attributes
     args = {
         u'location-ids': None,
+        u'locations': None,
         u'name': gen_alphanumeric(6),
         u'organization-ids': None,
+        u'organizations': None,
     }
 
     return create_object(Environment, args, options)
