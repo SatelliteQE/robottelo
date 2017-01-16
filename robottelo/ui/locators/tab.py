@@ -182,6 +182,10 @@ tab_locators = LocatorDict({
     "contentviews.tab_version_packages": (
         By.XPATH,
         "//a[contains(@ui-sref, 'content-views.details.version.packages')]"),
+    "contentviews.tab_version_puppet_modules": (
+        By.XPATH,
+        "//a[contains(@ui-sref, "
+        "'content-views.details.version.puppet-modules')]"),
 
     # Content Hosts
     # Third level UI
