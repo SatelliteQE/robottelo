@@ -804,12 +804,12 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
-        """Check that that repository content is resynced after packages were
+        """Check that repository content is resynced after packages were
         removed from repository
 
         @id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
 
-        @Assert: Repository have updated non-zero packages counts
+        @Assert: Repository has updated non-zero packages count
 
         @CaseLevel: Integration
 
@@ -841,12 +841,12 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_resynchronize_puppet_repo(self):
-        """Check that that repository content is resynced after puppet modules
+        """Check that repository content is resynced after puppet modules
         were removed from repository
 
         @id: 9e28f0ae-3875-4c1e-ad8b-d068f4409fe3
 
-        @Assert: Repository have updated non-zero puppet modules counts
+        @Assert: Repository has updated non-zero puppet modules count
 
         @CaseLevel: Integration
 

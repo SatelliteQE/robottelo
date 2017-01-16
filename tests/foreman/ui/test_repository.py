@@ -597,12 +597,12 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
-        """Check that that repository content is resynced after packages were
+        """Check that repository content is resynced after packages were
         removed from repository
 
         @id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
 
-        @Assert: Repository have updated non-zero package counts
+        @Assert: Repository has updated non-zero package count
 
         @CaseLevel: Integration
 
@@ -620,17 +620,13 @@ class RepositoryTestCase(UITestCase):
                 repo.name,
             )
             self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages number
-            self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertGreaterEqual(int(number.text), 1)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertGreaterEqual(count, 1)
             # Remove packages
             self.repository.remove_content(repo.name)
-            self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertEqual(int(number.text), 0)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertEqual(count, 0)
             # Sync it again
             self.setup_navigate_syncnow(
                 session,
@@ -639,20 +635,18 @@ class RepositoryTestCase(UITestCase):
             )
             self.assertTrue(self.prd_sync_is_ok(repo.name))
             # Check packages number
-            self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertGreaterEqual(int(number.text), 1)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertGreaterEqual(count, 1)
 
     @run_only_on('sat')
     @tier2
     def test_positive_resynchronize_puppet_repo(self):
-        """Check that that repository content is resynced after packages were
+        """Check that repository content is resynced after packages were
         removed from repository
 
         @id: c82dfe9d-aa1c-4922-ab3f-5d66ba8375c5
 
-        @Assert: Repository have updated non-zero package counts
+        @Assert: Repository has updated non-zero package count
 
         @CaseLevel: Integration
 
@@ -670,17 +664,14 @@ class RepositoryTestCase(UITestCase):
                 repo.name,
             )
             self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages number
-            self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertGreaterEqual(int(number.text), 1)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertGreaterEqual(count, 1)
             # Remove packages
             self.repository.remove_content(repo.name)
             self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertEqual(int(number.text), 0)
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertEqual(count, 0)
             # Sync repo again
             self.setup_navigate_syncnow(
                 session,
@@ -688,11 +679,9 @@ class RepositoryTestCase(UITestCase):
                 repo.name,
             )
             self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages number
-            self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertGreaterEqual(int(number.text), 1)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertGreaterEqual(count, 1)
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -1482,10 +1471,9 @@ class RepositoryTestCase(UITestCase):
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
-            # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertGreater(int(number.text), 0)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo_name, 'packages')
+            self.assertGreaterEqual(count, 1)
             # Check packages list
             self.repository.click(locators['repo.manage_content'])
             packages = [
@@ -1514,10 +1502,9 @@ class RepositoryTestCase(UITestCase):
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error_sub_form']))
-            # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertEqual(int(number.text), 0)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo_name, 'packages')
+            self.assertEqual(count, 0)
 
     @tier1
     def test_positive_upload_puppet(self):
@@ -1539,10 +1526,9 @@ class RepositoryTestCase(UITestCase):
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
-            # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertGreater(int(number.text), 0)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo_name, 'puppet')
+            self.assertGreaterEqual(count, 1)
             # Check packages list
             self.repository.click(locators['repo.manage_content'])
             # Select all modules names from modules table
@@ -1574,9 +1560,8 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error_sub_form']))
             # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertEqual(int(number.text), 0)
+            count = self.repository.fetch_content_count(repo_name, 'puppet')
+            self.assertEqual(count, 0)
 
     @run_only_on('sat')
     @tier1
@@ -1599,17 +1584,15 @@ class RepositoryTestCase(UITestCase):
                 repo.name,
             )
             self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages number
+            # Check packages count
             self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertGreaterEqual(int(number.text), 1)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertGreaterEqual(count, 1)
             # Remove packages
             self.repository.remove_content(repo.name)
             self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertEqual(int(number.text), 0)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertEqual(count, 0)
 
     @run_only_on('sat')
     @tier2
@@ -1632,17 +1615,14 @@ class RepositoryTestCase(UITestCase):
                 repo.name,
             )
             self.assertTrue(self.prd_sync_is_ok(repo.name))
-            # Check packages number
-            self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertGreaterEqual(int(number.text), 1)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertGreaterEqual(count, 1)
             # Remove packages
             self.repository.remove_content(repo.name)
             self.repository.search_and_click(repo.name)
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertEqual(int(number.text), 0)
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertEqual(count, 0)
 
 
 class GitPuppetMirrorTestCase(UITestCase):

@@ -1,6 +1,6 @@
 """Implements Repos UI."""
 from robottelo.constants import CHECKSUM_TYPE, REPO_TYPE
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 
 
@@ -137,6 +137,40 @@ class Repos(Base):
             return (self.wait_until_element(locators[
                 'repo.fetch_' + field_name]).text == expected_field_value)
         return False
+
+    def fetch_content_count(self, repo_name, content_type):
+        """Fetch content count for specific repo and content type.
+
+        :param repo_name: Name of repository that should be fetched.
+        :param content_type: Type of repository content. Supported values are:
+
+            * packages
+            * errata
+            * package_groups
+            * puppet
+
+        :returns: Content count.
+        :rtype: int
+        :raises: ``ValueError`` if passed ``content_type`` is not supported.
+        :raises robottelo.ui.base.UINoSuchElementError: If content is not
+            found.
+        """
+        self.search_and_click(repo_name)
+        if content_type == 'packages':
+            locator = locators['repo.fetch_packages']
+        elif content_type == 'errata':
+            locator = locators['repo.fetch_errata']
+        elif content_type == 'package_groups':
+            locator = locators['repo.fetch_package_groups']
+        elif content_type == 'puppet':
+            locator = locators['repo.fetch_puppet_modules']
+        else:
+            raise ValueError("Please provide supported content_type value")
+        number = self.find_element(locator)
+        if number:
+            return int(number.text)
+        else:
+            raise UINoSuchElementError("Content count not found")
 
     def remove_content(self, repo_name):
         """Remove content from a repository."""
