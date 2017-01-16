@@ -181,6 +181,51 @@ class RepositoryTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
 
+    @tier2
+    def test_positive_create_puppet_repo_same_url_different_orgs(self):
+        """Create two repos with the same URL in two different organizations.
+
+        @id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
+
+        @Assert: Repositories are created and puppet modules are visible from
+        different organizations.
+
+        @CaseLevel: Integration
+        """
+        url = 'https://omaciel.fedorapeople.org/f4cb00ed/'
+        # Create first repository
+        repo = entities.Repository(
+            url=url,
+            product=self.session_prod,
+            content_type=REPO_TYPE['puppet'],
+        ).create()
+        repo.sync()
+        # Create second repository
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        new_repo = entities.Repository(
+            url=url,
+            product=product,
+            content_type=REPO_TYPE['puppet'],
+        ).create()
+        new_repo.sync()
+        with Session(self.browser) as session:
+            # Check packages number in first repository
+            self.products.search_and_click(self.session_prod.name)
+            self.assertIsNotNone(self.repository.search(repo.name))
+            self.repository.search_and_click(repo.name)
+            number = self.repository.find_element(
+                locators['repo.fetch_puppet_modules'])
+            self.assertEqual(int(number.text), 1)
+            # Check packages number in first repository
+            session.nav.go_to_select_org(org.name)
+            self.products.search_and_click(product.name)
+            self.assertIsNotNone(self.repository.search(new_repo.name))
+            self.repository.search_and_click(new_repo.name)
+            number = self.repository.find_element(
+                locators['repo.fetch_puppet_modules'])
+            self.assertEqual(int(number.text), 1)
+
     @run_only_on('sat')
     @tier1
     def test_positive_create_repo_with_checksum(self):
