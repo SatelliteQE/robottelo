@@ -70,6 +70,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
+from robottelo.host_info import get_host_os_version
 from robottelo.test import CLITestCase
 
 
@@ -632,9 +633,17 @@ class RepositoryTestCase(CLITestCase):
 
         @Assert: Non-YUM repository is not created with a download policy
         """
-        non_yum_repo_types = [
-            item for item in REPO_TYPE.keys() if item != 'yum'
-        ]
+        os_version = get_host_os_version()
+        # ostree is not supported for rhel6 so the following check
+        if os_version.startswith('RHEL6'):
+            non_yum_repo_types = [
+                item for item in REPO_TYPE.keys()
+                if item != 'yum' and item != 'ostree'
+            ]
+        else:
+            non_yum_repo_types = [
+                 item for item in REPO_TYPE.keys() if item != 'yum'
+            ]
         for content_type in non_yum_repo_types:
             with self.subTest(content_type):
                 with self.assertRaisesRegex(
