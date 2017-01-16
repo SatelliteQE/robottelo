@@ -516,6 +516,8 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'stork-0.12-2.noarch',
 ]
 
+FAKE_0_PUPPET_MODULE = 'httpd'
+
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
 PERMISSIONS = {
