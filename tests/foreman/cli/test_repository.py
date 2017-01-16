@@ -517,6 +517,38 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['content-type'], content_type)
                 self.assertEqual(new_repo['name'], name)
 
+    @tier2
+    def test_positive_create_puppet_repo_same_url_different_orgs(self):
+        """Create two repos with the same URL in two different organizations.
+
+        @id: b3502064-f400-4e60-a11f-b3772bd23a98
+
+        @Assert: Repositories are created and puppet modules are visible from
+        different organizations.
+
+        @CaseLevel: Integration
+        """
+        url = 'https://omaciel.fedorapeople.org/b3502064/'
+        # Create first repo
+        repo = self._make_repository({
+            u'content-type': u'puppet',
+            u'url': url,
+        })
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(repo['content-counts']['puppet-modules'], '1')
+        # Create another org and repo
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        new_repo = self._make_repository({
+            u'url': url,
+            u'product': product,
+            u'content-type': u'puppet',
+        })
+        Repository.synchronize({'id': new_repo['id']})
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['content-counts']['puppet-modules'], '1')
+
     @tier1
     def test_negative_create_with_name(self):
         """Repository name cannot be 300-characters long
