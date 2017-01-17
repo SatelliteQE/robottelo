@@ -1166,6 +1166,83 @@ class OrganizationTestCase(CLITestCase):
         org = Org.info({'name': org['name']})
         self.assertNotIn(proxy['name'], org['smart-proxies'])
 
+    @run_only_on('sat')
+    @tier1
+    def test_positive_add_parameter(self):
+        """Add a parameter to organization
+
+        @id: b0b59650-5718-45e2-8724-151dc52b1486
+
+        @Assert: Parameter is added to the org
+        """
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        org = make_org()
+        Org.set_parameter({
+            'name': param_name,
+            'value': param_value,
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        self.assertEqual(param_value, result['parameters'][param_name.lower()])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update_parameter(self):
+        """Update a parameter associated with organization
+
+        @id: 4a7ed165-a0c5-4ba6-833a-5a1b3ee47ace
+
+        @Assert: Parameter is updated
+        """
+        param_name = gen_string('alpha')
+        param_new_value = gen_string('alpha')
+        org = make_org()
+        # Create parameter
+        Org.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        Org.set_parameter({
+            'name': param_name,
+            'value': param_new_value,
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        self.assertEqual(
+            param_new_value, result['parameters'][param_name.lower()])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_remove_parameter(self):
+        """Remove a parameter from organization
+
+        @id: e4099279-4e73-4c14-9e7c-912b3787b99f
+
+        @Assert: Parameter is removed from the org
+        """
+        param_name = gen_string('alpha')
+        org = make_org()
+        Org.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        Org.delete_parameter({
+            'name': param_name,
+            'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 0)
+        self.assertNotIn(param_name.lower(), result['parameters'])
+
     # Negative Create
 
     @tier1
