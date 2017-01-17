@@ -27,7 +27,6 @@ from robottelo.cli.factory import (
     make_domain,
     make_hostgroup,
     make_lifecycle_environment,
-    make_location,
     make_medium,
     make_org,
     make_proxy,
@@ -47,7 +46,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -1169,104 +1167,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(proxy['name'], org['smart-proxies'])
 
     @run_only_on('sat')
-    @tier2
-    def test_positive_add_location_by_id(self):
-        """Add a location to organization by its id
-
-        @id: 83848f18-2cca-457c-af57-e6249386c81c
-
-        @Assert: Location is added to the org
-
-        @CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location-id': loc['id'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_add_location_by_name(self):
-        """Add a location to organization by its name
-
-        @id: f39522e8-5280-429e-b954-79153c2c73c2
-
-        @Assert: Location is added to the org
-
-        @CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location': loc['name'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_location_by_id(self):
-        """Remove a location from organization by its id
-
-        @id: 37b63e5c-8fd5-439c-9540-972b597b590a
-
-        @Assert: Location is removed from the org
-
-        @CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location-id': loc['id'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
-        Org.remove_location({
-            'location-id': loc['id'],
-            'id': org['id'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 0)
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
-    @tier2
-    def test_positive_remove_location_by_name(self):
-        """Remove a location from organization by its name
-
-        @id: 35770afa-1623-448c-af4f-a702851063db
-
-        @Assert: Location is removed from the org
-
-        @CaseLevel: Integration
-        """
-        org = make_org()
-        loc = make_location()
-        Org.add_location({
-            'location': loc['name'],
-            'name': org['name'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
-        Org.remove_location({
-            'location': loc['name'],
-            'id': org['id'],
-        })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 0)
-
-    @run_only_on('sat')
     @tier1
     def test_positive_add_parameter(self):
         """Add a parameter to organization
@@ -1318,7 +1218,6 @@ class OrganizationTestCase(CLITestCase):
             param_new_value, result['parameters'][param_name.lower()])
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier1
     def test_positive_remove_parameter(self):
         """Remove a parameter from organization
@@ -1340,6 +1239,7 @@ class OrganizationTestCase(CLITestCase):
             'name': param_name,
             'organization': org['name'],
         })
+        result = Org.info({'id': org['id']})
         self.assertEqual(len(result['parameters']), 0)
         self.assertNotIn(param_name.lower(), result['parameters'])
 

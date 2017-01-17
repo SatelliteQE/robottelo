@@ -16,7 +16,6 @@ Subcommands::
     add-domain                    Associate a resource
     add-environment               Associate a resource
     add-hostgroup                 Associate a resource
-    add-location                  Associate a location
     add-medium                    Associate a resource
     add-smartproxy                Associate a resource
     add-subnet                    Associate a resource
@@ -31,7 +30,6 @@ Subcommands::
     remove_domain                 Disassociate a resource
     remove_environment            Disassociate a resource
     remove_hostgroup              Disassociate a resource
-    remove-location               Disassociate a location
     remove_medium                 Disassociate a resource
     remove_smartproxy             Disassociate a resource
     remove_subnet                 Disassociate a resource
@@ -107,18 +105,6 @@ class Org(Base):
     def remove_hostgroup(cls, options=None):
         """Removes a hostgroup from an org"""
         cls.command_sub = 'remove-hostgroup'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def add_location(cls, options=None):
-        """Adds a location to an org"""
-        cls.command_sub = 'add-location'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def remove_location(cls, options=None):
-        """Removes a location from an org"""
-        cls.command_sub = 'remove-location'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
