@@ -1,0 +1,22 @@
+{
+    "userBlacklist": [
+        "elyezer",
+        "omaciel",
+        "cswiii",
+        "Ichimonji10",
+        "AdamSaleh",
+        "tkolhar",
+        "alda519",
+        "anarang",
+        "jhutar",
+        "danuzclaudes",
+        "helgie",
+        "lhellebr",
+        "ares",
+        "eanxgeek",
+        "apagac"
+    ],
+    "createReviewRequest": true,
+    "delayed": true,
+    "delayedUntil": "5 minutes"
+}
