@@ -905,7 +905,7 @@ locators = LocatorDict({
         By.XPATH,
         ("//input[not(contains(@id, 'new_external_usergroups')) and "
          "contains(@name, 'name') and contains(@id, "
-         "'external_usergroups_attributes_new')]")),
+         "'external_usergroups_attributes')]")),
     "usergroups.ext_authsource_id": (
         By.XPATH,
         ("//div[contains(@id, 'auth_source_id')]/a"
