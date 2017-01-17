@@ -9,7 +9,7 @@ class Hostgroup(Base):
     """Manipulates hostgroup from UI."""
 
     def create(self, name, parent=None, environment=None, content_source=None,
-               puppet_ca=None, puppet_master=None):
+               puppet_ca=None, puppet_master=None, oscap_capsule=None):
         """Creates a new hostgroup from UI."""
         self.click(locators['hostgroups.new'])
         self.assign_value(locators['hostgroups.name'], name)
@@ -25,6 +25,9 @@ class Hostgroup(Base):
         if puppet_master:
             self.assign_value(
                 locators['hostgroups.puppet_master'], puppet_master)
+        if oscap_capsule:
+            self.assign_value(
+                locators['hostgroups.oscap_capsule'], oscap_capsule)
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):
