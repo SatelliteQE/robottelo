@@ -59,6 +59,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
+from robottelo.host_info import get_host_os_version
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_contentview, make_repository, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -967,10 +968,18 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: Dropdown for download policy is not displayed for non-yum repo
         """
-        non_yum_repo_types = [
-            repo_type for repo_type in REPO_TYPE.values()
-            if repo_type != 'yum'
-        ]
+        os_version = get_host_os_version()
+        # ostree is not supported for rhel6 so the following check
+        if os_version.startswith('RHEL6'):
+            non_yum_repo_types = [
+                repo_type for repo_type in REPO_TYPE.values()
+                if repo_type != 'yum' and repo_type != 'ostree'
+            ]
+        else:
+            non_yum_repo_types = [
+                repo_type for repo_type in REPO_TYPE.values()
+                if repo_type != 'yum'
+            ]
         with Session(self.browser):
             for content_type in non_yum_repo_types:
                 self.products.search_and_click(self.session_prod.name)
