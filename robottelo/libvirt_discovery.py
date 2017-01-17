@@ -56,7 +56,16 @@ class LibvirtGuest(object):
         else:
             self.image_dir = image_dir
         if mac is None:
-            self.mac = gen_mac(multicast=False, locally=True)
+            # fe:* MAC range is considered reserved in libvirt
+            for _ in range(0, 10):
+                mac = gen_mac(multicast=False, locally=True)
+                if not mac.startswith(u'fe'):
+                    self.mac = mac
+                    break
+                mac = None
+            if not mac:
+                raise ValueError('Unable to generate a valid MAC address')
+
         else:
             self.mac = mac
         if bridge is None:
