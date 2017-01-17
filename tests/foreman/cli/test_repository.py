@@ -57,6 +57,7 @@ from robottelo.constants import (
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
+    stubbed,
     tier1,
     tier2,
 )
@@ -1200,6 +1201,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
     # create a sync schedule against the mirror to make sure it is periodically
     # update to contain the latest and greatest.
 
+    @stubbed()
     @tier2
     def test_positive_git_local_create(self):
         """Create repository with local git puppet mirror.
@@ -1220,6 +1222,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_local_update(self):
         """Update repository with local git puppet mirror.
@@ -1240,6 +1243,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_local_delete(self):
         """Delete repository with local git puppet mirror.
@@ -1260,6 +1264,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_remote_create(self):
         """Create repository with remote git puppet mirror.
@@ -1280,6 +1285,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_remote_update(self):
         """Update repository with remote git puppet mirror.
@@ -1300,6 +1306,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_remote_delete(self):
         """Delete repository with remote git puppet mirror.
@@ -1320,6 +1327,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_sync(self):
         """Sync repository with git puppet mirror.
@@ -1341,6 +1349,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_sync_with_content_change(self):
         """Sync repository with changes in git puppet mirror.
@@ -1368,6 +1377,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_sync_schedule(self):
         """Scheduled sync of git puppet mirror.
@@ -1387,6 +1397,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
         @CaseAutomation: notautomated
         """
 
+    @stubbed()
     @tier2
     def test_positive_git_view_content(self):
         """View content in synced git puppet mirror
