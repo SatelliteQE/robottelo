@@ -57,6 +57,14 @@ class Hosts(Base):
                 self.click(
                     common_locators['entity_select_list'] % parameter_value)
                 continue
+            elif parameter_name == 'Puppet Environment':
+                # Make sure 'inherit' button is not pressed before selecting
+                # puppet environment, as otherwise 'Puppet Environment'
+                # dropdown will be disabled
+                inherit = self.wait_until_element(
+                    locators.host.inherit_puppet_environment)
+                if 'active' in inherit.get_attribute('class'):
+                    self.click(inherit)
             self.assign_value(param_locator, parameter_value)
 
     def _configure_interface_parameters(self, parameters_list):
@@ -77,6 +85,21 @@ class Hosts(Base):
                 'host',
                 (parameter_name.lower()).replace(' ', '_')
             ))]
+            # send_keys() can't send left parenthesis (see
+            # SeleniumHQ/selenium#674), which is a part of network type name
+            # (e.g. 'Physical (Bridge)')
+            if parameter_name == 'Network type' and ' (' in parameter_value:
+                self.click(param_locator)
+                # typing network type name without parenthesis part
+                self.assign_value(
+                    common_locators['select_list_search_box'],
+                    parameter_value.split(' (')[0]
+                )
+                # selecting network type by its full name (with parenthesis
+                # part)
+                self.click(
+                    common_locators['entity_select_list'] % parameter_value)
+                continue
             self.assign_value(param_locator, parameter_value)
         self.click(locators['host.save_interface'])
 
