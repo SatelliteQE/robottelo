@@ -18,6 +18,17 @@ from robottelo.config import settings
 logger = logging.getLogger(__name__)
 
 
+def _gen_mac_for_libvirt():
+    # fe:* MAC range is considered reserved in libvirt
+    for _ in range(0, 10):
+        mac = gen_mac(multicast=False, locally=True)
+        if not mac.startswith(u'fe'):
+            return(mac)
+        mac = None
+    if not mac:
+        raise ValueError('Unable to generate a valid MAC address')
+
+
 class LibvirtGuestError(Exception):
     """Exception raised for failed virtual guests on external libvirt"""
 
@@ -56,18 +67,7 @@ class LibvirtGuest(object):
         else:
             self.image_dir = image_dir
         if mac is None:
-            # fe:* MAC range is considered reserved in libvirt
-            for _ in range(0, 10):
-                mac = gen_mac(multicast=False, locally=True)
-                if not mac.startswith(u'fe'):
-                    self.mac = mac
-                    break
-                mac = None
-            if not mac:
-                raise ValueError('Unable to generate a valid MAC address')
-
-        else:
-            self.mac = mac
+            self.mac = _gen_mac_for_libvirt()
         if bridge is None:
             self.bridge = settings.vlan_networking.bridge
         else:
@@ -123,7 +123,7 @@ class LibvirtGuest(object):
             command_args.append('--cdrom={0}'.format(boot_iso_dir))
 
         if self.extra_nic:
-            nic_mac = gen_mac(multicast=False, locally=True)
+            nic_mac = _gen_mac_for_libvirt()
             command_args.append('--network=bridge:{vm_bridge}')
             command_args.append('--mac={0}'.format(nic_mac))
 
@@ -178,7 +178,7 @@ class LibvirtGuest(object):
             raise LibvirtGuestError(
                 'The virtual guest should be created before updating it'
             )
-        nic_mac = gen_mac(multicast=False, locally=True)
+        nic_mac = _gen_mac_for_libvirt()
         command_args = [
             'virsh attach-interface',
             '--domain={vm_name}',
