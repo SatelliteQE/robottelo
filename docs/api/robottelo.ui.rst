@@ -133,6 +133,11 @@
 
 .. automodule:: robottelo.ui.medium
 
+:mod:`robottelo.ui.my_account`
+------------------------------
+
+.. automodule:: robottelo.ui.my_account
+
 :mod:`robottelo.ui.navigator`
 -----------------------------
 

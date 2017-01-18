@@ -258,6 +258,52 @@ class UserTestCase(UITestCase):
                 self.assertIsNotNone(self.user.wait_until_element(
                     (strategy, value % role)))
 
+    @tier2
+    def test_positive_create_with_multiple_roles_and_login(self):
+        """Create User with multiple roles and re-login into application
+        using that user
+
+        @id: b1d96e56-42e0-4f4b-8f38-98fb72be5c64
+
+        @Assert: User is created successfully and can be used to login into
+        application without raising any errors. Also user can review his own
+        profile data.
+
+        @BZ: 1392513
+
+        @CaseLevel: Integration
+        """
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
+        password = gen_string('alpha')
+        roles = [entities.Role().create().name for _ in range(10)]
+        with Session(self.browser) as session:
+            make_user(
+                session,
+                username=name,
+                password1=password,
+                password2=password,
+                roles=roles,
+                admin=False,
+                edit=True,
+            )
+            self.user.click(self.user.search(name))
+            self.user.click(tab_locators['users.tab_roles'])
+            for role in roles:
+                self.assertIsNotNone(
+                    self.user.wait_until_element(
+                        (strategy, value % role))
+                )
+            self.login.logout()
+            self.login.login(name, password)
+            self.assertTrue(self.login.is_logged())
+            self.my_account.navigate_to_entity()
+            self.assertIsNone(
+                self.user.wait_until_element(common_locators['haserror']))
+            user_name = self.user.wait_until_element(
+                locators['users.username']).get_attribute('value')
+            self.assertEqual(user_name, name)
+
     @tier1
     def test_positive_create_with_one_org(self):
         """Create User associated to one Org
