@@ -16,7 +16,7 @@
         "eanxgeek",
         "apagac"
     ],
-    "createReviewRequest": true,
     "delayed": true,
-    "delayedUntil": "5 minutes"
+    "delayedUntil": "5m",
+    "findPotentialReviewers": true
 }
