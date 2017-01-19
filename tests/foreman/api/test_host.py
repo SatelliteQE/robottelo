@@ -54,10 +54,12 @@ class HostTestCase(APITestCase):
         cls.env = entities.Environment().search(
             query={'search': u'content_view="{0}"'.format(cls.cv.name)}
         )[0].read()
-        cls.lce = entities.LifecycleEnvironment().search(query={
-            'search': 'name={0} and organization_id={1}'.format(
-                ENVIRONMENT, cls.org.id)
-        })[0].read()
+        cls.lce = entities.LifecycleEnvironment(
+            organization=cls.org.id).search(query={
+                'search': 'name={0} and organization_id={1}'.format(
+                    ENVIRONMENT, cls.org.id)
+            }
+        )[0].read()
         cls.puppet_classes = entities.PuppetClass().search(query={
             'search': u'name ~ "{0}" and environment = "{1}"'.format(
                 'generic_1', cls.env.name)
@@ -494,6 +496,7 @@ class HostTestCase(APITestCase):
         host = entities.Host(
             organization=self.org,
             location=self.loc,
+            compute_resource=self.compresource_libvirt,
             image=self.image,
         ).create()
         self.assertEqual(host.image.id, self.image.id)
@@ -1053,7 +1056,11 @@ class HostTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        host = entities.Host(organization=self.org, location=self.loc).create()
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            compute_resource=self.compresource_libvirt,
+        ).create()
         self.assertIsNone(host.image)
         host.image = self.image
         host = host.update(['image'])

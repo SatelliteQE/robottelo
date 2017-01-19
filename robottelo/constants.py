@@ -345,6 +345,7 @@ FAKE_YUM_DRPM_REPO = (
 FAKE_YUM_SRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
 )
+CUSTOM_PUPPET_REPO = u'http://omaciel.fedorapeople.org/bagoftricks'
 FAKE_0_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
 FAKE_1_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet01'
 FAKE_2_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet02'
