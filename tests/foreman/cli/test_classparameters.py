@@ -198,8 +198,13 @@ class SmartClassParametersTestCase(CLITestCase):
             u'environment': self.env['name'],
             u'puppet-classes': self.puppet_class['name'],
         })
-        host_sc_params_list = Host.sc_params({u'host': host.name})
-        self.assertGreater(len(host_sc_params_list), 0)
+        host_sc_params = Host.sc_params({u'host': host.name})
+        self.assertGreater(len(host_sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(
+            len(host_sc_params),
+            len({scp['id'] for scp in host_sc_params})
+        )
 
     @run_only_on('sat')
     @tier2
@@ -228,8 +233,13 @@ class SmartClassParametersTestCase(CLITestCase):
             u'environment': self.env['name'],
             u'puppet-classes': self.puppet_class['name'],
         })
-        host_sc_params_list = Host.sc_params({u'host-id': host.id})
-        self.assertGreater(len(host_sc_params_list), 0)
+        host_sc_params = Host.sc_params({u'host-id': host.id})
+        self.assertGreater(len(host_sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(
+            len(host_sc_params),
+            len({scp['id'] for scp in host_sc_params})
+        )
 
     @run_only_on('sat')
     @tier2
@@ -259,6 +269,11 @@ class SmartClassParametersTestCase(CLITestCase):
         hostgroup_sc_params = HostGroup.sc_params({
             u'hostgroup': hostgroup['name']})
         self.assertGreater(len(hostgroup_sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(
+            len(hostgroup_sc_params),
+            len({scp['id'] for scp in hostgroup_sc_params})
+        )
 
     @run_only_on('sat')
     @tier2
@@ -288,6 +303,11 @@ class SmartClassParametersTestCase(CLITestCase):
         hostgroup_sc_params = HostGroup.sc_params({
             u'hostgroup-id': hostgroup['id']})
         self.assertGreater(len(hostgroup_sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(
+            len(hostgroup_sc_params),
+            len({scp['id'] for scp in hostgroup_sc_params})
+        )
 
     @run_only_on('sat')
     @tier1
@@ -298,11 +318,13 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @assert: Parameters listed for specific Puppet class.
         """
-        sc_params_list = SmartClassParameter.list({
+        sc_params = SmartClassParameter.list({
             'environment': self.env['name'],
             'puppet-class': self.puppet_class['name']
         })
-        self.assertGreater(len(sc_params_list), 0)
+        self.assertGreater(len(sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @run_only_on('sat')
     @tier1
@@ -313,11 +335,43 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @assert: Parameters listed for specific Puppet class.
         """
-        sc_params_list = SmartClassParameter.list({
+        sc_params = SmartClassParameter.list({
             'environment': self.env['name'],
             'puppet-class-id': self.puppet_class['id']
         })
-        self.assertGreater(len(sc_params_list), 0)
+        self.assertGreater(len(sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_import_twice_list_parameters_by_puppetclass_id(self):
+        """Import same puppet class twice (e.g. into different Content Views)
+        but list class parameters only for specific puppet class.
+
+        @id: 79a33641-54af-4e04-89ff-3b7f9a4e3ec2
+
+        @assert: Parameters listed for specific Puppet class.
+
+        BZ: 1385351
+        """
+        cv = publish_puppet_module(
+            self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
+        env = Environment.list({
+            'search': u'content_view="{0}"'.format(cv['name'])
+        })[0]
+        puppet_class = Puppet.info({
+            'name': self.puppet_modules[0]['name'],
+            'environment': env['name'],
+        })
+        sc_params = SmartClassParameter.list({
+            'environment': env['name'],
+            'puppet-class-id': puppet_class['id'],
+            'per-page': 1000,
+        })
+        self.assertGreater(len(sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @run_only_on('sat')
     @tier1
