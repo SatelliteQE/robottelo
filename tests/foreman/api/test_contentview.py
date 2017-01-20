@@ -366,6 +366,30 @@ class ContentViewCreateTestCase(APITestCase):
                 )
 
     @tier1
+    def test_positive_clone(self):
+        """Create a content view by copying an existing one
+
+        @id: ee03dc63-e2b0-4a89-a828-2910405279ff
+
+        @assert: A content view is cloned with relevant parameters
+        """
+        org = entities.Organization().create()
+        content_view = entities.ContentView(organization=org).create()
+
+        cloned_cv = entities.ContentView(id=content_view.copy(
+            data={u'name': gen_string('alpha', gen_integer(3, 30))}
+        )['id']).read_json()
+
+        # remove unique values before comparison
+        cv_origin = content_view.read_json()
+        uniqe_keys = (u'label', u'id', u'name', u'updated_at', u'created_at')
+        for key in uniqe_keys:
+            del cv_origin[key]
+            del cloned_cv[key]
+
+        self.assertEqual(cv_origin, cloned_cv)
+
+    @tier1
     def test_negative_create_with_invalid_name(self):
         """Create content view providing an invalid name.
 
