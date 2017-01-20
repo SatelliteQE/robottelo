@@ -757,7 +757,7 @@ class RepositoryTestCase(CLITestCase):
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url):
                 new_repo = self._make_repository({
-                    u'content-type': u'yum',
+                    u'content-type': u'puppet',
                     u'url': url_encoded,
                 })
                 # Assertion that repo is not yet synced
