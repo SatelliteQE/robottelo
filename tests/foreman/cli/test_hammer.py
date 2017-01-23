@@ -18,7 +18,7 @@ import json
 
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.decorators import bz_bug_is_open, tier1
+from robottelo.decorators import tier1
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
 from six import StringIO
@@ -96,13 +96,16 @@ class HammerCommandsTestCase(CLITestCase):
         command_subcommands = set(
             [subcommand['name'] for subcommand in output['subcommands']]
         )
-        if 'discovery_rule' in command and bz_bug_is_open(1219610):
-            # Adjust the discovery_rule subcommand name. The expected data is
-            # already with the naming convetion name
-            expected = _fetch_command_info(
-                command.replace('discovery_rule', 'discovery-rule'))
-        else:
-            expected = _fetch_command_info(command)
+        # the bug was closed with status "CLOSED WONTFIX"
+        # keep the code commented in case of a reopen
+        # if 'discovery_rule' in command and bz_bug_is_open(1219610):
+        #     # Adjust the discovery_rule subcommand name. The expected data is
+        #     # already with the naming convention name
+        #     expected = _fetch_command_info(
+        #         command.replace('discovery_rule', 'discovery-rule'))
+        # else:
+        #     expected = _fetch_command_info(command)
+        expected = _fetch_command_info(command)
         expected_options = set()
         expected_subcommands = set()
 
@@ -114,11 +117,12 @@ class HammerCommandsTestCase(CLITestCase):
                 [subcommand['name'] for subcommand in expected['subcommands']]
             )
 
-        if command == 'hammer' and bz_bug_is_open(1219610):
-            # Adjust the discovery_rule subcommand name
-            command_subcommands.discard('discovery_rule')
-            command_subcommands.add('discovery-rule')
-
+        # the bug was closed with status "CLOSED WONTFIX"
+        # keep the code commented in case of a reopen
+        # if command == 'hammer' and bz_bug_is_open(1219610):
+        #     # Adjust the discovery_rule subcommand name
+        #     command_subcommands.discard('discovery_rule')
+        #     command_subcommands.add('discovery-rule')
         added_options = tuple(command_options - expected_options)
         removed_options = tuple(expected_options - command_options)
         added_subcommands = tuple(command_subcommands - expected_subcommands)

@@ -7188,7 +7188,8 @@
     },
     {
       "description": "Manipulate discovered rules.",
-      "name": "discovery-rule",
+      "name": "discovery_rule",
+      "__comment_name": "The names uses _ because of BZ 1219610",
       "options": [
         {
           "help": "print help",
