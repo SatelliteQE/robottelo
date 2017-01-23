@@ -34,7 +34,6 @@ MarkupSafe==0.23
 mccabe==0.5.2
 mock==2.0.0
 numpy==1.11.1
-packaging==16.7
 paramiko==2.0.2
 pbr==1.10.0
 pluggy==0.3.1
