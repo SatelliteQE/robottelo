@@ -150,16 +150,22 @@ class SubscriptionTestCase(CLITestCase):
         """
         self._upload_manifest(
             self.org['id'], manifests.original_manifest())
-        Subscription.list(
+        subscription_list = Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False,
         )
+        self.assertGreater(len(subscription_list), 0)
         Subscription.refresh_manifest({
             'organization-id': self.org['id'],
         })
+        subscription_list = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False,
+        )
         Subscription.delete_manifest({
             'organization-id': self.org['id'],
         })
+        self.assertGreater(len(subscription_list), 0)
 
     @skip_if_bug_open('bugzilla', 1226425)
     @tier1
