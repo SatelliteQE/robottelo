@@ -143,3 +143,29 @@ class ConfigTemplateTestCase(APITestCase):
                 c_temp.delete()
                 with self.assertRaises(HTTPError):
                     entities.ConfigTemplate(id=c_temp.id).read()
+
+    @tier2
+    def test_positive_clone(self):
+        """Assure ability to clone a provisioning template
+
+        @id: 8dfbb234-7a52-4873-be72-4de086472669
+
+        @Assert: The template is cloned successfully with all values
+
+        @CaseLevel: Integration
+        """
+        template = entities.ConfigTemplate().create()
+        template_origin = template.read_json()
+
+        # remove unique keys
+        uniqe_keys = (u'updated_at', u'created_at', u'id', u'name')
+        for key in uniqe_keys:
+            del template_origin[key]
+
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_template = entities.ConfigTemplate(
+                    id=template.clone(data={u'name': name})['id']).read_json()
+                for key in uniqe_keys:
+                    del new_template[key]
+                self.assertEqual(template_origin, new_template)

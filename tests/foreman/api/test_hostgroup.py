@@ -180,6 +180,37 @@ class HostGroupTestCase(APITestCase):
                 ).create()
                 self.assertEqual(name, hostgroup.name)
 
+    @tier1
+    def test_positive_clone(self):
+        """Create a hostgroup by cloning an existing one
+
+        @id: 44ac8b3b-9cb0-4a9e-ad9b-2c67b2411922
+
+        @assert: A hostgroup is cloned with same parameters
+        """
+        hostgroup = entities.HostGroup(
+            location=[self.loc],
+            organization=[self.org],
+        ).create()
+        hostgroup_cloned_name = gen_string('alpha')
+        hostgroup_cloned = entities.HostGroup(
+            id=hostgroup.id
+        ).clone(data={'name': hostgroup_cloned_name})
+        hostgroup_origin = hostgroup.read_json()
+
+        # remove unset values before comparison
+        unset_keys = set(hostgroup_cloned) - set(hostgroup_origin)
+        for key in unset_keys:
+            del hostgroup_cloned[key]
+
+        # remove unique values before comparison
+        uniqe_keys = (u'updated_at', u'created_at', u'title', u'id', u'name')
+        for key in uniqe_keys:
+            del hostgroup_cloned[key]
+
+        self.assertDictContainsSubset(hostgroup_cloned, hostgroup_origin)
+        self.assertEqual(hostgroup_cloned, hostgroup_cloned)
+
     @tier2
     def test_positive_create_with_parent(self):
         """Create a hostgroup with parent hostgroup specified
