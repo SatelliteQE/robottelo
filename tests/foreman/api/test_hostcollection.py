@@ -54,6 +54,38 @@ class HostCollectionTestCase(APITestCase):
                 self.assertEqual(host_collection.name, name)
 
     @tier1
+    def test_positive_list(self):
+        """Create new host collection and then retrieve list of all existing
+        host collections
+
+        @id: 6ae32df2-b917-4830-8709-15fb272b76c1
+
+        @BZ: 1331875
+
+        @Assert: Returned list of host collections for the system contains at
+        least one collection
+        """
+        entities.HostCollection(organization=self.org).create()
+        hc_list = entities.HostCollection().search()
+        self.assertGreaterEqual(len(hc_list), 1)
+
+    @tier1
+    def test_positive_list_for_organization(self):
+        """Create host collection for specific organization. Retrieve list of
+        host collections for that organization
+
+        @id: 5f9de8ab-2c53-401b-add3-57d86c97563a
+
+        @Assert: The host collection was successfully created and present in
+        the list of collections for specific organization
+        """
+        org = entities.Organization().create()
+        hc = entities.HostCollection(organization=org).create()
+        hc_list = entities.HostCollection(organization=org).search()
+        self.assertEqual(len(hc_list), 1)
+        self.assertEqual(hc_list[0].id, hc.id)
+
+    @tier1
     def test_positive_create_with_description(self):
         """Create host collections with different descriptions.
 
