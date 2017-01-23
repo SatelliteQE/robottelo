@@ -15,8 +15,5 @@
         "ares",
         "eanxgeek",
         "apagac"
-    ],
-    "delayed": true,
-    "delayedUntil": "5m",
-    "findPotentialReviewers": true
+    ]
 }
