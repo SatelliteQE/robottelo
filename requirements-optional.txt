@@ -5,7 +5,7 @@ mock
 pytest-cov
 pytest-xdist==1.15.0
 testimony==1.2.0
-tox
+tox==2.5.0
 
 # Voluntary (recommended!) tool for checking code quality.
 pylint
