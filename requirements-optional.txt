@@ -8,7 +8,7 @@ testimony==1.2.0
 tox==2.5.0
 
 # Voluntary (recommended!) tool for checking code quality.
-pylint
+pylint==1.6.5
 
 # For generating documentation.
 sphinx==1.5.2
