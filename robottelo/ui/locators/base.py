@@ -69,6 +69,9 @@ locators = LocatorDict({
         By.XPATH,
         "//a[@id='account_menu' and contains(., '%s')]"),
 
+    # Dashboard
+    "dashboard.hosts_total": (By.XPATH, "//h4[@class='total']"),
+
     # Organizations
     "org.new": (
         By.XPATH,

@@ -48,6 +48,11 @@
 
 .. automodule:: robottelo.ui.contentviews
 
+:mod:`robottelo.ui.dashboard`
+-----------------------------
+
+.. automodule:: robottelo.ui.dashboard
+
 :mod:`robottelo.ui.dockertag`
 -----------------------------
 

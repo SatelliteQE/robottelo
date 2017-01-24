@@ -14,12 +14,56 @@
 
 @Upstream: No
 """
+from robottelo.constants import ANY_CONTEXT
 from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import UITestCase
+from robottelo.ui.factory import set_context
+from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 
 
 class DashboardTestCase(UITestCase):
     """Tests for Dashboard UI"""
+
+    @tier1
+    def test_positive_search_random(self):
+        """Perform search on Dashboard using any random string
+
+        @id: 28062a97-d642-41ac-b107-0b8a41eac478
+
+        @Steps:
+
+        1. Navigate to Monitor -> Dashboard
+        2. Perform search using any random test string
+
+        @BZ: 1391365
+
+        @Assert: Check that we have zero as a result of search and any error is
+        not raised
+        """
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.assertEqual(self.dashboard.search('test_string'), '0')
+            self.assertIsNone(self.dashboard.wait_until_element(
+                common_locators['alert.error'], timeout=3))
+
+    @tier1
+    def test_positive_search(self):
+        """Check if the search box is working in the Dashboard UI
+
+        @id: 1545580c-1f0e-4991-a400-4a6224199452
+
+        @Steps:
+
+        1.Navigate to Monitor -> Dashboard
+        2.Add a filter to search box (eg. environment)
+
+        @Assert: Data displayed according to search box
+        """
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.assertEqual(
+                self.dashboard.search('production', 'environment'), '1')
 
     @stubbed()
     @tier1
@@ -476,24 +520,6 @@ class DashboardTestCase(UITestCase):
 
         @Assert: The auto refresh functionality
         works as per the set value.
-
-        @caseautomation: notautomated
-        """
-
-    @stubbed()
-    @tier1
-    def test_positive_search(self):
-        """Check if the search box is working
-        in the Dashboard UI
-
-        @id: 1545580c-1f0e-4991-a400-4a6224199452
-
-        @Steps:
-
-        1.Navigate to Monitor -> Dashboard
-        2.Add a filter to search box (eg. environment)
-
-        @Assert: Data displayed according to search box
 
         @caseautomation: notautomated
         """
