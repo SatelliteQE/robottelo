@@ -18,6 +18,7 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 @Upstream: No
 """
+from fauxfactory import gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
@@ -110,6 +111,43 @@ class ConfigTemplateTestCase(APITestCase):
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.ConfigTemplate(name=name).create()
+
+    @tier1
+    def test_positive_create_with_template_kind(self):
+        """Create a provisioning template providing the template_kind.
+
+        @id: d7309be8-b5c9-4f77-8c4e-e9f2b8982076
+
+        @Assert: Provisioning Template is created and contains provided
+        template kind.
+        """
+        template_kind = entities.TemplateKind().search(
+            query={'search': 'name="PXELinux"'})[0]
+        template = entities.ProvisioningTemplate(
+            snippet=False, template_kind=template_kind,
+        ).create()
+        self.assertEqual(template.template_kind.id, template_kind.id)
+
+    @tier1
+    def test_negative_create_with_template_kind_name(self):
+        """Create a provisioning template providing non-existing
+        template_kind name.
+
+        @id: e6de9ceb-fe4b-43ce-b7e3-5453ca4bd164
+
+        @Assert: 404 error and expected message is returned
+
+        @BZ: 1379006
+        """
+        template = entities.ProvisioningTemplate(snippet=False)
+        template.template_kind_name = gen_string('alpha')
+        with self.assertRaises(HTTPError) as context:
+            template.create()
+        self.assertEqual(context.exception.response.status_code, 404)
+        self.assertRegex(
+            context.exception.response.text,
+            "Could not find template_kind with name"
+        )
 
     @tier1
     def test_positive_update_name(self):
