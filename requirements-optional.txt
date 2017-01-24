@@ -11,7 +11,7 @@ tox
 pylint
 
 # For generating documentation.
-sphinx
+sphinx==1.5.2
 
 # For running UI tests within a docker browser
 docker-py
