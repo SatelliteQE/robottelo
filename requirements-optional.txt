@@ -14,7 +14,7 @@ pylint
 sphinx==1.5.2
 
 # For running UI tests within a docker browser
-docker-py
+docker-py==1.10.6
 
 # For reporting test results on SauceLabs
 sauceclient
