@@ -1,7 +1,7 @@
 # For running tests and checking code quality using these modules.
 coveralls
 flake8
-mock
+mock==2.0.0
 pytest-cov
 pytest-xdist==1.15.0
 testimony==1.2.0
