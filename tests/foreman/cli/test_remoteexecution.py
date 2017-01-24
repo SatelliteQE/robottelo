@@ -18,18 +18,33 @@
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from robottelo import ssh
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
+    make_activation_key,
+    make_content_view,
     make_job_invocation,
     make_job_template,
-    make_org
+    make_lifecycle_environment,
+    make_org,
+    setup_org_for_a_rh_repo,
 )
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
-from robottelo.constants import DISTRO_RHEL7, REPOS
+from robottelo.constants import (
+    DISTRO_RHEL7,
+    PRDS,
+    REPOS,
+    REPOSET
+)
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import tier1, tier2, tier3
+from robottelo.decorators import (
+    skip_if_not_set,
+    tier1,
+    tier2,
+    tier3
+)
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -175,29 +190,54 @@ class RemoteExecutionTestCase(CLITestCase):
     """Implements job execution tests in CLI."""
 
     @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
-        """Create an organization which can be re-used in tests."""
+        """Create Org, Lifecycle Environment, Content View, Activation key
+        """
         super(RemoteExecutionTestCase, cls).setUpClass()
-        cls.organization = make_org()
+        cls.org = make_org()
         ssh.command(
             '''echo 'getenforce' > {0}'''.format(TEMPLATE_FILE)
         )
-        cls.client = VirtualMachine(distro=DISTRO_RHEL7)
-        cls.client.create()
-        cls.client.install_katello_ca()
-        cls.client.register_contenthost(
-            cls.organization['label'],
-            lce='Library'
-        )
-        cls.client.enable_repo(REPOS['rhst7']['id'])
-        cls.client.install_katello_agent()
-        add_remote_execution_ssh_key(cls.client.hostname)
+        cls.env = make_lifecycle_environment({
+            u'organization-id': cls.org['id'],
+        })
+        cls.content_view = make_content_view({
+            u'organization-id': cls.org['id'],
+        })
+        cls.activation_key = make_activation_key({
+            u'lifecycle-environment-id': cls.env['id'],
+            u'organization-id': cls.org['id'],
+        })
+        # Add subscription to Satellite Tools repo to activation key
+        setup_org_for_a_rh_repo({
+            u'product': PRDS['rhel'],
+            u'repository-set': REPOSET['rhst7'],
+            u'repository': REPOS['rhst7']['name'],
+            u'organization-id': cls.org['id'],
+            u'content-view-id': cls.content_view['id'],
+            u'lifecycle-environment-id': cls.env['id'],
+            u'activationkey-id': cls.activation_key['id'],
+        })
 
-    @classmethod
-    def tearDownClass(cls):
-        """Remove the VM used for testing remote execution"""
-        cls.client.destroy()
-        super(RemoteExecutionTestCase, cls).tearDownClass()
+    def setUp(self):
+        """Create VM, subscribe it to satellite-tools repo, install katello-ca
+        and katello-agent packages, add remote execution key
+        """
+        super(RemoteExecutionTestCase, self).setUp()
+        # Create VM and register content host
+        self.client = VirtualMachine(distro=DISTRO_RHEL7)
+        self.addCleanup(vm_cleanup, self.client)
+        self.client.create()
+        self.client.install_katello_ca()
+        # Register content host, install katello-agent
+        self.client.register_contenthost(
+            self.org['label'],
+            self.activation_key['name'],
+        )
+        self.client.enable_repo(REPOS['rhst7']['id'])
+        self.client.install_katello_agent()
+        add_remote_execution_ssh_key(self.client.ip_addr)
 
     @tier2
     def test_positive_run_default_job_template(self):
@@ -224,7 +264,7 @@ class RemoteExecutionTestCase(CLITestCase):
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
-            u'organizations': self.organization[u'name'],
+            u'organizations': self.org['name'],
             u'name': template_name,
             u'file': TEMPLATE_FILE
         })
@@ -253,10 +293,10 @@ class RemoteExecutionTestCase(CLITestCase):
             'start-at': plan_time,
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        for _ in range(5):
+        for _ in range(60):
             try:
                 invocation_info = JobInvocation.info({
                     'id': invocation_command[u'id']})
                 self.assertEqual(invocation_info[u'success'], u'1')
             except AssertionError:
-                sleep(30)
+                sleep(60)
