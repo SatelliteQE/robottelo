@@ -3,7 +3,7 @@ import os
 import re
 
 from robottelo import ssh
-from robottelo.config.settings import get_project_root
+from robottelo.config.base import get_project_root
 
 LOGS_DATA_DIR = os.path.join(get_project_root(), 'data', 'logs')
 

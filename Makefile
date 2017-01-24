@@ -13,6 +13,9 @@ PYTEST_OPTS=-v --junit-xml=foreman-results.xml -m 'not stubbed'
 PYTEST_XDIST_NUMPROCESSES=auto
 PYTEST_XDIST_OPTS=$(PYTEST_OPTS) -n $(PYTEST_XDIST_NUMPROCESSES) --boxed
 ROBOTTELO_TESTS_PATH=tests/robottelo/
+TESTIMONY_TOKENS="test, feature, status, assert, bz, caseautomation, casecomponent, caseimportance, caselevel, caseposneg, id, requirement, setup, subtype1, steps, testtype, upstream"
+TESTIMONY_MINIMUM_TOKENS="test"
+TESTIMONY_OPTIONS=--tokens=$(TESTIMONY_TOKENS) --token-prefix "@" --minimum-tokens=$(TESTIMONY_MINIMUM_TOKENS)
 
 # Commands --------------------------------------------------------------------
 
@@ -51,11 +54,11 @@ docs-clean:
 	@cd docs; $(MAKE) clean
 
 test-docstrings:
-	testimony validate_docstring tests/foreman/api
-	testimony validate_docstring tests/foreman/cli
-	testimony validate_docstring tests/foreman/rhci
-	testimony validate_docstring tests/foreman/ui
-	testimony validate_docstring tests/foreman/rhai
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/api
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/cli
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhai
 
 test-robottelo:
 	$$(which py.test) -s  $(ROBOTTELO_TESTS_PATH)
