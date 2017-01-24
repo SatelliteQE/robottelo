@@ -4,7 +4,7 @@ flake8
 mock
 pytest-cov
 pytest-xdist==1.15.0
-testimony
+testimony==1.2.0
 tox
 
 # Voluntary (recommended!) tool for checking code quality.
