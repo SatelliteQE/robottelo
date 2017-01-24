@@ -3,7 +3,7 @@ coveralls
 flake8
 mock
 pytest-cov
-pytest-xdist
+pytest-xdist==1.15.0
 testimony
 tox
 
