@@ -17,7 +17,7 @@ sphinx==1.5.2
 docker-py==1.10.6
 
 # For reporting test results on SauceLabs
-sauceclient
+sauceclient==0.2.1
 
 # For 'manage' interactive shell
 manage>=0.1.13
