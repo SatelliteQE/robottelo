@@ -103,8 +103,8 @@ def import_content_hosts(files, tmp_dir):
         u'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
         u'verbose': True
     })
-    if bz_bug_is_open('1263650'):
-        wait_for_publish()
+    # WONTFIX if bz_bug_is_open('1263650'):
+    wait_for_publish()
     # proceed with importing the content hosts
     import_chosts = Import.content_host_with_tr_data({
         u'csv-file': files['system-profiles'],
@@ -1184,6 +1184,8 @@ class TestImport(CLITestCase):
                     'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                 })
+                # WONTFIX if bz_bug_is_open('1263650'):
+                wait_for_publish()
                 # get the sat6 mapping of the imported organizations
                 imp_orgs = get_sat6_id(
                     Import.csv_to_dataset([files['users']]),
