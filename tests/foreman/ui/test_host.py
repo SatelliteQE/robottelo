@@ -36,6 +36,7 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -175,6 +176,7 @@ class HostTestCase(UITestCase):
             cls.subnet.organization = [cls.org_]
             cls.subnet.dns = cls.proxy
             cls.subnet.dhcp = cls.proxy
+            cls.subnet.ipam = 'DHCP'
             cls.subnet.tftp = cls.proxy
             cls.subnet.discovery = cls.proxy
             cls.subnet = cls.subnet.update([
@@ -182,6 +184,7 @@ class HostTestCase(UITestCase):
                 'discovery',
                 'dhcp',
                 'dns',
+                'ipam',
                 'location',
                 'organization',
                 'tftp',
@@ -193,6 +196,7 @@ class HostTestCase(UITestCase):
                 network=network,
                 mask=settings.vlan_networking.netmask,
                 domain=[cls.domain],
+                ipam='DHCP',
                 location=[cls.loc],
                 organization=[cls.org_],
                 dns=cls.proxy,
@@ -723,6 +727,7 @@ class AtomicHostTestCase(UITestCase):
     hostname = gen_string('numeric')
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1414134)
     @skip_if_os('RHEL6')
     @skip_if_not_set('vlan_networking', 'compute_resources', 'ostree')
     def setUpClass(cls):

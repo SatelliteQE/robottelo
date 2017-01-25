@@ -519,6 +519,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_environment_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "host.inherit_puppet_environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_environment_id')]/following-sibling::"
+         "span/button[contains(@class, 'btn-can-disable')]")),
     "host.reset_puppet_environment": (By.ID, "reset_puppet_environment"),
     "host.content_source": (
         By.XPATH,
@@ -552,7 +556,8 @@ locators = LocatorDict({
         "/button[contains(@class, 'showModal')]"),
     "host.interface_type": (
         By.XPATH,
-        "//div[@id='interfaceModal']//select[contains(@id, '_type')]"),
+        ("//div[@id='interfaceModal']//div[contains(@id, '_type')]/a/"
+         "span[contains(@class, 'arrow')]")),
     "host.interface_mac_address": (
         By.XPATH,
         "//div[@id='interfaceModal']//input[contains(@id, '_mac')]"),
@@ -564,7 +569,8 @@ locators = LocatorDict({
         "//div[@id='interfaceModal']//input[contains(@id, '_name')]"),
     "host.interface_domain": (
         By.XPATH,
-        "//div[@id='interfaceModal']//select[contains(@id, '_domain_id')]"),
+        ("//div[@id='interfaceModal']//div[contains(@id, '_domain_id')]/a/"
+         "span[contains(@class, 'arrow')]")),
     "host.interface_subnet": (
         By.XPATH,
         "//div[@id='interfaceModal']//select[contains(@id, '_subnet_id')]"),
@@ -588,12 +594,12 @@ locators = LocatorDict({
         "//div[@id='interfaceModal']//input[contains(@id, '_virtual')]"),
     "host.interface_network_type": (
         By.XPATH,
-        ("//div[@id='interfaceModal']"
-         "//select[contains(@id, '_compute_attributes_type')]")),
+        ("//div[@id='interfaceModal']//div[contains(@id, "
+         "'_compute_attributes_type')]/a/span[contains(@class, 'arrow')]")),
     "host.interface_network": (
         By.XPATH,
-        ("//div[@id='interfaceModal']"
-         "//*[contains(@id, '_compute_attributes_bridge')]")),
+        ("//div[@id='interfaceModal']//div[contains(@id, "
+         "'_compute_attributes_bridge')]/a/span[contains(@class, 'arrow')]")),
     "host.nic_type": (
         By.XPATH,
         ("//div[@id='interfaceModal']"
@@ -664,9 +670,7 @@ locators = LocatorDict({
         ("//div[contains(@id, 'host_compute_attributes_cpus')]/a"
          "/span[contains(@class, 'arrow')]")),
     "host.memory": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_compute_attributes_memory')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        By.XPATH, "//input[contains(@id, 'host_compute_attributes_memory')]"),
     "host.vm_start": (By.ID, "host_compute_attributes_start"),
     "host.vm_addstorage": (
         By.XPATH, "//fieldset[@id='storage_volumes']/a"),
