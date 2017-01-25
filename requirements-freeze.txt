@@ -18,6 +18,13 @@ unittest2==1.1.0
 pycrypto==2.6.1
 python_bugzilla==1.2.2
 
+# Manually added
+flake8==3.0.4
+pytest-cov==2.2.1
+tox==2.3.1
+Sphinx==1.3.6
+testimony==1.2.0
+coveralls==1.1
 
 # Install robottelo itself to the path
 --editable .
