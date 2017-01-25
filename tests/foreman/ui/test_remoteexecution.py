@@ -436,7 +436,7 @@ class RemoteExecutionTestCase(UITestCase):
                     name=jobs_template_name,
                     template_type='input',
                     template_content='<%= input("command") %>',
-                    provider_type='SSHExecutionProvider',
+                    provider_type='SSH',
                 )
                 self.assertIsNotNone(
                     self.jobtemplate.search(jobs_template_name))
