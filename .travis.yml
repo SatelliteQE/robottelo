@@ -4,7 +4,7 @@ env:
     - TOXENV=py27
     - TOXENV=py34
 install:
-    - pip install -r requirements-freeze.txt
+    - pip install -r requirements.txt
 script:
     - flake8 .
     - make test-docstrings
