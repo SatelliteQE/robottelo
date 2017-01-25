@@ -50,6 +50,7 @@ from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
 from robottelo.ui.contenthost import ContentHost
 from robottelo.ui.contentviews import ContentViews
+from robottelo.ui.dashboard import Dashboard
 from robottelo.ui.discoveredhosts import DiscoveredHosts
 from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.dockertag import DockerTag
@@ -279,6 +280,7 @@ class UITestCase(TestCase):
         self.contenthost = ContentHost(self.browser)
         self.configgroups = ConfigGroups(self.browser)
         self.content_views = ContentViews(self.browser)
+        self.dashboard = Dashboard(self.browser)
         self.dockertag = DockerTag(self.browser)
         self.domain = Domain(self.browser)
         self.discoveredhosts = DiscoveredHosts(self.browser)
