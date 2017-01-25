@@ -22,6 +22,7 @@ from nailgun import entities
 from robottelo.constants import BOOKMARK_ENTITIES, STRING_TYPES
 from robottelo.decorators import (
     bz_bug_is_open,
+    run_in_one_thread,
     skip_if_bug_open,
     tier1,
     tier2,
@@ -32,6 +33,7 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
+@run_in_one_thread
 class BookmarkTestCase(UITestCase):
     """Test for common Bookmark operations in UI"""
 
