@@ -78,6 +78,16 @@ class Repository(Base):
         )
 
     @classmethod
+    def remove_content(cls, options):
+        """Remove content from a repository"""
+        cls.command_sub = 'remove-content'
+        return cls.execute(
+            cls._construct_command(options),
+            output_format='csv',
+            ignore_stderr=True,
+        )
+
+    @classmethod
     def upload_content(cls, options):
         """Upload content to repository."""
         cls.command_sub = 'upload-content'

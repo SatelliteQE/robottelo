@@ -1231,6 +1231,17 @@ locators = LocatorDict({
         " and not(contains(@class, 'ng-hide'))]"),
     "repo.content.packages": (By.XPATH, "//tr[@row-select='package']"),
     "repo.content.puppet_modules": (By.XPATH, "//tr[@row-select='item']"),
+    "repo.content.select_all": (
+        By.XPATH,
+        "//div[@bst-table='detailsTable']"
+        "//input[@type='checkbox'and @ng-model='selection.allSelected']"
+    ),
+    "repo.content.remove": (
+        By.XPATH,
+        "//div[@bst-modal='removeContent()']/following-sibling::"
+        "button[@ng-click='openModal()']"
+    ),
+    "repo.content.confirm_remove": (By.XPATH, "//button[@ng-click='ok()']"),
     "repo.upload.file_path": (By.XPATH, ("//input[@name='content[]']")),
     "repo.upload": (By.XPATH, ("//button[@upload-submit]")),
     # Activation Keys

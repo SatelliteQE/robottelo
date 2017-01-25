@@ -595,6 +595,95 @@ class RepositoryTestCase(UITestCase):
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
 
     @run_only_on('sat')
+    @tier2
+    def test_positive_resynchronize_rpm_repo(self):
+        """Check that repository content is resynced after packages were
+        removed from repository
+
+        @id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
+
+        @Assert: Repository has updated non-zero package count
+
+        @CaseLevel: Integration
+
+        @BZ: 1318004
+        """
+        with Session(self.browser) as session:
+            repo = entities.Repository(
+                url=FAKE_1_YUM_REPO,
+                content_type='yum',
+                product=self.session_prod,
+            ).create()
+            self.setup_navigate_syncnow(
+                session,
+                self.session_prod.name,
+                repo.name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo.name))
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertGreaterEqual(count, 1)
+            # Remove packages
+            self.repository.remove_content(repo.name)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertEqual(count, 0)
+            # Sync it again
+            self.setup_navigate_syncnow(
+                session,
+                self.session_prod.name,
+                repo.name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo.name))
+            # Check packages number
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertGreaterEqual(count, 1)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_resynchronize_puppet_repo(self):
+        """Check that repository content is resynced after packages were
+        removed from repository
+
+        @id: c82dfe9d-aa1c-4922-ab3f-5d66ba8375c5
+
+        @Assert: Repository has updated non-zero package count
+
+        @CaseLevel: Integration
+
+        @BZ: 1318004
+        """
+        with Session(self.browser) as session:
+            repo = entities.Repository(
+                url=FAKE_1_PUPPET_REPO,
+                content_type='puppet',
+                product=self.session_prod,
+            ).create()
+            self.setup_navigate_syncnow(
+                session,
+                self.session_prod.name,
+                repo.name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo.name))
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertGreaterEqual(count, 1)
+            # Remove packages
+            self.repository.remove_content(repo.name)
+            self.repository.search_and_click(repo.name)
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertEqual(count, 0)
+            # Sync repo again
+            self.setup_navigate_syncnow(
+                session,
+                self.session_prod.name,
+                repo.name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo.name))
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertGreaterEqual(count, 1)
+
+    @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier1
     def test_positive_create_custom_ostree_repo(self):
@@ -1382,10 +1471,9 @@ class RepositoryTestCase(UITestCase):
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
-            # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertGreater(int(number.text), 0)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo_name, 'packages')
+            self.assertGreaterEqual(count, 1)
             # Check packages list
             self.repository.click(locators['repo.manage_content'])
             packages = [
@@ -1414,10 +1502,9 @@ class RepositoryTestCase(UITestCase):
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error_sub_form']))
-            # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertEqual(int(number.text), 0)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo_name, 'packages')
+            self.assertEqual(count, 0)
 
     @tier1
     def test_positive_upload_puppet(self):
@@ -1439,10 +1526,9 @@ class RepositoryTestCase(UITestCase):
             # Check alert
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
-            # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertGreater(int(number.text), 0)
+            # Check packages count
+            count = self.repository.fetch_content_count(repo_name, 'puppet')
+            self.assertGreaterEqual(count, 1)
             # Check packages list
             self.repository.click(locators['repo.manage_content'])
             # Select all modules names from modules table
@@ -1474,9 +1560,69 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error_sub_form']))
             # Check packages number
-            number = self.repository.find_element(
-                locators['repo.fetch_puppet_modules'])
-            self.assertEqual(int(number.text), 0)
+            count = self.repository.fetch_content_count(repo_name, 'puppet')
+            self.assertEqual(count, 0)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_remove_content_rpm(self):
+        """Synchronize repository and remove content from it
+
+        @id: 054763e5-b6a8-4f06-a9f7-6819fbc7aba8
+
+        @Assert: Content Counts shows zero rpm packages
+        """
+        with Session(self.browser) as session:
+            repo = entities.Repository(
+                url=FAKE_1_YUM_REPO,
+                content_type='yum',
+                product=self.session_prod,
+            ).create()
+            self.setup_navigate_syncnow(
+                session,
+                self.session_prod.name,
+                repo.name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo.name))
+            # Check packages count
+            self.repository.search_and_click(repo.name)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertGreaterEqual(count, 1)
+            # Remove packages
+            self.repository.remove_content(repo.name)
+            self.repository.search_and_click(repo.name)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertEqual(count, 0)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_content_puppet(self):
+        """Synchronize repository and remove content from it
+
+        @id: be178e21-5d64-46d4-8a41-c3f0f62dabe0
+
+        @Assert: Content Counts shows zero puppet modules
+        """
+        with Session(self.browser) as session:
+            repo = entities.Repository(
+                url=FAKE_1_PUPPET_REPO,
+                content_type='puppet',
+                product=self.session_prod,
+            ).create()
+            self.setup_navigate_syncnow(
+                session,
+                self.session_prod.name,
+                repo.name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo.name))
+            # Check packages count
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertGreaterEqual(count, 1)
+            # Remove packages
+            self.repository.remove_content(repo.name)
+            self.repository.search_and_click(repo.name)
+            count = self.repository.fetch_content_count(repo.name, 'puppet')
+            self.assertEqual(count, 0)
 
 
 class GitPuppetMirrorTestCase(UITestCase):
