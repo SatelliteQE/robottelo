@@ -18,8 +18,12 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 @Upstream: No
 """
+from random import choice
+
+from fauxfactory import gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
+
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
@@ -110,6 +114,63 @@ class ConfigTemplateTestCase(APITestCase):
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.ConfigTemplate(name=name).create()
+
+    @tier1
+    def test_positive_create_with_template_kind(self):
+        """Create a provisioning template providing the template_kind.
+
+        @id: d7309be8-b5c9-4f77-8c4e-e9f2b8982076
+
+        @Assert: Provisioning Template is created and contains provided
+        template kind.
+        """
+        template_kind = choice(entities.TemplateKind().search())
+        template = entities.ProvisioningTemplate(
+            snippet=False, template_kind=template_kind,
+        ).create()
+        self.assertEqual(template.template_kind.id, template_kind.id)
+
+    @tier1
+    def test_positive_create_with_template_kind_name(self):
+        """Create a provisioning template providing existing
+        template_kind name.
+
+        @id: 4a1410e4-aa3c-4d27-b062-089e34722bd9
+
+        @Assert: Provisioning Template is created
+
+        @BZ: 1379006
+        """
+        template_kind = choice(entities.TemplateKind().search())
+        template = entities.ProvisioningTemplate(snippet=False)
+        template.create_missing()
+        template.template_kind = None
+        template.template_kind_name = template_kind.name
+        template = template.create(create_missing=False)
+        self.assertEqual(template.template_kind.id, template_kind.id)
+
+    @tier1
+    def test_negative_create_with_template_kind_name(self):
+        """Create a provisioning template providing non-existing
+        template_kind name.
+
+        @id: e6de9ceb-fe4b-43ce-b7e3-5453ca4bd164
+
+        @Assert: 404 error and expected message is returned
+
+        @BZ: 1379006
+        """
+        template = entities.ProvisioningTemplate(snippet=False)
+        template.create_missing()
+        template.template_kind = None
+        template.template_kind_name = gen_string('alpha')
+        with self.assertRaises(HTTPError) as context:
+            template.create(create_missing=False)
+        self.assertEqual(context.exception.response.status_code, 404)
+        self.assertRegex(
+            context.exception.response.text,
+            "Could not find template_kind with name"
+        )
 
     @tier1
     def test_positive_update_name(self):
