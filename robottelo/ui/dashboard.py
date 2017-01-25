@@ -32,4 +32,4 @@ class Dashboard(Base):
         self.click(common_locators['search_button'])
         _, count = self.wait_until_element(
             self._search_locator()).text.split(': ')
-        return count
+        return int(count)

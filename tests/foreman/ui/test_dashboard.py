@@ -15,6 +15,7 @@
 @Upstream: No
 """
 from robottelo.constants import ANY_CONTEXT
+from robottelo.datafactory import gen_string
 from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
@@ -43,7 +44,7 @@ class DashboardTestCase(UITestCase):
         """
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
-            self.assertEqual(self.dashboard.search('test_string'), '0')
+            self.assertEqual(self.dashboard.search(gen_string('alpha')), 0)
             self.assertIsNone(self.dashboard.wait_until_element(
                 common_locators['alert.error'], timeout=3))
 
@@ -62,8 +63,8 @@ class DashboardTestCase(UITestCase):
         """
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
-            self.assertEqual(
-                self.dashboard.search('production', 'environment'), '1')
+            self.assertGreaterEqual(
+                self.dashboard.search('production', 'environment'), 1)
 
     @stubbed()
     @tier1
