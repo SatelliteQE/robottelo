@@ -18,9 +18,12 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 @Upstream: No
 """
+from random import choice
+
 from fauxfactory import gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
+
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
@@ -121,11 +124,29 @@ class ConfigTemplateTestCase(APITestCase):
         @Assert: Provisioning Template is created and contains provided
         template kind.
         """
-        template_kind = entities.TemplateKind().search(
-            query={'search': 'name="PXELinux"'})[0]
+        template_kind = choice(entities.TemplateKind().search())
         template = entities.ProvisioningTemplate(
             snippet=False, template_kind=template_kind,
         ).create()
+        self.assertEqual(template.template_kind.id, template_kind.id)
+
+    @tier1
+    def test_positive_create_with_template_kind_name(self):
+        """Create a provisioning template providing existing
+        template_kind name.
+
+        @id: 4a1410e4-aa3c-4d27-b062-089e34722bd9
+
+        @Assert: Provisioning Template is created
+
+        @BZ: 1379006
+        """
+        template_kind = choice(entities.TemplateKind().search())
+        template = entities.ProvisioningTemplate(snippet=False)
+        template.create_missing()
+        template.template_kind = None
+        template.template_kind_name = template_kind.name
+        template = template.create(create_missing=False)
         self.assertEqual(template.template_kind.id, template_kind.id)
 
     @tier1
@@ -140,9 +161,11 @@ class ConfigTemplateTestCase(APITestCase):
         @BZ: 1379006
         """
         template = entities.ProvisioningTemplate(snippet=False)
+        template.create_missing()
+        template.template_kind = None
         template.template_kind_name = gen_string('alpha')
         with self.assertRaises(HTTPError) as context:
-            template.create()
+            template.create(create_missing=False)
         self.assertEqual(context.exception.response.status_code, 404)
         self.assertRegex(
             context.exception.response.text,
