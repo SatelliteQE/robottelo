@@ -1150,6 +1150,7 @@ class KatelloAgentTestCase(CLITestCase):
 class HostErrataTestCase(CLITestCase):
     """Tests for errata's host sub command"""
 
+    @skip_if_bug_open('bugzilla', '1416690')
     @tier1
     def test_positive_errata_list_of_sat_server(self):
         """Check if errata list doesn't raise exception. Check BZ for details.
@@ -1158,7 +1159,7 @@ class HostErrataTestCase(CLITestCase):
 
         @assert: Satellite host errata list not failing
 
-        @BZ: 1351040
+        @BZ: 1416690
         """
         hostname = ssh.command('hostname').stdout[0]
         host = Host.info({'name': hostname})
