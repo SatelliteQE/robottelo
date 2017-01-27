@@ -28,6 +28,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -36,6 +37,7 @@ from robottelo.decorators import (
     tier2,
 )
 from robottelo.helpers import install_katello_ca, remove_katello_ca
+from robottelo.host_info import get_host_os_version
 from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'
@@ -1370,7 +1372,12 @@ class DockerContainerTestCase(APITestCase):
         @Assert: The docker containers are deleted in local and external
         compute resources
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
+        cr_interfaces = [self.cr_external, self.cr_internal]
+        # there is some bugs affecting docker internal interface on RHEL7
+        if get_host_os_version().startswith('RHEL7'):
+            if bz_bug_is_open(1366573) or bz_bug_is_open(1414797):
+                cr_interfaces.pop()
+        for compute_resource in cr_interfaces:
             with self.subTest(compute_resource.url):
                 container = entities.DockerHubContainer(
                     command='top',
