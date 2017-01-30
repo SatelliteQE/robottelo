@@ -15,15 +15,22 @@
 
 @Upstream: No
 """
-from random import choice
+import json
+from random import choice, uniform
 
+import yaml
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from requests import HTTPError
 
 from robottelo.api.utils import delete_puppet_class, publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.datafactory import invalid_values_list, valid_data_list
+from robottelo.datafactory import (
+    filtered_datapoint,
+    generate_strings_list,
+    invalid_values_list,
+    valid_data_list,
+)
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -32,6 +39,97 @@ from robottelo.decorators import (
     tier2,
 )
 from robottelo.test import APITestCase
+
+
+@filtered_datapoint
+def valid_sc_variable_data():
+    """Returns a list of valid smart class variable types and values"""
+    return [
+        {
+            u'sc_type': 'string',
+            u'value': choice(generate_strings_list()),
+        },
+        {
+            u'sc_type': 'boolean',
+            u'value': choice([True, False]),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_integer(),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': uniform(-1000, 1000),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': u'["{0}","{1}","{2}"]'.format(
+                gen_string('alpha'),
+                gen_string('numeric').lstrip('0'),
+                gen_string('html'),
+            ),
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': '{{ "{0}": "{1}" }}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '--- {0}=>{1} ...'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'json',
+            u'value': u'{{"{0}":"{1}","{2}":"{3}"}}'.format(
+                gen_string('alpha'),
+                gen_string('numeric').lstrip('0'),
+                gen_string('alpha'),
+                gen_string('alphanumeric')
+            ),
+        },
+    ]
+
+
+@filtered_datapoint
+def invalid_sc_variable_data():
+    """Returns a list of invalid smart class variable type and values"""
+    return [
+        {
+            u'sc_type': 'boolean',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('utf8'),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '{{{0}:{1}}}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'json',
+            u'value': u'{{{0}:{1},{2}:{3}}}'.format(
+                gen_string('alpha'),
+                gen_string('numeric').lstrip('0'),
+                gen_string('alpha'),
+                gen_string('alphanumeric')
+            ),
+        }
+    ]
 
 
 class SmartVariablesTestCase(APITestCase):
@@ -262,7 +360,6 @@ class SmartVariablesTestCase(APITestCase):
         self.assertGreater(len(self.puppet_class.list_smart_variables()), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_variable_type(self):
         """Create variable for variable types - Valid Value
@@ -274,12 +371,27 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Create a variable with all valid key types and default values
 
         @assert: Variable created with all given types successfully
-
-        @caseautomation: notautomated
         """
+        for data in valid_sc_variable_data():
+            with self.subTest(data):
+                smart_variable = entities.SmartVariable(
+                    puppetclass=self.puppet_class,
+                    variable_type=data['sc_type'],
+                    default_value=data['value'],
+                ).create()
+                self.assertEqual(smart_variable.variable_type, data['sc_type'])
+                if data['sc_type'] in ('json', 'hash', 'array'):
+                    self.assertEqual(
+                        smart_variable.default_value, json.loads(data['value'])
+                    )
+                elif data['sc_type'] == 'yaml':
+                    self.assertEqual(
+                        smart_variable.default_value, yaml.load(data['value']))
+                else:
+                    self.assertEqual(
+                        smart_variable.default_value, data['value'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_variable_type(self):
         """Negative variable Update for variable types - Invalid Value
@@ -292,9 +404,19 @@ class SmartVariablesTestCase(APITestCase):
         values
 
         @assert: Variable is not created for invalid value
-
-        @caseautomation: notautomated
         """
+        for data in invalid_sc_variable_data():
+            with self.subTest(data):
+                with self.assertRaises(HTTPError) as context:
+                    entities.SmartVariable(
+                        puppetclass=self.puppet_class,
+                        variable_type=data['sc_type'],
+                        default_value=data['value'],
+                    ).create()
+                self.assertRegexpMatches(
+                    context.exception.response.text,
+                    "Default value is invalid"
+                )
 
     @run_only_on('sat')
     @tier1
@@ -535,7 +657,7 @@ class SmartVariablesTestCase(APITestCase):
             ).create()
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Default value \w+ is not one of"
+            r"Default value \w+ is not one of"
         )
 
     @run_only_on('sat')
@@ -603,7 +725,7 @@ class SmartVariablesTestCase(APITestCase):
             ).create()
         self.assertRegexpMatches(
             context.exception.response.text,
-            "Validation failed: Value \w+ is not one of"
+            r"Validation failed: Value \w+ is not one of"
         )
         self.assertEqual(len(smart_variable.read().override_values), 0)
 
