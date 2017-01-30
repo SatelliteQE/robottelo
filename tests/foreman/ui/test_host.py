@@ -148,7 +148,7 @@ class HostTestCase(UITestCase):
             cls.domain = entities.Domain(
                 dns=cls.proxy,
                 location=[cls.loc],
-                organization=[cls.org],
+                organization=[cls.org_],
             ).create()
         cls.domain_name = cls.domain.name
 
