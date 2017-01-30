@@ -1,6 +1,10 @@
 """Test utilities for writing csv files"""
 import csv
-import numpy
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 
 def generate_stat_for_concurrent_thread(
@@ -11,6 +15,14 @@ def generate_stat_for_concurrent_thread(
         num_buckets):
     """statistics computing utility for Candlepin tests"""
     # check empty case: empty bucket has no need to compute stat
+
+    if numpy is None:
+        # numpy was removed from requirements to save build time
+        raise RuntimeError(
+            "Dependency `numpy` is not installed!"
+            " run `pip install numpy` in CI script"
+        )
+
     if bucket_size == 0:
         return
     else:
