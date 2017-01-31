@@ -77,7 +77,7 @@ class CapsuleTestCase(APITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 new_port = get_available_capsule_port()
-                with default_url_on_new_port(9090, new_port) as url:
+                with default_url_on_new_port(9090, new_port) as (url, _):
                     proxy = self._create_smart_proxy(name=name, url=url)
                     self.assertEquals(proxy.name, name)
 
@@ -93,7 +93,7 @@ class CapsuleTestCase(APITestCase):
         @Assert: Proxy is deleted
         """
         new_port = get_available_capsule_port()
-        with default_url_on_new_port(9090, new_port) as url:
+        with default_url_on_new_port(9090, new_port) as (url, _):
             proxy = entities.SmartProxy(url=url).create()
             proxy.delete()
         with self.assertRaises(HTTPError):
@@ -110,7 +110,7 @@ class CapsuleTestCase(APITestCase):
         @Assert: Proxy has the name updated
         """
         new_port = get_available_capsule_port()
-        with default_url_on_new_port(9090, new_port) as url:
+        with default_url_on_new_port(9090, new_port) as (url, _):
             proxy = self._create_smart_proxy(url=url)
             for new_name in valid_data_list():
                 with self.subTest(new_name):
@@ -130,11 +130,11 @@ class CapsuleTestCase(APITestCase):
         """
         # Create fake capsule
         port = get_available_capsule_port()
-        with default_url_on_new_port(9090, port) as url:
+        with default_url_on_new_port(9090, port) as (url, _):
             proxy = self._create_smart_proxy(url=url)
         # Open another tunnel to update url
         new_port = get_available_capsule_port()
-        with default_url_on_new_port(9090, new_port) as url:
+        with default_url_on_new_port(9090, new_port) as (url, _):
             proxy.url = url
             proxy = proxy.update(['url'])
             self.assertEqual(proxy.url, url)
@@ -152,7 +152,7 @@ class CapsuleTestCase(APITestCase):
         organizations = [
             entities.Organization().create() for _ in range(2)]
         newport = get_available_capsule_port()
-        with default_url_on_new_port(9090, newport) as url:
+        with default_url_on_new_port(9090, newport) as (url, _):
             proxy = self._create_smart_proxy(url=url)
             proxy.organization = organizations
             proxy = proxy.update(['organization'])
@@ -173,7 +173,7 @@ class CapsuleTestCase(APITestCase):
         """
         locations = [entities.Location().create() for _ in range(2)]
         new_port = get_available_capsule_port()
-        with default_url_on_new_port(9090, new_port) as url:
+        with default_url_on_new_port(9090, new_port) as (url, _):
             proxy = self._create_smart_proxy(url=url)
             proxy.location = locations
             proxy = proxy.update(['location'])
@@ -200,7 +200,7 @@ class CapsuleTestCase(APITestCase):
 
         # get an available port for our fake capsule
         new_port = get_available_capsule_port()
-        with default_url_on_new_port(9090, new_port) as url:
+        with default_url_on_new_port(9090, new_port) as (url, _):
             proxy = self._create_smart_proxy(url=url)
             proxy.refresh()
 
@@ -215,7 +215,7 @@ class CapsuleTestCase(APITestCase):
         @Assert: Puppet classes are imported from proxy
         """
         new_port = get_available_capsule_port()
-        with default_url_on_new_port(9090, new_port) as url:
+        with default_url_on_new_port(9090, new_port) as (url, _):
             proxy = self._create_smart_proxy(url=url)
             result = proxy.import_puppetclasses()
             self.assertEqual(
