@@ -34,7 +34,6 @@ from robottelo.helpers import (
     default_url_on_new_port,
     get_available_capsule_port
 )
-from robottelo.config import settings
 from robottelo.test import CLITestCase
 
 
@@ -108,7 +107,7 @@ class CapsuleTestCase(CLITestCase):
         for new_name in valid_data_list():
             with self.subTest(new_name):
                 newport = get_available_capsule_port()
-                with default_url_on_new_port(9090, newport) as url:
+                with default_url_on_new_port(9090, newport) as (url, _):
                     Proxy.update({
                         u'id': proxy['id'],
                         u'name': new_name,
@@ -137,8 +136,7 @@ class CapsuleTestCase(CLITestCase):
 
         # get an available port for our fake capsule
         port = get_available_capsule_port()
-        with default_url_on_new_port(9090, port):
-            url = u'https://{0}:{1}'.format(settings.server.hostname, port)
+        with default_url_on_new_port(9090, port) as (url, _):
             proxy = make_proxy({u'url': url})
             Proxy.refresh_features({u'id': proxy['id']})
         # Add capsule id to cleanup list
@@ -162,8 +160,7 @@ class CapsuleTestCase(CLITestCase):
 
         # get an available port for our fake capsule
         port = get_available_capsule_port()
-        with default_url_on_new_port(9090, port):
-            url = u'https://{0}:{1}'.format(settings.server.hostname, port)
+        with default_url_on_new_port(9090, port) as (url, _):
             proxy = make_proxy({u'url': url})
             Proxy.refresh_features({u'id': proxy['name']})
         # Add capsule id to cleanup list

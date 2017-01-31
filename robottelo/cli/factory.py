@@ -623,7 +623,7 @@ def make_proxy(options=None):
     if options is None or 'url' not in options:
         newport = get_available_capsule_port()
         try:
-            with default_url_on_new_port(9090, newport) as url:
+            with default_url_on_new_port(9090, newport) as (url, _):
                 args['url'] = url
                 return create_object(Proxy, args, options)
         except CapsuleTunnelError as err:

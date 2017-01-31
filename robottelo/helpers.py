@@ -9,6 +9,7 @@ import requests
 import six
 
 from tempfile import mkstemp
+from time import sleep
 from nailgun.config import ServerConfig
 from robottelo import ssh
 from robottelo.cli.proxy import CapsuleTunnelError
@@ -338,6 +339,23 @@ def get_available_capsule_port(port_pool=None):
         )
 
 
+def check_port_open(port):
+    """Checks the state of a specified tcp port on the specified host by
+    running nmap via ssh.
+
+    :param int port: Port to be checked
+
+    :return: boolean: True if port is opened, False otherwise
+    """
+    domain = settings.server.hostname
+    nmap_cmd = ssh.command(
+        u'nmap --open -p {0} {1} | grep {0}'.format(port, domain)
+    )
+    if nmap_cmd.return_code == 0:
+        return True
+    return False
+
+
 @contextlib.contextmanager
 def default_url_on_new_port(oldport, newport):
     """Creates context where the default capsule is forwarded on a new port
@@ -345,13 +363,17 @@ def default_url_on_new_port(oldport, newport):
     :param int oldport: Port to be forwarded.
     :param int newport: New port to be used to forward `oldport`.
 
-    :return: A string containing the new capsule URL with port.
+    :return: A tuple: (str: url with new port, Channel: ssh channel object)
     :rtype: str
 
     """
     logger = logging.getLogger('robottelo')
     domain = settings.server.hostname
 
+    if not check_port_open(oldport):
+        raise CapsuleTunnelError(
+            u'Tunnel not created: The src port {0} is closed'.format(oldport)
+        )
     with ssh._get_connection() as connection:
         command = (
             u'ncat -kl -p {0} -c "ncat {1} {2}"'
@@ -361,13 +383,28 @@ def default_url_on_new_port(oldport, newport):
         channel = transport.open_session()
         channel.get_pty()
         channel.exec_command(command)
-        # if exit_status appears until command_timeout, throw error
-        if channel.exit_status_ready():
-            if channel.recv_exit_status() != 0:
-                stderr = u''
-                while channel.recv_stderr_ready():
-                    stderr += channel.recv_stderr(1)
-                logger.debug('Tunnel failed: {0}'.format(stderr))
-                # Something failed, so raise an exception.
-                raise CapsuleTunnelError(stderr)
-        yield 'https://{0}:{1}'.format(domain, newport)
+        # define a timeout we're willing to wait for an exit_status to appear
+        retries = 10
+        for _ in range(1, retries):
+            # throw error if we get exit_status until max no. of retries
+            if channel.exit_status_ready():
+                logger.debug(
+                    'exit status ready: {0}'.format(channel.recv_exit_status())
+                )
+                if channel.recv_exit_status() != 0:
+                    stderr = u''
+                    while channel.recv_ready():
+                        stderr += channel.recv(1)
+                    logger.debug('Tunnel failed: {0}'.format(stderr))
+                    # Something failed, so raise an exception.
+                    raise CapsuleTunnelError(stderr)
+                break
+            else:
+                sleep(1)
+        if not check_port_open(newport):
+            raise CapsuleTunnelError(
+                u'Tunnel failed: The dst port {0} is closed'.format(newport)
+            )
+
+        logger.debug('Tunnel created for {0}'.format(newport))
+        yield 'https://{0}:{1}'.format(domain, newport), channel
