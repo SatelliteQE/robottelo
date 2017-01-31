@@ -734,9 +734,9 @@ class RepositoryTestCase(CLITestCase):
                     {'id': new_repo['id'], u'async': True}
                 )
                 Task.progress({u'id': repo_sync[0]['id']})
-                self.assertEqual(
-                    Task.progress({u'id': repo_sync[0]['id']})[0],
-                    u'Yum Metadata: Unauthorized'
+                self.assertIn(
+                    Task.progress({u'id': repo_sync[0]['id']})[1],
+                    u'Error: RPM1004: Error retrieving metadata: Unauthorized'
                 )
 
     @run_only_on('sat')
