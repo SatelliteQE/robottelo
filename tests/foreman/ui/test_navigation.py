@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Login UI
+"""Test class for Navigation UI
 
 @Requirement: Navigation
 
@@ -82,7 +82,7 @@ class NavigationTestCase(UITestCase):
         @Assert: Page is opened without errors
         """
         with Session(self.browser) as session:
-            for name, page in self.page_objects().items():
+            for page in self.page_objects().values():
                     page.navigate_to_entity()
                     self.assertIsNotNone(session.nav.wait_until_element(
                         menu_locators['menu.current_text']))
@@ -105,11 +105,12 @@ class NavigationTestCase(UITestCase):
         on the page
         """
         with Session(self.browser) as session:
-            for name, page in self.page_objects().items():
-                if name in ['Activation Key', 'Product', 'Domain', 'Location']:
-                    page.navigate_to_entity()
-                    session.nav.click(common_locators['application_logo'])
-                    self.assertIsNotNone(session.nav.wait_until_element(
-                        common_locators['application_logo']))
-                    self.assertIsNone(session.nav.wait_until_element(
-                        common_locators['alert.error'], timeout=1))
+            pages = self.page_objects()
+            for page_name in (
+                    'Activation Key', 'Product', 'Domain', 'Location'):
+                pages[page_name].navigate_to_entity()
+                session.nav.click(common_locators['application_logo'])
+                self.assertIsNotNone(session.nav.wait_until_element(
+                    common_locators['application_logo']))
+                self.assertIsNone(session.nav.wait_until_element(
+                    common_locators['alert.error'], timeout=1))
