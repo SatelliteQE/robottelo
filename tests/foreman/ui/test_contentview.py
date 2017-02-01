@@ -32,6 +32,8 @@ from robottelo.config import settings
 from robottelo.constants import (
     CUST_PERMS_LIST,
     DEFAULT_CV,
+    DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
@@ -72,6 +74,7 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.locators.menu import menu_locators
 from robottelo.ui.locators.tab import tab_locators
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
 class ContentViewTestCase(UITestCase):
@@ -2257,31 +2260,237 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
     @tier2
-    def test_positive_subscribe_system(self):
-        # Notes:
-        # this should be limited to only those content views
-        # to which you have permission, but there are/will be
-        # other tests for that.
-        # Variations:
-        # * rh content
-        # * rh custom spins
-        # * custom content
-        # * composite
-        # * CVs with puppet modules
-        """attempt to subscribe systems to content view(s)
+    def test_positive_subscribe_system_with_rh_custom_spin(self):
+        """Attempt to subscribe a host to content view with rh repository
+         and custom filter
 
         @id: 3ea6719b-df4d-4b0f-b4b4-69ce852f632e
 
+        @setup: content view with rh repo and custom spin
+
         @assert: Systems can be subscribed to content view(s)
-
-        @caseautomation: notautomated
-
 
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        subscription_name = DEFAULT_SUBSCRIPTION_NAME
+        rh_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None,
+        }
+        # create an organization
+        org = entities.Organization().create()
+        # create a lifecycle environment
+        env = entities.LifecycleEnvironment(organization=org).create()
+        # create a repository
+        self.setup_to_create_cv(org_id=org.id, rh_repo=rh_repo)
+        with Session(self.browser) as session:
+            # create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repository to content view
+            self.content_views.add_remove_repos(
+                cv_name, [rh_repo['name']])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # add a package exclude filter
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['exclude'],
+            )
+            # assert the added filter visible
+            self.assertIsNotNone(
+                self.content_views.search_filter(cv_name, filter_name))
+            # exclude some package in the created filter
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                ['gofer'],
+                ['All Versions'],
+                [None],
+                [None]
+            )
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # promote the content view
+            self.content_views.promote(cv_name, version, env.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIn(env.name, self._get_cv_version_environments(version))
+            # create an activation key
+            content_view = entities.ContentView(
+                    organization=org, name=cv_name).search()[0].read()
+            activation_key = entities.ActivationKey(
+                organization=org,
+                environment=env,
+                content_view=content_view
+            ).create()
+            # add rh subscription to activation key
+            sub = entities.Subscription(organization=org)
+            subscription_id = None
+            for subs in sub.search():
+                if subs.read_json()['product_name'] == subscription_name:
+                    subscription_id = subs.id
+                    break
+            self.assertIsNotNone(subscription_id)
+            activation_key.add_subscriptions(data={
+                'quantity': 1,
+                'subscription_id': subscription_id,
+            })
+            # create a vm host client and ensure it can be subscribed
+            with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
+                host_client.install_katello_ca()
+                result = host_client.register_contenthost(
+                        org.label, activation_key.name)
+                self.assertEqual(result.return_code, 0)
+                # assert the host_client exists in content hosts page
+                self.assertIsNotNone(
+                    self.contenthost.search(host_client.hostname))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_subscribe_system_with_custom_content(self):
+        """Attempt to subscribe a host to content view with custom repository
+
+        @id: 715db997-707b-4868-b7cc-b6977fd6ac04
+
+        @setup: content view with custom yum repo
+
+        @assert: Systems can be subscribed to content view(s)
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        repo_url = FAKE_0_YUM_REPO
+        # create an organization
+        org = entities.Organization().create()
+        # create a lifecycle environment
+        env = entities.LifecycleEnvironment(organization=org).create()
+        # create a yum repository
+        self.setup_to_create_cv(
+            org_id=org.id, repo_name=repo_name, repo_url=repo_url)
+        with Session(self.browser) as session:
+            # create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repository to content view
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # promote the content view
+            self.content_views.promote(cv_name, version, env.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIn(env.name, self._get_cv_version_environments(version))
+            # create an activation key
+            content_view = entities.ContentView(
+                    organization=org, name=cv_name).search()[0].read()
+            activation_key = entities.ActivationKey(
+                organization=org,
+                environment=env,
+                content_view=content_view
+            ).create()
+            # create a vm host client and ensure it can be subscribed
+            with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
+                host_client.install_katello_ca()
+                result = host_client.register_contenthost(
+                        org.label, activation_key.name)
+                # without an rh subscription the result code is != 0
+                # see issue #4153
+                # so assert the system is subscribed by the message
+                message = '\n'.join(result.stdout)
+                self.assertIn(
+                    'The system has been registered with ID:', message)
+                # assert the host_client exists in content hosts page
+                self.assertIsNotNone(
+                    self.contenthost.search(host_client.hostname))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_subscribe_system_with_puppet_modules(self):
+        """Attempt to subscribe a host to content view with puppet modules
+
+        @id: c57fbdca-31e8-43f1-844d-b82b13c0c4de
+
+        @setup: content view with puppet module
+
+        @assert: Systems can be subscribed to content view(s)
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        repo_url = FAKE_0_PUPPET_REPO
+        module_name = 'httpd'
+        # create an organization
+        org = entities.Organization().create()
+        # create a lifecycle environment
+        env = entities.LifecycleEnvironment(organization=org).create()
+        # create repositories
+        self.setup_to_create_cv(
+            org_id=org.id,
+            repo_url=repo_url,
+            repo_name=repo_name,
+            repo_type=REPO_TYPE['puppet']
+        )
+        with Session(self.browser) as session:
+            # create content view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add puppet module to content view
+            self.content_views.add_puppet_module(
+                cv_name, module_name, filter_term='Latest')
+            self.assertIsNotNone(
+                self.content_views.fetch_puppet_module(
+                    cv_name, module_name)
+            )
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # promote the content view
+            self.content_views.promote(cv_name, version, env.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.assertIn(env.name, self._get_cv_version_environments(version))
+            # create an activation key
+            content_view = entities.ContentView(
+                    organization=org, name=cv_name).search()[0].read()
+            activation_key = entities.ActivationKey(
+                organization=org,
+                environment=env,
+                content_view=content_view
+            ).create()
+            with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
+                host_client.install_katello_ca()
+                result = host_client.register_contenthost(
+                        org.label, activation_key.name)
+                # without an rh subscription the result code is != 0
+                # see issue #4153
+                # so assert the system is subscribed by the message
+                message = '\n'.join(result.stdout)
+                self.assertIn(
+                    'The system has been registered with ID:', message)
+                # assert the host_client exists in content hosts page
+                self.assertIsNotNone(
+                    self.contenthost.search(host_client.hostname))
 
     @stubbed()
     @run_only_on('sat')
