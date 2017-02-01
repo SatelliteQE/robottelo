@@ -23,7 +23,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_many_names
 from robottelo.datafactory import filtered_datapoint, invalid_names_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -220,7 +220,6 @@ class MissingAttrEnvironmentTestCase(APITestCase):
     """
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1262029)
     def setUpClass(cls):
         """Create an ``Environment``."""
         super(MissingAttrEnvironmentTestCase, cls).setUpClass()
@@ -228,24 +227,26 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         cls.env_attrs = set(env.update_json([]).keys())
 
     @tier2
-    def test_location(self):
+    def test_positive_update_loc(self):
         """Update an environment. Inspect the server's response.
 
         @id: a4c1bc22-d586-4150-92fc-7797f0f5bfb0
 
         @Assert: The response contains some value for the ``location`` field.
 
+        @BZ: 1262029
+
         @CaseLevel: Integration
         """
         names = one_to_many_names('location')
-        self.assertGreater(
+        self.assertGreaterEqual(
             len(names & self.env_attrs),
             1,
             'None of {0} are in {1}'.format(names, self.env_attrs),
         )
 
     @tier2
-    def test_organization(self):
+    def test_positive_update_org(self):
         """Update an environment. Inspect the server's response.
 
         @id: ac46bcac-5db0-4899-b2fc-d48d2116287e
@@ -253,10 +254,12 @@ class MissingAttrEnvironmentTestCase(APITestCase):
         @Assert: The response contains some value for the ``organization``
         field.
 
+        @BZ: 1262029
+
         @CaseLevel: Integration
         """
         names = one_to_many_names('organization')
-        self.assertGreater(
+        self.assertGreaterEqual(
             len(names & self.env_attrs),
             1,
             'None of {0} are in {1}'.format(names, self.env_attrs),

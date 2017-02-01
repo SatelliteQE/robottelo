@@ -240,7 +240,6 @@ class SmartProxyMissingAttrTestCase(APITestCase):
     """
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1262037)
     def setUpClass(cls):
         """Find a ``SmartProxy``.
 
@@ -263,9 +262,11 @@ class SmartProxyMissingAttrTestCase(APITestCase):
         @id: 42d6b749-c047-4fd2-90ee-ffab7be558f9
 
         @Assert: The response contains some value for the ``location`` field.
+
+        @BZ: 1262037
         """
         names = one_to_many_names('location')
-        self.assertGreater(
+        self.assertGreaterEqual(
             len(names & self.smart_proxy_attrs),
             1,
             'None of {0} are in {1}'.format(names, self.smart_proxy_attrs),
@@ -279,9 +280,11 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         @Assert: The response contains some value for the ``organization``
         field.
+
+        @BZ: 1262037
         """
         names = one_to_many_names('organization')
-        self.assertGreater(
+        self.assertGreaterEqual(
             len(names & self.smart_proxy_attrs),
             1,
             'None of {0} are in {1}'.format(names, self.smart_proxy_attrs),
