@@ -327,6 +327,7 @@ FILTER_ERRATA_DATE = {
 }
 
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
+DOCKER_UPSTREAM_NAME = u'busybox'
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
