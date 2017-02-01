@@ -77,7 +77,7 @@ menu_locators = LocatorDict({
     "menu.jobs": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@id='menu_item_jobs']")),
+         "//a[@id='menu_item_job_invocations']")),
 
     # Content Menu
     "menu.content": (
@@ -798,6 +798,9 @@ common_locators = LocatorDict({
         By.XPATH, "//textarea[@placeholder='Value' and not(text())]"),
     "parameter_remove": (
         By.XPATH, "//tr/td/input[@value='%s']/following::td/a"),
+
+    "application_logo": (
+        By.XPATH, "//img[contains(@alt, 'Header logo')]"),
 
     # Katello Common Locators
     "confirm_remove": (

@@ -163,6 +163,11 @@
 
 .. automodule:: tests.foreman.ui.test_myaccount
 
+:mod:`tests.foreman.ui.test_navigation`
+---------------------------------------
+
+.. automodule:: tests.foreman.ui.test_navigation
+
 :mod:`tests.foreman.ui.test_openscap`
 -------------------------------------
 
