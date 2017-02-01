@@ -18,6 +18,7 @@
 
 from fauxfactory import gen_string
 from nailgun import entities
+
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo.constants import (
@@ -26,9 +27,12 @@ from robottelo.constants import (
     PRDS,
     REPOS,
     REPOSET,
+    RPM_TO_UPLOAD,
 )
-from robottelo.decorators import skip_if_not_set, tier2
+from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier2
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
+from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
@@ -130,6 +134,34 @@ class PackagesTestCase(UITestCase):
                     ['Build Host', 'smqe-ws15'],
                     ['Build Time', '1331831364'],
                 ]
+            )
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1394390)
+    def test_positive_check_custom_package_details(self):
+        """Upload custom rpm package to repository. Search for package
+        and then open it. Check that package details are available
+
+        @id: 679622a7-003e-4887-8622-b95b9468da7d
+
+        @Assert: Package is present inside of repository and it possible to
+        view its details
+
+        @CaseLevel: Integration
+
+        @BZ: 1384673
+        """
+        with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
+            self.yum_repo.upload_content(files={'content': handle})
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.package.select_repo(self.yum_repo.name)
+            self.package.search_and_click(RPM_TO_UPLOAD.split('-')[0])
+            self.assertIsNone(self.activationkey.wait_until_element(
+                common_locators['alert.error']))
+            self.package.check_package_details(
+                RPM_TO_UPLOAD.split('-')[0],
+                [['Filename', RPM_TO_UPLOAD]]
             )
 
 
