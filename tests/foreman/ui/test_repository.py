@@ -1459,6 +1459,8 @@ class RepositoryTestCase(UITestCase):
         @id: 201d5742-cb1a-4534-ac02-91b5a4669d22
 
         @Assert: Upload is successful and package is listed
+
+        @BZ: 1394390, 1154384
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1468,9 +1470,11 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.upload_content(
                 repo_name, get_data_file(RPM_TO_UPLOAD))
-            # Check alert
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            # Check alert, its message should contain file name
+            alert = self.activationkey.wait_until_element(
+                common_locators['alert.success_sub_form'])
+            self.assertIsNotNone(alert)
+            self.assertIn(RPM_TO_UPLOAD, alert.text)
             # Check packages count
             count = self.repository.fetch_content_count(repo_name, 'packages')
             self.assertGreaterEqual(count, 1)
@@ -1513,6 +1517,8 @@ class RepositoryTestCase(UITestCase):
         @id: 2da4ddeb-3d6a-4b77-b44a-190a0c20a4f6
 
         @Assert: Upload is successful and module is listed
+
+        @BZ: 1154384
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1523,9 +1529,11 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.upload_content(
                 repo_name, get_data_file(PUPPET_MODULE_NTP_PUPPETLABS))
-            # Check alert
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            # Check alert, its message should contain file name
+            alert = self.activationkey.wait_until_element(
+                common_locators['alert.success_sub_form'])
+            self.assertIsNotNone(alert)
+            self.assertIn(PUPPET_MODULE_NTP_PUPPETLABS, alert.text)
             # Check packages count
             count = self.repository.fetch_content_count(repo_name, 'puppet')
             self.assertGreaterEqual(count, 1)
