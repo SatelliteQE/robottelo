@@ -36,7 +36,7 @@ def invalid_credentials():
 
 
 class LoginTestCase(UITestCase):
-    """Implements the login tests rom UI"""
+    """Implements the login tests from UI"""
 
     @tier1
     def test_positive_login(self):
