@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Host Group UI."""
 from robottelo.ui.base import Base
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -9,7 +9,8 @@ class Hostgroup(Base):
     """Manipulates hostgroup from UI."""
 
     def create(self, name, parent=None, environment=None, content_source=None,
-               puppet_ca=None, puppet_master=None, oscap_capsule=None):
+               content_view=None, puppet_ca=None, puppet_master=None,
+               oscap_capsule=None, activation_keys=None):
         """Creates a new hostgroup from UI."""
         self.click(locators['hostgroups.new'])
         self.assign_value(locators['hostgroups.name'], name)
@@ -20,12 +21,19 @@ class Hostgroup(Base):
         if content_source:
             self.assign_value(
                 locators['hostgroups.content_source'], content_source)
+        if content_view:
+            self.assign_value(
+                locators['hostgroups.content_view'], content_view)
         if puppet_ca:
             self.assign_value(locators['hostgroups.puppet_ca'], puppet_ca)
         if puppet_master:
             self.assign_value(
                 locators['hostgroups.puppet_master'], puppet_master)
         if oscap_capsule:
+            self.assign_value(
+                locators['hostgroups.oscap_capsule'], oscap_capsule)
+        if activation_keys:
+            self.click(tab_locators['hostgroup.activation_keys'])
             self.assign_value(
                 locators['hostgroups.oscap_capsule'], oscap_capsule)
         self.click(common_locators['submit'])

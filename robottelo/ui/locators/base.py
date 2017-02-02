@@ -826,6 +826,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_content_source')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "hostgroups.content_view": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_content_view')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "hostgroups.puppet_ca": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_puppet_ca_proxy_id')]/a"
@@ -838,7 +842,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_openscap_proxy_id')]/a"
          "/span[contains(@class, 'arrow')]")),
-
+    "hostgroups.activation_keys": (
+        By.XPATH, "//input[contains(@id, 'activation_keys')]"),
+    "hostgroups.ak_autocomplete": (
+        By.XPATH, "//ul[contains(@class, 'ui-autocomplete')]/li/a"),
     # Users
 
     # Users.primary
