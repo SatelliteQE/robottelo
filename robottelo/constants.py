@@ -327,6 +327,7 @@ FILTER_ERRATA_DATE = {
 }
 
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
+DOCKER_UPSTREAM_NAME = u'busybox'
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
@@ -384,6 +385,8 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'penguin-0.9.1-1.noarch',
     'stork-0.12-2.noarch',
 ]
+
+FAKE_0_PUPPET_MODULE = 'httpd'
 
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.

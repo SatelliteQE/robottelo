@@ -25,8 +25,11 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo import manifests
 from robottelo.constants import (
     DEFAULT_CV,
+    DOCKER_REGISTRY_HUB,
+    DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
+    FAKE_0_PUPPET_MODULE,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
@@ -70,7 +73,8 @@ class ContentViewTestCase(UITestCase):
 
     # pylint: disable=too-many-arguments
     def setup_to_create_cv(self, repo_name=None, repo_url=None, repo_type=None,
-                           rh_repo=None, org_id=None):
+                           rh_repo=None, org_id=None,
+                           docker_upstream_name=None):
         """Create product/repo and sync it"""
 
         if not rh_repo:
@@ -86,6 +90,7 @@ class ContentViewTestCase(UITestCase):
                 url=(repo_url or FAKE_1_YUM_REPO),
                 content_type=(repo_type or REPO_TYPE['yum']),
                 product=product,
+                docker_upstream_name=docker_upstream_name,
             ).create().id
         elif rh_repo:
             # Uploads the manifest and returns the result.
@@ -2610,6 +2615,848 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be published and promoted with rh ostree and all
         other contents
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_cv_version_from_default_env(self):
+        """Remove content view version from Library environment
+
+        @id: 43c83c15-c883-45a7-be05-d9b26da99e3c
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo to it
+
+        3. Publish content view
+
+        4. remove the published version from Library environment
+
+        @Assert: content view version is removed from Library environment
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create a yum repository
+            self.setup_to_create_cv(
+                repo_name=repo_name,
+                repo_url=FAKE_0_YUM_REPO,
+                org_id=org.id
+            )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repository to the created content view
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.assertEqual(
+                self._get_cv_version_environments(version), [ENVIRONMENT])
+            # remove the content view version from Library environment
+            self.content_views.remove_version_from_environments(
+                cv_name, version, [ENVIRONMENT])
+            self.assertEqual(self._get_cv_version_environments(version), [])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_renamed_cv_version_from_default_env(self):
+        """Remove version of renamed content view from Library environment
+
+        @id: bd5ca409-f3ab-43b5-bb63-3b747aa75506
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo to the content view
+
+        3. Publish the content view
+
+        4. Rename the content view
+
+        5. remove the published version from Library environment
+
+        @Assert: content view version is removed from Library environment
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        new_cv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create a yum repository
+            self.setup_to_create_cv(
+                repo_name=repo_name,
+                repo_url=FAKE_0_YUM_REPO,
+                org_id=org.id
+            )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repository to the created content view
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # rename the content view
+            self.content_views.update(cv_name, new_cv_name)
+            self.assertIsNone(self.content_views.search(cv_name))
+            # ensure the cv exits with the new name
+            cv_element = self.content_views.search(new_cv_name)
+            self.assertIsNotNone(cv_element)
+            # open the content view
+            self.content_views.click(cv_element)
+            self.assertEqual(
+                self._get_cv_version_environments(version), [ENVIRONMENT])
+            # remove the content view version from Library environment
+            self.content_views.remove_version_from_environments(
+                new_cv_name, version, [ENVIRONMENT])
+            self.assertEqual(self._get_cv_version_environments(version), [])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_promoted_cv_version_from_default_env(self):
+        """Remove promoted content view version from Library environment
+
+        @id: a8649444-b063-4fb4-b932-a3fae7d4021d
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a puppet module(s) to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view version from Library -> DEV
+
+        5. remove the content view version from Library environment
+
+        @Assert:
+
+        1. Content view version exist only in DEV and not in Library
+
+        2. The puppet module(s) exists in content view version
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        env_dev_name = gen_string('alpha')
+        puppet_repo_url = FAKE_0_PUPPET_REPO
+        puppet_module_name = FAKE_0_PUPPET_MODULE
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create the DEV lifecycle environment
+            make_lifecycle_environment(
+                session, org=org.name, name=env_dev_name)
+            # create a puppet repository
+            self.setup_to_create_cv(
+                repo_url=puppet_repo_url,
+                repo_type=REPO_TYPE['puppet'],
+                org_id=org.id
+            )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the puppet module to the created content view
+            self.content_views.add_puppet_module(
+                cv_name,
+                puppet_module_name,
+                filter_term='Latest',
+            )
+            self.assertIsNotNone(
+                self.content_views.fetch_puppet_module(
+                    cv_name, puppet_module_name)
+            )
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote the content view to DEV lifecycle environment
+            self.content_views.promote(cv_name, version, env_dev_name)
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                {ENVIRONMENT, env_dev_name}
+            )
+            # ensure that puppet module is in content view version
+            self.assertIsNotNone(
+                self.content_views.puppet_module_search(cv_name, version,
+                                                        puppet_module_name)
+            )
+            # remove the content view version from Library environment
+            self.content_views.remove_version_from_environments(
+                cv_name, version, [ENVIRONMENT])
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                {env_dev_name}
+            )
+            # ensure that puppet module still in content view version
+            self.assertIsNotNone(
+                self.content_views.puppet_module_search(cv_name, version,
+                                                        puppet_module_name)
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_qe_promoted_cv_version_from_default_env(self):
+        """Remove QE promoted content view version from Library environment
+
+        @id: 71ad8b72-68c4-4c98-9387-077f54ef0184
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add docker repo(s) to it
+
+        3. Publish content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE
+
+        5. remove the content view version from Library environment
+
+        @Assert: Content view version exist only in DEV, QE
+                 and not in Library
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        env_dev_name = gen_string('alpha')
+        env_qe_name = gen_string('alpha')
+        docker_repo_name = gen_string('alpha')
+        docker_repo_url = DOCKER_REGISTRY_HUB
+        docker_upstream_name = DOCKER_UPSTREAM_NAME
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create the DEV, QE lifecycle environments
+            env_prior = None
+            for env_name in [env_dev_name, env_qe_name]:
+                make_lifecycle_environment(
+                    session, org=org.name, name=env_name, prior=env_prior)
+                env_prior = env_name
+            # create a docker repository
+            self.setup_to_create_cv(
+                repo_name=docker_repo_name,
+                repo_url=docker_repo_url,
+                repo_type=REPO_TYPE['docker'],
+                org_id=org.id,
+                docker_upstream_name=docker_upstream_name
+            )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the docker repo to the created content view
+            self.content_views.add_remove_repos(
+                cv_name, [docker_repo_name], repo_type='docker')
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote the content view to DEV, QE lifecycle environments
+            for env_name in [env_dev_name, env_qe_name]:
+                self.content_views.promote(cv_name, version, env_name)
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                {ENVIRONMENT, env_dev_name, env_qe_name}
+            )
+            # remove the content view version from Library environment
+            self.content_views.remove_version_from_environments(
+                cv_name, version, [ENVIRONMENT])
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                {env_dev_name, env_qe_name}
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
+        """Remove PROD promoted content view version from Library environment
+
+        @id: 6a874041-43c7-4682-ba06-571e49d5bbea
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add yum repositories, puppet modules, docker repositories to CV
+
+        3. Publish content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE -> PROD
+
+        5. remove the content view version from Library environment
+
+        @Assert: Content view version exist only in DEV, QE, PROD
+                 and not in Library
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        # create env names [DEV, QE, PROD]
+        env_names = [gen_string('alpha') for _ in range(3)]
+        all_env_names_set = set(env_names)
+        all_env_names_set.add(ENVIRONMENT)
+        puppet_repo_url = FAKE_0_PUPPET_REPO
+        puppet_module_name = FAKE_0_PUPPET_MODULE
+        repos = [
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=FAKE_0_YUM_REPO,
+                repo_type=REPO_TYPE['yum'],
+            ),
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=DOCKER_REGISTRY_HUB,
+                repo_type=REPO_TYPE['docker'],
+                docker_upstream_name=DOCKER_UPSTREAM_NAME
+            ),
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=puppet_repo_url,
+                repo_type=REPO_TYPE['puppet'],
+            ),
+        ]
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create the DEV, QE, PROD lifecycle environments
+            env_prior = None
+            for env_name in env_names:
+                make_lifecycle_environment(
+                    session, org=org.name, name=env_name, prior=env_prior)
+                env_prior = env_name
+            # create the repositories
+            for repo in repos:
+                self.setup_to_create_cv(
+                    org_id=org.id,
+                    **repo
+                )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repos to content view
+            for repo in repos:
+                repo_name = repo['repo_name']
+                repo_type = repo['repo_type']
+                if repo_type == 'puppet':
+                    self.content_views.add_puppet_module(
+                        cv_name,
+                        puppet_module_name,
+                        filter_term='Latest',
+                    )
+                    self.assertIsNotNone(
+                        self.content_views.fetch_puppet_module(
+                            cv_name, puppet_module_name)
+                    )
+                else:
+                    self.content_views.add_remove_repos(
+                        cv_name, [repo_name], repo_type=repo_type)
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote the content view to DEV, QE, PROD lifecycle environments
+            for env_name in env_names:
+                self.content_views.promote(cv_name, version, env_name)
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                all_env_names_set
+            )
+            # remove the content view version from Library environment
+            self.content_views.remove_version_from_environments(
+                cv_name, version, [ENVIRONMENT])
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                set(env_names)
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_cv_version_from_env(self):
+        """Remove promoted content view version from environment
+
+        @id: d1da23ee-a5db-4990-9572-1a0919a9fe1c
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE -> STAGE -> PROD
+
+        5. remove the content view version from PROD environment
+
+        @Assert: content view version exists only in Library, DEV, QE, STAGE
+                   and not in PROD
+
+        7. Promote again from STAGE -> PROD
+
+        @Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        # create env names [DEV, QE, STAGE, PROD]
+        env_names = [gen_string('alpha') for _ in range(4)]
+        env_dev_name, env_qe_name, env_stage_name, env_prod_name = env_names
+        all_env_names_set = set(env_names)
+        all_env_names_set.add(ENVIRONMENT)
+        puppet_repo_url = FAKE_0_PUPPET_REPO
+        puppet_module_name = FAKE_0_PUPPET_MODULE
+        repos = [
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=FAKE_0_YUM_REPO,
+                repo_type=REPO_TYPE['yum'],
+            ),
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=puppet_repo_url,
+                repo_type=REPO_TYPE['puppet'],
+            ),
+        ]
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create the DEV, QE, STAGE, PROD lifecycle environments
+            env_prior = None
+            for env_name in env_names:
+                make_lifecycle_environment(
+                    session, org=org.name, name=env_name, prior=env_prior)
+                env_prior = env_name
+            # create the repositories
+            for repo in repos:
+                self.setup_to_create_cv(
+                    org_id=org.id,
+                    **repo
+                )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repos to content view
+            for repo in repos:
+                repo_name = repo['repo_name']
+                repo_type = repo['repo_type']
+                if repo_type == 'puppet':
+                    self.content_views.add_puppet_module(
+                        cv_name,
+                        puppet_module_name,
+                        filter_term='Latest',
+                    )
+                    self.assertIsNotNone(
+                        self.content_views.fetch_puppet_module(
+                            cv_name, puppet_module_name)
+                    )
+                else:
+                    self.content_views.add_remove_repos(
+                        cv_name, [repo_name], repo_type=repo_type)
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote the content view to all lifecycle environments
+            for env_name in env_names:
+                self.content_views.promote(cv_name, version, env_name)
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                all_env_names_set
+            )
+            # remove the content view version from PROD environment
+            self.content_views.remove_version_from_environments(
+                cv_name, version, [env_prod_name])
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                {ENVIRONMENT, env_dev_name, env_qe_name, env_stage_name}
+            )
+            # promote again to PROD
+            self.content_views.promote(cv_name, version, env_prod_name)
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                all_env_names_set
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_cv_version_from_multi_env(self):
+        """Remove promoted content view version from multiple environment
+
+        @id: 0d54c256-ac6d-4487-ab09-4e8dd257358e
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view version to multiple environments
+           Library -> DEV -> QE -> STAGE -> PROD
+
+        5. Remove content view version from QE, STAGE and PROD
+
+        @Assert: Content view version exists only in Library, DEV
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        # create env names [DEV, QE, STAGE, PROD]
+        env_names = [gen_string('alpha') for _ in range(4)]
+        env_dev_name, env_qe_name, env_stage_name, env_prod_name = env_names
+        all_env_names_set = set(env_names)
+        all_env_names_set.add(ENVIRONMENT)
+        puppet_repo_url = FAKE_0_PUPPET_REPO
+        puppet_module_name = FAKE_0_PUPPET_MODULE
+        repos = [
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=FAKE_0_YUM_REPO,
+                repo_type=REPO_TYPE['yum'],
+            ),
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=puppet_repo_url,
+                repo_type=REPO_TYPE['puppet'],
+            ),
+        ]
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create the DEV, QE, STAGE, PROD lifecycle environments
+            env_prior = None
+            for env_name in env_names:
+                make_lifecycle_environment(
+                    session, org=org.name, name=env_name, prior=env_prior)
+                env_prior = env_name
+            # create the repositories
+            for repo in repos:
+                self.setup_to_create_cv(
+                    org_id=org.id,
+                    **repo
+                )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repos to content view
+            for repo in repos:
+                repo_name = repo['repo_name']
+                repo_type = repo['repo_type']
+                if repo_type == 'puppet':
+                    self.content_views.add_puppet_module(
+                        cv_name,
+                        puppet_module_name,
+                        filter_term='Latest',
+                    )
+                    self.assertIsNotNone(
+                        self.content_views.fetch_puppet_module(
+                            cv_name, puppet_module_name)
+                    )
+                else:
+                    self.content_views.add_remove_repos(
+                        cv_name, [repo_name], repo_type=repo_type)
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote the content view to all lifecycle environments
+            for env_name in env_names:
+                self.content_views.promote(cv_name, version, env_name)
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                all_env_names_set
+            )
+            # remove the content view version from QE, STAGE, PROD environments
+            self.content_views.remove_version_from_environments(
+                cv_name, version, [env_qe_name, env_stage_name, env_prod_name])
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                {ENVIRONMENT, env_dev_name}
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_delete_cv_promoted_to_multi_env(self):
+        """Delete published content view with version promoted to multiple
+         environments
+
+        @id: f16f2db5-7f5b-4ebb-863e-6c18ff745ce4
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view to multiple environment
+           Library -> DEV -> QE -> STAGE -> PROD
+
+        5. Delete the content view, this should delete the content with all
+           it's published/promoted versions from all environments
+
+        @Assert: The content view doesn't exists
+
+        @CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        # create env names [DEV, QE, STAGE, PROD]
+        env_names = [gen_string('alpha') for _ in range(4)]
+        all_env_names_set = set(env_names)
+        all_env_names_set.add(ENVIRONMENT)
+        puppet_repo_url = FAKE_0_PUPPET_REPO
+        puppet_module_name = FAKE_0_PUPPET_MODULE
+        repos = [
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=FAKE_0_YUM_REPO,
+                repo_type=REPO_TYPE['yum'],
+            ),
+            dict(
+                repo_name=gen_string('alpha'),
+                repo_url=puppet_repo_url,
+                repo_type=REPO_TYPE['puppet'],
+            ),
+        ]
+        # create a new organization
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            # create the DEV, QE, STAGE, PROD lifecycle environments
+            env_prior = None
+            for env_name in env_names:
+                make_lifecycle_environment(
+                    session, org=org.name, name=env_name, prior=env_prior)
+                env_prior = env_name
+            # create the repositories
+            for repo in repos:
+                self.setup_to_create_cv(
+                    org_id=org.id,
+                    **repo
+                )
+            # create a content view
+            make_contentview(
+                session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # add the repos to content view
+            for repo in repos:
+                repo_name = repo['repo_name']
+                repo_type = repo['repo_type']
+                if repo_type == 'puppet':
+                    self.content_views.add_puppet_module(
+                        cv_name,
+                        puppet_module_name,
+                        filter_term='Latest',
+                    )
+                    self.assertIsNotNone(
+                        self.content_views.fetch_puppet_module(
+                            cv_name, puppet_module_name)
+                    )
+                else:
+                    self.content_views.add_remove_repos(
+                        cv_name, [repo_name], repo_type=repo_type)
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.success_sub_form']))
+            # publish the content view
+            version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # promote the content view to all lifecycle environments
+            for env_name in env_names:
+                self.content_views.promote(cv_name, version, env_name)
+            self.assertEqual(
+                set(self._get_cv_version_environments(version)),
+                all_env_names_set
+            )
+            # remove all the environments from version
+            self.content_views.remove_version_from_environments(
+                cv_name, version, list(all_env_names_set))
+            # delete content view
+            self.content_views.delete(cv_name)
+            self.assertIsNone(self.content_views.search(cv_name))
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier3
+    def test_positive_remove_cv_version_from_env_with_host_registered(self):
+        """Remove promoted content view version from environment that is used
+        in association of an Activation key and content-host registration.
+
+        @id: a8ca3de1-3f79-4029-8033-00315b6b854f
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view to multiple environment
+           Library -> DEV -> QE
+
+        5. Create an Activation key with the QE environment
+
+        6. Register a content-host using the Activation key
+
+        7. Remove the content view version from QE environment
+
+        8. Verify if the affected Activation key and content-host are
+           functioning properly
+
+        @Assert:
+
+        1. Activation key exists
+
+        2. Content-host exists
+
+        3. Content view does not exist in activation key and content-host
+           association
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier3
+    def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
+        """Delete published content view with version promoted to multiple
+         environments, with one of the environments used in association of an
+         Activation key and content-host registration.
+
+        @id: 73453c99-8f34-413d-8f95-e4a2f4c58a00
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Add a yum repo and a puppet module to the content view
+
+        3. Publish the content view
+
+        4. Promote the content view to multiple environment
+           Library -> DEV -> QE
+
+        5. Create an Activation key with the QE environment
+
+        6. Register a content-host using the Activation key
+
+        7. Delete the content view
+
+        8. Verify if the affected Activation key and content-host are
+           functioning properly
+
+
+        @Assert:
+
+        1. The content view doesn't exist
+
+        2. Activation key exists
+
+        3. Content-host exists
+
+        4. Content view does not exist in activation key and content-host
+           association
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @run_only_on('sat')
+    @tier3
+    def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
+        """Remove promoted content view version from multiple environment,
+        with satellite setup to use capsule
+
+        @id: ba731272-66e6-461e-8e9d-564b4092a92d
+
+        @Steps:
+
+        1. Create a content view
+
+        2. Setup satellite to use a capsule and to sync all lifecycle
+           environments
+
+        3. Add a yum repo, puppet module and a docker repo to the content view
+
+        4. Publish the content view
+
+        5. Promote the content view to multiple environment
+           Library -> DEV -> QE -> PROD
+
+        6. Disconnect the capsule
+
+        7. Remove the content view version from Library and DEV environments
+           and assert successful completion
+
+        8. Bring the capsule back online and assert that the task is completed
+           in capsule
+
+        9. Make sure the capsule is updated
+
+        @Assert: content view version in capsule is removed from Library
+                 and DEV and exists only in QE and PROD
 
         @caseautomation: notautomated
 

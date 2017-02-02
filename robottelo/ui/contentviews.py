@@ -723,3 +723,47 @@ class ContentViews(Base):
         self.click(common_locators['kt_table_search_button'])
         strategy, value = locators['contentviews.version.package_name']
         return self.wait_until_element((strategy, value % package_name))
+
+    def puppet_module_search(self, name, version, module_name):
+        """Search for puppet module element in content view version"""
+        self.click(self.version_search(name, version))
+        self.click(tab_locators['contentviews.tab_version_puppet_modules'])
+        self.assign_value(
+            common_locators['kt_table_search'],
+            module_name
+        )
+        self.click(common_locators['kt_table_search_button'])
+        strategy, value = locators['contentviews.version.puppet_module_name']
+        return self.wait_until_element((strategy, value % module_name))
+
+    def remove_version_from_environments(self, name, version, environments):
+        """Remove a content view version from lifecycle environments"""
+        # find and open the content view
+        self.search_and_click(name)
+        # click on the version remove button
+        strategy, value = locators['contentviews.remove_ver']
+        self.click((strategy, value % version))
+        # ensure, that remove Completely remove version check box is unchecked
+        self.assign_value(
+            locators['contentviews.completely_remove_checkbox'],
+            False
+        )
+        # get all the available lifecycle environments
+        all_environments_elements = self.find_elements(
+            locators['contentviews.delete_version_environments'])
+        all_environments = [
+            env_element.text
+            for env_element in all_environments_elements
+        ]
+        # select the needed ones that are in the environments arg
+        # and unselected the ones not in environments arg
+        for environment in all_environments:
+            strategy, value = locators[
+                'contentviews.delete_version_environment_checkbox']
+            self.assign_value(
+                (strategy, value % environment),
+                environment in environments
+            )
+        self.click(locators['contentviews.next_button'])
+        self.click(locators['contentviews.confirm_remove_ver'])
+        self.check_progress_bar_status(version)

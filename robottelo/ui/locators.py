@@ -566,6 +566,11 @@ tab_locators = LocatorDict({
         By.XPATH,
         "//a[contains(@ui-sref, 'content-views.details.version.packages')]"),
 
+    "contentviews.tab_version_puppet_modules": (
+        By.XPATH,
+        "//a[contains(@ui-sref, "
+        "'content-views.details.version.puppet-modules')]"),
+
     # Content Hosts
     # Third level UI
     "contenthost.tab_details": (
@@ -2294,6 +2299,15 @@ locators = LocatorDict({
         "//table[@bst-table='table']//tr/td[contains(., '%s')]/"
         "following-sibling::td/ul/li[@ng-repeat='environment in"
         " version.environments']"),
+    "contentviews.delete_version_environments": (
+        By.XPATH,
+        "//table[@bst-table='environmentsTable']//"
+        "tr[@row-select='environment']/"
+        "td/input[@ng-model='environment.selected']/../../td[2]"),
+    "contentviews.delete_version_environment_checkbox": (
+        By.XPATH,
+        "//table[@bst-table='environmentsTable']//tr/td[contains(., '%s')]/"
+        "preceding-sibling::td/input[@ng-model='environment.selected']"),
     "contentviews.success_rm_alert": (
         By.XPATH,
         ("//div[contains(@class, 'alert-success')]"
@@ -2492,6 +2506,11 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
          "/td[2][contains(., '%s')]")),
+    "contentviews.version.puppet_module_name": (
+        By.XPATH,
+        ("//table[@data-block='table']"
+         "//tr[contains(@ng-repeat, 'puppetModule in detailsTable.rows')]"
+         "/td/a[contains(., '%s')]")),
 
     # Packages
     "package.rpm_name": (By.XPATH, "//a[contains(., '%s')]"),
