@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Host Group UI."""
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -9,7 +9,8 @@ class Hostgroup(Base):
     """Manipulates hostgroup from UI."""
 
     def create(self, name, parent=None, environment=None, content_source=None,
-               puppet_ca=None, puppet_master=None):
+               content_view=None, puppet_ca=None, puppet_master=None,
+               activation_keys=None):
         """Creates a new hostgroup from UI."""
         self.click(locators['hostgroups.new'])
         if not self.wait_until_element(locators['hostgroups.name']):
@@ -21,10 +22,16 @@ class Hostgroup(Base):
             self.select(locators['hostgroups.environment'], environment)
         if content_source:
             self.select(locators['hostgroups.content_source'], content_source)
+        if content_view:
+            self.select(locators['hostgroups.content_view'], content_view)
         if puppet_ca:
             self.select(locators['hostgroups.puppet_ca'], puppet_ca)
         if puppet_master:
             self.select(locators['hostgroups.puppet_master'], puppet_master)
+        if activation_keys:
+            self.click(tab_locators['hostgroup.activation_keys'])
+            self.assign_value(
+                locators['hostgroups.oscap_capsule'], oscap_capsule)
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):

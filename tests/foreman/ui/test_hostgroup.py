@@ -17,16 +17,35 @@
 """
 
 from fauxfactory import gen_string
+from nailgun import entities
+
+from robottelo.config import settings
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
 class HostgroupTestCase(UITestCase):
     """Implements HostGroup tests from UI"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up class for hostgroup UI test cases"""
+        super(HostgroupTestCase, cls).setUpClass()
+        cls.sat6_hostname = settings.server.hostname
+        cls.organization = entities.Organization().create()
+        cls.env = entities.LifecycleEnvironment(
+            organization=cls.organization, name='Library').search()[0]
+        cls.cv = entities.ContentView(organization=cls.organization).create()
+        cls.cv.publish()
+        cls.ak = entities.ActivationKey(
+            organization=cls.organization,
+            environment=cls.env,
+            content_view=cls.cv,
+        ).create()
 
     @run_only_on('sat')
     @tier1
@@ -109,3 +128,94 @@ class HostgroupTestCase(UITestCase):
                     self.hostgroup.update(name, new_name=new_name)
                     self.assertIsNotNone(self.hostgroup.search(new_name))
                     name = new_name  # for next iteration
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_oscap_capsule(self):
+        """Create new hostgroup with oscap capsule
+
+        @id: c0ab1148-93ff-41d3-93c3-2ff139349884
+
+        @Assert: Hostgroup is created with oscap capsule
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_hostgroup(
+                    session,
+                    content_source=self.sat6_hostname,
+                    name=name,
+                    puppet_ca=self.sat6_hostname,
+                    puppet_master=self.sat6_hostname,
+                    oscap_capsule=self.sat6_hostname,
+                )
+            self.assertIsNotNone(self.hostgroup.search(name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_activation_keys(self):
+        """Create new hostgroup with activation keys
+
+        @id: cfda3c1b-37fd-42c1-a74c-841efb83b2f5
+
+        @Assert: Hostgroup is created with activation keys
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_hostgroup(
+                session,
+                name=name,
+                environment=self.env.name,
+                content_view=self.cv.name,
+                activation_key=self.ak.name,
+            )
+            self.assertIsNotNone(self.hostgroup.search(name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_check_activation_keys_autocomplete(self):
+        """Open Hostgroup New/Edit modal and verify that Activation Keys
+        autocomplete respects selected Content View
+
+        @id: 07906caf-871d-4d1f-8914-38027e71c16b
+
+        @Steps:
+
+        1. Create two content views A & B
+        2. Publish both content views
+        3. Create an activation key pointed to view A in Library
+        4. Create an activation key pointed to view B in Library
+        5. Go to the new Hostgroup page, select content view B & Library,
+            click on the activation key tab and click in the input box
+
+        @Assert: Only the activation key for view B is listed
+
+        @BZ: 1321511
+        """
+        # Use setup entities as A and create another set for B.
+        cv_b = entities.ContentView(organization=self.organization).create()
+        cv_b.publish()
+        ak_b = entities.ActivationKey(
+            organization=self.organization,
+            environment=self.env,
+            content_view=cv_b,
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            session.nav.go_to_host_groups()
+            self.hostgroup.click(locators['hostgroups.new'])
+            self.hostgroup.assign_value(
+                locators['hostgroups.environment'], self.env.name)
+            self.hostgroup.assign_value(
+                locators['hostgroups.content_view'], cv_b.name)
+            # Switch to Activation Keys tab and click on input
+            # to load autocomplete
+            self.hostgroup.click(tab_locators['hostgroup.tab_activation_keys'])
+            self.hostgroup.click(locators['hostgroups.activation_keys'])
+            autocompletes = self.hostgroup.find_elements(
+                locators['hostgroups.ak_autocomplete'])
+            # Ensure that autocomplete list is not empty
+            self.assertGreaterEqual(len(autocompletes), 1)
+            # Check for AK names in list
+            autocompletes = [item.text for item in autocompletes]
+            self.assertIn(ak_b.name, autocompletes)
+            self.assertNotIn(self.ak.name, autocompletes)
