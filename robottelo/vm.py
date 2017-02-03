@@ -54,7 +54,8 @@ class VirtualMachine(object):
 
     def __init__(
             self, cpu=1, ram=512, distro=None, provisioning_server=None,
-            image_dir=None, tag=None):
+            image_dir=None, tag=None, hostname=None, domain=None,
+            target_image=None):
         self.cpu = cpu
         self.ram = ram
         self.distro = BASE_IMAGES[-1] if distro is None else distro
@@ -79,13 +80,13 @@ class VirtualMachine(object):
         else:
             self.image_dir = image_dir
 
-        self.hostname = None
+        self.hostname = hostname
         self.ip_addr = None
-        self._domain = None
+        self._domain = domain
         self._created = False
         self._subscribed = False
-        self._target_image = str(id(self))
-        if tag is not None:
+        self._target_image = target_image or str(id(self))
+        if tag:
             self._target_image = tag + self._target_image
 
     def create(self):
@@ -111,6 +112,9 @@ class VirtualMachine(object):
         if self.image_dir is not None:
             command_args.append('-p {image_dir}')
 
+        if self.hostname is not None:
+            command_args.append('--hostname {hostname}')
+
         if self._domain is None:
             try:
                 self._domain = self.provisioning_server.split('.', 1)[1]
@@ -118,13 +122,22 @@ class VirtualMachine(object):
                 raise VirtualMachineError(
                     u"Failed to fetch domain from provisioning server: {0} "
                     .format(self.provisioning_server))
+        else:
+            command_args.append('-d {domain}')
+
+        if self.hostname and self._domain:
+            target_image = u'{0}'.format(self._target_image)
+        else:
+            target_image = u'{0}.{1}'.format(self._target_image, self._domain)
 
         command = u' '.join(command_args).format(
             source_image=u'{0}-base'.format(self.distro),
-            target_image=u'{0}.{1}'.format(self._target_image, self._domain),
+            target_image=target_image,
             vm_ram=self.ram,
             vm_cpu=self.cpu,
             image_dir=self.image_dir,
+            hostname=self.hostname,
+            domain=self._domain
         )
 
         result = ssh.command(command, self.provisioning_server)
@@ -145,7 +158,8 @@ class VirtualMachine(object):
                 'Failed to fetch virtual machine IP address information')
         output = ''.join(result.stdout)
         self.ip_addr = output.split('(')[1].split(')')[0]
-        self.hostname = u'{0}.{1}'.format(self._target_image, self._domain)
+        if self.hostname is None:
+            self.hostname = u'{0}.{1}'.format(self._target_image, self._domain)
         self._created = True
 
     def destroy(self):
