@@ -85,3 +85,29 @@ class Role(Base):
             self.click(tab_locators['roles.tab_location'])
             self.configure_entity(location, FILTER['filter_loc'])
         self.click(common_locators['submit'])
+
+    def get_resources(self, role_name):
+        self.search_and_click(role_name)
+        self.click(tab_locators['roles.tab_filters'])
+        resources = self.find_elements(locators['roles.resources'])
+        return [item.text for item in resources]
+
+    def get_permissions(self, role_name, resource_type):
+        self.search_and_click(role_name)
+        self.click(tab_locators['roles.tab_filters'])
+        permissions = self.wait_until_element(
+            locators['roles.permissions'] % resource_type)
+        if permissions:
+            return permissions.text.split(', ')
+        else:
+            return None
+
+    def clone(self, name, new_name=None, locations=None, organizations=None):
+        """Clone role with name/location/organization."""
+        self.search(name)
+        self.click(locators['roles.dropdown'] % name)
+        self.click(locators['roles.clone'])
+        self.assign_value(locators['roles.name'], new_name)
+        if locations or organizations:
+            self._configure_taxonomies(locations, organizations)
+        self.click(common_locators['submit'])

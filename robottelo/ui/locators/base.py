@@ -947,6 +947,7 @@ locators = LocatorDict({
          "a[contains(@data-id, 'refresh')]")),
     # Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
+    "roles.clone": (By.XPATH, "//a[contains(@data-id, 'clone')]"),
     "roles.name": (By.ID, "role_name"),
     "roles.dropdown": (
         By.XPATH,
@@ -967,6 +968,10 @@ locators = LocatorDict({
                           "//input[@placeholder='Filter permissions']"),
     "roles.perm_type": (By.XPATH, "//label[contains(., '%s')]"),
     "roles.permission": (By.XPATH, "//input[@value='%s']"),
+    "roles.resources": (
+        By.XPATH, "//table[contains(@id, 'DataTables_Table')]/tbody/tr/td[1]"),
+    "roles.permissions": (
+        By.XPATH, "//td[contains(text(), '%s')]/following-sibling::td[1]"),
 
     # Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
