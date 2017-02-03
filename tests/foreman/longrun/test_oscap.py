@@ -16,6 +16,7 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo.cli.proxy import Proxy
 from robottelo import manifests, ssh
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -25,6 +26,7 @@ from robottelo.api.utils import (
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
+    DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
@@ -76,7 +78,18 @@ class OpenScapTestCase(UITestCase):
 
         # step 1: Create new organization and environment.
         org = entities.Organization(name=gen_string('alpha')).create()
+        loc = entities.Location(name=DEFAULT_LOC).search()[0].read()
+        cls.sat6_hostname = settings.server.hostname
         cls.org_name = org.name
+        cls.puppet_env = entities.Environment(
+            name='production').search()[0].read()
+        cls.puppet_env.location.append(loc)
+        cls.puppet_env.organization.append(org)
+        cls.puppet_env = cls.puppet_env.update(['location', 'organization'])
+        Proxy.importclasses({
+            u'environment': cls.puppet_env.name,
+            u'name': cls.sat6_hostname,
+        })
         env = entities.LifecycleEnvironment(
             organization=org,
             name=gen_string('alpha')
@@ -168,7 +181,6 @@ class OpenScapTestCase(UITestCase):
         rhel7_repo = settings.rhel7_repo
         rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
-        sat6_hostname = settings.server.hostname
         hgrp6_name = gen_string('alpha')
         hgrp7_name = gen_string('alpha')
         policy_values = [
@@ -206,10 +218,10 @@ class OpenScapTestCase(UITestCase):
             for host_group in [hgrp6_name, hgrp7_name]:
                 make_hostgroup(
                     session,
-                    content_source=sat6_hostname,
+                    content_source=self.sat6_hostname,
                     name=host_group,
-                    puppet_ca=sat6_hostname,
-                    puppet_master=sat6_hostname,
+                    puppet_ca=self.sat6_hostname,
+                    puppet_master=self.sat6_hostname,
                 )
             # Creates oscap_policy for both rhel6 and rhel7.
             for value in policy_values:
@@ -219,7 +231,7 @@ class OpenScapTestCase(UITestCase):
                     host_group=value['hgrp'],
                     name=value['policy'],
                     period=OSCAP_PERIOD['weekly'],
-                    profile=OSCAP_PROFILE['rhccp'],
+                    profile=OSCAP_PROFILE['common'],
                     period_value=OSCAP_WEEKDAY['friday'],
                 )
             # Creates two vm's each for rhel6 and rhel7, runs
@@ -238,7 +250,8 @@ class OpenScapTestCase(UITestCase):
                         parameters_list=[{'organization': self.org_name}],
                     )
                     self.hosts.update(
-                        name=host,
+                        name=vm._target_image,
+                        domain_name=vm._domain,
                         parameters_list=[
                             ['Host', 'Lifecycle Environment', self.env_name],
                             ['Host', 'Content View', self.cv_name],

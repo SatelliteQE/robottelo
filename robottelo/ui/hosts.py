@@ -124,8 +124,7 @@ class Hosts(Base):
                puppet_classes=None, interface_parameters=None,
                host_parameters=None):
         """Updates a Host."""
-        element = self.search(u'{0}.{1}'.format(name, domain_name))
-        self.click(element)
+        self.search_and_click(u'{0}.{1}'.format(name, domain_name))
         self.click(locators['host.edit'])
         if new_name:
             self.wait_until_element(locators['host.name'])
