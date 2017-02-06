@@ -293,10 +293,14 @@ class RemoteExecutionTestCase(CLITestCase):
             'start-at': plan_time,
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        for _ in range(60):
-            try:
-                invocation_info = JobInvocation.info({
-                    'id': invocation_command[u'id']})
-                self.assertEqual(invocation_info[u'success'], u'1')
-            except AssertionError:
-                sleep(60)
+        # Wait unitl the job runs
+        pending_state = u'1'
+        while pending_state != u'0':
+            invocation_info = JobInvocation.info({
+                'id': invocation_command[u'id']})
+            pending_state = invocation_info[u'pending']
+            sleep(30)
+        # Check the job status
+        invocation_info = JobInvocation.info({
+            'id': invocation_command[u'id']})
+        self.assertEqual(invocation_info[u'success'], u'1')
