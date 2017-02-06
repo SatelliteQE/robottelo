@@ -17,9 +17,45 @@ class Template(Base):
         """Specify locator for Template entity search procedure"""
         return locators['provision.template_select']
 
+    def _configure_template(self, locations=None, organizations=None,
+                            select=None, os_list=None, new_os_list=None,
+                            hostgroup=None, environment=None):
+        """Configures different entities for specific template"""
+        loc = tab_locators
+        if locations:
+            self.configure_entity(
+                locations,
+                FILTER['template_location'],
+                tab_locator=loc['provision.tab_locations'],
+                entity_select=select
+            )
+        if organizations:
+            self.configure_entity(
+                organizations,
+                FILTER['template_org'],
+                tab_locator=loc['provision.tab_organizations'],
+                entity_select=select,
+            )
+        if os_list or new_os_list:
+            self.configure_entity(
+                os_list,
+                FILTER['template_os'],
+                tab_locator=tab_locators['provision.tab_association'],
+                new_entity_list=new_os_list
+            )
+        if hostgroup or environment:
+            self.click(loc['provision.tab_association'])
+            self.click(locators['provision.add_combination'])
+            if hostgroup:
+                self.assign_value(locators['provision.hostgroup'], hostgroup)
+            if environment:
+                self.assign_value(
+                    locators['provision.environment'], environment)
+
     def create(self, name, template_path=None, custom_really=None,
                audit_comment=None, template_type=None, snippet=None,
-               os_list=None):
+               os_list=None, locations=None, organizations=None,
+               hostgroup=None, environment=None, select=True):
         """Creates a provisioning template from UI."""
         self.click(locators['provision.template_new'])
         self.wait_until_element(
@@ -49,15 +85,21 @@ class Template(Base):
                 u'Could not create template "{0}" without type'.format(name)
             )
         self.scroll_page()
-        self.configure_entity(
-            os_list,
-            FILTER['template_os'],
-            tab_locator=tab_locators['provision.tab_association'])
+        self._configure_template(
+            os_list=os_list,
+            locations=locations,
+            organizations=organizations,
+            hostgroup=hostgroup,
+            environment=environment,
+            select=select
+        )
         self.click(common_locators['submit'])
 
     def update(self, name, custom_really=None, new_name=None,
-               template_path=None, template_type=None,
-               os_list=None, new_os_list=None, clone=False):
+               template_path=None, template_type=None, os_list=None,
+               new_os_list=None, clone=False, locations=None,
+               organizations=None, hostgroup=None, environment=None,
+               select=False):
         """Updates a given template."""
         self.click(self.search(name))
         if new_name:
@@ -73,11 +115,14 @@ class Template(Base):
         if clone:
             self.click(locators['provision.template_clone'])
             self.field_update('provision.template_name', new_name)
-        self.configure_entity(
-            os_list,
-            FILTER['template_os'],
-            tab_locator=tab_locators['provision.tab_association'],
-            new_entity_list=new_os_list
+        self._configure_template(
+            os_list=os_list,
+            new_os_list=new_os_list,
+            locations=locations,
+            organizations=organizations,
+            hostgroup=hostgroup,
+            environment=environment,
+            select=select
         )
         self.click(common_locators['submit'])
 
@@ -102,11 +147,7 @@ class Template(Base):
         if template_type:
             self.click(tab_locators['provision.tab_type'])
             self.select(locators['provision.template_type'], template_type)
-        self.configure_entity(
-            os_list,
-            FILTER['template_os'],
-            tab_locator=tab_locators['provision.tab_association']
-        )
+        self._configure_template(os_list=os_list)
         self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
