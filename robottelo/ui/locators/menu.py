@@ -43,7 +43,7 @@ menu_locators = LocatorDict({
 
     "menu.jobs": (
         By.XPATH,
-        (MENU_CONTAINER_PATH + "//a[@id='menu_item_jobs']")),
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_job_invocations']")),
 
     # Content Menu
     "menu.content": (

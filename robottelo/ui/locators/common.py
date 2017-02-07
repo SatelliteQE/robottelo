@@ -103,6 +103,9 @@ common_locators = LocatorDict({
     "parameter_remove": (
         By.XPATH, "//tr/td/input[@value='%s']/following::td/a"),
 
+    "application_logo": (
+        By.XPATH, "//img[contains(@alt, 'Header logo')]"),
+
     # Katello Common Locators
     "confirm_remove": (
         By.XPATH, "//button[@ng-click='ok()' or @ng-click='delete()']"),
