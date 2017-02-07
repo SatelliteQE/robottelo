@@ -31,7 +31,7 @@ class Hostgroup(Base):
         if activation_keys:
             self.click(tab_locators['hostgroup.activation_keys'])
             self.assign_value(
-                locators['hostgroups.oscap_capsule'], oscap_capsule)
+                locators['hostgroups.activation_keys'], activation_keys)
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):
