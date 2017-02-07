@@ -458,6 +458,10 @@ def make_templates(session, org=None, loc=None, force_context=True, **kwargs):
         u'audit_comment': None,
         u'snippet': None,
         u'os_list': None,
+        u'locations': None,
+        u'organizations': None,
+        u'hostgroup': None,
+        u'environment': None,
     }
     page = session.nav.go_to_provisioning_templates
     core_factory(create_args, kwargs, session, page,

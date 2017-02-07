@@ -107,6 +107,8 @@ FILTER = {
     'sub_domain': 'subnet_domain',
     'subnet_org': 'subnet_organization',
     'template_os': 'provisioning_template_operatingsystem',
+    'template_location': 'provisioning_template_location',
+    'template_org': 'provisioning_template_organization',
     'user_location': 'user_location',
     'user_org': 'user_organization',
     'user_role': 'user_role',
