@@ -1359,3 +1359,38 @@ class ActivationKeyTestCase(UITestCase):
                     self.activationkey.search_host(
                         another_ak['name'], client1.hostname)
                 )
+
+    @tier2
+    def test_positive_remove_user(self):
+        """Delete any user who has previously created an activation key
+        and check that activation key still exists
+
+        @id: f0504bd8-52d2-40cd-91c6-64d71b14c876
+
+        @Assert: Activation Key can be read
+
+        @BZ: 1291271
+        """
+        ak_name = gen_string('alpha')
+        # Create user
+        password = gen_string('alpha')
+        user = entities.User(
+            password=password, login=gen_string('alpha'), admin=True).create()
+        # Create Activation Key with new user credentials
+        with Session(
+                self.browser,
+                user=user.login,
+                password=password,
+        ) as session:
+            make_activationkey(
+                session,
+                org=self.organization.name,
+                name=ak_name,
+                env=ENVIRONMENT,
+            )
+            self.assertIsNotNone(self.activationkey.search(ak_name))
+        # Remove user and check that AK still exists
+        user.delete()
+        with Session(self.browser) as session:
+            set_context(session, org=self.organization.name)
+            self.assertIsNotNone(self.activationkey.search(ak_name))
