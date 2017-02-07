@@ -117,12 +117,17 @@ class Base(object):
         """Helper method to perform the commonly used search then click"""
         return self.click(self.search(element))
 
-    def search(self, element):
+    def search(self, element, _raw_query=None):
         """Uses the search box to locate an element from a list of elements.
 
         :param element: either element name or a tuple, containing element name
             as a first element and all the rest variables required for element
             locator.
+        :param _raw_query: (optional) custom search query. Can be used to find
+            entity by some of its fields (e.g. 'hostgroup = foo' for entity
+            named 'bar') or to combine complex queries (e.g.
+            'name = foo and os = bar'). Note that this will ignore entity's
+            default ``search_key``.
         """
         element_name = element[0] if isinstance(element, tuple) else element
         # Navigate to the page
@@ -154,7 +159,7 @@ class Base(object):
         # Pass the data into search field and push the search button if
         # applicable
         searchbox.clear()
-        searchbox.send_keys(u'{0} = {1}'.format(
+        searchbox.send_keys(_raw_query or u'{0} = {1}'.format(
             search_key, escape_search(element_name)))
         # ensure mouse points at search button and no tooltips are covering it
         # before clicking
