@@ -308,8 +308,11 @@ def make_content_view(options=None):
         --organization ORGANIZATION_NAME  Organization name to search by
         --organization-id ORGANIZATION_ID Organization identifier
         --organization-label ORGANIZATION_LABEL Organization label to search by
+        --product PRODUCT_NAME          Product name to search by
+        --product-id PRODUCT_ID         product numeric identifier
+        --repositories REPOSITORY_NAMES Comma separated list of values.
         --repository-ids REPOSITORY_IDS List of repository ids
-                                      Comma separated list of values.
+                                        Comma separated list of values.
         -h, --help                    print help
 
     """
@@ -326,6 +329,9 @@ def make_content_view(options=None):
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
+        u'product': None,
+        u'product-id': None,
+        u'repositories': None,
         u'repository-ids': None
     }
 
