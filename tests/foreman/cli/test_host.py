@@ -28,6 +28,7 @@ from robottelo.cli.factory import (
     make_domain,
     make_environment,
     make_fake_host,
+    make_hostgroup,
     make_lifecycle_environment,
     make_medium,
     make_org,
@@ -430,6 +431,38 @@ class HostCreateTestCase(CLITestCase):
         })
         self.assertEqual(result['name'], host.name + '.' + host.domain.name)
         Host.delete({'id': result['id']})
+
+    @tier2
+    def test_positive_create_inherit_lce_cv(self):
+        """Create a host with hostgroup specified. Make sure host inherited
+        hostgroup's lifecycle environment and content-view
+
+        @id: ba73b8c8-3ce1-4fa8-a33b-89ded9ffef47
+
+        @Assert: Host's lifecycle environment and content view match the ones
+        specified in hostgroup
+
+        @CaseLevel: Integration
+
+        @BZ: 1391656
+        """
+        hostgroup = make_hostgroup({
+            'content-view-id': self.new_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-ids': self.new_org['id'],
+        })
+        host = make_fake_host({
+            'hostgroup-id': hostgroup['id'],
+            'organization-id': self.new_org['id'],
+        })
+        self.assertEqual(
+            host['content-information']['lifecycle-environment'],
+            hostgroup['lifecycle-environment'],
+        )
+        self.assertEqual(
+            host['content-information']['content-view'],
+            hostgroup['content-view'],
+        )
 
     @run_only_on('sat')
     @stubbed
