@@ -972,6 +972,12 @@ locators = LocatorDict({
         By.XPATH, "//table[contains(@id, 'DataTables_Table')]/tbody/tr/td[1]"),
     "roles.permissions": (
         By.XPATH, "//td[contains(text(), '%s')]/following-sibling::td[1]"),
+    "roles.filters.pagination_next": (
+        By.XPATH,
+        "//li[contains(@class, 'next') and "
+        "not(contains(@class, 'disabled'))]/a"
+    ),
+    "roles.filters.search": (By.XPATH, "//input[@type='search']"),
 
     # Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),

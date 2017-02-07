@@ -87,22 +87,47 @@ class Role(Base):
         self.click(common_locators['submit'])
 
     def get_resources(self, role_name):
+        """Fetch resources from role filters.
+
+        :param role_name: String with role name.
+        :return: List of strings with resource names.
+        """
         self.search_and_click(role_name)
         self.click(tab_locators['roles.tab_filters'])
-        resources = self.find_elements(locators['roles.resources'])
-        return [item.text for item in resources]
+        resources = [
+            resource.text for resource in
+            self.find_elements(locators['roles.resources'])
+        ]
+        next_ = self.find_element(locators["roles.filters.pagination_next"])
+        while next_:
+            self.click(next_)
+            next_ = self.find_element(
+                locators["roles.filters.pagination_next"])
+            resources.extend(
+                [resource.text for resource in
+                    self.find_elements(locators['roles.resources'])])
+        return resources
 
-    def get_permissions(self, role_name, resource_type):
+    def get_permissions(self, role_name, resource_types):
+        """Fetch permissions for provided resource types from role filters.
+
+        :param role_name: String with role name.
+        :param resource_types: List with resource types names.
+        :return: Dict with resource name as a key and list of strings with
+            permissions names as a values.
+        """
         self.search_and_click(role_name)
         self.click(tab_locators['roles.tab_filters'])
-        permissions = self.wait_until_element(
-            locators['roles.permissions'] % resource_type)
-        if permissions:
-            return permissions.text.split(', ')
-        else:
-            return None
+        dict_permissions = {}
+        for res_type in resource_types:
+            self.assign_value(locators["roles.filters.search"], res_type)
+            permissions = self.wait_until_element(
+                locators['roles.permissions'] % res_type)
+            if permissions:
+                dict_permissions[res_type] = permissions.text.split(', ')
+        return dict_permissions
 
-    def clone(self, name, new_name=None, locations=None, organizations=None):
+    def clone(self, name, new_name, locations=None, organizations=None):
         """Clone role with name/location/organization."""
         self.search(name)
         self.click(locators['roles.dropdown'] % name)

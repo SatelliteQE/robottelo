@@ -24,8 +24,7 @@ from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_domain, make_role, make_user, set_context
-from robottelo.ui.locators import common_locators, menu_locators
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import common_locators, menu_locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -114,9 +113,11 @@ class RoleTestCase(UITestCase):
             )
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
-            new_permissions = self.role.get_permissions(name, resource_type)
-            self.assertIsNotNone(new_permissions)
-            self.assertEqual(set(permissions), set(new_permissions))
+            assigned_permissions = self.role.get_permissions(
+                name, [resource_type])
+            self.assertIsNotNone(assigned_permissions)
+            self.assertEqual(
+                set(permissions), set(assigned_permissions[resource_type]))
 
     @tier1
     def test_positive_clone_builtin(self):
@@ -133,16 +134,22 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
             self.assertIsNotNone(self.role.search(new_name))
-            # Ensure that cloned role contains correct resource type
+            # Ensure that cloned role contains correct resource types
             builtin_resources = self.role.get_resources(builtin_name)
             cloned_resources = self.role.get_resources(new_name)
             self.assertGreater(len(cloned_resources), 0)
             self.assertEqual(set(builtin_resources), set(cloned_resources))
             # And correct permissions for every resource type
-            for resource in cloned_resources:
+            builtin_perms = self.role.get_permissions(
+                builtin_name, builtin_resources)
+            cloned_perms = self.role.get_permissions(
+                new_name, cloned_resources)
+            self.assertEqual(builtin_perms.keys(), cloned_perms.keys())
+            for key in cloned_perms.keys():
                 self.assertEqual(
-                    set(self.role.get_permissions(builtin_name, resource)),
-                    set(self.role.get_permissions(new_name, resource))
+                    set(builtin_perms[key]),
+                    set(cloned_perms[key]),
+                    "Permissions differs for {0} resource type".format(key)
                 )
 
     @tier1
@@ -170,15 +177,16 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
             self.assertIsNotNone(self.role.search(new_name))
-            # Ensure that cloned role contains correct resource type
+            # Ensure that cloned role contains correct resource types
             cloned_resources = self.role.get_resources(new_name)
             self.assertGreater(len(cloned_resources), 0)
             self.assertEqual(resource_type, cloned_resources[0])
             # and all permissions
             cloned_permissions = self.role.get_permissions(
-                new_name, resource_type)
+                new_name, [resource_type])
             self.assertIsNotNone(cloned_permissions)
-            self.assertEqual(set(permissions), set(cloned_permissions))
+            self.assertEqual(
+                set(permissions), set(cloned_permissions[resource_type]))
 
     @tier1
     def test_positive_assign_cloned_role(self):
@@ -194,10 +202,8 @@ class RoleTestCase(UITestCase):
         role_name = gen_string('alpha')
         with Session(self.browser) as session:
             # Clone one of the builtin roles
-            self.role.navigate_to_entity()
             self.role.clone(choice(ROLES), role_name)
             # Create user wit this role
-            self.user.navigate_to_entity()
             make_user(
                 session, username=user_name, roles=[role_name], edit=True)
             self.user.search_and_click(user_name)
