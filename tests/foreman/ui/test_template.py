@@ -341,8 +341,9 @@ class TemplateTestCase(UITestCase):
                 hostgroup=hostgroup.name,
             )
             self.assertIsNotNone(self.template.search(template_name))
-            try:
-                self.template.search_key = 'hostgroup'
-                self.assertIsNotNone(self.template.search(hostgroup.name))
-            finally:
-                self.template.search_key = 'name'
+            self.assertIsNotNone(
+                self.template.search(
+                    template_name,
+                    _raw_query='hostgroup = {}'.format(hostgroup.name)
+                )
+            )
