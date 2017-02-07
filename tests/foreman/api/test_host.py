@@ -200,6 +200,39 @@ class HostTestCase(APITestCase):
         self.assertEqual(host.hostgroup.read().name, hostgroup.name)
 
     @run_only_on('sat')
+    @tier2
+    def test_positive_create_inherit_lce_cv(self):
+        """Create a host with hostgroup specified. Make sure host inherited
+        hostgroup's lifecycle environment and content-view
+
+        @id: 229cbdbc-838b-456c-bc6f-4ac895badfbc
+
+        @Assert: Host's lifecycle environment and content view match the ones
+        specified in hostgroup
+
+        @CaseLevel: Integration
+
+        @BZ: 1391656
+        """
+        hostgroup = entities.HostGroup(
+            content_view=self.cv,
+            lifecycle_environment=self.lce,
+            organization=[self.org],
+        ).create()
+        host = entities.Host(
+            hostgroup=hostgroup,
+            organization=self.org,
+        ).create()
+        self.assertEqual(
+            host.content_facet_attributes['lifecycle_environment_id'],
+            hostgroup.lifecycle_environment.id
+        )
+        self.assertEqual(
+            host.content_facet_attributes['content_view_id'],
+            hostgroup.content_view.id
+        )
+
+    @run_only_on('sat')
     @tier1
     def test_positive_create_with_puppet_proxy(self):
         """Create a host with puppet proxy specified

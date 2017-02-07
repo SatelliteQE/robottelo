@@ -1308,10 +1308,18 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_lifecycle_environment_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "host.fetch_lifecycle_environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_lifecycle_environment_id')]/a"
+         "/span[contains(@class, 'chosen')]")),
     "host.content_view": (
         By.XPATH,
         ("//div[contains(@id, 'host_content_view_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "host.fetch_content_view": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_content_view_id')]/a"
+         "/span[contains(@class, 'chosen')]")),
     "host.puppet_environment": (
         By.XPATH,
         ("//div[contains(@id, 'host_environment_id')]/a"
