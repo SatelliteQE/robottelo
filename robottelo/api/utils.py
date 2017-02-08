@@ -4,15 +4,14 @@ import time
 
 from inflector import Inflector
 from nailgun import entities
-
 from robottelo import ssh
+from robottelo.constants import PERMISSIONS_WITH_BZ
 from robottelo.decorators import bz_bug_is_open
 
 
 def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
                               reposet, releasever):
     """Enable a RedHat Repository and fetches it's Id.
-
     :param str org_id: The organization Id.
     :param str product: The product name in which repository exists.
     :param str reposet: The reposet name in which repository exists.
@@ -190,3 +189,27 @@ def one_to_many_names(name):
 
     """
     return set((name, name + '_ids', Inflector().pluralize(name)))
+
+
+def get_role_by_bz(bz_id):
+    """Create and configure custom role entity for the testing of specific bugs
+     This function will read the dictionary of permissions and their associated
+     bugzilla id's from robottelo.constants "PERMISSIONS_WITH_BZ",
+     these permissions will create filter and a single role will be created
+     from all the filters.
+
+     :param bz_id: This is the bugzilla id that is specified in the
+        PERMISSIONS_WITH_BZ list, all the permissions associated with the bz_id
+        will be fetched and filters will be created
+     :return: A single role entity will be created from all the created filters
+     """
+    role = entities.Role().create()
+    for perms in PERMISSIONS_WITH_BZ.values():
+        perms_with_bz = [x for x in perms if bz_id in x.get('bz', [])]
+        if perms_with_bz:
+            permissions = [
+                entities.Permission(name=perm['name']).search()[0]
+                for perm in perms_with_bz
+                ]
+            entities.Filter(permission=permissions, role=role).create()
+    return role.read()
