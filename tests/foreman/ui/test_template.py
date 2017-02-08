@@ -23,7 +23,7 @@ from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
-from robottelo.ui.factory import make_templates
+from robottelo.ui.factory import make_templates, set_context
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -310,3 +310,39 @@ class TemplateTestCase(UITestCase):
                 os_list=os_list,
             )
             self.assertIsNotNone(self.template.search(clone_name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_advanced_search(self):
+        """Create new provisioning template and associate it with specific
+        organization and location. Also associate it with new hostgroup.
+        Afterwards search for that template by hostgroup
+
+        @id: 5bcecd40-28af-4913-92a4-863c8dc05ecc
+
+        @BZ: 1386334
+
+        @Assert: Template can be found successfully and no error is raised
+        """
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        hostgroup = entities.HostGroup(
+            organization=[org], location=[loc]).create()
+        template_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=org.name, loc=loc.name)
+            make_templates(
+                session,
+                name=template_name,
+                template_path=OS_TEMPLATE_DATA_FILE,
+                custom_really=True,
+                template_type='Provisioning template',
+                hostgroup=hostgroup.name,
+            )
+            self.assertIsNotNone(self.template.search(template_name))
+            self.assertIsNotNone(
+                self.template.search(
+                    template_name,
+                    _raw_query='hostgroup = {}'.format(hostgroup.name)
+                )
+            )

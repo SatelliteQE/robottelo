@@ -57,6 +57,8 @@ tab_locators = LocatorDict({
     "provision.tab_association": (By.XPATH,
                                   "//a[@href='#template_associations']"),
     "provision.tab_history": (By.XPATH, "//a[@href='#history']"),
+    "provision.tab_locations": (By.XPATH, "//a[@href='#locations']"),
+    "provision.tab_organizations": (By.XPATH, "//a[@href='#organizations']"),
 
     # Job Templates
     # Third level UI

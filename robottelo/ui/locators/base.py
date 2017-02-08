@@ -744,6 +744,15 @@ locators = LocatorDict({
         By.XPATH,
         ("//label[@class='operatingsystem'"
             "and contains(., '%s')]/input[@type='checkbox']")),
+    "provision.add_combination": (By.XPATH, "//a[text()='+ Add combination']"),
+    "provision.hostgroup": (
+        By.XPATH,
+        "//select[contains(@id, 'combinations') and "
+        "contains(@id, 'hostgroup')]"),
+    "provision.environment": (
+        By.XPATH,
+        "//select[contains(@id, 'combinations') and "
+        "contains(@id, 'environment')]"),
 
     # Job templates
     "job.template_new": (
