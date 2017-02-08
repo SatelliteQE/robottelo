@@ -1600,11 +1600,17 @@ locators = LocatorDict({
         ("//td/a/span[contains(., '%s')]"
          "/following::td/div/ul/li[2]/a[@class='delete']")),
     "hostgroups.content_source": (
-        By.ID, "hostgroup_content_source_id"),
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_content_source')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "hostgroups.puppet_ca": (
-        By.ID, "hostgroup_puppet_ca_proxy_id"),
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_puppet_ca_proxy_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "hostgroups.puppet_master": (
-        By.ID, "hostgroup_puppet_proxy_id"),
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_puppet_proxy')]/a"
+         "/span[contains(@class, 'arrow')]")),
 
     # Users
 
@@ -2892,8 +2898,7 @@ locators = LocatorDict({
     "oscap.custom_policy": (By.ID, "policy_cron_line"),
 
     # oscap reports
-    "oscap.report_select": (
-        By.XPATH, "//span[contains(@data-original-title, '%s')]"),
+    "oscap.report_select": (By.XPATH, "//a[normalize-space(.)='%s']"),
 
     # Registries
     "registry.new": (By.XPATH, "//a[contains(@href, '/registries/new')]"),
