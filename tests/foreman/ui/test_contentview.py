@@ -27,10 +27,10 @@ from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
+    get_role_by_bz,
 )
 from robottelo.config import settings
 from robottelo.constants import (
-    CUST_PERMS_LIST,
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL7,
@@ -4097,15 +4097,12 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        role = entities.Role().create()
-        for perm in CUST_PERMS_LIST:
-            permissions = entities.Permission(name=perm).search()
-            entities.Filter(permission=permissions, role=role).create()
+        myrole = get_role_by_bz(1306359)
         username = gen_string('alpha')
         user_password = gen_string('alphanumeric')
         entities.User(
             login=username,
-            role=[role],
+            role=[myrole],
             password=user_password,
             organization=[self.organization],
         ).create()
