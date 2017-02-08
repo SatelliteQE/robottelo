@@ -200,3 +200,43 @@ class OpenScapPolicy(UITestCase):
                     self.assertIsNotNone(
                         self.oscappolicy.search(new_policy_name))
                     policy_name = new_policy_name
+
+    @skip_if_bug_open('bugzilla', 1292622)
+    @tier1
+    def test_positive_create_with_space_policy_name(self):
+        """Create OpenScap Policy with a space in its name.
+
+        @id: a45ec231-0ca9-4719-9239-eef0355822dc
+
+        @Steps:
+
+        1. Create an openscap content.
+        2. Create an openscap Policy.
+        3. Provide openscap policy name with space in it.
+        4. Provide all other the appropriate parameters.
+
+        @Assert: Creation of Policy with a space in its name is successful.
+
+        @BZ: 1292622
+        """
+        content_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_oscapcontent(
+                session,
+                name=content_name,
+                content_path=self.content_path,
+            )
+            self.assertIsNotNone(
+                self.oscapcontent.search(content_name))
+            policy_name = "Test policy"
+            with self.subTest(policy_name):
+                make_oscappolicy(
+                    session,
+                    content=content_name,
+                    name=policy_name,
+                    period=OSCAP_PERIOD['weekly'],
+                    profile=OSCAP_PROFILE['c2s_rhel6'],
+                    period_value=OSCAP_WEEKDAY['friday'],
+                )
+                self.assertIsNotNone(
+                    self.oscappolicy.search(policy_name))
