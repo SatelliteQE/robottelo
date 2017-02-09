@@ -1,4 +1,4 @@
-﻿# -*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 """Test class for InterSatellite Sync
 
 @Requirement: Satellitesync
