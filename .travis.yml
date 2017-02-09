@@ -6,7 +6,7 @@ python:
     - "3.5"
     - "3.6"
 install:
-    - pip install -r requirements.txt coveralls flake8 sphinx testimony tox-travis manage
+    - pip install -r requirements.txt coveralls flake8 sphinx tox-travis manage
 script:
     - flake8 .
     - make test-docstrings
