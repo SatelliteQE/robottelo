@@ -34,7 +34,7 @@ release = version
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode']
 source_suffix = '.rst'
 master_doc = 'index'
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', 'pytest/*']
 nitpicky = True
 nitpick_ignore = [
     ('py:obj', 'bool'),
