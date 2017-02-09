@@ -1517,11 +1517,13 @@ locators = LocatorDict({
          "//button[@ng-click='save()']")),
     "gpgkey.upload_button": (
         By.XPATH, "//button[@ng-click='progress.uploading = true']"),
-    "gpgkey.product_repo_search": (
-        By.XPATH,
-        ("//input[@placeholder='Filter' and contains(@ng-model, 'Search']")),
+    "gpgkey.product_search": (
+        By.XPATH, "//input[@ng-model='productSearch']"),
+    "gpgkey.repo_search": (
+        By.XPATH, "//input[@ng-model='repositorySearch']"),
     "gpgkey.product_repo": (
-        By.XPATH, "//td/a[contains(@href, 'repositories')]"),
+        By.XPATH,
+        "//td/a[contains(@href, 'repositories') and contains(., '%s')]"),
 
     # Content views
     "contentviews.new": (By.XPATH, "//a[@ui-sref='content-views.new']"),

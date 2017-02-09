@@ -29,11 +29,6 @@ class GPGKey(Base):
         elif key_content:
             self.click(locators['gpgkey.content'])
             self.assign_value(locators['gpgkey.content'], key_content)
-        else:
-            raise UIError(
-                u'Could not create new gpgkey "{0}" without contents'
-                .format(name)
-            )
         self.click(common_locators['create'])
         self.wait_until_element_is_not_visible(locators['gpgkey.new_form'])
 
@@ -59,21 +54,24 @@ class GPGKey(Base):
             self.assign_value(locators['gpgkey.file_path'], new_key)
             self.click(locators['gpgkey.upload_button'])
 
-    def assert_product_repo(self, key_name, product):
-        """To validate product and repo association with gpg keys.
+    def get_product_repo(self, key_name, entity_name, entity_type='Product'):
+        """To validate whether product and repo associated with gpg keys.
 
-        Here product is a boolean variable when product = True; validation
-        assert product tab otherwise assert repo tab.
+        :param str key_name: Name of gpg key to be validated
+        :param str entity_name: Product or repository name to be validated
+        :param str entity_type: Specify type of entity to be validated (e.g.
+            'Product' or 'Repository')
+        :return: Return found entity or None otherwise
         """
         self.search_and_click(key_name)
-        if product:
+        if entity_type == 'Product':
             self.click(tab_locators['gpgkey.tab_products'])
-        else:
+            self.assign_value(locators['gpgkey.product_search'], entity_name)
+        elif entity_type == 'Repository':
             self.click(tab_locators['gpgkey.tab_repos'])
-        if self.wait_until_element(locators['gpgkey.product_repo']):
-            element = self.find_element(
-                locators['gpgkey.product_repo']).get_attribute('innerHTML')
-            return element.strip(' \t\n\r')
+            self.assign_value(locators['gpgkey.repo_search'], entity_name)
+        return self.wait_until_element(
+            locators['gpgkey.product_repo'] % entity_name)
 
     def assert_key_from_product(self, name, prd_element, repo=None):
         """Assert the key association after deletion from product tab."""
