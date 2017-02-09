@@ -4,7 +4,11 @@ import six
 from fauxfactory import gen_integer
 from robottelo import decorators
 from robottelo.config.base import BugzillaSettings
-from robottelo.constants import BZ_CLOSED_STATUSES, BZ_OPEN_STATUSES
+from robottelo.constants import (
+    BUGZILLA_URL,
+    BZ_CLOSED_STATUSES,
+    BZ_OPEN_STATUSES
+)
 from unittest2 import SkipTest, TestCase
 # (Too many public methods) pylint: disable=R0904
 
@@ -194,7 +198,7 @@ class BzBugIsOpenTestCase(TestCase):
         bz_conn_mock.getbug.return_value = MockBug
 
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
-        RHBugzilla.assert_called_once_with()
+        RHBugzilla.assert_called_once_with(url=BUGZILLA_URL)
         bz_conn_mock.getbug.assert_called_once_with(
             self.bug_id,
             include_fields=['id', 'status', 'whiteboard', 'flags']
@@ -506,32 +510,10 @@ class GetBugzillaBugStatusIdTestCase(TestCase):
                 'robottelo.decorators._bugzilla', {}):
             self.assertEqual(id(decorators._get_bugzilla_bug('4242')), id(bug))
         self.bugzilla.RHBugzilla.assert_called_once_with(
+            url=BUGZILLA_URL,
             user=self.settings.username,
             password=self.settings.password
         )
-        connection.connect.assert_called_once_with(decorators.BUGZILLA_URL)
-
-    def test_raise_bug_fetch_error_connect_type_error(self):
-        """Raise BugFetchError due to TypeError exception on connect."""
-        connection = mock.MagicMock()
-        connection.connect.side_effect = [TypeError()]
-        self.bugzilla.RHBugzilla.side_effect = [connection]
-
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', {}):
-            with self.assertRaises(decorators.BugFetchError):
-                decorators._get_bugzilla_bug('4242')
-
-    def test_raise_bug_fetch_error_connect_value_error(self):
-        """Raise BugFetchError due to ValueError exception on connect."""
-        connection = mock.MagicMock()
-        connection.connect.side_effect = [ValueError()]
-        self.bugzilla.RHBugzilla.side_effect = [connection]
-
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', {}):
-            with self.assertRaises(decorators.BugFetchError):
-                decorators._get_bugzilla_bug('4242')
 
     def test_raise_bug_fetch_error_getbug_fault(self):
         """Raise BugFetchError due to Fault exception on getbugsimple."""

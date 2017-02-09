@@ -7,7 +7,10 @@ LOCALES = (
     'pt_BR', 'ru', 'sv_SE', 'zh_CN', 'zh_TW'
 )
 
-# Bugzilla
+# Bugzilla / redmine
+BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
+REDMINE_URL = 'http://projects.theforeman.org'
+
 BZ_OPEN_STATUSES = [
     'NEW',
     'ASSIGNED',

@@ -9,16 +9,19 @@ import requests
 import unittest2
 from functools import wraps
 from robottelo.config import settings
-from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
+from robottelo.constants import (
+    BUGZILLA_URL,
+    BZ_OPEN_STATUSES,
+    NOT_IMPLEMENTED,
+    REDMINE_URL
+)
 from robottelo.host_info import get_host_sat_version
 from six.moves.xmlrpc_client import Fault
 from xml.parsers.expat import ExpatError, ErrorString
 
 
-BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
-REDMINE_URL = 'http://projects.theforeman.org'
 
 # Test Tier Decorators
 # CRUD tests
@@ -299,10 +302,8 @@ def _get_bugzilla_bug(bug_id):
         if any(value is None for value in bz_credentials.values()):
             bz_credentials = {}
         try:
-            bz_conn = bugzilla.RHBugzilla(
-                **bz_credentials)
-            bz_conn.connect(BUGZILLA_URL)
-        except (TypeError, ValueError):
+            bz_conn = bugzilla.RHBugzilla(url=BUGZILLA_URL, **bz_credentials)
+        except (TypeError, ValueError):  # pragma: no cover
             raise BugFetchError(
                 'Could not connect to {0}'.format(BUGZILLA_URL)
             )
@@ -414,7 +415,7 @@ def _skip_flags_condition(flags):
         min_positive_flag_version = min(
             filter(lambda version: version is not None, positive_flag_versions)
         )
-    except ValueError:
+    except ValueError:  # pragma: no cover
         # If flag regarding sat is not available
         return True
     else:
