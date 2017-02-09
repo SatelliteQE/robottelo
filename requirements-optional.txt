@@ -1,23 +1,23 @@
 # For running tests and checking code quality using these modules.
-coveralls
-flake8
-mock
-pytest-cov
-pytest-xdist
-testimony
-tox
+coveralls==1.1
+flake8==3.2.1
+mock==2.0.0
+pytest-cov==2.4.0
+pytest-xdist==1.15.0
+testimony==1.2.0
+tox==2.5.0
 
 # Voluntary (recommended!) tool for checking code quality.
-pylint
+pylint==1.6.5
 
 # For generating documentation.
-sphinx
+sphinx==1.5.2
 
 # For running UI tests within a docker browser
-docker-py
+docker-py==1.10.6
 
 # For reporting test results on SauceLabs
-sauceclient
+sauceclient==0.2.1
 
 # For 'manage' interactive shell
 manage>=0.1.13
