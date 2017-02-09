@@ -12,6 +12,7 @@ pytest==3.0.6
 requests==2.13.0
 selenium==2.48.0  # pyup: ignore
 six==1.10.0
+testimony==1.2.0  # pyup: ignore
 unittest2==1.1.0
 python_bugzilla==1.2.2
 PyYAML==3.12

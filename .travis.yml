@@ -1,10 +1,12 @@
 sudo: false
 language: python
-env:
-    - TOXENV=py27
-    - TOXENV=py34
+python:
+    - "2.7"
+    - "3.4"
+    - "3.5"
+    - "3.6"
 install:
-    - pip install -r requirements.txt coveralls flake8 sphinx testimony tox manage
+    - pip install -r requirements.txt coveralls flake8 sphinx tox-travis manage
 script:
     - flake8 .
     - make test-docstrings
