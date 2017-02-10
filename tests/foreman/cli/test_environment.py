@@ -15,10 +15,20 @@
 
 @Upstream: No
 """
+from random import choice
+
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import make_environment, make_location, make_org
+from robottelo.cli.factory import (
+    make_environment,
+    make_location,
+    make_org,
+    publish_puppet_module,
+)
+from robottelo.cli.puppet import Puppet
+from robottelo.cli.scparams import SmartClassParameter
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
@@ -34,6 +44,24 @@ from robottelo.test import CLITestCase
 
 class EnvironmentTestCase(CLITestCase):
     """Test class for Environment CLI"""
+
+    @classmethod
+    def setUpClass(cls):
+        super(EnvironmentTestCase, cls).setUpClass()
+        cls.org = make_org()
+        # Setup for puppet class related tests
+        puppet_modules = [
+            {'author': 'robottelo', 'name': 'generic_1'},
+        ]
+        cls.cv = publish_puppet_module(
+            puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
+        cls.env = Environment.list({
+            'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.puppet_class = Puppet.info({
+            'name': puppet_modules[0]['name'],
+            'environment': cls.env['name'],
+        })
+
     @tier2
     @run_only_on('sat')
     def test_positive_list_with_name(self):
@@ -449,10 +477,18 @@ class EnvironmentTestCase(CLITestCase):
         @id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
 
         @Assert: The command runs without raising an error
-
         """
-        environment = make_environment()
-        Environment.sc_params({'environment-id': environment['id']})
+        # Override one of the sc-params from puppet class
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.env['name'],
+            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+        })
+        scp_id = choice(sc_params_list)['id']
+        SmartClassParameter.update({'id': scp_id, 'override': 1})
+        # Verify that affected sc-param is listed
+        env_scparams = Environment.sc_params(
+            {'environment-id': self.env['id']})
+        self.assertIn(scp_id, [scp['id'] for scp in env_scparams])
 
     @tier1
     @run_only_on('sat')
@@ -463,7 +499,14 @@ class EnvironmentTestCase(CLITestCase):
         @id: e2fdd262-9b09-4252-8a5a-4e578e3b8547
 
         @Assert: The command runs without raising an error
-
         """
-        environment = make_environment()
-        Environment.sc_params({'environment': environment['name']})
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.env['name'],
+            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+        })
+        scp_id = choice(sc_params_list)['id']
+        SmartClassParameter.update({'id': scp_id, 'override': 1})
+        # Verify that affected sc-param is listed
+        env_scparams = Environment.sc_params(
+            {'environment': self.env['name']})
+        self.assertIn(scp_id, [scp['id'] for scp in env_scparams])
