@@ -1047,6 +1047,7 @@ locators = LocatorDict({
 
     # Products
     "prd.new": (By.XPATH, "//button[contains(@ui-sref,'products.new')]"),
+    "prd.title": (By.XPATH, "//h2/span[contains(.,'Product %s')]"),
     "prd.bulk_actions": (
         By.XPATH, "//button[contains(@ui-sref,'products.bulk-actions')]"),
     "prd.repo_discovery": (

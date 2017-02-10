@@ -32,6 +32,7 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -41,7 +42,7 @@ from robottelo.decorators import (
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_gpgkey
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -638,6 +639,50 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                     name, repo.name, entity_type='Repository'
                 )
             )
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1411800)
+    @tier2
+    def test_positive_add_product_and_search(self):
+        """Create gpg key with valid name and valid gpg key
+        then associate it with custom product that has one repository
+        After search and select product through gpg key interface
+
+        @id: 0bef0c1b-4811-489e-89e9-609d57fc45ee
+
+        @assert: Associated product can be found and selected through gpg key
+        'Product' tab
+
+        @BZ: 1411800
+
+        @CaseLevel: Integration
+        """
+        name = get_random_gpgkey_name()
+        gpg_key = entities.GPGKey(
+            content=self.key_content,
+            name=name,
+            organization=self.organization,
+        ).create()
+        # Creates new product and associate GPGKey with it
+        product = entities.Product(
+            gpg_key=gpg_key,
+            name=gen_string('alpha'),
+            organization=self.organization,
+        ).create()
+        # Creates new repository without GPGKey
+        entities.Repository(
+            name=gen_string('alpha'),
+            url=FAKE_1_YUM_REPO,
+            product=product,
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            product_element = self.gpgkey.get_product_repo(name, product.name)
+            self.gpgkey.click(product_element)
+            self.assertIsNone(self.gpgkey.wait_until_element(
+                common_locators['alert.error']))
+            self.assertIsNotNone(self.products.wait_until_element(
+                locators['prd.title'] % product.name))
 
     @run_only_on('sat')
     @tier2
