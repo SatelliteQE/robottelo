@@ -10,6 +10,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_emails_list,
     invalid_id_list,
+    invalid_interfaces_list,
     invalid_names_list,
     invalid_values_list,
     invalid_usernames_list,
@@ -19,6 +20,7 @@ from robottelo.datafactory import (
     valid_environments_list,
     valid_hosts_list,
     valid_hostgroups_list,
+    valid_interfaces_list,
     valid_labels_list,
     valid_names_list,
     valid_org_names_list,
@@ -42,8 +44,9 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         """Tests if run_one_datapoint=false returns all data points"""
         settings.run_one_datapoint = False
         self.assertEqual(len(generate_strings_list()), 7)
-        self.assertEqual(len(invalid_id_list()), 4)
         self.assertEqual(len(invalid_emails_list()), 10)
+        self.assertEqual(len(invalid_id_list()), 4)
+        self.assertEqual(len(invalid_interfaces_list()), 8)
         self.assertEqual(len(invalid_names_list()), 7)
         self.assertEqual(len(invalid_values_list()), 10)
         self.assertEqual(len(invalid_usernames_list()), 4)
@@ -53,6 +56,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_environments_list()), 3)
         self.assertEqual(len(valid_hosts_list()), 3)
         self.assertEqual(len(valid_hostgroups_list()), 7)
+        self.assertEqual(len(valid_interfaces_list()), 3)
         self.assertEqual(len(valid_names_list()), 15)
         self.assertEqual(len(valid_org_names_list()), 7)
         self.assertEqual(len(valid_usernames_list()), 6)
@@ -63,6 +67,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(generate_strings_list()), 1)
         self.assertEqual(len(invalid_emails_list()), 1)
         self.assertEqual(len(invalid_id_list()), 1)
+        self.assertEqual(len(invalid_interfaces_list()), 1)
         self.assertEqual(len(invalid_names_list()), 1)
         self.assertEqual(len(invalid_values_list()), 1)
         self.assertEqual(len(valid_data_list()), 1)
@@ -70,6 +75,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_environments_list()), 1)
         self.assertEqual(len(valid_hosts_list()), 1)
         self.assertEqual(len(valid_hostgroups_list()), 1)
+        self.assertEqual(len(valid_interfaces_list()), 1)
         self.assertEqual(len(valid_labels_list()), 1)
         self.assertEqual(len(valid_names_list()), 1)
         self.assertEqual(len(valid_org_names_list()), 1)
@@ -112,17 +118,21 @@ class TestReturnTypes(unittest2.TestCase):
         11. :meth:`robottelo.datafactory.valid_org_names_list`
         12. :meth:`robottelo.datafactory.valid_usernames_list`
         13. :meth:`robottelo.datafactory.invalid_id_list`
+        14. :meth:`robottelo.datafactory.invalid_interfaces_list`
+        15. :meth:`robottelo.datafactory.valid_interfaces_list`
 
         """
         for item in itertools.chain(
                 generate_strings_list(),
                 invalid_emails_list(),
+                invalid_interfaces_list(),
                 invalid_names_list(),
                 valid_data_list(),
                 valid_emails_list(),
                 valid_environments_list(),
                 valid_hosts_list(),
                 valid_hostgroups_list(),
+                valid_interfaces_list(),
                 valid_labels_list(),
                 valid_names_list(),
                 valid_org_names_list(),

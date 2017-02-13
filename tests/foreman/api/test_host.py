@@ -28,9 +28,11 @@ from robottelo.api.utils import publish_puppet_module
 from robottelo.config import settings
 from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
 from robottelo.datafactory import (
+    invalid_interfaces_list,
     invalid_values_list,
-    valid_hosts_list,
     valid_data_list,
+    valid_hosts_list,
+    valid_interfaces_list,
 )
 from robottelo.decorators import (
     bz_bug_is_open,
@@ -1349,3 +1351,145 @@ class HostTestCase(APITestCase):
 
         @caselevel: System
         """
+
+
+class HostInterfaceTestCase(APITestCase):
+    """Tests for Host Interfaces"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a host to reuse in tests"""
+        super(HostInterfaceTestCase, cls).setUpClass()
+        cls.host = entities.Host().create()
+
+    @tier1
+    def test_positive_create_with_name(self):
+        """Create an interface with different names and minimal input
+        parameters
+
+        @id: a45ee576-bec6-47a6-a018-a00e555eb2ad
+
+        @Assert: An interface is created with expected name
+        """
+        for name in valid_interfaces_list():
+            with self.subTest(name):
+                interface = entities.Interface(
+                    host=self.host,
+                    name=name,
+                ).create()
+                self.assertEqual(interface.name, name)
+
+    @tier1
+    def test_negative_create_with_name(self):
+        """Attempt to create an interface with different invalid entries as
+        names (>255 chars, unsupported string types)
+
+        @id: 6fae26d8-8f62-41ba-a1cc-0185137ef70f
+
+        @Assert: An interface is not created
+        """
+        for name in invalid_interfaces_list():
+            with self.subTest(name):
+                with self.assertRaises(HTTPError):
+                    entities.Interface(
+                        host=self.host,
+                        name=name,
+                    ).create()
+
+    @tier1
+    def test_positive_update_name(self):
+        """Update interface name with different valid inputs
+
+        @id: c5034b04-097e-47a4-908b-ee78de1699a4
+
+        @Assert: Interface name is successfully updated
+        """
+        interface = entities.Interface(host=self.host).create()
+        for new_name in valid_interfaces_list():
+            with self.subTest(new_name):
+                interface.name = new_name
+                interface = interface.update(['name'])
+                self.assertEqual(interface.name, new_name)
+
+    @tier1
+    def test_negative_update_name(self):
+        """Attempt to update interface name with different invalid entries
+        (>255 chars, unsupported string types)
+
+        @id: 6a1fb718-adfb-47cb-b28c-fb3cd01f99b0
+
+        @Assert: An interface is not updated
+        """
+        interface = entities.Interface(host=self.host).create()
+        for new_name in invalid_interfaces_list():
+            with self.subTest(new_name):
+                interface.name = new_name
+                with self.assertRaises(HTTPError):
+                    interface.update(['name'])
+                self.assertNotEqual(interface.read().name, new_name)
+
+    @tier1
+    def test_positive_delete(self):
+        """Delete host's interface (not primary)
+
+        @id: 9bf83c3a-a4dc-420e-8d47-8572e5ae1dd6
+
+        @Assert: An interface is successfully deleted
+        """
+        host = entities.Host().create()
+        interface = entities.Interface(host=host).create()
+        interface.delete()
+        with self.assertRaises(HTTPError):
+            interface.read()
+
+    @tier1
+    def test_negative_delete(self):
+        """Attempt to delete host's primary interface
+
+        @id: 716a9dfd-0f31-45aa-a6d1-42add032a15c
+
+        @Assert: An interface is not deleted
+        """
+        host = entities.Host().create()
+        primary_interface = next(
+            interface for interface in host.interface
+            if interface.read().primary
+        )
+        with self.assertRaises(HTTPError):
+            primary_interface.delete()
+        # mark the test as failed instead of errored in case of 404 error
+        try:
+            primary_interface.read()
+        except HTTPError as error:
+            if error.response.status_code == 404:
+                self.fail('Primary interface was removed')
+            else:
+                raise
+
+    @tier1
+    def test_positive_delete_and_check_host(self):
+        """Delete host's interface (not primary) and make sure the host was not
+        accidentally removed altogether with the interface
+
+        @BZ: 1285669
+
+        @id: 3b3e9b3f-cfb2-433f-bd1f-0a8e1d9f0b34
+
+        @Assert: An interface was successfully deleted, host was not deleted
+        """
+        host = entities.Host().create()
+        interface = entities.Interface(
+            host=host,
+            primary=False,
+        ).create()
+        interface.delete()
+        with self.assertRaises(HTTPError):
+            interface.read()
+        # mark the test as failed instead of errored in case of 404 error
+        try:
+            host.read()
+        except HTTPError as error:
+            if error.response.status_code == 404:
+                self.fail('Interface deletion removed the host itself')
+            else:
+                raise
