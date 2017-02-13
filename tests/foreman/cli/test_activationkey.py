@@ -29,12 +29,14 @@ from robottelo.cli.factory import (
     make_host_collection,
     make_lifecycle_environment,
     make_org,
+    make_user,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
+from robottelo.cli.user import User
 from robottelo.constants import FAKE_0_YUM_REPO, PRDS, REPOS, REPOSET
 from robottelo.constants import DISTRO_RHEL6
 from robottelo.datafactory import valid_data_list, invalid_values_list
@@ -1209,3 +1211,29 @@ class ActivationKeyTestCase(CLITestCase):
                     u'organization-id': self.org['id'],
                 })
                 self.assertEqual(content[0]['enabled?'], override_value)
+
+    @tier2
+    def test_positive_remove_user(self):
+        """Delete any user who has previously created an activation key
+        and check that activation key still exists
+
+        @id: ba9c4b29-2349-47ea-8081-917de2c17ed2
+
+        @Assert: Activation Key can be read
+
+        @BZ: 1291271
+        """
+        password = gen_string('alpha')
+        user = make_user({'password': password, 'admin': 'true'})
+        ak = ActivationKey.with_user(
+            username=user['login'],
+            password=password
+        ).create({
+            'name': gen_string('alpha'),
+            'organization-id': self.org['id'],
+        })
+        User.delete({'id': user['id']})
+        try:
+            ActivationKey.info({'id': ak['id']})
+        except CLIReturnCodeError:
+            self.fail("Activation Key can't be read")

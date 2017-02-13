@@ -24,6 +24,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import rm_bug_is_open, skip_if_bug_open, tier1, tier2
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from six.moves import http_client
 
@@ -389,6 +390,32 @@ class ActivationKeyTestCase(APITestCase):
                 act_key.delete()
                 with self.assertRaises(HTTPError):
                     entities.ActivationKey(id=act_key.id).read()
+
+    @tier2
+    def test_positive_remove_user(self):
+        """Delete any user who has previously created an activation key
+        and check that activation key still exists
+
+        @id: 02ce92d4-8f49-48a0-bf9e-5d401f84cf46
+
+        @Assert: Activation Key can be read
+
+        @BZ: 1291271
+        """
+        password = gen_string('alpha')
+        user = entities.User(
+            password=password,
+            login=gen_string('alpha'),
+            admin=True,
+        ).create()
+        cfg = get_nailgun_config()
+        cfg.auth = (user.login, password)
+        ak = entities.ActivationKey(cfg).create()
+        user.delete()
+        try:
+            entities.ActivationKey(id=ak.id).read()
+        except HTTPError:
+            self.fail("Activation Key can't be read")
 
 
 class ActivationKeySearchTestCase(APITestCase):
