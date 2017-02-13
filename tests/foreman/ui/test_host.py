@@ -18,6 +18,8 @@
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
+from robottelo.cli.contentview import ContentView as cli_ContentView
+from robottelo.cli.proxy import Proxy as cli_Proxy
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
@@ -30,11 +32,14 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     stubbed,
+    tier2,
     tier3,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_host
+from robottelo.ui.factory import make_host, set_context
 from robottelo.ui.session import Session
+
+import robottelo.cli.factory as cli_factory
 
 
 class HostTestCase(UITestCase):
@@ -507,6 +512,70 @@ class HostTestCase(UITestCase):
             # Delete host
             self.hosts.delete(
                 u'{0}.{1}'.format(host.name, host.domain.name))
+
+    @tier2
+    def test_positive_validate_inherited_cv_lce(self):
+        """Create a host with hostgroup specified via CLI. Make sure host
+        inherited hostgroup's lifecycle environment, content view and both
+        fields are properly reflected via WebUI
+
+        @id: c83f6819-2649-4a8b-bb1d-ce93b2243765
+
+        @Assert: Host's lifecycle environment and content view match the ones
+        specified in hostgroup
+
+        @CaseLevel: Integration
+
+        @BZ: 1391656
+        """
+        host = entities.Host()
+        host.create_missing()
+
+        new_lce = cli_factory.make_lifecycle_environment({
+            'organization-id': host.organization.id})
+        new_cv = cli_factory.make_content_view({
+            'organization-id': host.organization.id})
+        cli_ContentView.publish({'id': new_cv['id']})
+        version_id = cli_ContentView.version_list({
+            'content-view-id': new_cv['id'],
+        })[0]['id']
+        cli_ContentView.version_promote({
+            'id': version_id,
+            'to-lifecycle-environment-id': new_lce['id'],
+            'organization-id': host.organization.id,
+        })
+        hostgroup = cli_factory.make_hostgroup({
+            'content-view-id': new_cv['id'],
+            'lifecycle-environment-id': new_lce['id'],
+            'organization-ids': host.organization.id,
+        })
+        puppet_proxy = cli_Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+
+        cli_factory.make_host({
+            'architecture-id': host.architecture.id,
+            'domain-id': host.domain.id,
+            'environment-id': host.environment.id,
+            'hostgroup-id': hostgroup['id'],
+            'location-id': host.location.id,
+            'medium-id': host.medium.id,
+            'name': host.name,
+            'operatingsystem-id': host.operatingsystem.id,
+            'organization-id': host.organization.id,
+            'partition-table-id': host.ptable.id,
+            'puppet-proxy-id': puppet_proxy['id'],
+        })
+        with Session(self.browser) as session:
+            set_context(session, host.organization.name, host.location.name)
+            result = self.hosts.fetch_host_parameters(
+                host.name,
+                host.domain.name,
+                [['Host', 'Lifecycle Environment'],
+                 ['Host', 'Content View']],
+            )
+            self.assertEqual(result['Lifecycle Environment'], new_lce['name'])
+            self.assertEqual(result['Content View'], new_cv['name'])
 
     @stubbed()
     @tier3
