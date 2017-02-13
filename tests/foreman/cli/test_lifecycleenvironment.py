@@ -22,7 +22,12 @@ from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2
+)
 from robottelo.test import CLITestCase
 
 
@@ -282,3 +287,42 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
             u'Library >> {0}'.format(lc_env['name']),
             u''.join(result)
         )
+
+    @skip_if_bug_open('bugzilla', 1425053)
+    @run_only_on('sat')
+    @tier2
+    def test_positive_list_all_with_per_page(self):
+        """Attempt to list more than 20 lifecycle environment with per-page
+        option.
+
+        @id: 6e10fb0e-5e2c-45e6-85a8-0c853450257b
+
+        @BZ: 1420503
+
+        @assert: all the Lifecycle environments are listed
+        """
+        org = make_org()
+        lifecycle_environments_count = 25
+        per_page_count = lifecycle_environments_count + 5
+        env_base_name = gen_string('alpha')
+        last_env_name = ENVIRONMENT
+        env_names = [last_env_name]
+        for env_index in range(lifecycle_environments_count):
+            env_name = '{0}-{1}'.format(env_base_name, env_index)
+            make_lifecycle_environment({
+                'name': env_name,
+                'organization-id': org['id'],
+                'prior': last_env_name
+            })
+            last_env_name = env_name
+            env_names.append(env_name)
+
+        lifecycle_environments = LifecycleEnvironment.list({
+            'organization-id': org['id'],
+            'per_page': per_page_count
+        })
+
+        self.assertEqual(len(lifecycle_environments),
+                         lifecycle_environments_count + 1)
+        env_name_set = {env['name'] for env in lifecycle_environments}
+        self.assertEqual(env_name_set, set(env_names))
