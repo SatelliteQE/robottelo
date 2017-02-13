@@ -555,6 +555,20 @@ class GPGKey(UITestCase):
         @CaseLevel: System
         """
 
+    @stubbed()
+    @run_only_on('sat')
+    @tier1
+    def test_positive_info(self):
+        """Create single gpg key and get its info
+
+        @id: c8b75db1-9394-4a99-9d91-0d388aacfd1a
+
+        @assert: specific information for gpg key matches the creation values
+
+        @caseautomation: notautomated
+
+        """
+
 
 class GPGKeyProductAssociateTestCase(UITestCase):
     """Implements Product Association tests for GPG Keys via UI"""
