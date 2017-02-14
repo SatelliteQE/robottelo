@@ -8,6 +8,7 @@ import re
 import requests
 import unittest2
 from functools import wraps
+from robottelo.bz_helpers import get_func_name
 from robottelo.config import settings
 from robottelo.constants import (
     BUGZILLA_URL,
@@ -528,6 +529,8 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
         :param func: The function being decorated.
 
         """
+        self.register_bug_id(func)
+
         if self.bug_type not in ('bugzilla', 'redmine'):
             raise BugTypeError(
                 '"{0}" is not a recognized bug type. Did you mean '
@@ -573,3 +576,14 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
 
         # This function replaces what is being decorated.
         return wrapper_func
+
+    def register_bug_id(self, func):  # pragma: no cover
+        """Every time the test is decorated, takes the BZ number and
+        register it in pytest global namespace variable to be accessible in
+        conftest in order to perform the filtering of test collection
+        """
+        bz_namespace = getattr(pytest, 'bugzilla', None)
+        if bz_namespace:
+            bz_namespace.decorated_functions.append(
+                (get_func_name(func), str(self.bug_id))
+            )
