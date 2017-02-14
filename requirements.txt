@@ -16,7 +16,7 @@ testimony==1.2.0  # pyup: ignore
 unittest2==1.1.0
 python-bugzilla==2.0.0
 PyYAML==3.12
-robozilla==0.1.6
+robozilla==0.1.7
 
 # Get nailgun from master
 git+https://github.com/SatelliteQE/nailgun.git#egg=nailgun
