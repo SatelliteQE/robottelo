@@ -2,8 +2,8 @@
 """Configurations for py.test runner"""
 import datetime
 import pytest
-
-from robottelo.bz_helpers import get_wontfix_bugs, group_by_key, get_func_name
+from robottelo.bz_helpers import get_wontfix_bugs, group_by_key
+from robottelo.helpers import get_func_name
 
 
 def log(message, level="DEBUG"):
@@ -44,7 +44,7 @@ def pytest_namespace():
     log("Registering custom pytest_namespace")
     return {
         'bugzilla': {
-            'wontfix_ids': get_wontfix_bugs(),
+            'wontfix_ids': get_wontfix_bugs(log=log),
             'decorated_functions': []
         }
     }

@@ -1,7 +1,8 @@
 # coding: utf-8
 
 from unittest2 import TestCase
-from robottelo.bz_helpers import get_wontfix_bugs, group_by_key, get_func_name
+from robottelo.bz_helpers import get_wontfix_bugs, group_by_key
+from robottelo.helpers import get_func_name
 
 
 class BZHelperTestCase(TestCase):

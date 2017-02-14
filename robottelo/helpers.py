@@ -390,3 +390,8 @@ class Storage(object):
             kwargs.update(item)
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+
+def get_func_name(func):
+    """Given a func object return standardized name to use across project"""
+    return '{0}.{1}'.format(func.__module__, func.__name__)
