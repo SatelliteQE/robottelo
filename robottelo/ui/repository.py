@@ -127,6 +127,7 @@ class Repos(Base):
         while discover_cancel:
             discover_cancel = self.wait_until_element(
                 locators['repo.cancel_discover'])
+        self.wait_for_ajax()
         for url in discovered_urls:
             strategy, value = locators['repo.discovered_url_checkbox']
             self.click((strategy, value % url))

@@ -41,9 +41,8 @@ from robottelo.decorators import (
 )
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_gpgkey
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -113,8 +112,8 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_import_and_same_name(self):
-        """Create gpg key with valid name and valid gpg key via
-        file import then try to create new one with same name
+        """Create gpg key with valid name and valid gpg key via file import
+        then try to create new one with same name and same content
 
         @id: d5e28e8a-e0ef-4c74-a18b-e2646a2cdba5
 
@@ -138,8 +137,9 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_paste_and_same_name(self):
-        """Create gpg key with valid name and valid gpg key text via
-        cut and paste/string import then try to create new one with same name
+        """Create gpg key with valid name and valid gpg key text via cut and
+        paste/string import then try to create new one with same name and same
+        content
 
         @id: c6b256a5-6b9b-4927-a6c6-048ba36d2834
 
@@ -170,15 +170,16 @@ class GPGKey(UITestCase):
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            with self.assertRaises(UIError):
-                make_gpgkey(session, name=name, org=self.organization.name)
+            make_gpgkey(session, name=name, org=self.organization.name)
+            self.assertIsNotNone(
+                self.gpgkey.wait_until_element(common_locators['alert.error'])
+            )
             self.assertIsNone(self.gpgkey.search(name))
 
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_import_and_invalid_name(self):
-        """Create gpg key with invalid name and valid gpg key via
-        file import
+        """Create gpg key with invalid name and valid gpg key via file import
 
         @id: bc5f96e6-e997-4995-ad04-614e66480b7f
 
@@ -203,8 +204,8 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_paste_and_invalid_name(self):
-        """Create gpg key with invalid name and valid gpg key text via
-        cut and paste/string
+        """Create gpg key with invalid name and valid gpg key text via cut and
+        paste/string
 
         @id: 652857de-c522-4c68-a758-13d0b37cc62a
 
@@ -230,8 +231,8 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_for_imported_content(self):
-        """Create gpg key with valid name and valid gpg key via file
-        import then delete it
+        """Create gpg key with valid name and valid gpg key via file import
+        then delete it
 
         @id: 495547c0-8e38-49cc-9be4-3f24a20d3af7
 
@@ -253,8 +254,8 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_for_pasted_content(self):
-        """Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then delete it
+        """Create gpg key with valid name and valid gpg key text via cut and
+        paste/string then delete it
 
         @id: 77c97202-a877-4647-b7e2-3a9b68945fc4
 
@@ -297,8 +298,8 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_name)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success_sub_form']
-            ))
+                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(self.gpgkey.search(new_name))
 
     @run_only_on('sat')
     @tier1
@@ -323,8 +324,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_key=new_key_path)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success_sub_form']
-            ))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier1
@@ -348,8 +348,8 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_name)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success_sub_form']
-            ))
+                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(self.gpgkey.search(new_name))
 
     @run_only_on('sat')
     @tier1
@@ -373,8 +373,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_key=new_key_path)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success_sub_form']
-            ))
+                common_locators['alert.success_sub_form']))
 
     # Negative Update
 
@@ -388,7 +387,7 @@ class GPGKey(UITestCase):
 
         @assert: gpg key is not updated
         """
-        name = gen_string('alpha', 6)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_gpgkey(
                 session,
@@ -410,8 +409,8 @@ class GPGKey(UITestCase):
     @tier3
     @skip_if_not_set('clients')
     def test_positive_consume_content_using_repo(self):
-        """Hosts can install packages using gpg key associated with
-        single custom repository
+        """Hosts can install packages using gpg key associated with single
+        custom repository
 
         @id: c6b78312-91d3-47a2-a6c6-f906a4522fe4
 
@@ -559,34 +558,6 @@ class GPGKey(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier1
-    def test_positive_list(self):
-        """Create gpg key and list it
-
-        @id: 9963f533-47aa-49a9-b251-3d81fc07e732
-
-        @assert: gpg key is displayed/listed
-
-        @caseautomation: notautomated
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier1
-    def test_positive_search(self):
-        """Create gpg key and search/find it
-
-        @id: d55b8034-7f55-45cc-8ee0-43db0534e586
-
-        @assert: gpg key can be found
-
-        @caseautomation: notautomated
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier1
     def test_positive_info(self):
         """Create single gpg key and get its info
 
@@ -612,8 +583,8 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_empty_product(self):
-        """Create gpg key with valid name and valid gpg key
-        then associate it with empty (no repos) custom product
+        """Create gpg key with valid name and valid gpg key then associate
+        it with empty (no repos) custom product
 
         @id: e18ae9f5-43d9-4049-92ca-1eafaca05096
 
@@ -628,29 +599,75 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new product and associate GPGKey with it
-        entities.Product(
+        product = entities.Product(
             gpg_key=gpg_key,
             name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=True)
+                self.gpgkey.get_product_repo(name, product.name)
             )
 
     @run_only_on('sat')
     @tier2
     def test_positive_add_product_with_repo(self):
-        """Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has one repository
+        """Create gpg key with valid name and valid gpg key then associate it
+        with custom product that has one repository
 
         @id: 7514b33a-da75-43bd-a84b-5a805c84511d
 
-        @assert: gpg key is associated with product as well as
-        with the repository
+        @assert: gpg key is associated with product as well as with the
+        repository
+
+        @CaseLevel: Integration
+        """
+        name = get_random_gpgkey_name()
+        gpg_key = entities.GPGKey(
+            content=self.key_content,
+            name=name,
+            organization=self.organization,
+        ).create()
+        # Creates new product and associate GPGKey with it
+        product = entities.Product(
+            gpg_key=gpg_key,
+            name=gen_string('alpha'),
+            organization=self.organization,
+        ).create()
+        # Creates new repository without GPGKey
+        repo = entities.Repository(
+            name=gen_string('alpha'),
+            url=FAKE_1_YUM_REPO,
+            product=product,
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            # Assert that GPGKey is associated with product and repository
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(name, product.name)
+            )
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(
+                    name, repo.name, entity_type='Repository'
+                )
+            )
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1411800)
+    @tier2
+    def test_positive_add_product_and_search(self):
+        """Create gpg key with valid name and valid gpg key
+        then associate it with custom product that has one repository
+        After search and select product through gpg key interface
+
+        @id: 0bef0c1b-4811-489e-89e9-609d57fc45ee
+
+        @assert: Associated product can be found and selected through gpg key
+        'Product' tab
+
+        @BZ: 1411800
 
         @CaseLevel: Integration
         """
@@ -674,22 +691,23 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            # Assert that GPGKey is associated with product and repository
-            for product_ in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product_)
-                )
+            product_element = self.gpgkey.get_product_repo(name, product.name)
+            self.gpgkey.click(product_element)
+            self.assertIsNone(self.gpgkey.wait_until_element(
+                common_locators['alert.error']))
+            strategy, value = locators['prd.title']
+            self.assertIsNotNone(self.products.wait_until_element((
+                strategy, value % product.name)))
 
     @run_only_on('sat')
     @tier2
     def test_positive_add_product_with_repos(self):
-        """Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has more than one repository
+        """Create gpg key with valid name and valid gpg key then associate it
+        with custom product that has more than one repository
 
         @id: 0edffad7-0ab4-4bef-b16b-f6c8de55b0dc
 
-        @assert: gpg key is associated with product as well as with
-        the repositories
+        @assert: gpg key is properly associated with repositories
 
         @CaseLevel: Integration
         """
@@ -706,13 +724,13 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository_1 without GPGKey
-        entities.Repository(
+        repo1 = entities.Repository(
             name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
         # Creates new repository_2 without GPGKey
-        entities.Repository(
+        repo2 = entities.Repository(
             name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
@@ -720,12 +738,16 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             # Assert that GPGKey is associated with product and repository
-            for product_ in (True, False):
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(name, product.name)
+            )
+            for repo in [repo1, repo2]:
                 self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product_)
+                    self.gpgkey.get_product_repo(
+                        name, repo.name, entity_type='Repository'
+                    )
                 )
 
-    @skip_if_bug_open('bugzilla', 1210180)
     @run_only_on('sat')
     @tier2
     def test_positive_add_product_using_repo_discovery(self):
@@ -742,6 +764,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
+        product_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_gpgkey(
                 session,
@@ -758,16 +781,20 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 new_product=True,
                 product=gen_string('alpha'),
             )
-            for product in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product)
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(name, product_name)
+            )
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(
+                    name, 'fakerepo01', entity_type='Repository'
                 )
+            )
 
     @run_only_on('sat')
     @tier2
     def test_positive_add_repo_from_product_with_repo(self):
-        """Create gpg key with valid name and valid gpg key then
-        associate it to repository from custom product that has one repository
+        """Create gpg key with valid name and valid gpg key then associate it
+        to repository from custom product that has one repository
 
         @id: 5d78890f-4130-4dc3-9cfe-48999149422f
 
@@ -788,7 +815,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository with GPGKey
-        entities.Repository(
+        repo = entities.Repository(
             name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
@@ -798,19 +825,19 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
-                self.gpgkey.assert_product_repo(name, product=True)
+                self.gpgkey.get_product_repo(name, product.name)
             )
             # Assert that GPGKey is associated with repository
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=False)
+                self.gpgkey.get_product_repo(
+                    name, repo.name, entity_type='Repository')
             )
 
     @run_only_on('sat')
     @tier2
     def test_positive_add_repo_from_product_with_repos(self):
-        """Create gpg key with valid name and valid gpg key then
-        associate it to repository from custom product that has more than
-        one repository
+        """Create gpg key with valid name and valid gpg key then associate it
+        to repository from custom product that has more than one repository
 
         @id: 1fb38e01-4c04-4609-842d-069f96157317
 
@@ -831,14 +858,14 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository with GPGKey
-        entities.Repository(
+        repo1 = entities.Repository(
             name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
             gpg_key=gpg_key,
         ).create()
         # Creates new repository without GPGKey
-        entities.Repository(
+        repo2 = entities.Repository(
             name=gen_string('alpha'),
             url=FAKE_2_YUM_REPO,
             product=product,
@@ -847,11 +874,19 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
-                self.gpgkey.assert_product_repo(name, product=True)
+                self.gpgkey.get_product_repo(name, product.name)
             )
-            # Assert that GPGKey is not associated with product
+            # Assert that GPGKey is associated with first repository
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=False)
+                self.gpgkey.get_product_repo(
+                    name, repo1.name, entity_type='Repository'
+                )
+            )
+            # Assert that GPGKey is not associated with second repository
+            self.assertIsNone(
+                self.gpgkey.get_product_repo(
+                    name, repo2.name, entity_type='Repository'
+                )
             )
 
     @stubbed()
@@ -873,8 +908,8 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_empty_product(self):
-        """Create gpg key with valid name and valid gpg key then
-        associate it with empty (no repos) custom product then update the key
+        """Create gpg key with valid name and valid gpg key then associate it
+        with empty (no repos) custom product then update the key
 
         @id: 519817c3-9b67-4859-8069-95987ebf9453
 
@@ -899,27 +934,25 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=True)
+                self.gpgkey.get_product_repo(name, product.name)
             )
             # Update the Key name
             self.gpgkey.update(name, new_name)
             # Again assert that GPGKey is associated with product
-            self.assertEqual(
-                product.name,
-                self.gpgkey.assert_product_repo(new_name, product=True)
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(new_name, product.name)
             )
 
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_product_with_repo(self):
-        """Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has one repository
-        then update the key
+        """Create gpg key with valid name and valid gpg key then associate it
+        with custom product that has one repository then update the key
 
         @id: 02cb0601-6aa2-4589-b61e-3d3785a7e100
 
-        @assert: gpg key is associated with product as well as with
-        repository before/after update
+        @assert: gpg key is associated with product as well as with repository
+        before/after update
 
         @CaseLevel: Integration
         """
@@ -936,7 +969,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository without GPGKey
-        entities.Repository(
+        repo = entities.Repository(
             name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
@@ -946,23 +979,31 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             # Assert that before update GPGKey is associated with product, repo
-            for product_ in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product_)
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(name, product.name)
+            )
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(
+                    name, repo.name, entity_type='Repository'
                 )
+            )
             self.gpgkey.update(name, new_name)
             # Assert that after update GPGKey is associated with product, repo
-            for product_ in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(new_name, product=product_)
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(new_name, product.name)
+            )
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(
+                    new_name, repo.name, entity_type='Repository'
                 )
+            )
 
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_product_with_repos(self):
-        """Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has more than one
-        repository then update the key
+        """Create gpg key with valid name and valid gpg key then associate it
+        with custom product that has more than one repository then update the
+        key
 
         @id: 3ca4d9ff-8032-4c2a-aed9-00ac2d1352d1
 
@@ -984,13 +1025,13 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository_1 without GPGKey
-        entities.Repository(
+        repo1 = entities.Repository(
             name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
         # Creates new repository_2 without GPGKey
-        entities.Repository(
+        repo2 = entities.Repository(
             name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
@@ -1000,18 +1041,27 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             # Assert that before update GPGKey is associated with product, repo
-            for product_ in (True, False):
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(name, product.name)
+            )
+            for repo in [repo1, repo2]:
                 self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product_)
+                    self.gpgkey.get_product_repo(
+                        name, repo.name, entity_type='Repository'
+                    )
                 )
             self.gpgkey.update(name, new_name)
             # Assert that after update GPGKey is associated with product, repo
-            for product_ in (True, False):
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(new_name, product.name)
+            )
+            for repo in [repo1, repo2]:
                 self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(new_name, product=product_)
+                    self.gpgkey.get_product_repo(
+                        new_name, repo.name, entity_type='Repository'
+                    )
                 )
 
-    @skip_if_bug_open('bugzilla', 1210180)
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_product_using_repo_discovery(self):
@@ -1030,6 +1080,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """
         name = get_random_gpgkey_name()
         new_name = gen_string('alpha')
+        product_name = gen_string('alpha')
         entities.GPGKey(
             content=self.key_content,
             name=name,
@@ -1046,22 +1097,30 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 new_product=True,
                 product=gen_string('alpha'),
             )
-            for product in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product)
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(name, product_name)
+            )
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(
+                    name, 'fakerepo01', entity_type='Repository'
                 )
+            )
             self.gpgkey.update(name, new_name)
-            for product in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(new_name, product=product)
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(new_name, product_name)
+            )
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(
+                    new_name, 'fakerepo01', entity_type='Repository'
                 )
+            )
 
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_repo_from_product_with_repo(self):
-        """Create gpg key with valid name and valid gpg key then
-        associate it to repository from custom product that has one repository
-        then update the key
+        """Create gpg key with valid name and valid gpg key then associate it
+        to repository from custom product that has one repository then update
+        the key
 
         @id: 9827306e-76d7-4aef-8074-e97fc39d3bbb
 
@@ -1082,7 +1141,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository with GPGKey
-        entities.Repository(
+        repo = entities.Repository(
             gpg_key=gpg_key,
             name=gen_string('alpha'),
             product=product,
@@ -1094,34 +1153,38 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
-                self.gpgkey.assert_product_repo(name, product=True)
+                self.gpgkey.get_product_repo(name, product.name)
             )
             # Assert that GPGKey is associated with repository
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=False)
+                self.gpgkey.get_product_repo(
+                    name, repo.name, entity_type='Repository'
+                )
             )
             self.gpgkey.update(name, new_name)
             # Assert that after update GPGKey is not associated with product
             self.assertIsNone(
-                self.gpgkey.assert_product_repo(new_name, product=True)
+                self.gpgkey.get_product_repo(new_name, product.name)
             )
             # Assert that after update GPGKey is still associated
             # with repository
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(new_name, product=False)
+                self.gpgkey.get_product_repo(
+                    new_name, repo.name, entity_type='Repository'
+                )
             )
 
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_repo_from_product_with_repos(self):
-        """Create gpg key with valid name and valid gpg key then
-        associate it to repository from custom product that has more than
-        one repository then update the key
+        """Create gpg key with valid name and valid gpg key then associate it
+        to repository from custom product that has more than one repository
+        then update the key
 
         @id: d4f2fa16-860c-4ad5-b04f-8ce24b5618e9
 
-        @assert: gpg key is associated with single repository
-        before/after update but not with product
+        @assert: gpg key is associated with single repository before/after
+        update but not with product
 
         @CaseLevel: Integration
         """
@@ -1137,14 +1200,14 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository_1 with GPGKey
-        entities.Repository(
+        repo1 = entities.Repository(
             name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
             gpg_key=gpg_key,
         ).create()
         # Creates new repository_2 without GPGKey
-        entities.Repository(
+        repo2 = entities.Repository(
             name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
@@ -1155,20 +1218,38 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
-                self.gpgkey.assert_product_repo(name, product=True)
+                self.gpgkey.get_product_repo(name, product.name)
             )
-            # Assert that GPGKey is associated with repository
+            # Assert that GPGKey is associated with first repository
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=False)
+                self.gpgkey.get_product_repo(
+                    name, repo1.name, entity_type='Repository'
+                )
+            )
+            # Assert that GPGKey is not associated with second repository
+            self.assertIsNone(
+                self.gpgkey.get_product_repo(
+                    name, repo2.name, entity_type='Repository'
+                )
             )
             self.gpgkey.update(name, new_name)
             # Assert that after update GPGKey is not associated with product
             self.assertIsNone(
-                self.gpgkey.assert_product_repo(new_name, product=True)
+                self.gpgkey.get_product_repo(new_name, product.name)
             )
-            # Assert that after update GPGKey is not associated with repository
+            # Assert that after update GPGKey is associated with first
+            # repository
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(new_name, product=False)
+                self.gpgkey.get_product_repo(
+                    new_name, repo1.name, entity_type='Repository'
+                )
+            )
+            # Assert that after update GPGKey is not associated with second
+            # repository
+            self.assertIsNone(
+                self.gpgkey.get_product_repo(
+                    new_name, repo2.name, entity_type='Repository'
+                )
             )
 
     @stubbed
@@ -1219,7 +1300,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=True)
+                self.gpgkey.get_product_repo(name, product.name)
             )
             self.gpgkey.delete(name)
             # Assert GPGKey isn't associated with product
@@ -1253,23 +1334,31 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository without GPGKey
-        entities.Repository(
+        repo = entities.Repository(
             name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            # Assert that GPGKey is associated with product, repository
-            for product_ in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product_)
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(name, product.name)
+            )
+            self.assertIsNotNone(
+                self.gpgkey.get_product_repo(
+                    name, repo.name, entity_type='Repository'
                 )
+            )
             self.gpgkey.delete(name)
             # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
+            prd_element = self.products.search(product.name)
+            self.assertIsNone(
+                self.gpgkey.assert_key_from_product(
+                    name, prd_element, repo.name)
+            )
 
     @run_only_on('sat')
     @tier2
@@ -1311,18 +1400,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            # Assert that GPGKey is associated with product, repository
-            for product_ in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product_)
-                )
             self.gpgkey.delete(name)
             # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
-    @skip_if_bug_open('bugzilla', 1210180)
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_product_using_repo_discovery(self):
@@ -1357,10 +1440,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 new_product=True,
                 product=product_name,
             )
-            for product_ in (True, False):
-                self.assertIsNotNone(
-                    self.gpgkey.assert_product_repo(name, product=product_)
-                )
             self.gpgkey.delete(name)
             prd_element = self.products.search(product_name)
             self.assertIsNone(
@@ -1400,15 +1479,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
-            # Assert that GPGKey is not associated with product
-            self.assertIsNone(
-                self.gpgkey.assert_product_repo(name, product=True)
-            )
-            # Assert that GPGKey is associated with repository
-            self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=False)
-            )
             self.gpgkey.delete(name)
             # Assert that after deletion GPGKey is not associated with product
             prd_element = self.products.search(product.name)
@@ -1442,7 +1512,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             organization=self.organization,
         ).create()
         # Creates new repository_1 with GPGKey association
-        repo1 = entities.Repository(
+        repo = entities.Repository(
             gpg_key=gpg_key,
             name=gen_string('alpha'),
             product=product,
@@ -1456,21 +1526,15 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
-            # Assert that GPGKey is not associated with product
-            self.assertIsNone(
-                self.gpgkey.assert_product_repo(name, product=True)
-            )
-            # Assert that GPGKey is associated with repository
-            self.assertIsNotNone(
-                self.gpgkey.assert_product_repo(name, product=False)
-            )
             self.gpgkey.delete(name)
             # Assert key shouldn't be associated with product or repository
             # after deletion
             prd_element = self.products.search(product.name)
             self.assertIsNone(self.gpgkey.assert_key_from_product(
-                name, prd_element, repo1.name))
+                name, prd_element))
+            prd_element = self.products.search(product.name)
+            self.assertIsNone(self.gpgkey.assert_key_from_product(
+                name, prd_element, repo.name))
 
     @stubbed()
     @run_only_on('sat')
