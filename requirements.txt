@@ -17,7 +17,7 @@ six==1.10.0
 unittest2==1.1.0
 python_bugzilla==1.2.2
 PyYAML==3.12
-robozilla==0.1.6
+robozilla==0.1.7
 
 # Manually added
 flake8==3.0.4
