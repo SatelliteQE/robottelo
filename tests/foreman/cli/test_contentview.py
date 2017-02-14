@@ -183,6 +183,43 @@ class ContentViewTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ContentView.create({'organization-id': gen_string('alpha')})
 
+    @tier2
+    @run_only_on('sat')
+    def test_positive_create_with_repo_id(self):
+        """Create content view providing repository id
+
+        @id: bb91affe-f8d4-4724-8b61-41f3cb898fd3
+
+        @assert: Content view is created and repository is associated with CV
+
+        @BZ: 1213097
+        """
+        repo = make_repository({'product-id': self.product['id']})
+        cv = make_content_view({
+            'organization-id': self.org['id'],
+            'repository-ids': [repo['id']],
+        })
+        self.assertEqual(cv['yum-repositories'][0]['id'], repo['id'])
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_create_with_repo_name(self):
+        """Create content view providing repository name
+
+        @id: 80992a94-4c8e-4dbe-bc62-25af0bd2301d
+
+        @assert: Content view is created and repository is associated with CV
+
+        @BZ: 1213097
+        """
+        repo = make_repository({'product-id': self.product['id']})
+        cv = make_content_view({
+            'organization-id': self.org['id'],
+            'product': self.product['name'],
+            'repositories': [repo['name']],
+        })
+        self.assertEqual(cv['yum-repositories'][0]['name'], repo['name'])
+
     @tier1
     def test_positive_create_empty_and_verify_files(self):
         """Create an empty content view and make sure no files are created at
