@@ -243,7 +243,14 @@ class BugzillaSettings(FeatureSettings):
         return {'user': self.username, 'password': self.password}
 
     def validate(self):
-        return []
+        validation_errors = []
+        if self.username is None:
+            validation_errors.append(
+                '[bugzilla] bz_username must be provided.')
+        if self.password is None:
+            validation_errors.append(
+                '[bugzilla] bz_password must be provided.')
+        return validation_errors
 
 
 class ClientsSettings(FeatureSettings):
