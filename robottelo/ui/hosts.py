@@ -256,3 +256,38 @@ class Hosts(Base):
         self.assign_value(
             locators['host.smart_variable_value'] % sv_name, sv_value)
         self.click(common_locators['submit'])
+
+    def fetch_host_parameters(self, name, domain_name, parameters_list):
+        """Fetches parameter values of specified host
+
+        :param name: host's name (without domain part)
+        :param domain_name: host's domain name
+        :param parameters_list: A list of parameters to be fetched. Each
+            parameter should be a separate list containing tab name and
+            parameter name in absolute correspondence to UI (Similar to
+            parameters list passed to create a host). Example::
+
+                [
+                    ['Host', 'Lifecycle Environment'],
+                    ['Host', 'Content View'],
+                ]
+
+        :return: Dictionary of parameter name - parameter value pairs
+        :rtype: dict
+        """
+        host = self.search(u'{0}.{1}'.format(name, domain_name))
+        self.click(host)
+        self.click(locators['host.edit'])
+        result = {}
+        for tab_name, param_name in parameters_list:
+            tab_locator = tab_locators['.tab_'.join((
+                'host',
+                (tab_name.lower()).replace(' ', '_')
+            ))]
+            param_locator = locators['.fetch_'.join((
+                'host',
+                (param_name.lower()).replace(' ', '_')
+            ))]
+            self.click(tab_locator)
+            result[param_name] = self.wait_until_element(param_locator).text
+        return result
