@@ -51,7 +51,8 @@ def get_wontfix_bugs(bugs=None, log=None):
     for bug_id, data in bugs.items():
         bug_data = data.get('bug_data')
         # when not authenticated, private bugs will have no bug data
-        if bug_data and bug_data['resolution'] in ('WONTFIX', 'CANTFIX'):
+        if bug_data:
+            if bug_data['resolution'] in ('WONTFIX', 'CANTFIX'):
                 wontfixes.append(bug_id)
         else:
             log('bug data for bug id "{}" was not retrieved,'
