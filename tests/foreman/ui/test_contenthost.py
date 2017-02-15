@@ -101,6 +101,35 @@ class ContentHostTestCase(UITestCase):
         super(ContentHostTestCase, self).tearDown()
 
     @tier3
+    def test_positive_search_by_subscription_status(self):
+        """Register host into the system and search for it afterwards by
+        subscription status
+
+        @id: b4d24ee7-51b9-43e4-b0c9-7866b6340ce1
+
+        @assert: Validate that host can be found for valid subscription status
+        and that host is not present in the list for invalid status
+
+        @BZ: 1406855
+
+        @CaseLevel: System
+        """
+        with Session(self.browser):
+            self.assertIsNotNone(self.contenthost.search(self.client.hostname))
+            self.assertIsNotNone(
+                self.contenthost.search(
+                    self.client.hostname,
+                    _raw_query='subscription_status = valid',
+                )
+            )
+            self.assertIsNone(
+                self.contenthost.search(
+                    self.client.hostname,
+                    _raw_query='subscription_status != valid',
+                )
+            )
+
+    @tier3
     def test_positive_install_package(self):
         """Install a package to a host remotely
 
