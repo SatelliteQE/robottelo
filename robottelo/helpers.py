@@ -413,4 +413,3 @@ def default_url_on_new_port(oldport, newport):
 def get_func_name(func):
     """Given a func object return standardized name to use across project"""
     return '{0}.{1}'.format(func.__module__, func.__name__)
-
