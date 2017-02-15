@@ -104,7 +104,7 @@ ssh_key=
 # sattools_repo=http://sattools/repo
 
 # Bugzilla data to authenticate API calls
-[bugzilla]
+# [bugzilla]
 # username used when accessing Bugzilla's API
 # bz_username=admin
 

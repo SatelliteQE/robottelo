@@ -8,7 +8,7 @@ import re
 import requests
 import unittest2
 from functools import wraps
-from robottelo.bz_helpers import get_func_name
+from robottelo.helpers import get_func_name
 from robottelo.config import settings
 from robottelo.constants import (
     BUGZILLA_URL,
@@ -299,9 +299,9 @@ def _get_bugzilla_bug(bug_id):
     else:
         LOGGER.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
         # Make a network connection to the Bugzilla server.
-        bz_credentials = settings.bugzilla.get_credentials()
-        if any(value is None for value in bz_credentials.values()):
-            bz_credentials = {}
+        bz_credentials = {}
+        if setting_is_set('bugzilla'):
+            bz_credentials = settings.bugzilla.get_credentials()
         try:
             bz_conn = bugzilla.RHBugzilla(url=BUGZILLA_URL, **bz_credentials)
         except (TypeError, ValueError):  # pragma: no cover
