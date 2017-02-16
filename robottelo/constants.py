@@ -886,6 +886,7 @@ OSCAP_WEEKDAY = {
 OSCAP_DEFAULT_CONTENT = {
     'rhel6_content': 'Red Hat rhel6 default content',
     'rhel7_content': 'Red Hat rhel7 default content',
+    'rhel_firefox': 'Red Hat firefox default content',
 }
 
 OSCAP_PROFILE = {
@@ -895,6 +896,7 @@ OSCAP_PROFILE = {
               'Certified Cloud Providers (RH CCP)'),
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'common': 'Common Profile for General-Purpose Systems',
+    'firefox': 'Upstream Firefox STIG'
 }
 
 ROLES = [

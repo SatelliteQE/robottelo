@@ -2342,6 +2342,8 @@ locators = LocatorDict({
 
     # oscap reports
     "oscap.report_select": (By.XPATH, "//a[normalize-space(.)='%s']"),
+    "oscap.report_delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     # Registries
     "registry.new": (By.XPATH, "//a[contains(@href, '/registries/new')]"),
