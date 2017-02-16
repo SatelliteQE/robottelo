@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from unittest2 import TestCase
-from robottelo.bz_helpers import get_wontfix_bugs, group_by_key
+from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
 from robottelo.helpers import get_func_name
 
 
@@ -34,7 +34,7 @@ class BZHelperTestCase(TestCase):
 
     def test_get_wontfix_bugs(self):
         """Test if wontfixes are filtered"""
-        self.assertNotIn('1236', get_wontfix_bugs(self.bz_data))
+        self.assertNotIn('1236', get_deselect_bug_ids(self.bz_data))
 
     def test_group_by_key(self):
         """Test if decorated functions are grouped"""
