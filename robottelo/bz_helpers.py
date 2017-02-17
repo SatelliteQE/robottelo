@@ -42,8 +42,8 @@ def get_decorated_bugs():  # pragma: no cover
     return bugs
 
 
-def get_wontfix_bugs(bugs=None, log=None):
-    """returns the ID of bugs CLOSED as WONTFIX"""
+def get_deselect_bug_ids(bugs=None, log=None):
+    """returns the IDs of bugs to be deselected from test collection"""
     if log is None:
         log = log_debug
     bugs = bugs or get_decorated_bugs()
@@ -52,7 +52,7 @@ def get_wontfix_bugs(bugs=None, log=None):
         bug_data = data.get('bug_data')
         # when not authenticated, private bugs will have no bug data
         if bug_data:
-            if bug_data['resolution'] in ('WONTFIX', 'CANTFIX'):
+            if bug_data['resolution'] in ('WONTFIX', 'CANTFIX', 'DEFERRED'):
                 wontfixes.append(bug_id)
         else:
             log('bug data for bug id "{}" was not retrieved,'
