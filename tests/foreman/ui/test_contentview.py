@@ -2878,6 +2878,106 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_negative_readonly_user_add_remove_repo(self):
+        """Attempt to add and remove content view's yum and docker repositories
+        as a readonly user
+
+        @id: 907bf51f-8ebc-420e-b594-af0dc823e5b4
+
+        @Setup:
+
+        1. Create a user with the Content View read-only role
+        2. Create a content view
+        3. Add custom yum and docker repositories to content view
+
+        @Assert: User with read-only role for content view can not see 'Add'/
+        'Remove' repositories tabs as well as 'Add repository' and 'Remove
+        repository' buttons
+
+        @CaseLevel: Integration
+
+        @BZ: 1317828
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        # Create a role with content views read only permissions
+        role = entities.Role().create()
+        for resource_type, perm_name in (
+                ('Host', 'view_hosts'),
+                ('Katello::ContentView', 'promote_or_remove_content_views'),
+                ('Katello::ContentView', 'publish_content_views'),
+                ('Katello::ContentView', 'view_content_views'),
+                ('Katello::Product', 'view_products'),
+        ):
+            # Permission search doesn't filter permissions by name. Filtering
+            # them by resource type and looking for one with specific name
+            # instead
+            perms_list = entities.Permission(
+                resource_type=resource_type).search(query={'per_page': 100000})
+            desired_perm = next(
+                perm for perm in perms_list if perm.name == perm_name)
+            entities.Filter(
+                organization=[self.organization],
+                permission=[desired_perm],
+                role=role,
+            ).create()
+        # Create a user and assign the above created role
+        entities.User(
+            default_organization=self.organization,
+            organization=[self.organization],
+            role=[role],
+            login=user_login,
+            password=user_password,
+        ).create()
+        # Create yum and docker repositories
+        repo_id = self.setup_to_create_cv()
+        yum_repo = entities.Repository(id=repo_id).read()
+        docker_repo = entities.Repository(
+            content_type=REPO_TYPE['docker'],
+            docker_upstream_name=DOCKER_UPSTREAM_NAME,
+            product=entities.Product(organization=self.organization).create(),
+            url=DOCKER_REGISTRY_HUB,
+        ).create()
+        # Create a content view
+        content_view = entities.ContentView(
+            organization=self.organization,
+            repository=[docker_repo, yum_repo],
+        ).create()
+        # Log in as readonly user
+        with Session(self.browser, user_login, user_password) as session:
+            # Open the content view
+            session.nav.go_to_content_views()
+            cv = self.content_views.search(content_view.name)
+            self.assertIsNotNone(cv)
+            self.content_views.click(cv)
+            # Ensure 'Add'/'Remove' tabs and buttons are absent for both docker
+            # and yum repos
+            for tab in 'docker', 'yum':
+                with self.subTest(tab):
+                    if tab == 'docker':
+                        self.content_views.click(
+                            tab_locators['contentviews.tab_docker_content'])
+                    elif tab == 'yum':
+                        self.content_views.click(
+                            tab_locators['contentviews.tab_content'])
+                        self.content_views.click(
+                            locators['contentviews.content_repo'])
+
+                    for element_locator in (
+                        tab_locators['contentviews.tab_repo_add'],
+                        tab_locators['contentviews.tab_repo_remove'],
+                        locators['contentviews.add_repo'],
+                        locators['contentviews.remove_repo'],
+                    ):
+                        self.assertIsNone(
+                            self.content_views.wait_until_element(
+                                element_locator,
+                                timeout=1,
+                            )
+                        )
+
+    @run_only_on('sat')
+    @tier2
     def test_negative_non_admin_user_actions(self):
         """Attempt to manage content views
 
