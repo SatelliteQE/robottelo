@@ -253,6 +253,47 @@ class BugzillaSettings(FeatureSettings):
         return validation_errors
 
 
+class CapsuleSettings(FeatureSettings):
+    """Clients settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(CapsuleSettings, self).__init__(*args, **kwargs)
+        self.domain = None
+        self.instance_name = None
+        self.hash = None
+        self.ddns_package_url = None
+
+    def read(self, reader):
+        """Read clients settings."""
+        self.domain = reader.get('capsule', 'domain')
+        self.instance_name = reader.get('capsule', 'instance_name')
+        self.hash = reader.get('capsule', 'hash')
+        self.ddns_package_url = reader.get('capsule', 'ddns_package_url')
+
+    @property
+    def hostname(self):
+        if self.instance_name and self.domain:
+            return '{0}.{1}'.format(self.instance_name, self.domain)
+
+        return None
+
+    def validate(self):
+        """Validate capsule settings."""
+        validation_errors = []
+        if self.domain is None:
+            validation_errors.append(
+                '[capsule] domain option must be provided.')
+        if self.instance_name is None:
+            validation_errors.append(
+                '[capsule] instance_name option must be provided.')
+        if self.hash is None:
+            validation_errors.append('[capsule] hash option must be provided.')
+        if self.ddns_package_url is None:
+            validation_errors.append(
+                '[capsule] ddns_package_url option must be provided.')
+        return validation_errors
+
+
 class ClientsSettings(FeatureSettings):
     """Clients settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -628,6 +669,7 @@ class Settings(object):
 
         self.bugzilla = BugzillaSettings()
         # Features
+        self.capsule = CapsuleSettings()
         self.clients = ClientsSettings()
         self.compute_resources = LibvirtHostSettings()
         self.discovery = DiscoveryISOSettings()

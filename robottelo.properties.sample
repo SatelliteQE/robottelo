@@ -271,3 +271,23 @@ ssh_key=
 # for RHEL7 - the ports needs to have a correct selinux context set:
 # 'semanage port -a -t websm_port_t -p tcp <port-range>'
 port_range=9091, 14999
+
+# section for real capsule
+# [capsule]
+# to setup a real capsule we need the capsule virtual machine hostname
+# resolvable.
+# we should register a hostname and get a hash value as described in
+# https://mojo.redhat.com/docs/DOC-13143, that we should use on the stage of
+# ddns setup
+# domain is the base ddns domain, the virtual machine hostname will be a sub
+# domain of this domain.
+# domain=
+# the instance_name is the key used in the registration above, and used to name
+# the instance of the virtual machine
+# the real finale hostname should be instance_name.domain
+# instance_name=
+# the hash is the hash value returned in ddns registration
+# hash=
+# ddns rpm package to install on the virtual machine to setup ddns hostname
+# resolution
+# ddns_package_url=

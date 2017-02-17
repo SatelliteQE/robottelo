@@ -23,6 +23,7 @@ from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
+from robottelo.cli.capsule import Capsule
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.docker import DockerContainer, DockerRegistry
@@ -56,18 +57,28 @@ from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.smart_variable import SmartVariable
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
     OPERATING_SYSTEMS,
     SYNC_INTERVAL,
+    DISTRO_RHEL6,
+    DISTRO_RHEL7,
+    REPOS,
+    REPOSET,
+    PRDS,
+    PRD_SETS,
     TEMPLATE_TYPES,
 )
 from robottelo.decorators import bz_bug_is_open, cacheable
 from robottelo.helpers import (
     update_dictionary, default_url_on_new_port, get_available_capsule_port
 )
-from robottelo.ssh import upload_file
+from robottelo.ssh import (
+    download_file,
+    upload_file,
+)
 from tempfile import mkstemp
 from time import sleep
 
@@ -2376,3 +2387,334 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     # Puppet Class entities
     ContentView.publish({u'id': cv['id']})
     return ContentView.info({u'id': cv['id']})
+
+
+def _extract_capsule_satellite_installer_command(text):
+    cmd_start_with = 'satellite-installer'
+    cmd_lines = []
+    if text:
+        if isinstance(text, (list, tuple)):
+            lines = text
+        else:
+            lines = text.split('\n')
+        cmd_start_found = False
+        cmd_end_found = False
+        for line in lines:
+            if line.lstrip().startswith(cmd_start_with):
+                cmd_start_found = True
+            if cmd_start_found and not cmd_end_found:
+                cmd_lines.append(line.strip('\\'))
+                if not line.endswith('\\'):
+                    cmd_end_found = True
+    if cmd_lines:
+        # remove empty spaces
+        cmd = ' '.join(cmd_lines)
+        while '  ' in cmd:
+            cmd = cmd.replace('  ', ' ')
+
+        return cmd
+    return None
+
+
+def _get_capsule_vm_distro_repos(distro):
+    """Return the right RH repos info for the capsule setup"""
+    rh_repos = []
+    if distro == DISTRO_RHEL7:
+        # Red Hat Enterprise Linux 7 Server
+        rh_product_arch = PRD_SETS['rhel_72']['arch']
+        rh_product_releasever = PRD_SETS['rhel_72']['releasever']
+        rh_repos.append({
+            'product': PRD_SETS['rhel_72']['product'],
+            'repository-set': PRD_SETS['rhel_72']['reposet'],
+            'repository': PRD_SETS['rhel_72']['reponame'],
+            'repository-id': PRD_SETS['rhel_72']['label'],
+            'releasever': rh_product_releasever,
+            'arch': rh_product_arch
+        })
+        # Red Hat Satellite Capsule 6.2 (for RHEL 7 Server)
+        rh_repos.append({
+            'product': PRDS['rhsc'],
+            'repository-set': REPOSET['rhsc7'],
+            'repository': REPOS['rhsc7']['name'],
+            'repository-id': REPOS['rhsc7']['id'],
+        })
+    elif distro == DISTRO_RHEL6:
+        # Red Hat Enterprise Linux 6 Server
+        rh_product_arch = PRD_SETS['rhel_68']['arch']
+        rh_product_releasever = PRD_SETS['rhel_68']['releasever']
+        rh_repos.append({
+            'product': PRD_SETS['rhel_68']['product'],
+            'repository-set': PRD_SETS['rhel_68']['reposet'],
+            'repository': PRD_SETS['rhel_68']['reponame'],
+            'repository-id': PRD_SETS['rhel_68']['label'],
+            'releasever': rh_product_releasever,
+            'arch': rh_product_arch
+        })
+        # Red Hat Satellite Capsule 6.2 (for RHEL 6 Server)
+        rh_repos.append({
+            'product': PRDS['rhsc'],
+            'repository-set': REPOSET['rhsc6'],
+            'repository': REPOS['rhsc6']['name'],
+            'repository-id': REPOS['rhsc6']['id'],
+        })
+    else:
+        raise CLIFactoryError('distro "{}" not supported'.format(distro))
+
+    return rh_product_arch, rh_product_releasever, rh_repos
+
+
+def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
+                                  organization_ids=None, location_ids=None):
+    """Setup a Virtual Machine to host a capsule node
+
+    :param capsule_vm: the virtual machine to
+     setup as a capsule node
+    :param org_id: The organization that setup the capsule content
+    :param lce_id: The lifecycle environment  the capsule content was
+     promoted.
+    :param organization_ids: the organization ids of
+     organizations that will use the capsule.
+    :param location_ids: the location ids for which the content
+     will be synchronized.
+    :return tuple: capsule, org, lce  objects
+
+    Notes:
+
+    1. as this setup need the default manifest to be consumed, please ensure
+       that this function is called from one thread.
+
+    2. The org will consume the default manifest, it probable that it cannot
+       be installed for other organizations, if the tests need a manifest to be
+       uploaded, use the same org that setup the capsule by providing the
+       org_id and lce_id to be able to create and promote the capsule
+       content view and to create the capsule subscription key.
+    """
+    if capsule_vm.distro not in (DISTRO_RHEL6, DISTRO_RHEL7):
+        raise CLIFactoryError(
+            u'virtual machine distro "{}" not supported'.format(
+                capsule_vm.distro)
+        )
+
+    # Get the necessary repositories info to setup a capsule host
+    capsule_vm_distro_repos = _get_capsule_vm_distro_repos(capsule_vm.distro)
+    rh_product_arch, rh_product_releasever, rh_repos = capsule_vm_distro_repos
+
+    if organization_ids is None:
+        organization_ids = []
+
+    if location_ids is None:
+        location_ids = []
+
+    if org_id is None:
+        # create a new org
+        capsule_org = make_org({
+            'name': 'capsule-{0}'.format(gen_string('alpha', 10))})
+        org_id = capsule_org['id']
+    else:
+        capsule_org = Org.info({'id': org_id})
+
+    if lce_id is None:
+        # Create a new lifecycle environment for capsule only
+        capsule_lce = make_lifecycle_environment({
+            'name': 'capsule-{0}'.format(gen_string('alpha', 10)),
+            'organization-id': org_id
+        })
+        lce_id = capsule_lce['id']
+    else:
+        capsule_lce = LifecycleEnvironment.info({
+            'id': lce_id, 'organization-id': org_id})
+
+    # Clone manifest and upload it
+    with manifests.clone() as manifest:
+        upload_file(manifest.content, manifest.filename)
+    try:
+        Subscription.upload({
+            u'file': manifest.filename,
+            u'organization-id': org_id,
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            u'Failed to upload manifest\n{0}'.format(err.msg))
+
+    # Enable the RH capsule products
+    for rh_repo in rh_repos:
+        try:
+            RepositorySet.enable({
+                u'basearch': rh_product_arch,
+                u'name': rh_repo['repository-set'],
+                u'organization-id': org_id,
+                u'product': rh_repo['product'],
+                u'releasever': rh_repo.get('releasever'),
+            })
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                u'Failed to enable repository set\n{0}'.format(err.msg))
+    # Retrieve the repositories info
+    rh_repos_info = []
+    for rh_repo in rh_repos:
+        try:
+            rh_repo_info = Repository.info({
+                u'name': rh_repo['repository'],
+                u'organization-id': org_id,
+                u'product': rh_repo['product'],
+            })
+            rh_repos_info.append(rh_repo_info)
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                u'Failed to fetch repository info\n{0}'.format(err.msg))
+    # Synchronize the RH repositories
+    for rh_repo in rh_repos:
+        try:
+            Repository.synchronize({
+                u'name': rh_repo['repository'],
+                u'organization-id': org_id,
+                u'product': rh_repo['product'],
+            })
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                u'Failed to synchronize repository\n{0}'.format(err.msg))
+    # Create a content view
+    content_view_id = make_content_view({
+        u'organization-id': org_id,
+        u'name': 'capsule-{0}'.format(gen_string('alpha', 10))
+    })['id']
+    for rh_repo_info in rh_repos_info:
+        try:
+            ContentView.add_repository({
+                u'id': content_view_id,
+                u'organization-id': org_id,
+                u'repository-id': rh_repo_info['id'],
+            })
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                u'Failed to add repository to content view\n{0}'
+                .format(err.msg)
+            )
+    # Publish the content view
+    try:
+        ContentView.publish({u'id': content_view_id})
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            u'Failed to publish new version of content view\n{0}'
+            .format(err.msg)
+        )
+    # Get the latest content view version id
+    try:
+        content_view_version = ContentView.info(
+            {u'id': content_view_id}
+        )['versions'][-1]
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            u'Failed to fetch content view info\n{0}'.format(err.msg))
+    # Promote content view version to lifecycle environment
+    try:
+        ContentView.version_promote({
+            u'id': content_view_version['id'],
+            u'organization-id': org_id,
+            u'to-lifecycle-environment-id': lce_id,
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            u'Failed to promote version to next environment\n{0}'
+            .format(err.msg)
+        )
+    activation_key = make_activation_key({
+        u'organization-id': org_id,
+        u'lifecycle-environment-id': lce_id,
+        u'content-view-id': content_view_id,
+        u'name': 'capsule-{0}'.format(gen_alphanumeric())
+    })
+    # Add subscriptions to activation-key
+    subscriptions = Subscription.list({'organization-id': org_id})
+    for subscription in subscriptions:
+        activationkey_add_subscription_to_repo({
+            'organization-id': org_id,
+            'activationkey-id': activation_key['id'],
+            'subscription': subscription['name']
+        })
+    # Install katello ca on capsule virtual machine
+    capsule_vm.install_katello_ca()
+    # Register the capsule host to satellite
+    capsule_vm.register_contenthost(
+        capsule_org['name'],
+        activation_key=activation_key['name']
+    )
+    # Patch the os release version
+    capsule_vm.run(
+        "touch /etc/yum/vars/releasever "
+        "&& echo '{0}' > /etc/yum/vars/releasever"
+        .format(rh_product_releasever)
+    )
+    # Enable the repositories
+    for repo in rh_repos:
+        repo_id = repo['repository-id']
+        capsule_vm.enable_repo(repo_id)
+
+    # Refresh the subscription
+    capsule_vm.run('subscription-manager refresh')
+    capsule_vm.run('yum clean all && yum repolist')
+    # Install katello agent
+    capsule_vm.install_katello_agent()
+
+    cert_file_path = '/tmp/{0}-certs.tar'.format(capsule_vm.hostname)
+    result = ssh.command(
+        'capsule-certs-generate '
+        '--capsule-fqdn {0} '
+        '--certs-tar {1}'
+        .format(capsule_vm.hostname, cert_file_path)
+    )
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'was unable to generate certificate\n{}'.format(result.stderr))
+
+    # retrieve the installer command from the result output
+    satellite_installer_cmd = _extract_capsule_satellite_installer_command(
+        result.stdout
+    )
+    # copy the certificate to capsule vm
+    _, temporary_local_cert_file_path = mkstemp(suffix='-certs.tar')
+    download_file(
+        remote_file=cert_file_path,
+        local_file=temporary_local_cert_file_path,
+        hostname=settings.server.hostname
+    )
+    upload_file(
+        local_file=temporary_local_cert_file_path,
+        remote_file=cert_file_path,
+        hostname=capsule_vm.hostname
+    )
+    # delete the temporary file
+    os.remove(temporary_local_cert_file_path)
+    # Install Satellite Capsule product
+    capsule_vm.run('yum install -y satellite-capsule')
+    result = capsule_vm.run('rpm -q satellite-capsule')
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to install satellite-capsule package\n{}'.format(
+                result.stderr)
+        )
+    result = capsule_vm.run(satellite_installer_cmd)
+    if result.return_code != 0:
+        # # before exit down load the capsule log file
+        download_file(
+            '/var/log/foreman-installer/capsule.log',
+            '/tmp/capsule.log',
+            capsule_vm.ip_addr
+        )
+        raise CLIFactoryError(result.return_code, result.stderr,
+                              u'foreman installer failed at capsule host')
+
+    capsule = Capsule.info({'name': capsule_vm.hostname})
+
+    if organization_ids:
+        # update the capsule with organization_ids and location_ids
+        if not location_ids:
+            location_ids.append(Location.info({'name': DEFAULT_LOC})['id'])
+
+        Capsule.update({
+            'id': capsule['id'],
+            'organization-ids': organization_ids,
+            'location-ids': location_ids
+        })
+
+    return capsule, capsule_org, capsule_lce
