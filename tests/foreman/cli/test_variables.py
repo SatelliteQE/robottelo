@@ -19,8 +19,6 @@ from random import choice
 
 from nailgun import entities
 
-
-from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
@@ -227,7 +225,7 @@ class SmartVariablesTestCase(CLITestCase):
                     'variable': name,
                     'puppet-class': self.puppet_class['name']
                 })
-                self.assertEqual(smart_variable['variable'], name)
+                self.assertEqual(smart_variable['name'], name)
 
     @run_only_on('sat')
     @tier1
@@ -246,7 +244,7 @@ class SmartVariablesTestCase(CLITestCase):
             with self.subTest(name):
                 with self.assertRaises(CLIReturnCodeError):
                     SmartVariable.create({
-                        'variable': name,
+                        'name': name,
                         'puppet-class': self.puppet_class['name']
                     })
 
@@ -284,9 +282,9 @@ class SmartVariablesTestCase(CLITestCase):
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
-        SmartVariable.delete({'variable': smart_variable['variable']})
+        SmartVariable.delete({'name': smart_variable['name']})
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.info({'variable': smart_variable['variable']})
+            SmartVariable.info({'name': smart_variable['name']})
 
     @run_only_on('sat')
     @tier1
@@ -310,15 +308,15 @@ class SmartVariablesTestCase(CLITestCase):
         new_puppet = Puppet.info(
             {u'name': choice(self.puppet_subclasses)['name']})
         SmartVariable.update({
-            'variable': smart_variable['variable'],
+            'name': smart_variable['name'],
             'puppet-class': new_puppet['name']
         })
         updated_sv = SmartVariable.info(
-            {'variable': smart_variable['variable']})
+            {'name': smart_variable['name']})
         self.assertEqual(updated_sv['puppet-class'], new_puppet['name'])
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1367032)
+    @skip_if_bug_open('bugzilla', 1412124)
     @tier1
     def test_positive_update_name(self):
         """Update Smart Variable's name
@@ -338,11 +336,11 @@ class SmartVariablesTestCase(CLITestCase):
             with self.subTest(new_name):
                 SmartVariable.update({
                     'id': smart_variable['id'],
-                    'new-variable': new_name,
+                    'new-name': new_name,
                     'puppet-class': self.puppet_class['name']
                 })
                 updated_sv = SmartVariable.info({'id': smart_variable['id']})
-                self.assertEqual(updated_sv['variable'], new_name)
+                self.assertEqual(updated_sv['name'], new_name)
 
     @run_only_on('sat')
     @tier1
@@ -364,7 +362,7 @@ class SmartVariablesTestCase(CLITestCase):
             {'variable': name, 'puppet-class': self.puppet_class['name']})
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.create({
-                'variable': name, 'puppet-class': self.puppet_class['name']})
+                'name': name, 'puppet-class': self.puppet_class['name']})
 
     @run_only_on('sat')
     @tier1
@@ -979,7 +977,7 @@ class SmartVariablesTestCase(CLITestCase):
             'value': '[23, 44, 66]',
         })
         SmartVariable.update({
-            'variable': smart_variable['variable'],
+            'name': smart_variable['name'],
             'merge-overrides': 1,
             'merge-default': 1,
         })
@@ -1165,7 +1163,7 @@ class SmartVariablesTestCase(CLITestCase):
             'variable-type': 'array'
         })
         SmartVariable.update({
-            'variable': smart_variable['variable'],
+            'name': smart_variable['name'],
             'merge-overrides': 1,
             'merge-default': 1,
         })
@@ -1176,6 +1174,7 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['merge-default-value'], True)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
         """Attempt to enable Merge Overrides, Merge Default flags for non
@@ -1199,7 +1198,7 @@ class SmartVariablesTestCase(CLITestCase):
         })
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.update({
-                'variable': smart_variable['variable'],
+                'name': smart_variable['name'],
                 'merge-overrides': 1,
                 'merge-default': 1,
             })
@@ -1229,11 +1228,11 @@ class SmartVariablesTestCase(CLITestCase):
             'variable-type': 'array'
         })
         SmartVariable.update({
-            'variable': smart_variable['variable'],
+            'name': smart_variable['name'],
             'merge-overrides': 1,
         })
         SmartVariable.update({
-            'variable': smart_variable['variable'],
+            'name': smart_variable['name'],
             'avoid-duplicates': 1,
         })
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
@@ -1241,6 +1240,7 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['avoid-duplicates'], True)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
         """Attempt to enable Avoid duplicates flag for non supported types.
@@ -1267,7 +1267,7 @@ class SmartVariablesTestCase(CLITestCase):
         })
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.update({
-                'variable': smart_variable['variable'],
+                'name': smart_variable['name'],
                 'merge-overrides': 1,
                 'avoid-duplicates': 1,
             })
@@ -1378,11 +1378,11 @@ class SmartVariablesTestCase(CLITestCase):
         })
         self.assertEqual(smart_variable['hidden-value?'], True)
         SmartVariable.update({
-            'variable': smart_variable['variable'],
+            'name': smart_variable['name'],
             'hidden-value': 0
         })
         updated_sv = SmartVariable.info(
-            {'variable': smart_variable['variable']})
+            {'name': smart_variable['name']})
         self.assertEqual(updated_sv['hidden-value?'], False)
 
     @run_only_on('sat')
@@ -1411,11 +1411,11 @@ class SmartVariablesTestCase(CLITestCase):
         })
         self.assertEqual(smart_variable['hidden-value?'], True)
         SmartVariable.update({
-            'variable': smart_variable['variable'],
+            'name': smart_variable['name'],
             'default-value': value,
         })
         updated_sv = SmartVariable.info(
-            {'variable': smart_variable['variable']})
+            {'name': smart_variable['name']})
         self.assertEqual(updated_sv['default-value'], value)
 
     @run_only_on('sat')

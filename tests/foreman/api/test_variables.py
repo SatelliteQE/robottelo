@@ -23,7 +23,7 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from requests import HTTPError
 
-from robottelo.api.utils import delete_puppet_class, publish_puppet_module
+from robottelo.api.utils import publish_puppet_module
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import (
     filtered_datapoint,
@@ -379,7 +379,8 @@ class SmartVariablesTestCase(APITestCase):
                     variable_type=data['sc_type'],
                     default_value=data['value'],
                 ).create()
-                self.assertEqual(smart_variable.variable_type, data['sc_type'])
+                self.assertEqual(
+                    smart_variable.parameter_type, data['sc_type'])
                 if data['sc_type'] in ('json', 'hash', 'array'):
                     self.assertEqual(
                         smart_variable.default_value, json.loads(data['value'])
@@ -451,7 +452,7 @@ class SmartVariablesTestCase(APITestCase):
     def test_negative_create_matcher_empty_value(self):
         """Create matcher with empty value with type other than string
 
-        @id: a90b5bcd-f76c-4663-bf41-2f96e7e15c0f
+        @id: ad24999f-1bed-4abb-a01f-3cb485d67968
 
         @steps:
 
@@ -1154,6 +1155,7 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.merge_default, True)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
         """Disable Merge Overrides, Merge Default flags for non supported types
@@ -1216,6 +1218,7 @@ class SmartVariablesTestCase(APITestCase):
         self.assertEqual(smart_variable.avoid_duplicates, True)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
         """Disable Avoid duplicates flag for non supported types

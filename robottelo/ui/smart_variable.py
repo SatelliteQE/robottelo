@@ -130,8 +130,8 @@ class SmartVariable(Base):
         :param str field_value: Expected value for specified field
         """
         self.search(name)
-        searched = self.wait_until_element(
-            locators['smart_variable.table_value'] % field_value)
+        strategy, value = locators['smart_variable.table_value']
+        searched = self.wait_until_element((strategy, value % field_value))
         if searched is None:
             raise UIError(
                 'Smart Variable "{0}" field in the table has not "{1}" value.'
@@ -154,18 +154,13 @@ class SmartVariable(Base):
         for i, matcher in enumerate(matcher_list, start=1):
             self.click(locators['smart_variable.add_matcher'])
             matcher_attribute = matcher['matcher_attribute'].split('=')
-            self.assign_value(
-                locators['smart_variable.matcher_attribute_type'] % i,
-                matcher_attribute[0]
-            )
-            self.assign_value(
-                locators['smart_variable.matcher_attribute_value'] % i,
-                matcher_attribute[1]
-            )
-            self.assign_value(
-                locators['smart_variable.matcher_value'] % i,
-                matcher['matcher_value']
-            )
+            strategy, value = locators['smart_variable.matcher_attribute_type']
+            self.assign_value((strategy, value % i), matcher_attribute[0])
+            strategy, value = locators[
+                'smart_variable.matcher_attribute_value']
+            self.assign_value((strategy, value % i), matcher_attribute[1])
+            strategy, value = locators['smart_variable.matcher_value']
+            self.assign_value((strategy, value % i), matcher['matcher_value'])
 
     def validate_checkbox(self, sv_name, checkbox_name):
         """Checks if specific smart variable checkbox is enabled or not

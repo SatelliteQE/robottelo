@@ -25,28 +25,24 @@ from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
-    make_content_view,
     make_hostgroup,
     make_org,
-    make_product,
-    make_repository,
     publish_puppet_module,
 )
 from robottelo.cli.host import Host
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.puppet import Puppet
-from robottelo.cli.repository import Repository
 from robottelo.cli.scparams import SmartClassParameter
-from robottelo.constants import FAKE_8_PUPPET_REPO
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
-    skip_if_bug_open)
+)
 from robottelo.test import CLITestCase
 
 
@@ -1075,6 +1071,7 @@ class SmartClassParametersTestCase(CLITestCase):
         @assert: The matcher has been created successfully.
         """
         sc_param_id = self.sc_params_ids_list.pop()
+        value = gen_string('alpha')
         SmartClassParameter.update({
             'id': sc_param_id,
             'override': 1,
@@ -1083,7 +1080,8 @@ class SmartClassParametersTestCase(CLITestCase):
         SmartClassParameter.add_override_value({
             'smart-class-parameter-id': sc_param_id,
             'match': 'domain=test.com',
-            'use-puppet-default': 1
+            'use-puppet-default': 1,
+            'value': value,
         })
         sc_param = SmartClassParameter.info({
             'puppet-class': self.puppet_class['name'],
