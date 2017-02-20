@@ -1454,8 +1454,9 @@ locators = LocatorDict({
         "(//textarea[contains(@id, '_value') "
         "and contains(@name, 'parameters')])[%i]"),
     "host.smart_variable_value": (
-        By.XPATH,
-        "//*[ancestor::tr//td[contains(., '%s')] and @data-property='value']"),
+        By.XPATH, "//textarea[ancestor::tr//td[contains(., '%s')]]"),
+    "host.smart_variable_value_hidden": (
+        By.XPATH, "//input[ancestor::tr//td[contains(., '%s')]]"),
     "host.smart_variable_override": (
         By.XPATH,
         "//a[ancestor::tr//td[contains(., '%s')] and @data-tag='override']"
@@ -1472,7 +1473,7 @@ locators = LocatorDict({
     ),
     "host.smart_variable_puppet_class": (
         By.XPATH, "//td[contains(., '%s')]//ancestor::tbody/tr[1]/td[1]"),
-    "host.override_error": (By.CSS_SELECTOR, "input:invalid[value='%s']"),
+    "host.override_error": (By.XPATH, "//td[@class='has-error']"),
 
     # host.vm (NOTE:- visible only when selecting a compute resource)
     "host.cpus": (
@@ -3155,6 +3156,10 @@ locators = LocatorDict({
         By.XPATH,
         "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
         "contains(@id, 'variable_')) and contains(@name, '[default_value]')]"),
+    "smart_variable.default_value_hidden": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[default_value]')]"),
     "smart_variable.hidden_value": (
         By.XPATH,
         "//input[(ancestor::div[@class='tab-pane fields active'] or "
@@ -3212,6 +3217,11 @@ locators = LocatorDict({
     "smart_variable.matcher_value": (
         By.XPATH,
         "(//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[value]')])[%i]"
+    ),
+    "smart_variable.matcher_value_hidden": (
+        By.XPATH,
+        "(//input[(ancestor::div[@class='tab-pane fields active'] or "
         "contains(@id, 'variable_')) and contains(@name, '[value]')])[%i]"
     ),
     "smart_variable.matcher_error": (By.XPATH, "//tr[@class='has-error']"),

@@ -146,7 +146,7 @@ class SmartVariablesTestCase(UITestCase):
            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
         cls.env = entities.Environment().search(
            query={'search': u'content_view="{0}"'.format(cv.name)}
-        )[0]
+        )[0].read()
         # Find imported puppet class
         cls.puppet_class = entities.PuppetClass().search(query={
            'search': u'name = "{0}" and environment = "{1}"'.format(
@@ -158,7 +158,10 @@ class SmartVariablesTestCase(UITestCase):
                 cls.puppet_modules[0]['name'], cls.env.name)
         })
 
-        cls.host = entities.Host(organization=cls.org).create()
+        cls.host = entities.Host(
+            organization=cls.org,
+            location=cls.env.location[0],
+        ).create()
         cls.host.environment = cls.env
         cls.host.update(['environment'])
         cls.host.add_puppetclass(data={'puppetclass_id': cls.puppet_class.id})
@@ -237,8 +240,9 @@ class SmartVariablesTestCase(UITestCase):
                 self.host.name, name).text
             self.assertEqual(sv_value, value)
             # Verify puppet class value for corresponding smart variable
+            strategy, value = locators['host.smart_variable_puppet_class']
             sv_puppet_class = self.hosts.wait_until_element(
-                locators['host.smart_variable_puppet_class'] % name).text
+                (strategy, value % name)).text
             self.assertEqual(sv_puppet_class, self.puppet_class.name)
 
     @run_only_on('sat')
@@ -1565,8 +1569,7 @@ class SmartVariablesTestCase(UITestCase):
             self.hosts.set_smart_variable_value(
                 self.host.name, name, gen_string('alpha'))
             self.assertIsNotNone(
-                self.hosts.wait_until_element(
-                    locators['host.override_error'] % default_value))
+                self.hosts.wait_until_element(locators['host.override_error']))
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'overrides_number', '0'))
 
@@ -1616,8 +1619,9 @@ class SmartVariablesTestCase(UITestCase):
             # Check that matcher value was changed from smart variable
             # interface
             self.smart_variable.click(self.smart_variable.search(name))
+            strategy, value = locators['smart_variable.matcher_value']
             sv_matcher_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.matcher_value'] % 1)
+                (strategy, value % 1))
             self.assertEqual(sv_matcher_value.text, host_override_value)
 
     @run_only_on('sat')
@@ -1666,12 +1670,13 @@ class SmartVariablesTestCase(UITestCase):
             # value
             self.hosts.set_smart_variable_value(
                 self.host.name, name, host_override_value, override=False)
-            self.assertIsNotNone(self.hosts.wait_until_element(
-                    locators['host.override_error'] % override_value))
+            self.assertIsNotNone(
+                self.hosts.wait_until_element(locators['host.override_error']))
             # Verify that matcher value was not changed
             self.smart_variable.click(self.smart_variable.search(name))
+            strategy, value = locators['smart_variable.matcher_value']
             sv_matcher_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.matcher_value'] % 1)
+                (strategy, value % 1))
             self.assertEqual(sv_matcher_value.text, override_value)
             self.assertNotEqual(sv_matcher_value.text, host_override_value)
 
@@ -1702,9 +1707,10 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value'])
+                locators['smart_variable.default_value_hidden'])
             self.assertEqual(default_value.get_attribute('value'), value)
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+            self.assertEqual(default_value.get_attribute('type'), 'password')
+            self.assertIn('***', default_value.get_attribute('placeholder'))
 
     @run_only_on('sat')
     @tier1
@@ -1736,14 +1742,13 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.smart_variable.search_and_click(name)
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value'])
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
             self.smart_variable.update(name, hidden_value=False)
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
                 locators['smart_variable.default_value'])
-            self.assertNotIn(
-                'masked-input', default_value.get_attribute('class'))
+            self.assertEqual(default_value.get_attribute('type'), 'textarea')
             self.assertEqual(default_value.get_attribute('value'), value)
 
     @run_only_on('sat')
@@ -1785,15 +1790,17 @@ class SmartVariablesTestCase(UITestCase):
             self.hosts.click(locators['host.edit'])
             self.hosts.click(tab_locators['host.tab_params'])
             sv_value = self.hosts.get_smart_variable_value(
-                self.host.name, name)
+                self.host.name, name, hidden=True)
             self.assertEqual(sv_value.get_attribute('value'), default_value)
-            self.assertIn('masked-input', sv_value.get_attribute('class'))
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
             self.assertIn(
                 '***', sv_value.get_attribute('data-hidden-value'))
+            strategy, value = locators['host.smart_variable_override']
             self.assertTrue(self.smart_variable.is_element_enabled(
-                locators['host.smart_variable_override'] % name))
+                (strategy, value % name)))
+            strategy, value = locators['host.smart_variable_unhide']
             self.assertTrue(self.smart_variable.is_element_enabled(
-                locators['host.smart_variable_unhide'] % name))
+                (strategy, value % name)))
 
     @run_only_on('sat')
     @tier2
@@ -1833,18 +1840,21 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.assertIsNotNone(self.smart_variable.search(name))
             sv_value = self.hosts.get_smart_variable_value(
-                self.host.name, name)
-            self.assertIn('masked-input', sv_value.get_attribute('class'))
-            self.hosts.click(locators['host.smart_variable_unhide'] % name)
+                self.host.name, name, hidden=True)
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
+            strategy, value = locators['host.smart_variable_unhide']
+            self.hosts.click((strategy, value % name))
+            strategy, value = locators['host.smart_variable_override']
             self.assertTrue(self.smart_variable.is_element_enabled(
-                locators['host.smart_variable_override'] % name))
+                (strategy, value % name)))
+            strategy, value = locators['host.smart_variable_hide']
             self.assertTrue(self.smart_variable.is_element_enabled(
-                locators['host.smart_variable_hide'] % name))
+                (strategy, value % name)))
             self.hosts.click(common_locators['submit'])
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value'])
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
 
     @run_only_on('sat')
     @tier1
@@ -1879,16 +1889,16 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value'])
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
             self.assertEqual(default_value.get_attribute('value'), value)
             self.smart_variable.assign_value(
-                locators['smart_variable.default_value'], new_value)
+                locators['smart_variable.default_value_hidden'], new_value)
             self.smart_variable.click(common_locators['submit'])
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value'])
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
             self.assertEqual(default_value.get_attribute('value'), new_value)
 
     @run_only_on('sat')
@@ -1930,29 +1940,29 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.assertIsNotNone(self.smart_variable.search(name))
             sv_value = self.hosts.get_smart_variable_value(
-                self.host.name, name)
-            self.assertIn('masked-input', sv_value.get_attribute('class'))
+                self.host.name, name, hidden=True)
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
             self.assertEqual(sv_value.get_attribute('value'), default_value)
             self.hosts.set_smart_variable_value(
-                self.host.name, name, host_override_value)
+                self.host.name, name, host_override_value, hidden=True)
             sv_value = self.hosts.get_smart_variable_value(
-                self.host.name, name)
-            self.assertIn('masked-input', sv_value.get_attribute('class'))
+                self.host.name, name, hidden=True)
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
             self.assertEqual(
                 sv_value.get_attribute('value'), host_override_value)
             self.smart_variable.search_and_click(name)
             default_value_element = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value'])
+                locators['smart_variable.default_value_hidden'])
             self.assertEqual(
                 default_value_element.get_attribute('value'), default_value)
-            self.assertIn(
-                'masked-input', default_value_element.get_attribute('class'))
+            self.assertEqual(
+                default_value_element.get_attribute('type'), 'password')
+            strategy, value = locators['smart_variable.matcher_value_hidden']
             matcher_element = self.smart_variable.wait_until_element(
-                locators['smart_variable.matcher_value'] % 1)
+                (strategy, value % 1))
             self.assertEqual(
                 matcher_element.get_attribute('value'), host_override_value)
-            self.assertIn(
-                'masked-input', matcher_element.get_attribute('class'))
+            self.assertEqual(matcher_element.get_attribute('type'), 'password')
 
     @run_only_on('sat')
     @tier1
@@ -1992,12 +2002,14 @@ class SmartVariablesTestCase(UITestCase):
             )
             self.smart_variable.click(self.smart_variable.search(name))
             default_value = self.smart_variable.wait_until_element(
-                locators['smart_variable.default_value'])
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
             self.assertEqual(default_value.get_attribute('value'), '')
+            self.assertEqual(default_value.get_attribute('placeholder'), '')
             # Check matcher state and value
+            strategy, value = locators['smart_variable.matcher_value_hidden']
             matcher_element = self.smart_variable.wait_until_element(
-                locators['smart_variable.matcher_value'] % 1)
+                (strategy, value % 1))
             self.assertEqual(
                 matcher_element.get_attribute('value'), override_value)
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+            self.assertEqual(matcher_element.get_attribute('type'), 'password')

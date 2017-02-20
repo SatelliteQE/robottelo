@@ -180,10 +180,7 @@ class SmartClassParametersTestCase(APITestCase):
         ).create()
         host.add_puppetclass(
             data={'puppetclass_id': self.puppet_class.id})
-        result = host.list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
+        self.assertGreater(len(host.list_scparams()['results']), 0)
 
     @run_only_on('sat')
     @tier2
@@ -202,10 +199,7 @@ class SmartClassParametersTestCase(APITestCase):
         hostgroup = entities.HostGroup(environment=self.env).create()
         hostgroup.add_puppetclass(
             data={'puppetclass_id': self.puppet_class.id})
-        result = hostgroup.list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
+        self.assertGreater(len(hostgroup.list_scparams()['results']), 0)
 
     @run_only_on('sat')
     @tier1
@@ -218,35 +212,6 @@ class SmartClassParametersTestCase(APITestCase):
         """
         result = self.puppet_class.list_scparams()['results']
         self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_import_twice_list_parameters_by_puppetclass_id(self):
-        """Import same puppet class twice (e.g. into different Content Views)
-        but list class parameters only for specific puppet class.
-
-        @id: c20a56fd-a328-44ce-81ce-52e315c95a81
-
-        @assert: Parameters listed for specific Puppet class.
-
-        BZ: 1385351
-        """
-        cv = publish_puppet_module(
-            self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
-        env = entities.Environment().search(
-            query={'search': u'content_view="{0}"'.format(cv.name)}
-        )[0].read()
-        puppet_class = entities.PuppetClass().search(query={
-            'search': u'name = "{0}" and environment = "{1}"'.format(
-                self.puppet_modules[0]['name'], env.name)
-        })[0]
-        result = puppet_class.list_scparams(
-            data={'per_page': 1000})['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
 
     @run_only_on('sat')
     @tier2
@@ -263,10 +228,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.override = True
         sc_param.update(['override'])
         self.assertEqual(sc_param.read().override, True)
-        result = self.env.list_scparams()['results']
-        self.assertGreater(len(result), 0)
-        # Check that only unique results are returned
-        self.assertEqual(len(result), len({scp['id'] for scp in result}))
+        self.assertGreater(len(self.env.list_scparams()['results']), 0)
 
     @run_only_on('sat')
     @tier1

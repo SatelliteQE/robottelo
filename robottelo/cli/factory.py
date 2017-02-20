@@ -2339,39 +2339,6 @@ def setup_org_for_a_rh_repo(options=None):
         u'repository-id': rhel_repo['id'],
     }
 
-def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
-    """Creates puppet repo, sync it via provided url and publish using
-    Content View publishing mechanism. It makes puppet class available
-    via Puppet Environment created by Content View and returns Content
-    View entity.
-
-    :param puppet_modules: List of dictionaries with module 'author'
-        and module 'name' fields.
-    :param str repo_url: Url of the repo that can be synced using pulp:
-        pulp repo or puppet forge.
-    :param organization_id: Organization id that is shared between created
-        entities.
-    :return: Content View entity.
-    """
-    if not organization_id:
-        organization_id = make_org()['id']
-    product = make_product({u'organization-id': organization_id})
-    repo = make_repository({
-        u'product-id': product['id'],
-        u'content-type': 'puppet',
-        u'url': repo_url,
-    })
-    # Synchronize repo via provided URL
-    Repository.synchronize({'id': repo['id']})
-    # Add selected module to Content View
-    cv = make_content_view({u'organization-id': organization_id})
-    for module in puppet_modules:
-        ContentView.puppet_module_add({
-            u'author': module['author'],
-            u'name': module['name'],
-            u'content-view-id': cv['id'],
-        })
-
 
 def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     """Creates puppet repo, sync it via provided url and publish using
@@ -2405,7 +2372,3 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
             u'name': module['name'],
             u'content-view-id': cv['id'],
         })
-    # CV publishing will automatically create Environment and
-    # Puppet Class entities
-    ContentView.publish({u'id': cv['id']})
-    return ContentView.info({u'id': cv['id']})
