@@ -80,7 +80,7 @@ class VirtualMachine(object):
         else:
             self.image_dir = image_dir
 
-        self.hostname = hostname
+        self._hostname = hostname
         self.ip_addr = None
         self._domain = domain
         self._created = False
@@ -88,6 +88,33 @@ class VirtualMachine(object):
         self._target_image = target_image or str(id(self))
         if tag:
             self._target_image = tag + self._target_image
+
+    @property
+    def domain(self):
+        if self._domain is None:
+            try:
+                domain = self.provisioning_server.split('.', 1)[1]
+            except IndexError:
+                raise VirtualMachineError(
+                    u"Failed to fetch domain from provisioning server: {0} "
+                    .format(self.provisioning_server))
+        else:
+            domain = self._domain
+        return domain
+
+    @property
+    def hostname(self):
+        if self._hostname:
+            return self._hostname
+        else:
+            return u'{0}.{1}'.format(self._target_image, self.domain)
+
+    @property
+    def target_image(self):
+        if self._hostname:
+            return self._target_image
+        else:
+            return self.hostname
 
     def create(self):
         """Creates a virtual machine on the provisioning server using
@@ -112,32 +139,20 @@ class VirtualMachine(object):
         if self.image_dir is not None:
             command_args.append('-p {image_dir}')
 
-        if self.hostname is not None:
+        if self._hostname is not None:
             command_args.append('--hostname {hostname}')
 
-        if self._domain is None:
-            try:
-                self._domain = self.provisioning_server.split('.', 1)[1]
-            except IndexError:
-                raise VirtualMachineError(
-                    u"Failed to fetch domain from provisioning server: {0} "
-                    .format(self.provisioning_server))
-        else:
+        if self._domain is not None:
             command_args.append('-d {domain}')
-
-        if self.hostname and self._domain:
-            target_image = u'{0}'.format(self._target_image)
-        else:
-            target_image = u'{0}.{1}'.format(self._target_image, self._domain)
 
         command = u' '.join(command_args).format(
             source_image=u'{0}-base'.format(self.distro),
-            target_image=target_image,
+            target_image=self.target_image,
             vm_ram=self.ram,
             vm_cpu=self.cpu,
             image_dir=self.image_dir,
             hostname=self.hostname,
-            domain=self._domain
+            domain=self.domain
         )
 
         result = ssh.command(command, self.provisioning_server)
@@ -158,8 +173,6 @@ class VirtualMachine(object):
                 'Failed to fetch virtual machine IP address information')
         output = ''.join(result.stdout)
         self.ip_addr = output.split('(')[1].split(')')[0]
-        if self.hostname is None:
-            self.hostname = u'{0}.{1}'.format(self._target_image, self._domain)
         self._created = True
 
     def destroy(self):
@@ -170,14 +183,14 @@ class VirtualMachine(object):
             self.unregister()
 
         ssh.command(
-            u'virsh destroy {0}'.format(self.hostname),
+            u'virsh destroy {0}'.format(self.target_image),
             hostname=self.provisioning_server
         )
         ssh.command(
-            u'virsh undefine {0}'.format(self.hostname),
+            u'virsh undefine {0}'.format(self.target_image),
             hostname=self.provisioning_server
         )
-        image_name = u'{0}.img'.format(self.hostname)
+        image_name = u'{0}.img'.format(self.target_image)
         ssh.command(
             u'rm {0}'.format(os.path.join(self.image_dir, image_name)),
             hostname=self.provisioning_server
