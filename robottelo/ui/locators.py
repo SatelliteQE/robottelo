@@ -1614,7 +1614,10 @@ locators = LocatorDict({
     "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
     "hostgroups.name": (By.ID, "hostgroup_name"),
     "hostgroups.parent": (By.ID, "hostgroup_parent_id"),
-    "hostgroups.environment": (By.ID, "hostgroup_environment_id"),
+    "hostgroups.environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_lifecycle_environment')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
     "hostgroups.dropdown": (
         By.XPATH,
