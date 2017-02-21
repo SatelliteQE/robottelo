@@ -1045,6 +1045,68 @@ class RepositoryTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    def test_positive_delete_by_name(self):
+        """Check if repository can be created and deleted
+
+        @id: 463980a4-dbcf-4178-83a6-1863cf59909a
+
+        @Assert: Repository is created and then deleted
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_repo = self._make_repository({u'name': name})
+                Repository.delete({
+                    'name': new_repo['name'],
+                    'product-id': self.product['id']
+                })
+                with self.assertRaises(CLIReturnCodeError):
+                    Repository.info({u'id': new_repo['id']})
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_delete_rpm(self):
+        """Check if rpm repository with packages can be deleted.
+
+        @id: 1172492f-d595-4c8e-89c1-fabb21eb04ac
+
+        @Assert: Repository is deleted.
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'yum', u'url': FAKE_1_YUM_REPO})
+        Repository.synchronize({'id': new_repo['id']})
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['sync']['status'], 'Success')
+        # Check that there is at least one package
+        self.assertGreater(int(new_repo['content-counts']['packages']), 0)
+        Repository.delete({u'id': new_repo['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Repository.info({u'id': new_repo['id']})
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_delete_puppet(self):
+        """Check if puppet repository with puppet modules can be deleted.
+
+        @id: 83d92454-11b7-4f9a-952d-650ffe5135e4
+
+        @Assert: Repository is deleted.
+
+        @BZ: 1316681
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'puppet', u'url': FAKE_1_PUPPET_REPO})
+        Repository.synchronize({'id': new_repo['id']})
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['sync']['status'], 'Success')
+        # Check that there is at least one puppet module
+        self.assertGreater(
+            int(new_repo['content-counts']['puppet-modules']), 0)
+        Repository.delete({u'id': new_repo['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Repository.info({u'id': new_repo['id']})
+
+    @run_only_on('sat')
+    @tier1
     def test_positive_remove_content_by_repo_name(self):
         """Synchronize repository and remove rpm content from using repo name
 
