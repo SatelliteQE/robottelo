@@ -24,7 +24,6 @@ from robottelo.api.utils import create_role_permissions
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -195,7 +194,6 @@ class LifeCycleEnvironmentTestCase(UITestCase):
             body_width = body.size['width']
             self.assertGreaterEqual(body_width - table_width, 0)
 
-    @skip_if_bug_open('bugzilla', 1420511)
     @run_only_on('sat')
     @tier2
     def test_positive_custom_user_view_lce(self):
