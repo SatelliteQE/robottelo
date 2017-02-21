@@ -980,6 +980,54 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     repo.read()
 
+    @tier2
+    @run_only_on('sat')
+    def test_positive_delete_rpm(self):
+        """Check if rpm repository with packages can be deleted.
+
+        @id: d61c8c8b-2b77-4bff-b215-fa2b7c05aa78
+
+        @Assert: The repository deleted successfully.
+
+        @CaseLevel: Integration
+        """
+        repo = entities.Repository(
+            url=FAKE_2_YUM_REPO,
+            content_type='yum',
+            product=self.product,
+        ).create()
+        repo.sync()
+        # Check that there is at least one package
+        self.assertGreaterEqual(repo.read().content_counts['rpm'], 1)
+        repo.delete()
+        with self.assertRaises(HTTPError):
+            repo.read()
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_delete_puppet(self):
+        """Check if puppet repository with puppet modules can be deleted.
+
+        @id: 5c60b0ab-ef50-41a3-8578-bfdb5cb228ea
+
+        @Assert: The repository deleted successfully.
+
+        @CaseLevel: Integration
+
+        @BZ: 1316681
+        """
+        repo = entities.Repository(
+            url=FAKE_1_PUPPET_REPO,
+            content_type='puppet',
+            product=self.product,
+        ).create()
+        repo.sync()
+        # Check that there is at least one puppet module
+        self.assertGreaterEqual(repo.read().content_counts['puppet_module'], 1)
+        repo.delete()
+        with self.assertRaises(HTTPError):
+            repo.read()
+
     @tier1
     @run_only_on('sat')
     def test_positive_list_puppet_modules_with_multiple_repos(self):
