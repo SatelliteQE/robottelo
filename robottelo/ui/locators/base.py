@@ -430,6 +430,11 @@ locators = LocatorDict({
         By.XPATH,
         ("//tr[@class='ng-scope' and @row-select='package']"
          "/td[contains(@class, 'ng-scope') and contains(., '%s')]")),
+    "contenthost.fetch_registered_by": (
+        By.XPATH,
+        ("//div[@class='detail']/span[contains(@translate-plural, 'Activation "
+         "Keys')]/following-sibling::span"
+         "//a[contains(@href, 'activation_keys')]")),
 
     # Content Host - Bulk Actions
 

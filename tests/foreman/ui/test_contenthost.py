@@ -229,3 +229,25 @@ class ContentHostTestCase(UITestCase):
             self.assertEqual(result, 'success')
             self.assertIsNotNone(self.contenthost.package_search(
                 self.client.hostname, FAKE_2_CUSTOM_PACKAGE))
+
+    @tier3
+    def test_positive_fetch_registered_by(self):
+        """Register a host with activation key and fetch host's 'Registered by'
+        field value.
+
+        @id: 5c6dbb5d-bd26-4439-ab04-536a6ad012b9
+
+        @assert: 'Registered By' field on content host page points to
+        activation key which was used to register the host
+
+        @BZ: 1380117
+
+        @CaseLevel: System
+        """
+        with Session(self.browser):
+            result = self.contenthost.fetch_parameters(
+                self.client.hostname,
+                [['Details', 'Registered By']],
+            )
+            self.assertEqual(
+                result['Registered By'], self.activation_key.name)

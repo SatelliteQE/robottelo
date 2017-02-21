@@ -215,3 +215,35 @@ class ContentHost(Base):
             result[name]['color'] = color
             result[name]['value'] = int(value)
         return result
+
+    def fetch_parameters(self, name, parameters_list):
+        """Fetches parameter values of specified host
+
+        :param name: content host's name (with domain)
+        :param parameters_list: A list of parameters to be fetched. Each
+            parameter should be a separate list containing tab name and
+            parameter name in absolute correspondence to UI (Similar to
+            parameters list passed to create a host). Example::
+
+                [
+                    ['Details', 'Registered By'],
+                    ['Provisioning Details', 'Status'],
+                ]
+
+        :return: Dictionary of parameter name - parameter value pairs
+        :rtype: dict
+        """
+        self.search_and_click(name)
+        result = {}
+        for tab_name, param_name in parameters_list:
+            tab_locator = tab_locators['.tab_'.join((
+                'contenthost',
+                (tab_name.lower()).replace(' ', '_')
+            ))]
+            param_locator = locators['.fetch_'.join((
+                'contenthost',
+                (param_name.lower()).replace(' ', '_')
+            ))]
+            self.click(tab_locator)
+            result[param_name] = self.wait_until_element(param_locator).text
+        return result
