@@ -36,6 +36,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import (
+    CUSTOM_PUPPET_REPO,
     DEFAULT_CV,
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
@@ -842,6 +843,89 @@ class ContentViewTestCase(CLITestCase):
             new_repo['name'],
             'Repo was not associated to CV',
         )
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_add_puppet_module(self):
+        """Add puppet module to Content View by name
+
+        @id: 81d3305e-c0c2-487b-9fd8-828b3250fe6e
+
+        @Assert: Module was added and has latest version.
+
+        @CaseLevel: Integration
+        """
+        module = {'name': 'versioned', 'version': '3.3.3'}
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': self.product['id'],
+            u'url': CUSTOM_PUPPET_REPO,
+        })
+        puppet_module = PuppetModule.list({
+            'search': 'name={0} and version={1}'.format(
+                module['name'], module['version'])
+        })[0]
+        Repository.synchronize({'id': puppet_repository['id']})
+        content_view = make_content_view({u'organization-id': self.org['id']})
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'name': puppet_module['name'],
+            u'author': puppet_module['author'],
+        })
+        cv_module = ContentView.puppet_module_list(
+            {'content-view-id': content_view['id']})
+        self.assertGreater(len(cv_module), 0)
+        self.assertIn(puppet_module['version'], cv_module[0]['version'])
+        self.assertIn('Latest', cv_module[0]['version'])
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_add_puppet_module_older_version(self):
+        """Add older version of puppet module to Content View by id/uuid
+
+        @id: 39654b3e-963f-4859-81f2-9992b60433c2
+
+        @Steps:
+
+        1. Upload/sync puppet repo with several versions of the same module
+        2. Add older version by id/uuid to CV
+
+        @Assert: Exact version (and not latest) was added.
+
+        @CaseLevel: Integration
+
+        @BZ: 1240491
+        """
+        module = {'name': 'versioned', 'version': '2.2.2'}
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': self.product['id'],
+            u'url': CUSTOM_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_module = PuppetModule.list({
+            'search': 'name={0} and version={1}'.format(
+                module['name'], module['version'])
+        })[0]
+        for by in ('uuid', 'id'):
+            with self.subTest(by=by):
+                content_view = make_content_view(
+                    {u'organization-id': self.org['id']})
+                ContentView.puppet_module_add({
+                    u'content-view-id': content_view['id'],
+                    by: puppet_module[by],
+                })
+                cv_module = ContentView.puppet_module_list(
+                    {'content-view-id': content_view['id']})
+                self.assertGreater(len(cv_module), 0)
+                self.assertEqual(cv_module[0]['version'], module['version'])
+                # Remove puppet module before next iteration
+                ContentView.puppet_module_remove({
+                    'content-view-id': content_view['id'],
+                    'uuid': puppet_module['uuid']
+                })
+                self.assertEqual(len(ContentView.puppet_module_list(
+                    {'content-view-id': content_view['id']})), 0)
 
     @tier2
     @run_only_on('sat')
