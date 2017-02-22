@@ -161,6 +161,20 @@ class ContentView(Base):
         return hammer.parse_info(cls.execute(cls._construct_command(options)))
 
     @classmethod
+    def puppet_module_list(cls, options):
+        """List content view puppet modules"""
+        cls.command_sub = 'puppet-module list'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def puppet_module_remove(cls, options):
+        """Remove a puppet module from the content view"""
+        cls.command_sub = 'puppet-module remove'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
     def version_list(cls, options):
         """Lists content-view's versions."""
         cls.command_sub = 'version list'
