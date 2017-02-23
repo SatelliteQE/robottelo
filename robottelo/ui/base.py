@@ -180,6 +180,13 @@ class Base(object):
             time.sleep(1)
         return None
 
+    def clear_search_box(self):
+        """Helper to clear text that was inputted into search box using
+        application button
+        """
+        prefix = 'kt_' if self.is_katello else ''
+        self.click(common_locators[prefix + 'clear_search'])
+
     def create_a_bookmark(self, name=None, query=None, public=None,
                           searchbox_query=None):
         """Bookmark a search on current entity page"""
