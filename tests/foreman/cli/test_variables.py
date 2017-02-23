@@ -89,7 +89,7 @@ class SmartVariablesTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_variables_by_host_name(self):
+    def test_positive_list_by_host_name(self):
         """List all smart variables associated to host by hostname.
 
         @id: ee0da54c-ab60-4dde-8e1f-d548b52bac73
@@ -98,20 +98,24 @@ class SmartVariablesTestCase(CLITestCase):
 
         @CaseLevel: Integration
         """
-        make_smart_variable({'puppet-class': self.puppet_class['name']})
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
         host = entities.Host(organization=self.org['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],
             u'puppet-classes': self.puppet_class['name'],
         })
-        host_smart_variables_list = Host.smart_variables({
-            u'host': host.name})
-        self.assertGreater(len(host_smart_variables_list), 0)
+        host_variables = SmartVariable.list({'host': host.name})
+        self.assertGreater(len(host_variables), 0)
+        self.assertIn(
+            smart_variable['variable'],
+            [sv['variable'] for sv in host_variables]
+        )
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_variables_by_host_id(self):
+    def test_positive_list_by_host_id(self):
         """List all smart variables associated to host by host id.
 
         @id: ee2e994b-2a6d-4069-a2f7-e244a3134772
@@ -120,20 +124,22 @@ class SmartVariablesTestCase(CLITestCase):
 
         @CaseLevel: Integration
         """
-        make_smart_variable({'puppet-class': self.puppet_class['name']})
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
         host = entities.Host(organization=self.org['id']).create()
         Host.update({
             u'name': host.name,
             u'environment': self.env['name'],
             u'puppet-classes': self.puppet_class['name'],
         })
-        host_smart_variables_list = Host.smart_variables({
-            u'host-id': host.id})
-        self.assertGreater(len(host_smart_variables_list), 0)
+        host_variables = SmartVariable.list({'host-id': host.id})
+        self.assertGreater(len(host_variables), 0)
+        self.assertIn(
+            smart_variable['id'], [sv['id'] for sv in host_variables])
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_variables_by_hostgroup_name(self):
+    def test_positive_list_by_hostgroup_name(self):
         """List all smart variables associated to hostgroup by hostgroup name
 
         @id: cb69abe0-2349-4114-91e9-ef93f261dc50
@@ -143,18 +149,23 @@ class SmartVariablesTestCase(CLITestCase):
 
         @CaseLevel: Integration
         """
-        make_smart_variable({'puppet-class': self.puppet_class['name']})
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
         })
-        hostgroup_smart_variables = HostGroup.smart_variables({
-            u'hostgroup': hostgroup['name']})
-        self.assertGreater(len(hostgroup_smart_variables), 0)
+        hostgroup_variables = SmartVariable.list(
+            {'hostgroup': hostgroup['name']})
+        self.assertGreater(len(hostgroup_variables), 0)
+        self.assertIn(
+            smart_variable['variable'],
+            [sv['variable'] for sv in hostgroup_variables]
+        )
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_variables_by_hostgroup_id(self):
+    def test_positive_list_by_hostgroup_id(self):
         """List all smart variables associated to hostgroup by hostgroup id
 
         @id: 0f167c4c-e4de-4b66-841f-d5a9e410391e
@@ -163,18 +174,21 @@ class SmartVariablesTestCase(CLITestCase):
 
         @CaseLevel: Integration
         """
-        make_smart_variable({'puppet-class': self.puppet_class['name']})
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
         })
-        hostgroup_smart_variables = HostGroup.smart_variables({
-            u'hostgroup-id': hostgroup['id']})
-        self.assertGreater(len(hostgroup_smart_variables), 0)
+        hostgroup_variables = SmartVariable.list(
+            {'hostgroup-id': hostgroup['id']})
+        self.assertGreater(len(hostgroup_variables), 0)
+        self.assertIn(
+            smart_variable['id'], [sv['id'] for sv in hostgroup_variables])
 
     @run_only_on('sat')
     @tier1
-    def test_positive_list_variables_by_puppetclass_name(self):
+    def test_positive_list_by_puppetclass_name(self):
         """List all smart variables associated to puppet class by puppet class
         name.
 
@@ -183,15 +197,20 @@ class SmartVariablesTestCase(CLITestCase):
         @assert: Smart Variables listed for specific puppet class by puppet
         class name.
         """
-        make_smart_variable({'puppet-class': self.puppet_class['name']})
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
         sc_params_list = SmartVariable.list({
             'puppet-class': self.puppet_class['name']
         })
         self.assertGreater(len(sc_params_list), 0)
+        self.assertIn(
+            smart_variable['variable'],
+            [sv['variable'] for sv in sc_params_list]
+        )
 
     @run_only_on('sat')
     @tier1
-    def test_positive_list_variables_by_puppetclass_id(self):
+    def test_positive_list_by_puppetclass_id(self):
         """List all smart variables associated to puppet class by puppet class
         id.
 
@@ -200,11 +219,14 @@ class SmartVariablesTestCase(CLITestCase):
         @assert: Smart Variables listed for specific puppet class by puppet
         class id.
         """
-        make_smart_variable({'puppet-class-id': self.puppet_class['id']})
+        smart_variable = make_smart_variable(
+            {'puppet-class-id': self.puppet_class['id']})
         sc_params_list = SmartVariable.list({
             'puppet-class-id': self.puppet_class['id']
         })
         self.assertGreater(len(sc_params_list), 0)
+        self.assertIn(
+            smart_variable['id'], [sv['id'] for sv in sc_params_list])
 
     @run_only_on('sat')
     @tier1

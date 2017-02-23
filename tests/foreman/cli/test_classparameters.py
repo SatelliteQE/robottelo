@@ -30,7 +30,6 @@ from robottelo.cli.factory import (
     publish_puppet_module,
 )
 from robottelo.cli.host import Host
-from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.constants import CUSTOM_PUPPET_REPO
@@ -169,7 +168,55 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_parameters_by_host_name(self):
+    def test_positive_list_by_env_name(self):
+        """List all the parameters included in specific Env by its name.
+
+        @id: 9fcfbe32-d388-435d-a629-6969a50a4243
+
+        @assert: Parameters listed for specific Environment.
+
+        @CaseLevel: Integration
+        """
+        env_sc_params = SmartClassParameter.list(
+            {'environment': self.env['name']})
+        self.assertGreater(len(env_sc_params), 0)
+        self.assertTrue(
+            {scp['id'] for scp in self.sc_params_list}.issubset(
+                {scp['id'] for scp in env_sc_params})
+        )
+        # Check that only unique results are returned
+        self.assertEqual(
+            len(env_sc_params),
+            len({scp['id'] for scp in env_sc_params})
+        )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_list_by_env_id(self):
+        """List all the parameters included in specific Env by its id.
+
+        @id: b3202175-c040-41dc-a66c-c07573534dec
+
+        @assert: Parameters listed for specific Environment.
+
+        @CaseLevel: Integration
+        """
+        env_sc_params = SmartClassParameter.list(
+            {'environment-id': self.env['id']})
+        self.assertGreater(len(env_sc_params), 0)
+        self.assertTrue(
+            {scp['id'] for scp in self.sc_params_list}.issubset(
+                {scp['id'] for scp in env_sc_params})
+        )
+        # Check that only unique results are returned
+        self.assertEqual(
+            len(env_sc_params),
+            len({scp['id'] for scp in env_sc_params})
+        )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_list_by_host_name(self):
         """List all the parameters included in specific Host by its name.
 
         @id: a8165746-3480-4875-8931-b20ebec241dc
@@ -194,8 +241,9 @@ class SmartClassParametersTestCase(CLITestCase):
             u'environment': self.env['name'],
             u'puppet-classes': self.puppet_class['name'],
         })
-        host_sc_params = Host.sc_params({u'host': host.name})
+        host_sc_params = SmartClassParameter.list({'host': host.name})
         self.assertGreater(len(host_sc_params), 0)
+        self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
         # Check that only unique results are returned
         self.assertEqual(
             len(host_sc_params),
@@ -204,7 +252,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_parameters_by_host_id(self):
+    def test_positive_list_by_host_id(self):
         """List all the parameters included in specific Host by its id.
 
         @id: 79050de6-b894-4a88-b155-32bf488b692c
@@ -219,7 +267,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'override': 1,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet_class['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
@@ -229,8 +277,9 @@ class SmartClassParametersTestCase(CLITestCase):
             u'environment': self.env['name'],
             u'puppet-classes': self.puppet_class['name'],
         })
-        host_sc_params = Host.sc_params({u'host-id': host.id})
+        host_sc_params = SmartClassParameter.list({'host-id': host.id})
         self.assertGreater(len(host_sc_params), 0)
+        self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
         # Check that only unique results are returned
         self.assertEqual(
             len(host_sc_params),
@@ -239,7 +288,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_parameters_by_hostgroup_name(self):
+    def test_positive_list_by_hostgroup_name(self):
         """List all the parameters included in specific HostGroup by its name.
 
         @id: a2a01ca7-4dd2-4db6-a654-a632864998d9
@@ -254,7 +303,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'override': 1,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet_class['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
@@ -262,9 +311,10 @@ class SmartClassParametersTestCase(CLITestCase):
             'environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
         })
-        hostgroup_sc_params = HostGroup.sc_params({
-            u'hostgroup': hostgroup['name']})
+        hostgroup_sc_params = SmartClassParameter.list(
+            {'hostgroup': hostgroup['name']})
         self.assertGreater(len(hostgroup_sc_params), 0)
+        self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
         # Check that only unique results are returned
         self.assertEqual(
             len(hostgroup_sc_params),
@@ -273,7 +323,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_list_parameters_by_hostgroup_id(self):
+    def test_positive_list_by_hostgroup_id(self):
         """List all the parameters included in specific HostGroup by id.
 
         @id: 80c1058d-b87d-4c09-957f-7d3daacdedf4
@@ -288,7 +338,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'override': 1,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet_class['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['override'], True)
@@ -296,9 +346,10 @@ class SmartClassParametersTestCase(CLITestCase):
             'environment-id': self.env['id'],
             'puppet-class-ids': self.puppet_class['id']
         })
-        hostgroup_sc_params = HostGroup.sc_params({
-            u'hostgroup-id': hostgroup['id']})
+        hostgroup_sc_params = SmartClassParameter.list(
+            {'hostgroup-id': hostgroup['id']})
         self.assertGreater(len(hostgroup_sc_params), 0)
+        self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
         # Check that only unique results are returned
         self.assertEqual(
             len(hostgroup_sc_params),
@@ -307,41 +358,45 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_list_parameters_by_puppetclass_name(self):
+    def test_positive_list_by_puppetclass_name(self):
         """List all the parameters for specific puppet class by name.
 
         @id: 6d62968f-dc5b-4d7f-ac21-c1335a827960
 
         @assert: Parameters listed for specific Puppet class.
         """
-        sc_params = SmartClassParameter.list({
-            'environment': self.env['name'],
-            'puppet-class': self.puppet_class['name']
-        })
+        sc_params = SmartClassParameter.list(
+            {'puppet-class': self.puppet_class['name']})
         self.assertGreater(len(sc_params), 0)
+        self.assertTrue(
+            {scp['id'] for scp in self.sc_params_list}.issubset(
+                {scp['id'] for scp in sc_params})
+        )
         # Check that only unique results are returned
         self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @run_only_on('sat')
     @tier1
-    def test_positive_list_parameters_by_puppetclass_id(self):
+    def test_positive_list_by_puppetclass_id(self):
         """List all the parameters for specific puppet class by id.
 
         @id: a7a8af1a-514b-4910-9e19-75306f634041
 
         @assert: Parameters listed for specific Puppet class.
         """
-        sc_params = SmartClassParameter.list({
-            'environment': self.env['name'],
-            'puppet-class-id': self.puppet_class['id']
-        })
+        sc_params = SmartClassParameter.list(
+            {'puppet-class-id': self.puppet_class['id']})
         self.assertGreater(len(sc_params), 0)
+        self.assertTrue(
+            {scp['id'] for scp in self.sc_params_list}.issubset(
+                {scp['id'] for scp in sc_params})
+        )
         # Check that only unique results are returned
         self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @run_only_on('sat')
     @tier1
-    def test_positive_import_twice_list_parameters_by_puppetclass_id(self):
+    def test_positive_import_twice_list_by_puppetclass_id(self):
         """Import same puppet class twice (e.g. into different Content Views)
         but list class parameters only for specific puppet class.
 
@@ -392,7 +447,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'override': 1,
         })
         sc_param = SmartClassParameter.info({
-            'puppet-class': 'ntp',
+            'puppet-class': self.puppet_class['name'],
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['default-value'], value)
