@@ -15,12 +15,12 @@
 
 @Upstream: No
 """
+from random import choice
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.hostgroup import HostGroup
-from robottelo.cli.proxy import Proxy
+from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
     make_architecture,
     make_content_view,
@@ -33,9 +33,16 @@ from robottelo.cli.factory import (
     make_org,
     make_os,
     make_partition_table,
+    make_smart_variable,
     make_subnet,
+    publish_puppet_module,
 )
+from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.puppet import Puppet
+from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
@@ -53,6 +60,23 @@ from robottelo.test import CLITestCase
 
 class HostGroupTestCase(CLITestCase):
     """Test class for Host Group CLI"""
+
+    @classmethod
+    def setUpClass(cls):
+        super(HostGroupTestCase, cls).setUpClass()
+        cls.org = make_org()
+        # Setup for puppet class related tests
+        puppet_modules = [
+            {'author': 'robottelo', 'name': 'generic_1'},
+        ]
+        cls.cv = publish_puppet_module(
+            puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
+        cls.env = Environment.list({
+            'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
+        cls.puppet_class = Puppet.info({
+            'name': puppet_modules[0]['name'],
+            'environment': cls.env['name'],
+        })
 
     @tier1
     def test_positive_create_with_name(self):
@@ -186,6 +210,38 @@ class HostGroupTestCase(CLITestCase):
             puppet_proxy['id'],
             hostgroup['puppet-master-proxy-id'],
         )
+
+    @tier1
+    def test_positive_create_with_puppet_class_id(self):
+        """Check if hostgroup with puppet class id can be created
+
+        @id: 0a07856d-4432-4b72-a636-460ec12f1b65
+
+        @Assert: Hostgroup is created and has puppet class assigned
+        """
+        hostgroup = make_hostgroup({
+            'puppet-class-ids': self.puppet_class['id'],
+            'environment-id': self.env['id'],
+            'content-view-id': self.cv['id'],
+            'query-organization-id': self.org['id'],
+        })
+        self.assertIn(self.puppet_class['name'], hostgroup['puppetclasses'])
+
+    @tier1
+    def test_positive_create_with_puppet_class_name(self):
+        """Check if hostgroup with puppet class name can be created
+
+        @id: 78545a14-742f-4db6-abce-49fbeccd836e
+
+        @Assert: Hostgroup is created and has puppet class assigned
+        """
+        hostgroup = make_hostgroup({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.env['name'],
+            'content-view': self.cv['name'],
+            'query-organization': self.org['name'],
+        })
+        self.assertIn(self.puppet_class['name'], hostgroup['puppetclasses'])
 
     @skip_if_bug_open('bugzilla', 1354544)
     @run_only_on('sat')
@@ -501,3 +557,109 @@ class HostGroupTestCase(CLITestCase):
             with self.subTest(entity_id):
                 with self.assertRaises(CLIReturnCodeError):
                     HostGroup.delete({'id': entity_id})
+
+    @tier2
+    def test_positive_list_scparams_by_id(self):
+        """List all overridden smart class parameters using hostgroup id
+
+        @id: 42a24060-2ed7-427e-8396-86d73bbe5f69
+
+        @Assert: Overridden sc-param from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        hostgroup = make_hostgroup({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.env['name'],
+            'content-view': self.cv['name'],
+            'query-organization': self.org['name'],
+        })
+        # Override one of the sc-params from puppet class
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.env['name'],
+            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+        })
+        scp_id = choice(sc_params_list)['id']
+        SmartClassParameter.update({'id': scp_id, 'override': 1})
+        # Verify that affected sc-param is listed
+        hg_scparams = HostGroup.sc_params({'hostgroup-id': hostgroup['id']})
+        self.assertIn(scp_id, [scp['id'] for scp in hg_scparams])
+
+    @tier2
+    def test_positive_list_scparams_by_name(self):
+        """List all smart class parameters using hostgroup name
+
+        @id: 8e4fc561-2446-4a89-989b-e6814973aa56
+
+        @Assert: Overridden sc-param from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        hostgroup = make_hostgroup({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.env['name'],
+            'content-view': self.cv['name'],
+            'query-organization': self.org['name'],
+        })
+        # Override one of the sc-params from puppet class
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.env['name'],
+            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+        })
+        scp_id = choice(sc_params_list)['id']
+        SmartClassParameter.update({'id': scp_id, 'override': 1})
+        # Verify that affected sc-param is listed
+        hg_scparams = HostGroup.sc_params({'hostgroup': hostgroup['name']})
+        self.assertIn(scp_id, [scp['id'] for scp in hg_scparams])
+
+    @tier2
+    def test_positive_list_smartvariables_by_id(self):
+        """List all smart variables using hostgroup id
+
+        @id: 1d614441-7ef9-4fdb-a8e7-2f1c1054bf2f
+
+        @Assert: Smart variable from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        hostgroup = make_hostgroup({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.env['name'],
+            'content-view': self.cv['name'],
+            'query-organization': self.org['name'],
+        })
+        # Create smart variable
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
+        # Verify that affected sc-param is listed
+        hg_variables = HostGroup.smart_variables(
+            {'hostgroup-id': hostgroup['id']})
+        self.assertIn(smart_variable['id'], [sv['id'] for sv in hg_variables])
+
+    @tier2
+    def test_positive_list_smartvariables_by_name(self):
+        """List all smart variables using hostgroup name
+
+        @id: 2b0da695-57fa-4f91-b164-e1ff60076c26
+
+        @Assert: Smart variable from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        hostgroup = make_hostgroup({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.env['name'],
+            'content-view': self.cv['name'],
+            'query-organization': self.org['name'],
+        })
+        # Create smart variable
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
+        # Verify that affected sc-param is listed
+        hg_variables = HostGroup.smart_variables(
+            {'hostgroup': hostgroup['name']})
+        self.assertIn(smart_variable['id'], [sv['id'] for sv in hg_variables])

@@ -14,12 +14,15 @@
 
 @Upstream: No
 """
+from random import choice
+
 from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_activation_key,
@@ -33,6 +36,8 @@ from robottelo.cli.factory import (
     make_medium,
     make_org,
     make_os,
+    make_smart_variable,
+    publish_puppet_module,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
@@ -41,8 +46,11 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.proxy import Proxy
+from robottelo.cli.puppet import Puppet
+from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_PUPPET_REPO,
     DEFAULT_CV,
     DISTRO_RHEL7,
     ENVIRONMENT,
@@ -109,6 +117,18 @@ class HostCreateTestCase(CLITestCase):
             'organization-id': cls.new_org['id'],
         })
         cls.promoted_cv = cls.new_cv
+        # Setup for puppet class related tests
+        puppet_modules = [
+            {'author': 'robottelo', 'name': 'generic_1'},
+        ]
+        cls.puppet_cv = publish_puppet_module(
+            puppet_modules, CUSTOM_PUPPET_REPO, cls.new_org['id'])
+        cls.puppet_env = Environment.list({
+            'search': u'content_view="{0}"'.format(cls.puppet_cv['name'])})[0]
+        cls.puppet_class = Puppet.info({
+            'name': puppet_modules[0]['name'],
+            'environment': cls.puppet_env['name'],
+        })
 
     def setUp(self):
         """Find an existing puppet proxy.
@@ -248,6 +268,42 @@ class HostCreateTestCase(CLITestCase):
         )
 
     @tier1
+    def test_positive_create_with_puppet_class_id(self):
+        """Check if host can be created with puppet class id
+
+        @id: 6bb1bbdc-23fd-4493-9283-fbb70d72b2eb
+
+        @Assert: Host is created and has puppet class assigned
+        """
+        host = make_fake_host({
+            'puppet-class-ids': self.puppet_class['id'],
+            'environment-id': self.puppet_env['id'],
+        })
+        host_classes = Host.puppetclasses({'host-id': host['id']})
+        self.assertIn(
+            self.puppet_class['id'],
+            [puppet['id'] for puppet in host_classes]
+        )
+
+    @tier1
+    def test_positive_create_with_puppet_class_name(self):
+        """Check if host can be created with puppet class name
+
+        @id: a65df36e-db4b-48d2-b0e1-5ccfbefd1e7a
+
+        @Assert: Host is created and has puppet class assigned
+        """
+        host = make_fake_host({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.puppet_env['name'],
+        })
+        host_classes = Host.puppetclasses({'host': host['name']})
+        self.assertIn(
+            self.puppet_class['name'],
+            [puppet['name'] for puppet in host_classes]
+        )
+
+    @tier1
     def test_negative_create_with_name(self):
         """Check if host can be created with random long names
 
@@ -333,6 +389,108 @@ class HostCreateTestCase(CLITestCase):
             # check. Verifying return_code == 64 here, which stands for content
             # host being already registered.
             self.assertEqual(result.return_code, 64)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_list_scparams_by_id(self):
+        """List all smart class parameters using host id
+
+        @id: 596322f6-9fdc-441a-a36d-ae2f22132b38
+
+        @Assert: Overridden sc-param from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        host = make_fake_host({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.puppet_env['name'],
+        })
+        # Override one of the sc-params from puppet class
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.puppet_env['name'],
+            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+        })
+        scp_id = choice(sc_params_list)['id']
+        SmartClassParameter.update({'id': scp_id, 'override': 1})
+        # Verify that affected sc-param is listed
+        host_scparams = Host.sc_params({'host': host['name']})
+        self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_list_scparams_by_name(self):
+        """List all smart class parameters using host name
+
+        @id: 26e406ea-56f5-4813-bb93-e908c9015ee3
+
+        @Assert: Overridden sc-param from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        host = make_fake_host({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.puppet_env['name'],
+        })
+        # Override one of the sc-params from puppet class
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.puppet_env['name'],
+            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+        })
+        scp_id = choice(sc_params_list)['id']
+        SmartClassParameter.update({'id': scp_id, 'override': 1})
+        # Verify that affected sc-param is listed
+        host_scparams = Host.sc_params({'host': host['name']})
+        self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_list_smartvariables_by_id(self):
+        """List all smart variables using host id
+
+        @id: 22d85dea-0fc0-47c2-8f38-c6f6712dad7e
+
+        @Assert: Smart variable from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        host = make_fake_host({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.puppet_env['name'],
+        })
+        # Create smart variable
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
+        # Verify that affected sc-param is listed
+        host_variables = Host.smart_variables({'host-id': host['id']})
+        self.assertIn(
+            smart_variable['id'], [sv['id'] for sv in host_variables])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_list_smartvariables_by_name(self):
+        """List all smart variables using host name
+
+        @id: a254d3a6-cf7f-4847-acb6-9813d23369d4
+
+        @Assert: Smart variable from puppet class is listed
+
+        @Caselevel: Integration
+        """
+        # Create hostgroup with associated puppet class
+        host = make_fake_host({
+            'puppet-classes': self.puppet_class['name'],
+            'environment': self.puppet_env['name'],
+        })
+        # Create smart variable
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet_class['name']})
+        # Verify that affected sc-param is listed
+        host_variables = Host.smart_variables({'host': host['name']})
+        self.assertIn(
+            smart_variable['id'], [sv['id'] for sv in host_variables])
 
     @tier3
     def test_positive_list(self):
