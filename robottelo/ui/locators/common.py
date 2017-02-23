@@ -79,6 +79,7 @@ common_locators = LocatorDict({
          "and string-length(text()) > 10]")),
 
     "search": (By.ID, "search"),
+    "clear_search": (By.XPATH, "//a[@class='autocomplete-clear']"),
     "auto_search": (
         By.XPATH,
         ("//ul[contains(@class, 'ui-autocomplete') or "
@@ -118,6 +119,8 @@ common_locators = LocatorDict({
     "label": (By.ID, "label"),
     "description": (By.ID, "description"),
     "kt_search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
+    "kt_clear_search": (
+        By.XPATH, "//button[contains(@ng-click, 'searchCompleted = false')]"),
     "kt_search_button": (
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
