@@ -1,10 +1,11 @@
 # coding=utf-8
 """Module that aggregates common bits of the end to end tests."""
-from robottelo.constants import DISTRO_RHEL6
+from robottelo.config import settings
 from robottelo.decorators import setting_is_set
 from robottelo.vm import VirtualMachine
 
 AK_CONTENT_LABEL = u'rhel-6-server-rhev-agent-rpms'
+DISTRO_RHEL6 = settings.distro.image_el6
 
 
 class ClientProvisioningMixin(object):

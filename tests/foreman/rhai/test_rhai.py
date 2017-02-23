@@ -20,14 +20,18 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.decorators import run_in_one_thread, skip_if_not_set
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL6 = settings.distro.image_el6
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 @run_in_one_thread

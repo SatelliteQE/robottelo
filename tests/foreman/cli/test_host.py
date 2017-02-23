@@ -44,7 +44,6 @@ from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
-    DISTRO_RHEL7,
     ENVIRONMENT,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
@@ -76,6 +75,9 @@ from robottelo.decorators import (
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 class HostCreateTestCase(CLITestCase):

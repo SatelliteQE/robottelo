@@ -19,10 +19,10 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL7,
     ENVIRONMENT,
     PRDS,
     REPOS,
@@ -40,6 +40,9 @@ from robottelo.ui.factory import make_host
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 class HostContentHostUnificationTestCase(UITestCase):

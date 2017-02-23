@@ -33,7 +33,6 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
@@ -75,6 +74,9 @@ from robottelo.ui.locators.menu import menu_locators
 from robottelo.ui.locators.tab import tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 class ContentViewTestCase(UITestCase):

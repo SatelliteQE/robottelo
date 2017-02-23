@@ -16,7 +16,8 @@
 """
 from datetime import datetime, timedelta
 from nailgun import entities
-from robottelo.constants import OS_TEMPLATE_DATA_FILE, DISTRO_RHEL7
+from robottelo.config import settings
+from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.datafactory import (
     gen_string,
     generate_strings_list,
@@ -31,6 +32,7 @@ from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
 OS_TEMPLATE_DATA_FILE = get_data_file(OS_TEMPLATE_DATA_FILE)
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 class JobsTemplateTestCase(UITestCase):

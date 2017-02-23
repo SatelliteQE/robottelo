@@ -24,7 +24,6 @@ from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
     DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
     DOMAIN,
     FAKE_0_PUPPET_REPO,
     FOREMAN_PROVIDERS,
@@ -63,6 +62,9 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 from .utils import ClientProvisioningMixin
+
+
+DISTRO_RHEL6 = settings.distro.image_el6
 
 
 class EndToEndTestCase(UITestCase, ClientProvisioningMixin):

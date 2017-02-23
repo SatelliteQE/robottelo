@@ -25,8 +25,8 @@ from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
+from robottelo.config import settings
 from robottelo.constants import (
-    DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -59,6 +59,9 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 from time import sleep
+
+
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 class HostCollectionTestCase(UITestCase):

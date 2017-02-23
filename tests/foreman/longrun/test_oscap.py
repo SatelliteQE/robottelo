@@ -28,8 +28,6 @@ from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
     OSCAP_DEFAULT_CONTENT,
     OSCAP_PERIOD,
     OSCAP_PROFILE,
@@ -49,6 +47,10 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL6 = settings.distro.image_el6
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 @run_in_one_thread
