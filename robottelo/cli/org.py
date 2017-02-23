@@ -168,15 +168,3 @@ class Org(Base):
         """Removes an user from an org"""
         cls.command_sub = 'remove-user'
         return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def set_parameter(cls, options=None):
-        """Create or update parameter for an organization."""
-        cls.command_sub = 'set-parameter'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def delete_parameter(cls, options=None):
-        """Delete parameter for an organization."""
-        cls.command_sub = 'delete-parameter'
-        return cls.execute(cls._construct_command(options))
