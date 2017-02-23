@@ -965,6 +965,59 @@ locators = LocatorDict({
 
     # Dashboard
     "dashboard.hosts_total": (By.XPATH, "//h4[@class='total']"),
+    "dashboard.auto_refresh": (
+        By.XPATH, "//a[contains(@href, 'auto_refresh')]"),
+    "dashboard.widget_element": (
+        By.XPATH, "//li[@data-name='%s']"),
+    "dashboard.remove_widget": (
+        By.XPATH, "//li[@data-name='%s']/div/a[@class='remove']"),
+    "dashboard.minimize_widget": (
+        By.XPATH, "//li[@data-name='%s']/div/a[@class='minimize']"),
+    "dashboard.restore_widget": (
+        By.XPATH,
+        "//a[contains(., '%s') and contains(@onclick, 'show_widget')]"),
+    "dashboard.add_widget": (
+        By.XPATH,
+        "//a[contains(., '%s') and contains(@onclick, 'add_widget')]"),
+    "dashboard.manage_widget": (
+        By.XPATH, "//div[@id='main']//a[contains(., 'Manage')]"),
+    "dashboard.save_dashboard": (
+        By.XPATH, "//li/a[text()='Save dashboard']"),
+    "dashboard.reset_dashboard": (
+        By.XPATH, "//li/a[contains(@href, 'reset_default')]"),
+    "dashboard.hcs.search_criteria": (
+        By.XPATH,
+        "//li[@data-name='Status table']//li/a[contains(., '%s')]"),
+    "dashboard.hcs.hosts_count": (
+        By.XPATH,
+        "//li[@data-name='Status table']//li/a[contains(., '%s')]"
+        "/following-sibling::h4"),
+    "dashboard.hcc.hosts_percentage": (
+        By.XPATH,
+        "//span[contains(., '%s') and contains(@class, 'pie')]/div"),
+    "dashboard.task.search_criteria": (
+        By.XPATH,
+        "//td[text()='%s']/following-sibling::td/a"),
+    "dashboard.lwe_task.name": (
+        By.XPATH,
+        "//li[@data-name='Tasks in Error/Warning']//a[contains(., '%s')]"),
+    "dashboard.cvh.tasks_statuses": (
+        By.XPATH,
+        "//li[@data-name='Content Views Widget']//a[contains(., '%s')]/.."
+        "/following-sibling::td"
+    ),
+    "dashboard.hc.hosts_count": (
+        By.XPATH,
+        "//li[@data-name='Host Collection Widget']//td[text()='%s']"
+        "/following-sibling::td"),
+    "dashboard.so.product_status": (
+        By.XPATH,
+        "//li[@data-name='Sync Widget']//td[text()='%s']"
+        "/following-sibling::td"),
+    "dashboard.cst.subs_count": (
+        By.XPATH,
+        "//li[@data-name='Subscription Status Widget']//td[text()='%s']"
+        "/following-sibling::td"),
 
     # Organizations
     "org.new": (
@@ -1073,6 +1126,15 @@ locators = LocatorDict({
     "job_invocation.status": (
         By.XPATH, "//div[@id='status' and @data-title='%s']"),
 
+    # Tasks
+    "task.page_title": (By.XPATH, "//h1[text()='Tasks']"),
+    "task.select_name": (By.XPATH, '//span[contains(., "%s")]/parent::a'),
+    "task.selected.id": (
+        By.XPATH, "//span[text()='Id:']/following-sibling::span"),
+    "task.selected.result": (
+        By.XPATH, "//span[text()='Result:']/following-sibling::span"),
+    "task.selected.summary": (
+        By.XPATH, "//span[text()='Errors:']/following-sibling::span/pre"),
 
     # Operating system (OS)
     "operatingsys.new": (
@@ -1311,6 +1373,7 @@ locators = LocatorDict({
     # Hosts
 
     # Default tab (Host)
+    "host.page_title": (By.XPATH, "//h1[text()='Hosts']"),
     "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new') and "
                            "contains(@class, 'btn')]"),
     "host.clone": (
