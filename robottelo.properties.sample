@@ -142,6 +142,12 @@ ssh_key=
 # image_dir=/opt/robottelo/images
 
 
+# For tests that uses the images for content-host testcases.
+# [distro]
+# image_el6=rhel68
+# image_el7=rhel73
+
+
 # For tests that uses the docker feature
 # [docker]
 # If you have docker deamon running on the server and it is published under a

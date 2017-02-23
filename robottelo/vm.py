@@ -18,11 +18,6 @@ from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 
-BASE_IMAGES = (
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
-)
-
 logger = logging.getLogger(__name__)
 
 
@@ -33,8 +28,8 @@ class VirtualMachineError(Exception):
 class VirtualMachine(object):
     """Manages a virtual machine to allow client provisioning for robottelo
 
-    It expects that base images listed on ``BASE_IMAGES`` are created and
-    snap-guest is setup on the provisioning server.
+    It expects that base images are created and snap-guest is setup on the
+    provisioning server.
 
     This also can be used as a context manager::
 
@@ -56,13 +51,21 @@ class VirtualMachine(object):
             self, cpu=1, ram=512, distro=None, provisioning_server=None,
             image_dir=None, tag=None, hostname=None, domain=None,
             target_image=None):
+        distro_el6 = settings.distro.image_el6
+        distro_el7 = settings.distro.image_el7
         self.cpu = cpu
         self.ram = ram
-        self.distro = BASE_IMAGES[-1] if distro is None else distro
-        if self.distro not in BASE_IMAGES:
+        if distro == 'rhel6':
+            distro = distro_el6
+        if distro == 'rhel7':
+            distro = distro_el7
+        if distro is None:
+            distro = distro_el7
+        self.distro = distro
+        if self.distro not in (distro_el6, distro_el7):
             raise VirtualMachineError(
-                u'{0} is not a supported distro. Choose one of {1}'
-                .format(self.distro, ', '.join(BASE_IMAGES))
+                u'{0} is not a supported distro. Choose one of {1}, {2}'
+                .format(self.distro, distro_el6, distro_el7)
             )
         if provisioning_server is None:
             self.provisioning_server = settings.clients.provisioning_server
