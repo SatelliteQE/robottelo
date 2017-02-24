@@ -20,7 +20,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 """
 
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import entities, entity_mixins
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo import manifests
 from robottelo.api.utils import get_role_by_bz
@@ -59,7 +59,7 @@ from robottelo.decorators import (
 from robottelo.helpers import read_data_file
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.test import UITestCase
 
@@ -106,8 +106,13 @@ class ContentViewTestCase(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         # Sync repository
         entities.Repository(id=repo_id).sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        return repo_id
 
     def _get_cv_version_environments(self, cv_version):
         """Return the list of environments promoted to the version of content
@@ -2176,8 +2181,8 @@ class ContentViewTestCase(UITestCase):
         @CaseLevel: Integration
         """
 
-    @stubbed()
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1426687)
     @tier2
     def test_negative_readonly_user_add_remove_repo(self):
         """Attempt to add and remove content view's yum and docker repositories
@@ -2197,7 +2202,7 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: Integration
 
-        @BZ: 1317828
+        @BZ: 1426687
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -2276,6 +2281,7 @@ class ContentViewTestCase(UITestCase):
                             )
                         )
 
+    @stubbed
     @run_only_on('sat')
     @tier2
     def test_negative_non_admin_user_actions(self):
