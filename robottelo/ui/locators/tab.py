@@ -126,6 +126,9 @@ tab_locators = LocatorDict({
         "//a[@data-toggle='tab' and contains(@href,'params')]"),
 
     # Roles
+    # Second level UI
+    "roles.tab_role": (By.XPATH, "//a[@href='#primary']"),
+    "roles.tab_filters": (By.XPATH, "//a[@href='#filters']"),
     # Third level UI
     "roles.tab_filter": (
         By.XPATH, "//a[@href='#primary']"),
