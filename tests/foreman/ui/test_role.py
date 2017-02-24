@@ -15,14 +15,16 @@
 
 @Upstream: No
 """
+from random import choice
 
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo.constants import ROLES
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import tier1
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_role
-from robottelo.ui.locators import common_locators
+from robottelo.ui.factory import make_domain, make_role, make_user, set_context
+from robottelo.ui.locators import common_locators, menu_locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -99,15 +101,135 @@ class RoleTestCase(UITestCase):
         @Assert: Role is updated
         """
         name = gen_string('alpha')
+        resource_type = 'Architecture'
+        permissions = ['view_architectures', 'edit_architectures']
         with Session(self.browser) as session:
             make_role(session, name=name)
             self.assertIsNotNone(self.role.search(name))
             self.role.update(
                 name,
                 add_permission=True,
-                resource_type='Architecture',
-                permission_list=['view_architectures', 'create_architectures'],
+                resource_type=resource_type,
+                permission_list=permissions,
             )
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            assigned_permissions = self.role.get_permissions(
+                name, [resource_type])
+            self.assertIsNotNone(assigned_permissions)
+            self.assertEqual(
+                set(permissions), set(assigned_permissions[resource_type]))
+
+    @tier1
+    def test_positive_clone_builtin(self):
+        """Clone one of the builtin roles
+
+        @id: e3e6af90-fb31-4de9-8f36-f50550d7f00e
+
+        @Assert: New role is created.
+        """
+        builtin_name = choice(ROLES)
+        new_name = gen_string('alpha')
+        with Session(self.browser):
+            self.role.clone(builtin_name, new_name)
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            self.assertIsNotNone(self.role.search(new_name))
+            # Ensure that cloned role contains correct resource types
+            builtin_resources = self.role.get_resources(builtin_name)
+            cloned_resources = self.role.get_resources(new_name)
+            self.assertGreater(len(cloned_resources), 0)
+            self.assertEqual(set(builtin_resources), set(cloned_resources))
+            # And correct permissions for every resource type
+            builtin_perms = self.role.get_permissions(
+                builtin_name, builtin_resources)
+            cloned_perms = self.role.get_permissions(
+                new_name, cloned_resources)
+            self.assertEqual(builtin_perms.keys(), cloned_perms.keys())
+            for key in cloned_perms.keys():
+                self.assertEqual(
+                    set(builtin_perms[key]),
+                    set(cloned_perms[key]),
+                    "Permissions differs for {0} resource type".format(key)
+                )
+
+    @tier1
+    def test_positive_clone_custom(self):
+        """Create custom role with permissions and clone it
+
+        @id: a4367968-eae5-4b8a-9b5c-61824b261320
+
+        @Assert: New role is created and contains all permissions
+        """
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
+        # Pick up custom permissions
+        resource_type = 'Architecture'
+        permissions = ['view_architectures', 'edit_architectures']
+        with Session(self.browser) as session:
+            # Create custom role with permissions
+            make_role(session, name=name)
+            self.role.add_permission(
+                name, resource_type=resource_type, permission_list=permissions,
+            )
+            self.assertIsNotNone(self.role.search(name))
+            # Clone role
+            self.role.clone(name, new_name)
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            self.assertIsNotNone(self.role.search(new_name))
+            # Ensure that cloned role contains correct resource types
+            cloned_resources = self.role.get_resources(new_name)
+            self.assertGreater(len(cloned_resources), 0)
+            self.assertEqual(resource_type, cloned_resources[0])
+            # and all permissions
+            cloned_permissions = self.role.get_permissions(
+                new_name, [resource_type])
+            self.assertIsNotNone(cloned_permissions)
+            self.assertEqual(
+                set(permissions), set(cloned_permissions[resource_type]))
+
+    @tier1
+    def test_positive_assign_cloned_role(self):
+        """Clone role and assign it to user
+
+        @id: cbb17f37-9039-4875-981b-1f427b095ed1
+
+        @Assert: User is created successfully
+
+        @BZ: 1353788
+        """
+        user_name = gen_string('alpha')
+        role_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            # Clone one of the builtin roles
+            self.role.clone(choice(ROLES), role_name)
+            # Create user wit this role
+            make_user(
+                session, username=user_name, roles=[role_name], edit=True)
+            self.user.search_and_click(user_name)
+            self.user.click(tab_locators['users.tab_roles'])
+            element = self.user.wait_until_element(
+                common_locators['entity_deselect'] % role_name)
+            self.assertIsNotNone(element)
+
+    @tier1
+    def test_positive_delete_cloned(self):
+        """Delete cloned role
+
+        @id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
+
+        @Assert: Role is deleted
+
+        @BZ: 1353788
+        """
+        new_name = gen_string('alpha')
+        with Session(self.browser):
+            self.role.clone(choice(ROLES), new_name)
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            self.assertIsNotNone(self.role.search(new_name))
+            self.role.delete(new_name)
 
     @tier1
     def test_positive_update_org(self):
