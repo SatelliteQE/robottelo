@@ -1319,3 +1319,53 @@ class ActivationKeyTestCase(UITestCase):
         with Session(self.browser) as session:
             set_context(session, org=self.organization.name)
             self.assertIsNotNone(self.activationkey.search(ak_name))
+
+    @run_in_one_thread
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    def test_positive_fetch_product_content(self):
+        """Associate RH & custom product with AK and fetch AK's product content
+
+        @id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
+
+        @Assert: Both Red Hat and custom product subscriptions are assigned as
+        Activation Key's product content
+
+        @BZ: 1360239
+
+        @CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo.sync()
+        custom_product = entities.Product(organization=org).create()
+        custom_repo = entities.Repository(
+            name=gen_string('alphanumeric').upper(),  # first letter is always
+            # uppercase on product content page, workarounding it for
+            # successful checks
+            product=custom_product).create()
+        custom_repo.sync()
+        cv = entities.ContentView(
+            organization=org,
+            repository=[rh_repo_id, custom_repo.id],
+        ).create()
+        cv.publish()
+        ak = entities.ActivationKey(content_view=cv, organization=org).create()
+        with Session(self.browser) as session:
+            set_context(session, org=org.name)
+            self.activationkey.associate_product(
+                ak.name, [custom_product.name, DEFAULT_SUBSCRIPTION_NAME])
+            self.assertEqual(
+                set(self.activationkey.fetch_product_contents(ak.name)),
+                {custom_repo.name, REPOSET['rhst7']}
+            )

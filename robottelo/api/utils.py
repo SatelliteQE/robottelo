@@ -17,7 +17,7 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
     :param str reposet: The reposet name in which repository exists.
     :param str repo: The repository name who's Id is to be fetched.
     :param str basearch: The architecture of the repository.
-    :param str releasever: The releasever of the repository.
+    :param str optional releasever: The releasever of the repository.
     :return: Returns the repository Id.
     :rtype: str
 

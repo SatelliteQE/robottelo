@@ -626,7 +626,6 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(content[0]['name'], REPOSET['rhst7'])
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1360239)
     @tier3
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
@@ -636,6 +635,8 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Custom products are successfully associated to Activation key
 
         @CaseLevel: System
+
+        @BZ: 1360239
         """
         result = setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
@@ -650,7 +651,6 @@ class ActivationKeyTestCase(CLITestCase):
 
     @run_in_one_thread
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1360239)
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_add_redhat_and_custom_products(self):
@@ -667,6 +667,8 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: RH/Custom product is successfully associated to Activation key
 
         @CaseLevel: System
+
+        @BZ: 1360239
         """
         org = make_org()
         result = setup_org_for_a_rh_repo({
