@@ -68,15 +68,16 @@ class HostGroupTestCase(CLITestCase):
         # Setup for puppet class related tests
         puppet_modules = [
             {'author': 'robottelo', 'name': 'generic_1'},
+            {'author': 'robottelo', 'name': 'generic_2'},
         ]
         cls.cv = publish_puppet_module(
             puppet_modules, CUSTOM_PUPPET_REPO, cls.org['id'])
         cls.env = Environment.list({
             'search': u'content_view="{0}"'.format(cls.cv['name'])})[0]
-        cls.puppet_class = Puppet.info({
-            'name': puppet_modules[0]['name'],
-            'environment': cls.env['name'],
-        })
+        cls.puppet_classes = [
+            Puppet.info({'name': mod['name'], 'environment': cls.env['name']})
+            for mod in puppet_modules
+        ]
 
     @tier1
     def test_positive_create_with_name(self):
@@ -220,12 +221,13 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet class assigned
         """
         hostgroup = make_hostgroup({
-            'puppet-class-ids': self.puppet_class['id'],
+            'puppet-class-ids': self.puppet_classes[0]['id'],
             'environment-id': self.env['id'],
             'content-view-id': self.cv['id'],
             'query-organization-id': self.org['id'],
         })
-        self.assertIn(self.puppet_class['name'], hostgroup['puppetclasses'])
+        self.assertIn(
+            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
 
     @tier1
     def test_positive_create_with_puppet_class_name(self):
@@ -236,12 +238,13 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup is created and has puppet class assigned
         """
         hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_class['name'],
+            'puppet-classes': self.puppet_classes[0]['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
             'query-organization': self.org['name'],
         })
-        self.assertIn(self.puppet_class['name'], hostgroup['puppetclasses'])
+        self.assertIn(
+            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
 
     @skip_if_bug_open('bugzilla', 1354544)
     @run_only_on('sat')
@@ -526,6 +529,72 @@ class HostGroupTestCase(CLITestCase):
                     })
                 result = HostGroup.info({'id': hostgroup['id']})
                 self.assertEqual(hostgroup['name'], result['name'])
+
+    @tier1
+    def test_positive_update_puppet_class_by_id(self):
+        """Update hostgroup with puppet class by name by id
+
+        @id: 4b044719-431d-4d72-8974-330cc62fd020
+
+        @Assert: Puppet class is associated with hostgroup
+        """
+        hostgroup = make_hostgroup({
+            'environment-id': self.env['id'],
+            'content-view-id': self.cv['id'],
+            'query-organization-id': self.org['id'],
+        })
+        self.assertEqual(len(hostgroup['puppetclasses']), 0)
+        HostGroup.update({
+            'id': hostgroup['id'],
+            'puppet-class-ids': self.puppet_classes[0]['id'],
+        })
+        hostgroup = HostGroup.info({'id': hostgroup['id']})
+        self.assertIn(
+            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
+
+    @tier1
+    def test_positive_update_puppet_class_by_name(self):
+        """Update hostgroup with puppet class by name
+
+        @id: 4c37354f-ef2d-4d54-98ac-906bc611d292
+
+        @Assert: Puppet class is associated with hostgroup
+        """
+        hostgroup = make_hostgroup({
+            'environment-id': self.env['id'],
+            'content-view-id': self.cv['id'],
+            'query-organization-id': self.org['id'],
+        })
+        self.assertEqual(len(hostgroup['puppetclasses']), 0)
+        HostGroup.update({
+            'id': hostgroup['id'],
+            'puppet-classes': self.puppet_classes[0]['name'],
+        })
+        hostgroup = HostGroup.info({'id': hostgroup['id']})
+        self.assertIn(
+            self.puppet_classes[0]['name'], hostgroup['puppetclasses'])
+
+    @tier1
+    def test_positive_update_multiple_puppet_classes(self):
+        """Update hostgroup with multiple puppet classes by name
+
+        @id: 2e977aed-c0d4-478e-9c84-f07deac912cd
+
+        @Assert: All puppet classes are associated with hostgroup
+
+        @BZ: 1264163
+        """
+        puppet_classes = [puppet['name'] for puppet in self.puppet_classes]
+        hostgroup = make_hostgroup({
+            'environment-id': self.env['id'],
+            'content-view-id': self.cv['id'],
+            'query-organization-id': self.org['id'],
+        })
+        self.assertEqual(len(hostgroup['puppetclasses']), 0)
+        HostGroup.update({
+            'id': hostgroup['id'], 'puppet-classes': puppet_classes})
+        hostgroup = HostGroup.info({'id': hostgroup['id']})
+        self.assertEqual(set(puppet_classes), set(hostgroup['puppetclasses']))
 
     @run_only_on('sat')
     @tier1
