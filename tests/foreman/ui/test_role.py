@@ -21,10 +21,10 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import ROLES
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, skip_if_bug_open
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_domain, make_role, make_user, set_context
-from robottelo.ui.locators import common_locators, menu_locators, tab_locators
+from robottelo.ui.factory import make_role, make_user
+from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -120,6 +120,7 @@ class RoleTestCase(UITestCase):
             self.assertEqual(
                 set(permissions), set(assigned_permissions[resource_type]))
 
+    @skip_if_bug_open('bugzilla', 1353788)
     @tier1
     def test_positive_clone_builtin(self):
         """Clone one of the builtin roles
@@ -153,6 +154,7 @@ class RoleTestCase(UITestCase):
                     "Permissions differs for {0} resource type".format(key)
                 )
 
+    @skip_if_bug_open('bugzilla', 1353788)
     @tier1
     def test_positive_clone_custom(self):
         """Create custom role with permissions and clone it
@@ -169,8 +171,11 @@ class RoleTestCase(UITestCase):
         with Session(self.browser) as session:
             # Create custom role with permissions
             make_role(session, name=name)
-            self.role.add_permission(
-                name, resource_type=resource_type, permission_list=permissions,
+            self.role.update(
+                name,
+                add_permission=True,
+                resource_type=resource_type,
+                permission_list=permissions,
             )
             self.assertIsNotNone(self.role.search(name))
             # Clone role
@@ -189,6 +194,7 @@ class RoleTestCase(UITestCase):
             self.assertEqual(
                 set(permissions), set(cloned_permissions[resource_type]))
 
+    @skip_if_bug_open('bugzilla', 1353788)
     @tier1
     def test_positive_assign_cloned_role(self):
         """Clone role and assign it to user
@@ -213,6 +219,7 @@ class RoleTestCase(UITestCase):
                 common_locators['entity_deselect'] % role_name)
             self.assertIsNotNone(element)
 
+    @skip_if_bug_open('bugzilla', 1353788)
     @tier1
     def test_positive_delete_cloned(self):
         """Delete cloned role
