@@ -2245,9 +2245,8 @@ class ContentViewTestCase(UITestCase):
             repository=[docker_repo, yum_repo],
         ).create()
         # Log in as readonly user
-        with Session(self.browser, user_login, user_password) as session:
+        with Session(self.browser, user_login, user_password):
             # Open the content view
-            session.nav.go_to_content_views()
             cv = self.content_views.search(content_view.name)
             self.assertIsNotNone(cv)
             self.content_views.click(cv)
