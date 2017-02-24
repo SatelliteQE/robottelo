@@ -1374,9 +1374,7 @@ class HostInterfaceTestCase(APITestCase):
         for name in valid_interfaces_list():
             with self.subTest(name):
                 interface = entities.Interface(
-                    host=self.host,
-                    name=name,
-                ).create()
+                    host=self.host, name=name).create()
                 self.assertEqual(interface.name, name)
 
     @tier1
@@ -1390,11 +1388,9 @@ class HostInterfaceTestCase(APITestCase):
         """
         for name in invalid_interfaces_list():
             with self.subTest(name):
-                with self.assertRaises(HTTPError):
-                    entities.Interface(
-                        host=self.host,
-                        name=name,
-                    ).create()
+                with self.assertRaises(HTTPError) as error:
+                    entities.Interface(host=self.host, name=name).create()
+                self.assertEqual(error.exception.response.status_code, 422)
 
     @tier1
     def test_positive_update_name(self):
@@ -1424,9 +1420,10 @@ class HostInterfaceTestCase(APITestCase):
         for new_name in invalid_interfaces_list():
             with self.subTest(new_name):
                 interface.name = new_name
-                with self.assertRaises(HTTPError):
+                with self.assertRaises(HTTPError) as error:
                     interface.update(['name'])
                 self.assertNotEqual(interface.read().name, new_name)
+                self.assertEqual(error.exception.response.status_code, 422)
 
     @tier1
     def test_positive_delete(self):
@@ -1478,10 +1475,7 @@ class HostInterfaceTestCase(APITestCase):
         @Assert: An interface was successfully deleted, host was not deleted
         """
         host = entities.Host().create()
-        interface = entities.Interface(
-            host=host,
-            primary=False,
-        ).create()
+        interface = entities.Interface(host=host, primary=False).create()
         interface.delete()
         with self.assertRaises(HTTPError):
             interface.read()
