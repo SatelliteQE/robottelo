@@ -501,6 +501,9 @@ tab_locators = LocatorDict({
         "//a[@data-toggle='tab' and contains(@href,'params')]"),
 
     # Roles
+    # Second level UI
+    "roles.tab_role": (By.XPATH, "//a[@href='#primary']"),
+    "roles.tab_filters": (By.XPATH, "//a[@href='#filters']"),
     # Third level UI
     "roles.tab_filter": (
         By.XPATH, "//a[@href='#primary']"),
@@ -1732,7 +1735,9 @@ locators = LocatorDict({
         "//li[contains(@class, 'next') and "
         "not(contains(@class, 'disabled'))]/a"
     ),
-    "roles.filters.search": (By.XPATH, "//input[@type='search']"),
+    "roles.filters.search": (
+        By.XPATH,
+        "//input[contains(@aria-controls, 'DataTables') and @type='text']"),
 
     # Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),

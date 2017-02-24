@@ -99,8 +99,8 @@ class Role(Base):
         dict_permissions = {}
         for res_type in resource_types:
             self.assign_value(locators["roles.filters.search"], res_type)
-            permissions = self.wait_until_element(
-                locators['roles.permissions'] % res_type)
+            strategy, value = locators['roles.permissions']
+            permissions = self.wait_until_element((strategy, value % res_type))
             if permissions:
                 dict_permissions[res_type] = permissions.text.split(', ')
         return dict_permissions
@@ -108,7 +108,8 @@ class Role(Base):
     def clone(self, name, new_name, locations=None, organizations=None):
         """Clone role with name/location/organization."""
         self.search(name)
-        self.click(locators['roles.dropdown'] % name)
+        strategy, value = locators['roles.dropdown']
+        self.click((strategy, value % name))
         self.click(locators['roles.clone'])
         self.assign_value(locators['roles.name'], new_name)
         if locations or organizations:
