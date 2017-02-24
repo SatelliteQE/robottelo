@@ -178,6 +178,15 @@ class ActivationKey(Base):
         self.click(locators['ak.content_hosts'])
         return self.wait_until_element(locators['ak.content_host_name']).text
 
+    def fetch_product_contents(self, name):
+        """Fetch associated product content from selected activation key."""
+        self.search_and_click(name)
+        self.click(tab_locators['ak.tab_prd_content'])
+        return [
+            el.text for el
+            in self.find_elements(locators['ak.product_contents'])
+        ]
+
     def copy(self, name, new_name=None):
         """Copies an existing activation key"""
         self.search_and_click(name)

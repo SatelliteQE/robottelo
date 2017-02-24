@@ -1464,6 +1464,12 @@ locators = LocatorDict({
     "ak.subscriptions.search": (
         By.XPATH,
         "//input[@ng-model='subscriptionSearch']"),
+    "ak.product_contents": (
+        By.XPATH,
+        ("//div[contains(@ng-controller, "
+         "'ActivationKeyProductDetailsController')]/div[@class='row']"
+         "/div[@ng-repeat='content in product.available_content']/h4/u"),
+    ),
 
     # Sync Status
     "sync.prd_expander": (
