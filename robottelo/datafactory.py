@@ -296,6 +296,31 @@ def valid_usernames_list():
     )
 
 
+@filtered_datapoint
+def valid_interfaces_list():
+    """Generates a list of valid host interface names."""
+    return [
+        gen_string('alpha', random.randint(1, 255)).lower(),
+        gen_string('alphanumeric', random.randint(1, 255)).lower(),
+        gen_string('numeric', random.randint(1, 255)),
+    ]
+
+
+@filtered_datapoint
+def invalid_interfaces_list():
+    """Generates a list of invalid host interface names."""
+    return [
+        gen_string('alpha', 300).lower(),
+        gen_string('alphanumeric', 300).lower(),
+        gen_string('numeric', 300),
+        gen_string('cjk'),
+        gen_string('cyrillic'),
+        gen_string('html'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+    ]
+
+
 def valid_http_credentials(url_encoded=False):
     """Returns a list of valid credentials for HTTP authentication
     The credentials dictionary contains the following keys:
