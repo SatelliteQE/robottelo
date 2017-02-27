@@ -151,16 +151,6 @@ class ContentView(Base):
             cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def puppet_module_info(cls, options):
-        """Provides puppet-module info related to content-view's version."""
-        cls.command_sub = 'puppet-module info'
-
-        if options is None:
-            options = {}
-
-        return hammer.parse_info(cls.execute(cls._construct_command(options)))
-
-    @classmethod
     def puppet_module_list(cls, options):
         """List content view puppet modules"""
         cls.command_sub = 'puppet-module list'
