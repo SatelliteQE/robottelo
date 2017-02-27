@@ -862,9 +862,7 @@ class ContentViewTestCase(CLITestCase):
             u'url': CUSTOM_PUPPET_REPO,
         })
         puppet_module = PuppetModule.list({
-            'search': 'name={0} and version={1}'.format(
-                module['name'], module['version'])
-        })[0]
+            'search': 'name={name} and version={version}'.format(**module)})[0]
         Repository.synchronize({'id': puppet_repository['id']})
         content_view = make_content_view({u'organization-id': self.org['id']})
         ContentView.puppet_module_add({
@@ -872,6 +870,12 @@ class ContentViewTestCase(CLITestCase):
             u'name': puppet_module['name'],
             u'author': puppet_module['author'],
         })
+        # Check output of `content-view info` subcommand
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertGreater(content_view['puppet-modules'], 0)
+        self.assertEqual(
+            puppet_module['name'], content_view['puppet-modules'][0]['name'])
+        # Check output of `content-view puppet module list` subcommand
         cv_module = ContentView.puppet_module_list(
             {'content-view-id': content_view['id']})
         self.assertGreater(len(cv_module), 0)
@@ -904,28 +908,140 @@ class ContentViewTestCase(CLITestCase):
         })
         Repository.synchronize({'id': puppet_repository['id']})
         puppet_module = PuppetModule.list({
-            'search': 'name={0} and version={1}'.format(
-                module['name'], module['version'])
-        })[0]
-        for by in ('uuid', 'id'):
-            with self.subTest(by=by):
+            'search': 'name={name} and version={version}'.format(**module)})[0]
+        for identifier_type in ('uuid', 'id'):
+            with self.subTest(add_by=identifier_type):
                 content_view = make_content_view(
                     {u'organization-id': self.org['id']})
                 ContentView.puppet_module_add({
                     u'content-view-id': content_view['id'],
-                    by: puppet_module[by],
+                    identifier_type: puppet_module[identifier_type],
                 })
+                # Check output of `content-view info` subcommand
+                content_view = ContentView.info({'id': content_view['id']})
+                self.assertGreater(len(content_view['puppet-modules']), 0)
+                self.assertEqual(
+                    puppet_module['name'],
+                    content_view['puppet-modules'][0]['name']
+                )
+                # Check output of `content-view puppet module list` subcommand
                 cv_module = ContentView.puppet_module_list(
                     {'content-view-id': content_view['id']})
                 self.assertGreater(len(cv_module), 0)
                 self.assertEqual(cv_module[0]['version'], module['version'])
-                # Remove puppet module before next iteration
-                ContentView.puppet_module_remove({
-                    'content-view-id': content_view['id'],
-                    'uuid': puppet_module['uuid']
-                })
-                self.assertEqual(len(ContentView.puppet_module_list(
-                    {'content-view-id': content_view['id']})), 0)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_remove_puppet_module_by_name(self):
+        """Remove puppet module from Content View by name
+
+        @id: b9d161de-d2a1-46e1-922d-5e22826a41e4
+
+        @Assert: Module successfully removed and no modules are listed
+
+        @CaseLevel: Integration
+        """
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': self.product['id'],
+            u'url': CUSTOM_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list(
+            {u'repository-id': puppet_repository['id']})
+        puppet_module = random.choice(puppet_modules)
+        content_view = make_content_view({u'organization-id': self.org['id']})
+        # Add puppet module
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'name': puppet_module['name'],
+            u'author': puppet_module['author'],
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertGreater(len(content_view['puppet-modules']), 0)
+        # Remove puppet module
+        ContentView.puppet_module_remove({
+            u'content-view-id': content_view['id'],
+            u'name': puppet_module['name'],
+            u'author': puppet_module['author'],
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['puppet-modules']), 0)
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1427260)
+    @run_only_on('sat')
+    def test_positive_remove_puppet_module_by_id(self):
+        """Remove puppet module from Content View by id
+
+        @id: 972a484c-6f38-4015-b20b-6a83d15b6c97
+
+        @Assert: Module successfully removed and no modules are listed
+
+        @CaseLevel: Integration
+
+        @BZ: 1427260
+        """
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': self.product['id'],
+            u'url': CUSTOM_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list(
+            {u'repository-id': puppet_repository['id']})
+        puppet_module = random.choice(puppet_modules)
+        content_view = make_content_view({u'organization-id': self.org['id']})
+        # Add puppet module
+        ContentView.puppet_module_add({
+            u'content-view-id': content_view['id'],
+            u'id': puppet_module['id']
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertGreater(len(content_view['puppet-modules']), 0)
+        # Remove puppet module
+        ContentView.puppet_module_remove({
+            'content-view-id': content_view['id'],
+            'id': content_view['puppet-modules'][0]['id']
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['puppet-modules']), 0)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_remove_puppet_module_by_uuid(self):
+        """Remove puppet module from Content View by uuid
+
+        @id: c63339aa-3d74-4a37-aaef-6777e0f6cb35
+
+        @Assert: Module successfully removed and no modules are listed
+
+        @CaseLevel: Integration
+        """
+        puppet_repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': self.product['id'],
+            u'url': CUSTOM_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_modules = PuppetModule.list(
+            {u'repository-id': puppet_repository['id']})
+        puppet_module = random.choice(puppet_modules)
+        content_view = make_content_view({u'organization-id': self.org['id']})
+        # Add puppet module
+        ContentView.puppet_module_add({
+            'content-view-id': content_view['id'],
+            'uuid': puppet_module['uuid'],
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertGreater(len(content_view['puppet-modules']), 0)
+        # Remove puppet module
+        ContentView.puppet_module_remove({
+            'content-view-id': content_view['id'],
+            'uuid': puppet_module['uuid'],
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['puppet-modules']), 0)
 
     @tier2
     @run_only_on('sat')
