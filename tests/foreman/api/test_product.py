@@ -21,7 +21,12 @@ http://theforeman.org/api/apidoc/v2/products.html
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.constants import VALID_GPG_KEY_BETA_FILE, VALID_GPG_KEY_FILE
+from robottelo.constants import (
+    FAKE_1_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
+    VALID_GPG_KEY_BETA_FILE,
+    VALID_GPG_KEY_FILE,
+)
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.helpers import read_data_file
@@ -295,3 +300,51 @@ class ProductTestCase(APITestCase):
                 product.delete()
                 with self.assertRaises(HTTPError):
                     entities.Product(id=product.id).read()
+
+    @tier1
+    def test_positive_sync(self):
+        """Sync product (repository within a product)
+
+        @id: 860e00a1-c370-4bd0-8987-449338071d56
+
+        @Assert: Repository within a product is successfully synced.
+        """
+        product = entities.Product().create()
+        rpm_repo = entities.Repository(
+            product=product,
+            content_type='yum',
+            url=FAKE_1_YUM_REPO
+        ).create()
+        self.assertEqual(rpm_repo.read().content_counts['rpm'], 0)
+        product.sync()
+        self.assertGreaterEqual(rpm_repo.read().content_counts['rpm'], 1)
+
+    @tier2
+    def test_positive_sync_several_repos(self):
+        """Sync product (all repositories within a product)
+
+        @id: 07918442-b72f-4db5-96b6-975564f3663a
+
+        @Assert: All repositories within a product are successfully synced.
+
+        @CaseLevel: Integration
+
+        @BZ: 1389543
+        """
+        product = entities.Product().create()
+        rpm_repo = entities.Repository(
+            product=product,
+            content_type='yum',
+            url=FAKE_1_YUM_REPO
+        ).create()
+        puppet_repo = entities.Repository(
+            product=product,
+            content_type='puppet',
+            url=FAKE_1_PUPPET_REPO
+        ).create()
+        self.assertEqual(rpm_repo.read().content_counts['rpm'], 0)
+        self.assertEqual(puppet_repo.read().content_counts['puppet_module'], 0)
+        product.sync()
+        self.assertGreaterEqual(rpm_repo.read().content_counts['rpm'], 1)
+        self.assertGreaterEqual(
+            puppet_repo.read().content_counts['puppet_module'], 1)
