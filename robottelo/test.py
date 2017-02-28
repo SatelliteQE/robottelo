@@ -8,6 +8,7 @@ import csv
 import logging
 import os
 import pytest
+import re
 import unittest2
 
 try:
@@ -101,6 +102,99 @@ from robottelo.ui.user import User
 LOGGER = logging.getLogger(__name__)
 
 
+class _AssertNotRaisesContext(object):
+    """A context manager used to implement :meth:`TestCase.assertNotRaises`.
+    """
+
+    def __init__(self, expected, test_case, expected_regex=None,
+                 cli_return_code=None, http_status_code=None):
+        self.expected = expected
+        self.expected_regex = expected_regex
+        if cli_return_code is not None:
+            self.expected_response_code = cli_return_code
+            self.interface = 'cli'
+        elif http_status_code is not None:
+            self.expected_response_code = http_status_code
+            self.interface = 'api'
+        else:
+            self.expected_response_code = None
+            self.interface = None
+        self.failureException = test_case.failureException
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is None:
+            return True
+
+        try:
+            exc_name = self.expected.__name__
+        except AttributeError:
+            exc_name = str(self.expected)
+
+        self.exception = exc_value  # store for later retrieval
+
+        if issubclass(exc_type, self.expected):
+            if not any((self.expected_response_code, self.expected_regex)):
+                raise self.failureException(
+                    "{0} raised".format(exc_name))
+            regex = self.expected_regex
+            response_code = self.expected_response_code
+            if response_code:
+                if self.interface == 'api':
+                    response_code = (
+                        True if response_code == exc_value.response.status_code
+                        else False
+                    )
+                else:
+                    response_code = (
+                        True if response_code == exc_value.return_code
+                        else False
+                    )
+            if regex:
+                regex = True if regex.search(str(exc_value)) else False
+
+            if response_code and regex:
+                raise self.failureException(
+                    "{0} raised with {1} {2} and {3} found in {4}"
+                    .format(
+                        exc_name,
+                        ('status_code'
+                         if self.interface == 'api'
+                         else 'return_code'),
+                        self.expected_response_code,
+                        self.expected_regex.pattern,
+                        str(exc_value),
+                    )
+                )
+            elif response_code and regex is None:
+                raise self.failureException(
+                    "{0} raised with {1} {2}".format(
+                        exc_name,
+                        ('status_code'
+                         if self.interface == 'api'
+                         else 'return_code'),
+                        self.expected_response_code,
+                    )
+                )
+            elif regex and response_code is None:
+                raise self.failureException(
+                    "{0} raised and {1} found in {2}".format(
+                        exc_name,
+                        self.expected_regex.pattern,
+                        str(exc_value),
+                    )
+                )
+            else:
+                # pass through
+                return False
+
+        else:
+            # pass through
+            return False
+
+
 class TestCase(unittest2.TestCase):
     """Robottelo test case"""
 
@@ -168,6 +262,68 @@ class TestCase(unittest2.TestCase):
             type(self).__name__,
             self._testMethodName,
         ))
+
+    def assertNotRaises(self, expected_exception, callableObj=None,
+                        cli_return_code=None, http_status_code=None,
+                        *args, **kwargs):
+        """Fail if an exception of class expected_exception is raised by
+        callableObj when invoked with specified positional and keyword
+        arguments. If a different type of exception is raised, it will not be
+        caught, and the test case will be deemed to have suffered an error,
+        exactly as for an unexpected exception.
+
+        If called with callableObj omitted or None, will return a context
+        object used like this::
+
+                with self.assertNotRaises(SomeException):
+                    do_something()
+
+        The context manager keeps a reference to the exception as the
+        'exception' attribute. This allows you to inspect the exception after
+        the assertion::
+
+               with self.assertNotRaises(SomeException) as cm:
+                   do_something()
+               the_exception = cm.exception
+               self.assertEqual(the_exception.error_code, 1)
+
+        In addition, optional 'http_status_code' or 'cli_return_code' arg may
+        be passed. This allows to specify exact HTTP status code or CLI return
+        code, returned by ``requests.HTTPError`` or
+        :class:`robottelo.cli.base.CLIReturnCodeError` accordingly, which
+        should be validated. In such case only expected exception with expected
+        response code will be caught.
+        """
+        context = _AssertNotRaisesContext(
+            expected_exception,
+            self,
+            cli_return_code=cli_return_code,
+            http_status_code=http_status_code,
+        )
+        if callableObj is None:
+            return context
+        with context:
+            callableObj(*args, **kwargs)
+
+    def assertNotRaisesRegex(self, expected_exception, expected_regex,
+                             callableObj=None, http_status_code=None,
+                             cli_return_code=None, *args, **kwargs):
+        """Fail if an exception of class expected_exception is raised and the
+        message in the exception matches a regex.
+        """
+        if expected_regex is not None:
+            expected_regex = re.compile(expected_regex)
+        context = _AssertNotRaisesContext(
+            expected_exception,
+            self,
+            expected_regex=expected_regex,
+            cli_return_code=cli_return_code,
+            http_status_code=http_status_code,
+        )
+        if callableObj is None:
+            return context
+        with context:
+            callableObj(*args, **kwargs)
 
 
 class APITestCase(TestCase):
