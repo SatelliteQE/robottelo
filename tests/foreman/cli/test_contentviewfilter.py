@@ -42,15 +42,16 @@ class ContentViewFilterTestCase(CLITestCase):
         super(ContentViewFilterTestCase, cls).setUpClass()
         cls.org = make_org()
         cls.product = make_product_wait({u'organization-id': cls.org['id']})
-        cls.repo = make_repository({u'product-id': cls.product['id']})
-        Repository.synchronize({u'id': cls.repo['id']})
         cls.content_view = make_content_view({
             u'organization-id': cls.org['id'],
         })
-        ContentView.add_repository({
-            u'id': cls.content_view['id'],
-            u'repository-id': cls.repo['id'],
-        })
+        for _ in range(2):
+            cls.repo = make_repository({u'product-id': cls.product['id']})
+            Repository.synchronize({u'id': cls.repo['id']})
+            ContentView.add_repository({
+                u'id': cls.content_view['id'],
+                u'repository-id': cls.repo['id'],
+            })
 
     @tier1
     def test_positive_create_with_name_by_cv_id(self):
@@ -138,7 +139,6 @@ class ContentViewFilterTestCase(CLITestCase):
                 self.assertEqual(cvf['inclusion'], inclusion)
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1236532)
     def test_positive_create_with_description_by_cv_id(self):
         """Create new content view filter with description and assign it to
         existing content view.
@@ -245,7 +245,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         @Assert: Content view filter created successfully and has proper
         repository affected
-
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -260,10 +259,11 @@ class ContentViewFilterTestCase(CLITestCase):
             u'content-view-id': self.content_view['id'],
             u'name': cvf_name,
         })
+        # Check that only one, specified above, repository is displayed
+        self.assertEqual(len(cvf['repositories']), 1)
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1343006)
     def test_positive_create_with_repo_by_name(self):
         """Create new content view filter and assign it to existing content
         view that has repository assigned to it. Use that repository name for
@@ -273,6 +273,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
         @Assert: Content view filter created successfully and has proper
         repository affected
+
+        @BZ: 1228890
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -287,6 +289,8 @@ class ContentViewFilterTestCase(CLITestCase):
             u'content-view-id': self.content_view['id'],
             u'name': cvf_name,
         })
+        # Check that only one, specified above, repository is displayed
+        self.assertEqual(len(cvf['repositories']), 1)
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
     @tier1
