@@ -561,6 +561,20 @@ locators = LocatorDict({
     "host.yaml_button": (By.XPATH, "//a[text()='YAML' and "
                                    "contains(@class, 'btn')]"),
     "host.yaml_output": (By.XPATH, "//pre"),
+    "host.property_status": (
+        By.XPATH, "//td[text()='Status']/following-sibling::td/span[2]"),
+    "host.property_errata": (
+        By.XPATH, "//td[text()='Errata']/following-sibling::td/span[2]"),
+    "host.property_subscription": (
+        By.XPATH, "//td[text()='Subscription']/following-sibling::td/span[2]"),
+    "host.property_ip_address": (
+        By.XPATH, "//table[@id='properties_table']//td[text()='IP Address']/"
+                  "following-sibling::td"),
+    "host.property_mac_address": (
+        By.XPATH, "//table[@id='properties_table']//td[text()='MAC Address']/"
+                  "following-sibling::td"),
+    "host.property_host_architecture": (
+        By.XPATH, "//td[text()='Host Architecture']/following-sibling::td/a"),
     "host.name": (By.ID, "host_name"),
     "host.organization": (
         By.XPATH,
@@ -2038,8 +2052,7 @@ locators = LocatorDict({
          "span[contains(@class, 'editable')]")),
     "settings.edit_value": (
         By.XPATH,
-        "//td[@class='setting_value']//form//"
-        "*[contains(@class, 'input-sm') or contains(@class, 'input-large')]"),
+        "//td[@class='setting_value']//form//*[@name='setting[value]']"),
     "settings.save": (
         By.XPATH,
         "//td[@class='setting_value']//form//button[@type='submit']"),

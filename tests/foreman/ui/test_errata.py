@@ -19,6 +19,8 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.cli.factory import (
+    make_content_view_filter,
+    make_content_view_filter_rule,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
@@ -54,6 +56,8 @@ from robottelo.decorators import (
     tier3,
 )
 from robottelo.test import UITestCase
+from robottelo.ui.factory import edit_param
+from robottelo.ui.locators import tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -895,3 +899,134 @@ class ErrataTestCase(UITestCase):
 
         @CaseLevel: System
         """
+
+
+@run_in_one_thread
+class FilteredErrataTestCase(UITestCase):
+    """UI Tests for filtering functionality of errata management feature"""
+
+    @classmethod
+    def set_session_org(cls):
+        """Create an organization for tests, which will be selected
+        automatically"""
+        cls.session_org = entities.Organization().create()
+
+    @tier3
+    def test_positive_errata_status_installable_param(self):
+        """Filter errata for specific content view and verify that host that
+        was registered using that content view has different states in
+        correspondence to filtered errata and `errata status installable`
+        settings flag value
+
+        @id: ed94cf34-b8b9-4411-8edc-5e210ea6af4f
+
+        @Steps:
+
+        1. Prepare setup: Create Lifecycle Environment, Content View,
+        Activation Key and all necessary repos
+        2. Register Content Host using created data
+        3. Create necessary Content View Filter and Rule for repository errata
+        4. Publish and Promote Content View to a new version and remove old
+        ones.
+        5. Go to created Host page and check its properties
+        6. Change 'errata status installable' flag in the settings and check
+        host properties once more
+
+        @Assert: Check that 'errata status installable' flag works as intended
+
+        @BZ: 1368254
+
+        @CaseLevel: System
+        """
+        env = entities.LifecycleEnvironment(
+            organization=self.session_org).create()
+        content_view = entities.ContentView(
+            organization=self.session_org).create()
+        activation_key = entities.ActivationKey(
+            environment=env,
+            organization=self.session_org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': self.session_org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        })
+        custom_entitites = setup_org_for_a_custom_repo({
+            'url': CUSTOM_REPO_URL,
+            'organization-id': self.session_org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        })
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            result = client.register_contenthost(
+                self.session_org.label,
+                activation_key.name,
+            )
+            self.assertEqual(result.return_code, 0)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+            # Adding content view filter and content view filter rule to
+            # exclude errata that we are going to track
+            cvf = make_content_view_filter({
+                u'content-view-id': content_view.id,
+                u'inclusion': 'false',
+                u'organization-id': self.session_org.id,
+                u'repository-ids': custom_entitites['repository-id'],
+                u'type': 'erratum',
+            })
+            make_content_view_filter_rule({
+                u'content-view-id': content_view.id,
+                u'content-view-filter-id': cvf['filter-id'],
+                u'errata-id': CUSTOM_REPO_ERRATA_ID,
+            })
+            ContentView.publish({u'id': content_view.id})
+            cvv = ContentView.info({u'id': content_view.id})['versions'][-1]
+            ContentView.version_promote({
+                u'id': cvv['id'],
+                u'organization-id': self.session_org.id,
+                u'to-lifecycle-environment-id': env.id,
+            })
+            # Remove old cv versions to have unambiguous one for testing
+            cvvs = ContentView.info({u'id': content_view.id})['versions']
+            for i in range(len(cvvs)-1):
+                ContentView.version_delete({u'id': cvvs[i]['id']})
+            with Session(self.browser) as session:
+                edit_param(
+                    session,
+                    tab_locator=tab_locators['settings.tab_katello'],
+                    param_name='errata_status_installable',
+                    param_value='true',
+                )
+                self.hosts.search_and_click(client.hostname)
+                for property_name, property_value in [
+                    ['Status', 'OK'],
+                    ['Errata', 'All errata applied'],
+                    ['Subscription', 'Fully entitled']
+                ]:
+                    self.assertEqual(
+                        self.hosts.get_host_property(property_name),
+                        property_value
+                    )
+                edit_param(
+                    session,
+                    tab_locator=tab_locators['settings.tab_katello'],
+                    param_name='errata_status_installable',
+                    param_value='false',
+                )
+                self.hosts.search_and_click(client.hostname)
+                for property_name, property_value in [
+                    ['Status', 'Error'],
+                    ['Errata', 'Security errata applicable'],
+                    ['Subscription', 'Fully entitled']
+                ]:
+                    self.assertEqual(
+                        self.hosts.get_host_property(property_name),
+                        property_value
+                    )

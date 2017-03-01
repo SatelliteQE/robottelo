@@ -291,3 +291,9 @@ class Hosts(Base):
             self.click(tab_locator)
             result[param_name] = self.wait_until_element(param_locator).text
         return result
+
+    def get_host_property(self, parameter_name):
+        """Get necessary host property by its name"""
+        locator = locators['.property_'.join(
+            ('host', (parameter_name.lower()).replace(' ', '_')))]
+        return self.wait_until_element(locator).text
