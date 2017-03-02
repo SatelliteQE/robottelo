@@ -995,6 +995,7 @@ class FilteredErrataTestCase(UITestCase):
             })
             # Remove old cv versions to have unambiguous one for testing
             cvvs = ContentView.info({u'id': content_view.id})['versions']
+            self.assertGreater(len(cvvs), 1)
             for i in range(len(cvvs)-1):
                 ContentView.version_delete({u'id': cvvs[i]['id']})
             with Session(self.browser) as session:
@@ -1004,29 +1005,25 @@ class FilteredErrataTestCase(UITestCase):
                     param_name='errata_status_installable',
                     param_value='true',
                 )
-                self.hosts.search_and_click(client.hostname)
-                for property_name, property_value in [
-                    ['Status', 'OK'],
-                    ['Errata', 'All errata applied'],
-                    ['Subscription', 'Fully entitled']
-                ]:
-                    self.assertEqual(
-                        self.hosts.get_host_property(property_name),
-                        property_value
-                    )
+                expected_dict = {
+                    'Status': 'OK',
+                    'Errata': 'All errata applied',
+                    'Subscription': 'Fully entitled',
+                }
+                actual_dict = self.hosts.get_host_properties(
+                    client.hostname, expected_dict.keys())
+                self.assertEqual(expected_dict, actual_dict)
                 edit_param(
                     session,
                     tab_locator=tab_locators['settings.tab_katello'],
                     param_name='errata_status_installable',
                     param_value='false',
                 )
-                self.hosts.search_and_click(client.hostname)
-                for property_name, property_value in [
-                    ['Status', 'Error'],
-                    ['Errata', 'Security errata applicable'],
-                    ['Subscription', 'Fully entitled']
-                ]:
-                    self.assertEqual(
-                        self.hosts.get_host_property(property_name),
-                        property_value
-                    )
+                expected_dict = {
+                    'Status': 'Error',
+                    'Errata': 'Security errata applicable',
+                    'Subscription': 'Fully entitled',
+                }
+                actual_dict = self.hosts.get_host_properties(
+                    client.hostname, expected_dict.keys())
+                self.assertEqual(expected_dict, actual_dict)
