@@ -551,6 +551,9 @@ tab_locators = LocatorDict({
     "contentviews.tab_docker_content": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'docker')]"),
+    "contentviews.tab_ostree_content": (
+        By.XPATH,
+        "//a[@ui-sref='content-views.details.repositories.ostree.list']"),
     "contentviews.tab_history": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href, 'history')]"),
     "contentviews.tab_tasks": (
