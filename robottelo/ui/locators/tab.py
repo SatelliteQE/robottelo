@@ -326,6 +326,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Puppet')]"),
     "settings.tab_discovered": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Discovered')]"),
+    "settings.tab_katello": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Katello')]"),
     "settings.tab_foremantasks": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href, 'ForemanTasks')]"),
