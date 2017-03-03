@@ -462,3 +462,83 @@ def get_role_by_bz(bz_id):
                 ]
             entities.Filter(permission=permissions, role=role).create()
     return role.read()
+
+
+def create_role_permissions(role, permissions_types_names):  # pragma: no cover
+    """Create role permissions found in dict permissions_types_names.
+
+    :param role: nailgun.entities.Role
+    :param permissions_types_names: a dict containing resource types
+        and permission names to add to the role, example usage.
+
+          ::
+
+           permissions_types_names = {
+               None: ['access_dashboard'],
+               'Organization': ['view_organizations'],
+               'Location': ['view_locations'],
+               'Katello::KTEnvironment': [
+                   'view_lifecycle_environments',
+                   'edit_lifecycle_environments',
+                   'promote_or_remove_content_views_to_environments'
+               ]
+           }
+           role = entities.Role(name='example_role_name').create()
+           create_role_permissions(role, permissions_types_names)
+    """
+    for resource_type, permissions_name in permissions_types_names.items():
+        if resource_type is None:
+            permissions_entities = []
+            for name in permissions_name:
+                result = entities.Permission(name=name).search()
+                if not result:
+                    raise entities.APIResponseError(
+                        'permission "{}" not found'.format(name))
+                if len(result) > 1:
+                    raise entities.APIResponseError(
+                        'found more than one entity for permission'
+                        ' "{}"'.format(name)
+                    )
+                entity_permission = result[0]
+                if entity_permission.name != name:
+                    raise entities.APIResponseError(
+                        'the returned permission is different from the'
+                        ' requested one "{0} != {1}"'.format(
+                            entity_permission.name, name)
+                    )
+                permissions_entities.append(entity_permission)
+        else:
+            if not permissions_name:
+                raise ValueError('resource type "{}" empty. You must select at'
+                                 ' least one permission'.format(resource_type))
+
+            resource_type_permissions_entities = entities.Permission(
+                resource_type=resource_type).search()
+            if not resource_type_permissions_entities:
+                raise entities.APIResponseError(
+                    'resource type "{}" permissions not found'.format(
+                        resource_type)
+                )
+
+            permissions_entities = [
+                entity
+                for entity in resource_type_permissions_entities
+                if entity.name in permissions_name
+            ]
+            # ensure that all the requested permissions entities where
+            # retrieved
+            permissions_entities_names = {
+                entity.name for entity in permissions_entities
+            }
+            not_found_names = set(permissions_name).difference(
+                permissions_entities_names)
+            if not_found_names:
+                raise entities.APIResponseError(
+                    'permissions names entities not found'
+                    ' "{}"'.format(not_found_names)
+                )
+        entities.Filter(
+            permission=permissions_entities,
+            role=role,
+            search=None
+        ).create()
