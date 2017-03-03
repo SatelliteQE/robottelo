@@ -536,6 +536,7 @@ class HostTestCase(APITestCase):
         host = entities.Host(
             organization=self.org,
             location=self.loc,
+            compute_resource=self.compresource_libvirt,
             image=self.image,
         ).create()
         self.assertEqual(host.image.id, self.image.id)
@@ -1096,6 +1097,11 @@ class HostTestCase(APITestCase):
         @CaseLevel: Integration
         """
         host = entities.Host(organization=self.org, location=self.loc).create()
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            compute_resource=self.compresource_libvirt,
+        ).create()
         self.assertIsNone(host.image)
         host.image = self.image
         host = host.update(['image'])
