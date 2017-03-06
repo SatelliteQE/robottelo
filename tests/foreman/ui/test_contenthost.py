@@ -15,11 +15,14 @@
 
 @Upstream: No
 """
+from six.moves.urllib.parse import urljoin
+
 from nailgun import entities
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
+from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
@@ -35,8 +38,14 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier3
+from robottelo.decorators import (
+    run_in_one_thread,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier3,
+)
 from robottelo.test import UITestCase
+from robottelo.ui.locators import tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -283,3 +292,34 @@ class ContentHostTestCase(UITestCase):
             )
             self.assertEqual(
                 result['Registered By'], self.activation_key.name)
+
+    @skip_if_bug_open('bugzilla', 1429468)
+    @tier3
+    def test_positive_provisioning_host_link(self):
+        """Check that the host link in provisioning tab of content host page
+         point to the host details page.
+
+        @id: 28f5fb0e-007b-4ee6-876e-9693fb7f5841
+
+        @assert: The Provisioning host details name link at
+        content_hosts/provisioning point to host detail page eg: hosts/hostname
+
+        @BZ: 1429468
+
+        @CaseLevel: System
+        """
+        with Session(self.browser):
+            # open the content host
+            self.contenthost.search_and_click(self.client.hostname)
+            # open the provisioning tab of the content host
+            self.contenthost.click(
+                tab_locators['contenthost.tab_provisioning_details'])
+            # click the name field value that contain the hostname
+            self.contenthost.click(
+                tab_locators['contenthost.tab_provisioning_details_host_link'])
+            # assert that the current url is equal to:
+            # server_host_url/hosts/hostname
+
+            host_url = urljoin(settings.server.get_url(),
+                               'hosts/{0}'.format(self.client.hostname))
+            self.assertEqual(self.browser.current_url, host_url)
