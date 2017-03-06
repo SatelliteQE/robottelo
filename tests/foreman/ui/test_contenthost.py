@@ -21,8 +21,8 @@ from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
+from robottelo.config import settings
 from robottelo.constants import (
-    DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -40,6 +40,9 @@ from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier3
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 @run_in_one_thread

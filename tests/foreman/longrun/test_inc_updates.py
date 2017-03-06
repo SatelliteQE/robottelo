@@ -38,11 +38,11 @@ from robottelo.api.utils import (
 )
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.contentview import ContentView as ContentViewCLI
+from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_RELEASE_VERSION,
     DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
     PRDS,
     REAL_0_RH_PACKAGE,
     REPOS,
@@ -56,6 +56,9 @@ from robottelo.decorators import (
 )
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL6 = settings.distro.image_el6
 
 
 @run_in_one_thread

@@ -15,8 +15,10 @@ import time
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.helpers import install_katello_ca, remove_katello_ca
+
+DISTRO_RHEL6 = settings.distro.image_el6
+DISTRO_RHEL7 = settings.distro.image_el7
 
 BASE_IMAGES = (
     DISTRO_RHEL6,

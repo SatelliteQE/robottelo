@@ -33,11 +33,10 @@ from robottelo.cli.factory import (
     make_org,
     setup_org_for_a_rh_repo,
 )
+from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
@@ -61,6 +60,10 @@ from robottelo.ui.factory import make_activationkey, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL6 = settings.distro.image_el6
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 class ActivationKeyTestCase(UITestCase):

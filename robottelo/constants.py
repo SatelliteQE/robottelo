@@ -24,9 +24,6 @@ BZ_CLOSED_STATUSES = [
     'CLOSED'
 ]
 
-DISTRO_RHEL6 = "rhel68"
-DISTRO_RHEL7 = "rhel73"
-
 FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',
     'rhev': 'RHEV',

@@ -38,8 +38,8 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO, PRDS, REPOS, REPOSET
-from robottelo.constants import DISTRO_RHEL6
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
@@ -54,6 +54,9 @@ from robottelo.decorators import (
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL6 = settings.distro.image_el6
 
 
 class ActivationKeyTestCase(CLITestCase):

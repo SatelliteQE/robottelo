@@ -28,11 +28,10 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.host import Host
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
+from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_RELEASE_VERSION,
-    DISTRO_RHEL6,
-    DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
@@ -64,6 +63,8 @@ from robottelo.vm import VirtualMachine
 
 CUSTOM_REPO_URL = FAKE_6_YUM_REPO
 CUSTOM_REPO_ERRATA_ID = FAKE_2_ERRATA_ID
+DISTRO_RHEL6 = settings.distro.image_el6
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 @run_in_one_thread

@@ -277,6 +277,28 @@ class ClientsSettings(FeatureSettings):
         return validation_errors
 
 
+class DistroSettings(FeatureSettings):
+    """Distro settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(DistroSettings, self).__init__(*args, **kwargs)
+        self.image_el6 = None
+        self.image_el7 = None
+
+    def read(self, reader):
+        """Read distro settings."""
+        self.image_el6 = reader.get('distro', 'image_el6')
+        self.image_el7 = reader.get('distro', 'image_el7')
+
+    def validate(self):
+        """Validate distro settings."""
+        validation_errors = []
+        if not all((self.image_el6, self.image_el7)):
+            validation_errors.append(
+                'Both [distro] image_el6 and image_el7 '
+                'options must be provided.')
+        return validation_errors
+
+
 class DockerSettings(FeatureSettings):
     """Docker settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -742,6 +764,7 @@ class Settings(object):
         self.clients = ClientsSettings()
         self.compute_resources = LibvirtHostSettings()
         self.discovery = DiscoveryISOSettings()
+        self.distro = DistroSettings()
         self.docker = DockerSettings()
         self.fake_capsules = FakeCapsuleSettings()
         self.fake_manifest = FakeManifestSettings()

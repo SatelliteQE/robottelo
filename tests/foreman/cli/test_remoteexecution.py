@@ -28,7 +28,8 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
-from robottelo.constants import DISTRO_RHEL7, REPOS
+from robottelo.config import settings
+from robottelo.constants import REPOS
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import tier1, tier2, tier3
 from robottelo.helpers import add_remote_execution_ssh_key
@@ -38,6 +39,7 @@ from time import sleep
 
 TEMPLATE_FILE = u'template_file.txt'
 TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'
+DISTRO_RHEL7 = settings.distro.image_el7
 
 
 class JobTemplateTestCase(CLITestCase):

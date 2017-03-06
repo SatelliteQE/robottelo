@@ -21,7 +21,6 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import (
-    DISTRO_RHEL6,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     REPO_DISCOVERY_URL,
@@ -45,6 +44,9 @@ from robottelo.ui.factory import make_gpgkey
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+
+
+DISTRO_RHEL6 = settings.distro.image_el6
 
 
 def get_random_gpgkey_name():
