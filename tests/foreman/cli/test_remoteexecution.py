@@ -265,7 +265,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': 'command="ls"',
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(invocation_command['success'], u'1')
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
 
     @tier2
     def test_positive_run_custom_job_template(self):
@@ -285,7 +294,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'job-template': template_name,
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(invocation_command[u'success'], u'1')
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
 
     @tier3
     def test_positive_run_scheduled_job_template(self):
@@ -313,7 +331,15 @@ class RemoteExecutionTestCase(CLITestCase):
                 'id': invocation_command[u'id']})
             pending_state = invocation_info[u'pending']
             sleep(30)
-        # Check the job status
         invocation_info = JobInvocation.info({
             'id': invocation_command[u'id']})
-        self.assertEqual(invocation_info[u'success'], u'1')
+        self.assertEqual(
+                invocation_info['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
