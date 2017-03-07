@@ -252,6 +252,10 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': 'command="ls"',
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
+        JobInvocation.get_output({
+             'id': invocation_command[u'id'],
+             'host': self.client.hostname
+        })
         self.assertEqual(invocation_command['success'], u'1')
 
     @tier2
@@ -271,6 +275,10 @@ class RemoteExecutionTestCase(CLITestCase):
         invocation_command = make_job_invocation({
             'job-template': template_name,
             'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        JobInvocation.get_output({
+             'id': invocation_command[u'id'],
+             'host': self.client.hostname
         })
         self.assertEqual(invocation_command[u'success'], u'1')
 
@@ -301,6 +309,10 @@ class RemoteExecutionTestCase(CLITestCase):
             pending_state = invocation_info[u'pending']
             sleep(30)
         # Check the job status
+        JobInvocation.get_output({
+             'id': invocation_command[u'id'],
+             'host': self.client.hostname
+        })
         invocation_info = JobInvocation.info({
             'id': invocation_command[u'id']})
         self.assertEqual(invocation_info[u'success'], u'1')
