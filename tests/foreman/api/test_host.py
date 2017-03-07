@@ -35,6 +35,7 @@ from robottelo.datafactory import (
     valid_interfaces_list,
 )
 from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
+from robottelo.decorators.func_locker import lock_function
 from robottelo.test import APITestCase
 
 
@@ -42,6 +43,7 @@ class HostTestCase(APITestCase):
     """Tests for ``entities.Host().path()``."""
 
     @classmethod
+    @lock_function
     def setUpClass(cls):
         """Setup common entities."""
         super(HostTestCase, cls).setUpClass()
