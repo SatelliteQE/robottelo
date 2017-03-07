@@ -42,6 +42,7 @@ from robottelo.decorators import (
     tier2,
     tier3,
 )
+from robottelo.decorators.func_locker import lock_function
 from robottelo.test import APITestCase
 
 
@@ -49,6 +50,7 @@ class HostTestCase(APITestCase):
     """Tests for ``entities.Host().path()``."""
 
     @classmethod
+    @lock_function
     def setUpClass(cls):
         """Setup common entities."""
         super(HostTestCase, cls).setUpClass()
