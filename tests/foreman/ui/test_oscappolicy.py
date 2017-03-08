@@ -1,18 +1,18 @@
 """Tests for Oscappolicy
 
-@Requirement: Oscappolicy
+:Requirement: Oscappolicy
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from robottelo.config import settings
@@ -44,15 +44,15 @@ class OpenScapPolicy(UITestCase):
     def test_positive_create_with_policy_name(self):
         """Create OpenScap Policy.
 
-        @id: cdf2bc8c-ce60-4d49-b4e9-9acbf1192bc2
+        :id: cdf2bc8c-ce60-4d49-b4e9-9acbf1192bc2
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Create an openscap Policy.
-        3. Provide all the appropriate parameters.
+            1. Create an openscap content.
+            2. Create an openscap Policy.
+            3. Provide all the appropriate parameters.
 
-        @Assert: Whether creating  Policy for OpenScap is successful.
+        :Assert: Whether creating  Policy for OpenScap is successful.
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -80,16 +80,16 @@ class OpenScapPolicy(UITestCase):
     def test_positive_delete_by_policy_name(self):
         """Create OpenScap Policy.
 
-        @id: 7497aad0-1e2f-426e-928d-72e430a0e853
+        :id: 7497aad0-1e2f-426e-928d-72e430a0e853
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Create an openscap Policy.
-        3. Provide all the appropriate parameters.
-        4. Delete the openscap Policy.
+            1. Create an openscap content.
+            2. Create an openscap Policy.
+            3. Provide all the appropriate parameters.
+            4. Delete the openscap Policy.
 
-        @Assert: Whether deleting  Policy for OpenScap is successful.
+        :Assert: Whether deleting  Policy for OpenScap is successful.
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -119,17 +119,17 @@ class OpenScapPolicy(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create OpenScap Policy with negative values.
 
-        @id: dfebf26b-194f-473d-b5a6-9061c520f57e
+        :id: dfebf26b-194f-473d-b5a6-9061c520f57e
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Create an openscap Policy.
-        3. Provide all the appropriate parameters.
+            1. Create an openscap content.
+            2. Create an openscap Policy.
+            3. Provide all the appropriate parameters.
 
-        @Assert: Creating  Policy for OpenScap is not successful.
+        :Assert: Creating  Policy for OpenScap is not successful.
 
-        @BZ: 1293296
+        :BZ: 1293296
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -156,16 +156,16 @@ class OpenScapPolicy(UITestCase):
     def test_positive_update(self):
         """Update OpenScap Policy.
 
-        @id: 58392782-ab25-4c12-aebc-adf23c5d9d43
+        :id: 58392782-ab25-4c12-aebc-adf23c5d9d43
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Create an openscap Policy.
-        3. Provide all the appropriate parameters.
-        4. Update openscap policy with valid values.
+            1. Create an openscap content.
+            2. Create an openscap Policy.
+            3. Provide all the appropriate parameters.
+            4. Update openscap policy with valid values.
 
-        @Assert: Updating Policy for OpenScap is successful.
+        :Assert: Updating Policy for OpenScap is successful.
         """
         content_name = gen_string('alpha')
         policy_name = gen_string('alpha')
@@ -206,18 +206,18 @@ class OpenScapPolicy(UITestCase):
     def test_positive_create_with_space_policy_name(self):
         """Create OpenScap Policy with a space in its name.
 
-        @id: a45ec231-0ca9-4719-9239-eef0355822dc
+        :id: a45ec231-0ca9-4719-9239-eef0355822dc
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Create an openscap Policy.
-        3. Provide openscap policy name with space in it.
-        4. Provide all other the appropriate parameters.
+            1. Create an openscap content.
+            2. Create an openscap Policy.
+            3. Provide openscap policy name with space in it.
+            4. Provide all other the appropriate parameters.
 
-        @Assert: Creation of Policy with a space in its name is successful.
+        :Assert: Creation of Policy with a space in its name is successful.
 
-        @BZ: 1292622
+        :BZ: 1292622
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:

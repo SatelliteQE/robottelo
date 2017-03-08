@@ -1,18 +1,18 @@
 """Test classes for Bookmark tests
 
-@Requirement: Bookmark
+:Requirement: Bookmark
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 # -*- encoding: utf-8 -*-
 import random
@@ -105,22 +105,22 @@ class BookmarkTestCase(UITestCase):
     def test_positive_create_bookmark_populate_auto(self):
         """Create a bookmark with auto-populating of the query
 
-        @id: 6a51a8d4-b641-4148-9ee8-a62f09aaa4af
+        :id: 6a51a8d4-b641-4148-9ee8-a62f09aaa4af
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to the entity page
-        2. Input a random text into the search field
-        3. Choose "bookmark this search" from the search drop-down menu
-        4. Input a random name for a bookmark name
-        5. Verify the query field is automatically populated and the public
-           option is checked
-        6. Click the create button
-        7. Verify that bookmark's name appears in the search dropdown
-        8. List the bookmarks (Navigate to Administer -> Bookmarks)
+            1. Navigate to the entity page
+            2. Input a random text into the search field
+            3. Choose "bookmark this search" from the search drop-down menu
+            4. Input a random name for a bookmark name
+            5. Verify the query field is automatically populated and the public
+                option is checked
+            6. Click the create button
+            7. Verify that bookmark's name appears in the search dropdown
+            8. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: No errors, Bookmark is displayed, controller matches the
-        entity the bookmark was created for
+        :Assert: No errors, Bookmark is displayed, controller matches the
+            entity the bookmark was created for
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -141,20 +141,20 @@ class BookmarkTestCase(UITestCase):
     def test_positive_create_bookmark_populate_manual(self):
         """Create a bookmark with manually populating the name and query
 
-        @id: 6ab2221d-8fd5-484f-ac99-b856db9fa70a
+        :id: 6ab2221d-8fd5-484f-ac99-b856db9fa70a
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to the entity page
-        2. Choose "bookmark this search" from the search drop-down menu
-        3. Input a random name for a bookmark name
-        4. Enter random text into Query field
-        5. Click the create button
-        6. Verify that bookmark's name appears in the search dropdown
-        7. List the bookmarks (Navigate to Administer -> Bookmarks)
+            1. Navigate to the entity page
+            2. Choose "bookmark this search" from the search drop-down menu
+            3. Input a random name for a bookmark name
+            4. Enter random text into Query field
+            5. Click the create button
+            6. Verify that bookmark's name appears in the search dropdown
+            7. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: No errors, Bookmark is displayed, controller matches the
-        entity the bookmark was created for
+        :Assert: No errors, Bookmark is displayed, controller matches the
+            entity the bookmark was created for
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -173,37 +173,35 @@ class BookmarkTestCase(UITestCase):
     def test_positive_create_bookmark_public(self):
         """Create and check visibility of the (non)public bookmarks
 
-        @id: 93139529-7690-429b-83fe-3dcbac4f91dc
+        :id: 93139529-7690-429b-83fe-3dcbac4f91dc
 
-        @Setup:
+        :Setup: Create a non-admin user with 'viewer' role
 
-        1. Create a non-admin user with 'viewer' role
+        :Steps:
 
-        @Steps:
+            1. Navigate to the entity page
+            2. Input a random text into the search field
+            3. Choose "bookmark this search" from the search drop-down menu
+            4. Input a random name for a bookmark name
+            5. Verify the query field is automatically populated and the public
+               option is checked
+            6. Click the create button
+            7. Choose "bookmark this search" from the search drop-down menu
+            8. Input a random name for a bookmark name
+            9. Verify the query field is automatically populated and the public
+               option is unchecked
+            10. Click the create button
+            11. Verify that bookmark's name appears in the search dropdown
+            12. List the bookmarks (Navigate to Administer -> Bookmarks)
+            13. Login as the pre-created user
+            14. Navigate to the entity
+            15. Click the dropdown
+            16. Verify that the non-public bookmark is not listed
 
-        1. Navigate to the entity page
-        2. Input a random text into the search field
-        3. Choose "bookmark this search" from the search drop-down menu
-        4. Input a random name for a bookmark name
-        5. Verify the query field is automatically populated and the public
-           option is checked
-        6. Click the create button
-        7. Choose "bookmark this search" from the search drop-down menu
-        8. Input a random name for a bookmark name
-        9. Verify the query field is automatically populated and the public
-           option is unchecked
-        10. Click the create button
-        11. Verify that bookmark's name appears in the search dropdown
-        12. List the bookmarks (Navigate to Administer -> Bookmarks)
-        13. Login as the pre-created user
-        14. Navigate to the entity
-        15. Click the dropdown
-        16. Verify that the non-public bookmark is not listed
+        :Assert: No errors, Bookmark is displayed, controller matches the
+            entity the bookmark was created for
 
-        @Assert: No errors, Bookmark is displayed, controller matches the
-        entity the bookmark was created for
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -229,19 +227,19 @@ class BookmarkTestCase(UITestCase):
     def test_negative_create_bookmark_no_name(self):
         """Create a bookmark with empty name
 
-        @id: ebb64459-a865-4029-bc7e-93e8d13dd877
+        :id: ebb64459-a865-4029-bc7e-93e8d13dd877
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to the entity page
-        2. Choose "bookmark this search" from the search drop-down menu
-        3. Input empty string for name
-        4. Enter random text into Query field
-        5. Click the create button
-        6. List the bookmarks (Navigate to Administer -> Bookmarks)
+            1. Navigate to the entity page
+            2. Choose "bookmark this search" from the search drop-down menu
+            3. Input empty string for name
+            4. Enter random text into Query field
+            5. Click the create button
+            6. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: Error notification - name cannot be empty, Bookmark is not
-        created (not listed)
+        :Assert: Error notification - name cannot be empty, Bookmark is not
+            created (not listed)
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -265,19 +263,19 @@ class BookmarkTestCase(UITestCase):
     def test_negative_create_bookmark_no_query(self):
         """Create a bookmark with empty query
 
-        @id: 2c22ba18-a465-4977-8013-9336d1f648e8
+        :id: 2c22ba18-a465-4977-8013-9336d1f648e8
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to the entity page
-        2. Choose "bookmark this search" from the search drop-down menu
-        3. Enter random text into name field
-        4. Input empty string for search query
-        5. Click the create button
-        6. List the bookmarks (Navigate to Administer -> Bookmarks)
+            1. Navigate to the entity page
+            2. Choose "bookmark this search" from the search drop-down menu
+            3. Enter random text into name field
+            4. Input empty string for search query
+            5. Click the create button
+            6. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: Error notification - search query cannot be empty, Bookmark is
-        not created (not listed)
+        :Assert: Error notification - search query cannot be empty, Bookmark is
+            not created (not listed)
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -296,23 +294,21 @@ class BookmarkTestCase(UITestCase):
     def test_negative_create_bookmark_same_name(self):
         """Create bookmarks with the same names
 
-        @id: 210c36b2-29bd-40d9-b120-16a1a031b20c
+        :id: 210c36b2-29bd-40d9-b120-16a1a031b20c
 
-        @Setup:
+        :Setup: Create a bookmark of a random name
 
-        1. Create a bookmark of a random name
+        :Steps:
 
-        @Steps:
+            1. Navigate to the entity page
+            2. Choose "bookmark this search" from the search drop-down menu
+            3. Input the same name as the pre-created bm
+            4. Enter random text into Query field
+            5. Click the create button
+            6. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        1. Navigate to the entity page
-        2. Choose "bookmark this search" from the search drop-down menu
-        3. Input the same name as the pre-created bm
-        4. Enter random text into Query field
-        5. Click the create button
-        6. List the bookmarks (Navigate to Administer -> Bookmarks)
-
-        @Assert: Error notification - name already taken, Bookmark is not
-        created (not listed)
+        :Assert: Error notification - name already taken, Bookmark is not
+            created (not listed)
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -336,22 +332,20 @@ class BookmarkTestCase(UITestCase):
     def test_positive_update_bookmark_name(self):
         """Update and save a bookmark
 
-        @id: 095ba7c5-82bd-4ed3-ae6d-f6ba0ad7480c
+        :id: 095ba7c5-82bd-4ed3-ae6d-f6ba0ad7480c
 
-        @Setup:
+        :Setup: Create a bookmark of a random name with random query
 
-        1. Create a bookmark of a random name with random query
+        :Steps:
 
-        @Steps:
+            1. List the bookmarks (Navigate to Administer -> Bookmarks)
+            2. Click the pre-created bookmark
+            3. Edit the name
+            4. Submit
+            5. Navigate to the entity page
+            6. Click the search dropdown
 
-        1. List the bookmarks (Navigate to Administer -> Bookmarks)
-        2. Click the pre-created bookmark
-        3. Edit the name
-        4. Submit
-        5. Navigate to the entity page
-        6. Click the search dropdown
-
-        @Assert: The new bookmark name is listed
+        :Assert: The new bookmark name is listed
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -374,20 +368,18 @@ class BookmarkTestCase(UITestCase):
     def test_negative_update_bookmark_name(self):
         """Update and save a bookmark with name already taken
 
-        @id: 3e74cf60-2863-4ca3-9440-7081547f3c4f
+        :id: 3e74cf60-2863-4ca3-9440-7081547f3c4f
 
-        @Setup:
+        :Setup: Create 2 bookmarks of random names with random query
 
-        1. Create 2 bookmarks of random names with random query
+        :Steps:
 
-        @Steps:
+            1. List the bookmarks (Navigate to Administer -> Bookmarks)
+            2. Select the first pre-created bookmark
+            3. Edit the name to one of the other pre-created bookmarks
+            4. Submit
 
-        1. List the bookmarks (Navigate to Administer -> Bookmarks)
-        2. Select the first pre-created bookmark
-        3. Edit the name to one of the other pre-created bookmarks
-        4. Submit
-
-        @Assert: Error - name already taken, bookmark not updated
+        :Assert: Error - name already taken, bookmark not updated
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -416,22 +408,20 @@ class BookmarkTestCase(UITestCase):
     def test_negative_update_bookmark_name_empty(self):
         """Update and save a bookmark with an empty name
 
-        @id: 7d7f713d-e377-446e-a9e9-06364bcc25c0
+        :id: 7d7f713d-e377-446e-a9e9-06364bcc25c0
 
-        @Setup:
+        :Setup: Create a bookmark of a random name with random query
 
-        1. Create a bookmark of a random name with random query
+        :Steps:
 
-        @Steps:
+            1. List the bookmarks (Navigate to Administer -> Bookmarks)
+            2. Click the pre-created bookmark
+            3. Delete the name
+            4. Submit
+            5. Navigate to the entity page
+            6. Click the search dropdown
 
-        1. List the bookmarks (Navigate to Administer -> Bookmarks)
-        2. Click the pre-created bookmark
-        3. Delete the name
-        4. Submit
-        5. Navigate to the entity page
-        6. Click the search dropdown
-
-        @Assert: Error - name cannot be empty, bookmark not updated
+        :Assert: Error - name cannot be empty, bookmark not updated
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -456,22 +446,20 @@ class BookmarkTestCase(UITestCase):
     def test_positive_update_bookmark_query(self):
         """Update and save a bookmark query
 
-        @id: 19c994f0-2567-47bb-8486-bc441602bc7a
+        :id: 19c994f0-2567-47bb-8486-bc441602bc7a
 
-        @Setup:
+        :Setup: Create a bookmark of a random name with random query
 
-        1. Create a bookmark of a random name with random query
+        :Steps:
 
-        @Steps:
+            1. List the bookmarks (Navigate to Administer -> Bookmarks)
+            2. Click the pre-created bookmark
+            3. Edit the Search query field
+            4. Submit
+            5. Navigate to the entity page
+            6. Select the updated bookmark from the query
 
-        1. List the bookmarks (Navigate to Administer -> Bookmarks)
-        2. Click the pre-created bookmark
-        3. Edit the Search query field
-        4. Submit
-        5. Navigate to the entity page
-        6. Select the updated bookmark from the query
-
-        @Assert: The updated query is populated and submitted
+        :Assert: The updated query is populated and submitted
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -496,22 +484,20 @@ class BookmarkTestCase(UITestCase):
     def test_negative_update_bookmark_query_empty(self):
         """Update and save a bookmark with an empty query
 
-        @id: 516b314b-7712-455a-b1d4-d09730acbec9
+        :id: 516b314b-7712-455a-b1d4-d09730acbec9
 
-        @Setup:
+        :Setup: Create a bookmark of a random name with random query
 
-        1. Create a bookmark of a random name with random query
+        :Steps:
 
-        @Steps:
+            1. List the bookmarks (Navigate to Administer -> Bookmarks)
+            2. Click the pre-created bookmark
+            3. Delete the search query
+            4. Submit
+            5. Navigate to the entity page
+            6. Click the search dropdown
 
-        1. List the bookmarks (Navigate to Administer -> Bookmarks)
-        2. Click the pre-created bookmark
-        3. Delete the search query
-        4. Submit
-        5. Navigate to the entity page
-        6. Click the search dropdown
-
-        @Assert: Error - search query cannot be empty, bookmark not updated
+        :Assert: Error - search query cannot be empty, bookmark not updated
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -537,41 +523,40 @@ class BookmarkTestCase(UITestCase):
     def test_positive_update_bookmark_public(self):
         """Update and save a bookmark public state
 
-        @id: 63646c41-5441-4547-a4d0-744286122405
+        :id: 63646c41-5441-4547-a4d0-744286122405
 
-        @Setup:
+        :Setup:
 
-        1. Create 2 bookmarks of a random name with random query, one public
-        and one private
-        2. Create a non-admin user with 'viewer' role
+            1. Create 2 bookmarks of a random name with random query, one
+               public and one private
+            2. Create a non-admin user with 'viewer' role
 
-        @Steps:
+        :Steps:
 
-        1. Login to Satellite server (establish a UI session) as
-        the pre-created user
-        2. Navigate to the entity
-        3. List the bookmarks by clicking the drop down menu
-        4. Verify that only the public bookmark is listed
-        5. Log out
-        6. Login to Satellite server (establish a UI session) as the admin
-        user
-        7. List the bookmarks (Navigate to Administer -> Bookmarks)
-        8. Click the public pre-created bookmark
-        9. Uncheck 'public'
-        10. Submit
-        11. Click the private pre-created bookmark
-        12. Check 'public'
-        13. Submit
-        14. Logout
-        15. Login to Satellite server (establish a UI session) as the
-        pre-created user
-        16. Navigate to the entity
-        17. List the bookmarks by clicking the drop down menu
+            1. Login to Satellite server (establish a UI session) as the
+               pre-created user
+            2. Navigate to the entity
+            3. List the bookmarks by clicking the drop down menu
+            4. Verify that only the public bookmark is listed
+            5. Log out
+            6. Login to Satellite server (establish a UI session) as the admin
+               user
+            7. List the bookmarks (Navigate to Administer -> Bookmarks)
+            8. Click the public pre-created bookmark
+            9. Uncheck 'public'
+            10. Submit
+            11. Click the private pre-created bookmark
+            12. Check 'public'
+            13. Submit
+            14. Logout
+            15. Login to Satellite server (establish a UI session) as the
+                pre-created user
+            16. Navigate to the entity
+            17. List the bookmarks by clicking the drop down menu
 
-        @Assert: New public bookmark is listed, and the private
-        one is hidden
+        :Assert: New public bookmark is listed, and the private one is hidden
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser):
             bm1_name = gen_string(random.choice(STRING_TYPES))
@@ -613,19 +598,17 @@ class BookmarkTestCase(UITestCase):
     def test_positive_delete_bookmark(self):
         """Simple removal of a bookmark query
 
-        @id: 46c7cf47-7e86-4d81-ba07-4c2405801552
+        :id: 46c7cf47-7e86-4d81-ba07-4c2405801552
 
-        @Setup:
+        :Setup: Create a bookmark of a random name with random query
 
-        1. Create a bookmark of a random name with random query
+        :Steps:
 
-        @Steps:
+            1. List the bookmarks (Navigate to Administer -> Bookmarks)
+            2. Click Delete next to a pre-created bookmark
+            3. Verify the bookmark is no longer listed
 
-        1. List the bookmarks (Navigate to Administer -> Bookmarks)
-        2. Click Delete next to a pre-created bookmark
-        3. Verify the bookmark is no longer listed
-
-        @Assert: The bookmark is deleted
+        :Assert: The bookmark is deleted
         """
         for entity in self.entities:
             with self.subTest(entity):
@@ -645,22 +628,23 @@ class BookmarkTestCase(UITestCase):
     def test_negative_delete_bookmark(self):
         """Simple removal of a bookmark query without permissions
 
-        @id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
+        :id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
 
-        @Setup:
+        :Setup:
 
-        1. Create a bookmark of a random name with random query
-        2. Create a non-admin user without destroy_bookmark role (e.g. viewer)
+            1. Create a bookmark of a random name with random query
+            2. Create a non-admin user without destroy_bookmark role (e.g.
+               viewer)
 
-        @Steps:
+        :Steps:
 
-        1. Login to Satellite server (establish a UI session) as a non-admin
-        user
-        2. List the bookmarks (Navigate to Administer -> Bookmarks)
+            1. Login to Satellite server (establish a UI session) as a
+               non-admin user
+            2. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: The delete buttons are not displayed
+        :Assert: The delete buttons are not displayed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         bm = entities.Bookmark(
             controller=self.getOneEntity()[0]['controller'],

@@ -1,18 +1,18 @@
 """Unit tests for host collections.
 
-@Requirement: Hostcollection
+:Requirement: Hostcollection
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from random import choice
@@ -40,10 +40,10 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create host collections with different names.
 
-        @id: 8f2b9223-f5be-4cb1-8316-01ea747cae14
+        :id: 8f2b9223-f5be-4cb1-8316-01ea747cae14
 
-        @Assert: The host collection was successfully created and has
-        appropriate name.
+        :Assert: The host collection was successfully created and has
+            appropriate name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -58,12 +58,12 @@ class HostCollectionTestCase(APITestCase):
         """Create new host collection and then retrieve list of all existing
         host collections
 
-        @id: 6ae32df2-b917-4830-8709-15fb272b76c1
+        :id: 6ae32df2-b917-4830-8709-15fb272b76c1
 
-        @BZ: 1331875
+        :BZ: 1331875
 
-        @Assert: Returned list of host collections for the system contains at
-        least one collection
+        :Assert: Returned list of host collections for the system contains at
+            least one collection
         """
         entities.HostCollection(organization=self.org).create()
         hc_list = entities.HostCollection().search()
@@ -74,10 +74,10 @@ class HostCollectionTestCase(APITestCase):
         """Create host collection for specific organization. Retrieve list of
         host collections for that organization
 
-        @id: 5f9de8ab-2c53-401b-add3-57d86c97563a
+        :id: 5f9de8ab-2c53-401b-add3-57d86c97563a
 
-        @Assert: The host collection was successfully created and present in
-        the list of collections for specific organization
+        :Assert: The host collection was successfully created and present in
+            the list of collections for specific organization
         """
         org = entities.Organization().create()
         hc = entities.HostCollection(organization=org).create()
@@ -89,10 +89,10 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create host collections with different descriptions.
 
-        @id: 9d13392f-8d9d-4ff1-8909-4233e4691055
+        :id: 9d13392f-8d9d-4ff1-8909-4233e4691055
 
-        @Assert: The host collection was successfully created and has
-        appropriate description.
+        :Assert: The host collection was successfully created and has
+            appropriate description.
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -106,10 +106,10 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_limit(self):
         """Create host collections with different limits.
 
-        @id: 86d9387b-7036-4794-96fd-5a3472dd9160
+        :id: 86d9387b-7036-4794-96fd-5a3472dd9160
 
-        @Assert: The host collection was successfully created and has
-        appropriate limit.
+        :Assert: The host collection was successfully created and has
+            appropriate limit.
         """
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
@@ -124,10 +124,10 @@ class HostCollectionTestCase(APITestCase):
         """Create host collection with different values of 'unlimited hosts'
         parameter.
 
-        @id: d385574e-5794-4442-b6cd-e5ded001d877
+        :id: d385574e-5794-4442-b6cd-e5ded001d877
 
-        @Assert: The host collection was successfully created and has
-        appropriate 'unlimited hosts' parameter value.
+        :Assert: The host collection was successfully created and has
+            appropriate 'unlimited hosts' parameter value.
         """
         for unlimited in (True, False):
             with self.subTest(unlimited):
@@ -144,10 +144,10 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_host(self):
         """Create a host collection that contains a host.
 
-        @id: 9dc0ad72-58c2-4079-b1ca-2c4373472f0f
+        :id: 9dc0ad72-58c2-4079-b1ca-2c4373472f0f
 
-        @Assert: The host collection can be read back, and it includes one
-        host.
+        :Assert: The host collection can be read back, and it includes one
+            host.
         """
         host_collection = entities.HostCollection(
             host=[self.hosts[0]],
@@ -160,10 +160,10 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_hosts(self):
         """Create a host collection that contains hosts.
 
-        @id: bb8d2b42-9a8b-4c4f-ba0c-c56ae5a7eb1d
+        :id: bb8d2b42-9a8b-4c4f-ba0c-c56ae5a7eb1d
 
-        @Assert: The host collection can be read back, and it references two
-        hosts.
+        :Assert: The host collection can be read back, and it references two
+            hosts.
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -176,11 +176,11 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_add_host(self):
         """Add a host to host collection.
 
-        @id: da8bc901-7ac8-4029-bb62-af21aa4d3a88
+        :id: da8bc901-7ac8-4029-bb62-af21aa4d3a88
 
-        @Assert: Host was added to the host collection.
+        :Assert: Host was added to the host collection.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -194,11 +194,11 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_add_hosts(self):
         """Add hosts to host collection.
 
-        @id: f76b4db1-ccd5-47ab-be15-8c7d91d03b22
+        :id: f76b4db1-ccd5-47ab-be15-8c7d91d03b22
 
-        @Assert: Hosts were added to the host collection.
+        :Assert: Hosts were added to the host collection.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -212,10 +212,10 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_read_host_ids(self):
         """Read a host collection and look at the ``host_ids`` field.
 
-        @id: 444a1528-64c8-41b6-ba2b-6c49799d5980
+        :id: 444a1528-64c8-41b6-ba2b-6c49799d5980
 
-        @Assert: The ``host_ids`` field matches the host IDs passed in when
-        creating the host collection.
+        :Assert: The ``host_ids`` field matches the host IDs passed in when
+            creating the host collection.
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -230,9 +230,9 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_name(self):
         """Check if host collection name can be updated
 
-        @id: b2dedb99-6dd7-41be-8aaa-74065c820ac6
+        :id: b2dedb99-6dd7-41be-8aaa-74065c820ac6
 
-        @Assert: Host collection name was successfully updated
+        :Assert: Host collection name was successfully updated
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -245,9 +245,9 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_description(self):
         """Check if host collection description can be updated
 
-        @id: f8e9bd1c-1525-4b5f-a07c-eb6b6e7aa628
+        :id: f8e9bd1c-1525-4b5f-a07c-eb6b6e7aa628
 
-        @Assert: Host collection description was updated
+        :Assert: Host collection description was updated
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -261,9 +261,9 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_limit(self):
         """Check if host collection limit can be updated
 
-        @id: 4eda7796-cd81-453b-9b72-4ef84b2c1d8c
+        :id: 4eda7796-cd81-453b-9b72-4ef84b2c1d8c
 
-        @Assert: Host collection limit was updated
+        :Assert: Host collection limit was updated
         """
         host_collection = entities.HostCollection(
             max_hosts=1,
@@ -280,9 +280,9 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_unlimited_hosts(self):
         """Check if host collection 'unlimited hosts' parameter can be updated
 
-        @id: 09a3973d-9832-4255-87bf-f9eaeab4aee8
+        :id: 09a3973d-9832-4255-87bf-f9eaeab4aee8
 
-        @Assert: Host collection 'unlimited hosts' parameter was updated
+        :Assert: Host collection 'unlimited hosts' parameter was updated
         """
         random_unlimited = choice([True, False])
         host_collection = entities.HostCollection(
@@ -303,9 +303,9 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_host(self):
         """Update host collection's host.
 
-        @id: 23082854-abcf-4085-be9c-a5d155446acb
+        :id: 23082854-abcf-4085-be9c-a5d155446acb
 
-        @Assert: The host collection was updated with a new host.
+        :Assert: The host collection was updated with a new host.
         """
         host_collection = entities.HostCollection(
             host=[self.hosts[0]],
@@ -319,9 +319,9 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_hosts(self):
         """Update host collection's hosts.
 
-        @id: 0433b37d-ae16-456f-a51d-c7b800334861
+        :id: 0433b37d-ae16-456f-a51d-c7b800334861
 
-        @Assert: The host collection was updated with new hosts.
+        :Assert: The host collection was updated with new hosts.
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -343,9 +343,9 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_delete(self):
         """Check if host collection can be deleted
 
-        @id: 13a16cd2-16ce-4966-8c03-5d821edf963b
+        :id: 13a16cd2-16ce-4966-8c03-5d821edf963b
 
-        @Assert: Host collection was successfully deleted
+        :Assert: Host collection was successfully deleted
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -357,9 +357,9 @@ class HostCollectionTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Try to create host collections with different invalid names
 
-        @id: 38f67d04-a19d-4eab-a577-21b8d62c7389
+        :id: 38f67d04-a19d-4eab-a577-21b8d62c7389
 
-        @Assert: The host collection was not created
+        :Assert: The host collection was not created
         """
         for name in invalid_values_list():
             with self.subTest(name):

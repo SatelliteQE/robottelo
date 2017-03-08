@@ -1,18 +1,18 @@
 """Test class for Sync Plan UI
 
-@Requirement: Syncplan
+:Requirement: Syncplan
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from datetime import datetime, timedelta
@@ -107,7 +107,7 @@ class SyncPlanTestCase(UITestCase):
             on a client
         """
         script = ('var currentdate = new Date(); return ({0} + "-" + {1} + '
-                  '"-" + {2} + " @ " + {3} + ":" + {4});').format(
+                  '"-" + {2} + " : " + {3} + ":" + {4});').format(
             'currentdate.getFullYear()',
             '(currentdate.getMonth()+1)',
             'currentdate.getDate()',
@@ -115,15 +115,15 @@ class SyncPlanTestCase(UITestCase):
             'currentdate.getMinutes()',
         )
         client_datetime = self.browser.execute_script(script)
-        return datetime.strptime(client_datetime, '%Y-%m-%d @ %H:%M')
+        return datetime.strptime(client_datetime, '%Y-%m-%d : %H:%M')
 
     @tier1
     def test_positive_create_with_name(self):
         """Create Sync Plan with valid name values
 
-        @id: ceb125a4-449a-4a86-a94f-2a28884e3a41
+        :id: ceb125a4-449a-4a86-a94f-2a28884e3a41
 
-        @Assert: Sync Plan is created
+        :Assert: Sync Plan is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -141,9 +141,9 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_description(self):
         """Create Sync Plan with valid desc values
 
-        @id: 6ccd2229-dcc3-4090-9ec9-84fea837c50c
+        :id: 6ccd2229-dcc3-4090-9ec9-84fea837c50c
 
-        @Assert: Sync Plan is created
+        :Assert: Sync Plan is created
         """
         with Session(self.browser) as session:
             for desc in generate_strings_list():
@@ -162,9 +162,9 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_sync_interval(self):
         """Create Sync Plan with valid sync intervals
 
-        @id: 8916285a-c8d2-415a-b694-c32727e93ac0
+        :id: 8916285a-c8d2-415a-b694-c32727e93ac0
 
-        @Assert: Sync Plan is created
+        :Assert: Sync Plan is created
         """
         with Session(self.browser) as session:
             for interval in valid_sync_intervals():
@@ -183,11 +183,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_start_time(self):
         """Create Sync plan with specified start time
 
-        @id: a4709229-325c-4027-b4dc-10a226c4d7bf
+        :id: a4709229-325c-4027-b4dc-10a226c4d7bf
 
-        @Assert: Sync Plan is created with the specified time.
+        :Assert: Sync Plan is created with the specified time.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
         startdate = self.get_client_datetime() + timedelta(minutes=10)
@@ -215,11 +215,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_start_date(self):
         """Create Sync plan with specified start date
 
-        @id: 020b3aff-7216-4ad6-b95e-8ffaf68cba20
+        :id: 020b3aff-7216-4ad6-b95e-8ffaf68cba20
 
-        @Assert: Sync Plan is created with the specified date
+        :Assert: Sync Plan is created with the specified date
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
         startdate = self.get_client_datetime() + timedelta(days=10)
@@ -244,9 +244,9 @@ class SyncPlanTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Sync Plan with invalid names
 
-        @id: 64724669-0289-4e8a-a44d-eb47e094ef18
+        :id: 64724669-0289-4e8a-a44d-eb47e094ef18
 
-        @Assert: Sync Plan is not created
+        :Assert: Sync Plan is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -264,9 +264,9 @@ class SyncPlanTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create Sync Plan with an existing name
 
-        @id: 6d042f9b-82f2-4795-aa48-4603c1698aaa
+        :id: 6d042f9b-82f2-4795-aa48-4603c1698aaa
 
-        @Assert: Sync Plan cannot be created with existing name
+        :Assert: Sync Plan cannot be created with existing name
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -285,9 +285,9 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update Sync plan's name
 
-        @id: 6b22468f-6abc-4a63-b283-28c7816a5e86
+        :id: 6b22468f-6abc-4a63-b283-28c7816a5e86
 
-        @Assert: Sync Plan's name is updated
+        :Assert: Sync Plan's name is updated
         """
         plan_name = gen_string('alpha')
         entities.SyncPlan(
@@ -307,9 +307,9 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_interval(self):
         """Update Sync plan's interval
 
-        @id: 35820efd-099e-45dd-8298-77d5f35c26db
+        :id: 35820efd-099e-45dd-8298-77d5f35c26db
 
-        @Assert: Sync Plan's interval is updated
+        :Assert: Sync Plan's interval is updated
         """
         name = gen_string('alpha')
         entities.SyncPlan(
@@ -334,11 +334,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_product(self):
         """Update Sync plan and associate products
 
-        @id: 19bdb36a-ed2a-4bbb-9d8d-9ad9f6a800a2
+        :id: 19bdb36a-ed2a-4bbb-9d8d-9ad9f6a800a2
 
-        @Assert: Sync Plan has the associated product
+        :Assert: Sync Plan has the associated product
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = locators['sp.prd_select']
         product = entities.Product(organization=self.organization).create()
@@ -363,11 +363,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_and_disassociate_product(self):
         """Update Sync plan and disassociate products
 
-        @id: 860bd88e-a425-4218-b02c-64402ee8af9d
+        :id: 860bd88e-a425-4218-b02c-64402ee8af9d
 
-        @Assert: Sync Plan does not have the associated product
+        :Assert: Sync Plan does not have the associated product
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         plan_name = gen_string('utf8')
         strategy, value = locators['sp.prd_select']
@@ -399,9 +399,9 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing Sync plan
 
-        @id: 81beec05-e38c-48bc-8f01-10cb1e10a3f6
+        :id: 81beec05-e38c-48bc-8f01-10cb1e10a3f6
 
-        @Assert: Sync Plan is deleted successfully
+        :Assert: Sync Plan is deleted successfully
         """
         with Session(self.browser) as session:
             for plan_name in generate_strings_list():
@@ -420,13 +420,13 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_ostree_sync_plan(self):
         """Create a sync plan for ostree contents.
 
-        @id: bf01f23f-ba55-4c88-baad-85603fce57a4
+        :id: bf01f23f-ba55-4c88-baad-85603fce57a4
 
-        @Assert: sync plan should be created successfully
+        :Assert: sync plan should be created successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
@@ -436,13 +436,13 @@ class SyncPlanTestCase(UITestCase):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
-        @id: b56fccb9-8f84-4676-a777-b3c6458c909e
+        :id: b56fccb9-8f84-4676-a777-b3c6458c909e
 
-        @Assert: Repository was not synchronized
+        :Assert: Repository was not synchronized
 
-        @BZ: 1279539
+        :BZ: 1279539
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
@@ -474,13 +474,13 @@ class SyncPlanTestCase(UITestCase):
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
-        @id: d65e91c4-a0b6-4588-a3ff-fe9cd3762556
+        :id: d65e91c4-a0b6-4588-a3ff-fe9cd3762556
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @BZ: 1279539
+        :BZ: 1279539
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         plan_name = gen_string('alpha')
@@ -522,11 +522,11 @@ class SyncPlanTestCase(UITestCase):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
 
-        @id: fdd3b2a2-8d8e-4a18-b6a5-363e8dd5f998
+        :id: fdd3b2a2-8d8e-4a18-b6a5-363e8dd5f998
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         plan_name = gen_string('alpha')
@@ -574,11 +574,11 @@ class SyncPlanTestCase(UITestCase):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
 
-        @id: 9564e726-59c6-4d24-bb3d-f0ab3c4b26a5
+        :id: 9564e726-59c6-4d24-bb3d-f0ab3c4b26a5
 
-        @Assert: Products are synchronized successfully.
+        :Assert: Products are synchronized successfully.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         plan_name = gen_string('alpha')
@@ -642,13 +642,13 @@ class SyncPlanTestCase(UITestCase):
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
-        @id: 73a456fb-ad17-4921-b57c-27fc8e432a83
+        :id: 73a456fb-ad17-4921-b57c-27fc8e432a83
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @BZ: 1279539
+        :BZ: 1279539
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         plan_name = gen_string('alpha')
@@ -705,11 +705,11 @@ class SyncPlanTestCase(UITestCase):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
 
-        @id: 193d0159-d4a7-4f50-b037-7289f4576ade
+        :id: 193d0159-d4a7-4f50-b037-7289f4576ade
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         plan_name = gen_string('alpha')

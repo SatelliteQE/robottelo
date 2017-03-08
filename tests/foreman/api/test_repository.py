@@ -1,18 +1,18 @@
 """Unit tests for the ``repositories`` paths.
 
-@Requirement: Repository
+:Requirement: Repository
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -80,9 +80,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a repository with valid name.
 
-        @id: 159f7296-55d2-4360-948f-c24e7d75b962
+        :id: 159f7296-55d2-4360-948f-c24e7d75b962
 
-        @Assert: A repository is created with the given name.
+        :Assert: A repository is created with the given name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -95,9 +95,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_label(self):
         """Create a repository providing label which is different from its name
 
-        @id: 3be1b3fa-0e17-416f-97f0-858709e6b1da
+        :id: 3be1b3fa-0e17-416f-97f0-858709e6b1da
 
-        @Assert: A repository is created with expected label.
+        :Assert: A repository is created with expected label.
         """
         for label in valid_labels_list():
             with self.subTest(label):
@@ -111,9 +111,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_yum(self):
         """Create yum repository.
 
-        @id: 7bac7f45-0fb3-4443-bb3b-cee72248ca5d
+        :id: 7bac7f45-0fb3-4443-bb3b-cee72248ca5d
 
-        @Assert: A repository is created and has yum type.
+        :Assert: A repository is created and has yum type.
         """
         repo = entities.Repository(
             product=self.product,
@@ -128,9 +128,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_puppet(self):
         """Create puppet repository.
 
-        @id: daa10ded-6de3-44b3-9707-9f0ac983d2ea
+        :id: daa10ded-6de3-44b3-9707-9f0ac983d2ea
 
-        @Assert: A repository is created and has puppet type.
+        :Assert: A repository is created and has puppet type.
         """
         repo = entities.Repository(
             product=self.product,
@@ -144,9 +144,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_auth_yum_repo(self):
         """Create yum repository with basic HTTP authentication
 
-        @id: 1b17fe37-cdbf-4a79-9b0d-6813ea502754
+        :id: 1b17fe37-cdbf-4a79-9b0d-6813ea502754
 
-        @Assert: yum repository is created
+        :Assert: yum repository is created
         """
         url = FAKE_5_YUM_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -164,9 +164,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
-        @id: 5e5479c4-904d-4892-bc43-6f81fa3813f8
+        :id: 5e5479c4-904d-4892-bc43-6f81fa3813f8
 
-        @Assert: YUM repository with a download policy is created
+        :Assert: YUM repository with a download policy is created
         """
         for policy in DOWNLOAD_POLICIES:
             with self.subTest(policy):
@@ -182,9 +182,9 @@ class RepositoryTestCase(APITestCase):
         """Verify if the default download policy is assigned
         when creating a YUM repo without `download_policy` field
 
-        @id: 54108f30-d73e-46d3-ae56-cda28678e7e9
+        :id: 54108f30-d73e-46d3-ae56-cda28678e7e9
 
-        @Assert: YUM repository with a default download policy
+        :Assert: YUM repository with a default download policy
         """
 
         default_dl_policy = entities.Setting().search(
@@ -202,9 +202,9 @@ class RepositoryTestCase(APITestCase):
         """Update `immediate` download policy to `on_demand`
         for a newly created YUM repository
 
-        @id: 8a70de9b-4663-4251-b91e-d3618ee7ef84
+        :id: 8a70de9b-4663-4251-b91e-d3618ee7ef84
 
-        @Assert: immediate download policy is updated to on_demand
+        :Assert: immediate download policy is updated to on_demand
         """
         repo = entities.Repository(
             product=self.product,
@@ -220,9 +220,9 @@ class RepositoryTestCase(APITestCase):
         """Update `immediate` download policy to `background`
         for a newly created YUM repository
 
-        @id: 9aaf53be-1127-4559-9faf-899888a52846
+        :id: 9aaf53be-1127-4559-9faf-899888a52846
 
-        @Assert: immediate download policy is updated to background
+        :Assert: immediate download policy is updated to background
         """
         repo = entities.Repository(
             product=self.product,
@@ -238,9 +238,9 @@ class RepositoryTestCase(APITestCase):
         """Update `on_demand` download policy to `immediate`
         for a newly created YUM repository
 
-        @id: 589ff7bb-4251-4218-bb90-4e63c9baf702
+        :id: 589ff7bb-4251-4218-bb90-4e63c9baf702
 
-        @Assert: on_demand download policy is updated to immediate
+        :Assert: on_demand download policy is updated to immediate
         """
         repo = entities.Repository(
             product=self.product,
@@ -256,9 +256,9 @@ class RepositoryTestCase(APITestCase):
         """Update `on_demand` download policy to `background`
         for a newly created YUM repository
 
-        @id: 1d9888a0-c5b5-41a7-815d-47e936022a60
+        :id: 1d9888a0-c5b5-41a7-815d-47e936022a60
 
-        @Assert: on_demand download policy is updated to background
+        :Assert: on_demand download policy is updated to background
         """
         repo = entities.Repository(
             product=self.product,
@@ -274,9 +274,9 @@ class RepositoryTestCase(APITestCase):
         """Update `background` download policy to `immediate`
         for a newly created YUM repository
 
-        @id: 169530a7-c5ce-4ca5-8cdd-15398e13e2af
+        :id: 169530a7-c5ce-4ca5-8cdd-15398e13e2af
 
-        @Assert: background download policy is updated to immediate
+        :Assert: background download policy is updated to immediate
         """
         repo = entities.Repository(
             product=self.product,
@@ -292,9 +292,9 @@ class RepositoryTestCase(APITestCase):
         """Update `background` download policy to `on_demand`
         for a newly created YUM repository
 
-        @id: 40a3e963-61ff-41c4-aa6c-d9a4a638af4a
+        :id: 40a3e963-61ff-41c4-aa6c-d9a4a638af4a
 
-        @Assert: background download policy is updated to on_demand
+        :Assert: background download policy is updated to on_demand
         """
         repo = entities.Repository(
             product=self.product,
@@ -310,9 +310,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
-        @id: af9e4f0f-d128-43d2-a680-0a62c7dab266
+        :id: af9e4f0f-d128-43d2-a680-0a62c7dab266
 
-        @Assert: Puppet repository is created
+        :Assert: Puppet repository is created
         """
         url = FAKE_7_PUPPET_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -331,9 +331,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_checksum(self):
         """Create a repository with valid checksum type.
 
-        @id: c3678878-758a-4501-a038-a59503fee453
+        :id: c3678878-758a-4501-a038-a59503fee453
 
-        @Assert: A repository is created and has expected checksum type.
+        :Assert: A repository is created and has expected checksum type.
         """
         for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
@@ -346,10 +346,10 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_unprotected(self):
         """Create a repository with valid unprotected flag values.
 
-        @id: 38f78733-6a72-4bf5-912a-cfc51658f80c
+        :id: 38f78733-6a72-4bf5-912a-cfc51658f80c
 
-        @Assert: A repository is created and has expected unprotected flag
-        state.
+        :Assert: A repository is created and has expected unprotected flag
+            state.
         """
         for unprotected in True, False:
             repo = entities.Repository(
@@ -361,11 +361,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_gpg(self):
         """Create a repository and provide a GPG key ID.
 
-        @id: 023cf84b-74f3-4e63-a9d7-10afee6c1990
+        :id: 023cf84b-74f3-4e63-a9d7-10afee6c1990
 
-        @Assert: A repository is created with the given GPG key ID.
+        :Assert: A repository is created with the given GPG key ID.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         gpg_key = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_FILE),
@@ -383,12 +383,12 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_same_name_different_orgs(self):
         """Create two repos with the same name in two different organizations.
 
-        @id: bd1bd7e3-e393-44c8-a6d0-42edade40f60
+        :id: bd1bd7e3-e393-44c8-a6d0-42edade40f60
 
-        @Assert: The two repositories are successfully created and have given
-        name.
+        :Assert: The two repositories are successfully created and have given
+            name.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo1 = entities.Repository(product=self.product).create()
         repo2 = entities.Repository(name=repo1.name).create()
@@ -398,12 +398,12 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_puppet_repo_same_url_different_orgs(self):
         """Create two repos with the same URL in two different organizations.
 
-        @id: 7c74c2b8-732a-4c47-8ad9-697121db05be
+        :id: 7c74c2b8-732a-4c47-8ad9-697121db05be
 
-        @Assert: Repositories are created and puppet modules are visible from
-        different organizations.
+        :Assert: Repositories are created and puppet modules are visible from
+            different organizations.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         url = 'https://omaciel.fedorapeople.org/7c74c2b8/'
         # Use setup product for the first repo and create new org/product
@@ -423,9 +423,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_name(self):
         """Attempt to create repository with invalid names only.
 
-        @id: 24947c92-3415-43df-add6-d6eb38afd8a3
+        :id: 24947c92-3415-43df-add6-d6eb38afd8a3
 
-        @Assert: A repository is not created and error is raised.
+        :Assert: A repository is not created and error is raised.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -438,9 +438,9 @@ class RepositoryTestCase(APITestCase):
         """Attempt to create a repository providing a name of already existent
         entity
 
-        @id: 0493dfc4-0043-4682-b339-ce61da7d48ae
+        :id: 0493dfc4-0043-4682-b339-ce61da7d48ae
 
-        @Assert: Second repository is not created
+        :Assert: Second repository is not created
         """
         name = gen_string('alphanumeric')
         entities.Repository(product=self.product, name=name).create()
@@ -452,9 +452,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_label(self):
         """Attempt to create repository with invalid label.
 
-        @id: f646ae84-2660-41bd-9883-331285fa1c9a
+        :id: f646ae84-2660-41bd-9883-331285fa1c9a
 
-        @Assert: A repository is not created and error is raised.
+        :Assert: A repository is not created and error is raised.
         """
         with self.assertRaises(HTTPError):
             entities.Repository(label=gen_string('utf8')).create()
@@ -464,9 +464,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_url(self):
         """Attempt to create repository with invalid url.
 
-        @id: 0bb9fc3f-d442-4437-b5d8-83024bc7ceab
+        :id: 0bb9fc3f-d442-4437-b5d8-83024bc7ceab
 
-        @Assert: A repository is not created and error is raised.
+        :Assert: A repository is not created and error is raised.
         """
         for url in invalid_names_list():
             with self.subTest(url):
@@ -478,9 +478,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
-        @id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
+        :id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
 
-        @Assert: A repository is not created and error is raised.
+        :Assert: A repository is not created and error is raised.
         """
         # get a list of valid credentials without quoting them
         for cred in [creds for creds in valid_http_credentials()
@@ -495,9 +495,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
-        @id: 5aad4e9f-f7e1-497c-8e1f-55e07e38ee80
+        :id: 5aad4e9f-f7e1-497c-8e1f-55e07e38ee80
 
-        @Assert: A repository is not created and error is raised.
+        :Assert: A repository is not created and error is raised.
         """
         for cred in invalid_http_credentials():
             with self.subTest(cred):
@@ -510,9 +510,9 @@ class RepositoryTestCase(APITestCase):
         """Verify that YUM repository cannot be created with invalid
         download policy
 
-        @id: 3b143bf8-7056-4c94-910d-69a451071f26
+        :id: 3b143bf8-7056-4c94-910d-69a451071f26
 
-        @Assert: YUM repository is not created with invalid download policy
+        :Assert: YUM repository is not created with invalid download policy
         """
         with self.assertRaises(HTTPError):
             entities.Repository(
@@ -526,9 +526,9 @@ class RepositoryTestCase(APITestCase):
         """Verify that YUM repository cannot be updated to invalid
         download policy
 
-        @id: 5bd6a2e4-7ff0-42ac-825a-6b2a2f687c89
+        :id: 5bd6a2e4-7ff0-42ac-825a-6b2a2f687c89
 
-        @Assert: YUM repository is not updated to invalid download policy
+        :Assert: YUM repository is not updated to invalid download policy
         """
         with self.assertRaises(HTTPError):
             repo = entities.Repository(
@@ -543,10 +543,9 @@ class RepositoryTestCase(APITestCase):
         """Verify that non-YUM repositories cannot be created with
         download policy
 
-        @id: 71388973-50ea-4a20-9406-0aca142014ca
+        :id: 71388973-50ea-4a20-9406-0aca142014ca
 
-        @Assert: Non-YUM repository is not created with a
-        download policy
+        :Assert: Non-YUM repository is not created with a download policy
         """
         non_yum_repo_types = [
             repo_type for repo_type in REPO_TYPE.keys()
@@ -566,9 +565,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_checksum(self):
         """Attempt to create repository with invalid checksum type.
 
-        @id: c49a3c49-110d-4b74-ae14-5c9494a4541c
+        :id: c49a3c49-110d-4b74-ae14-5c9494a4541c
 
-        @Assert: A repository is not created and error is raised.
+        :Assert: A repository is not created and error is raised.
         """
         with self.assertRaises(HTTPError):
             entities.Repository(checksum_type=gen_string('alpha')).create()
@@ -578,9 +577,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update repository name to another valid name.
 
-        @id: 1b428129-7cf9-449b-9e3b-74360c5f9eca
+        :id: 1b428129-7cf9-449b-9e3b-74360c5f9eca
 
-        @Assert: The repository name can be updated.
+        :Assert: The repository name can be updated.
         """
         repo = entities.Repository(product=self.product).create()
         for new_name in valid_data_list():
@@ -594,9 +593,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_checksum(self):
         """Update repository checksum type to another valid one.
 
-        @id: 205e6e59-33c6-4a58-9245-1cac3a4f550a
+        :id: 205e6e59-33c6-4a58-9245-1cac3a4f550a
 
-        @Assert: The repository checksum type can be updated.
+        :Assert: The repository checksum type can be updated.
         """
         repo = entities.Repository(
             product=self.product, checksum_type='sha1').create()
@@ -609,9 +608,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_url(self):
         """Update repository url to another valid one.
 
-        @id: 8fbc11f0-a5c5-498e-a314-87958dcd7832
+        :id: 8fbc11f0-a5c5-498e-a314-87958dcd7832
 
-        @Assert: The repository url can be updated.
+        :Assert: The repository url can be updated.
         """
         repo = entities.Repository(product=self.product).create()
         repo.url = FAKE_2_YUM_REPO
@@ -623,9 +622,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_unprotected(self):
         """Update repository unprotected flag to another valid one.
 
-        @id: c55d169a-8f11-4bf8-9913-b3d39fee75f0
+        :id: c55d169a-8f11-4bf8-9913-b3d39fee75f0
 
-        @Assert: The repository unprotected flag can be updated.
+        :Assert: The repository unprotected flag can be updated.
         """
         repo = entities.Repository(
             product=self.product, unprotected=False).create()
@@ -638,11 +637,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_gpg(self):
         """Create a repository and update its GPGKey
 
-        @id: 0e9319dc-c922-4ecf-9f83-d221cfdf54c2
+        :id: 0e9319dc-c922-4ecf-9f83-d221cfdf54c2
 
-        @Assert: The updated repository points to a new GPG key.
+        :Assert: The updated repository points to a new GPG key.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
@@ -668,11 +667,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_contents(self):
         """Create a repository and upload RPM contents.
 
-        @id: 8faa64f9-b620-4c0a-8c80-801e8e6436f1
+        :id: 8faa64f9-b620-4c0a-8c80-801e8e6436f1
 
-        @Assert: The repository's contents include one RPM.
+        :Assert: The repository's contents include one RPM.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a repository and upload RPM content.
         repo = entities.Repository(product=self.product).create()
@@ -687,9 +686,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_upload_contents_srpm(self):
         """Create a repository and upload SRPM contents.
 
-        @id: e091a725-048f-44ca-90cc-c016c450ced9
+        :id: e091a725-048f-44ca-90cc-c016c450ced9
 
-        @Assert: The repository's contents include one SRPM.
+        :Assert: The repository's contents include one SRPM.
         """
         # Create a repository and upload source RPM content.
         repo = entities.Repository(product=self.product).create()
@@ -703,10 +702,10 @@ class RepositoryTestCase(APITestCase):
     def test_positive_remove_contents(self):
         """Synchronize a repository and remove rpm content.
 
-        @id: f686b74b-7ee9-4806-b999-bc05ffe61a9d
+        :id: f686b74b-7ee9-4806-b999-bc05ffe61a9d
 
-        @Assert: The repository's content is removed and content count shows
-        zero packages
+        :Assert: The repository's content is removed and content count shows
+            zero packages
         """
         # Create repository and synchronize it
         repo = entities.Repository(
@@ -727,9 +726,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update repository name to invalid one
 
-        @id: 6f2f41a4-d871-4b91-87b1-a5a401c4aa69
+        :id: 6f2f41a4-d871-4b91-87b1-a5a401c4aa69
 
-        @Assert: Repository is not updated
+        :Assert: Repository is not updated
         """
         repo = entities.Repository(product=self.product).create()
         for new_name in invalid_values_list():
@@ -744,9 +743,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_update_label(self):
         """Attempt to update repository label to another one.
 
-        @id: 828d85df-3c25-4a69-b6a2-401c6b82e4f3
+        :id: 828d85df-3c25-4a69-b6a2-401c6b82e4f3
 
-        @Assert: Repository is not updated and error is raised
+        :Assert: Repository is not updated and error is raised
         """
         repo = entities.Repository(product=self.product).create()
         repo.label = gen_string('alpha')
@@ -759,9 +758,9 @@ class RepositoryTestCase(APITestCase):
         """Verify that repository URL credentials cannot be updated to contain
         the forbidden characters
 
-        @id: 47530b1c-e964-402a-a633-c81583fb5b98
+        :id: 47530b1c-e964-402a-a633-c81583fb5b98
 
-        @Assert: Repository url not updated
+        :Assert: Repository url not updated
         """
         new_repo = entities.Repository(product=self.product).create()
         # get auth repos with credentials containing unquoted special chars
@@ -782,9 +781,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
 
-        @id: cc00fbf4-d284-4404-88d9-ea0c0f03abe1
+        :id: cc00fbf4-d284-4404-88d9-ea0c0f03abe1
 
-        @Assert: Repository url not updated
+        :Assert: Repository url not updated
         """
         new_repo = entities.Repository(product=self.product).create()
         # get auth repos with credentials containing unquoted special chars
@@ -804,11 +803,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_synchronize(self):
         """Create a repo and sync it.
 
-        @id: 03beb469-570d-4109-b447-9c4c0b849266
+        :id: 03beb469-570d-4109-b447-9c4c0b849266
 
-        @Assert: The repo has at least one RPM.
+        :Assert: The repo has at least one RPM.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo = entities.Repository(product=self.product).create()
         repo.sync()
@@ -820,11 +819,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
-        @id: bc44881c-e13f-45a9-90c2-5b18c7b25454
+        :id: bc44881c-e13f-45a9-90c2-5b18c7b25454
 
-        @Assert: Repository is created and synced
+        :Assert: Repository is created and synced
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -849,11 +848,11 @@ class RepositoryTestCase(APITestCase):
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
 
-        @id: 88361168-69b5-4239-819a-889e316e28dc
+        :id: 88361168-69b5-4239-819a-889e316e28dc
 
-        @Assert: Repository is created but synchronization fails
+        :Assert: Repository is created but synchronization fails
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -877,11 +876,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
-        @id: a1e25d36-baae-46cb-aa3b-5cb9fca4f059
+        :id: a1e25d36-baae-46cb-aa3b-5cb9fca4f059
 
-        @Assert: Repository is created and synced
+        :Assert: Repository is created and synced
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         url = FAKE_7_PUPPET_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -907,13 +906,13 @@ class RepositoryTestCase(APITestCase):
         """Check that repository content is resynced after packages were
         removed from repository
 
-        @id: e3a62529-edbd-4062-9246-bef5f33bdcf0
+        :id: e3a62529-edbd-4062-9246-bef5f33bdcf0
 
-        @Assert: Repository has updated non-zero packages count
+        :Assert: Repository has updated non-zero packages count
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1318004
+        :BZ: 1318004
         """
         # Create repository and synchronize it
         repo = entities.Repository(
@@ -938,13 +937,13 @@ class RepositoryTestCase(APITestCase):
         """Check that repository content is resynced after puppet modules
         were removed from repository
 
-        @id: db50beb0-de73-4783-abc8-57e61188b6c7
+        :id: db50beb0-de73-4783-abc8-57e61188b6c7
 
-        @Assert: Repository has updated non-zero puppet modules count
+        :Assert: Repository has updated non-zero puppet modules count
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1318004
+        :BZ: 1318004
         """
         # Create repository and synchronize it
         repo = entities.Repository(
@@ -968,9 +967,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_delete(self):
         """Create a repository with different names and then delete it.
 
-        @id: 29c2571a-b7fb-4ec7-b433-a1840758bcb0
+        :id: 29c2571a-b7fb-4ec7-b433-a1840758bcb0
 
-        @Assert: The repository deleted successfully.
+        :Assert: The repository deleted successfully.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -985,11 +984,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
 
-        @id: d61c8c8b-2b77-4bff-b215-fa2b7c05aa78
+        :id: d61c8c8b-2b77-4bff-b215-fa2b7c05aa78
 
-        @Assert: The repository deleted successfully.
+        :Assert: The repository deleted successfully.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo = entities.Repository(
             url=FAKE_2_YUM_REPO,
@@ -1008,13 +1007,13 @@ class RepositoryTestCase(APITestCase):
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
 
-        @id: 5c60b0ab-ef50-41a3-8578-bfdb5cb228ea
+        :id: 5c60b0ab-ef50-41a3-8578-bfdb5cb228ea
 
-        @Assert: The repository deleted successfully.
+        :Assert: The repository deleted successfully.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1316681
+        :BZ: 1316681
         """
         repo = entities.Repository(
             url=FAKE_1_PUPPET_REPO,
@@ -1034,10 +1033,10 @@ class RepositoryTestCase(APITestCase):
         """Verify that puppet modules list for specific repo is correct
         and does not affected by other repositories.
 
-        @id: e9e16ac2-a58d-4d49-b378-59e4f5b3a3ec
+        :id: e9e16ac2-a58d-4d49-b378-59e4f5b3a3ec
 
-        @Assert: Number of modules has no changed after a second repo
-        was synced.
+        :Assert: Number of modules has no changed after a second repo was
+            synced.
         """
         # Create and sync first repo
         repo1 = entities.Repository(
@@ -1071,11 +1070,11 @@ class RepositorySyncTestCase(APITestCase):
     def test_positive_sync_rh(self):
         """Sync RedHat Repository.
 
-        @id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
+        :id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
 
-        @Assert: Synced repo should fetch the data successfully.
+        :Assert: Synced repo should fetch the data successfully.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -1105,9 +1104,9 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_create(self):
         """Create a Docker-type repository
 
-        @id: 2ce5b52d-8470-4c33-aeeb-9aee1af1cd74
+        :id: 2ce5b52d-8470-4c33-aeeb-9aee1af1cd74
 
-        @Assert: A repository is created with a Docker repository.
+        :Assert: A repository is created with a Docker repository.
         """
         product = entities.Product(organization=self.org).create()
         for name in valid_data_list():
@@ -1129,12 +1128,12 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_synchronize(self):
         """Create and sync a Docker-type repository
 
-        @id: 27653663-e5a7-4700-a3c1-f6eab6468adf
+        :id: 27653663-e5a7-4700-a3c1-f6eab6468adf
 
-        @Assert: A repository is created with a Docker repository and it is
-        synchronized.
+        :Assert: A repository is created with a Docker repository and it is
+            synchronized.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
@@ -1153,9 +1152,9 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a repository's name.
 
-        @id: 6dff0c90-170f-40b9-9347-8ec97d89f2fd
+        :id: 6dff0c90-170f-40b9-9347-8ec97d89f2fd
 
-        @Assert: The repository's name is updated.
+        :Assert: The repository's name is updated.
         """
         repository = entities.Repository(
             content_type='docker'
@@ -1183,9 +1182,9 @@ class OstreeRepositoryTestCase(APITestCase):
     def test_positive_create_ostree(self):
         """Create ostree repository.
 
-        @id: f3332dd3-1e6d-44e2-8f24-fae6fba2de8d
+        :id: f3332dd3-1e6d-44e2-8f24-fae6fba2de8d
 
-        @Assert: A repository is created and has ostree type.
+        :Assert: A repository is created and has ostree type.
         """
         repo = entities.Repository(
             product=self.product,
@@ -1199,9 +1198,9 @@ class OstreeRepositoryTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update ostree repository name.
 
-        @id: 4d9f1418-cc08-4c3c-a5dd-1d20fb9052a2
+        :id: 4d9f1418-cc08-4c3c-a5dd-1d20fb9052a2
 
-        @Assert: The repository name is updated.
+        :Assert: The repository name is updated.
         """
         repo = entities.Repository(
             product=self.product,
@@ -1218,9 +1217,9 @@ class OstreeRepositoryTestCase(APITestCase):
     def test_positive_update_url(self):
         """Update ostree repository url.
 
-        @id: 6ba45475-a060-42a7-bc9e-ea2824a5476b
+        :id: 6ba45475-a060-42a7-bc9e-ea2824a5476b
 
-        @Assert: The repository url is updated.
+        :Assert: The repository url is updated.
         """
         repo = entities.Repository(
             product=self.product,
@@ -1237,9 +1236,9 @@ class OstreeRepositoryTestCase(APITestCase):
     def test_positive_delete_ostree(self):
         """Delete an ostree repository.
 
-        @id: 05db79ed-28c7-47fc-85f5-194a805d71ca
+        :id: 05db79ed-28c7-47fc-85f5-194a805d71ca
 
-        @Assert: The ostree repository deleted successfully.
+        :Assert: The ostree repository deleted successfully.
         """
         repo = entities.Repository(
             product=self.product,
@@ -1257,11 +1256,11 @@ class OstreeRepositoryTestCase(APITestCase):
     def test_positive_sync_rh_atomic(self):
         """Sync RH Atomic Ostree Repository.
 
-        @id: 38c8aeaa-5ad2-40cb-b1d2-f0ac604f9fdd
+        :id: 38c8aeaa-5ad2-40cb-b1d2-f0ac604f9fdd
 
-        @Assert: Synced repo should fetch the data successfully.
+        :Assert: Synced repo should fetch the data successfully.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -1291,9 +1290,9 @@ class SRPMRepositoryTestCase(APITestCase):
     def test_positive_sync(self):
         """Synchronize repository with SRPMs
 
-        @id: f87391c6-c18a-4c4f-81db-decbba7f1856
+        :id: f87391c6-c18a-4c4f-81db-decbba7f1856
 
-        @Assert: srpms can be listed in repository
+        :Assert: srpms can be listed in repository
         """
         repo = entities.Repository(
             product=self.product,
@@ -1317,9 +1316,9 @@ class SRPMRepositoryTestCase(APITestCase):
         """Synchronize repository with SRPMs, add repository to content view
         and publish content view
 
-        @id: a0868429-584c-4e36-b93f-c85e8e94a60b
+        :id: a0868429-584c-4e36-b93f-c85e8e94a60b
 
-        @Assert: srpms can be listed in content view
+        :Assert: srpms can be listed in content view
         """
         repo = entities.Repository(
             product=self.product,
@@ -1348,10 +1347,10 @@ class SRPMRepositoryTestCase(APITestCase):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
 
-        @id: 811b524f-2b19-4408-ad7f-d7251625e35c
+        :id: 811b524f-2b19-4408-ad7f-d7251625e35c
 
-        @Assert: srpms can be listed in content view in proper lifecycle
-        environment
+        :Assert: srpms can be listed in content view in proper lifecycle
+            environment
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         repo = entities.Repository(
@@ -1394,9 +1393,9 @@ class DRPMRepositoryTestCase(APITestCase):
     def test_positive_sync(self):
         """Synchronize repository with DRPMs
 
-        @id: 7816031c-b7df-49e0-bf42-7f6e2d9b0233
+        :id: 7816031c-b7df-49e0-bf42-7f6e2d9b0233
 
-        @Assert: drpms can be listed in repository
+        :Assert: drpms can be listed in repository
         """
         repo = entities.Repository(
             product=self.product,
@@ -1420,9 +1419,9 @@ class DRPMRepositoryTestCase(APITestCase):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
 
-        @id: dac4bd82-1433-4e5d-b82f-856056ca3924
+        :id: dac4bd82-1433-4e5d-b82f-856056ca3924
 
-        @Assert: drpms can be listed in content view
+        :Assert: drpms can be listed in content view
         """
         repo = entities.Repository(
             product=self.product,
@@ -1451,10 +1450,10 @@ class DRPMRepositoryTestCase(APITestCase):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
 
-        @id: 44296354-8ca2-4ce0-aa16-398effc80d9c
+        :id: 44296354-8ca2-4ce0-aa16-398effc80d9c
 
-        @Assert: drpms can be listed in content view in proper lifecycle
-        environment
+        :Assert: drpms can be listed in content view in proper lifecycle
+            environment
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         repo = entities.Repository(

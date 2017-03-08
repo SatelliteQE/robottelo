@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Life cycle environments UI
 
-@Requirement: Lifecycleenvironment
+:Requirement: Lifecycleenvironment
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from itertools import chain
 
@@ -48,9 +48,9 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_create(self):
         """Create content environment with minimal input parameters
 
-        @id: 2c3a9c4c-3508-4d75-8f60-8bc6f7c0717f
+        :id: 2c3a9c4c-3508-4d75-8f60-8bc6f7c0717f
 
-        @Assert: Environment is created
+        :Assert: Environment is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -69,11 +69,11 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_create_chain(self):
         """Create Content Environment in a chain
 
-        @id: ed3d2c88-ef0a-4a1a-9f11-5bdb2119fc18
+        :id: ed3d2c88-ef0a-4a1a-9f11-5bdb2119fc18
 
-        @Assert: Environment is created
+        :Assert: Environment is created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         env1_name = gen_string('alpha')
         env2_name = gen_string('alpha')
@@ -100,9 +100,9 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_delete(self):
         """Create Content Environment and delete it
 
-        @id: fe2d9b10-fc46-47e3-827c-6f87d725ed8f
+        :id: fe2d9b10-fc46-47e3-827c-6f87d725ed8f
 
-        @Assert: Environment is deleted
+        :Assert: Environment is deleted
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -121,9 +121,9 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_update(self):
         """Create Content Environment and update it
 
-        @id: 5cf64c5b-2105-4384-8630-965d9b8e3024
+        :id: 5cf64c5b-2105-4384-8630-965d9b8e3024
 
-        @Assert: Environment is updated
+        :Assert: Environment is updated
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -144,38 +144,36 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         """Verify that no error is thrown when creating an evironment after
         registering a host to Library.
 
-        @id: feab2298-4faf-470b-b906-8b50d148f52a
+        :id: feab2298-4faf-470b-b906-8b50d148f52a
 
-        @BZ: 1348727
+        :BZ: 1348727
 
-        @Setup:
+        :Setup:
 
-        1. Create an organization.
-        2. Create a new content host.
-        3. Register the content host to the Library environment.
+            1. Create an organization.
+            2. Create a new content host.
+            3. Register the content host to the Library environment.
 
-        @Steps:
+        :Steps: Create a new environment.
 
-        1. Create a new environment.
+        :Assert: The environment is created without any errors.
 
-        @Assert: The environment is created without any errors.
+        :CaseLevel: Integration
 
-        @CaseLevel: Integration
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @tier1
     def test_positive_env_list_fits_browser_screen(self):
         """Check if long list of lifecycle environments fits into screen
 
-        @id: 63b985b0-c847-11e6-92ad-68f72889dc7f
+        :id: 63b985b0-c847-11e6-92ad-68f72889dc7f
 
-        @Setup: save 8+ chained lifecycles environments
+        :Setup: save 8+ chained lifecycles environments
 
-        @BZ: 1295922
+        :BZ: 1295922
 
-        @Assert: lifecycle environments table fits screen
+        :Assert: lifecycle environments table fits screen
         """
         with Session(self.browser) as session:
             env_names = [gen_string('alpha') for _ in range(11)]
@@ -200,39 +198,39 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         """As a custom user attempt to view a lifecycle environment created
         by admin user
 
-        @id: 768b647b-c530-4eca-9caa-38cf8622f36d
+        :id: 768b647b-c530-4eca-9caa-38cf8622f36d
 
-        @BZ: 1420511
+        :BZ: 1420511
 
-        @Steps:
+        :Steps:
 
-        As an admin user:
+            As an admin user:
 
-        1. Create an additional lifecycle environments other than Library
-        2. Create a user without administrator privileges
-        3. Create a role with the the following permissions:
+            1. Create an additional lifecycle environments other than Library
+            2. Create a user without administrator privileges
+            3. Create a role with the the following permissions:
 
-        * (Miscellaneous): access_dashboard
-        * Lifecycle Environment:
+                * (Miscellaneous): access_dashboard
+                * Lifecycle Environment:
 
-          * edit_lifecycle_environments
-          * promote_or_remove_content_views_to_environment
-          * view_lifecycle_environments
+                * edit_lifecycle_environments
+                * promote_or_remove_content_views_to_environment
+                * view_lifecycle_environments
 
-        * Location: view_locations
-        * Organization: view_organizations
+                * Location: view_locations
+                * Organization: view_organizations
 
-        4. Assign the created role to the custom user
+            4. Assign the created role to the custom user
 
-        As a custom user:
+            As a custom user:
 
-        1. Log in
-        2. Navigate to Content -> Lifecycle Environments
+            1. Log in
+            2. Navigate to Content -> Lifecycle Environments
 
-        @Assert: The additional lifecycle environment is viewable
-        and accessible by the custom user.
+        :Assert: The additional lifecycle environment is viewable and
+            accessible by the custom user.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         role_name = gen_string('alpha')
         env_name = gen_string('alpha')

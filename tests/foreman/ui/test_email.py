@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """UI Tests for the email notification feature
 
-@Requirement: Email
+:Requirement: Email
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.decorators import stubbed, tier1, tier3
@@ -28,20 +28,20 @@ class EmailTestCase(UITestCase):
     def test_positive_preferences(self):
         """Manage user email notification preferences
 
-        @id: 6852256e-4907-454d-bb53-242063222a1f
+        :id: 6852256e-4907-454d-bb53-242063222a1f
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Attempt to enable and disable the following email notification
-           preferences: Mail Enabled, Katello Sync Errata, Katello Host
-           Advisory, Katello Promote Errata, Puppet Error state, Puppet
-           Summary.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Attempt to enable and disable the following email notification
+                preferences: Mail Enabled, Katello Sync Errata, Katello Host
+                Advisory, Katello Promote Errata, Puppet Error state, Puppet
+                Summary.
 
-        @Assert: Enabling and disabling email notification preferences saved
-        accordingly.
+        :Assert: Enabling and disabling email notification preferences saved
+            accordingly.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -50,20 +50,20 @@ class EmailTestCase(UITestCase):
     def test_positive_sync_with_enabled_notification(self):
         """Receive email after every sync operation
 
-        @id: 79ed2bc9-3707-4548-bdab-290ae5e9abf3
+        :id: 79ed2bc9-3707-4548-bdab-290ae5e9abf3
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for 'Katello Sync Errata'.
-        3. Perform a sync operation on a product.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for 'Katello Sync Errata'.
+            3. Perform a sync operation on a product.
 
-        @Assert: Email notification received after sync operation.
+        :Assert: Email notification received after sync operation.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -71,20 +71,19 @@ class EmailTestCase(UITestCase):
     def test_positive_sync_with_disabled_notification(self):
         """Do not receive email after every sync operation
 
-        @id: c0b8b5d6-ed44-42b7-9700-1dd26bb4ae55
+        :id: c0b8b5d6-ed44-42b7-9700-1dd26bb4ae55
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Disable notification by 'Katello Sync Errata' → 'No Emails'.
-        3. Perform a sync operation on a product.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Disable notification by 'Katello Sync Errata' → 'No Emails'.
+            3. Perform a sync operation on a product.
 
-        @Assert: No email notification received after sync operation.
+        :Assert: No email notification received after sync operation.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -92,20 +91,19 @@ class EmailTestCase(UITestCase):
     def test_positive_promote_with_enabled_notification(self):
         """Receive email after every promote operation
 
-        @id: cb14b622-cbfd-4834-889d-bc6e7884bfb0
+        :id: cb14b622-cbfd-4834-889d-bc6e7884bfb0
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for 'Katello Promote Errata'.
-        3. Perform a promote operation in a content view.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for 'Katello Promote Errata'.
+            3. Perform a promote operation in a content view.
 
-        @Assert: Email notification received after Promote operation.
+        :Assert: Email notification received after Promote operation.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -113,20 +111,19 @@ class EmailTestCase(UITestCase):
     def test_positive_promote_with_disabled_notification(self):
         """Do not receive email after every promote operation
 
-        @id: 4cca1869-f869-414b-b652-d6a5b3ce6f17
+        :id: 4cca1869-f869-414b-b652-d6a5b3ce6f17
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Disable notification by 'Katello Promote Errata' → 'No Emails'.
-        3. Perform a promote operation in a content view.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Disable notification by 'Katello Promote Errata' → 'No Emails'.
+            3. Perform a promote operation in a content view.
 
-        @Assert: No email notification received after Promote operation.
+        :Assert: No email notification received after Promote operation.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -134,20 +131,19 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_daily_notification(self):
         """Receive daily email with host advisory information
 
-        @id: 3a21d0ef-3c67-4e47-bcec-a8dd1a5aa564
+        :id: 3a21d0ef-3c67-4e47-bcec-a8dd1a5aa564
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for 'Katello Host Advisory' → Daily.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for 'Katello Host Advisory' → Daily.
 
-        @Assert: Email notification received daily with Katello Host Advisory
-        information.
+        :Assert: Email notification received daily with Katello Host Advisory
+            information.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -155,20 +151,19 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_weekly_notification(self):
         """Receive weekly email with host advisory information
 
-        @id: b195fc2e-0449-4cb3-9f4c-ed8c8266651b
+        :id: b195fc2e-0449-4cb3-9f4c-ed8c8266651b
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for 'Katello Host Advisory' → Weekly.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for 'Katello Host Advisory' → Weekly.
 
-        @Assert: Email notification received Weekly with Katello Host Advisory
-        information.
+        :Assert: Email notification received Weekly with Katello Host Advisory
+            information.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -176,20 +171,19 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_monthly_notification(self):
         """Receive monthly email with host advisory information
 
-        @id: e05398b9-6fbd-4aa5-84e9-70ae0a2db9a1
+        :id: e05398b9-6fbd-4aa5-84e9-70ae0a2db9a1
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for 'Katello Host Advisory' → Monthly.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for 'Katello Host Advisory' → Monthly.
 
-        @Assert: Email notification received monthly with Katello Host Advisory
-        information.
+        :Assert: Email notification received monthly with Katello Host Advisory
+            information.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -197,20 +191,19 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_disabled_notification(self):
         """Receive no email with host advisory information
 
-        @id: 5540ba69-aab0-42a3-afda-298249880348
+        :id: 5540ba69-aab0-42a3-afda-298249880348
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Disable notification by 'Katello Host Advisory' → 'No emails'.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Disable notification by 'Katello Host Advisory' → 'No emails'.
 
-        @Assert: No email notification received with Katello Host Advisory
-        information.
+        :Assert: No email notification received with Katello Host Advisory
+            information.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -218,20 +211,19 @@ class EmailTestCase(UITestCase):
     def test_positive_puppet_error_with_enabled_notification(self):
         """Receive email after puppet error
 
-        @id: 2c14a0d9-2f37-47da-b095-0c984a24091d
+        :id: 2c14a0d9-2f37-47da-b095-0c984a24091d
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for 'Puppet Error State'.
-        3. Simulate a Puppet error.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for 'Puppet Error State'.
+            3. Simulate a Puppet error.
 
-        @Assert: Email notification received with Puppet error.
+        :Assert: Email notification received with Puppet error.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -239,20 +231,19 @@ class EmailTestCase(UITestCase):
     def test_positive_puppet_error_with_disabled_notification(self):
         """Do not receive email after puppet error
 
-        @id: fd6e7274-b9c1-44f8-91de-ad5162f21c74
+        :id: fd6e7274-b9c1-44f8-91de-ad5162f21c74
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Disable notification by 'Puppet Error State' → 'No Emails'.
-        3. Simulate a Puppet error.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Disable notification by 'Puppet Error State' → 'No Emails'.
+            3. Simulate a Puppet error.
 
-        @Assert: No email notification received after Puppet error.
+        :Assert: No email notification received after Puppet error.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -261,27 +252,26 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Sync Errata' notifications - only for
         repositories and content views that the user has view access to
 
-        @id: b0e4a823-4225-4788-8cfd-2d1ccf4d9ded
+        :id: b0e4a823-4225-4788-8cfd-2d1ccf4d9ded
 
-        @setup:
+        :setup:
 
-        1. Create multiple products with synced errata.
-        2. The test user does not have view access to atleast some of the
-           products.
+            1. Create multiple products with synced errata.
+            2. The test user does not have view access to atleast some of the
+                products.
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for test user for 'Katello Sync Errata'.
-        3. Login as admin and perform sync on a product for which the test user
-           does not have view access.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for test user for 'Katello Sync Errata'.
+            3. Login as admin and perform sync on a product for which the test
+                user does not have view access.
 
-        @Assert: Test user does not receive email notification.
+        :Assert: Test user does not receive email notification.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -290,27 +280,27 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Promote Errata' notifications - only for
         repositories and content views that the user has view access to
 
-        @id: 44435f4f-ea9f-4f6e-b1c0-d273974ec9e5
+        :id: 44435f4f-ea9f-4f6e-b1c0-d273974ec9e5
 
-        @setup:
+        :setup:
 
-        1. Create multiple products with synced errata.
-        2. The test user does not have view access to atleast some of the
-           products.
+            1. Create multiple products with synced errata.
+            2. The test user does not have view access to atleast some of the
+                products.
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for the test user for 'Katello Promote Errata'.
-        3. Login as admin and perform sync on a product for which the test user
-           does not have view access.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for the test user for 'Katello Promote
+                Errata'.
+            3. Login as admin and perform sync on a product for which the test
+                user does not have view access.
 
-        @Assert: Test user does not receive email notification.
+        :Assert: Test user does not receive email notification.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -319,26 +309,26 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Host Advisory' notifications - only for
         repositories and content views that the user has view access to
 
-        @id: aea2cfa7-0a44-4b72-bd10-275e604100a9
+        :id: aea2cfa7-0a44-4b72-bd10-275e604100a9
 
-        @setup:
+        :setup:
 
-        1. Create multiple products with synced errata.
-        2. The test user does not have view access to atleast some of the
-           products.
+            1. Create multiple products with synced errata.
+            2. The test user does not have view access to atleast some of the
+                products.
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for the test user for 'Katello Host Advisory'.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for the test user for 'Katello Host
+                Advisory'.
 
-        @Assert: Test user receives email notification with the host info for
-        the repositories and content views that the user has access to.
+        :Assert: Test user receives email notification with the host info for
+            the repositories and content views that the user has access to.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -347,24 +337,23 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Host Advisory' notifications - only for
         content hosts that the user has view access to
 
-        @id: 2acc2979-926a-4176-b87a-57bc880e4b31
+        :id: 2acc2979-926a-4176-b87a-57bc880e4b31
 
-        @setup:
+        :setup:
 
-        1. Make sure to have multiple content hosts
-        2. The test user does not have view access to atleast some of the
-           products
+            1. Make sure to have multiple content hosts
+            2. The test user does not have view access to atleast some of the
+                products
 
-        @Steps:
+        :Steps:
 
-        1. Navigate to User → My Account → Mail Preferences.
-        2. Enable notification for test user for 'Katello Host Advisory'.
+            1. Navigate to User → My Account → Mail Preferences.
+            2. Enable notification for test user for 'Katello Host Advisory'.
 
-        @Assert: Test user receives email notification which does not list the
-        content hosts for which the user does not have view access.
+        :Assert: Test user receives email notification which does not list the
+            content hosts for which the user does not have view access.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """

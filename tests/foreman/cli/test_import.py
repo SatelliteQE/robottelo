@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host Collection CLI
 
-@Requirement: Import
+:Requirement: Import
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import csv
 import os
@@ -530,9 +530,9 @@ class TestImport(CLITestCase):
         """Import all organizations from the default data set
         (predefined source).
 
-        @id: e7d91832-72bb-4d15-9a75-b3bc0d40b857
+        :id: e7d91832-72bb-4d15-9a75-b3bc0d40b857
 
-        @assert: 3 Organizations are created
+        :assert: 3 Organizations are created
 
         """
         for test_data in gen_import_org_data():
@@ -551,12 +551,12 @@ class TestImport(CLITestCase):
         """Import all organizations from the default data set
         (predefined source) and upload manifests for each of them
 
-        @id: 4e64ecb7-68ac-40ed-91b8-a2ac1b426b20
+        :id: 4e64ecb7-68ac-40ed-91b8-a2ac1b426b20
 
-        @assert: 3 Organizations are created with 3 manifests uploaded
+        :assert: 3 Organizations are created with 3 manifests uploaded
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         for test_data in gen_import_org_manifest_data():
             with self.subTest(test_data):
@@ -585,9 +585,9 @@ class TestImport(CLITestCase):
         """Try to Import all organizations from the predefined source
         and try to import them again
 
-        @id: 990e5efc-7f72-45c9-a402-76633adcd49f
+        :id: 990e5efc-7f72-45c9-a402-76633adcd49f
 
-        @assert: 2nd Import will result in No Action Taken
+        :assert: 2nd Import will result in No Action Taken
 
         """
         for test_data in gen_import_org_data():
@@ -606,10 +606,10 @@ class TestImport(CLITestCase):
         """Try to Import organizations with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
-        @id: e85563e8-284c-420c-9b62-30a847039e36
+        :id: e85563e8-284c-420c-9b62-30a847039e36
 
-        @assert: 2nd Import will result in No Action Taken, 3rd one will rename
-        the new organizations, and the 4th one will map them
+        :assert: 2nd Import will result in No Action Taken, 3rd one will rename
+            the new organizations, and the 4th one will map them
 
         """
         for test_data in gen_import_org_data():
@@ -656,10 +656,10 @@ class TestImport(CLITestCase):
         """Try to Import all organizations and their users from CSV
         to a mapped organization.
 
-        @id: f456d8ea-2388-4944-a194-8860154c2529
+        :id: f456d8ea-2388-4944-a194-8860154c2529
 
-        @assert: 3 Organizations Mapped and their Users created
-        in a single Organization
+        :assert: 3 Organizations Mapped and their Users created in a single
+            Organization
 
         """
         for test_data in gen_import_user_data():
@@ -694,9 +694,9 @@ class TestImport(CLITestCase):
         """Import all 3 users from the default data set (predefined
         source).
 
-        @id: 4306e315-85dc-4324-9ecc-911f97d461ae
+        :id: 4306e315-85dc-4324-9ecc-911f97d461ae
 
-        @assert: 3 Users created
+        :assert: 3 Users created
 
         """
         for test_data in gen_import_user_data():
@@ -724,9 +724,9 @@ class TestImport(CLITestCase):
         """Try to Import all users from the
         predefined source and try to import them again
 
-        @id: 7142fcf0-1766-4bf6-bb82-26dbf9fb18ec
+        :id: 7142fcf0-1766-4bf6-bb82-26dbf9fb18ec
 
-        @assert: 2nd Import will result in No Action Taken
+        :assert: 2nd Import will result in No Action Taken
 
         """
         for test_data in gen_import_user_data():
@@ -754,10 +754,10 @@ class TestImport(CLITestCase):
         """Try to Merge users with the same name using 'merge-users'
         option.
 
-        @id: 466a9bbd-f804-4d22-993d-37a8c6b9dade
+        :id: 466a9bbd-f804-4d22-993d-37a8c6b9dade
 
-        @assert: Users imported in 2nd import are being mapped to the existing
-        ones with the same name
+        :assert: Users imported in 2nd import are being mapped to the existing
+            ones with the same name
 
         """
         for test_data in gen_import_user_data():
@@ -793,10 +793,10 @@ class TestImport(CLITestCase):
         """Try to Import users with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
-        @id: 6c235a7a-d957-4144-a0f3-0f048851da0f
+        :id: 6c235a7a-d957-4144-a0f3-0f048851da0f
 
-        @assert: 2nd Import will rename new users, 3rd one will result
-        in No Action Taken and 4th import will map them
+        :assert: 2nd Import will rename new users, 3rd one will result in No
+            Action Taken and 4th import will map them
 
         """
         for test_data in gen_import_user_data():
@@ -855,9 +855,9 @@ class TestImport(CLITestCase):
         """Import all System Groups from the default data set
         (predefined source) as the Host Collections.
 
-        @id: c0d19696-49fb-4dd2-b66d-6fc05042a668
+        :id: c0d19696-49fb-4dd2-b66d-6fc05042a668
 
-        @assert: 3 Host Collections created
+        :assert: 3 Host Collections created
 
         """
         for test_data in gen_import_hostcol_data():
@@ -891,9 +891,9 @@ class TestImport(CLITestCase):
         """Try to re-import all System Groups from the default data set
         (predefined source) as the Host Collections.
 
-        @id: cb3e4799-2d3d-4e5f-8a3a-7f2d1f7ea4cc
+        :id: cb3e4799-2d3d-4e5f-8a3a-7f2d1f7ea4cc
 
-        @assert: 3 Host Collections created, no action taken on 2nd Import
+        :assert: 3 Host Collections created, no action taken on 2nd Import
 
         """
         for test_data in gen_import_hostcol_data():
@@ -924,10 +924,10 @@ class TestImport(CLITestCase):
         """Try to Import Collections with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
-        @id: e0520f6b-64c3-4263-8064-9ec5ba7eb2f5
+        :id: e0520f6b-64c3-4263-8064-9ec5ba7eb2f5
 
-        @assert: 2nd Import will rename the new collections, 3nd import will
-        result in No Action Taken and the 4th one will map them
+        :assert: 2nd Import will rename the new collections, 3nd import will
+            result in No Action Taken and the 4th one will map them
 
         """
         for test_data in gen_import_hostcol_data():
@@ -987,9 +987,9 @@ class TestImport(CLITestCase):
         """Import and enable all Repositories from the default data set
         (predefined source)
 
-        @id: ae506d6c-a24b-4d27-85a0-9a3791684e6f
+        :id: ae506d6c-a24b-4d27-85a0-9a3791684e6f
 
-        @assert: 3 Repositories imported and enabled
+        :assert: 3 Repositories imported and enabled
 
         """
         for test_data in gen_import_repo_data():
@@ -1027,10 +1027,10 @@ class TestImport(CLITestCase):
         (predefined source), then try to Import Repositories from the same CSV
         again.
 
-        @id: 75d5cd18-fe73-4a2c-8036-4a60dab7a729
+        :id: 75d5cd18-fe73-4a2c-8036-4a60dab7a729
 
-        @assert: 3 Repositories imported and enabled, second run should trigger
-        no action.
+        :assert: 3 Repositories imported and enabled, second run should trigger
+            no action.
         """
         for test_data in gen_import_repo_data():
             with self.subTest(test_data):
@@ -1077,11 +1077,10 @@ class TestImport(CLITestCase):
         """Try to Import Repos with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
-        @id: 6ab9d08f-74e6-488d-932c-1ef0fca319d9
+        :id: 6ab9d08f-74e6-488d-932c-1ef0fca319d9
 
-        @assert: 2nd Import will rename the new repos, 3rd import will
-        map them and the 4th one will result in No Action Taken
-
+        :assert: 2nd Import will rename the new repos, 3rd import will map them
+            and the 4th one will result in No Action Taken
         """
         for test_data in gen_import_repo_data():
             with self.subTest(test_data):
@@ -1140,9 +1139,9 @@ class TestImport(CLITestCase):
         """Import and enable all Content Views from the default data set
         (predefined source)
 
-        @id: 6c42e82f-4939-41bb-9445-cf9ea4a5d3ab
+        :id: 6c42e82f-4939-41bb-9445-cf9ea4a5d3ab
 
-        @assert: 3 Content Views imported and enabled
+        :assert: 3 Content Views imported and enabled
 
         """
         for test_data in gen_import_cv_data():
@@ -1185,11 +1184,10 @@ class TestImport(CLITestCase):
         (predefined source), then try to Import them from the same CSV
         again.
 
-        @id: ad600c5b-057e-45b5-be67-ab6a338f9fef
+        :id: ad600c5b-057e-45b5-be67-ab6a338f9fef
 
-        @assert: 3 Content Views imported and enabled, 2nd run should trigger
-        no action.
-
+        :assert: 3 Content Views imported and enabled, 2nd run should trigger
+            no action.
         """
         for test_data in gen_import_cv_data():
             with self.subTest(test_data):
@@ -1240,11 +1238,10 @@ class TestImport(CLITestCase):
         """Try to Import Content Views with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
-        @id: 29bd0728-ae3c-4866-b9db-6b033ec36b2f
+        :id: 29bd0728-ae3c-4866-b9db-6b033ec36b2f
 
-        @assert: 2nd Import will rename the new Content Views, 3rd import will
-        map them and the 4th one will result in No Action Taken
-
+        :assert: 2nd Import will rename the new Content Views, 3rd import will
+            map them and the 4th one will result in No Action Taken
         """
         for test_data in gen_import_cv_data():
             with self.subTest(test_data):
@@ -1315,9 +1312,9 @@ class TestImport(CLITestCase):
         converted to the Puppet facts.
         According to RH Transition Guide (Chapter 3.7.8, Table 3.1)
 
-        @id: 1e6d2979-1187-4f54-a7f7-84349afc1db4
+        :id: 1e6d2979-1187-4f54-a7f7-84349afc1db4
 
-        @assert: Generated .erb file contains correctly formatted puppet facts
+        :assert: Generated .erb file contains correctly formatted puppet facts
 
         """
         # This bug was originally created to verify BZ 1160847
@@ -1429,12 +1426,12 @@ class TestImport(CLITestCase):
         """Import and enable all red hat repositories from predefined
         dataset
 
-        @id: 6b5c8955-979b-4852-b401-b2c534631dce
+        :id: 6b5c8955-979b-4852-b401-b2c534631dce
 
-        @assert: All Repositories imported and synchronized
+        :assert: All Repositories imported and synchronized
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         for test_data in gen_import_rh_repo_data():
             with self.subTest(test_data):
@@ -1480,12 +1477,12 @@ class TestImport(CLITestCase):
         """Repetitive Import and enable of all red hat repositories from
         the predefined dataset
 
-        @id: ca345863-8e94-463e-bc06-b217ecb1189f
+        :id: ca345863-8e94-463e-bc06-b217ecb1189f
 
-        @assert: All Repositories imported and synchronized only once
+        :assert: All Repositories imported and synchronized only once
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         for test_data in gen_import_rh_repo_data():
             with self.subTest(test_data):
@@ -1527,9 +1524,9 @@ class TestImport(CLITestCase):
     def test_positive_import_hosts_default(self):
         """Import all hosts from the predefined dataset
 
-        @id: 90662be7-335f-43a4-816c-b6bb906614fd
+        :id: 90662be7-335f-43a4-816c-b6bb906614fd
 
-        @assert: Profiles for all Hosts created
+        :assert: Profiles for all Hosts created
 
         """
         for test_data in gen_import_chost_data():
@@ -1557,9 +1554,9 @@ class TestImport(CLITestCase):
     def test_negative_reimport_hosts(self):
         """Repetitive Import of all hosts from the predefined dataset
 
-        @id: b98ef26e-e938-40c2-805d-6292b12b64d5
+        :id: b98ef26e-e938-40c2-805d-6292b12b64d5
 
-        @assert: Profiles for all Hosts created only once
+        :assert: Profiles for all Hosts created only once
 
         """
         for test_data in gen_import_chost_data():
@@ -1598,9 +1595,9 @@ class TestImport(CLITestCase):
     def test_negative_import_chosts_recovery(self):
         """Try to invoke usage of a recovery strategy
 
-        @id: 29d59eab-2f30-4812-82ba-ca4c49439da5
+        :id: 29d59eab-2f30-4812-82ba-ca4c49439da5
 
-        @assert: No such option exists, error is shown
+        :assert: No such option exists, error is shown
 
         """
         for test_data in gen_import_chost_data():
@@ -1630,9 +1627,9 @@ class TestImport(CLITestCase):
         """Import template snippets from the default data set
         (predefined source)
 
-        @id: fcced407-4e94-49ae-ab5a-8e868aee6625
+        :id: fcced407-4e94-49ae-ab5a-8e868aee6625
 
-        @assert: All Snippets imported
+        :assert: All Snippets imported
 
         """
         for test_data in gen_import_snippet_data():
@@ -1669,9 +1666,9 @@ class TestImport(CLITestCase):
         """Import all Config Files from the default data set
         (predefined source)
 
-        @id: 760393d2-b4c5-48ec-96ff-8947dd3bca62
+        :id: 760393d2-b4c5-48ec-96ff-8947dd3bca62
 
-        @assert: All Config Files are imported
+        :assert: All Config Files are imported
 
         """
         for test_data in gen_import_config_files_data():
@@ -1709,9 +1706,9 @@ class TestImport(CLITestCase):
         """Repetitive Import of all Config Files from the default
         data set (predefined source)
 
-        @id: 8b3d2956-c842-4a91-bf3e-6dcda174bd5f
+        :id: 8b3d2956-c842-4a91-bf3e-6dcda174bd5f
 
-        @assert: All Config Files are imported only once
+        :assert: All Config Files are imported only once
 
         """
         for test_data in gen_import_config_files_data():
@@ -1765,9 +1762,9 @@ class TestImport(CLITestCase):
         """Import AKs from the default data set
         (predefined source)
 
-        @id: 86b35ce4-c51d-4391-98c9-9dd0ff50963a
+        :id: 86b35ce4-c51d-4391-98c9-9dd0ff50963a
 
-        @assert: 3 AKs imported
+        :assert: 3 AKs imported
 
         """
         for test_data in gen_import_ak_data():

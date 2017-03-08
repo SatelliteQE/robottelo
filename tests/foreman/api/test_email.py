@@ -1,18 +1,18 @@
 """API Tests for the email notification feature
 
-@Requirement: Email
+:Requirement: Email
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import APITestCase
@@ -26,14 +26,13 @@ class EmailTestCase(APITestCase):
     def test_positive_enable_and_disable_notification(self):
         """Manage user email notification preferences.
 
-        @id: 60928133-7bdc-4934-9804-f52b10d9ac95
+        :id: 60928133-7bdc-4934-9804-f52b10d9ac95
 
-        @Steps:
+        :Steps: Enable and disable email notifications using
+            /api/mail_notifications
 
-        1. Enable and disable email notifications using /api/mail_notifications
+        :Assert: Enabling and disabling email notification preferences saved
+            accordingly.
 
-        @Assert: Enabling and disabling email notification preferences saved
-        accordingly.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """

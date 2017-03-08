@@ -1,19 +1,19 @@
 # coding=utf-8
 """Smoke tests for the ``CLI`` end-to-end scenario.
 
-@Requirement: Cli endtoend
+:Requirement: Cli endtoend
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import random
 
@@ -69,9 +69,9 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
-        @id: 95ffeb7a-134e-4273-bccc-fe8a3a336b2a
+        :id: 95ffeb7a-134e-4273-bccc-fe8a3a336b2a
 
-        @Assert: 'Default Organization' is found
+        :Assert: 'Default Organization' is found
         """
         result = Org.info({u'name': DEFAULT_ORG})
         self.assertEqual(result['name'], DEFAULT_ORG)
@@ -79,9 +79,9 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
-        @id: 11cf0d06-78ff-47e8-9d50-407a2ea31988
+        :id: 11cf0d06-78ff-47e8-9d50-407a2ea31988
 
-        @Assert: 'Default Location' is found
+        :Assert: 'Default Location' is found
         """
         result = Location.info({u'name': DEFAULT_LOC})
         self.assertEqual(result['name'], DEFAULT_LOC)
@@ -89,9 +89,9 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
-        @id: f6755189-05a6-4d2f-a3b8-98be0cfacaee
+        :id: f6755189-05a6-4d2f-a3b8-98be0cfacaee
 
-        @Assert: Admin User is found and has Admin role
+        :Assert: Admin User is found and has Admin role
         """
         result = User.info({u'login': u'admin'})
         self.assertEqual(result['login'], 'admin')
@@ -124,10 +124,10 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             19. Create a new hostgroup and associate previous entities to it
             20. Provision a client
 
-        @id: 8c8b3ffa-0d54-436b-8eeb-1a3542e100a8
+        :id: 8c8b3ffa-0d54-436b-8eeb-1a3542e100a8
 
-        @Assert: All tests should succeed and Content should be successfully
-        fetched by client.
+        :Assert: All tests should succeed and Content should be successfully
+            fetched by client.
         """
         # step 1: Create a new user with admin permissions
         password = gen_alphanumeric()

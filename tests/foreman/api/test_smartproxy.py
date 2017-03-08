@@ -1,18 +1,18 @@
 """Tests for the ``smart_proxies`` paths.
 
-@Requirement: Smartproxy
+:Requirement: Smartproxy
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_url
 from nailgun import entities
@@ -45,9 +45,9 @@ class CapsuleTestCase(APITestCase):
     def test_negative_create_with_url(self):
         """Proxy creation with random URL
 
-        @id: e48a6260-97e0-4234-a69c-77bbbcde85d6
+        :id: e48a6260-97e0-4234-a69c-77bbbcde85d6
 
-        @Assert: Proxy is not created
+        :Assert: Proxy is not created
         """
         # Create a random proxy
         with self.assertRaises(HTTPError) as context:
@@ -61,9 +61,9 @@ class CapsuleTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Proxy creation with valid name
 
-        @id: 0ffe0dc5-675e-45f4-b7e1-a14d3dd81f6e
+        :id: 0ffe0dc5-675e-45f4-b7e1-a14d3dd81f6e
 
-        @Assert: Proxy is created
+        :Assert: Proxy is created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -81,9 +81,9 @@ class CapsuleTestCase(APITestCase):
     def test_positive_delete(self):
         """Proxy deletion
 
-        @id: 872bf12e-736d-43d1-87cf-2923966b59d0
+        :id: 872bf12e-736d-43d1-87cf-2923966b59d0
 
-        @Assert: Proxy is deleted
+        :Assert: Proxy is deleted
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -98,9 +98,9 @@ class CapsuleTestCase(APITestCase):
     def test_positive_update_name(self):
         """Proxy name update
 
-        @id: f279640e-d7e9-48a3-aed8-7bf406e9d6f2
+        :id: f279640e-d7e9-48a3-aed8-7bf406e9d6f2
 
-        @Assert: Proxy has the name updated
+        :Assert: Proxy has the name updated
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -119,9 +119,9 @@ class CapsuleTestCase(APITestCase):
     def test_positive_update_url(self):
         """Proxy url update
 
-        @id: 0305fd54-4e0c-4dd9-a537-d342c3dc867e
+        :id: 0305fd54-4e0c-4dd9-a537-d342c3dc867e
 
-        @Assert: Proxy has the url updated
+        :Assert: Proxy has the url updated
         """
         # Create fake capsule
         port = get_available_capsule_port()
@@ -142,9 +142,9 @@ class CapsuleTestCase(APITestCase):
     def test_positive_update_organization(self):
         """Proxy name update with the home proxy
 
-        @id: 62631275-7a92-4d34-a949-c56e0c4063f1
+        :id: 62631275-7a92-4d34-a949-c56e0c4063f1
 
-        @Assert: Proxy has the name updated
+        :Assert: Proxy has the name updated
         """
         organizations = [
             entities.Organization().create() for _ in range(2)]
@@ -166,9 +166,9 @@ class CapsuleTestCase(APITestCase):
     def test_positive_update_location(self):
         """Proxy name update with the home proxy
 
-        @id: e08eaaa9-7c11-4cda-bbe7-6d1f7c732569
+        :id: e08eaaa9-7c11-4cda-bbe7-6d1f7c732569
 
-        @Assert: Proxy has the name updated
+        :Assert: Proxy has the name updated
         """
         locations = [entities.Location().create() for _ in range(2)]
         new_port = get_available_capsule_port()
@@ -189,11 +189,11 @@ class CapsuleTestCase(APITestCase):
     def test_positive_refresh_features(self):
         """Refresh smart proxy features, search for proxy by id
 
-        @id: d0237546-702e-4d1a-9212-8391295174da
+        :id: d0237546-702e-4d1a-9212-8391295174da
 
-        @Assert: Proxy features are refreshed
+        :Assert: Proxy features are refreshed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Since we want to run multiple commands against our fake capsule, we
         # need the tunnel kept open in order not to allow different concurrent
@@ -213,9 +213,9 @@ class CapsuleTestCase(APITestCase):
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
 
-        @id: 385efd1b-6146-47bf-babf-0127ce5955ed
+        :id: 385efd1b-6146-47bf-babf-0127ce5955ed
 
-        @Assert: Puppet classes are imported from proxy
+        :Assert: Puppet classes are imported from proxy
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -259,11 +259,11 @@ class SmartProxyMissingAttrTestCase(APITestCase):
     def test_positive_update_loc(self):
         """Update a smart proxy. Inspect the server's response.
 
-        @id: 42d6b749-c047-4fd2-90ee-ffab7be558f9
+        :id: 42d6b749-c047-4fd2-90ee-ffab7be558f9
 
-        @Assert: The response contains some value for the ``location`` field.
+        :Assert: The response contains some value for the ``location`` field.
 
-        @BZ: 1262037
+        :BZ: 1262037
         """
         names = one_to_many_names('location')
         self.assertGreaterEqual(
@@ -276,12 +276,12 @@ class SmartProxyMissingAttrTestCase(APITestCase):
     def test_positive_update_org(self):
         """Update a smart proxy. Inspect the server's response.
 
-        @id: fbde9f87-33db-4b95-a5f7-71a618460c84
+        :id: fbde9f87-33db-4b95-a5f7-71a618460c84
 
-        @Assert: The response contains some value for the ``organization``
-        field.
+        :Assert: The response contains some value for the ``organization``
+            field.
 
-        @BZ: 1262037
+        :BZ: 1262037
         """
         names = one_to_many_names('organization')
         self.assertGreaterEqual(

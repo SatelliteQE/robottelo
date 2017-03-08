@@ -1,18 +1,18 @@
 """Test class for Fact  CLI
 
-@Requirement: Fact
+:Requirement: Fact
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -29,9 +29,9 @@ class FactTestCase(CLITestCase):
     def test_positive_list_by_name(self):
         """Test Fact List
 
-        @id: 83794d97-d21b-4482-9522-9b41053e595f
+        :id: 83794d97-d21b-4482-9522-9b41053e595f
 
-        @Assert: Fact List is displayed
+        :Assert: Fact List is displayed
 
         """
         for fact in (
@@ -50,9 +50,9 @@ class FactTestCase(CLITestCase):
     def test_negative_list_by_name(self):
         """Test Fact List failure
 
-        @id: bd56d27e-59c0-4f35-bd53-2999af7c6946
+        :id: bd56d27e-59c0-4f35-bd53-2999af7c6946
 
-        @Assert: Fact List is not displayed
+        :Assert: Fact List is not displayed
 
         """
         fact = gen_string('alpha')

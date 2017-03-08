@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Global parameters CLI
 
-@Requirement: Globalparam
+:Requirement: Globalparam
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -31,9 +31,9 @@ class GlobalParameterTestCase(CLITestCase):
     def test_positive_set(self):
         """Check if Global Param can be set
 
-        @id: af0d3338-d7a1-41e5-959a-289ebc326c5b
+        :id: af0d3338-d7a1-41e5-959a-289ebc326c5b
 
-        @Assert: Global Param is set
+        :Assert: Global Param is set
 
         """
         name = 'opt-%s' % gen_string('alpha', 10)
@@ -49,9 +49,9 @@ class GlobalParameterTestCase(CLITestCase):
     def test_positive_list_by_name(self):
         """Test Global Param List
 
-        @id: 8dd6c4e8-4ec9-4bee-8a04-f5788960973a
+        :id: 8dd6c4e8-4ec9-4bee-8a04-f5788960973a
 
-        @Assert: Global Param List is displayed
+        :Assert: Global Param List is displayed
 
         """
         name = 'opt-%s' % gen_string('alpha', 10)
@@ -70,9 +70,9 @@ class GlobalParameterTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Check if Global Param can be deleted
 
-        @id: 2c44d9c9-2a21-4415-8e89-cfd3d963891b
+        :id: 2c44d9c9-2a21-4415-8e89-cfd3d963891b
 
-        @Assert: Global Param is deleted
+        :Assert: Global Param is deleted
 
         """
         name = 'opt-%s' % gen_string('alpha', 10)

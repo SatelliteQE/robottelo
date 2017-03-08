@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Subnet CLI
 
-@Requirement: Subnet
+:Requirement: Subnet
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 import random
@@ -73,9 +73,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if Subnet can be created with random names
 
-        @id: 99cda3eb-3912-461b-83bd-f906b78eeca0
+        :id: 99cda3eb-3912-461b-83bd-f906b78eeca0
 
-        @Assert: Subnet is created and has random name
+        :Assert: Subnet is created and has random name
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -87,9 +87,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_create_with_address_pool(self):
         """Create subnet with valid address pool
 
-        @id: d74a52a7-df56-44ef-89a3-081c14e81e43
+        :id: d74a52a7-df56-44ef-89a3-081c14e81e43
 
-        @Assert: Subnet is created and address pool is set
+        :Assert: Subnet is created and address pool is set
         """
         for pool in valid_addr_pools():
             with self.subTest(pool):
@@ -113,9 +113,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_create_with_domain(self):
         """Check if subnet with domain can be created
 
-        @id: 7ce7b139-d2b7-44f4-9c1a-1bd591f95334
+        :id: 7ce7b139-d2b7-44f4-9c1a-1bd591f95334
 
-        @Assert: Subnet is created and has new domain assigned
+        :Assert: Subnet is created and has new domain assigned
         """
         domain = make_domain()
         subnet = make_subnet({'domain-ids': domain['id']})
@@ -127,9 +127,9 @@ class SubnetTestCase(CLITestCase):
         """Check if subnet with different amount of domains can be
         created in the system
 
-        @id: e81ddec5-38b0-4c42-b89b-5cf2af580d39
+        :id: e81ddec5-38b0-4c42-b89b-5cf2af580d39
 
-        @Assert: Subnet is created and has new domains assigned
+        :Assert: Subnet is created and has new domains assigned
         """
         domains_amount = random.randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
@@ -145,9 +145,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_create_with_gateway(self):
         """Check if subnet with gateway can be created
 
-        @id: 483c0d1d-c542-4be5-8c56-27b2a09db54a
+        :id: 483c0d1d-c542-4be5-8c56-27b2a09db54a
 
-        @Assert: Subnet is created and has gateway assigned
+        :Assert: Subnet is created and has gateway assigned
         """
         gateway = gen_ipaddr(ip3=True)
         subnet = make_subnet({'gateway': gateway})
@@ -158,9 +158,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_create_with_ipam(self):
         """Check if subnet with different ipam types can be created
 
-        @id: ba4c66fd-50e6-441d-acc2-6ab39d8439d2
+        :id: ba4c66fd-50e6-441d-acc2-6ab39d8439d2
 
-        @Assert: Subnet is created and correct ipam type is assigned
+        :Assert: Subnet is created and correct ipam type is assigned
         """
         for ipam_type in (SUBNET_IPAM_TYPES['dhcp'],
                           SUBNET_IPAM_TYPES['internal'],
@@ -174,9 +174,9 @@ class SubnetTestCase(CLITestCase):
     def test_negative_create_with_attributes(self):
         """Create subnet with invalid or missing required attributes
 
-        @id: de468dd3-7ba8-463e-881a-fd1cb3cfc7b6
+        :id: de468dd3-7ba8-463e-881a-fd1cb3cfc7b6
 
-        @Assert: Subnet is not created
+        :Assert: Subnet is not created
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
@@ -191,9 +191,9 @@ class SubnetTestCase(CLITestCase):
     def test_negative_create_with_address_pool(self):
         """Create subnet with invalid address pool range
 
-        @id: c7824327-b5ef-4f95-bd4b-ba4eff73551c
+        :id: c7824327-b5ef-4f95-bd4b-ba4eff73551c
 
-        @Assert: Subnet is not created
+        :Assert: Subnet is not created
         """
         mask = '255.255.255.0'
         network = gen_ipaddr()
@@ -215,9 +215,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_list(self):
         """Check if Subnet can be listed
 
-        @id: 2ee376f7-9dd9-4b46-b414-801197d5455c
+        :id: 2ee376f7-9dd9-4b46-b414-801197d5455c
 
-        @Assert: Subnet is listed
+        :Assert: Subnet is listed
         """
         # Make a new subnet
         subnet = make_subnet()
@@ -230,9 +230,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Check if Subnet name can be updated
 
-        @id: 34533e6c-7081-4b13-99bd-bd57533e05c0
+        :id: 34533e6c-7081-4b13-99bd-bd57533e05c0
 
-        @Assert: Subnet name is updated
+        :Assert: Subnet name is updated
         """
         new_subnet = make_subnet()
         for new_name in valid_data_list():
@@ -246,9 +246,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_update_network_mask(self):
         """Check if Subnet network and mask can be updated
 
-        @id: 6a8d7750-71f1-4cd8-bf90-f2eac457c3b4
+        :id: 6a8d7750-71f1-4cd8-bf90-f2eac457c3b4
 
-        @Assert: Subnet network and mask are updated
+        :Assert: Subnet network and mask are updated
         """
         network = gen_ipaddr()
         mask = '255.255.255.0'
@@ -273,9 +273,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_update_address_pool(self):
         """Check if Subnet address pool can be updated
 
-        @id: 18ced88f-d62e-4e15-8b7b-0a08c4ef239b
+        :id: 18ced88f-d62e-4e15-8b7b-0a08c4ef239b
 
-        @Assert: Subnet address pool is updated
+        :Assert: Subnet address pool is updated
         """
         subnet = make_subnet({u'mask': '255.255.255.0'})
         for pool in valid_addr_pools():
@@ -298,9 +298,9 @@ class SubnetTestCase(CLITestCase):
     def test_negative_update_attributes(self):
         """Update subnet with invalid or missing required attributes
 
-        @id: ab60372e-cef7-4495-bd66-68e7dbece475
+        :id: ab60372e-cef7-4495-bd66-68e7dbece475
 
-        @Assert: Subnet is not updated
+        :Assert: Subnet is not updated
         """
         subnet = make_subnet()
         for options in invalid_missing_attributes():
@@ -321,9 +321,9 @@ class SubnetTestCase(CLITestCase):
     def test_negative_update_address_pool(self):
         """Update subnet with invalid address pool
 
-        @id: d0a857b4-be10-4b5d-86d4-43cf99c11619
+        :id: d0a857b4-be10-4b5d-86d4-43cf99c11619
 
-        @Assert: Subnet is not updated
+        :Assert: Subnet is not updated
         """
         subnet = make_subnet()
         for options in invalid_addr_pools():
@@ -347,9 +347,9 @@ class SubnetTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if Subnet can be deleted
 
-        @id: ad269df8-4bb2-46a5-9c82-010a80087408
+        :id: ad269df8-4bb2-46a5-9c82-010a80087408
 
-        @Assert: Subnet is deleted
+        :Assert: Subnet is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):

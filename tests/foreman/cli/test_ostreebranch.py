@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Ostree Branch CLI.
 
-@Requirement: Ostreebranch
+:Requirement: Ostreebranch
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 import random
@@ -59,9 +59,9 @@ class OstreeBranchTestCase(CLITestCase):
     def test_positive_list(self):
         """List Ostree Branches
 
-        @id: 0f5e7e63-c0e3-43fc-8238-caf19a478a46
+        :id: 0f5e7e63-c0e3-43fc-8238-caf19a478a46
 
-        @Assert: Ostree Branch List is displayed
+        :Assert: Ostree Branch List is displayed
         """
         result = OstreeBranch.list()
         self.assertGreater(len(result), 0)
@@ -71,9 +71,9 @@ class OstreeBranchTestCase(CLITestCase):
     def test_positive_list_by_repo_id(self):
         """List Ostree branches by repo id
 
-        @id: 8cf1a973-031c-4c02-af14-0faba22ab60b
+        :id: 8cf1a973-031c-4c02-af14-0faba22ab60b
 
-        @Assert: Ostree Branch List is displayed
+        :Assert: Ostree Branch List is displayed
         """
         result = OstreeBranch.list({'repository-id': self.ostree_repo['id']})
         self.assertGreater(len(result), 0)
@@ -83,9 +83,9 @@ class OstreeBranchTestCase(CLITestCase):
     def test_positive_list_by_product_id(self):
         """List Ostree branches by product id
 
-        @id: e7b9d04d-cace-4271-b166-214017200c53
+        :id: e7b9d04d-cace-4271-b166-214017200c53
 
-        @Assert: Ostree Branch List is displayed
+        :Assert: Ostree Branch List is displayed
         """
         result = OstreeBranch.list({'product-id': self.product['id']})
         self.assertGreater(len(result), 0)
@@ -95,9 +95,9 @@ class OstreeBranchTestCase(CLITestCase):
     def test_positive_list_by_org_id(self):
         """List Ostree branches by org id
 
-        @id: 5b169619-305f-4934-b363-068193330701
+        :id: 5b169619-305f-4934-b363-068193330701
 
-        @Assert: Ostree Branch List is displayed
+        :Assert: Ostree Branch List is displayed
         """
         result = OstreeBranch.list({'organization-id': self.org['id']})
         self.assertGreater(len(result), 0)
@@ -107,9 +107,9 @@ class OstreeBranchTestCase(CLITestCase):
     def test_positive_list_by_cv_id(self):
         """List Ostree branches by cv id
 
-        @id: 3654f107-44ee-4af2-a9e4-f9fd8c68491e
+        :id: 3654f107-44ee-4af2-a9e4-f9fd8c68491e
 
-        @Assert: Ostree Branch List is displayed
+        :Assert: Ostree Branch List is displayed
         """
         result = OstreeBranch.list({'content-view-id': self.cv['id']})
         self.assertGreater(len(result), 0)
@@ -119,9 +119,9 @@ class OstreeBranchTestCase(CLITestCase):
     def test_positive_info_by_id(self):
         """Get info for Ostree branch by id
 
-        @id: 7838c9a8-56da-44de-883c-28571ecfa75c
+        :id: 7838c9a8-56da-44de-883c-28571ecfa75c
 
-        @Assert: Ostree Branch Info is displayed
+        :Assert: Ostree Branch Info is displayed
         """
         result = OstreeBranch.list()
         self.assertGreater(len(result), 0)

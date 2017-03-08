@@ -1,18 +1,18 @@
 """Unit tests for the ``content_view_versions`` paths.
 
-@Requirement: Contentviewversion
+:Requirement: Contentviewversion
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import random
 from fauxfactory import gen_string
@@ -58,11 +58,11 @@ class ContentViewVersionCreateTestCase(APITestCase):
     def test_positive_create(self):
         """Create a content view version.
 
-        @id: 627c84b3-e3f1-416c-a09b-5d2200d6429f
+        :id: 627c84b3-e3f1-416c-a09b-5d2200d6429f
 
-        @Assert: Content View Version is created.
+        :Assert: Content View Version is created.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Fetch content view for latest information
         cv = self.content_view.read()
@@ -79,11 +79,11 @@ class ContentViewVersionCreateTestCase(APITestCase):
     def test_negative_create(self):
         """Create content view version using the 'Default Content View'.
 
-        @id: 0afd49c6-f3a4-403e-9929-849f51ffa922
+        :id: 0afd49c6-f3a4-403e-9929-849f51ffa922
 
-        @Assert: Content View Version is not created
+        :Assert: Content View Version is not created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # The default content view cannot be published
         cv = entities.ContentView(
@@ -124,11 +124,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         """Promote a content view version to 'next in sequence'
         lifecycle environment.
 
-        @id: f205ca06-8ab5-4546-83bd-deac4363d487
+        :id: f205ca06-8ab5-4546-83bd-deac4363d487
 
-        @Assert: Promotion succeeds.
+        :Assert: Promotion succeeds.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a new content view...
         cv = entities.ContentView(organization=self.org).create()
@@ -154,11 +154,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
 
-        @id: e88405de-843d-4279-9d81-cedaab7c23cf
+        :id: e88405de-843d-4279-9d81-cedaab7c23cf
 
-        @Assert: The promotion succeeds.
+        :Assert: The promotion succeeds.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a new content view...
         cv = entities.ContentView(organization=self.org).create()
@@ -180,11 +180,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
     def test_negative_promote_valid_environment(self):
         """Promote the default content view version.
 
-        @id: cd4f3c3d-93c5-425f-bc3b-d1ac17696a4a
+        :id: cd4f3c3d-93c5-425f-bc3b-d1ac17696a4a
 
-        @Assert: The promotion fails.
+        :Assert: The promotion fails.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with self.assertRaises(HTTPError):
             promote(self.default_cv, self.lce1.id)
@@ -194,11 +194,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
 
-        @id: 621d1bb6-92c6-4209-8369-6ea14a4c8a01
+        :id: 621d1bb6-92c6-4209-8369-6ea14a4c8a01
 
-        @Assert: The promotion fails.
+        :Assert: The promotion fails.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a new content view...
         cv = entities.ContentView(organization=self.org).create()
@@ -225,11 +225,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         that content view. Add repository and gpg key to initial content view
         for better coverage
 
-        @id: 066dec47-c942-4c01-8956-359c8b23a6d4
+        :id: 066dec47-c942-4c01-8956-359c8b23a6d4
 
-        @Assert: Content version deleted successfully
+        :Assert: Content version deleted successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
         org = entities.Organization().create()
@@ -273,11 +273,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         and one more non-default environments through 'delete_from_environment'
         command and delete content view version from that content view.
 
-        @id: 95bb973c-ebec-4a72-a1b6-ad28b66bd11b
+        :id: 95bb973c-ebec-4a72-a1b6-ad28b66bd11b
 
-        @Assert: Content view version deleted successfully
+        :Assert: Content view version deleted successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -303,11 +303,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         view version while content view is still associated with lifecycle
         environment
 
-        @id: 21c35aae-2f9c-4679-b3ba-7cd9182bd880
+        :id: 21c35aae-2f9c-4679-b3ba-7cd9182bd880
 
-        @Assert: Content view version is not deleted
+        :Assert: Content view version is not deleted
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -325,19 +325,19 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     def test_positive_remove_renamed_cv_version_from_default_env(self):
         """Remove version of renamed content view from Library environment
 
-        @id: 7d5961d0-6a9a-4610-979e-cbc4ddbc50ca
+        :id: 7d5961d0-6a9a-4610-979e-cbc4ddbc50ca
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view
-        2. Add a yum repo to the content view
-        3. Publish the content view
-        4. Rename the content view
-        5. remove the published version from Library environment
+            1. Create a content view
+            2. Add a yum repo to the content view
+            3. Publish the content view
+            4. Rename the content view
+            5. remove the published version from Library environment
 
-        @Assert: content view version is removed from Library environment
+        :Assert: content view version is removed from Library environment
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_name = gen_string('alpha')
         org = entities.Organization().create()
@@ -379,21 +379,20 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     def test_positive_remove_qe_promoted_cv_version_from_default_env(self):
         """Remove QE promoted content view version from Library environment
 
-        @id: c7795762-93bd-419c-ac49-d10dc26b842b
+        :id: c7795762-93bd-419c-ac49-d10dc26b842b
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view
-        2. Add docker repo(s) to it
-        3. Publish content view
-        4. Promote the content view version to multiple environments
-           Library -> DEV -> QE
-        5. remove the content view version from Library environment
+            1. Create a content view
+            2. Add docker repo(s) to it
+            3. Publish content view
+            4. Promote the content view version to multiple environments
+                Library -> DEV -> QE
+            5. remove the content view version from Library environment
 
-        @Assert: Content view version exist only in DEV, QE
-        and not in Library
+        :Assert: Content view version exist only in DEV, QE and not in Library
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
@@ -443,21 +442,21 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     def test_positive_remove_prod_promoted_cv_version_from_default_env(self):
         """Remove PROD promoted content view version from Library environment
 
-        @id: 24911876-7c2a-4a12-a3aa-98051dfda29d
+        :id: 24911876-7c2a-4a12-a3aa-98051dfda29d
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view
-        2. Add yum repositories, puppet modules, docker repositories to CV
-        3. Publish content view
-        4. Promote the content view version to multiple environments
-           Library -> DEV -> QE -> PROD
-        5. remove the content view version from Library environment
+            1. Create a content view
+            2. Add yum repositories, puppet modules, docker repositories to CV
+            3. Publish content view
+            4. Promote the content view version to multiple environments
+                Library -> DEV -> QE -> PROD
+            5. remove the content view version from Library environment
 
-        @Assert: Content view version exist only in DEV, QE, PROD
-        and not in Library
+        :Assert: Content view version exist only in DEV, QE, PROD and not in
+            Library
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
@@ -531,23 +530,23 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     def test_positive_remove_cv_version_from_env(self):
         """Remove promoted content view version from environment
 
-        @id: 17cf18bf-09d5-4641-b0e0-c50e628fa6c8
+        :id: 17cf18bf-09d5-4641-b0e0-c50e628fa6c8
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
-        3. Publish the content view
-        4. Promote the content view version to multiple environments
-           Library -> DEV -> QE -> STAGE -> PROD
-        5. remove the content view version from PROD environment
-        6. Assert: content view version exists only in Library, DEV, QE, STAGE
-           and not in PROD
-        7. Promote again from STAGE -> PROD
+            1. Create a content view
+            2. Add a yum repo and a puppet module to the content view
+            3. Publish the content view
+            4. Promote the content view version to multiple environments
+               Library -> DEV -> QE -> STAGE -> PROD
+            5. remove the content view version from PROD environment
+            6. Assert: content view version exists only in Library, DEV, QE,
+               STAGE and not in PROD
+            7. Promote again from STAGE -> PROD
 
-        @Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
+        :Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
@@ -625,20 +624,20 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     def test_positive_remove_cv_version_from_multi_env(self):
         """Remove promoted content view version from multiple environment
 
-        @id: 18b86a68-8e6a-43ea-b95e-188fba125a26
+        :id: 18b86a68-8e6a-43ea-b95e-188fba125a26
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
-        3. Publish the content view
-        4. Promote the content view version to multiple environments
-           Library -> DEV -> QE -> STAGE -> PROD
-        5. Remove content view version from QE, STAGE and PROD
+            1. Create a content view
+            2. Add a yum repo and a puppet module to the content view
+            3. Publish the content view
+            4. Promote the content view version to multiple environments
+               Library -> DEV -> QE -> STAGE -> PROD
+            5. Remove content view version from QE, STAGE and PROD
 
-        @Assert: Content view version exists only in Library, DEV
+        :Assert: Content view version exists only in Library, DEV
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
@@ -712,21 +711,21 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """Delete published content view with version promoted to multiple
          environments
 
-        @id: c164bd97-e710-4a5a-9c9f-657e6bed804b
+        :id: c164bd97-e710-4a5a-9c9f-657e6bed804b
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view
-        2. Add a yum repo and a puppet module to the content view
-        3. Publish the content view
-        4. Promote the content view to multiple environment
-           Library -> DEV -> QE -> STAGE -> PROD
-        5. Delete the content view, this should delete the content with all
-           it's published/promoted versions from all environments
+            1. Create a content view
+            2. Add a yum repo and a puppet module to the content view
+            3. Publish the content view
+            4. Promote the content view to multiple environment
+               Library -> DEV -> QE -> STAGE -> PROD
+            5. Delete the content view, this should delete the content with all
+               it's published/promoted versions from all environments
 
-        @Assert: The content view doesn't exists
+        :Assert: The content view doesn't exists
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         lce_dev = entities.LifecycleEnvironment(organization=org).create()
@@ -800,35 +799,35 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """Remove promoted content view version from environment that is used
         in association of an Activation key and content-host registration.
 
-        @id: a5b9ba8b-80e6-4435-bc0a-041b3fda227c
+        :id: a5b9ba8b-80e6-4435-bc0a-041b3fda227c
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view cv1
-        2. Add a yum repo and a puppet module to the content view
-        3. Publish the content view
-        4. Promote the content view to multiple environment
-           Library -> DEV -> QE
-        5. Create an Activation key with the QE environment
-        6. Register a content-host using the Activation key
-        7. Remove the content view cv1 version from QE environment.
-           Note - prior removing replace the current QE environment of cv1 by
-           DEV and content view cv1 for Content-host and for Activation key.
-        8. Refresh content-host subscription
+            1. Create a content view cv1
+            2. Add a yum repo and a puppet module to the content view
+            3. Publish the content view
+            4. Promote the content view to multiple environment Library -> DEV
+               -> QE
+            5. Create an Activation key with the QE environment
+            6. Register a content-host using the Activation key
+            7. Remove the content view cv1 version from QE environment.  Note -
+               prior removing replace the current QE environment of cv1 by DEV
+               and content view cv1 for Content-host and for Activation key.
+            8. Refresh content-host subscription
 
-        @Assert:
+        :Assert:
 
-        1. Activation key exists
-        2. Content-host exists
-        3. QE environment of cv1 was replaced by DEV environment of cv1
-           in activation key
-        4. QE environment of cv1 was replaced by DEV environment of cv1
-           in content-host
-        5. At content-host some package from cv1 is installable
+            1. Activation key exists
+            2. Content-host exists
+            3. QE environment of cv1 was replaced by DEV environment of cv1 in
+               activation key
+            4. QE environment of cv1 was replaced by DEV environment of cv1 in
+               content-host
+            5. At content-host some package from cv1 is installable
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -839,36 +838,37 @@ class ContentViewVersionDeleteTestCase(APITestCase):
          environments, with one of the environments used in association of an
          Activation key and content-host registration.
 
-        @id: 10699af9-617e-4930-9c80-2827a0ba52eb
+        :id: 10699af9-617e-4930-9c80-2827a0ba52eb
 
-        @Steps:
+        :Steps:
 
-        1. Create two content view cv1 and cv2
-        2. Add a yum repo and a puppet module to both content views
-        3. Publish the content views
-        4. Promote the content views to multiple environment
-           Library -> DEV -> QE
-        5. Create an Activation key with the QE environment and cv1
-        6. Register a content-host using the Activation key
-        7. Delete the content view cv1.
-           Note - prior deleting replace the current QE environment of cv1 by
-           DEV and content view cv2 for Content-host and for Activation key.
-        8. Refresh content-host subscription
+            1. Create two content view cv1 and cv2
+            2. Add a yum repo and a puppet module to both content views
+            3. Publish the content views
+            4. Promote the content views to multiple environment Library -> DEV
+               -> QE
+            5. Create an Activation key with the QE environment and cv1
+            6. Register a content-host using the Activation key
+            7. Delete the content view cv1.
+               Note - prior deleting replace the current QE environment of cv1
+               by DEV and content view cv2 for Content-host and for Activation
+               key.
+            8. Refresh content-host subscription
 
-        @Assert:
+        :Assert:
 
-        1. The content view cv1 doesn't exist
-        2. Activation key exists
-        3. Content-host exists
-        4. QE environment of cv1 was replaced by DEV environment of cv2
-           in activation key
-        5. QE environment of cv1 was replaced by DEV environment of cv2
-           in content-host
-        6. At content-host some package from cv2 is installable
+            1. The content view cv1 doesn't exist
+            2. Activation key exists
+            3. Content-host exists
+            4. QE environment of cv1 was replaced by DEV environment of cv2 in
+               activation key
+            5. QE environment of cv1 was replaced by DEV environment of cv2 in
+               content-host
+            6. At content-host some package from cv2 is installable
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -878,33 +878,34 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule
 
-        @id: 1e8a8e64-eec8-49e0-b121-919c53f416d2
+        :id: 1e8a8e64-eec8-49e0-b121-919c53f416d2
 
-        @Steps:
+        :Steps:
 
-        1. Create a content view
-        2. Setup satellite to use a capsule and to sync all lifecycle
-           environments
-        3. Add a yum repo, puppet module and a docker repo to the content view
-        4. Publish the content view
-        5. Promote the content view to multiple environment
-           Library -> DEV -> QE -> PROD
-        6. Make sure the capsule is updated (content synchronization may be
-           applied)
-        7. Disconnect the capsule
-        8. Remove the content view version from Library and DEV environments
-           and assert successful completion
-        9. Bring the capsule back online and assert that the task is completed
-           in capsule
-        10. Make sure the capsule is updated (content synchronization may be
-            applied)
+            1. Create a content view
+            2. Setup satellite to use a capsule and to sync all lifecycle
+               environments
+            3. Add a yum repo, puppet module and a docker repo to the content
+               view
+            4. Publish the content view
+            5. Promote the content view to multiple environment Library -> DEV
+               -> QE -> PROD
+            6. Make sure the capsule is updated (content synchronization may be
+               applied)
+            7. Disconnect the capsule
+            8. Remove the content view version from Library and DEV
+               environments and assert successful completion
+            9. Bring the capsule back online and assert that the task is
+               completed in capsule
+            10. Make sure the capsule is updated (content synchronization may
+                be applied)
 
-        @Assert: content view version in capsule is removed from Library
-        and DEV and exists only in QE and PROD
+        :Assert: content view version in capsule is removed from Library and
+            DEV and exists only in QE and PROD
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         # Note: This test case requires complete external capsule
         #  configuration.
@@ -917,12 +918,12 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
     def test_positive_incremental_update_puppet(self):
         """Incrementally update a CVV with a puppet module.
 
-        @id: 19b2fe3b-6c91-4713-9910-17517fba661f
+        :id: 19b2fe3b-6c91-4713-9910-17517fba661f
 
-        @Assert: The incremental update succeeds with no errors, and the
-        content view is given an additional version.
+        :Assert: The incremental update succeeds with no errors, and the
+            content view is given an additional version.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a content view and add a yum repository to it. Publish the CV.
         product = entities.Product().create()

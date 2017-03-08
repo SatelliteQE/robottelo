@@ -1,18 +1,18 @@
 """Test class for Subscriptions/Manifests UI
 
-@Requirement: Subscription
+:Requirement: Subscription
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from robottelo import manifests
@@ -36,9 +36,9 @@ class SubscriptionTestCase(UITestCase):
     def test_positive_upload_and_delete(self):
         """Upload a manifest with minimal input parameters and delete it
 
-        @id: 58e549b0-1ba3-421d-8075-dcf65d07510b
+        :id: 58e549b0-1ba3-421d-8075-dcf65d07510b
 
-        @Assert: Manifest is uploaded and deleted successfully
+        :Assert: Manifest is uploaded and deleted successfully
         """
         with Session(self.browser) as session:
             session.nav.go_to_red_hat_subscriptions()

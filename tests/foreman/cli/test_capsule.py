@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for the capsule CLI.
 
-@Requirement: Capsule
+:Requirement: Capsule
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -47,9 +47,9 @@ class CapsuleTestCase(CLITestCase):
     def test_negative_create_with_url(self):
         """Proxy creation with random URL
 
-        @id: 9050b362-c710-43ba-9d77-7680b8f9ed8c
+        :id: 9050b362-c710-43ba-9d77-7680b8f9ed8c
 
-        @Assert: Proxy is not created
+        :Assert: Proxy is not created
         """
         # Create a random proxy
         with self.assertRaisesRegex(
@@ -68,9 +68,9 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Proxy creation with the home proxy
 
-        @id: 7decd7a3-2d35-43ff-9a20-de44e83c7389
+        :id: 7decd7a3-2d35-43ff-9a20-de44e83c7389
 
-        @Assert: Proxy is created
+        :Assert: Proxy is created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -86,9 +86,9 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Proxy deletion with the home proxy
 
-        @id: 1b6973b1-259d-4866-b36f-c2d5fb154035
+        :id: 1b6973b1-259d-4866-b36f-c2d5fb154035
 
-        @Assert: Proxy is deleted
+        :Assert: Proxy is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -103,9 +103,9 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Proxy name update with the home proxy
 
-        @id: 1a02a06b-e9ab-4b9b-bcb0-ac7060188316
+        :id: 1a02a06b-e9ab-4b9b-bcb0-ac7060188316
 
-        @Assert: Proxy has the name updated
+        :Assert: Proxy has the name updated
         """
         proxy = make_proxy({u'name': gen_alphanumeric()})
         for new_name in valid_data_list():
@@ -128,11 +128,11 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_refresh_features_by_id(self):
         """Refresh smart proxy features, search for proxy by id
 
-        @id: d3db63ce-b877-40eb-a863-294c12489ddd
+        :id: d3db63ce-b877-40eb-a863-294c12489ddd
 
-        @Assert: Proxy features are refreshed
+        :Assert: Proxy features are refreshed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Since we want to run multiple commands against our fake capsule, we
         # need the tunnel kept open in order not to allow different concurrent
@@ -153,11 +153,11 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_refresh_features_by_name(self):
         """Refresh smart proxy features, search for proxy by name
 
-        @id: 2ddd0097-8f65-430e-963d-a3b5dcffe86b
+        :id: 2ddd0097-8f65-430e-963d-a3b5dcffe86b
 
-        @Assert: Proxy features are refreshed
+        :Assert: Proxy features are refreshed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Since we want to run multiple commands against our fake capsule, we
         # need the tunnel kept open in order not to allow different concurrent
@@ -178,9 +178,9 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
 
-        @id: 42e3a9c0-62e1-4049-9667-f3c0cdfe0b04
+        :id: 42e3a9c0-62e1-4049-9667-f3c0cdfe0b04
 
-        @Assert: Puppet classes are imported from proxy
+        :Assert: Puppet classes are imported from proxy
         """
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port):
@@ -198,52 +198,48 @@ class CapsuleIntegrationTestCase(CLITestCase):
     def test_positive_provision(self):
         """User can provision through a capsule
 
-        @id: 1b91e6ed-56bb-4a21-9b69-8b41242458c5
+        :id: 1b91e6ed-56bb-4a21-9b69-8b41242458c5
 
-        @Setup: Some valid, functional compute resource (perhaps one variation
-        of this case for each supported compute resource type). Also,
-        functioning capsule with proxy is required.
+        :Setup: Some valid, functional compute resource (perhaps one variation
+            of this case for each supported compute resource type). Also,
+            functioning capsule with proxy is required.
 
-        @Steps:
+        :Steps:
 
-        1. Attempt to route provisioning content through capsule that is using
-           a proxy
-        2. Attempt to provision instance
+            1. Attempt to route provisioning content through capsule that is
+               using a proxy
+            2. Attempt to provision instance
 
-        @Assert: Instance can be provisioned, with content coming through
-        proxy-enabled capsule.
+        :Assert: Instance can be provisioned, with content coming through
+            proxy-enabled capsule.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_register(self):
         """User can register system through proxy-enabled capsule
 
-        @id: dc544ec8-0320-4897-a6ca-ce9ebad27975
+        :id: dc544ec8-0320-4897-a6ca-ce9ebad27975
 
-        @Steps:
+        :Steps: attempt to register a system trhough a proxy-enabled capsule
 
-        1. attempt to register a system trhough a proxy-enabled capsule
+        :Assert: system is successfully registered
 
-        @Assert: system is successfully registered
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_unregister(self):
         """User can unregister system through proxy-enabled capsule
 
-        @id: 9b7714da-74be-4c0a-9209-9d15c2c98eaa
+        :id: 9b7714da-74be-4c0a-9209-9d15c2c98eaa
 
-        @Steps:
+        :Steps: attempt to unregister a system through a proxy-enabled capsule
 
-        1. attempt to unregister a system through a proxy-enabled capsule
+        :Assert: system is successfully unregistered
 
-        @Assert: system is successfully unregistered
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
@@ -251,19 +247,17 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """User can subscribe system to content through proxy-enabled
         capsule
 
-        @id: 091bba73-bc78-4b8c-ac27-5c10e9838cfb
+        :id: 091bba73-bc78-4b8c-ac27-5c10e9838cfb
 
-        @Setup: Content source types configured/synced for [RH, Custom, Puppet,
-        Docker] etc.
+        :Setup: Content source types configured/synced for [RH, Custom, Puppet,
+            Docker] etc.
 
-        @Steps:
+        :Steps: attempt to subscribe a system to a content type variation, via
+            a proxy-enabled capsule
 
-        1. attempt to subscribe a system to a content type variation, via a
-           proxy-enabled capsule
+        :Assert: system is successfully subscribed to each content type
 
-        @Assert: system is successfully subscribed to each content type
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
@@ -271,21 +265,21 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """User can consume content on system, from a content source,
         through proxy-enabled capsule
 
-        @id: a3fb9879-7799-4743-99a8-963701e687c1
+        :id: a3fb9879-7799-4743-99a8-963701e687c1
 
-        @Setup: Content source types configured/synced for [RH, Custom, Puppet,
-        Docker] etc.
+        :Setup: Content source types configured/synced for [RH, Custom, Puppet,
+            Docker] etc.
 
-        @Steps:
+        :Steps:
 
-        1. attempt to subscribe a system to a content type variation, via a
-           proxy-enabled capsule
-        2. Attempt to install content (RPMs, puppet modules) via proxy-enabled
-           capsule
+            1. attempt to subscribe a system to a content type variation, via a
+               proxy-enabled capsule
+            2. Attempt to install content (RPMs, puppet modules) via
+               proxy-enabled capsule
 
-        @Assert: system successfully consume content
+        :Assert: system successfully consume content
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
@@ -293,21 +287,21 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """User can unsubscribe system from content through
         proxy-enabled capsule
 
-        @id: 0d34713d-3d60-4e5a-ada6-9a24aa865cb4
+        :id: 0d34713d-3d60-4e5a-ada6-9a24aa865cb4
 
-        @Setup: Content source types configured/synced for [RH, Custom, Puppet]
-        etc.
+        :Setup: Content source types configured/synced for [RH, Custom, Puppet]
+            etc.
 
-        @Steps:
+        :Steps:
 
-        1. attempt to subscribe a system to a content type variation, via a
-           proxy-enabled capsule
-        2. attempt to unsubscribe a system from said content type(s) via a
-           proxy-enabled capsule
+            1. attempt to subscribe a system to a content type variation, via a
+               proxy-enabled capsule
+            2. attempt to unsubscribe a system from said content type(s) via a
+               proxy-enabled capsule
 
-        @Assert: system is successfully unsubscribed from each content type
+        :Assert: system is successfully unsubscribed from each content type
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
@@ -315,66 +309,62 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """system can register via capsule using cert provided by
         the capsule itself.
 
-        @id: 785b94ea-ffbf-4c18-8160-f705e3d7cbe6
+        :id: 785b94ea-ffbf-4c18-8160-f705e3d7cbe6
 
-        @Setup: functional capsule and certs rpm installed on target client.
+        :Setup: functional capsule and certs rpm installed on target client.
 
-        @Steps:
+        :Steps:
 
-        1. Attempt to register from parent satellite; unregister and remove
-           cert rpm
-        2. Attempt to reregister using same credentials and certs from a
-           functional capsule.
+            1. Attempt to register from parent satellite; unregister and remove
+               cert rpm
+            2. Attempt to reregister using same credentials and certs from a
+               functional capsule.
 
-        @Assert: Registration works , and certs RPM installed
-        from capsule.
+        :Assert: Registration works , and certs RPM installed from capsule.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_ssl_capsule(self):
         """Assure SSL functionality for capsules
 
-        @id: 4d19bee6-15d4-4fd5-b3de-9144608cdba7
+        :id: 4d19bee6-15d4-4fd5-b3de-9144608cdba7
 
-        @Setup: A capsule installed with SSL enabled.
+        :Setup: A capsule installed with SSL enabled.
 
-        @Steps:
+        :Steps: Execute basic steps from above (register, subscribe, consume,
+            unsubscribe, unregister) while connected to a capsule that is
+            SSL-enabled
 
-        1. Execute basic steps from above (register, subscribe, consume,
-           unsubscribe, unregister) while connected to a capsule that is
-           SSL-enabled
+        :Assert: No failures executing said test scenarios against SSL,
+            baseline functionality identical to non-SSL
 
-        @Assert: No failures executing said test scenarios against SSL,
-        baseline functionality identical to non-SSL
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_enable_bmc(self):
         """Enable BMC feature on smart-proxy
 
-        @id: 9cc4db2f-3bec-4e51-89a2-18a0a6167012
+        :id: 9cc4db2f-3bec-4e51-89a2-18a0a6167012
 
-        @Setup: A capsule installed with SSL enabled.
+        :Setup: A capsule installed with SSL enabled.
 
-        @Steps:
+        :Steps:
 
-        1. Enable BMC feature on proxy by running installer with:
-           ``katello-installer --foreman-proxy-bmc 'true'``
-        2. Please make sure to check default values to other BMC options.
-           Should be like below:
-           ``--foreman-proxy-bmc-default-provider  BMC default provider.
-           (default: "ipmitool")``
-           ``--foreman-proxy-bmc-listen-on  BMC proxy to listen on https, http,
-           or both (default: "https")``
-        3. Check if BMC plugin is enabled with:
-           ``#cat /etc/foreman-proxy/settings.d/bmc.yml | grep enabled``
-        4. Restart foreman-proxy service
+            1. Enable BMC feature on proxy by running installer with:
+               ``katello-installer --foreman-proxy-bmc 'true'``
+            2. Please make sure to check default values to other BMC options.
+               Should be like below: ``--foreman-proxy-bmc-default-provider
+               BMC default provider.  (default: "ipmitool")``
+               ``--foreman-proxy-bmc-listen-on  BMC proxy to listen on https,
+               http, or both (default: "https")``
+            3. Check if BMC plugin is enabled with: ``#cat
+               /etc/foreman-proxy/settings.d/bmc.yml | grep enabled``
+            4. Restart foreman-proxy service
 
-        @Assert: Katello installer should show the options to enable BMC
+        :Assert: Katello installer should show the options to enable BMC
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """

@@ -1,18 +1,18 @@
 """Test class for Active Directory Feature
 
-@Requirement: Ldapauthsource
+:Requirement: Ldapauthsource
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
@@ -40,14 +40,14 @@ class LDAPAuthSourceTestCase(UITestCase):
     def test_positive_create_withad(self):
         """Create LDAP authentication with AD
 
-        @id: 02693108-83d9-4b2b-969e-2d8a00d0a935
+        :id: 02693108-83d9-4b2b-969e-2d8a00d0a935
 
-        @steps:
+        :steps:
 
-        1. Create a new LDAP Auth source with AD.
-        2. Fill in all the fields appropriately for AD.
+            1. Create a new LDAP Auth source with AD.
+            2. Fill in all the fields appropriately for AD.
 
-        @Assert: Whether creating LDAP Auth with AD is successful.
+        :Assert: Whether creating LDAP Auth with AD is successful.
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():
@@ -74,14 +74,14 @@ class LDAPAuthSourceTestCase(UITestCase):
     def test_positive_delete_withad(self):
         """Delete LDAP authentication with AD
 
-        @id: 0fbb09d3-7a19-468d-898c-1484a5682793
+        :id: 0fbb09d3-7a19-468d-898c-1484a5682793
 
-        @steps:
+        :steps:
 
-        1. Create a new LDAP Auth source with AD.
-        2. Delete LDAP Auth source with AD.
+            1. Create a new LDAP Auth source with AD.
+            2. Delete LDAP Auth source with AD.
 
-        @Assert: Whether deleting LDAP Auth with AD is successful.
+        :Assert: Whether deleting LDAP Auth with AD is successful.
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():

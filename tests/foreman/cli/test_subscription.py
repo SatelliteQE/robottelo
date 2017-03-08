@@ -1,18 +1,18 @@
 """Test class for Subscriptions
 
-@Requirement: Subscription
+:Requirement: Subscription
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
@@ -59,9 +59,9 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_upload(self):
         """upload manifest
 
-        @id: e5a0e4f8-fed9-4896-87a0-ac33f6baa227
+        :id: e5a0e4f8-fed9-4896-87a0-ac33f6baa227
 
-        @Assert: Manifest are uploaded properly
+        :Assert: Manifest are uploaded properly
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -73,9 +73,9 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_delete(self):
         """Delete uploaded manifest
 
-        @id: 01539c07-00d5-47e2-95eb-c0fd4f39090f
+        :id: 01539c07-00d5-47e2-95eb-c0fd4f39090f
 
-        @Assert: Manifest are deleted properly
+        :Assert: Manifest are deleted properly
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -94,12 +94,12 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_enable_manifest_reposet(self):
         """enable repository set
 
-        @id: cc0f8f40-5ea6-4fa7-8154-acdc2cb56b45
+        :id: cc0f8f40-5ea6-4fa7-8154-acdc2cb56b45
 
-        @Assert: you are able to enable and synchronize
-        repository contained in a manifest
+        :Assert: you are able to enable and synchronize repository contained in
+            a manifest
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -123,9 +123,9 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_history(self):
         """upload manifest and check history
 
-        @id: 000ab0a0-ec1b-497a-84ff-3969a965b52c
+        :id: 000ab0a0-ec1b-497a-84ff-3969a965b52c
 
-        @Assert: Manifest history is shown properly
+        :Assert: Manifest history is shown properly
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -144,9 +144,9 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_refresh(self):
         """upload manifest and refresh
 
-        @id: 579bbbf7-11cf-4d78-a3b1-16d73bd4ca57
+        :id: 579bbbf7-11cf-4d78-a3b1-16d73bd4ca57
 
-        @Assert: Manifests can be refreshed
+        :Assert: Manifests can be refreshed
         """
         self._upload_manifest(
             self.org['id'], manifests.original_manifest())
@@ -166,11 +166,11 @@ class SubscriptionTestCase(CLITestCase):
     def test_negative_manifest_refresh(self):
         """manifest refresh must fail with a cloned manifest
 
-        @id: 7f40795f-7841-4063-8a43-de0325c92b1f
+        :id: 7f40795f-7841-4063-8a43-de0325c92b1f
 
-        @Assert: the refresh command returns a non-zero return code
+        :Assert: the refresh command returns a non-zero return code
 
-        @BZ: 1226425
+        :BZ: 1226425
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(

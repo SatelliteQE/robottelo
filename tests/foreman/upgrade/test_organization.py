@@ -2,19 +2,19 @@
 
 """Test class for Organization PostUpgrade
 
-@Requirement: Organization
+:Requirement: Organization
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Structural
+:TestType: Structural
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.cli.org import Org
 from robottelo.datafactory import get_valid_preupgrade_data
@@ -29,9 +29,9 @@ class OrganizationTestCase(CLITestCase):
     def test_positive_exits_org_by_id(self):
         """Test whether the Organization exists on Post Upgrade - id
 
-        @id: da2821d0-1ea2-423d-8172-7372c98d8858
+        :id: da2821d0-1ea2-423d-8172-7372c98d8858
 
-        @assert: Organization by id exists post Upgrade
+        :assert: Organization by id exists post Upgrade
         """
         for org, org_id in get_valid_preupgrade_data(
                 'organization-tests', 'id'):
@@ -43,9 +43,9 @@ class OrganizationTestCase(CLITestCase):
     def test_positive_exists_org_by_name(self):
         """Test whether the Organization exists on Post Upgrade - name
 
-        @id: 639c3fec-ed5d-4c05-a301-801e3b47efb8
+        :id: 639c3fec-ed5d-4c05-a301-801e3b47efb8
 
-        @assert: Organization by name exists post Upgrade
+        :assert: Organization by name exists post Upgrade
         """
         for org, org_name in get_valid_preupgrade_data(
                 'organization-tests', 'name'):
@@ -57,9 +57,9 @@ class OrganizationTestCase(CLITestCase):
     def test_positive_association_org_smart_proxy(self):
         """Test Smart Proxy is associated with Organization
 
-        @id: 9986ec9d-b37c-482c-9bb1-7c25f6bfd34c
+        :id: 9986ec9d-b37c-482c-9bb1-7c25f6bfd34c
 
-        @assert: Smart Proxy is associated with Organization
+        :assert: Smart Proxy is associated with Organization
         """
         for org, sp in get_valid_preupgrade_data(
                 'organization-tests', 'smart-proxy'):
@@ -71,9 +71,9 @@ class OrganizationTestCase(CLITestCase):
     def test_positive_association_org_template(self):
         """Test Template is associated with Organization
 
-        @id: 2c8a6362-f95f-4aec-bc63-57242a639167
+        :id: 2c8a6362-f95f-4aec-bc63-57242a639167
 
-        @assert: Template is associated with Organization
+        :assert: Template is associated with Organization
         """
         for org, template in get_valid_preupgrade_data(
                 'organization-tests', 'template'):
@@ -85,9 +85,9 @@ class OrganizationTestCase(CLITestCase):
     def test_positive_association_org_puppet_environment(self):
         """Test Puppet Environment is associated with Organization
 
-        @id: 12c6d711-c6d6-4bcb-9e24-01cadb205f7b
+        :id: 12c6d711-c6d6-4bcb-9e24-01cadb205f7b
 
-        @assert: Puppet Environment is associated with Organization
+        :assert: Puppet Environment is associated with Organization
         """
         for org, penv in get_valid_preupgrade_data(
                 'organization-tests', 'Puppet-Environments'):

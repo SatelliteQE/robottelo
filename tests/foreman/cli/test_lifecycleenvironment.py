@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host CLI
 
-@Requirement: Lifecycleenvironment
+:Requirement: Lifecycleenvironment
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -50,9 +50,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_verify_bugzilla_1077386(self):
         """List subcommand returns standard output
 
-        @id: cca249d0-fb77-422b-aae3-3361887269db
+        :id: cca249d0-fb77-422b-aae3-3361887269db
 
-        @Assert: There should not be an error returned
+        :Assert: There should not be an error returned
 
         """
 
@@ -73,9 +73,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Search lifecycle environment via its name containing UTF-8
         chars
 
-        @id: d15001ed-5bbf-43cf-bdd3-1e129dff14ec
+        :id: d15001ed-5bbf-43cf-bdd3-1e129dff14ec
 
-        @Assert: Can get info for lifecycle by its name
+        :Assert: Can get info for lifecycle by its name
 
         """
         test_data = {
@@ -96,9 +96,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Create lifecycle environment with valid name, prior to
         Library
 
-        @id: fffe67e2-9a45-478d-a538-99f04a9c40ff
+        :id: fffe67e2-9a45-478d-a538-99f04a9c40ff
 
-        @Assert: Lifecycle environment is created with Library as prior
+        :Assert: Lifecycle environment is created with Library as prior
 
         """
         for name in valid_data_list():
@@ -116,9 +116,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Create lifecycle environment with valid description prior to
         Library
 
-        @id: 714c42f8-d09e-4e48-9f35-bbc25fe9e229
+        :id: 714c42f8-d09e-4e48-9f35-bbc25fe9e229
 
-        @Assert: Lifecycle environment is created with Library as prior
+        :Assert: Lifecycle environment is created with Library as prior
 
         """
         for desc in valid_data_list():
@@ -139,9 +139,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_create_with_label(self):
         """Create lifecycle environment with valid name and label
 
-        @id: 8d82932f-dedf-46f0-a6dc-280cfb228f44
+        :id: 8d82932f-dedf-46f0-a6dc-280cfb228f44
 
-        @Assert: Lifecycle environment with label is created
+        :Assert: Lifecycle environment with label is created
 
         """
         for label in (gen_string("alpha", 15), gen_string("alphanumeric", 15),
@@ -159,9 +159,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_create_with_organization_name(self):
         """Create lifecycle environment, specifying organization name
 
-        @id: e62ddb5a-7a38-4b7c-9346-b4dce31448c1
+        :id: e62ddb5a-7a38-4b7c-9346-b4dce31448c1
 
-        @Assert: Lifecycle environment is created for correct organization
+        :Assert: Lifecycle environment is created for correct organization
 
         """
         new_lce = make_lifecycle_environment({
@@ -175,9 +175,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_create_with_organization_label(self):
         """Create lifecycle environment, specifying organization label
 
-        @id: eb5cfc71-c83d-45ca-ba34-9ef79197691d
+        :id: eb5cfc71-c83d-45ca-ba34-9ef79197691d
 
-        @Assert: Lifecycle environment is created for correct organization
+        :Assert: Lifecycle environment is created for correct organization
 
         """
         new_lce = make_lifecycle_environment({
@@ -192,9 +192,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Create lifecycle environment with valid name, prior to
         Library
 
-        @id: 76989039-5389-4136-9f7c-220eb38f157b
+        :id: 76989039-5389-4136-9f7c-220eb38f157b
 
-        @Assert: Lifecycle environment is deleted
+        :Assert: Lifecycle environment is deleted
 
         """
         for name in valid_data_list():
@@ -215,9 +215,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Create lifecycle environment then update its name
 
-        @id: de67a44e-6c6a-430e-927b-4fa43c7c2771
+        :id: de67a44e-6c6a-430e-927b-4fa43c7c2771
 
-        @Assert: Lifecycle environment name is updated
+        :Assert: Lifecycle environment name is updated
 
         """
         new_lce = make_lifecycle_environment({
@@ -242,9 +242,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Create lifecycle environment then update its description
 
-        @id: 15b82949-3c3a-4942-b42b-db1de34cf5be
+        :id: 15b82949-3c3a-4942-b42b-db1de34cf5be
 
-        @Assert: Lifecycle environment description is updated
+        :Assert: Lifecycle environment description is updated
 
         """
         new_lce = make_lifecycle_environment({
@@ -269,9 +269,9 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positve_list_paths(self):
         """List the environment paths under a given organization
 
-        @id: 71600d6b-1ef4-4b88-8e9b-eb2481ee1fe2
+        :id: 71600d6b-1ef4-4b88-8e9b-eb2481ee1fe2
 
-        @Assert: Lifecycle environment paths listed
+        :Assert: Lifecycle environment paths listed
 
         """
         org = make_org()
@@ -295,11 +295,11 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Attempt to list more than 20 lifecycle environment with per-page
         option.
 
-        @id: 6e10fb0e-5e2c-45e6-85a8-0c853450257b
+        :id: 6e10fb0e-5e2c-45e6-85a8-0c853450257b
 
-        @BZ: 1420503
+        :BZ: 1420503
 
-        @assert: all the Lifecycle environments are listed
+        :assert: all the Lifecycle environments are listed
         """
         org = make_org()
         lifecycle_environments_count = 25

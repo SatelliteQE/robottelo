@@ -2,19 +2,19 @@
 # pylint: disable=no-self-use
 """Test class for Reports CLI.
 
-@Requirement: Report
+:Requirement: Report
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 import random
@@ -45,9 +45,9 @@ class ReportTestCase(CLITestCase):
     def test_positive_list(self):
         """Test list for Puppet report
 
-        @id: 8325e18f-58a4-49b8-a5f3-eebbe1d568b5
+        :id: 8325e18f-58a4-49b8-a5f3-eebbe1d568b5
 
-        @Assert: Puppert Report List is displayed
+        :Assert: Puppert Report List is displayed
         """
         Report.list()
 
@@ -56,9 +56,9 @@ class ReportTestCase(CLITestCase):
     def test_positive_info(self):
         """Test Info for Puppet report
 
-        @id: 32646d4b-7101-421a-85e0-777d3c6b71ec
+        :id: 32646d4b-7101-421a-85e0-777d3c6b71ec
 
-        @Assert: Puppet Report Info is displayed
+        :Assert: Puppet Report Info is displayed
         """
         result = Report.list()
         self.assertGreater(len(result), 0)
@@ -72,9 +72,9 @@ class ReportTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if Puppet Report can be deleted by its ID
 
-        @id: bf918ec9-e2d4-45d0-b913-ab939b5d5e6a
+        :id: bf918ec9-e2d4-45d0-b913-ab939b5d5e6a
 
-        @Assert: Puppet Report is deleted
+        :Assert: Puppet Report is deleted
         """
         result = Report.list()
         self.assertGreater(len(result), 0)

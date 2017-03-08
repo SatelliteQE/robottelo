@@ -7,19 +7,19 @@ When testing email validation [1] and [2] should be taken into consideration.
 [2] https://github.com/theforeman/foreman/pull/1776
 
 
-@Requirement: User
+:Requirement: User
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import random
 
@@ -48,9 +48,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create User for all variations of Username
 
-        @id: 2d430243-8512-46ee-8d21-7ccf0c7af807
+        :id: 2d430243-8512-46ee-8d21-7ccf0c7af807
 
-        @Assert: User is created
+        :Assert: User is created
         """
         include_list = [gen_string("alphanumeric", 100)]
         for login in valid_usernames_list() + include_list:
@@ -62,9 +62,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_firstname(self):
         """Create User for all variations of First Name
 
-        @id: b5f07890-020c-4ea0-a519-75d325127b2b
+        :id: b5f07890-020c-4ea0-a519-75d325127b2b
 
-        @Assert: User is created
+        :Assert: User is created
         """
         include_list = [gen_string("alphanumeric", 50)]
         for firstname in valid_usernames_list() + include_list:
@@ -76,9 +76,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_surname(self):
         """Create User for all variations of Surname
 
-        @id: 1b3d7014-6575-4cfd-b6d7-8ff2bfef587e
+        :id: 1b3d7014-6575-4cfd-b6d7-8ff2bfef587e
 
-        @Assert: User is created
+        :Assert: User is created
         """
         include_list = [gen_string("alphanumeric", 50)]
         for lastname in valid_usernames_list() + include_list:
@@ -90,9 +90,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_email(self):
         """Create User for all variations of Email Address
 
-        @id: 2c3ba244-3bd7-4455-8289-03dc7a28a4a6
+        :id: 2c3ba244-3bd7-4455-8289-03dc7a28a4a6
 
-        @Assert: User is created
+        :Assert: User is created
         """
         for email in valid_emails_list():
             with self.subTest(email):
@@ -106,9 +106,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_password(self):
         """Create User for all variations of Password
 
-        @id: cffb7317-0a17-4fff-bd2b-66d295cd40ad
+        :id: cffb7317-0a17-4fff-bd2b-66d295cd40ad
 
-        @Assert: User is created
+        :Assert: User is created
         """
         include_list = [gen_string("alphanumeric", 3000)]
         for password in valid_usernames_list() + include_list:
@@ -120,9 +120,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_admin(self):
         """Create an Admin user
 
-        @id: 0d0384ad-d85a-492e-8630-7f48912a4fd5
+        :id: 0d0384ad-d85a-492e-8630-7f48912a4fd5
 
-        @Assert: Admin User is created
+        :Assert: Admin User is created
         """
         user = make_user({'admin': '1'})
         self.assertEqual(user['admin'], 'yes')
@@ -131,9 +131,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_default_loc(self):
         """Check if user with default location can be created
 
-        @id: efe7256d-8c8f-444c-8d59-43500e1319c3
+        :id: efe7256d-8c8f-444c-8d59-43500e1319c3
 
-        @Assert: User is created and has new default location assigned
+        :Assert: User is created and has new default location assigned
         """
         location = make_location()
         user = make_user({
@@ -147,9 +147,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_defaut_org(self):
         """Check if user with default organization can be created
 
-        @id: cc692b6f-2519-429b-8ecb-c4bb51ed3544
+        :id: cc692b6f-2519-429b-8ecb-c4bb51ed3544
 
-        @Assert: User is created and has new default organization assigned
+        :Assert: User is created and has new default organization assigned
         """
         org = make_org()
         user = make_user({
@@ -163,9 +163,9 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_org(self):
         """Create User associated to one Organization
 
-        @id: 336bc067-9edd-481a-ae7a-0ff1270b2e41
+        :id: 336bc067-9edd-481a-ae7a-0ff1270b2e41
 
-        @Assert: User is created
+        :Assert: User is created
         """
         org = make_org()
         user = make_user({'organization-ids': org['id']})
@@ -175,11 +175,11 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_orgs(self):
         """Create User associated to multiple Organizations
 
-        @id: f537296c-a8a8-45ef-8996-c1d32b8f64de
+        :id: f537296c-a8a8-45ef-8996-c1d32b8f64de
 
-        @Assert: User is created
+        :Assert: User is created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         orgs_amount = random.randint(3, 5)
         orgs = [make_org() for _ in range(orgs_amount)]
@@ -193,26 +193,25 @@ class UserTestCase(CLITestCase):
     def test_positive_create_in_ldap_modes(self):
         """Create User in supported ldap modes
 
-        @id: ef107cea-c0e1-4d67-88e5-45cd30122d29
+        :id: ef107cea-c0e1-4d67-88e5-45cd30122d29
 
-        @Steps:
-        1. Create User in all supported ldap modes - (Active Driectory,
-        IPA, Posix)
+        :Steps: Create User in all supported ldap modes - (Active Driectory,
+            IPA, Posix)
 
-        @Assert: User is created without specifying the password
+        :Assert: User is created without specifying the password
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @tier1
     def test_negative_create_with_invalid_username(self):
         """Create User with invalid Username
 
-        @id: 8bb53001-6377-49fe-a85c-f92204a5dea4
+        :id: 8bb53001-6377-49fe-a85c-f92204a5dea4
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         invalid_names = (
             '', 'space {0}'.format(gen_string('alpha')),
@@ -238,9 +237,9 @@ class UserTestCase(CLITestCase):
     def test_negative_create_with_invalid_firstname(self):
         """Create User with invalid First Name
 
-        @id: 08b7be40-40f5-4423-91a6-03bb2bfb714c
+        :id: 08b7be40-40f5-4423-91a6-03bb2bfb714c
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         invalid_first_names = (gen_string("alpha", 51), gen_string("html"))
         for invalid_first_name in invalid_first_names:
@@ -262,9 +261,9 @@ class UserTestCase(CLITestCase):
     def test_negative_create_with_invalid_lastname(self):
         """Create User with invalid lastname
 
-        @id: f73d2374-6bdf-4d25-945e-46a34fe692e7
+        :id: f73d2374-6bdf-4d25-945e-46a34fe692e7
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         invalid_lastnames = (gen_string("alpha", 51), gen_string("html"))
         for invalid_lastname in invalid_lastnames:
@@ -286,9 +285,9 @@ class UserTestCase(CLITestCase):
     def test_negative_create_with_invalid_email(self):
         """Create User with invalid Email Address
 
-        @id: e21be14c-e985-4f27-b189-1cfe454e03d2
+        :id: e21be14c-e985-4f27-b189-1cfe454e03d2
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -311,11 +310,11 @@ class UserTestCase(CLITestCase):
     def test_negative_create_with_empty_email(self):
         """Create User with empty Email Address
 
-        @id: e55b2937-9b43-45ee-aa22-2d4ae6da01f3
+        :id: e55b2937-9b43-45ee-aa22-2d4ae6da01f3
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
 
-        @BZ: 1204686
+        :BZ: 1204686
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -334,9 +333,9 @@ class UserTestCase(CLITestCase):
     def test_negative_create_with_blank_authorized_by(self):
         """Create User with blank Authorized by
 
-        @id: 1f60fbf8-a5f0-432e-9b4e-60bc0224294a
+        :id: 1f60fbf8-a5f0-432e-9b4e-60bc0224294a
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -354,9 +353,9 @@ class UserTestCase(CLITestCase):
         values in Password and verify fields and using valid Username, First
         Name, Surname, Email Address, Language
 
-        @id: 4b142a12-8354-437e-89cc-c0505bda2027
+        :id: 4b142a12-8354-437e-89cc-c0505bda2027
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -373,9 +372,9 @@ class UserTestCase(CLITestCase):
     def test_positive_update_to_non_admin(self):
         """Convert an user from an admin user to non-admin user
 
-        @id: 6a291547-d60d-4dc6-aeb6-d7ad969993a8
+        :id: 6a291547-d60d-4dc6-aeb6-d7ad969993a8
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = make_user({'admin': '1'})
         self.assertEqual(user['admin'], 'yes')
@@ -390,9 +389,9 @@ class UserTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Create an user and then delete it using its name
 
-        @id: 37cf4313-012f-4215-b537-030ee61c1c3c
+        :id: 37cf4313-012f-4215-b537-030ee61c1c3c
 
-        @Assert: User is deleted
+        :Assert: User is deleted
         """
         for login in valid_usernames_list():
             with self.subTest(login), self.assertRaises(CLIReturnCodeError):
@@ -406,9 +405,9 @@ class UserTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create an user and then delete it using its id
 
-        @id: 7e97e177-b676-49b3-86ee-644f6f6ff30c
+        :id: 7e97e177-b676-49b3-86ee-644f6f6ff30c
 
-        @Assert: User is deleted
+        :Assert: User is deleted
         """
         user = make_user()
         User.exists(search=('login', user['login']))
@@ -420,9 +419,9 @@ class UserTestCase(CLITestCase):
     def test_positive_delete_admin(self):
         """Delete an admin user
 
-        @id: 9752706c-fdbd-4a36-af6f-27824d22ea03
+        :id: 9752706c-fdbd-4a36-af6f-27824d22ea03
 
-        @Assert: User is deleted
+        :Assert: User is deleted
         """
         for login in valid_usernames_list():
             with self.subTest(login), self.assertRaises(CLIReturnCodeError):
@@ -435,9 +434,9 @@ class UserTestCase(CLITestCase):
     def test_negative_delete_internal_admin(self):
         """Attempt to delete internal admin user
 
-        @id: 4fc92958-9e75-4bd2-bcbe-32f906e432f5
+        :id: 4fc92958-9e75-4bd2-bcbe-32f906e432f5
 
-        @Assert: User is not deleted
+        :Assert: User is not deleted
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -450,9 +449,9 @@ class UserTestCase(CLITestCase):
     def test_positive_list_username(self):
         """List User for all variations of Username
 
-        @id: 3beef11a-c1d0-4b8f-a9f9-1eb557b36579
+        :id: 3beef11a-c1d0-4b8f-a9f9-1eb557b36579
 
-        @Assert: User is listed
+        :Assert: User is listed
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -473,9 +472,9 @@ class UserTestCase(CLITestCase):
     def test_positive_list_firstname(self):
         """List User for all variations of First Name
 
-        @id: 7786d834-f899-4277-b7ed-5d66605fb746
+        :id: 7786d834-f899-4277-b7ed-5d66605fb746
 
-        @Assert: User is listed
+        :Assert: User is listed
         """
         for firstname in valid_usernames_list():
             with self.subTest(firstname):
@@ -495,9 +494,9 @@ class UserTestCase(CLITestCase):
     def test_positive_list_surname(self):
         """List User for all variations of Surname
 
-        @id: 1fcc6b76-28d8-4253-86b0-dae09703abe1
+        :id: 1fcc6b76-28d8-4253-86b0-dae09703abe1
 
-        @Assert: User is listed
+        :Assert: User is listed
         """
         for lastname in valid_usernames_list():
             with self.subTest(lastname):
@@ -517,9 +516,9 @@ class UserTestCase(CLITestCase):
     def test_positive_list_email(self):
         """List User for all variations of Email Address
 
-        @id: 252f5583-6c34-43ae-9966-636fa0a2bb10
+        :id: 252f5583-6c34-43ae-9966-636fa0a2bb10
 
-        @Assert: User is listed
+        :Assert: User is listed
         """
         valid_emails = (
             gen_string("alpha") + "@somemail.com",
@@ -546,11 +545,11 @@ class UserTestCase(CLITestCase):
     def test_positive_create_with_email_utf8_latin(self):
         """List User for utf-8,latin variations of Email Address
 
-        @id: 3d865df5-2e28-44fb-add8-c79a18db2f95
+        :id: 3d865df5-2e28-44fb-add8-c79a18db2f95
 
-        @Assert: User is listed
+        :Assert: User is listed
 
-        @BZ: 1204667
+        :BZ: 1204667
         """
         valid_mails = (
             gen_string("latin1") + "@somemail.com",
@@ -575,22 +574,22 @@ class UserTestCase(CLITestCase):
     def test_positive_end_to_end(self):
         """Create User and perform different operations
 
-        @id: fc723d97-fc36-4468-8b1e-3c07d28f4d10
+        :id: fc723d97-fc36-4468-8b1e-3c07d28f4d10
 
-        @Steps:
-        1. Create User
-        2. Login with the new user
-        3. Upload Subscriptions
-        4. Provision Systems
-        5. Add/Remove Users
-        6. Add/Remove Orgs
-        7. Delete the User
+        :Steps:
+            1. Create User
+            2. Login with the new user
+            3. Upload Subscriptions
+            4. Provision Systems
+            5. Add/Remove Users
+            6. Add/Remove Orgs
+            7. Delete the User
 
-        @Assert: All actions passed
+        :Assert: All actions passed
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -598,21 +597,21 @@ class UserTestCase(CLITestCase):
     def test_positive_end_to_end_without_org(self):
         """Create User with no Org assigned and attempt different operations
 
-        @id: a5ed8e77-942f-4b48-b184-b72b38cdb4f9
+        :id: a5ed8e77-942f-4b48-b184-b72b38cdb4f9
 
-        @Steps:
-        1. Create User.  Do not assign any Org
-        2. Login with the new user
-        3. Attempt to Upload Subscriptions
-        4. Attempt to Provision Systems
-        5. Attempt to Add/Remove Users
-        6. Attempt to Add/Remove Orgs
+        :Steps:
+            1. Create User.  Do not assign any Org
+            2. Login with the new user
+            3. Attempt to Upload Subscriptions
+            4. Attempt to Provision Systems
+            5. Attempt to Add/Remove Users
+            6. Attempt to Add/Remove Orgs
 
-        @Assert: All actions failed since the User is not assigned to any Org
+        :Assert: All actions failed since the User is not assigned to any Org
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
 
@@ -679,9 +678,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_firstname(self):
         """Update firstname value for existing User
 
-        @id: c51baf5e-206d-4e95-a713-795574080bd9
+        :id: c51baf5e-206d-4e95-a713-795574080bd9
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = self.user
         for new_firstname in valid_usernames_list():
@@ -698,9 +697,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_username(self):
         """Update username value for existing User
 
-        @id: 72734d5a-bfba-4db8-9c8f-cc6190c74b69
+        :id: 72734d5a-bfba-4db8-9c8f-cc6190c74b69
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = self.user
         include_list = [gen_string("alphanumeric", 100)]
@@ -717,9 +716,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_lastname(self):
         """Update Last Name value for existing User
 
-        @id: 03479f69-7606-46b3-9dc1-664d30f40ae1
+        :id: 03479f69-7606-46b3-9dc1-664d30f40ae1
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = self.user
         for new_lastname in valid_usernames_list():
@@ -736,9 +735,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_email(self):
         """Update Email Address value for existing User
 
-        @id: 75067bf3-e43e-4c6a-b3fd-63e564eda7db
+        :id: 75067bf3-e43e-4c6a-b3fd-63e564eda7db
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = self.user
         for email in valid_emails_list():
@@ -755,9 +754,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_password(self):
         """Update Password/Verify fields for existing User
 
-        @id: 065197ab-1352-4da8-9df6-b6ff332e6847
+        :id: 065197ab-1352-4da8-9df6-b6ff332e6847
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = self.user
         for password in valid_usernames_list():
@@ -773,9 +772,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_to_admin(self):
         """Convert usual user to an admin user
 
-        @id: 3c5cdeb0-c529-472e-a291-269b703bf9d1
+        :id: 3c5cdeb0-c529-472e-a291-269b703bf9d1
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = self.user
         self.assertEqual(user['admin'], 'no')
@@ -790,9 +789,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_org(self):
         """Assign a User to an Org
 
-        @id: 7d16ea11-b1e9-4f3b-b3c5-a4b8569947da
+        :id: 7d16ea11-b1e9-4f3b-b3c5-a4b8569947da
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         user = self.user
         org = make_org()
@@ -807,11 +806,11 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_orgs(self):
         """Assign a User to multiple Orgs
 
-        @id: 2303ea38-eb08-4f68-ac73-48968e06aec0
+        :id: 2303ea38-eb08-4f68-ac73-48968e06aec0
 
-        @Assert: User is updated
+        :Assert: User is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user = self.user
         orgs_amount = random.randint(3, 5)
@@ -830,9 +829,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_negative_update_username(self):
         """Try to update User using invalid Username
 
-        @id: 208bb597-1b33-44c8-9b15-b7bfcbb739fd
+        :id: 208bb597-1b33-44c8-9b15-b7bfcbb739fd
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         user = self.user
         for new_user_name in invalid_names_list():
@@ -848,9 +847,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_negative_update_firstname(self):
         """Try to update User using invalid First Name
 
-        @id: fb425e86-6e09-4535-b1dc-aef1e02ea712
+        :id: fb425e86-6e09-4535-b1dc-aef1e02ea712
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         user = self.user
         for invalid_firstname in invalid_names_list():
@@ -870,9 +869,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_negative_update_surname(self):
         """Try to update User using invalid Last Name
 
-        @id: 92ca237a-daa8-43bd-927b-a0bdc8250658
+        :id: 92ca237a-daa8-43bd-927b-a0bdc8250658
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         user = self.user
         for invalid_lastname in (gen_string('alpha', 51), gen_string('html')):
@@ -890,9 +889,9 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_negative_update_email(self):
         """Try to update User using invalid Email Address
 
-        @id: 4a2876cc-2580-4ae9-8ce7-d7390bfebd4b
+        :id: 4a2876cc-2580-4ae9-8ce7-d7390bfebd4b
 
-        @Assert: User is not updated.  Appropriate error shown.
+        :Assert: User is not updated.  Appropriate error shown.
         """
         user = self.user
         for email in invalid_emails_list():
@@ -911,13 +910,13 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_add_role(self):
         """Add role to User for all variations of role names
 
-        @id: 4df495b8-ed02-480e-a935-ffc0b6746e08
+        :id: 4df495b8-ed02-480e-a935-ffc0b6746e08
 
-        @Assert: Role is added to user
+        :Assert: Role is added to user
 
-        @BZ: 1138553
+        :BZ: 1138553
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user = self.user
         for role_id, role in self.stubbed_roles.items():
@@ -938,11 +937,11 @@ class UserWithCleanUpTestCase(CLITestCase):
         So if if it gets fixed this test can be updated:
         (http://projects.theforeman.org/issues/16206)
 
-        @id: d769ac61-f158-4e4e-a176-1c87de8b00f6
+        :id: d769ac61-f158-4e4e-a176-1c87de8b00f6
 
-        @Assert: Roles are added to user
+        :Assert: Roles are added to user
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user = self.user
         original_role_names = set(user['roles'])
@@ -962,13 +961,13 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_remove_role(self):
         """Remove role from User for all variations of role names
 
-        @id: 51b15516-da42-4149-8032-87baa93f9e56
+        :id: 51b15516-da42-4149-8032-87baa93f9e56
 
-        @Assert: Role is removed
+        :Assert: Role is removed
 
-        @BZ: 1138553
+        :BZ: 1138553
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user = self.user
         for role_id, role in self.stubbed_roles.items():
@@ -987,24 +986,24 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_add_all_default_roles(self):
         """Create User and assign all available default roles to it
 
-        @id: 7faa3254-36ad-4496-9c0e-7b0454e4bc26
+        :id: 7faa3254-36ad-4496-9c0e-7b0454e4bc26
 
-        @Assert: All default roles are added to user
+        :Assert: All default roles are added to user
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @tier1
     def test_positive_update_role(self):
         """Update User with one role
 
-        @id: 9b23f242-6a55-4267-bd70-b4a5619f7990
+        :id: 9b23f242-6a55-4267-bd70-b4a5619f7990
 
-        @Assert: User is updated
+        :Assert: User is updated
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
         for role_id, role in self.stubbed_roles.items():
             self.assert_user_roles({role_id: role})
@@ -1014,11 +1013,11 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_roles(self):
         """Update User with multiple roles
 
-        @id: a41663a7-eb77-4083-9ca3-a1c1df1c87eb
+        :id: a41663a7-eb77-4083-9ca3-a1c1df1c87eb
 
-        @Assert: User is updated
+        :Assert: User is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self.assert_user_roles(self.stubbed_roles)
 
@@ -1026,10 +1025,10 @@ class UserWithCleanUpTestCase(CLITestCase):
     def test_positive_update_all_roles(self):
         """Update User with all roles
 
-        @id: fc520d70-36ff-4676-93c1-ca8ba6cd8efc
+        :id: fc520d70-36ff-4676-93c1-ca8ba6cd8efc
 
-        @Assert: User is updated
+        :Assert: User is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self.assert_user_roles(self.all_roles)

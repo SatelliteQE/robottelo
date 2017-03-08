@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test for capsule installer CLI
 
-@Requirement: Capsule installer
+:Requirement: Capsule installer
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
@@ -26,18 +26,19 @@ class CapsuleInstallerTestCase(CLITestCase):
     def test_positive_basic(self):
         """perform a basic install of capsule.
 
-        @id: 47445685-5924-4980-89d0-bbb2fb608f4d
+        :id: 47445685-5924-4980-89d0-bbb2fb608f4d
 
-        @Steps:
+        :Steps:
 
-        1. Assure your target capsule has ONLY the Capsule repo enabled. In
-           other words, the Satellite repo itself is not enabled by default.
-        2. attempt to perform a basic, functional install the capsule using
-           `capsule-installer`.
+            1. Assure your target capsule has ONLY the Capsule repo enabled. In
+               other words, the Satellite repo itself is not enabled by
+               default.
+            2. attempt to perform a basic, functional install the capsule using
+               `capsule-installer`.
 
-        @Assert: product is installed
+        :Assert: product is installed
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -47,16 +48,13 @@ class CapsuleInstallerTestCase(CLITestCase):
         capsule-installer to enable katello-agent functionality via
         remote clients
 
-        @id: d040a72d-72b2-41cf-b14e-a8e37e80200d
+        :id: d040a72d-72b2-41cf-b14e-a8e37e80200d
 
-        @Steps:
+        :Steps: Install capsule-installer with the '--qpid-router=true` flag
 
-        1. Install capsule-installer with the '--qpid-router=true` flag
+        :Assert: Capsule installs correctly and qpid functionality is enabled.
 
-        @Assert: Capsule installs correctly and qpid functionality is
-        enabled.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -66,16 +64,13 @@ class CapsuleInstallerTestCase(CLITestCase):
         capsule-installer to enable katello-agent functionality via
         remote clients
 
-        @id: 756fd76a-0183-4637-93c8-fe7c375be751
+        :id: 756fd76a-0183-4637-93c8-fe7c375be751
 
-        @Steps:
+        :Steps: Install using the '--reverse-proxy=true' flag
 
-        1. Install using the '--reverse-proxy=true' flag
+        :Assert: Capsule installs correctly and functionality is enabled.
 
-        @Assert: Capsule installs correctly and functionality is
-        enabled.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -83,17 +78,15 @@ class CapsuleInstallerTestCase(CLITestCase):
     def test_negative_invalid_parameters(self):
         """invalid (non-boolean) parameters cannot be passed to flag
 
-        @id: f4366c87-e436-42b4-ada4-55f0e66a481e
+        :id: f4366c87-e436-42b4-ada4-55f0e66a481e
 
-        @Steps:
+        :Steps: attempt to provide a variety of invalid parameters to installer
+            (strings, numerics, whitespace, etc.)
 
-        1. attempt to provide a variety of invalid parameters
-           to installer (strings, numerics, whitespace, etc.)
+        :Assert: user is told that such parameters are invalid and install
+            aborts.
 
-        @Assert: user is told that such parameters are invalid and install
-        aborts.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -101,19 +94,17 @@ class CapsuleInstallerTestCase(CLITestCase):
     def test_negative_option_parent_reverse_proxy_port(self):
         """invalid (non-integer) parameters cannot be passed to flag
 
-        @id: a1af16d3-84da-4e94-818e-90bc82cc5698
+        :id: a1af16d3-84da-4e94-818e-90bc82cc5698
 
-        @Setup: na
+        :Setup: na
 
-        @Steps:
+        :Steps: attempt to provide a variety of invalid parameters to
+            --parent-reverse-proxy-port flag (strings, numerics, whitespace,
+            etc.)
 
-        1. attempt to provide a variety of invalid parameters to
-           --parent-reverse-proxy-port flag (strings, numerics, whitespace,
-           etc.)
+        :Assert: user told parameters are invalid; install aborts.
 
-        @Assert: user told parameters are invalid; install aborts.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -122,17 +113,15 @@ class CapsuleInstallerTestCase(CLITestCase):
         """ valid parameters can be passed to --parent-reverse-proxy
         (true)
 
-        @id: a905f4ca-a729-4efb-84fc-43923737f75b
+        :id: a905f4ca-a729-4efb-84fc-43923737f75b
 
-        @Setup: note that this requires an accompanying, valid port value
+        :Setup: note that this requires an accompanying, valid port value
 
-        @Steps:
+        :Steps: Attempt to provide a value of "true" to --parent-reverse-proxy
 
-        1. Attempt to provide a value of "true" to --parent-reverse-proxy
+        :Assert: Install commences/completes with proxy installed correctly.
 
-        @Assert: Install commences/completes with proxy installed correctly.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -141,18 +130,16 @@ class CapsuleInstallerTestCase(CLITestCase):
         """valid parameters can be passed to
         --parent-reverse-proxy-port (integer)
 
-        @id: 32238045-53e2-4ed4-ac86-57917e7aedcd
+        :id: 32238045-53e2-4ed4-ac86-57917e7aedcd
 
-        @Setup: note that this requires an accompanying, valid host for
-        proxy parameter
+        :Setup: note that this requires an accompanying, valid host for proxy
+            parameter
 
-        @Steps:
+        :Steps: Attempt to provide a valid proxy port # to flag
 
-        1. Attempt to provide a valid proxy port # to flag
+        :Assert: Install commences and completes with proxy installed
+            correctly.
 
-        @Assert: Install commences and completes with proxy installed
-        correctly.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """

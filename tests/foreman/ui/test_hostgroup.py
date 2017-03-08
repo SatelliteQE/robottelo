@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host Group UI
 
-@Requirement: Hostgroup
+:Requirement: Hostgroup
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -52,9 +52,9 @@ class HostgroupTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new hostgroup
 
-        @id: 8bcf45e5-9e7f-4050-9de6-a90350b70006
+        :id: 8bcf45e5-9e7f-4050-9de6-a90350b70006
 
-        @Assert: Hostgroup is created
+        :Assert: Hostgroup is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -67,9 +67,9 @@ class HostgroupTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create new hostgroup with invalid names
 
-        @id: a0232740-ae9f-44ce-9f3d-bafc8f1b05cb
+        :id: a0232740-ae9f-44ce-9f3d-bafc8f1b05cb
 
-        @Assert: Hostgroup is not created
+        :Assert: Hostgroup is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -85,9 +85,9 @@ class HostgroupTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create new hostgroup with same name
 
-        @id: 237b684d-3b55-444a-be00-a9825952bb53
+        :id: 237b684d-3b55-444a-be00-a9825952bb53
 
-        @Assert: Hostgroup is not created
+        :Assert: Hostgroup is not created
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -104,9 +104,9 @@ class HostgroupTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a hostgroup
 
-        @id: f118532b-ca9b-4bf4-b53b-9573abcb347a
+        :id: f118532b-ca9b-4bf4-b53b-9573abcb347a
 
-        @Assert: Hostgroup is deleted
+        :Assert: Hostgroup is deleted
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -119,9 +119,9 @@ class HostgroupTestCase(UITestCase):
     def test_positive_update(self):
         """Update hostgroup with a new name
 
-        @id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
+        :id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
 
-        @Assert: Hostgroup is updated
+        :Assert: Hostgroup is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -138,9 +138,9 @@ class HostgroupTestCase(UITestCase):
     def test_positive_create_with_oscap_capsule(self):
         """Create new hostgroup with oscap capsule
 
-        @id: c0ab1148-93ff-41d3-93c3-2ff139349884
+        :id: c0ab1148-93ff-41d3-93c3-2ff139349884
 
-        @Assert: Hostgroup is created with oscap capsule
+        :Assert: Hostgroup is created with oscap capsule
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -159,9 +159,9 @@ class HostgroupTestCase(UITestCase):
     def test_positive_create_with_activation_keys(self):
         """Create new hostgroup with activation keys
 
-        @id: cfda3c1b-37fd-42c1-a74c-841efb83b2f5
+        :id: cfda3c1b-37fd-42c1-a74c-841efb83b2f5
 
-        @Assert: Hostgroup is created with activation keys
+        :Assert: Hostgroup is created with activation keys
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -180,20 +180,20 @@ class HostgroupTestCase(UITestCase):
         """Open Hostgroup New/Edit modal and verify that Activation Keys
         autocomplete respects selected Content View
 
-        @id: 07906caf-871d-4d1f-8914-38027e71c16b
+        :id: 07906caf-871d-4d1f-8914-38027e71c16b
 
-        @Steps:
+        :Steps:
 
-        1. Create two content views A & B
-        2. Publish both content views
-        3. Create an activation key pointed to view A in Library
-        4. Create an activation key pointed to view B in Library
-        5. Go to the new Hostgroup page, select content view B & Library,
-            click on the activation key tab and click in the input box
+            1. Create two content views A & B
+            2. Publish both content views
+            3. Create an activation key pointed to view A in Library
+            4. Create an activation key pointed to view B in Library
+            5. Go to the new Hostgroup page, select content view B & Library,
+                click on the activation key tab and click in the input box
 
-        @Assert: Only the activation key for view B is listed
+        :Assert: Only the activation key for view B is listed
 
-        @BZ: 1321511
+        :BZ: 1321511
         """
         # Use setup entities as A and create another set for B.
         cv_b = entities.ContentView(organization=self.organization).create()

@@ -1,18 +1,18 @@
 """Tests for the Incremental Update feature
 
-@Requirement: Inc updates
+:Requirement: Inc updates
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from datetime import date, timedelta
@@ -235,21 +235,21 @@ class IncrementalUpdateTestCase(TestCase):
         """Check if api incremental update can be done without
         actually applying it
 
-        @id: 481c5ff2-801f-4eff-b1e0-95ea5bb37f95
+        :id: 481c5ff2-801f-4eff-b1e0-95ea5bb37f95
 
-        @Setup:  The prerequisites are already covered in the setUpClass() but
-        for easy debug, get the content view id, Repository id and Lifecycle
-        environment id using hammer and plug these statements on the top of the
-        test. For example::
+        :Setup:  The prerequisites are already covered in the setUpClass() but
+            for easy debug, get the content view id, Repository id and
+            Lifecycle environment id using hammer and plug these statements on
+            the top of the test. For example::
 
-            self.rhel_6_partial_cv = ContentView(id=38).read()
-            self.rhva_6_repo = Repository(id=164).read()
-            self.qe_lce = LifecycleEnvironment(id=46).read()
+                self.rhel_6_partial_cv = ContentView(id=38).read()
+                self.rhva_6_repo = Repository(id=164).read()
+                self.qe_lce = LifecycleEnvironment(id=46).read()
 
-        @Assert: Incremental update completed with no errors and Content view
-        has a newer version
+        :Assert: Incremental update completed with no errors and Content view
+            has a newer version
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         # Get the content view versions and use the recent one.  API always
         # returns the versions in ascending order so it is safe to assume the
@@ -284,12 +284,12 @@ class IncrementalUpdateTestCase(TestCase):
         """Check if cli incremental update can be done without
         actually applying it
 
-        @id: f25b0919-74cb-4e2c-829e-482558990b3c
+        :id: f25b0919-74cb-4e2c-829e-482558990b3c
 
-        @Assert: Incremental update completed with no errors and Content view
-        has a newer version
+        :Assert: Incremental update completed with no errors and Content view
+            has a newer version
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         # Get the content view versions and use the recent one.  API always
         # returns the versions in ascending order so it is safe to assume the

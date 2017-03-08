@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test classes for Bookmark tests
 
-@Requirement: Bookmarks
+:Requirement: Bookmarks
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -32,16 +32,16 @@ class BookmarkTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a bookmark
 
-        @id: aeef0944-379a-4a27-902d-aa5969dbd441
+        :id: aeef0944-379a-4a27-902d-aa5969dbd441
 
-        @Steps:
+        :Steps:
 
-        1. Create a bookmark with a random name, query and random valid
-           controller
-        2. List the bookmarks
+            1. Create a bookmark with a random name, query and random valid
+               controller
+            2. List the bookmarks
 
-        @Assert: No errors, Bookmark is listed, controller matches the
-        controller the bookmark was created for
+        :Assert: No errors, Bookmark is listed, controller matches the
+            controller the bookmark was created for
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -59,16 +59,16 @@ class BookmarkTestCase(APITestCase):
     def test_positive_create_with_query(self):
         """Create a bookmark
 
-        @id: 9fb6d485-92b5-43ea-b776-012c13734100
+        :id: 9fb6d485-92b5-43ea-b776-012c13734100
 
-        @Steps:
+        :Steps:
 
-        1. Create a bookmark with a random query, name and random valid
-           controller
-        2. List the bookmarks
+            1. Create a bookmark with a random query, name and random valid
+               controller
+            2. List the bookmarks
 
-        @Assert: No errors, Bookmark is listed, controller matches the
-        controller the bookmark was created for
+        :Assert: No errors, Bookmark is listed, controller matches the
+            controller the bookmark was created for
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -85,15 +85,15 @@ class BookmarkTestCase(APITestCase):
     def test_positive_create_public(self):
         """Create a public bookmark
 
-        @id: 511b9bcf-0661-4e44-b1bc-475a1c207aa9
+        :id: 511b9bcf-0661-4e44-b1bc-475a1c207aa9
 
-        @Steps:
+        :Steps:
 
-        1. Create a bookmark with a random name and public = true
-        2. List the bookmarks
+            1. Create a bookmark with a random name and public = true
+            2. List the bookmarks
 
-        @Assert: No errors, Bookmark is listed, controller matches the entity
-        the bookmark was created for and is displayed as public
+        :Assert: No errors, Bookmark is listed, controller matches the entity
+            the bookmark was created for and is displayed as public
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -110,14 +110,14 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create a bookmark with invalid name
 
-        @id: 9a79c561-8225-43fc-8ec7-b6858e9665e2
+        :id: 9a79c561-8225-43fc-8ec7-b6858e9665e2
 
-        @Steps:
+        :Steps:
 
-        1. Attempt to create a bookmark with providing an invalid name
-        2. List the bookmarks
+            1. Attempt to create a bookmark with providing an invalid name
+            2. List the bookmarks
 
-        @Assert: Error returned, Bookmark is not created (not listed)
+        :Assert: Error returned, Bookmark is not created (not listed)
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -137,15 +137,15 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_empty_query(self):
         """Create a bookmark with empty query
 
-        @id: 674d569f-6f86-43ba-b9cc-f43e05e8ab1c
+        :id: 674d569f-6f86-43ba-b9cc-f43e05e8ab1c
 
-        @Steps:
+        :Steps:
 
-        1. Create a bookmark with providing an empty query
-        2. List the bookmarks
+            1. Create a bookmark with providing an empty query
+            2. List the bookmarks
 
-        @Assert: Error notification - search query cannot be empty, Bookmark is
-        not created (not listed)
+        :Assert: Error notification - search query cannot be empty, Bookmark is
+            not created (not listed)
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -164,22 +164,20 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_same_name(self):
         """Create bookmarks with the same names
 
-        @id: f78f6e97-da77-4a61-95c2-622c439d325d
+        :id: f78f6e97-da77-4a61-95c2-622c439d325d
 
-        @Setup:
+        :Setup: Create a bookmark with a random name
 
-        1. Create a bookmark with a random name
+        :Steps:
 
-        @Steps:
+            1. Create a new bookmark using a random name
+            2. Create a second bookmark, using the same name as the previous
+               Bookmark. Assert that an error is raised.
+            3. List the bookmarks. Assert that the Bookmark created is present
+               and there's only one listed
 
-        1. Create a new bookmark using a random name
-        2. Create a second bookmark, using the same name as
-           the previous Bookmark. Assert that an error is raised.
-        3. List the bookmarks. Assert that the Bookmark created is present and
-           there's only one listed
-
-        @Assert: Error notification - name already taken, Bookmark is not
-        created (not listed)
+        :Assert: Error notification - name already taken, Bookmark is not
+            created (not listed)
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -202,18 +200,18 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_null_public(self):
         """Create a bookmark omitting the public parameter
 
-        @id: 0a4cb5ea-912b-445e-a874-b345e43d3eac
+        :id: 0a4cb5ea-912b-445e-a874-b345e43d3eac
 
-        @Steps:
+        :Steps:
 
-        1. Create a new bookmark using a random name, random query and omit the
-           'public' parameter
-        2. List the bookmarks
+            1. Create a new bookmark using a random name, random query and omit
+               the 'public' parameter
+            2. List the bookmarks
 
-        @Assert: Error notification - public is required, Bookmark is not
-        created (not listed)
+        :Assert: Error notification - public is required, Bookmark is not
+            created (not listed)
 
-        @BZ: 1302725
+        :BZ: 1302725
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -233,17 +231,13 @@ class BookmarkTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a bookmark
 
-        @id: 1cde270a-26fb-4cff-bdff-89fef17a7624
+        :id: 1cde270a-26fb-4cff-bdff-89fef17a7624
 
-        @Setup:
+        :Setup: Create a new bookmark with a random name and random query
 
-        1. Create a new bookmark with a random name and random query
+        :Steps: Update the previously created bookmark with another random name
 
-        @Steps:
-
-        1. Update the previously created bookmark with another random name
-
-        @Assert: The new bookmark name is listed
+        :Assert: The new bookmark name is listed
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -261,18 +255,15 @@ class BookmarkTestCase(APITestCase):
     def test_negative_update_same_name(self):
         """Update a bookmark with name already taken
 
-        @id: 6becf121-2bea-4f7e-98f4-338bd88b8f4b
+        :id: 6becf121-2bea-4f7e-98f4-338bd88b8f4b
 
-        @Setup:
+        :Setup: Create 2 bookmarks with a random names with random query
 
-        1. Create 2 bookmarks with a random names with random query
+        :Steps: Try to update the name of the first (or second) Bookmark
+            created in the Setup with the name of the second (or first)
+            Bookmark
 
-        @Steps:
-
-        1. Try to update the name of the first (or second) Bookmark created in
-           the Setup with the name of the second (or first) Bookmark
-
-        @Assert: Error - name already taken, bookmark not updated
+        :Assert: Error - name already taken, bookmark not updated
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -294,18 +285,14 @@ class BookmarkTestCase(APITestCase):
     def test_negative_update_invalid_name(self):
         """Update a bookmark with an invalid name
 
-        @id: 479795bb-aeed-45b3-a7e3-d3449c808087
+        :id: 479795bb-aeed-45b3-a7e3-d3449c808087
 
-        @Setup:
+        :Setup: Create a bookmark with a random name and random query
 
-        1. Create a bookmark with a random name and random query
+        :Steps: Update the name of the previously created bookmarks to an
+            invalid value
 
-        @Steps:
-
-        1. Update the name of the previously created bookmarks to an invalid
-           value
-
-        @Assert: Error - bookmark not updated
+        :Assert: Error - bookmark not updated
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -325,17 +312,13 @@ class BookmarkTestCase(APITestCase):
     def test_positive_update_query(self):
         """Update a bookmark query
 
-        @id: 92a31de2-bebf-4396-94f5-adf59f8d66a5
+        :id: 92a31de2-bebf-4396-94f5-adf59f8d66a5
 
-        @Setup:
+        :Setup: Create a bookmark with a random name and random query
 
-        1. Create a bookmark with a random name and random query
+        :Steps: Update the query of the previously created bookmark
 
-        @Steps:
-
-        1. Update the query of the previously created bookmark
-
-        @Assert: The updated query submitted
+        :Assert: The updated query submitted
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -352,17 +335,14 @@ class BookmarkTestCase(APITestCase):
     def test_negative_update_empty_query(self):
         """Update a bookmark with an empty query
 
-        @id: 948602d3-532a-47fe-b313-91e3fab809bf
+        :id: 948602d3-532a-47fe-b313-91e3fab809bf
 
-        @Setup:
+        :Setup: Create a bookmark with a random name and random query
 
-        1. Create a bookmark with a random name and random query
+        :Steps: Update the query of the pre-created bookmark with an empty
+            value
 
-        @Steps:
-
-        1. Update the query of the pre-created bookmark with an empty value
-
-        @Assert: Error - search query cannot be empty, bookmark not updated
+        :Assert: Error - search query cannot be empty, bookmark not updated
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -379,19 +359,17 @@ class BookmarkTestCase(APITestCase):
     def test_positive_update_public(self):
         """Update a bookmark public state to private and vice versa
 
-        @id: 2717360d-37c4-4bb9-bce1-b1edabdf11b3
+        :id: 2717360d-37c4-4bb9-bce1-b1edabdf11b3
 
-        @Setup:
+        :Setup: Create a bookmark with a random name and random query with
+            public attribute set to True/False
 
-        1. Create a bookmark with a random name and random query with public
-           attribute set to True/False
+        :Steps:
 
-        @Steps:
+            1. Update the bookmarks 'public' attribute
+            2. List the bookmarks
 
-        1. Update the bookmarks 'public' attribute
-        2. List the bookmarks
-
-        @Assert: Bookmark is updated with new public state
+        :Assert: Bookmark is updated with new public state
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):

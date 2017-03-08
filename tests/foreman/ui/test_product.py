@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Products UI
 
-@Requirement: Product
+:Requirement: Product
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -41,9 +41,9 @@ class ProductTestCase(UITestCase):
         """Create Content Product providing different names and minimal
         input parameters
 
-        @id: b73d9440-1f30-4fc5-ad7c-e1febe879cbc
+        :id: b73d9440-1f30-4fc5-ad7c-e1febe879cbc
 
-        @Assert: Product is created
+        :Assert: Product is created
         """
         with Session(self.browser) as session:
             for prd_name in generate_strings_list():
@@ -62,11 +62,11 @@ class ProductTestCase(UITestCase):
     def test_positive_create_in_different_orgs(self):
         """Create Content Product with same name but in another org
 
-        @id: 469fc036-a48a-4c0a-9da9-33e73f903479
+        :id: 469fc036-a48a-4c0a-9da9-33e73f903479
 
-        @Assert: Product is created successfully in both organizations.
+        :Assert: Product is created successfully in both organizations.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         organization_2 = entities.Organization().create()
         with Session(self.browser) as session:
@@ -87,9 +87,9 @@ class ProductTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Content Product with invalid names
 
-        @id: 11efd16c-6471-4191-934f-79c7278c66e8
+        :id: 11efd16c-6471-4191-934f-79c7278c66e8
 
-        @Assert: Product is not created
+        :Assert: Product is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -109,9 +109,9 @@ class ProductTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create Content Product with same name input parameter
 
-        @id: 90ceee6e-0ccc-4065-87ba-42d36484f032
+        :id: 90ceee6e-0ccc-4065-87ba-42d36484f032
 
-        @Assert: Product is not created
+        :Assert: Product is not created
         """
         prd_name = gen_string('alphanumeric')
         description = gen_string('alphanumeric')
@@ -133,9 +133,9 @@ class ProductTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update Content Product name with minimal input parameters
 
-        @id: 2c0539b4-84e1-46c6-aaca-12fe3865da3d
+        :id: 2c0539b4-84e1-46c6-aaca-12fe3865da3d
 
-        @Assert: Product is updated
+        :Assert: Product is updated
         """
         prd_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -158,11 +158,11 @@ class ProductTestCase(UITestCase):
     def test_positive_update_to_original_name(self):
         """Rename Product back to original name.
 
-        @id: 6632effe-06ba-4690-b81d-4f5eae20b7b9
+        :id: 6632effe-06ba-4690-b81d-4f5eae20b7b9
 
-        @Assert: Product renamed to previous value.
+        :Assert: Product renamed to previous value.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         prd_name = gen_string('alphanumeric')
         new_prd_name = gen_string('alphanumeric')
@@ -185,9 +185,9 @@ class ProductTestCase(UITestCase):
     def test_negative_update_with_too_long_name(self):
         """Update Content Product with too long input parameters
 
-        @id: c6938675-4a2a-4bec-9315-b1c951b628bb
+        :id: c6938675-4a2a-4bec-9315-b1c951b628bb
 
-        @Assert: Product is not updated
+        :Assert: Product is not updated
         """
         prd_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -208,9 +208,9 @@ class ProductTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete Content Product
 
-        @id: cf80bafb-8581-483a-b5c1-3a162642c6c1
+        :id: cf80bafb-8581-483a-b5c1-3a162642c6c1
 
-        @Assert: Product is deleted
+        :Assert: Product is deleted
         """
         with Session(self.browser) as session:
             for prd_name in generate_strings_list():

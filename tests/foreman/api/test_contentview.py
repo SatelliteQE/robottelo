@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Unit tests for the ``content_views`` paths.
 
-@Requirement: Contentview
+:Requirement: Contentview
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import random
 
@@ -64,12 +64,12 @@ class ContentViewTestCase(APITestCase):
     def test_positive_subscribe_host(self):
         """Subscribe a host to a content view
 
-        @id: b5a08369-bf92-48ab-b9aa-10f5b9774b79
+        :id: b5a08369-bf92-48ab-b9aa-10f5b9774b79
 
-        @Assert: It is possible to create a host and set its 'content_view_id'
-        facet attribute
+        :Assert: It is possible to create a host and set its 'content_view_id'
+            facet attribute
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         # organization
         # ├── lifecycle environment
@@ -113,12 +113,12 @@ class ContentViewTestCase(APITestCase):
         based on existing view within the same environment as the
         original content view
 
-        @id: a7be5dc1-26c1-4354-99a1-1cbc90c89c64
+        :id: a7be5dc1-26c1-4354-99a1-1cbc90c89c64
 
-        @Assert: Cloned content view can be published and promoted
-        to the same environment as the original content view
+        :Assert: Cloned content view can be published and promoted to the same
+            environment as the original content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         lc_env = entities.LifecycleEnvironment(organization=org).create()
@@ -139,12 +139,12 @@ class ContentViewTestCase(APITestCase):
         view based on existing view but promoted to a
         different environment
 
-        @id: a4d21c85-a77c-4664-95ba-3d32c3ad1663
+        :id: a4d21c85-a77c-4664-95ba-3d32c3ad1663
 
-        @Assert: Cloned content view can be published and promoted
-        to a different environment as the original content view
+        :Assert: Cloned content view can be published and promoted to a
+            different environment as the original content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         lc_env = entities.LifecycleEnvironment(organization=org).create()
@@ -163,11 +163,11 @@ class ContentViewTestCase(APITestCase):
     def test_positive_add_custom_content(self):
         """Associate custom content in a view
 
-        @id: db452e0c-0c17-40f2-bab4-8467e7a875f1
+        :id: db452e0c-0c17-40f2-bab4-8467e7a875f1
 
-        @Assert: Custom content assigned and present in content view
+        :Assert: Custom content assigned and present in content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -186,12 +186,12 @@ class ContentViewTestCase(APITestCase):
         """Attempt to associate puppet repos within a custom content
         view directly
 
-        @id: 659e0b7a-9886-43aa-a489-dbd509c29ef8
+        :id: 659e0b7a-9886-43aa-a489-dbd509c29ef8
 
-        @Assert: User cannot create a non-composite content view that contains
-        direct puppet repos reference.
+        :Assert: User cannot create a non-composite content view that contains
+            direct puppet repos reference.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -213,11 +213,11 @@ class ContentViewTestCase(APITestCase):
         """Attempt to associate the same repo multiple times within a
         content view
 
-        @id: 9e3dff38-fdcc-4483-9844-0619797cf1d5
+        :id: 9e3dff38-fdcc-4483-9844-0619797cf1d5
 
-        @Assert: User cannot add repos multiple times to the view
+        :Assert: User cannot add repos multiple times to the view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -237,11 +237,11 @@ class ContentViewTestCase(APITestCase):
         """Attempt to associate duplicate puppet modules within a
         content view
 
-        @id: 79036b3b-18dd-489e-9725-15f052371512
+        :id: 79036b3b-18dd-489e-9725-15f052371512
 
-        @Assert: User cannot add same modules multiple times to the view
+        :Assert: User cannot add same modules multiple times to the view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -278,18 +278,19 @@ class ContentViewTestCase(APITestCase):
     def test_positive_restart_promote_via_dynflow(self):
         """Attempt to restart a promotion
 
-        @id: 99fc4562-0230-40a5-aef1-f65f02feae65
+        :id: 99fc4562-0230-40a5-aef1-f65f02feae65
 
-        @steps:
+        :steps:
 
-        1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
-        2. Via Dynflow, restart promotion
+            1. (Somehow) cause a CV promotion to fail.  Not exactly sure how
+               yet.
+            2. Via Dynflow, restart promotion
 
-        @assert: Promotion is restarted.
+        :assert: Promotion is restarted.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @tier2
@@ -297,18 +298,19 @@ class ContentViewTestCase(APITestCase):
     def test_positive_restart_publish_via_dynflow(self):
         """Attempt to restart a publish
 
-        @id: 8612959e-cd52-404e-88ec-7351c2d282d0
+        :id: 8612959e-cd52-404e-88ec-7351c2d282d0
 
-        @steps:
+        :steps:
 
-        1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
-        2. Via Dynflow, restart publish
+            1. (Somehow) cause a CV publish  to fail.  Not exactly sure how
+               yet.
+            2. Via Dynflow, restart publish
 
-        @assert: Publish is restarted.
+        :assert: Publish is restarted.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
 
@@ -319,10 +321,10 @@ class ContentViewCreateTestCase(APITestCase):
     def test_positive_create_composite(self):
         """Create composite and non-composite content views.
 
-        @id: 4a3b616d-53ab-4396-9a50-916d6c42a401
+        :id: 4a3b616d-53ab-4396-9a50-916d6c42a401
 
-        @Assert: Creation succeeds and content-view is composite or
-        non-composite, respectively.
+        :Assert: Creation succeeds and content-view is composite or
+            non-composite, respectively.
         """
         for composite in (True, False):
             with self.subTest(composite):
@@ -337,9 +339,9 @@ class ContentViewCreateTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create empty content-view with random names.
 
-        @id: 80d36498-2e71-4aa9-b696-f0a45e86267f
+        :id: 80d36498-2e71-4aa9-b696-f0a45e86267f
 
-        @Assert: Content-view is created and had random name.
+        :Assert: Content-view is created and had random name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -352,9 +354,9 @@ class ContentViewCreateTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create empty content view with random description.
 
-        @id: 068e3e7c-34ac-47cb-a1bb-904d12c74cc7
+        :id: 068e3e7c-34ac-47cb-a1bb-904d12c74cc7
 
-        @Assert: Content-view is created and has random description.
+        :Assert: Content-view is created and has random description.
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -369,9 +371,9 @@ class ContentViewCreateTestCase(APITestCase):
     def test_positive_clone(self):
         """Create a content view by copying an existing one
 
-        @id: ee03dc63-e2b0-4a89-a828-2910405279ff
+        :id: ee03dc63-e2b0-4a89-a828-2910405279ff
 
-        @assert: A content view is cloned with relevant parameters
+        :assert: A content view is cloned with relevant parameters
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -393,9 +395,9 @@ class ContentViewCreateTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create content view providing an invalid name.
 
-        @id: 261376ca-7d12-41b6-9c36-5f284865243e
+        :id: 261376ca-7d12-41b6-9c36-5f284865243e
 
-        @Assert: Content View is not created
+        :Assert: Content View is not created
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -443,12 +445,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
     def test_positive_publish_multiple(self):
         """Publish a content view several times.
 
-        @id: 54072676-cb59-43d4-82d6-432d8aa103e7
+        :id: 54072676-cb59-43d4-82d6-432d8aa103e7
 
-        @Assert: Content view has the correct number of versions after each
-        publishing operation.
+        :Assert: Content view has the correct number of versions after each
+            publishing operation.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView().create()
         for _ in range(REPEAT):
@@ -459,13 +461,13 @@ class ContentViewPublishPromoteTestCase(APITestCase):
     def test_positive_publish_with_content_multiple(self):
         """Give a content view yum packages and publish it repeatedly.
 
-        @id: 7db81c1f-c69e-453f-bea4-ecad47f27c69
+        :id: 7db81c1f-c69e-453f-bea4-ecad47f27c69
 
-        @Assert: The yum repo is referenced from the content view, the content
-        view can be published several times, and each content view version has
-        at least one package.
+        :Assert: The yum repo is referenced from the content view, the content
+            view can be published several times, and each content view version
+            has at least one package.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -486,12 +488,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Create empty composite view and assign one normal content
         view to it. After that publish that composite content view once.
 
-        @id: da7cff4a-fa89-4ca5-8289-18794eb66b92
+        :id: da7cff4a-fa89-4ca5-8289-18794eb66b92
 
-        @Assert: Composite content view is published and corresponding
-        version is assigned to it.
+        :Assert: Composite content view is published and corresponding version
+            is assigned to it.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -507,12 +509,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         normal content views to it. After that publish that composite content
         view once.
 
-        @id: 0d56d318-46a4-4da5-871b-72a3926055dd
+        :id: 0d56d318-46a4-4da5-871b-72a3926055dd
 
-        @Assert: Composite content view is published and corresponding
-        version is assigned to it.
+        :Assert: Composite content view is published and corresponding version
+            is assigned to it.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -528,12 +530,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         view to it. After that publish that composite content view several
         times.
 
-        @id: c0163c56-97c3-4296-aeff-c35a894572d7
+        :id: c0163c56-97c3-4296-aeff-c35a894572d7
 
-        @Assert: Composite content view is published several times
-        and corresponding versions are assigned to it.
+        :Assert: Composite content view is published several times and
+            corresponding versions are assigned to it.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -551,12 +553,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         normal content views to it. After that publish that composite content
         view several times.
 
-        @id: da8ad491-02f2-4b84-b850-0dea7259739c
+        :id: da8ad491-02f2-4b84-b850-0dea7259739c
 
-        @Assert: Composite content view is published several times
-        and corresponding versions are assigned to it.
+        :Assert: Composite content view is published several times and
+            corresponding versions are assigned to it.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -572,13 +574,13 @@ class ContentViewPublishPromoteTestCase(APITestCase):
     def test_positive_publish_with_puppet_once(self):
         """Publish a content view that has puppet module once.
 
-        @id: 42083b8e-1cf0-4ee6-9dd5-7de8f06ae028
+        :id: 42083b8e-1cf0-4ee6-9dd5-7de8f06ae028
 
-        @Assert: The puppet module is referenced from the content view, the
-        content view can be published once and corresponding version refer to
-        puppet module
+        :Assert: The puppet module is referenced from the content view, the
+            content view can be published once and corresponding version refer
+            to puppet module
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -599,13 +601,13 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Publish a content view that has puppet module
         several times.
 
-        @id: 7096abc9-e761-40cc-8e5b-acc16c7e9c27
+        :id: 7096abc9-e761-40cc-8e5b-acc16c7e9c27
 
-        @Assert: The puppet module is referenced from the content view, the
-        content view can be published several times, and each version
-        references the puppet module.
+        :Assert: The puppet module is referenced from the content view, the
+            content view can be published several times, and each version
+            references the puppet module.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -632,12 +634,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
     def test_positive_promote_empty_multiple(self):
         """Promote a content view version ``REPEAT`` times.
 
-        @id: 06453880-49fd-4ed1-8ee2-cdc530eaa31a
+        :id: 06453880-49fd-4ed1-8ee2-cdc530eaa31a
 
-        @Assert: The content view version points to ``REPEAT + 1`` lifecycle
-        environments after the promotions.
+        :Assert: The content view version points to ``REPEAT + 1`` lifecycle
+            environments after the promotions.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.publish()
@@ -659,13 +661,13 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Give a content view a yum repo, publish it once and promote
         the content view version ``REPEAT + 1`` times.
 
-        @id: 58783790-2839-4e91-94d3-008dc3fe3219
+        :id: 58783790-2839-4e91-94d3-008dc3fe3219
 
-        @Assert: The content view has one repository, the content view version
-        is in ``REPEAT + 1`` lifecycle environments and it has at least one
-        package.
+        :Assert: The content view has one repository, the content view version
+            is in ``REPEAT + 1`` lifecycle environments and it has at least one
+            package.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -693,13 +695,13 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Give content view a puppet module. Publish
         and promote it once
 
-        @id: 1d56d5c7-aeb7-4d50-a1fd-43f462cae19c
+        :id: 1d56d5c7-aeb7-4d50-a1fd-43f462cae19c
 
-        @Assert: The content view has one puppet module, the content view
-        version is in ``Library + 1`` lifecycle environments and it has one
-        puppet module assigned too.
+        :Assert: The content view has one puppet module, the content view
+            version is in ``Library + 1`` lifecycle environments and it has one
+            puppet module assigned too.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -728,13 +730,13 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Give a content view a puppet module, publish it once and
         promote the content view version ``Library + random`` times.
 
-        @id: a01465b6-00e9-4a96-9ab5-269a270313cc
+        :id: a01465b6-00e9-4a96-9ab5-269a270313cc
 
-        @Assert: The content view has one puppet module, the content view
-        version is in ``Library + random`` lifecycle environments and it has
-        one puppet module.
+        :Assert: The content view has one puppet module, the content view
+            version is in ``Library + random`` lifecycle environments and it
+            has one puppet module.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         puppet_module = random.choice(
@@ -769,12 +771,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Create normal content view, publish and add it to a new
         composite content view
 
-        @id: 36894150-5321-4ffd-ab5a-a7ad01401cf4
+        :id: 36894150-5321-4ffd-ab5a-a7ad01401cf4
 
-        @Assert: Content view can be created and assigned to composite one
-        through content view versions mechanism
+        :Assert: Content view can be created and assigned to composite one
+            through content view versions mechanism
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -805,11 +807,11 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Attempt to associate components in a non-composite content
         view
 
-        @id: 60aa7a4e-df6e-407e-86c7-a4c540bda8b5
+        :id: 60aa7a4e-df6e-407e-86c7-a4c540bda8b5
 
-        @Assert: User cannot add components to the view
+        :Assert: User cannot add components to the view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.yum_repo]
@@ -831,12 +833,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Create empty composite view and assign one normal content
         view to it. After that promote that composite content view once.
 
-        @id: f25d2f64-8b42-42d2-b713-8827fa3a6a1b
+        :id: f25d2f64-8b42-42d2-b713-8827fa3a6a1b
 
-        @Assert: Composite content view version points to
-        ``Library + 1`` lifecycle environments after the promotions.
+        :Assert: Composite content view version points to ``Library + 1``
+            lifecycle environments after the promotions.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -856,12 +858,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         normal content views to it. After that promote that composite
         content view once.
 
-        @id: 20389383-7510-421c-803a-e73de9db941a
+        :id: 20389383-7510-421c-803a-e73de9db941a
 
-        @Assert: Composite content view version points to ``Library + 1``
-        lifecycle environments after the promotions.
+        :Assert: Composite content view version points to ``Library + 1``
+            lifecycle environments after the promotions.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -881,12 +883,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         view to it. After that promote that composite content view
         ``Library + random`` times.
 
-        @id: ba3b737c-365a-4a7b-9109-e6d52fd1c31f
+        :id: ba3b737c-365a-4a7b-9109-e6d52fd1c31f
 
-        @Assert: Composite content view version points to ``Library + random``
-        lifecycle environments after the promotions.
+        :Assert: Composite content view version points to ``Library + random``
+            lifecycle environments after the promotions.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -913,12 +915,12 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         normal content views to it. After that promote that composite content
         view ``Library + random`` times.
 
-        @id: 368811fe-f24a-48a5-b883-9c1d08a03d6b
+        :id: 368811fe-f24a-48a5-b883-9c1d08a03d6b
 
-        @Assert: Composite content view version points to
-        ``Library + random`` lifecycle environments after the promotions.
+        :Assert: Composite content view version points to ``Library + random``
+            lifecycle environments after the promotions.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         composite_cv = entities.ContentView(
             composite=True,
@@ -944,11 +946,11 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """Try to publish content view few times in a row and then re-promote
         first version to default environment
 
-        @id: 40d20aba-726f-48e3-93b7-fb1ab1851ac7
+        :id: 40d20aba-726f-48e3-93b7-fb1ab1851ac7
 
-        @Assert: Content view promoted out of sequence properly
+        :Assert: Content view promoted out of sequence properly
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         for _ in range(REPEAT):
@@ -986,9 +988,9 @@ class ContentViewUpdateTestCase(APITestCase):
     def test_positive_update_attributes(self):
         """Update a content view and provide valid attributes.
 
-        @id: 3f1457f2-586b-472c-8053-99017c4a4909
+        :id: 3f1457f2-586b-472c-8053-99017c4a4909
 
-        @Assert: The update succeeds.
+        :Assert: The update succeeds.
         """
         attrs = {'description': gen_utf8(), 'name': gen_utf8()}
         for key, value in attrs.items():
@@ -1002,10 +1004,9 @@ class ContentViewUpdateTestCase(APITestCase):
         """Create content view providing the initial name, then update
         its name to another valid name.
 
-        @id: 15e6fa3a-1a65-4e7d-8d32-3a81227ac1c8
+        :id: 15e6fa3a-1a65-4e7d-8d32-3a81227ac1c8
 
-        @Assert: Content View is created, and its name can be
-        updated.
+        :Assert: Content View is created, and its name can be updated.
         """
         for new_name in valid_data_list():
             with self.subTest(new_name):
@@ -1018,10 +1019,9 @@ class ContentViewUpdateTestCase(APITestCase):
         """Create content view then update its name to an
         invalid name.
 
-        @id: 69a2ce8d-19b2-49a3-97db-a1fdebbb16be
+        :id: 69a2ce8d-19b2-49a3-97db-a1fdebbb16be
 
-        @Assert: Content View is created, and its name is not
-        updated.
+        :Assert: Content View is created, and its name is not updated.
         """
         for new_name in invalid_names_list():
             with self.subTest(new_name):
@@ -1037,9 +1037,9 @@ class ContentViewUpdateTestCase(APITestCase):
     def test_negative_update_label(self):
         """Try to update a content view label with any value
 
-        @id: 77883887-800f-412f-91a3-b2f7ed999c70
+        :id: 77883887-800f-412f-91a3-b2f7ed999c70
 
-        @Assert: The content view label is immutable and cannot be modified
+        :Assert: The content view label is immutable and cannot be modified
         """
         with self.assertRaises(HTTPError):
             entities.ContentView(
@@ -1054,9 +1054,9 @@ class ContentViewDeleteTestCase(APITestCase):
     def test_positive_delete(self):
         """Create content view and then delete it.
 
-        @id: d582f1b3-8118-4e78-a639-237c6f9d27c6
+        :id: d582f1b3-8118-4e78-a639-237c6f9d27c6
 
-        @Assert: Content View is successfully deleted.
+        :Assert: Content View is successfully deleted.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1097,11 +1097,11 @@ class ContentViewRedHatContent(APITestCase):
     def test_positive_add_rh(self):
         """associate Red Hat content in a view
 
-        @id: f011a269-813d-4e82-afe8-f106b23cb03e
+        :id: f011a269-813d-4e82-afe8-f106b23cb03e
 
-        @Assert: RH Content assigned and present in a view
+        :Assert: RH Content assigned and present in a view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         self.assertEqual(len(content_view.repository), 0)
@@ -1117,12 +1117,11 @@ class ContentViewRedHatContent(APITestCase):
     def test_positive_add_rh_custom_spin(self):
         """Associate Red Hat content in a view and filter it using rule
 
-        @id: 30c3103d-9503-4501-8117-1f2d25353215
+        :id: 30c3103d-9503-4501-8117-1f2d25353215
 
-        @Assert: Filtered RH content is available and can be seen in a
-        view
+        :Assert: Filtered RH content is available and can be seen in a view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1150,12 +1149,11 @@ class ContentViewRedHatContent(APITestCase):
         """Edit content views for a custom rh spin.  For example,
         modify a filter
 
-        @id: 81d77ecd-8bac-44c6-8bc2-b6e38ad77a0b
+        :id: 81d77ecd-8bac-44c6-8bc2-b6e38ad77a0b
 
-        @assert: edited content view save is successful and info is
-        updated
+        :assert: edited content view save is successful and info is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1182,11 +1180,11 @@ class ContentViewRedHatContent(APITestCase):
     def test_positive_publish_rh(self):
         """Attempt to publish a content view containing Red Hat content
 
-        @id: 4f1698ef-a23b-48d6-be25-dbbf2d76c95c
+        :id: 4f1698ef-a23b-48d6-be25-dbbf2d76c95c
 
-        @Assert: Content view can be published
+        :Assert: Content view can be published
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1199,11 +1197,11 @@ class ContentViewRedHatContent(APITestCase):
         """Attempt to publish a content view containing Red Hat spin - i.e.,
         contains filters.
 
-        @id: 094a8c46-935b-4dbc-830e-19bec935276c
+        :id: 094a8c46-935b-4dbc-830e-19bec935276c
 
-        @Assert: Content view can be published
+        :Assert: Content view can be published
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1220,11 +1218,11 @@ class ContentViewRedHatContent(APITestCase):
     def test_positive_promote_rh(self):
         """Attempt to promote a content view containing Red Hat content
 
-        @id: 991dd9cc-5818-42dc-9098-66b312adfd97
+        :id: 991dd9cc-5818-42dc-9098-66b312adfd97
 
-        @Assert: Content view can be promoted
+        :Assert: Content view can be promoted
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1241,11 +1239,11 @@ class ContentViewRedHatContent(APITestCase):
         """Attempt to promote a content view containing Red Hat spin - i.e.,
         contains filters.
 
-        @id: 8331ba11-1742-425f-83b1-6b06c5785572
+        :id: 8331ba11-1742-425f-83b1-6b06c5785572
 
-        @Assert: Content view can be promoted
+        :Assert: Content view can be promoted
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1275,21 +1273,20 @@ class ContentViewRolesTestCase(APITestCase):
     def test_positive_admin_user_actions(self):
         """Attempt to manage content views
 
-        @id: 75b638af-d132-4b5e-b034-a373565c72b4
+        :id: 75b638af-d132-4b5e-b034-a373565c72b4
 
-        @steps:
-        with global admin account:
+        :steps: with global admin account:
 
-        1. create a user with all content views permissions
-        2. create lifecycle environment
-        3. create 2 content views (one to delete, the other to manage)
+            1. create a user with all content views permissions
+            2. create lifecycle environment
+            3. create 2 content views (one to delete, the other to manage)
 
-        @setup: create a user with all content views permissions
+        :setup: create a user with all content views permissions
 
-        @assert: The user can Read, Modify, Delete, Publish, Promote the
-        content views
+        :assert: The user can Read, Modify, Delete, Publish, Promote the
+            content views
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1338,18 +1335,18 @@ class ContentViewRolesTestCase(APITestCase):
     def test_positive_readonly_user_actions(self):
         """Attempt to view content views
 
-        @id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
+        :id: cdfd6e51-cd46-4afa-807c-98b2195fcf0e
 
-        @setup:
+        :setup:
 
-        1. create a user with the Content View read-only role
-        2. create content view
-        3. add a custom repository to content view
+            1. create a user with the Content View read-only role
+            2. create content view
+            3. add a custom repository to content view
 
-        @assert: User with read-only role for content view can view the
-        repository in the content view
+        :assert: User with read-only role for content view can view the
+            repository in the content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1398,18 +1395,18 @@ class ContentViewRolesTestCase(APITestCase):
     def test_negative_readonly_user_actions(self):
         """Attempt to manage content views
 
-        @id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
+        :id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
 
-        @setup:
+        :setup:
 
-        1. create a user with the Content View read-only role
-        2. create content view
-        3. add a custom repository to content view
+            1. create a user with the Content View read-only role
+            2. create content view
+            3. add a custom repository to content view
 
-        @assert: User with read only role for content view cannot Modify,
-        Delete, Publish, Promote the content views
+        :assert: User with read only role for content view cannot Modify,
+            Delete, Publish, Promote the content views
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1469,15 +1466,15 @@ class ContentViewRolesTestCase(APITestCase):
     def test_negative_non_readonly_user_actions(self):
         """Attempt to view content views
 
-        @id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
+        :id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
 
-        @setup: create a user with all Content View permissions except 'view'
-        role
+        :setup: create a user with all Content View permissions except 'view'
+            role
 
-        @assert: the user can perform different operations against content
-        view, but not read it
+        :assert: the user can perform different operations against content
+            view, but not read it
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -1562,11 +1559,11 @@ class OstreeContentViewTestCase(APITestCase):
     def test_positive_add_custom_ostree_content(self):
         """Associate custom ostree content in a view
 
-        @id: 209e59b0-c73d-4a5f-a1dc-0d74dff9a084
+        :id: 209e59b0-c73d-4a5f-a1dc-0d74dff9a084
 
-        @Assert: Custom ostree content assigned and present in content view
+        :Assert: Custom ostree content assigned and present in content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         self.assertEqual(len(content_view.repository), 0)
@@ -1583,11 +1580,11 @@ class OstreeContentViewTestCase(APITestCase):
     def test_positive_publish_custom_ostree(self):
         """Publish a content view with custom ostree contents
 
-        @id: e5f5c940-20e5-406f-9d27-a703195a3b88
+        :id: e5f5c940-20e5-406f-9d27-a703195a3b88
 
-        @Assert: Content-view with Custom ostree published successfully
+        :Assert: Content-view with Custom ostree published successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.ostree_repo]
@@ -1599,11 +1596,11 @@ class OstreeContentViewTestCase(APITestCase):
     def test_positive_promote_custom_ostree(self):
         """Promote a content view with custom ostree contents
 
-        @id: 3d9f3641-0776-45f7-bf1e-7d5779346b93
+        :id: 3d9f3641-0776-45f7-bf1e-7d5779346b93
 
-        @Assert: Content-view with custom ostree contents promoted successfully
+        :Assert: Content-view with custom ostree contents promoted successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.ostree_repo]
@@ -1618,12 +1615,12 @@ class OstreeContentViewTestCase(APITestCase):
     def test_positive_publish_promote_with_custom_ostree_and_other(self):
         """Publish & Promote a content view with custom ostree and other contents
 
-        @id: 690ec30a-56ac-4478-afb2-be34a85a614a
+        :id: 690ec30a-56ac-4478-afb2-be34a85a614a
 
-        @Assert: Content-view with custom ostree and other contents promoted
-        successfully
+        :Assert: Content-view with custom ostree and other contents promoted
+            successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [
@@ -1682,11 +1679,11 @@ class ContentViewRedHatOstreeContent(APITestCase):
     def test_positive_add_rh_ostree_content(self):
         """Associate RH atomic ostree content in a view
 
-        @id: 81883f05-e47f-45fa-bea4-c733da9cf30c
+        :id: 81883f05-e47f-45fa-bea4-c733da9cf30c
 
-        @Assert: RH atomic ostree content assigned and present in content view
+        :Assert: RH atomic ostree content assigned and present in content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         self.assertEqual(len(content_view.repository), 0)
@@ -1702,11 +1699,11 @@ class ContentViewRedHatOstreeContent(APITestCase):
     def test_positive_publish_RH_ostree(self):
         """Publish a content view with RH ostree contents
 
-        @id: 067ebb6e-2dad-4932-ae84-64c4373c9cb8
+        :id: 067ebb6e-2dad-4932-ae84-64c4373c9cb8
 
-        @Assert: Content-view with RH ostree contents published successfully
+        :Assert: Content-view with RH ostree contents published successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1718,11 +1715,11 @@ class ContentViewRedHatOstreeContent(APITestCase):
     def test_positive_promote_RH_ostree(self):
         """Promote a content view with RH ostree contents
 
-        @id: 447a96e0-331b-447c-9a8d-423d1b22ef6a
+        :id: 447a96e0-331b-447c-9a8d-423d1b22ef6a
 
-        @Assert: Content-view with RH ostree contents promoted successfully
+        :Assert: Content-view with RH ostree contents promoted successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.repository = [self.repo]
@@ -1737,12 +1734,12 @@ class ContentViewRedHatOstreeContent(APITestCase):
     def test_positive_publish_promote_with_RH_ostree_and_other(self):
         """Publish & Promote a content view with RH ostree and other contents
 
-        @id: def6caa3-ac31-42fa-9579-39a18b8244bd
+        :id: def6caa3-ac31-42fa-9579-39a18b8244bd
 
-        @Assert: Content-view with RH ostree and other contents promoted
-        successfully
+        :Assert: Content-view with RH ostree and other contents promoted
+            successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',

@@ -1,18 +1,18 @@
 """CLI tests for ``hammer host``.
 
-@Requirement: Host
+:Requirement: Host
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from random import choice
 
@@ -145,9 +145,9 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """A host can be created with a random name
 
-        @id: 2e8dd25d-47ed-4131-bba6-1ff024808d05
+        :id: 2e8dd25d-47ed-4131-bba6-1ff024808d05
 
-        @assert: A host is created and the name matches
+        :assert: A host is created and the name matches
         """
         for name in valid_hosts_list():
             with self.subTest(name):
@@ -178,9 +178,9 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_with_org_name(self):
         """Check if host can be created with organization name
 
-        @id: c08b0dac-9820-4261-bb0b-8a78f5c78a74
+        :id: c08b0dac-9820-4261-bb0b-8a78f5c78a74
 
-        @Assert: Host is created using organization name
+        :Assert: Host is created using organization name
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
@@ -195,9 +195,9 @@ class HostCreateTestCase(CLITestCase):
         """Check if host can be created with default content view ('Default
         Organization View')
 
-        @id: bb69a70e-17f9-4639-802d-90e6a4520afa
+        :id: bb69a70e-17f9-4639-802d-90e6a4520afa
 
-        @Assert: Host is created, default content view is associated
+        :Assert: Host is created, default content view is associated
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
@@ -215,9 +215,9 @@ class HostCreateTestCase(CLITestCase):
         """Check if host can be created with default lifecycle environment
         ('Library')
 
-        @id: 0093be1c-3664-448e-87f5-758bab34958a
+        :id: 0093be1c-3664-448e-87f5-758bab34958a
 
-        @Assert: Host is created, default lifecycle environment is associated
+        :Assert: Host is created, default lifecycle environment is associated
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
@@ -234,9 +234,9 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_with_lce(self):
         """Check if host can be created with new lifecycle
 
-        @id: e102b034-0011-471d-ba21-5ef8d129a61f
+        :id: e102b034-0011-471d-ba21-5ef8d129a61f
 
-        @Assert: Host is created using new lifecycle
+        :Assert: Host is created using new lifecycle
         """
         new_host = make_fake_host({
             'content-view-id': self.promoted_cv['id'],
@@ -253,9 +253,9 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_with_cv(self):
         """Check if host can be created with new content view
 
-        @id: f90873b9-fb3a-4c93-8647-4b1aea0a2c35
+        :id: f90873b9-fb3a-4c93-8647-4b1aea0a2c35
 
-        @Assert: Host is created using new published, promoted cv
+        :Assert: Host is created using new published, promoted cv
         """
         new_host = make_fake_host({
             'content-view-id': self.promoted_cv['id'],
@@ -271,9 +271,9 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_with_puppet_class_id(self):
         """Check if host can be created with puppet class id
 
-        @id: 6bb1bbdc-23fd-4493-9283-fbb70d72b2eb
+        :id: 6bb1bbdc-23fd-4493-9283-fbb70d72b2eb
 
-        @Assert: Host is created and has puppet class assigned
+        :Assert: Host is created and has puppet class assigned
         """
         host = make_fake_host({
             'puppet-class-ids': self.puppet_class['id'],
@@ -289,9 +289,9 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_with_puppet_class_name(self):
         """Check if host can be created with puppet class name
 
-        @id: a65df36e-db4b-48d2-b0e1-5ccfbefd1e7a
+        :id: a65df36e-db4b-48d2-b0e1-5ccfbefd1e7a
 
-        @Assert: Host is created and has puppet class assigned
+        :Assert: Host is created and has puppet class assigned
         """
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
@@ -307,9 +307,9 @@ class HostCreateTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Check if host can be created with random long names
 
-        @id: f92b6070-b2d1-4e3e-975c-39f1b1096697
+        :id: f92b6070-b2d1-4e3e-975c-39f1b1096697
 
-        @Assert: Host is not created
+        :Assert: Host is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -326,9 +326,9 @@ class HostCreateTestCase(CLITestCase):
     def test_negative_create_with_unpublished_cv(self):
         """Check if host can be created using unpublished cv
 
-        @id: 9997383d-3c27-4f14-94f9-4b8b51180eb6
+        :id: 9997383d-3c27-4f14-94f9-4b8b51180eb6
 
-        @Assert: Host is not created using new unpublished cv
+        :Assert: Host is not created using new unpublished cv
         """
         cv = make_content_view({'organization-id': self.new_org['id']})
         env = self.new_lce['id']
@@ -343,11 +343,11 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_register_with_no_ak(self):
         """Register host to satellite without activation key
 
-        @id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
+        :id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
 
-        @Assert: Host successfully registered to appropriate org
+        :Assert: Host successfully registered to appropriate org
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
@@ -362,11 +362,11 @@ class HostCreateTestCase(CLITestCase):
     def test_negative_register_twice(self):
         """Attempt to register a host twice to Satellite
 
-        @id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
+        :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
 
-        @Assert: host cannot be registered twice
+        :Assert: host cannot be registered twice
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         activation_key = make_activation_key({
             'content-view-id': self.promoted_cv['id'],
@@ -395,11 +395,11 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_list_scparams_by_id(self):
         """List all smart class parameters using host id
 
-        @id: 596322f6-9fdc-441a-a36d-ae2f22132b38
+        :id: 596322f6-9fdc-441a-a36d-ae2f22132b38
 
-        @Assert: Overridden sc-param from puppet class is listed
+        :Assert: Overridden sc-param from puppet class is listed
 
-        @Caselevel: Integration
+        :Caselevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -422,11 +422,11 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_list_scparams_by_name(self):
         """List all smart class parameters using host name
 
-        @id: 26e406ea-56f5-4813-bb93-e908c9015ee3
+        :id: 26e406ea-56f5-4813-bb93-e908c9015ee3
 
-        @Assert: Overridden sc-param from puppet class is listed
+        :Assert: Overridden sc-param from puppet class is listed
 
-        @Caselevel: Integration
+        :Caselevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -449,11 +449,11 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_list_smartvariables_by_id(self):
         """List all smart variables using host id
 
-        @id: 22d85dea-0fc0-47c2-8f38-c6f6712dad7e
+        :id: 22d85dea-0fc0-47c2-8f38-c6f6712dad7e
 
-        @Assert: Smart variable from puppet class is listed
+        :Assert: Smart variable from puppet class is listed
 
-        @Caselevel: Integration
+        :Caselevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -473,11 +473,11 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_list_smartvariables_by_name(self):
         """List all smart variables using host name
 
-        @id: a254d3a6-cf7f-4847-acb6-9813d23369d4
+        :id: a254d3a6-cf7f-4847-acb6-9813d23369d4
 
-        @Assert: Smart variable from puppet class is listed
+        :Assert: Smart variable from puppet class is listed
 
-        @Caselevel: Integration
+        :Caselevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -496,11 +496,11 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_list(self):
         """List hosts for a given org
 
-        @id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
+        :id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
 
-        @Assert: Hosts are listed for the given org
+        :Assert: Hosts are listed for the given org
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         activation_key = make_activation_key({
             'content-view-id': self.promoted_cv['id'],
@@ -524,12 +524,12 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_unregister(self):
         """Unregister a host
 
-        @id: c5ce988d-d0ea-4958-9956-5a4b039b285c
+        :id: c5ce988d-d0ea-4958-9956-5a4b039b285c
 
-        @Assert: Host is successfully unregistered. Unlike content host, host
-        has not disappeared from list of hosts after unregistering.
+        :Assert: Host is successfully unregistered. Unlike content host, host
+            has not disappeared from list of hosts after unregistering.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         activation_key = make_activation_key({
             'content-view-id': self.promoted_cv['id'],
@@ -561,9 +561,9 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_using_libvirt_without_mac(self):
         """Create a libvirt host and not specify a MAC address.
 
-        @id: b003faa9-2810-4176-94d2-ea84bed248eb
+        :id: b003faa9-2810-4176-94d2-ea84bed248eb
 
-        @Assert: Host is created
+        :Assert: Host is created
         """
         compute_resource = entities.LibvirtComputeResource(
             url='qemu+ssh://root@{0}/system'.format(
@@ -595,14 +595,14 @@ class HostCreateTestCase(CLITestCase):
         """Create a host with hostgroup specified. Make sure host inherited
         hostgroup's lifecycle environment and content-view
 
-        @id: ba73b8c8-3ce1-4fa8-a33b-89ded9ffef47
+        :id: ba73b8c8-3ce1-4fa8-a33b-89ded9ffef47
 
-        @Assert: Host's lifecycle environment and content view match the ones
-        specified in hostgroup
+        :Assert: Host's lifecycle environment and content view match the ones
+            specified in hostgroup
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1391656
+        :BZ: 1391656
         """
         hostgroup = make_hostgroup({
             'content-view-id': self.new_cv['id'],
@@ -628,22 +628,19 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_baremetal_with_bios(self):
         """Create a new Host from provided MAC address
 
-        @id: 01509973-9f0b-4166-9fbd-59b753a7384b
+        :id: 01509973-9f0b-4166-9fbd-59b753a7384b
 
-        @setup:
+        :setup: Create a PXE-based VM with BIOS boot mode (outside of
+            Satellite).
 
-        1. Create a PXE-based VM with BIOS boot mode (outside of Satellite).
+        :steps: Create a new host using 'BareMetal' option and MAC address of
+            the pre-created VM
 
-        @steps:
+        :assert: Host is created
 
-        1. Create a new host using 'BareMetal' option and MAC address of the
-        pre-created VM
+        :caseautomation: notautomated
 
-        @assert: Host is created
-
-        @caseautomation: notautomated
-
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -652,22 +649,19 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_baremetal_with_uefi(self):
         """Create a new Host from provided MAC address
 
-        @id: 508b268b-244d-4bf0-a92a-fbee96e7e8ae
+        :id: 508b268b-244d-4bf0-a92a-fbee96e7e8ae
 
-        @setup:
+        :setup: Create a PXE-based VM with UEFI boot mode (outside of
+            Satellite).
 
-        1. Create a PXE-based VM with UEFI boot mode (outside of Satellite).
+        :steps: Create a new host using 'BareMetal' option and MAC address of
+            the pre-created VM
 
-        @steps:
+        :assert: Host is created
 
-        1. Create a new host using 'BareMetal' option and MAC address of the
-        pre-created VM
+        :caseautomation: notautomated
 
-        @assert: Host is created
-
-        @caseautomation: notautomated
-
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -677,27 +671,27 @@ class HostCreateTestCase(CLITestCase):
         """Provision a new Host and verify the tftp and dhcp file structure is
         correct
 
-        @id: 8b4f5bb3-d949-4000-bc97-2be85c4f57be
+        :id: 8b4f5bb3-d949-4000-bc97-2be85c4f57be
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub UEFI
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub UEFI
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            grub/bootia32.efi
-            grub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                grub/bootia32.efi
+                grub/bootx64.efi
+                grub/01-AA-BB-CC-DD-EE-FF
+                grub/efidefault
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -708,27 +702,27 @@ class HostCreateTestCase(CLITestCase):
         correct
 
 
-        @id: a5482ecd-7bb8-4fda-9a74-f17751e11daf
+        :id: a5482ecd-7bb8-4fda-9a74-f17751e11daf
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub UEFI SecureBoot
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub UEFI SecureBoot
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            grub/bootia32.efi
-            grub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                grub/bootia32.efi
+                grub/bootx64.efi
+                grub/01-AA-BB-CC-DD-EE-FF
+                grub/efidefault
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -738,28 +732,28 @@ class HostCreateTestCase(CLITestCase):
         """Provision a new UEFI Host and verify the tftp and dhcp file
         structure is correct
 
-        @id: ce1acb0b-ff2e-4622-9e69-e3c0c4fdc466
+        :id: ce1acb0b-ff2e-4622-9e69-e3c0c4fdc466
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub2 UEFI
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub2 UEFI
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            pxegrub2
-            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-            grub2/grub.cfg
-            grub2/grubx32.efi
-            grub2/grubx64.efi
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                pxegrub2
+                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+                grub2/grub.cfg
+                grub2/grubx32.efi
+                grub2/grubx64.efi
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -769,28 +763,28 @@ class HostCreateTestCase(CLITestCase):
         """Provision a new UEFI Host and verify the tftp and dhcp file
         structure is correct
 
-        @id: 6811e0b0-154a-4af6-80c0-86009672a965
+        :id: 6811e0b0-154a-4af6-80c0-86009672a965
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub2 UEFI SecureBoot
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub2 UEFI SecureBoot
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            pxegrub2
-            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-            grub2/grub.cfg
-            grub2/grubx32.efi
-            grub2/grubx64.efi
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                pxegrub2
+                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+                grub2/grub.cfg
+                grub2/grubx32.efi
+                grub2/grubx64.efi
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
 
@@ -827,9 +821,9 @@ class HostDeleteTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create a host and then delete it by id.
 
-        @id: e687a685-ab8b-4c5f-97f9-e14d3ab52f29
+        :id: e687a685-ab8b-4c5f-97f9-e14d3ab52f29
 
-        @Assert: Host is deleted
+        :Assert: Host is deleted
         """
         Host.delete({'id': self.host['id']})
         with self.assertRaises(CLIReturnCodeError):
@@ -839,9 +833,9 @@ class HostDeleteTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Create a host and then delete it by name.
 
-        @id: 93f7504d-9a63-491f-8fdb-ed8017aefab9
+        :id: 93f7504d-9a63-491f-8fdb-ed8017aefab9
 
-        @Assert: Host is deleted
+        :Assert: Host is deleted
         """
         Host.delete({'name': self.host['name']})
         with self.assertRaises(CLIReturnCodeError):
@@ -884,9 +878,9 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random name. Use id to
         access the host
 
-        @id: 058dbcbf-d543-483d-b755-be0602588464
+        :id: 058dbcbf-d543-483d-b755-be0602588464
 
-        @assert: A host is updated and the name matches
+        :assert: A host is updated and the name matches
         """
         for new_name in valid_hosts_list():
             with self.subTest(new_name):
@@ -907,9 +901,9 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random name. Use name to
         access the host
 
-        @id: f95a5952-17bd-49da-b2a7-c79f0614f1c7
+        :id: f95a5952-17bd-49da-b2a7-c79f0614f1c7
 
-        @assert: A host is updated and the name matches
+        :assert: A host is updated and the name matches
         """
         for new_name in valid_hosts_list():
             with self.subTest(new_name):
@@ -931,9 +925,9 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random MAC address. Use id
         to access the host
 
-        @id: 72ed9ae8-989a-46d1-8b7d-46f5db106e75
+        :id: 72ed9ae8-989a-46d1-8b7d-46f5db106e75
 
-        @assert: A host is updated and the MAC address matches
+        :assert: A host is updated and the MAC address matches
         """
         new_mac = gen_mac()
         Host.update({
@@ -948,9 +942,9 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random MAC address. Use name
         to access the host
 
-        @id: a422788d-5473-4846-a86b-90d8f236285a
+        :id: a422788d-5473-4846-a86b-90d8f236285a
 
-        @assert: A host is updated and the MAC address matches
+        :assert: A host is updated and the MAC address matches
         """
         new_mac = gen_mac()
         Host.update({
@@ -965,11 +959,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new domain. Use entities ids for
         association
 
-        @id: 3aac0896-d16a-46ee-afe9-2d3ecea6ca9b
+        :id: 3aac0896-d16a-46ee-afe9-2d3ecea6ca9b
 
-        @assert: A host is updated and the domain matches
+        :assert: A host is updated and the domain matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_domain = make_domain({
             'location-id': self.host_args.location.id,
@@ -987,11 +981,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new domain. Use entities names
         for association
 
-        @id: 9b4fb1b9-a226-4b8a-bfaf-1121de7df5bc
+        :id: 9b4fb1b9-a226-4b8a-bfaf-1121de7df5bc
 
-        @assert: A host is updated and the domain matches
+        :assert: A host is updated and the domain matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_domain = make_domain({
             'location': self.host_args.location.name,
@@ -1014,11 +1008,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new environment. Use entities
         ids for association
 
-        @id: 4e1d1e31-fa84-43e4-9e66-7fb953767ee5
+        :id: 4e1d1e31-fa84-43e4-9e66-7fb953767ee5
 
-        @assert: A host is updated and the environment matches
+        :assert: A host is updated and the environment matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_env = make_environment({
             'location-id': self.host_args.location.id,
@@ -1036,11 +1030,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new environment. Use entities
         names for association
 
-        @id: f0ec469a-7550-4f05-b39c-e68b9267247d
+        :id: f0ec469a-7550-4f05-b39c-e68b9267247d
 
-        @assert: A host is updated and the environment matches
+        :assert: A host is updated and the environment matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_env = make_environment({
             'location': self.host_args.location.name,
@@ -1058,11 +1052,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new architecture. Use entities
         ids for association
 
-        @id: a4546fd6-997a-44e4-853a-eac235ea87b0
+        :id: a4546fd6-997a-44e4-853a-eac235ea87b0
 
-        @assert: A host is updated and the architecture matches
+        :assert: A host is updated and the architecture matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location-id': self.host_args.location.id,
@@ -1085,11 +1079,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new architecture. Use entities
         names for association
 
-        @id: 92da3782-47db-4701-aaab-3ea974043d20
+        :id: 92da3782-47db-4701-aaab-3ea974043d20
 
-        @assert: A host is updated and the architecture matches
+        :assert: A host is updated and the architecture matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location': self.host_args.location.name,
@@ -1112,11 +1106,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new operating system. Use
         entities ids for association
 
-        @id: 9ea88634-9c14-4519-be6e-fb163897efb7
+        :id: 9ea88634-9c14-4519-be6e-fb163897efb7
 
-        @assert: A host is updated and the operating system matches
+        :assert: A host is updated and the operating system matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_os = make_os({
             'architecture-ids': self.host_args.architecture.id,
@@ -1139,11 +1133,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new operating system. Use
         entities names for association
 
-        @id: bd48887f-3db3-47b0-8231-de58884efe57
+        :id: bd48887f-3db3-47b0-8231-de58884efe57
 
-        @assert: A host is updated and the operating system matches
+        :assert: A host is updated and the operating system matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_os = make_os({
             'architectures': self.host_args.architecture.name,
@@ -1167,11 +1161,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new medium. Use entities ids for
         association
 
-        @id: 899f1eef-07a9-4227-848a-92e377a8d55c
+        :id: 899f1eef-07a9-4227-848a-92e377a8d55c
 
-        @assert: A host is updated and the medium matches
+        :assert: A host is updated and the medium matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_medium = make_medium({
             'location-id': self.host_args.location.id,
@@ -1195,11 +1189,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new medium. Use entities names
         for association
 
-        @id: f47edb02-d649-4ca8-94b2-0637ebdac2e8
+        :id: f47edb02-d649-4ca8-94b2-0637ebdac2e8
 
-        @assert: A host is updated and the medium matches
+        :assert: A host is updated and the medium matches
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_medium = make_medium({
             'location': self.host_args.location.name,
@@ -1222,9 +1216,9 @@ class HostUpdateTestCase(CLITestCase):
     def test_negative_update_name(self):
         """A host can not be updated with invalid or empty name
 
-        @id: e8068d2a-6a51-4627-908b-60a516c67032
+        :id: e8068d2a-6a51-4627-908b-60a516c67032
 
-        @assert: A host is not updated
+        :assert: A host is not updated
         """
         for new_name in invalid_values_list():
             with self.subTest(new_name):
@@ -1246,9 +1240,9 @@ class HostUpdateTestCase(CLITestCase):
     def test_negative_update_mac(self):
         """A host can not be updated with invalid or empty MAC address
 
-        @id: 2f03032d-789d-419f-9ff2-a6f3561444da
+        :id: 2f03032d-789d-419f-9ff2-a6f3561444da
 
-        @assert: A host is not updated
+        :assert: A host is not updated
         """
         for new_mac in invalid_values_list():
             with self.subTest(new_mac):
@@ -1265,11 +1259,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can not be updated with a architecture, which does not
         belong to host's operating system
 
-        @id: a86524da-8caf-472b-9a3d-17a4385c3a18
+        :id: a86524da-8caf-472b-9a3d-17a4385c3a18
 
-        @assert: A host is not updated
+        :assert: A host is not updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location': self.host_args.location.name,
@@ -1289,11 +1283,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can not be updated with a operating system, which is
         not associated with host's medium
 
-        @id: ff13d2af-e54a-4daf-a24d-7ec930b4fbbe
+        :id: ff13d2af-e54a-4daf-a24d-7ec930b4fbbe
 
-        @assert: A host is not updated
+        :assert: A host is not updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location': self.host_args.location.name,
@@ -1349,9 +1343,9 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_add_parameter_with_name(self):
         """Add host parameter with different valid names.
 
-        @id: 67b1c496-8f33-4a34-aebb-7339bc33ce77
+        :id: 67b1c496-8f33-4a34-aebb-7339bc33ce77
 
-        @Assert: Host parameter was successfully added with correct name.
+        :Assert: Host parameter was successfully added with correct name.
 
         """
         for name in valid_data_list():
@@ -1369,9 +1363,9 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_add_parameter_with_value(self):
         """Add host parameter with different valid values.
 
-        @id: 1932b61d-8be4-4f58-9760-dc588cbca1d7
+        :id: 1932b61d-8be4-4f58-9760-dc588cbca1d7
 
-        @Assert: Host parameter was successfully added with value.
+        :Assert: Host parameter was successfully added with value.
 
         """
         for value in valid_data_list():
@@ -1390,11 +1384,10 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_add_parameter_by_host_name(self):
         """Add host parameter by specifying host name.
 
-        @id: 32b09b07-39de-4706-ac5e-75a54255df17
+        :id: 32b09b07-39de-4706-ac5e-75a54255df17
 
-        @Assert: Host parameter was successfully added with correct name and
-        value.
-
+        :Assert: Host parameter was successfully added with correct name and
+            value.
         """
         name = gen_string('alphanumeric').lower()
         value = gen_string('alphanumeric')
@@ -1411,9 +1404,9 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_update_parameter_by_host_id(self):
         """Update existing host parameter by specifying host ID.
 
-        @id: 56c43ab4-7fb0-44f5-9d54-107d3c1011bf
+        :id: 56c43ab4-7fb0-44f5-9d54-107d3c1011bf
 
-        @Assert: Host parameter was successfully updated with new value.
+        :Assert: Host parameter was successfully updated with new value.
 
         """
         name = gen_string('alphanumeric').lower()
@@ -1438,9 +1431,9 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_update_parameter_by_host_name(self):
         """Update existing host parameter by specifying host name.
 
-        @id: 24bcc8a4-7787-4fa8-9bf8-dfc5e697684f
+        :id: 24bcc8a4-7787-4fa8-9bf8-dfc5e697684f
 
-        @Assert: Host parameter was successfully updated with new value.
+        :Assert: Host parameter was successfully updated with new value.
 
         """
         name = gen_string('alphanumeric').lower()
@@ -1465,9 +1458,9 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_delete_parameter_by_host_id(self):
         """Delete existing host parameter by specifying host ID.
 
-        @id: a52da845-0403-4b66-9e83-6065f7d4551d
+        :id: a52da845-0403-4b66-9e83-6065f7d4551d
 
-        @Assert: Host parameter was successfully deleted.
+        :Assert: Host parameter was successfully deleted.
 
         """
         for name in valid_data_list():
@@ -1489,9 +1482,9 @@ class HostParameterTestCase(CLITestCase):
     def test_posistive_delete_parameter_by_host_name(self):
         """Delete existing host parameter by specifying host name.
 
-        @id: d28cbbba-d296-49c7-91f5-8fb63a80d82c
+        :id: d28cbbba-d296-49c7-91f5-8fb63a80d82c
 
-        @Assert: Host parameter was successfully deleted.
+        :Assert: Host parameter was successfully deleted.
 
         """
         for name in valid_data_list():
@@ -1513,9 +1506,9 @@ class HostParameterTestCase(CLITestCase):
     def test_negative_add_parameter(self):
         """Try to add host parameter with different invalid names.
 
-        @id: 473f8c3f-b66e-4526-88af-e139cc3dabcb
+        :id: 473f8c3f-b66e-4526-88af-e139cc3dabcb
 
-        @Assert: Host parameter was not added.
+        :Assert: Host parameter was not added.
 
         """
         for name in invalid_values_list():
@@ -1603,12 +1596,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_get_errata_info(self):
         """Get errata info
 
-        @id: afb5ab34-1703-49dc-8ddc-5e032c1b86d7
+        :id: afb5ab34-1703-49dc-8ddc-5e032c1b86d7
 
-        @Assert: Errata info was displayed
+        :Assert: Errata info was displayed
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
@@ -1626,12 +1619,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_apply_errata(self):
         """Apply errata to a host
 
-        @id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
+        :id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
 
-        @Assert: Errata is scheduled for installation
+        :Assert: Errata is scheduled for installation
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
@@ -1647,12 +1640,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_install_package(self):
         """Install a package to a host remotely
 
-        @id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
+        :id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
 
-        @Assert: Package was successfully installed
+        :Assert: Package was successfully installed
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         Host.package_install({
             u'host-id': self.host['id'],
@@ -1668,12 +1661,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_remove_package(self):
         """Remove a package from a host remotely
 
-        @id: 573dec11-8f14-411f-9e41-84426b0f23b5
+        :id: 573dec11-8f14-411f-9e41-84426b0f23b5
 
-        @Assert: Package was successfully removed
+        :Assert: Package was successfully removed
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
@@ -1693,12 +1686,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_upgrade_package(self):
         """Upgrade a host package remotely
 
-        @id: ad751c63-7175-40ae-8bc4-800462cd9c29
+        :id: ad751c63-7175-40ae-8bc4-800462cd9c29
 
-        @Assert: Package was successfully upgraded
+        :Assert: Package was successfully upgraded
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         Host.package_upgrade({
@@ -1713,13 +1706,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_upgrade_packages_all(self):
         """Upgrade all the host packages remotely
 
-        @id: 003101c7-bb95-4e51-a598-57977b2858a9
+        :id: 003101c7-bb95-4e51-a598-57977b2858a9
 
-        @Assert: Packages (at least 1 with newer version available) were
-        successfully upgraded
+        :Assert: Packages (at least 1 with newer version available) were
+            successfully upgraded
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         Host.package_upgrade_all({'host-id': self.host['id']})
@@ -1731,12 +1723,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_install_package_group(self):
         """Install a package group to a host remotely
 
-        @id: 8c28c188-2903-44d1-ab1e-b74f6d6affcf
+        :id: 8c28c188-2903-44d1-ab1e-b74f6d6affcf
 
-        @Assert: Package group was successfully installed
+        :Assert: Package group was successfully installed
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         Host.package_group_install({
             u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -1751,12 +1743,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_remove_package_group(self):
         """Remove a package group from a host remotely
 
-        @id: c80dbeff-93b4-4cd4-8fae-6a4d1bfc94f0
+        :id: c80dbeff-93b4-4cd4-8fae-6a4d1bfc94f0
 
-        @Assert: Package group was successfully removed
+        :Assert: Package group was successfully removed
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         hammer_args = {
             u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -1773,11 +1765,11 @@ class KatelloAgentTestCase(CLITestCase):
         """Attempt to retrieve content after host has been unregistered from
         Satellite
 
-        @id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
+        :id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
 
-        @assert: Host can no longer retrieve content from satellite
+        :assert: Host can no longer retrieve content from satellite
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         result = self.client.run('subscription-manager unregister')
         self.assertEqual(result.return_code, 0)
@@ -1793,11 +1785,11 @@ class HostErrataTestCase(CLITestCase):
     def test_positive_errata_list_of_sat_server(self):
         """Check if errata list doesn't raise exception. Check BZ for details.
 
-        @id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
+        :id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
 
-        @assert: Satellite host errata list not failing
+        :assert: Satellite host errata list not failing
 
-        @BZ: 1351040
+        :BZ: 1351040
         """
         hostname = ssh.command('hostname').stdout[0]
         host = Host.info({'name': hostname})

@@ -1,18 +1,18 @@
 """Test class for Compute Profile UI
 
-@Requirement: Computeprofile
+:Requirement: Computeprofile
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -35,9 +35,9 @@ class ComputeProfileTestCase(UITestCase):
     def test_positive_create(self):
         """Create new Compute Profile using different names
 
-        @id: 138a3e6f-7eb5-4204-b48d-edc6ce363576
+        :id: 138a3e6f-7eb5-4204-b48d-edc6ce363576
 
-        @Assert: Compute Profile is created
+        :Assert: Compute Profile is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -49,9 +49,9 @@ class ComputeProfileTestCase(UITestCase):
     def test_negative_create(self):
         """Attempt to create Compute Profile using invalid names only
 
-        @id: 6da73996-c235-45ee-a11e-5b4f0ae75d93
+        :id: 6da73996-c235-45ee-a11e-5b4f0ae75d93
 
-        @Assert: Compute Profile is not created
+        :Assert: Compute Profile is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -64,9 +64,9 @@ class ComputeProfileTestCase(UITestCase):
     def test_positive_update(self):
         """Update selected Compute Profile entity using proper names
 
-        @id: b6dac9a4-8c5d-44d4-91e4-be2813e3ea50
+        :id: b6dac9a4-8c5d-44d4-91e4-be2813e3ea50
 
-        @Assert: Compute Profile is updated.
+        :Assert: Compute Profile is updated.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -82,9 +82,9 @@ class ComputeProfileTestCase(UITestCase):
     def test_negative_update(self):
         """Attempt to update Compute Profile entity using invalid names only
 
-        @id: cf7d46c2-6edc-43be-b5d4-ba92f10b921b
+        :id: cf7d46c2-6edc-43be-b5d4-ba92f10b921b
 
-        @Assert: Compute Profile is not updated.
+        :Assert: Compute Profile is not updated.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -100,9 +100,9 @@ class ComputeProfileTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete Compute Profile entity
 
-        @id: 9029b8ec-44c3-4f41-9ea0-0c13c2add76c
+        :id: 9029b8ec-44c3-4f41-9ea0-0c13c2add76c
 
-        @Assert: Compute Profile is deleted successfully.
+        :Assert: Compute Profile is deleted successfully.
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=7):

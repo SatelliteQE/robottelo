@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Subnet UI
 
-@Requirement: Subnet
+:Requirement: Subnet
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
@@ -44,9 +44,9 @@ class SubnetTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new subnet using different names
 
-        @id: 2318f13c-db38-4919-831f-667fc6e2e7bf
+        :id: 2318f13c-db38-4919-831f-667fc6e2e7bf
 
-        @Assert: Subnet is created
+        :Assert: Subnet is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -64,9 +64,9 @@ class SubnetTestCase(UITestCase):
     def test_positive_create_with_long_name(self):
         """Create new subnet with 255 characters in name
 
-        @id: b86772ad-a8ff-4c2b-93f4-4a715e4da59b
+        :id: b86772ad-a8ff-4c2b-93f4-4a715e4da59b
 
-        @Assert: Subnet is created with 255 chars
+        :Assert: Subnet is created with 255 chars
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -85,11 +85,11 @@ class SubnetTestCase(UITestCase):
     def test_positive_add_domain(self):
         """Create new subnet and associate domain with it
 
-        @id: adbc7189-b451-49df-aa10-2ae732832dfe
+        :id: adbc7189-b451-49df-aa10-2ae732832dfe
 
-        @Assert: Subnet is created with domain associated
+        :Assert: Subnet is created with domain associated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         domain = entities.Domain(
@@ -122,9 +122,9 @@ class SubnetTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create new subnet with invalid names
 
-        @id: d53056ad-a219-40d5-b20e-95ad343c9d38
+        :id: d53056ad-a219-40d5-b20e-95ad343c9d38
 
-        @Assert: Subnet is not created
+        :Assert: Subnet is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -143,9 +143,9 @@ class SubnetTestCase(UITestCase):
     def test_negative_create_with_invalid_params(self):
         """Create new subnet with negative values
 
-        @id: 5caa6aed-2bba-43d8-bb40-2d80b9d42b69
+        :id: 5caa6aed-2bba-43d8-bb40-2d80b9d42b69
 
-        @Assert: Subnet is not created
+        :Assert: Subnet is not created
         """
         with Session(self.browser) as session:
             make_subnet(
@@ -173,9 +173,9 @@ class SubnetTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing subnet
 
-        @id: cb1265de-a0ed-40b7-ba25-fe92251b9001
+        :id: cb1265de-a0ed-40b7-ba25-fe92251b9001
 
-        @Assert: Subnet is deleted
+        :Assert: Subnet is deleted
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -194,9 +194,9 @@ class SubnetTestCase(UITestCase):
         """Delete subnet. Attempt to delete subnet, but cancel in the
         confirmation dialog box.
 
-        @id: 9eed9020-8d13-4ba0-909a-db44ad0aecb6
+        :id: 9eed9020-8d13-4ba0-909a-db44ad0aecb6
 
-        @Assert: Subnet is not deleted
+        :Assert: Subnet is not deleted
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -213,9 +213,9 @@ class SubnetTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update Subnet name
 
-        @id: ec9f11e3-27a7-45d8-91fe-f04c20b595bc
+        :id: ec9f11e3-27a7-45d8-91fe-f04c20b595bc
 
-        @Assert: Subnet name is updated
+        :Assert: Subnet name is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -237,9 +237,9 @@ class SubnetTestCase(UITestCase):
     def test_positive_update_network(self):
         """Update Subnet network
 
-        @id: f79d3b1b-6101-4009-88ad-b259d4794e6c
+        :id: f79d3b1b-6101-4009-88ad-b259d4794e6c
 
-        @Assert: Subnet network is updated
+        :Assert: Subnet network is updated
         """
         name = gen_string('alpha')
         new_network = gen_ipaddr(ip3=True)
@@ -259,9 +259,9 @@ class SubnetTestCase(UITestCase):
     def test_positive_update_mask(self):
         """Update Subnet mask
 
-        @id: 6cc5de06-5463-4919-abe4-92cef4506a54
+        :id: 6cc5de06-5463-4919-abe4-92cef4506a54
 
-        @Assert: Subnet mask is updated
+        :Assert: Subnet mask is updated
         """
         name = gen_string('alpha')
         new_mask = gen_netmask(16, 31)

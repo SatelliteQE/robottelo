@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test for Medium  CLI
 
-@Requirement: Medium
+:Requirement: Medium
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_alphanumeric
@@ -43,9 +43,9 @@ class MediumTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if Medium can be created
 
-        @id: 4a1caaf8-4401-48cc-85ad-e7189944688d
+        :id: 4a1caaf8-4401-48cc-85ad-e7189944688d
 
-        @Assert: Medium is created
+        :Assert: Medium is created
 
         """
         for name in valid_data_list():
@@ -58,9 +58,9 @@ class MediumTestCase(CLITestCase):
     def test_positive_create_with_location(self):
         """Check if medium with location can be created
 
-        @id: cbc6c586-fae7-4bb9-aeb1-e30158f16a98
+        :id: cbc6c586-fae7-4bb9-aeb1-e30158f16a98
 
-        @Assert: Medium is created and has new location assigned
+        :Assert: Medium is created and has new location assigned
 
         """
         location = make_location()
@@ -72,9 +72,9 @@ class MediumTestCase(CLITestCase):
     def test_positive_create_with_organization_by_id(self):
         """Check if medium with organization can be created
 
-        @id: 631bb6ed-e42b-482a-83f0-f6ce0f20729a
+        :id: 631bb6ed-e42b-482a-83f0-f6ce0f20729a
 
-        @Assert: Medium is created and has new organization assigned
+        :Assert: Medium is created and has new organization assigned
 
         """
         org = make_org()
@@ -86,9 +86,9 @@ class MediumTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if Medium can be deleted
 
-        @id: dc62c9ad-d2dc-42df-80eb-02cf8d26cdee
+        :id: dc62c9ad-d2dc-42df-80eb-02cf8d26cdee
 
-        @Assert: Medium is deleted
+        :Assert: Medium is deleted
 
         """
         for name in valid_data_list():
@@ -104,12 +104,12 @@ class MediumTestCase(CLITestCase):
     def test_positive_add_os(self):
         """Check if Medium can be associated with operating system
 
-        @id: 47d1e6f0-d8a6-4190-b2ac-41b09a559429
+        :id: 47d1e6f0-d8a6-4190-b2ac-41b09a559429
 
-        @Assert: Operating system added
+        :Assert: Operating system added
 
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         medium = make_medium()
         os = make_os()
@@ -123,12 +123,12 @@ class MediumTestCase(CLITestCase):
     def test_positive_remove_os(self):
         """Check if operating system can be removed from media
 
-        @id: 23b5b55b-3624-440c-8001-75c7c5a5a004
+        :id: 23b5b55b-3624-440c-8001-75c7c5a5a004
 
-        @Assert: Operating system removed
+        :Assert: Operating system removed
 
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         medium = make_medium()
         os = make_os()
@@ -150,9 +150,9 @@ class MediumTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Check if medium can be updated
 
-        @id: 2111090a-21d3-47f7-bb81-5f19ab71a91d
+        :id: 2111090a-21d3-47f7-bb81-5f19ab71a91d
 
-        @Assert: Medium updated
+        :Assert: Medium updated
 
         """
         new_name = gen_alphanumeric(6)

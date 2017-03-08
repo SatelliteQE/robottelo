@@ -4,19 +4,19 @@ A full API reference for patition tables can be found here:
 http://theforeman.org/api/apidoc/v2/ptables.html
 
 
-@Requirement: Partitiontable
+:Requirement: Partitiontable
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_integer
 from nailgun import entities
@@ -40,11 +40,11 @@ class PartitionTableTestCase(APITestCase):
     def test_positive_create_with_one_character_name(self):
         """Create Partition table with 1 character in name
 
-        @id: 71601d96-8ce8-4ecb-b053-af6f26a246ea
+        :id: 71601d96-8ce8-4ecb-b053-af6f26a246ea
 
-        @Assert: Partition table was created
+        :Assert: Partition table was created
 
-        @BZ: 1229384
+        :BZ: 1229384
         """
         for name in generate_strings_list(length=1):
             with self.subTest(name):
@@ -55,9 +55,9 @@ class PartitionTableTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create new partition tables using different inputs as a name
 
-        @id: f774051a-8ad4-48dc-b652-0e3c382b6043
+        :id: f774051a-8ad4-48dc-b652-0e3c382b6043
 
-        @Assert: Partition table created successfully and has correct name
+        :Assert: Partition table created successfully and has correct name
         """
         for name in generate_strings_list(length=gen_integer(4, 30)):
             with self.subTest(name):
@@ -69,9 +69,9 @@ class PartitionTableTestCase(APITestCase):
         """Create new partition tables using different inputs as a
         layout
 
-        @id: 12e9d821-415e-4e8b-b4c6-9921c74c1fc5
+        :id: 12e9d821-415e-4e8b-b4c6-9921c74c1fc5
 
-        @Assert: Partition table created successfully and has correct layout
+        :Assert: Partition table created successfully and has correct layout
         """
         for layout in valid_data_list():
             with self.subTest(layout):
@@ -82,10 +82,10 @@ class PartitionTableTestCase(APITestCase):
     def test_positive_create_with_os(self):
         """Create new partition table with random operating system
 
-        @id: ebd55ed6-5fb2-4f17-ac73-b56661ee5254
+        :id: ebd55ed6-5fb2-4f17-ac73-b56661ee5254
 
-        @Assert: Partition table created successfully and has correct operating
-        system
+        :Assert: Partition table created successfully and has correct operating
+            system
         """
         os_family = OPERATING_SYSTEMS[randint(0, 8)]
         ptable = entities.PartitionTable(os_family=os_family).create()
@@ -95,9 +95,9 @@ class PartitionTableTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Try to create partition table using invalid names only
 
-        @id: 02631917-2f7a-4cf7-bb2a-783349a04758
+        :id: 02631917-2f7a-4cf7-bb2a-783349a04758
 
-        @Assert: Partition table was not created
+        :Assert: Partition table was not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -108,9 +108,9 @@ class PartitionTableTestCase(APITestCase):
     def test_negative_create_with_empty_layout(self):
         """Try to create partition table with empty layout
 
-        @id: 03cb7a35-e4c3-4874-841b-0760c3b8d6af
+        :id: 03cb7a35-e4c3-4874-841b-0760c3b8d6af
 
-        @Assert: Partition table was not created
+        :Assert: Partition table was not created
         """
         for layout in ('', ' ', None):
             with self.subTest(layout):
@@ -121,9 +121,9 @@ class PartitionTableTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete partition table
 
-        @id: 36133202-8849-432e-838b-3d13d088ef28
+        :id: 36133202-8849-432e-838b-3d13d088ef28
 
-        @Assert: Partition table was deleted
+        :Assert: Partition table was deleted
         """
         ptable = entities.PartitionTable().create()
         ptable.delete()
@@ -134,9 +134,9 @@ class PartitionTableTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update partition tables with new name
 
-        @id: 8bde5a54-21a8-420e-b6cb-1d81c381d0b2
+        :id: 8bde5a54-21a8-420e-b6cb-1d81c381d0b2
 
-        @Assert: Partition table updated successfully and name was changed
+        :Assert: Partition table updated successfully and name was changed
         """
         ptable = entities.PartitionTable().create()
         for new_name in generate_strings_list(length=gen_integer(4, 30)):
@@ -148,9 +148,9 @@ class PartitionTableTestCase(APITestCase):
     def test_positive_update_layout(self):
         """Update partition table with new layout
 
-        @id: 329eea6e-3474-4cc1-87d4-15e765e0a255
+        :id: 329eea6e-3474-4cc1-87d4-15e765e0a255
 
-        @Assert: Partition table updated successfully and layout was changed
+        :Assert: Partition table updated successfully and layout was changed
         """
         ptable = entities.PartitionTable().create()
         for new_layout in valid_data_list():
@@ -162,10 +162,10 @@ class PartitionTableTestCase(APITestCase):
     def test_positive_update_os(self):
         """Update partition table with new random operating system
 
-        @id: bf03d80c-3527-4b0a-b6c7-4629a8eaefb2
+        :id: bf03d80c-3527-4b0a-b6c7-4629a8eaefb2
 
-        @Assert: Partition table updated successfully and operating system was
-        changed
+        :Assert: Partition table updated successfully and operating system was
+            changed
         """
         ptable = entities.PartitionTable(
             os_family=OPERATING_SYSTEMS[0],
@@ -178,9 +178,9 @@ class PartitionTableTestCase(APITestCase):
     def test_negative_update_name(self):
         """Try to update partition table using invalid names only
 
-        @id: 7e9face8-2c20-450e-890c-6def6de570ca
+        :id: 7e9face8-2c20-450e-890c-6def6de570ca
 
-        @Assert: Partition table was not updated
+        :Assert: Partition table was not updated
         """
         ptable = entities.PartitionTable().create()
         for new_name in invalid_values_list():
@@ -193,9 +193,9 @@ class PartitionTableTestCase(APITestCase):
     def test_negative_update_layout(self):
         """Try to update partition table with empty layout
 
-        @id: 35c84c8f-b802-4076-89f2-4ec04cf43a31
+        :id: 35c84c8f-b802-4076-89f2-4ec04cf43a31
 
-        @Assert: Partition table was not updated
+        :Assert: Partition table was not updated
         """
         ptable = entities.PartitionTable().create()
         for new_layout in ('', ' ', None):

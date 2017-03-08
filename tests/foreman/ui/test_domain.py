@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Domain UI
 
-@Requirement: Domain
+:Requirement: Domain
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from robottelo.constants import DOMAIN
@@ -70,9 +70,9 @@ class DomainTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new domain with different names
 
-        @id: 142f90e3-a2a3-4f99-8f9b-11189f230bc5
+        :id: 142f90e3-a2a3-4f99-8f9b-11189f230bc5
 
-        @Assert: Domain is created
+        :Assert: Domain is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -87,9 +87,9 @@ class DomainTestCase(UITestCase):
     def test_positive_create_with_long_name(self):
         """Create a new domain with long names
 
-        @id: 0b856ad7-97a6-4632-8b84-1d8ee45bedc8
+        :id: 0b856ad7-97a6-4632-8b84-1d8ee45bedc8
 
-        @Assert: Domain is created
+        :Assert: Domain is created
         """
         with Session(self.browser) as session:
             for name in valid_long_domain_names():
@@ -105,9 +105,9 @@ class DomainTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a domain
 
-        @id: 07c1cc34-4569-4f04-9c4a-2842821a6977
+        :id: 07c1cc34-4569-4f04-9c4a-2842821a6977
 
-        @Assert: Domain is deleted
+        :Assert: Domain is deleted
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -119,9 +119,9 @@ class DomainTestCase(UITestCase):
     def test_positive_update(self):
         """Update a domain with name and description
 
-        @id: 25ff4a1d-3ca1-4153-be45-4fe1e63f3f16
+        :id: 25ff4a1d-3ca1-4153-be45-4fe1e63f3f16
 
-        @Assert: Domain is updated
+        :Assert: Domain is updated
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -144,9 +144,9 @@ class DomainTestCase(UITestCase):
         """Try to create domain and use whitespace, blank, tab symbol or
         too long string of different types as its name value
 
-        @id: 5a8ba1a8-2da8-48e1-8b2a-96d91161bf94
+        :id: 5a8ba1a8-2da8-48e1-8b2a-96d91161bf94
 
-        @Assert: Domain is not created
+        :Assert: Domain is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -161,11 +161,11 @@ class DomainTestCase(UITestCase):
     def test_positive_set_parameter(self):
         """Set parameter name and value for domain
 
-        @id: a05615de-c9e5-4784-995c-b2fe2a1dfd3e
+        :id: a05615de-c9e5-4784-995c-b2fe2a1dfd3e
 
-        @Assert: Domain is updated
+        :Assert: Domain is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -185,11 +185,11 @@ class DomainTestCase(UITestCase):
     def test_positive_set_parameter_long(self):
         """Set a parameter in a domain with 255 chars in name and value.
 
-        @id: b346ae66-1720-46af-b0da-460c52ce9476
+        :id: b346ae66-1720-46af-b0da-460c52ce9476
 
-        @Assert: Domain parameter is created.
+        :Assert: Domain parameter is created.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         domain_name = description = DOMAIN % gen_string('alpha', 4)
         with Session(self.browser) as session:
@@ -206,11 +206,11 @@ class DomainTestCase(UITestCase):
     def test_positive_set_parameter_blank(self):
         """Set a parameter in a domain with blank value.
 
-        @id: b5a67709-57ad-4043-8e72-190ec31b8217
+        :id: b5a67709-57ad-4043-8e72-190ec31b8217
 
-        @Assert: Domain parameter is created with blank value.
+        :Assert: Domain parameter is created with blank value.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         domain_name = description = DOMAIN % gen_string('alpha', 4)
         with Session(self.browser) as session:
@@ -227,11 +227,11 @@ class DomainTestCase(UITestCase):
     def test_negative_set_parameter(self):
         """Set a parameter in a domain with 256 chars in name and value.
 
-        @id: 1c647d66-6a3f-4d88-8e6b-60f2fc7fd603
+        :id: 1c647d66-6a3f-4d88-8e6b-60f2fc7fd603
 
-        @Assert: Domain parameter is not updated. Error is raised
+        :Assert: Domain parameter is not updated. Error is raised
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         domain_name = description = DOMAIN % gen_string('alpha', 4)
         with Session(self.browser) as session:
@@ -250,11 +250,11 @@ class DomainTestCase(UITestCase):
     def test_negative_set_parameter_same(self):
         """Again set the same parameter for domain with name and value.
 
-        @id: 6266f12e-cf94-4564-ba26-b467ced2737f
+        :id: 6266f12e-cf94-4564-ba26-b467ced2737f
 
-        @Assert: Domain parameter with same values is not created.
+        :Assert: Domain parameter with same values is not created.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         domain_name = description = DOMAIN % gen_string('alpha', 4)
         param_name = gen_string('alpha')
@@ -274,11 +274,11 @@ class DomainTestCase(UITestCase):
     def test_positive_remove_parameter(self):
         """Remove a selected domain parameter
 
-        @id: 8f7f8501-cf39-418f-a412-1a4b53698bc3
+        :id: 8f7f8501-cf39-418f-a412-1a4b53698bc3
 
-        @Assert: Domain parameter is removed
+        :Assert: Domain parameter is removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             domain_name = description = DOMAIN % gen_string('alpha', 4)

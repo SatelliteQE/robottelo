@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery Rules
 
-@Requirement: Discoveryrule
+:Requirement: Discoveryrule
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_alphanumeric, gen_choice, gen_string
@@ -108,9 +108,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create Discovery Rule using different names
 
-        @id: 066e66bc-c572-4ae9-b458-90daf83bab54
+        :id: 066e66bc-c572-4ae9-b458-90daf83bab54
 
-        @Assert: Rule should be successfully created
+        :Assert: Rule should be successfully created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -122,10 +122,10 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_create_with_search(self):
         """Create Discovery Rule using different search queries
 
-        @id: 2383e898-a968-4183-a270-55e9350e0596
+        :id: 2383e898-a968-4183-a270-55e9350e0596
 
-        @Assert: Rule should be successfully created and has expected search
-        value
+        :Assert: Rule should be successfully created and has expected search
+            value
         """
         search_query = 'cpu_count = 2'
         rule = self._make_discoveryrule({u'search': search_query})
@@ -136,10 +136,10 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_create_with_hostname(self):
         """Create Discovery Rule using valid hostname
 
-        @id: deee22c3-dcfd-4940-b27c-cca137ec9a92
+        :id: deee22c3-dcfd-4940-b27c-cca137ec9a92
 
-        @Assert: Rule should be successfully created and has expected hostname
-        value
+        :Assert: Rule should be successfully created and has expected hostname
+            value
         """
         host_name = 'myhost'
         rule = self._make_discoveryrule({u'hostname': host_name})
@@ -151,9 +151,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_create_with_org_loc_name(self):
         """Create discovery rule by associating org and location names
 
-        @id: f0d550ae-16d8-48ec-817e-d2e5b7405b46
+        :id: f0d550ae-16d8-48ec-817e-d2e5b7405b46
 
-        @Assert: Rule was created and with given org & location names.
+        :Assert: Rule was created and with given org & location names.
         """
         rule = self._make_discoveryrule({
             u'hostgroup-id': self.hostgroup['id'],
@@ -169,10 +169,10 @@ class DiscoveryRuleTestCase(CLITestCase):
         """Create Discovery Rule providing any number from range 1..100 for
         hosts limit option
 
-        @id: c28422c2-1f6a-4045-b722-f9f9d864e963
+        :id: c28422c2-1f6a-4045-b722-f9f9d864e963
 
-        @Assert: Rule should be successfully created and has expected hosts
-        limit value
+        :Assert: Rule should be successfully created and has expected hosts
+            limit value
         """
         hosts_limit = '5'
         rule = self._make_discoveryrule({u'hosts-limit': hosts_limit})
@@ -184,10 +184,10 @@ class DiscoveryRuleTestCase(CLITestCase):
         """Create Discovery Rule providing any number from range 1..100 for
         max count option
 
-        @id: 590ca353-d3d7-4700-be34-13de00f46276
+        :id: 590ca353-d3d7-4700-be34-13de00f46276
 
-        @Assert: Rule should be successfully created and has max_count set
-        as per given value
+        :Assert: Rule should be successfully created and has max_count set as
+            per given value
         """
         max_count = '10'
         rule = self._make_discoveryrule({u'max-count': max_count})
@@ -199,10 +199,10 @@ class DiscoveryRuleTestCase(CLITestCase):
         """Create Discovery Rule providing any number from range 1..100 for
         priority option
 
-        @id: 8ef58279-0ad3-41a4-b8dd-65594afdb655
+        :id: 8ef58279-0ad3-41a4-b8dd-65594afdb655
 
-        @Assert: Rule should be successfully created and has expected priority
-        value
+        :Assert: Rule should be successfully created and has expected priority
+            value
         """
         rule_priority = '100'
         rule = self._make_discoveryrule({u'priority': rule_priority})
@@ -213,9 +213,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_create_disabled_rule(self):
         """Create Discovery Rule in disabled state
 
-        @id: 8837a0c6-e19a-4c33-8b87-07b6f69dbb0f
+        :id: 8837a0c6-e19a-4c33-8b87-07b6f69dbb0f
 
-        @Assert: Disabled rule should be successfully created
+        :Assert: Disabled rule should be successfully created
         """
         rule = self._make_discoveryrule({u'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
@@ -225,9 +225,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Discovery Rule with invalid names
 
-        @id: a0350dc9-8f5b-4673-be88-a5e35d1f8ca7
+        :id: a0350dc9-8f5b-4673-be88-a5e35d1f8ca7
 
-        @Assert: Error should be raised and rule should not be created
+        :Assert: Error should be raised and rule should not be created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -239,9 +239,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_create_with_invalid_hostname(self):
         """Create Discovery Rule with invalid hostname
 
-        @id: 0ae51085-30d0-44f9-9e49-abe928a8a4b7
+        :id: 0ae51085-30d0-44f9-9e49-abe928a8a4b7
 
-        @Assert: Error should be raised and rule should not be created
+        :Assert: Error should be raised and rule should not be created
         """
         for name in self.invalid_hostnames_list():
             with self.subTest(name):
@@ -256,10 +256,10 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_create_with_too_long_limit(self):
         """Create Discovery Rule with too long host limit value
 
-        @id: 12dbb023-c963-4ead-a81e-ad53033de947
+        :id: 12dbb023-c963-4ead-a81e-ad53033de947
 
-        @Assert: Validation error should be raised and rule should not be
-        created
+        :Assert: Validation error should be raised and rule should not be
+            created
         """
         with self.assertRaises(CLIFactoryError):
             self._make_discoveryrule({u'hosts-limit': '9999999999'})
@@ -269,9 +269,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_create_with_same_name(self):
         """Create Discovery Rule with name that already exists
 
-        @id: 5a914e76-de01-406d-9860-0e4e1521b074
+        :id: 5a914e76-de01-406d-9860-0e4e1521b074
 
-        @Assert: Error should be raised and rule should not be created
+        :Assert: Error should be raised and rule should not be created
         """
         name = gen_string('alpha')
         self._make_discoveryrule({u'name': name})
@@ -283,9 +283,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_delete(self):
         """Delete existing Discovery Rule
 
-        @id: c9b88a94-13c4-496f-a5c1-c088187250dc
+        :id: c9b88a94-13c4-496f-a5c1-c088187250dc
 
-        @Assert: Rule should be successfully deleted
+        :Assert: Rule should be successfully deleted
         """
         rule = self._make_discoveryrule()
         DiscoveryRule.delete({u'id': rule['id']})
@@ -297,9 +297,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Update discovery rule name
 
-        @id: 1045e2c4-e1f7-42c9-95f7-488fc79bf70b
+        :id: 1045e2c4-e1f7-42c9-95f7-488fc79bf70b
 
-        @Assert: Rule name is updated
+        :Assert: Rule name is updated
         """
         rule = self._make_discoveryrule()
         new_name = gen_string('numeric')
@@ -313,11 +313,11 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_org_loc(self):
         """Update org and location of selected discovery rule
 
-        @id: 26da79aa-30e5-4052-98ae-141de071a68a
+        :id: 26da79aa-30e5-4052-98ae-141de071a68a
 
-        @Assert: Rule was updated and with given org & location.
+        :Assert: Rule was updated and with given org & location.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_org = make_org()
         new_loc = make_location()
@@ -336,9 +336,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_query(self):
         """Update discovery rule search query
 
-        @id: 86943095-acc5-40ff-8e3c-88c76b36333d
+        :id: 86943095-acc5-40ff-8e3c-88c76b36333d
 
-        @Assert: Rule search field is updated
+        :Assert: Rule search field is updated
         """
         rule = self._make_discoveryrule()
         new_query = 'model = KVM'
@@ -351,9 +351,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_hostgroup(self):
         """Update discovery rule host group
 
-        @id: 07992a3f-2aa9-4e45-b2e8-ef3d2f255292
+        :id: 07992a3f-2aa9-4e45-b2e8-ef3d2f255292
 
-        @Assert: Rule host group is updated
+        :Assert: Rule host group is updated
         """
         new_hostgroup = make_hostgroup({u'organization-ids': self.org['id']})
         rule = self._make_discoveryrule()
@@ -369,9 +369,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_hostname(self):
         """Update discovery rule hostname value
 
-        @id: 4c123488-92df-42f6-afe3-8a88cd90ffc2
+        :id: 4c123488-92df-42f6-afe3-8a88cd90ffc2
 
-        @Assert: Rule host name is updated
+        :Assert: Rule host name is updated
         """
         new_hostname = gen_string('alpha')
         rule = self._make_discoveryrule()
@@ -384,9 +384,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_limit(self):
         """Update discovery rule limit value
 
-        @id: efa6f5bc-4d56-4449-90f5-330affbcfb09
+        :id: efa6f5bc-4d56-4449-90f5-330affbcfb09
 
-        @Assert: Rule host limit field is updated
+        :Assert: Rule host limit field is updated
         """
         rule = self._make_discoveryrule({u'hosts-limit': '5'})
         new_limit = '10'
@@ -399,9 +399,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_priority(self):
         """Update discovery rule priority value
 
-        @id: 0543cc73-c692-4bbf-818b-37353ec98986
+        :id: 0543cc73-c692-4bbf-818b-37353ec98986
 
-        @Assert: Rule priority is updated
+        :Assert: Rule priority is updated
         """
         rule = self._make_discoveryrule({u'priority': 100})
         new_priority = '1'
@@ -414,9 +414,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_positive_update_disable_enable(self):
         """Update discovery rule enabled state. (Disabled->Enabled)
 
-        @id: 64e8b21b-2ab0-49c3-a12d-02dbdb36647a
+        :id: 64e8b21b-2ab0-49c3-a12d-02dbdb36647a
 
-        @Assert: Rule is successfully enabled
+        :Assert: Rule is successfully enabled
         """
         rule = self._make_discoveryrule({u'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
@@ -429,9 +429,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Update discovery rule name using invalid names only
 
-        @id: 8293cc6a-d983-460a-b76e-221ad02b54b7
+        :id: 8293cc6a-d983-460a-b76e-221ad02b54b7
 
-        @Assert: Rule name is not updated
+        :Assert: Rule name is not updated
         """
         rule = self._make_discoveryrule()
         for name in invalid_values_list():
@@ -444,9 +444,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_update_hostname(self):
         """Update discovery rule host name using number as a value
 
-        @id: c382dbc7-9509-4060-9038-1617f7fef038
+        :id: c382dbc7-9509-4060-9038-1617f7fef038
 
-        @Assert: Rule host name is not updated
+        :Assert: Rule host name is not updated
         """
         rule = self._make_discoveryrule()
         with self.assertRaises(CLIReturnCodeError):
@@ -457,9 +457,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_update_limit(self):
         """Update discovery rule host limit using invalid values
 
-        @id: e3257d8a-91b9-406f-bd74-0fd1fb05bb77
+        :id: e3257d8a-91b9-406f-bd74-0fd1fb05bb77
 
-        @Assert: Rule host limit is not updated
+        :Assert: Rule host limit is not updated
         """
         rule = self._make_discoveryrule()
         host_limit = gen_string('alpha')
@@ -471,9 +471,9 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_update_priority(self):
         """Update discovery rule priority using invalid values
 
-        @id: 0778dd00-aa19-4062-bdf3-752e1b546ec2
+        :id: 0778dd00-aa19-4062-bdf3-752e1b546ec2
 
-        @Assert: Rule priority is not updated
+        :Assert: Rule priority is not updated
         """
         rule = self._make_discoveryrule()
         priority = gen_string('alpha')
@@ -519,11 +519,11 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
     def test_positive_create_rule_with_non_admin_user(self):
         """Create rule with non-admin user by associating discovery_manager role
 
-        @id: 056535aa-3338-4c1e-8a4b-ebfc8bd6e456
+        :id: 056535aa-3338-4c1e-8a4b-ebfc8bd6e456
 
-        @Assert: Rule should be created successfully.
+        :Assert: Rule should be created successfully.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
         rule = DiscoveryRule.with_user(
@@ -547,11 +547,11 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
     def test_positive_delete_rule_with_non_admin_user(self):
         """Delete rule with non-admin user by associating discovery_manager role
 
-        @id: 87ab969b-7d92-478d-a5c0-1c0d50e9bdd6
+        :id: 87ab969b-7d92-478d-a5c0-1c0d50e9bdd6
 
-        @Assert: Rule should be deleted successfully.
+        :Assert: Rule should be deleted successfully.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
         rule = DiscoveryRule.with_user(
@@ -581,17 +581,17 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         """Existing rule should be viewed to non-admin user by associating
         discovery_reader role.
 
-        @id: 7b1d90b9-fc2d-4ccb-93d3-605c2da876f7
+        :id: 7b1d90b9-fc2d-4ccb-93d3-605c2da876f7
 
-        @Steps:
+        :Steps:
 
-        1. create a rule with admin user
-        2. create a non-admin user and assign 'Discovery Reader' role
-        3. Login with non-admin user
+            1. create a rule with admin user
+            2. create a non-admin user and assign 'Discovery Reader' role
+            3. Login with non-admin user
 
-        @Assert: Rule should be visible to non-admin user.
+        :Assert: Rule should be visible to non-admin user.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
         rule = make_discoveryrule({
@@ -613,12 +613,12 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
     def test_negative_delete_rule_with_non_admin_user(self):
         """Delete rule with non-admin user by associating discovery_reader role
 
-        @id: f7f9569b-916e-46f3-bd89-a05e33483741
+        :id: f7f9569b-916e-46f3-bd89-a05e33483741
 
-        @Assert: User should validation error and rule should not be deleted
-        successfully.
+        :Assert: User should validation error and rule should not be deleted
+            successfully.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         rule = make_discoveryrule({
             u'enabled': 'false',

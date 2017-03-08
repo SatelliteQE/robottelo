@@ -1,18 +1,18 @@
 """Tests for the ``media`` paths.
 
-@Requirement: Media
+:Requirement: Media
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import random
 from fauxfactory import gen_string, gen_url
@@ -38,9 +38,9 @@ class MediaTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create media with valid name only
 
-        @id: 892b44d5-0f11-4e9d-8ee9-fd5abe0b0a9b
+        :id: 892b44d5-0f11-4e9d-8ee9-fd5abe0b0a9b
 
-        @Assert: Media entity is created and has proper name
+        :Assert: Media entity is created and has proper name
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -55,9 +55,9 @@ class MediaTestCase(APITestCase):
     def test_positive_create_with_os_family(self):
         """Create media with every OS family possible
 
-        @id: 7885e205-6189-4e71-a6ee-e5ddb077ecee
+        :id: 7885e205-6189-4e71-a6ee-e5ddb077ecee
 
-        @Assert: Media entity is created and has proper OS family assigned
+        :Assert: Media entity is created and has proper OS family assigned
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
@@ -72,11 +72,11 @@ class MediaTestCase(APITestCase):
     def test_positive_create_with_location(self):
         """Create media entity assigned to non-default location
 
-        @id: 1c4fa736-c145-46ca-9feb-c4046fc778c6
+        :id: 1c4fa736-c145-46ca-9feb-c4046fc778c6
 
-        @Assert: Media entity is created and has proper location
+        :Assert: Media entity is created and has proper location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         location = entities.Location().create()
         media = entities.Media(
@@ -90,11 +90,11 @@ class MediaTestCase(APITestCase):
     def test_positive_create_with_os(self):
         """Create media entity assigned to operation system entity
 
-        @id: dec22198-ed07-480c-9306-fa5458baec0b
+        :id: dec22198-ed07-480c-9306-fa5458baec0b
 
-        @Assert: Media entity is created and assigned to expected OS
+        :Assert: Media entity is created and assigned to expected OS
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         os = entities.OperatingSystem().create()
         media = entities.Media(
@@ -108,9 +108,9 @@ class MediaTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Try to create media entity providing an invalid name
 
-        @id: 0934f4dc-f674-40fe-a639-035761139c83
+        :id: 0934f4dc-f674-40fe-a639-035761139c83
 
-        @Assert: Media entity is not created
+        :Assert: Media entity is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -122,9 +122,9 @@ class MediaTestCase(APITestCase):
     def test_negative_create_with_invalid_url(self):
         """Try to create media entity providing an invalid URL
 
-        @id: ae00b6bb-37ed-459e-b9f7-acc92ed0b262
+        :id: ae00b6bb-37ed-459e-b9f7-acc92ed0b262
 
-        @Assert: Media entity is not created
+        :Assert: Media entity is not created
         """
         with self.assertRaises(HTTPError):
             entities.Media(path_='NON_EXISTENT_URL').create()
@@ -134,9 +134,9 @@ class MediaTestCase(APITestCase):
     def test_negative_create_with_invalid_os_family(self):
         """Try to create media entity providing an invalid OS family
 
-        @id: 368b7eac-8c52-4071-89c0-1946d7101291
+        :id: 368b7eac-8c52-4071-89c0-1946d7101291
 
-        @Assert: Media entity is not created
+        :Assert: Media entity is not created
         """
         with self.assertRaises(HTTPError):
             entities.Media(os_family='NON_EXISTENT_OS').create()
@@ -147,9 +147,9 @@ class MediaTestCase(APITestCase):
         """Create media entity providing the initial name, then update
         its name to another valid name.
 
-        @id: a99c3c27-ad0a-474f-ad80-cb61022618a9
+        :id: a99c3c27-ad0a-474f-ad80-cb61022618a9
 
-        @Assert: Media entity is created and updated properly
+        :Assert: Media entity is created and updated properly
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in valid_data_list():
@@ -164,11 +164,11 @@ class MediaTestCase(APITestCase):
         """Create media entity providing the initial url path, then
         update that url to another valid one.
 
-        @id: 997fd9f6-4809-4de8-869d-7a4a0bf4c958
+        :id: 997fd9f6-4809-4de8-869d-7a4a0bf4c958
 
-        @Assert: Media entity is created and updated properly
+        :Assert: Media entity is created and updated properly
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         media = entities.Media(organization=[self.org]).create()
         new_url = gen_url(subdomain=gen_string('alpha'))
@@ -181,9 +181,9 @@ class MediaTestCase(APITestCase):
         """Create media entity providing the initial os family, then
         update that operation system to another valid one from the list.
 
-        @id: 4daca3f4-39c9-43ec-92f2-a1e506147d71
+        :id: 4daca3f4-39c9-43ec-92f2-a1e506147d71
 
-        @Assert: Media entity is created and updated properly
+        :Assert: Media entity is created and updated properly
         """
         media = entities.Media(
             organization=[self.org],
@@ -200,9 +200,9 @@ class MediaTestCase(APITestCase):
         """Create media entity providing the initial name, then try to
         update its name to invalid one.
 
-        @id: 1c7d3af1-8cef-454e-80b6-a8e95b5dfa8b
+        :id: 1c7d3af1-8cef-454e-80b6-a8e95b5dfa8b
 
-        @Assert: Media entity is not updated
+        :Assert: Media entity is not updated
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in invalid_values_list():
@@ -215,9 +215,9 @@ class MediaTestCase(APITestCase):
     def test_negative_update_url(self):
         """Try to update media with invalid url.
 
-        @id: 6832f178-4adc-4bb1-957d-0d8d4fd8d9cd
+        :id: 6832f178-4adc-4bb1-957d-0d8d4fd8d9cd
 
-        @Assert: Media entity is not updated
+        :Assert: Media entity is not updated
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
@@ -229,9 +229,9 @@ class MediaTestCase(APITestCase):
     def test_negative_update_os_family(self):
         """Try to update media with invalid operation system.
 
-        @id: f4c5438d-5f98-40b1-9bc7-c0741e81303a
+        :id: f4c5438d-5f98-40b1-9bc7-c0741e81303a
 
-        @Assert: Media entity is not updated
+        :Assert: Media entity is not updated
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
@@ -243,9 +243,9 @@ class MediaTestCase(APITestCase):
     def test_positive_delete(self):
         """Create new media entity and then delete it.
 
-        @id: 178c8ee2-2f69-41df-a604-e8a9e6c396ab
+        :id: 178c8ee2-2f69-41df-a604-e8a9e6c396ab
 
-        @Assert: Media entity is deleted successfully
+        :Assert: Media entity is deleted successfully
         """
         for name in valid_data_list():
             with self.subTest(name):

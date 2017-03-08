@@ -1,19 +1,19 @@
 # coding=utf-8
 """Smoke tests for the ``UI`` end-to-end scenario.
 
-@Requirement: Ui endtoend
+:Requirement: Ui endtoend
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string, gen_ipaddr
@@ -74,11 +74,11 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
     def test_positive_find_default_org(self):
-        """@Test: Check if :data:`robottelo.constants.DEFAULT_ORG` is present
+        """Check if :data:`robottelo.constants.DEFAULT_ORG` is present
 
-        @id: 90646b0a-ce56-43cf-8cd7-2b4586478acc
+        :id: 90646b0a-ce56-43cf-8cd7-2b4586478acc
 
-        @Assert: 'Default Organization' is found
+        :Assert: 'Default Organization' is found
         """
         with Session(self.browser) as session:
             self.assertEqual(
@@ -87,11 +87,11 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             )
 
     def test_positive_find_default_loc(self):
-        """@Test: Check if :data:`robottelo.constants.DEFAULT_LOC` is present
+        """Check if :data:`robottelo.constants.DEFAULT_LOC` is present
 
-        @id: 4b7cc80b-7368-4ee4-8aaf-c946968e49a4
+        :id: 4b7cc80b-7368-4ee4-8aaf-c946968e49a4
 
-        @Assert: 'Default Location' is found
+        :Assert: 'Default Location' is found
         """
         with Session(self.browser) as session:
             self.assertEqual(
@@ -102,9 +102,9 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
-        @id: 9cab1b65-70af-4245-98cb-7da90a98d347
+        :id: 9cab1b65-70af-4245-98cb-7da90a98d347
 
-        @Assert: Admin User is found and has Admin role
+        :Assert: Admin User is found and has Admin role
         """
         with Session(self.browser):
             self.assertTrue(self.user.user_admin_role_toggle('admin'))
@@ -136,10 +136,10 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             19. Create a new hostgroup and associate previous entities to it
             20. Provision a client
 
-        @id: 6b7c6187-3cc2-4bd3-89f2-fa7a5f570986
+        :id: 6b7c6187-3cc2-4bd3-89f2-fa7a5f570986
 
-        @Assert: All tests should succeed and Content should be successfully
-        fetched by client.
+        :Assert: All tests should succeed and Content should be successfully
+            fetched by client.
         """
         activation_key_name = gen_string('alpha')
         compute_resource_name = gen_string('alpha')
@@ -330,9 +330,9 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     def test_positive_puppet_install(self):
         """Perform puppet end to end smoke tests using RH repos.
 
-        @id: 30b0f872-d035-431a-988f-2b3fde620c78
+        :id: 30b0f872-d035-431a-988f-2b3fde620c78
 
-        @Assert: Client should get configured by puppet-module.
+        :Assert: Client should get configured by puppet-module.
         """
         activation_key_name = gen_string('alpha')
         cv_name = gen_string('alpha')

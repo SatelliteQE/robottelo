@@ -1,18 +1,18 @@
 """Test class for ISO downloads UI
 
-@Requirement: Isodownload
+:Requirement: Isodownload
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.decorators import run_only_on, stubbed, tier1
 from robottelo.test import UITestCase
@@ -27,17 +27,16 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_download(self):
         """Downloading ISO from export
 
-        @id: 47f20df7-f6f3-422b-b57b-3a5ef9cf62ad
+        :id: 47f20df7-f6f3-422b-b57b-3a5ef9cf62ad
 
-        @Steps:
+        :Steps:
 
-        1. find out the location where all iso's are kept
-        2. check whether a valid iso can be downloaded
+            1. find out the location where all iso's are kept
+            2. check whether a valid iso can be downloaded
 
-        @Assert: iso file is properly downloaded on your satellite 6
-        system
+            :Assert: iso file is properly downloaded on your satellite 6 system
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -47,16 +46,16 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_upload(self):
         """Uploadng the iso successfully to the sat6 system
 
-        @id: daf87a68-7c61-46f1-b4cc-021476080b6b
+        :id: daf87a68-7c61-46f1-b4cc-021476080b6b
 
-        @Steps:
+        :Steps:
 
-        1. download the iso
-        2. upload it to sat6 system
+            1. download the iso
+            2. upload it to sat6 system
 
-        @Assert: uploading iso to satellite6 is successful
+        :Assert: uploading iso to satellite6 is successful
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -66,17 +65,17 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_mount(self):
         """Mounting iso to directory accessible to satellite6 works
 
-        @id: 44d3c8fa-c01f-438c-b83e-8f6894befbbf
+        :id: 44d3c8fa-c01f-438c-b83e-8f6894befbbf
 
-        @Steps:
+        :Steps:
 
-        1. download the iso
-        2. upload it to sat6 system
-        3. mount it a local sat6 directory
+            1. download the iso
+            2. upload it to sat6 system
+            3. mount it a local sat6 directory
 
-        @Assert: iso is mounted to sat6 local directory
+        :Assert: iso is mounted to sat6 local directory
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -86,16 +85,16 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_validate_cdn_url(self):
         """Validate that cdn url to file path works
 
-        @id: 00157f61-1557-48a7-b7c9-6dac726eff94
+        :id: 00157f61-1557-48a7-b7c9-6dac726eff94
 
-        @Steps:
+        :Steps:
 
-        1. after mounting the iso locally try to update the cdn url
-        2. the path should be validated
+            1. after mounting the iso locally try to update the cdn url
+            2. the path should be validated
 
-        @Assert: cdn url path is validated
+        :Assert: cdn url path is validated
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -105,17 +104,17 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_check_message(self):
         """Check if proper message is displayed after successful upload
 
-        @id: 5ed31a26-b902-4352-900f-bb38eac95511
+        :id: 5ed31a26-b902-4352-900f-bb38eac95511
 
-        @Steps:
+        :Steps:
 
-        1. mount the iso to sat6
-        2. update the cdn url with file path
-        3. check if proper message is displayed
+            1. mount the iso to sat6
+            2. update the cdn url with file path
+            3. check if proper message is displayed
 
-        @Assert: Asserting the message after successful upload
+        :Assert: Asserting the message after successful upload
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -125,19 +124,18 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_enable_repo(self):
         """Enable the repositories
 
-        @id: e33e2796-0554-419f-b5a1-3e2c8e23e950
+        :id: e33e2796-0554-419f-b5a1-3e2c8e23e950
 
-        @Steps:
+        :Steps:
 
-        1. mount iso to directory
-        2. update cdn url
-        3. upload manifest
-        4. try to enable redhat repositories
+            1. mount iso to directory
+            2. update cdn url
+            3. upload manifest
+            4. try to enable redhat repositories
 
+        :Assert: Redhat repositories are enabled
 
-        @Assert: Redhat repositories are enabled
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -147,20 +145,19 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_validate_checkboxes(self):
         """Check if enabling the checkbox works
 
-        @id: 10b19405-f82e-4f95-869d-28d91cac1e6f
+        :id: 10b19405-f82e-4f95-869d-28d91cac1e6f
 
-        @Steps:
+        :Steps:
 
-        1. mount iso to directory
-        2. update cdn url
-        3. upload manifest
-        4. Click the checkbox to enable redhat repositories
-        5. redhat repository enabled
+            1. mount iso to directory
+            2. update cdn url
+            3. upload manifest
+            4. Click the checkbox to enable redhat repositories
+            5. redhat repository enabled
 
+        :Assert: Checkbox functionality works
 
-        @Assert: Checkbox functionality works
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -170,19 +167,19 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_sync_repos(self):
         """Sync repos to local iso's
 
-        @id: 96266438-4a52-4222-b573-96bd7cde1700
+        :id: 96266438-4a52-4222-b573-96bd7cde1700
 
-        @Steps:
+        :Steps:
 
-         1. mount iso to directory
-         2. update cdn url
-         3. upload manifest
-         4. try to enable redhat repositories
-         5. sync the repos
+            1. mount iso to directory
+            2. update cdn url
+            3. upload manifest
+            4. try to enable redhat repositories
+            5. sync the repos
 
-        @Assert: Repos are synced after upload
+        :Assert: Repos are synced after upload
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -192,19 +189,19 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_disable_repo(self):
         """Disabling the repo works
 
-        @id: 075700a7-fda0-41db-b9b7-3d6b29f63784
+        :id: 075700a7-fda0-41db-b9b7-3d6b29f63784
 
-        @Steps:
+        :Steps:
 
-        1. mount iso to directory
-        2. update cdn url
-        3. upload manifest
-        4. try to enable redhat repositories
-        5. sync the contents
-        6. try disabling the repository
+            1. mount iso to directory
+            2. update cdn url
+            3. upload manifest
+            4. try to enable redhat repositories
+            5. sync the contents
+            6. try disabling the repository
 
-        @Assert: Assert disabling the repo
+        :Assert: Assert disabling the repo
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """

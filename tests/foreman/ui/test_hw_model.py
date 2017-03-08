@@ -1,18 +1,18 @@
 """Test class for Config Groups UI
 
-@Requirement: Hw model
+:Requirement: Hw model
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -35,9 +35,9 @@ class HardwareModelTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new Hardware-Model
 
-        @id: e2ebac95-4d0b-404d-98c6-dcba40158c28
+        :id: e2ebac95-4d0b-404d-98c6-dcba40158c28
 
-        @assert: Hardware-Model is created
+        :assert: Hardware-Model is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -50,9 +50,9 @@ class HardwareModelTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create new Hardware-Model with invalid names
 
-        @id: ccaeec78-28e9-432d-bb2e-6fb92280d996
+        :id: ccaeec78-28e9-432d-bb2e-6fb92280d996
 
-        @assert: Hardware-Model is not created
+        :assert: Hardware-Model is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -67,9 +67,9 @@ class HardwareModelTestCase(UITestCase):
     def test_positive_update(self):
         """Updates the Hardware-Model
 
-        @id: 56ec6d62-1520-4de2-9231-b62e57578223
+        :id: 56ec6d62-1520-4de2-9231-b62e57578223
 
-        @assert: Hardware-Model is updated.
+        :assert: Hardware-Model is updated.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -86,9 +86,9 @@ class HardwareModelTestCase(UITestCase):
     def test_positive_delete(self):
         """Deletes the Hardware-Model
 
-        @id: 160319bb-c67c-4086-8d48-fce88c110a2e
+        :id: 160319bb-c67c-4086-8d48-fce88c110a2e
 
-        @assert: Hardware-Model is deleted
+        :assert: Hardware-Model is deleted
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

@@ -18,19 +18,19 @@ Subcommands::
     image                         View and manage compute resource's images
 
 
-@Requirement: Computeresource
+:Requirement: Computeresource
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import random
 
@@ -123,9 +123,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create Compute Resource
 
-        @id: 6460bcc7-d7f7-406a-aecb-b3d54d51e697
+        :id: 6460bcc7-d7f7-406a-aecb-b3d54d51e697
 
-        @Assert: Compute resource is created
+        :Assert: Compute resource is created
 
         """
         ComputeResource.create({
@@ -139,9 +139,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_info(self):
         """Test Compute Resource Info
 
-        @id: f54af041-4471-4d8e-9429-45d821df0440
+        :id: f54af041-4471-4d8e-9429-45d821df0440
 
-        @Assert: Compute resource Info is displayed
+        :Assert: Compute resource Info is displayed
 
         """
         name = gen_string('utf8')
@@ -158,9 +158,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_list(self):
         """Test Compute Resource List
 
-        @id: 11123361-ffbc-4c59-a0df-a4af3408af7a
+        :id: 11123361-ffbc-4c59-a0df-a4af3408af7a
 
-        @Assert: Compute resource List is displayed
+        :Assert: Compute resource List is displayed
 
         """
         comp_res = make_compute_resource({
@@ -179,9 +179,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Test Compute Resource delete
 
-        @id: 7fcc0b66-f1c1-4194-8a4b-7f04b1dd439a
+        :id: 7fcc0b66-f1c1-4194-8a4b-7f04b1dd439a
 
-        @Assert: Compute resource deleted
+        :Assert: Compute resource deleted
 
         """
         comp_res = make_compute_resource({
@@ -200,9 +200,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_libvirt(self):
         """Test Compute Resource create
 
-        @id: adc6f4f8-6420-4044-89d1-c69e0bfeeab9
+        :id: adc6f4f8-6420-4044-89d1-c69e0bfeeab9
 
-        @Assert: Compute Resource created
+        :Assert: Compute Resource created
 
         """
         for options in valid_name_desc_data():
@@ -219,9 +219,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Create Compute Resource with location
 
-        @id: 224c7cbc-6bac-4a94-8141-d6249896f5a2
+        :id: 224c7cbc-6bac-4a94-8141-d6249896f5a2
 
-        @Assert: Compute resource is created and has location assigned
+        :Assert: Compute resource is created and has location assigned
 
         """
         location = make_location()
@@ -234,11 +234,10 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_locs(self):
         """Create Compute Resource with multiple locations
 
-        @id: f665c586-39bf-480a-a0fc-81d9e1eb7c54
+        :id: f665c586-39bf-480a-a0fc-81d9e1eb7c54
 
-        @Assert: Compute resource is created and has multiple locations
-        assigned
-
+        :Assert: Compute resource is created and has multiple locations
+            assigned
         """
         locations_amount = random.randint(3, 5)
         locations = [make_location() for _ in range(locations_amount)]
@@ -256,12 +255,12 @@ class ComputeResourceTestCase(CLITestCase):
         """Create Compute Resource with different values of
         set-console-password parameter
 
-        @id: 4531b3e3-906b-4835-a6ab-3332dc9bd636
+        :id: 4531b3e3-906b-4835-a6ab-3332dc9bd636
 
-        @Assert: Compute Resource is created and set-console-password
-        parameter is set
+        :Assert: Compute Resource is created and set-console-password parameter
+            is set
 
-        @BZ: 1214312
+        :BZ: 1214312
 
         """
         for console_password in (u'True', u'Yes', 1, u'False', u'No', 0):
@@ -284,9 +283,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_negative_create_with_name_url(self):
         """Compute Resource negative create with invalid values
 
-        @id: cd432ff3-b3b9-49cd-9a16-ed00d81679dd
+        :id: cd432ff3-b3b9-49cd-9a16-ed00d81679dd
 
-        @Assert: Compute resource not created
+        :Assert: Compute resource not created
         """
         for options in invalid_create_data():
             with self.subTest(options):
@@ -303,9 +302,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_negative_create_with_same_name(self):
         """Compute Resource negative create with the same name
 
-        @id: ddb5c45b-1ea3-46d0-b248-56c0388d2e4b
+        :id: ddb5c45b-1ea3-46d0-b248-56c0388d2e4b
 
-        @Assert: Compute resource not created
+        :Assert: Compute resource not created
 
         """
         comp_res = make_compute_resource()
@@ -323,9 +322,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Compute Resource positive update
 
-        @id: 213d7f04-4c54-4985-8ca0-d2a1a9e3b305
+        :id: 213d7f04-4c54-4985-8ca0-d2a1a9e3b305
 
-        @Assert: Compute Resource successfully updated
+        :Assert: Compute Resource successfully updated
 
         """
         for options in valid_update_data():
@@ -360,9 +359,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_negative_update(self):
         """Compute Resource negative update
 
-        @id: e7aa9b39-dd01-4f65-8e89-ff5a6f4ee0e3
+        :id: e7aa9b39-dd01-4f65-8e89-ff5a6f4ee0e3
 
-        @Assert: Compute Resource not updated
+        :Assert: Compute Resource not updated
 
         """
         for options in invalid_update_data():
@@ -383,9 +382,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_console_password_and_name(self):
         """Create a compute resource with ``--set-console-password``.
 
-        @id: 5b4c838a-0265-4c71-a73d-305fecbe508a
+        :id: 5b4c838a-0265-4c71-a73d-305fecbe508a
 
-        @Assert: No error is returned.
+        :Assert: No error is returned.
 
         Targets BZ 1100344.
 
@@ -404,9 +403,9 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_update_console_password(self):
         """Update a compute resource with ``--set-console-password``.
 
-        @id: ef09351e-dcd3-4b4f-8d3b-995e9e5873b3
+        :id: ef09351e-dcd3-4b4f-8d3b-995e9e5873b3
 
-        @Assert: No error is returned.
+        :Assert: No error is returned.
 
         Targets BZ 1100344.
 

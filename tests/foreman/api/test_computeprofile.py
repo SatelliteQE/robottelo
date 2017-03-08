@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Unit tests for the Compute Profile feature.
 
-@Requirement: Computeprofile
+:Requirement: Computeprofile
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -30,9 +30,9 @@ class ComputeProfileTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create new Compute Profile using different names
 
-        @id: 97d04911-9368-4674-92c7-1e3ff114bc18
+        :id: 97d04911-9368-4674-92c7-1e3ff114bc18
 
-        @Assert: Compute Profile is created
+        :Assert: Compute Profile is created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -44,9 +44,9 @@ class ComputeProfileTestCase(APITestCase):
     def test_negative_create(self):
         """Attempt to create Compute Profile using invalid names only
 
-        @id: 2d34a1fd-70a5-4e59-b2e2-86fbfe8e31ab
+        :id: 2d34a1fd-70a5-4e59-b2e2-86fbfe8e31ab
 
-        @Assert: Compute Profile is not created
+        :Assert: Compute Profile is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -58,9 +58,9 @@ class ComputeProfileTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update selected Compute Profile entity using proper names
 
-        @id: c79193d7-2e0f-4ed9-b947-05feeddabfda
+        :id: c79193d7-2e0f-4ed9-b947-05feeddabfda
 
-        @Assert: Compute Profile is updated.
+        :Assert: Compute Profile is updated.
         """
         profile = entities.ComputeProfile().create()
         for new_name in valid_data_list():
@@ -74,9 +74,9 @@ class ComputeProfileTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update Compute Profile entity using invalid names only
 
-        @id: 042b40d5-a78b-4e65-b5cb-5b270b800b37
+        :id: 042b40d5-a78b-4e65-b5cb-5b270b800b37
 
-        @Assert: Compute Profile is not updated.
+        :Assert: Compute Profile is not updated.
         """
         profile = entities.ComputeProfile().create()
         for new_name in invalid_values_list():
@@ -92,9 +92,9 @@ class ComputeProfileTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete Compute Profile entity
 
-        @id: 0a620e23-7ba6-4178-af7a-fd1e332f478f
+        :id: 0a620e23-7ba6-4178-af7a-fd1e332f478f
 
-        @Assert: Compute Profile is deleted successfully.
+        :Assert: Compute Profile is deleted successfully.
         """
         for name in valid_data_list():
             with self.subTest(name):

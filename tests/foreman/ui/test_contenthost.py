@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Content Hosts UI
 
-@Requirement: Content Host
+:Requirement: Content Host
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from robottelo.cleanup import vm_cleanup
@@ -101,11 +101,11 @@ class ContentHostTestCase(UITestCase):
     def test_positive_install_package(self):
         """Install a package to a host remotely
 
-        @id: 13b9422d-4b7a-4068-9a57-a94602cd6410
+        :id: 13b9422d-4b7a-4068-9a57-a94602cd6410
 
-        @assert: Package was successfully installed
+        :assert: Package was successfully installed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             result = self.contenthost.execute_package_action(
@@ -121,11 +121,11 @@ class ContentHostTestCase(UITestCase):
     def test_positive_remove_package(self):
         """Remove a package from a host remotely
 
-        @id: 86d8896b-06d9-4c99-937e-f3aa07b4eb69
+        :id: 86d8896b-06d9-4c99-937e-f3aa07b4eb69
 
-        @Assert: Package was successfully removed
+        :Assert: Package was successfully removed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_6_YUM_REPO,
@@ -145,11 +145,11 @@ class ContentHostTestCase(UITestCase):
     def test_positive_upgrade_package(self):
         """Upgrade a host package remotely
 
-        @id: 1969db93-e7af-4f5f-973d-23c222224db6
+        :id: 1969db93-e7af-4f5f-973d-23c222224db6
 
-        @Assert: Package was successfully upgraded
+        :Assert: Package was successfully upgraded
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         with Session(self.browser):
@@ -166,11 +166,11 @@ class ContentHostTestCase(UITestCase):
     def test_positive_install_package_group(self):
         """Install a package group to a host remotely
 
-        @id: a43fb21b-5f6a-4f14-8cd6-114ec287540c
+        :id: a43fb21b-5f6a-4f14-8cd6-114ec287540c
 
-        @Assert: Package group was successfully installed
+        :Assert: Package group was successfully installed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             result = self.contenthost.execute_package_action(
@@ -187,11 +187,11 @@ class ContentHostTestCase(UITestCase):
     def test_positive_remove_package_group(self):
         """Remove a package group from a host remotely
 
-        @id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98
+        :id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98
 
-        @Assert: Package group was successfully removed
+        :Assert: Package group was successfully removed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             result = self.contenthost.execute_package_action(
@@ -214,11 +214,11 @@ class ContentHostTestCase(UITestCase):
     def test_positive_install_errata(self):
         """Install a errata to a host remotely
 
-        @id: b69b9797-3c0c-42cd-94ed-3f751bb9b24c
+        :id: b69b9797-3c0c-42cd-94ed-3f751bb9b24c
 
-        @assert: Errata was successfully installed
+        :assert: Errata was successfully installed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         with Session(self.browser):
@@ -235,14 +235,14 @@ class ContentHostTestCase(UITestCase):
         """Register a host with activation key and fetch host's 'Registered by'
         field value.
 
-        @id: 5c6dbb5d-bd26-4439-ab04-536a6ad012b9
+        :id: 5c6dbb5d-bd26-4439-ab04-536a6ad012b9
 
-        @assert: 'Registered By' field on content host page points to
-        activation key which was used to register the host
+        :assert: 'Registered By' field on content host page points to
+            activation key which was used to register the host
 
-        @BZ: 1380117
+        :BZ: 1380117
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             result = self.contenthost.fetch_parameters(

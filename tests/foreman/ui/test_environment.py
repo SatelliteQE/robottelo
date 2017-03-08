@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Environment UI
 
-@Requirement: Environment
+:Requirement: Environment
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -37,9 +37,9 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new environment
 
-        @id: be8ee96a-29e4-4c64-9cae-78ab6aa483d7
+        :id: be8ee96a-29e4-4c64-9cae-78ab6aa483d7
 
-        @Assert: Environment is created
+        :Assert: Environment is created
         """
         with Session(self.browser) as session:
             for name in valid_environments_list():
@@ -52,9 +52,9 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_create_with_long_name(self):
         """Create new environment with 255 chars
 
-        @id: 37a57326-debf-498f-96f8-8f9d518817aa
+        :id: 37a57326-debf-498f-96f8-8f9d518817aa
 
-        @Assert: Environment is created
+        :Assert: Environment is created
         """
         # TODO: This test can be removed by adding the value
         # gen_string('alphanumeric', 255) to valid_env_names().  But since
@@ -75,9 +75,9 @@ class EnvironmentTestCase(UITestCase):
         """Try to create environment and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
-        @id: 51c7e300-5f59-4de8-bc55-1a75b03aa456
+        :id: 51c7e300-5f59-4de8-bc55-1a75b03aa456
 
-        @Assert: Environment is not created
+        :Assert: Environment is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -93,9 +93,9 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_update(self):
         """Update an environment and associated OS
 
-        @id: 4fd6aa68-c850-4fcd-8c9b-f88d6c0d1c2d
+        :id: 4fd6aa68-c850-4fcd-8c9b-f88d6c0d1c2d
 
-        @Assert: Environment is updated
+        :Assert: Environment is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -111,9 +111,9 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an environment
 
-        @id: 8572461e-2457-4a1c-bb63-78f49ce2d0fd
+        :id: 8572461e-2457-4a1c-bb63-78f49ce2d0fd
 
-        @Assert: Environment is deleted
+        :Assert: Environment is deleted
         """
         with Session(self.browser) as session:
             for name in valid_environments_list():

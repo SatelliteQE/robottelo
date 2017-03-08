@@ -4,19 +4,19 @@ A full API reference for subscriptions can be found here:
 https://<sat6.com>/apidoc/v2/subscriptions.html
 
 
-@Requirement: Subscription
+:Requirement: Subscription
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
@@ -35,9 +35,9 @@ class SubscriptionsTestCase(APITestCase):
     def test_positive_create(self):
         """Upload a manifest.
 
-        @id: 6faf9d96-9b45-4bdc-afa9-ec3fbae83d41
+        :id: 6faf9d96-9b45-4bdc-afa9-ec3fbae83d41
 
-        @Assert: Manifest is uploaded successfully
+        :Assert: Manifest is uploaded successfully
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -48,9 +48,9 @@ class SubscriptionsTestCase(APITestCase):
     def test_positive_refresh(self):
         """Upload a manifest and refresh it afterwards.
 
-        @id: cd195db6-e81b-42cb-a28d-ec0eb8a53341
+        :id: cd195db6-e81b-42cb-a28d-ec0eb8a53341
 
-        @Assert: Manifest is refreshed successfully
+        :Assert: Manifest is refreshed successfully
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
@@ -67,9 +67,9 @@ class SubscriptionsTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete an Uploaded manifest.
 
-        @id: 4c21c7c9-2b26-4a65-a304-b978d5ba34fc
+        :id: 4c21c7c9-2b26-4a65-a304-b978d5ba34fc
 
-        @Assert: Manifest is Deleted successfully
+        :Assert: Manifest is Deleted successfully
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
@@ -84,9 +84,9 @@ class SubscriptionsTestCase(APITestCase):
     def test_negative_upload(self):
         """Upload the same manifest to two organizations.
 
-        @id: 60ca078d-cfaf-402e-b0db-34d8901449fe
+        :id: 60ca078d-cfaf-402e-b0db-34d8901449fe
 
-        @Assert: The manifest is not uploaded to the second organization.
+        :Assert: The manifest is not uploaded to the second organization.
         """
         orgs = [entities.Organization().create() for _ in range(2)]
         with manifests.clone() as manifest:

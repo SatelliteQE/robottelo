@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Sync Plan CLI
 
-@Requirement: Syncplan
+:Requirement: Syncplan
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from datetime import datetime, timedelta
@@ -179,9 +179,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if syncplan can be created with random names
 
-        @id: dc0a86f7-4219-427e-92fd-29352dbdbfce
+        :id: dc0a86f7-4219-427e-92fd-29352dbdbfce
 
-        @Assert: Sync plan is created and has random name
+        :Assert: Sync plan is created and has random name
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -192,9 +192,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_create_with_description(self):
         """Check if syncplan can be created with random description
 
-        @id: a1bbe81b-60f5-4a19-b400-a02a23fa1dfa
+        :id: a1bbe81b-60f5-4a19-b400-a02a23fa1dfa
 
-        @Assert: Sync plan is created and has random description
+        :Assert: Sync plan is created and has random description
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -205,9 +205,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_create_with_interval(self):
         """Check if syncplan can be created with varied intervals
 
-        @id: 32eb0c1d-0c9a-4fb5-a185-68d0d705fbce
+        :id: 32eb0c1d-0c9a-4fb5-a185-68d0d705fbce
 
-        @Assert: Sync plan is created and has selected interval
+        :Assert: Sync plan is created and has selected interval
         """
         for test_data in valid_name_interval_create_tests():
             with self.subTest(test_data):
@@ -225,9 +225,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Check if syncplan can be created with random names
 
-        @id: 4c1aee35-271e-4ed8-9369-d2abfea8cfd9
+        :id: 4c1aee35-271e-4ed8-9369-d2abfea8cfd9
 
-        @Assert: Sync plan is created and has random name
+        :Assert: Sync plan is created and has random name
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -241,9 +241,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Check if syncplan description can be updated
 
-        @id: 00a279cd-1f49-4ebb-a59a-6f0b4e4cb83c
+        :id: 00a279cd-1f49-4ebb-a59a-6f0b4e4cb83c
 
-        @Assert: Sync plan is created and description is updated
+        :Assert: Sync plan is created and description is updated
         """
         new_sync_plan = self._make_sync_plan()
         for new_desc in valid_data_list():
@@ -259,9 +259,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_update_interval(self):
         """Check if syncplan interval be updated
 
-        @id: d676d7f3-9f7c-4375-bb8b-277d71af94b4
+        :id: d676d7f3-9f7c-4375-bb8b-277d71af94b4
 
-        @Assert: Sync plan interval is updated
+        :Assert: Sync plan interval is updated
         """
         for test_data in valid_name_interval_update_tests():
             with self.subTest(test_data):
@@ -281,9 +281,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_update_sync_date(self):
         """Check if syncplan sync date can be updated
 
-        @id: f0c17d7d-3e86-4b64-9747-6cba6809815e
+        :id: f0c17d7d-3e86-4b64-9747-6cba6809815e
 
-        @Assert: Sync plan is created and sync plan is updated
+        :Assert: Sync plan is created and sync plan is updated
         """
         # Set the sync date to today/right now
         today = datetime.now()
@@ -325,9 +325,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if syncplan can be created and deleted
 
-        @id: b5d97c6b-aead-422b-8d9f-4a192bbe4a3b
+        :id: b5d97c6b-aead-422b-8d9f-4a192bbe4a3b
 
-        @Assert: Sync plan is created and then deleted
+        :Assert: Sync plan is created and then deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -340,9 +340,9 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_info_enabled_field_is_displayed(self):
         """Check if Enabled field is displayed in sync-plan info output
 
-        @id: 54e3a4ea-315c-4026-8101-c4605ca6b874
+        :id: 54e3a4ea-315c-4026-8101-c4605ca6b874
 
-        @Assert: Sync plan Enabled state is displayed
+        :Assert: Sync plan Enabled state is displayed
         """
         new_sync_plan = self._make_sync_plan()
         result = SyncPlan.info({'id': new_sync_plan['id']})
@@ -355,13 +355,13 @@ class SyncPlanTestCase(CLITestCase):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
-        @id: c80f5c0c-3863-47da-8d7b-7d65c73664b0
+        :id: c80f5c0c-3863-47da-8d7b-7d65c73664b0
 
-        @Assert: Repository was not synchronized
+        :Assert: Repository was not synchronized
 
-        @BZ: 1279539
+        :BZ: 1279539
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
@@ -390,13 +390,13 @@ class SyncPlanTestCase(CLITestCase):
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
-        @id: 21efdd08-698c-443c-a681-edce19a4c83a
+        :id: 21efdd08-698c-443c-a681-edce19a4c83a
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @BZ: 1279539
+        :BZ: 1279539
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         sync_plan = self._make_sync_plan({
@@ -428,11 +428,11 @@ class SyncPlanTestCase(CLITestCase):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
 
-        @id: 635bffe2-df98-4971-8950-40edc89e479e
+        :id: 635bffe2-df98-4971-8950-40edc89e479e
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
@@ -467,11 +467,11 @@ class SyncPlanTestCase(CLITestCase):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
 
-        @id: dd262cf3-b836-422c-baca-b3adbc532478
+        :id: dd262cf3-b836-422c-baca-b3adbc532478
 
-        @Assert: Products are synchronized successfully.
+        :Assert: Products are synchronized successfully.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
@@ -521,13 +521,13 @@ class SyncPlanTestCase(CLITestCase):
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
-        @id: 47280ef4-3936-4dbc-8ed0-1076aa8d40df
+        :id: 47280ef4-3936-4dbc-8ed0-1076aa8d40df
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @BZ: 1279539
+        :BZ: 1279539
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         org = make_org()
@@ -580,11 +580,11 @@ class SyncPlanTestCase(CLITestCase):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
 
-        @id: 6ce2f777-f230-4bb8-9822-2cf3580c21aa
+        :id: 6ce2f777-f230-4bb8-9822-2cf3580c21aa
 
-        @Assert: Product is synchronized successfully.
+        :Assert: Product is synchronized successfully.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         org = make_org()

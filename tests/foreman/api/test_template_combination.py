@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """Tests for template combination
 
-@Requirement: TemplateCombination
+:Requirement: TemplateCombination
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: Medium
+:CaseImportance: Medium
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -75,11 +75,11 @@ class TemplateCombinationTestCase(APITestCase):
     def test_positive_get_combination(self):
         """Assert API template combination get method works.
 
-        @id: 2447674e-c37e-11e6-93cb-68f72889dc7f
+        :id: 2447674e-c37e-11e6-93cb-68f72889dc7f
 
-        @Setup: save a template combination
+        :Setup: save a template combination
 
-        @Assert: TemplateCombination can be retrieved through API
+        :Assert: TemplateCombination can be retrieved through API
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)
@@ -92,11 +92,11 @@ class TemplateCombinationTestCase(APITestCase):
     def test_positive_delete_combination(self):
         """Assert API template combination delete method works.
 
-        @id: 3a5cb370-c5f6-11e6-bb2f-68f72889dc7f
+        :id: 3a5cb370-c5f6-11e6-bb2f-68f72889dc7f
 
-        @Setup: save a template combination
+        :Setup: save a template combination
 
-        @Assert: TemplateCombination can be deleted through API
+        :Assert: TemplateCombination can be deleted through API
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)

@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test for Environment  CLI
 
-@Requirement: Environment
+:Requirement: Environment
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from random import choice
 
@@ -67,11 +67,11 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_list_with_name(self):
         """Test Environment List
 
-        @id: 8a81f853-929c-4eaa-8ae0-4c92ebf1f250
+        :id: 8a81f853-929c-4eaa-8ae0-4c92ebf1f250
 
-        @Assert: Environment list is displayed
+        :Assert: Environment list is displayed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -87,13 +87,13 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_list_with_org_and_loc_by_id(self):
         """Test Environment List filtering.
 
-        @id: 643f7cb5-0817-4b0a-ba5e-434df2033a40
+        :id: 643f7cb5-0817-4b0a-ba5e-434df2033a40
 
-        @Assert: Results that match both organization and location are returned
+        :Assert: Results that match both organization and location are returned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1337947
+        :BZ: 1337947
         """
         # Create 2 envs with the same organization but different locations
         org = make_org()
@@ -122,13 +122,13 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_list_with_org_and_loc_by_name(self):
         """Test Environment List filtering.
 
-        @id: 962c6750-f203-4478-8827-651db208ff92
+        :id: 962c6750-f203-4478-8827-651db208ff92
 
-        @Assert: Results that match both organization and location are returned
+        :Assert: Results that match both organization and location are returned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1337947
+        :BZ: 1337947
         """
         # Create 2 envs with the same organization but different locations
         org = make_org()
@@ -157,14 +157,14 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_list_with_org_and_loc_by_id(self):
         """Test Environment List filtering.
 
-        @id: b1659c48-302b-4fe3-a38b-cd34c0fd4878
+        :id: b1659c48-302b-4fe3-a38b-cd34c0fd4878
 
-        @Assert: Server returns empty result as there is no environment
-        associated with location or organization
+        :Assert: Server returns empty result as there is no environment
+            associated with location or organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1337947
+        :BZ: 1337947
         """
         # Create env with specified organization and location
         org = make_org()
@@ -185,14 +185,14 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_list_with_org_and_loc_by_name(self):
         """Test Environment List filtering.
 
-        @id: b8382ebb-ffa3-4637-b3b4-444af6c2fe9b
+        :id: b8382ebb-ffa3-4637-b3b4-444af6c2fe9b
 
-        @Assert: Server returns empty result as there is no environment
-        associated with location or organization
+        :Assert: Server returns empty result as there is no environment
+            associated with location or organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1337947
+        :BZ: 1337947
         """
         # Create env with specified organization and location
         org = make_org()
@@ -213,14 +213,14 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_list_with_non_existing_org_and_loc_by_id(self):
         """Test Environment List filtering parameters validation.
 
-        @id: 97872953-e1aa-44bd-9ce0-a04bccbc9e94
+        :id: 97872953-e1aa-44bd-9ce0-a04bccbc9e94
 
-        @Assert: Server returns empty result as there is no environment
-        associated with location
+        :Assert: Server returns empty result as there is no environment
+            associated with location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1337947
+        :BZ: 1337947
         """
         # Create env with specified organization and location
         org = make_org()
@@ -247,14 +247,14 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_list_with_non_existing_org_and_loc_by_name(self):
         """Test Environment List filtering parameters validation.
 
-        @id: 38cb48e3-a836-47d0-b8a8-9acd33a30546
+        :id: 38cb48e3-a836-47d0-b8a8-9acd33a30546
 
-        @Assert: Server returns empty result as there is no environment
-        associated with location
+        :Assert: Server returns empty result as there is no environment
+            associated with location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1337947
+        :BZ: 1337947
         """
         # Create env with specified organization and location
         org = make_org()
@@ -280,9 +280,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Successfully creates an Environment.
 
-        @id: 3b22f035-ee3a-489e-89c5-e54571584af1
+        :id: 3b22f035-ee3a-489e-89c5-e54571584af1
 
-        @Assert: Environment is created.
+        :Assert: Environment is created.
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -293,9 +293,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Don't create an Environment with invalid data.
 
-        @id: 8a4141b0-3bb9-47e5-baca-f9f027086d4c
+        :id: 8a4141b0-3bb9-47e5-baca-f9f027086d4c
 
-        @Assert: Environment is not created.
+        :Assert: Environment is not created.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -307,9 +307,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Check if Environment with Location can be created
 
-        @id: d2187971-86b2-40c9-a93c-66f37691ae2b
+        :id: d2187971-86b2-40c9-a93c-66f37691ae2b
 
-        @Assert: Environment is created and has new Location assigned
+        :Assert: Environment is created and has new Location assigned
 
         """
         new_loc = make_location()
@@ -324,9 +324,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_create_with_org(self):
         """Check if Environment with Organization can be created
 
-        @id: 9fd9d2d5-db46-40a7-b341-41cdbde4356a
+        :id: 9fd9d2d5-db46-40a7-b341-41cdbde4356a
 
-        @Assert: Environment is created and has new Organization assigned
+        :Assert: Environment is created and has new Organization assigned
 
         """
         new_org = make_org()
@@ -342,9 +342,9 @@ class EnvironmentTestCase(CLITestCase):
         """Create Environment with valid values then delete it
         by ID
 
-        @id: e25af73a-d4ef-4287-83bf-625337d91392
+        :id: e25af73a-d4ef-4287-83bf-625337d91392
 
-        @assert: Environment is deleted
+        :assert: Environment is deleted
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -358,9 +358,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Create Environment then delete it by wrong ID
 
-        @id: fe77920c-62fd-4e0e-b960-a940a1370d10
+        :id: fe77920c-62fd-4e0e-b960-a940a1370d10
 
-        @assert: Environment is not deleted
+        :assert: Environment is not deleted
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -372,9 +372,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Delete the environment by its name.
 
-        @id: 48765173-6086-4b91-9da7-594135f68751
+        :id: 48765173-6086-4b91-9da7-594135f68751
 
-        @Assert: Environment is deleted.
+        :Assert: Environment is deleted.
         """
         environment = make_environment()
         Environment.delete({'name': environment['name']})
@@ -386,9 +386,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Update the environment
 
-        @id: 7b34ce64-24be-4b3b-8f7e-1de07daafdd9
+        :id: 7b34ce64-24be-4b3b-8f7e-1de07daafdd9
 
-        @Assert: Environment Update is displayed
+        :Assert: Environment Update is displayed
         """
         environment = make_environment()
         for new_name in valid_environments_list():
@@ -405,9 +405,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Update the Environment with invalid values
 
-        @id: adc5ad73-0547-40f9-b4d4-649780cfb87a
+        :id: adc5ad73-0547-40f9-b4d4-649780cfb87a
 
-        @Assert: Environment is not updated
+        :Assert: Environment is not updated
         """
         environment = make_environment()
         for new_name in invalid_values_list():
@@ -425,9 +425,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_update_loc(self):
         """Update environment location with new value
 
-        @id: d58d6dc5-a820-4c61-bd69-0c631c2d3f2e
+        :id: d58d6dc5-a820-4c61-bd69-0c631c2d3f2e
 
-        @Assert: Environment Update finished and new location is assigned
+        :Assert: Environment Update finished and new location is assigned
 
         """
         old_loc = make_location()
@@ -447,9 +447,9 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_update_org(self):
         """Update environment organization with new value
 
-        @id: 2c40caf9-95a0-4b87-bd97-0a4448746052
+        :id: 2c40caf9-95a0-4b87-bd97-0a4448746052
 
-        @Assert: Environment Update finished and new organization is assigned
+        :Assert: Environment Update finished and new organization is assigned
 
         """
         old_org = make_org()
@@ -474,9 +474,9 @@ class EnvironmentTestCase(CLITestCase):
         """Check if environment sc-param subcommand works passing
         an environment id
 
-        @id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
+        :id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
 
-        @Assert: The command runs without raising an error
+        :Assert: The command runs without raising an error
         """
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -496,9 +496,9 @@ class EnvironmentTestCase(CLITestCase):
         """Check if environment sc-param subcommand works passing
         an environment name
 
-        @id: e2fdd262-9b09-4252-8a5a-4e578e3b8547
+        :id: e2fdd262-9b09-4252-8a5a-4e578e3b8547
 
-        @Assert: The command runs without raising an error
+        :Assert: The command runs without raising an error
         """
         sc_params_list = SmartClassParameter.list({
             'environment': self.env['name'],

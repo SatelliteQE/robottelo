@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host Collection UI
 
-@Requirement: Hostcollection
+:Requirement: Hostcollection
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -73,9 +73,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create Host Collection for all name variations
 
-        @id: 267bd784-1ef7-4270-a264-6f8659e239fd
+        :id: 267bd784-1ef7-4270-a264-6f8659e239fd
 
-        @Assert: Host Collection is created
+        :Assert: Host Collection is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -88,9 +88,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_create_with_description(self):
         """Create Host Collection with valid description
 
-        @id: 830ff39e-0d4c-4368-bc47-12b060a09410
+        :id: 830ff39e-0d4c-4368-bc47-12b060a09410
 
-        @Assert: Host Collection is created
+        :Assert: Host Collection is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -106,9 +106,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_create_with_limit(self):
         """Create Host Collection with finite content hosts limit
 
-        @id: 9983b61d-f820-4b60-ae5e-a45925f2dcf0
+        :id: 9983b61d-f820-4b60-ae5e-a45925f2dcf0
 
-        @Assert: Host Collection is created
+        :Assert: Host Collection is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -120,10 +120,10 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_create_with_name(self):
         """Create Host Collections with invalid name
 
-        @id: 04e36c46-7577-4308-b9bb-4ec74549d9d3
+        :id: 04e36c46-7577-4308-b9bb-4ec74549d9d3
 
-        @Assert: Host Collection is not created and appropriate error message
-        thrown
+        :Assert: Host Collection is not created and appropriate error message
+            thrown
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -141,9 +141,9 @@ class HostCollectionTestCase(UITestCase):
         """Create Host Collections with invalid Content Host Limit value. Both
         with too long numbers and using letters.
 
-        @id: c15b3540-809e-4339-ad5f-1ab488244299
+        :id: c15b3540-809e-4339-ad5f-1ab488244299
 
-        @Assert: Host Collection is not created. Appropriate error shown.
+        :Assert: Host Collection is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             for limit in invalid_names_list():
@@ -163,9 +163,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update existing Host Collection name
 
-        @id: 9df33661-7a9c-40d9-8f2c-52e5ed21c156
+        :id: 9df33661-7a9c-40d9-8f2c-52e5ed21c156
 
-        @Assert: Host Collection is updated
+        :Assert: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -182,9 +182,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_description(self):
         """Update existing Host Collection entity description
 
-        @id: 5ef92657-489f-46a2-9b3a-e40322ca86d8
+        :id: 5ef92657-489f-46a2-9b3a-e40322ca86d8
 
-        @Assert: Host Collection is updated
+        :Assert: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -209,9 +209,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_limit(self):
         """Update Content Host limit from Unlimited to a finite number
 
-        @id: 6f5015c4-06c9-4873-806e-5f9d39c9d8a8
+        :id: 6f5015c4-06c9-4873-806e-5f9d39c9d8a8
 
-        @Assert: Host Collection is updated
+        :Assert: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -228,9 +228,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_limit_to_unlimited(self):
         """Update Content Host limit from definite number to Unlimited
 
-        @id: 823acd9e-1259-47b6-8236-7547ef3fff98
+        :id: 823acd9e-1259-47b6-8236-7547ef3fff98
 
-        @Assert: Host Collection is updated
+        :Assert: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -247,9 +247,9 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_update_name(self):
         """Update existing Host Collection entity name with invalid value
 
-        @id: 7af999e8-5189-45c0-a92d-8c05b03f556a
+        :id: 7af999e8-5189-45c0-a92d-8c05b03f556a
 
-        @Assert: Host Collection is not updated.  Appropriate error shown.
+        :Assert: Host Collection is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -268,9 +268,9 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_update_limit(self):
         """Update Host Collection with invalid Content Host Limit
 
-        @id: 3f3749f9-cf52-4897-993f-804def785510
+        :id: 3f3749f9-cf52-4897-993f-804def785510
 
-        @Assert: Host Collection is not updated.  Appropriate error shown.
+        :Assert: Host Collection is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -286,9 +286,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_delete(self):
         """Create Host Collection and delete it for all variations of name
 
-        @id: 978a985c-29f4-4b1f-8c68-8cd412af21e6
+        :id: 978a985c-29f4-4b1f-8c68-8cd412af21e6
 
-        @Assert: Host Collection is deleted
+        :Assert: Host Collection is deleted
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -302,9 +302,9 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_copy(self):
         """Create Host Collection and copy it
 
-        @id: af8d968c-8241-40dc-b92c-81965f470191
+        :id: af8d968c-8241-40dc-b92c-81965f470191
 
-        @Assert: Host Collection copy exists
+        :Assert: Host Collection copy exists
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -321,9 +321,9 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_copy(self):
         """Create Host Collection and copy it. Use invalid values for copy name
 
-        @id: 99d47520-c09a-4fbc-8e53-a4e889af0187
+        :id: 99d47520-c09a-4fbc-8e53-a4e889af0187
 
-        @Assert: Host Collection copy does not exist
+        :Assert: Host Collection copy does not exist
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -342,11 +342,11 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_add_host(self):
         """Check if host can be added to Host Collection
 
-        @id: 80824c9f-15a1-4f76-b7ac-7d9ca9f6ed9e
+        :id: 80824c9f-15a1-4f76-b7ac-7d9ca9f6ed9e
 
-        @Assert: Host is added to Host Collection successfully
+        :Assert: Host is added to Host Collection successfully
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         name = gen_string('alpha')
         cv = entities.ContentView(organization=self.organization).create()
@@ -369,20 +369,20 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_hosts_limit(self):
         """Check that Host limit actually limits usage
 
-        @id: 57b70977-2110-47d9-be3b-461ad15c70c7
+        :id: 57b70977-2110-47d9-be3b-461ad15c70c7
 
-        @Steps:
-        1. Create Host Collection entity that can contain only one Host (using
-        Host Limit field)
-        2. Create Host and add it to Host Collection. Check that it was added
-        successfully
-        3. Create one more Host and try to add it to Host Collection
-        4. Check that expected error is shown
+        :Steps:
+            1. Create Host Collection entity that can contain only one Host
+                (using Host Limit field)
+            2. Create Host and add it to Host Collection. Check that it was
+                added successfully
+            3. Create one more Host and try to add it to Host Collection
+            4. Check that expected error is shown
 
-        @Assert: Second host is not added to Host Collection and appropriate
-        error is shown
+        :Assert: Second host is not added to Host Collection and appropriate
+            error is shown
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         name = gen_string('alpha')
         org = entities.Organization().create()
@@ -506,12 +506,12 @@ class HostCollectionPackageManagementTest(UITestCase):
     def test_positive_install_package(self):
         """Install a package to hosts inside host collection remotely
 
-        @id: eead8392-0ffc-4062-b045-5d0252670775
+        :id: eead8392-0ffc-4062-b045-5d0252670775
 
-        @assert: Package was successfully installed on all the hosts in host
-        collection
+        :assert: Package was successfully installed on all the hosts in host
+            collection
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             self.hostcollection.execute_bulk_package_action(
@@ -527,12 +527,12 @@ class HostCollectionPackageManagementTest(UITestCase):
     def test_positive_remove_package(self):
         """Remove a package from hosts inside host collection remotely
 
-        @id: 488fa88d-d0ef-4108-a050-96fb621383df
+        :id: 488fa88d-d0ef-4108-a050-96fb621383df
 
-        @Assert: Package was successfully removed from all the hosts in host
-        collection
+        :Assert: Package was successfully removed from all the hosts in host
+            collection
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         for client in self.hosts:
             client.download_install_rpm(
@@ -556,12 +556,12 @@ class HostCollectionPackageManagementTest(UITestCase):
     def test_positive_upgrade_package(self):
         """Upgrade a package on hosts inside host collection remotely
 
-        @id: 5a6fff0a-686f-419b-a773-4d03713e47e9
+        :id: 5a6fff0a-686f-419b-a773-4d03713e47e9
 
-        @Assert: Package was successfully upgraded on all the hosts in host
-        collection
+        :Assert: Package was successfully upgraded on all the hosts in host
+            collection
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         for client in self.hosts:
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
@@ -578,12 +578,12 @@ class HostCollectionPackageManagementTest(UITestCase):
     def test_positive_install_package_group(self):
         """Install a package group to hosts inside host collection remotely
 
-        @id: 2bf47798-d30d-451a-8de5-bc03bd8b9a48
+        :id: 2bf47798-d30d-451a-8de5-bc03bd8b9a48
 
-        @Assert: Package group was successfully installed on all the hosts in
-        host collection
+        :Assert: Package group was successfully installed on all the hosts in
+            host collection
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             self.hostcollection.execute_bulk_package_action(
@@ -599,12 +599,12 @@ class HostCollectionPackageManagementTest(UITestCase):
     def test_positive_remove_package_group(self):
         """Remove a package group from hosts inside host collection remotely
 
-        @id: 458897dc-9836-481a-b777-b147d64836f2
+        :id: 458897dc-9836-481a-b777-b147d64836f2
 
-        @Assert: Package group was successfully removed  on all the hosts in
-        host collection
+        :Assert: Package group was successfully removed  on all the hosts in
+            host collection
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             self.hostcollection.execute_bulk_package_action(
@@ -629,12 +629,12 @@ class HostCollectionPackageManagementTest(UITestCase):
     def test_positive_install_errata(self):
         """Install an errata to the hosts inside host collection remotely
 
-        @id: 69c83000-0b46-4735-8c03-e9e0b48af0fb
+        :id: 69c83000-0b46-4735-8c03-e9e0b48af0fb
 
-        @Assert: Errata was successfully installed in all the hosts in host
-        collection
+        :Assert: Errata was successfully installed in all the hosts in host
+            collection
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         for client in self.hosts:
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))

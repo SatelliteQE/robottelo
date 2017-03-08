@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host Collection CLI
 
-@Requirement: Host collection
+:Requirement: Host collection
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -106,9 +106,9 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if host collection can be created with random names
 
-        @id: 40f1095a-cc1d-426e-b255-38319f5bd221
+        :id: 40f1095a-cc1d-426e-b255-38319f5bd221
 
-        @Assert: Host collection is created and has random name
+        :Assert: Host collection is created and has random name
 
         """
         for name in valid_data_list():
@@ -121,9 +121,9 @@ class HostCollectionTestCase(CLITestCase):
         """Check if host collection can be created with random
         description
 
-        @id: 9736e3aa-bbc1-4c5f-98e9-b9dd18ba47ca
+        :id: 9736e3aa-bbc1-4c5f-98e9-b9dd18ba47ca
 
-        @Assert: Host collection is created and has random description
+        :Assert: Host collection is created and has random description
 
         """
         for desc in valid_data_list():
@@ -135,9 +135,9 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_create_with_limit(self):
         """Check if host collection can be created with random limits
 
-        @id: 682b5624-1095-48e6-a0dd-c76e70ca6540
+        :id: 682b5624-1095-48e6-a0dd-c76e70ca6540
 
-        @Assert: Host collection is created and has random limits
+        :Assert: Host collection is created and has random limits
 
         """
         for limit in ('1', '3', '5', '10', '20'):
@@ -151,10 +151,10 @@ class HostCollectionTestCase(CLITestCase):
         """Create Host Collection with different values of
         unlimited-hosts parameter
 
-        @id: d688fd4a-88eb-484e-9e90-854e0595edd0
+        :id: d688fd4a-88eb-484e-9e90-854e0595edd0
 
-        @Assert: Host Collection is created and unlimited-hosts
-        parameter is set
+        :Assert: Host Collection is created and unlimited-hosts parameter is
+            set
         """
         for unlimited in ('True', 'Yes', 1, 'False', 'No', 0):
             with self.subTest(unlimited):
@@ -177,9 +177,9 @@ class HostCollectionTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Check if host collection can be created with random names
 
-        @id: 92a9eff0-693f-4ab8-b2c4-de08e5f709a7
+        :id: 92a9eff0-693f-4ab8-b2c4-de08e5f709a7
 
-        @Assert: Host collection is created and has random name
+        :Assert: Host collection is created and has random name
 
         """
         for name in invalid_values_list():
@@ -192,11 +192,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Check if host collection name can be updated
 
-        @id: 10d395e6-4ac6-4c35-a78c-c59a78c55799
+        :id: 10d395e6-4ac6-4c35-a78c-c59a78c55799
 
-        @Assert: Host collection is created and name is updated
+        :Assert: Host collection is created and name is updated
 
-        @BZ: 1328925
+        :BZ: 1328925
         """
         new_host_col = self._new_host_collection()
         for new_name in valid_data_list():
@@ -214,11 +214,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Check if host collection description can be updated
 
-        @id: 298b1f86-d4ab-4e10-a948-a0034826505f
+        :id: 298b1f86-d4ab-4e10-a948-a0034826505f
 
-        @Assert: Host collection is created and description is updated
+        :Assert: Host collection is created and description is updated
 
-        @BZ: 1328925
+        :BZ: 1328925
         """
         new_host_col = self._new_host_collection()
         for desc in valid_data_list():
@@ -236,11 +236,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_update_limit(self):
         """Check if host collection limits be updated
 
-        @id: 4c0e0c3b-82ac-4aa2-8378-6adc7946d4ec
+        :id: 4c0e0c3b-82ac-4aa2-8378-6adc7946d4ec
 
-        @Assert: Host collection limits is updated
+        :Assert: Host collection limits is updated
 
-        @BZ: 1245334
+        :BZ: 1245334
 
         """
         new_host_col = self._new_host_collection()
@@ -259,11 +259,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if host collection can be created and deleted
 
-        @id: ef54a26e-a18f-4f29-8ef4-a7124785dbae
+        :id: ef54a26e-a18f-4f29-8ef4-a7124785dbae
 
-        @Assert: Host collection is created and then deleted
+        :Assert: Host collection is created and then deleted
 
-        @BZ: 1328925
+        :BZ: 1328925
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -279,11 +279,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_add_host_by_id(self):
         """Check if content host can be added to host collection
 
-        @id: db987da4-6326-43d5-a4c5-93a0c4da7f00
+        :id: db987da4-6326-43d5-a4c5-93a0c4da7f00
 
-        @Assert: Host collection is created and content-host is added
+        :Assert: Host collection is created and content-host is added
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)
@@ -305,11 +305,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_remove_host_by_id(self):
         """Check if content host can be removed from host collection
 
-        @id: 61f4aab1-398b-4d3a-a4f4-f558ad8d2679
+        :id: 61f4aab1-398b-4d3a-a4f4-f558ad8d2679
 
-        @Assert: Host collection is created and content-host is removed
+        :Assert: Host collection is created and content-host is removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)
@@ -339,11 +339,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_list_hosts(self):
         """Check if content hosts added to host collection is listed
 
-        @id: 3075cb97-8448-4358-8ffc-0d5cd0078ca3
+        :id: 3075cb97-8448-4358-8ffc-0d5cd0078ca3
 
-        @Assert: Content-host added to host-collection is listed
+        :Assert: Content-host added to host-collection is listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host_col_name = gen_string('alpha', 15)
         new_host_col = self._new_host_collection({'name': host_col_name})
@@ -369,11 +369,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_list_by_name(self):
         """Check if host collection list can be filtered by name
 
-        @id: 2d611a48-1e51-49b5-8f20-81b09f96c542
+        :id: 2d611a48-1e51-49b5-8f20-81b09f96c542
 
-        @Assert: Only host-collection with specific name is listed
+        :Assert: Only host-collection with specific name is listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create two host collections within the same org
         host_col = self._new_host_collection()
@@ -389,11 +389,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_list_by_org_id(self):
         """Check if host collection list can be filtered by organization id
 
-        @id: afbe077a-0de1-432c-a0c4-082129aab92e
+        :id: afbe077a-0de1-432c-a0c4-082129aab92e
 
-        @Assert: Only host-collection within specific org is listed
+        :Assert: Only host-collection within specific org is listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create two host collections within different organizations
         self._new_host_collection()
@@ -411,11 +411,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_list_by_org_name(self):
         """Check if host collection list can be filtered by organization name
 
-        @id: 0102094f-f5af-4067-8a07-541ba9d94f61
+        :id: 0102094f-f5af-4067-8a07-541ba9d94f61
 
-        @Assert: Only host-collection within specific org is listed
+        :Assert: Only host-collection within specific org is listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create two host collections within different organizations
         self._new_host_collection()
@@ -433,13 +433,13 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_list_by_host_id(self):
         """Check if host collection list can be filtered by associated host id
 
-        @id: de272461-9804-4524-83c8-23e47abfc8e3
+        :id: de272461-9804-4524-83c8-23e47abfc8e3
 
-        @Assert: Only host-collection with specific host is listed
+        :Assert: Only host-collection with specific host is listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1379372
+        :BZ: 1379372
         """
         # Create two host collections within the same org but only one with
         # associated host that will be used for filtering
@@ -472,13 +472,13 @@ class HostCollectionTestCase(CLITestCase):
         """Check if host collection list can be filtered by
         associated host name
 
-        @id: 2a99e11f-50b8-48b4-8dce-e6ad8ff9c051
+        :id: 2a99e11f-50b8-48b4-8dce-e6ad8ff9c051
 
-        @Assert: Only host-collection with specific host is listed
+        :Assert: Only host-collection with specific host is listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1379372
+        :BZ: 1379372
         """
         # Create two host collections within the same org but only one with
         # associated host that will be used for filtering
@@ -512,14 +512,14 @@ class HostCollectionTestCase(CLITestCase):
         host-collection hosts command overrides global configuration defined
         on /etc/hammer/cli_config.yml, which default is 20 per page
 
-        @BZ: 1343583
+        :BZ: 1343583
 
-        @id: bbe1108b-bfb2-4a03-94ef-8fd1b5a0ec82
+        :id: bbe1108b-bfb2-4a03-94ef-8fd1b5a0ec82
 
-        @Assert: Number of host per page follows per_page configuration
-        restriction
+        :Assert: Number of host per page follows per_page configuration
+            restriction
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host_collection = self._new_host_collection({
             'name': gen_string('alpha', 15)

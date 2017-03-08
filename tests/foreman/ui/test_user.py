@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Users UI
 
-@Requirement: User
+:Requirement: User
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 import random
@@ -85,9 +85,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_username(self):
         """Create User for all variations of Username
 
-        @id: 2acc8c7d-cb14-4eda-98f9-fb379950f2f5
+        :id: 2acc8c7d-cb14-4eda-98f9-fb379950f2f5
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         with Session(self.browser) as session:
             for user_name in valid_strings():
@@ -99,9 +99,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_first_name(self):
         """Create User for all variations of First Name
 
-        @id: dd398cd6-821e-4b0e-a111-22d5a6eeafd8
+        :id: dd398cd6-821e-4b0e-a111-22d5a6eeafd8
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         with Session(self.browser) as session:
             for first_name in valid_strings():
@@ -114,9 +114,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_surname(self):
         """Create User for all variations of Surname
 
-        @id: 0a2dc093-0cd1-41eb-99cd-79935c74563f
+        :id: 0a2dc093-0cd1-41eb-99cd-79935c74563f
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         with Session(self.browser) as session:
             for last_name in valid_strings(50):
@@ -129,9 +129,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_email(self):
         """Create User for all variations of Email Address
 
-        @id: 1c6c0f50-401c-4b7d-9795-97a1be3806f8
+        :id: 1c6c0f50-401c-4b7d-9795-97a1be3806f8
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         with Session(self.browser) as session:
             for email in valid_emails_list():
@@ -144,9 +144,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_language(self):
         """Create User for all variations of Language
 
-        @id: 1c5581a8-79ae-40a6-8052-f47be2d4c5eb
+        :id: 1c5581a8-79ae-40a6-8052-f47be2d4c5eb
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         with Session(self.browser) as session:
             for language in LANGUAGES:
@@ -159,9 +159,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_password(self):
         """Create User for all variations of Password
 
-        @id: 83d6efe0-7526-465c-9c97-5673c7736fc4
+        :id: 83d6efe0-7526-465c-9c97-5673c7736fc4
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         test_data = valid_strings()
         extra_passwords = (
@@ -185,9 +185,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_admin(self):
         """Create an Admin user
 
-        @id: 9bf56045-1026-435c-bf4c-623e160582d5
+        :id: 9bf56045-1026-435c-bf4c-623e160582d5
 
-        @Assert: Admin User is created successfully
+        :Assert: Admin User is created successfully
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -198,9 +198,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_one_role(self):
         """Create User with one role
 
-        @id: 6d6c795e-8b46-4f0f-84e1-f7e22add6173
+        :id: 6d6c795e-8b46-4f0f-84e1-f7e22add6173
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         name = gen_string('alpha')
         role = entities.Role().create()
@@ -216,11 +216,11 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_multiple_roles(self):
         """Create User with multiple roles
 
-        @id: d3cc4434-25ca-4465-8878-42495390c17b
+        :id: d3cc4434-25ca-4465-8878-42495390c17b
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         role1 = gen_string('alpha')
@@ -241,11 +241,11 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_all_roles(self):
         """Create User and assign all available roles to it
 
-        @id: 814593ca-1566-45ea-9eff-e880183b1ee3
+        :id: 814593ca-1566-45ea-9eff-e880183b1ee3
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -260,9 +260,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_one_org(self):
         """Create User associated to one Org
 
-        @id: 830bc5fc-e773-466c-9b38-4f33a2c1d05e
+        :id: 830bc5fc-e773-466c-9b38-4f33a2c1d05e
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -280,11 +280,11 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_multiple_orgs(self):
         """Create User associated to multiple Orgs
 
-        @id: d74c0284-3995-4a4a-8746-00858282bf5d
+        :id: d74c0284-3995-4a4a-8746-00858282bf5d
 
-        @Assert: User is created successfully
+        :Assert: User is created successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         org_name1 = gen_string('alpha')
@@ -310,9 +310,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_default_org(self):
         """Create User and has default organization associated with it
 
-        @id: 3d51dead-9053-427d-8292-c42e87ed6289
+        :id: 3d51dead-9053-427d-8292-c42e87ed6289
 
-        @Assert: User is created with default Org selected.
+        :Assert: User is created with default Org selected.
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -333,9 +333,9 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_default_location(self):
         """Create User and associate a default Location.
 
-        @id: 952a0be5-d393-49a2-8fd9-f6dfcc31f762
+        :id: 952a0be5-d393-49a2-8fd9-f6dfcc31f762
 
-        @Assert: User is created with default Location selected.
+        :Assert: User is created with default Location selected.
         """
         name = gen_string('alpha')
         loc_name = gen_string('alpha')
@@ -356,9 +356,9 @@ class UserTestCase(UITestCase):
     def test_negative_create(self):
         """Enter all User creation details and Cancel
 
-        @id: 2774be2f-303e-498f-8072-80462f33c52e
+        :id: 2774be2f-303e-498f-8072-80462f33c52e
 
-        @Assert: User is not created
+        :Assert: User is not created
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -376,9 +376,9 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create User with invalid User Name
 
-        @id: 31bbe350-0275-4aaf-99ec-3f77bfd4ba00
+        :id: 31bbe350-0275-4aaf-99ec-3f77bfd4ba00
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             for user_name in invalid_values_list(interface='ui'):
@@ -391,9 +391,9 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_firstname(self):
         """Create User with invalid FirstName
 
-        @id: 21525bf2-4de9-43f0-8c92-b2fad1fdc944
+        :id: 21525bf2-4de9-43f0-8c92-b2fad1fdc944
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             # invalid_values_list is not used here because first name is an
@@ -412,9 +412,9 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_surname(self):
         """Create User with invalid Surname
 
-        @id: 47d9e8be-3b29-4a56-85d7-898145b5b034
+        :id: 47d9e8be-3b29-4a56-85d7-898145b5b034
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             # invalid_values_list is not used here because sur name is an
@@ -433,9 +433,9 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_emails(self):
         """Create User with invalid Email Address
 
-        @id: 36511b82-e070-41ea-81fa-6e29faa9da1c
+        :id: 36511b82-e070-41ea-81fa-6e29faa9da1c
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             for email in invalid_emails_list():
@@ -449,9 +449,9 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_blank_auth(self):
         """Create User with blank value for 'Authorized by' field
 
-        @id: 68f670ed-ac6e-4052-889c-6671d659e510
+        :id: 68f670ed-ac6e-4052-889c-6671d659e510
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             make_user(session, username=gen_string('alpha'), authorized_by='')
@@ -462,9 +462,9 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_wrong_pass_confirmation(self):
         """Create User with non-matching values in Password and verify
 
-        @id: f818e5fc-b378-4bc7-afa8-18b23ee05053
+        :id: f818e5fc-b378-4bc7-afa8-18b23ee05053
 
-        @Assert: User is not created. Appropriate error shown.
+        :Assert: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             make_user(
@@ -480,9 +480,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_username(self):
         """Update Username in User
 
-        @id: 4ecb2816-9bef-4089-86a0-02d7d065cdb1
+        :id: 4ecb2816-9bef-4089-86a0-02d7d065cdb1
 
-        @Assert: User is updated successfully
+        :Assert: User is updated successfully
         """
         name = gen_string('alpha')
         password = gen_string('alpha')
@@ -511,9 +511,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_firstname(self):
         """Update first name in User
 
-        @id: 03ef8a7f-2bf1-4314-b0cd-a7a6acfc17ea
+        :id: 03ef8a7f-2bf1-4314-b0cd-a7a6acfc17ea
 
-        @Assert: User is updated successful
+        :Assert: User is updated successful
         """
         first_name = gen_string('alpha')
         new_first_name = gen_string('alpha')
@@ -527,9 +527,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_surname(self):
         """Update surname in User
 
-        @id: 0326d221-28b0-4a6b-934e-b67ee6c9f696
+        :id: 0326d221-28b0-4a6b-934e-b67ee6c9f696
 
-        @Assert: User is updated successful
+        :Assert: User is updated successful
         """
         last_name = gen_string('alpha')
         new_last_name = gen_string('alpha')
@@ -543,9 +543,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_email(self):
         """Update Email Address in User
 
-        @id: e48314b7-2a49-48ec-896d-af7bf427b1c4
+        :id: e48314b7-2a49-48ec-896d-af7bf427b1c4
 
-        @Assert: User is updated successfully
+        :Assert: User is updated successfully
         """
         email = u'{0}@example.com'.format(gen_string('alpha'))
         new_email = u'{0}@myexample.com'.format(gen_string('alpha'))
@@ -559,9 +559,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_language(self):
         """Update Language in User
 
-        @id: 64b6a90e-0d4c-4a55-a4bd-7347010e39f2
+        :id: 64b6a90e-0d4c-4a55-a4bd-7347010e39f2
 
-        @Assert: User is updated successfully
+        :Assert: User is updated successfully
         """
         locale = random.choice(list(LANGUAGES.keys()))
         username = gen_string('alpha')
@@ -574,9 +574,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_password(self):
         """Update password for a user
 
-        @id: db57c3bc-4fae-4ee7-bf6d-8e0bcc7fd55c
+        :id: db57c3bc-4fae-4ee7-bf6d-8e0bcc7fd55c
 
-        @Assert: User password is updated successfully
+        :Assert: User password is updated successfully
 
         """
         user_name = gen_string('alpha')
@@ -597,9 +597,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_to_non_admin(self):
         """Convert an user from an admin user to non-admin user
 
-        @id: b41cbcf8-d819-4daa-b217-a4812541dca3
+        :id: b41cbcf8-d819-4daa-b217-a4812541dca3
 
-        @Assert: User is updated and has proper admin role value
+        :Assert: User is updated and has proper admin role value
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -612,9 +612,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_to_admin(self):
         """Convert a user to an admin user
 
-        @id: d3cdda62-1384-4b49-97a3-0c66764583bb
+        :id: d3cdda62-1384-4b49-97a3-0c66764583bb
 
-        @Assert: User is updated and has proper admin role value
+        :Assert: User is updated and has proper admin role value
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -626,9 +626,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_role(self):
         """Update role for a user
 
-        @id: 2a13529c-3863-403b-a319-9569ca1287cb
+        :id: 2a13529c-3863-403b-a319-9569ca1287cb
 
-        @Assert: User role is updated
+        :Assert: User role is updated
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -649,11 +649,11 @@ class UserTestCase(UITestCase):
     def test_positive_update_with_multiple_roles(self):
         """Update User with multiple roles
 
-        @id: 127fb368-09fd-4f10-8319-566a1bcb5cd2
+        :id: 127fb368-09fd-4f10-8319-566a1bcb5cd2
 
-        @Assert: User is updated successfully
+        :Assert: User is updated successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         role_names = [
@@ -675,11 +675,11 @@ class UserTestCase(UITestCase):
     def test_positive_update_with_all_roles(self):
         """Update User with all roles
 
-        @id: cd7a9cfb-a700-45f2-a11d-bba6be3c810d
+        :id: cd7a9cfb-a700-45f2-a11d-bba6be3c810d
 
-        @Assert: User is updated successfully
+        :Assert: User is updated successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -697,9 +697,9 @@ class UserTestCase(UITestCase):
     def test_positive_update_org(self):
         """Assign a User to an Org
 
-        @id: d891e54b-76bf-4537-8eb9-c3f8832e4c2c
+        :id: d891e54b-76bf-4537-8eb9-c3f8832e4c2c
 
-        @Assert: User is updated successfully
+        :Assert: User is updated successfully
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -717,11 +717,11 @@ class UserTestCase(UITestCase):
     def test_positive_update_orgs(self):
         """Assign a User to multiple Orgs
 
-        @id: a207188d-1ad1-4ff1-9906-bae1d91104fd
+        :id: a207188d-1ad1-4ff1-9906-bae1d91104fd
 
-        @Assert: User is updated
+        :Assert: User is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         org_names = [
@@ -743,9 +743,9 @@ class UserTestCase(UITestCase):
     def test_negative_update_username(self):
         """Update invalid Username in an User
 
-        @id: 7019461e-13c6-4761-b3e9-4df81abcd0f9
+        :id: 7019461e-13c6-4761-b3e9-4df81abcd0f9
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -760,9 +760,9 @@ class UserTestCase(UITestCase):
     def test_negative_update_firstname(self):
         """Update invalid Firstname in an User
 
-        @id: 1e3945d1-5b47-45ca-aff9-3ddd44688e6b
+        :id: 1e3945d1-5b47-45ca-aff9-3ddd44688e6b
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -777,9 +777,9 @@ class UserTestCase(UITestCase):
     def test_negative_update_surname(self):
         """Update invalid Surname in an User
 
-        @id: 14033c1f-4c7e-4ee5-8ffc-76c4dd672cc1
+        :id: 14033c1f-4c7e-4ee5-8ffc-76c4dd672cc1
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -794,9 +794,9 @@ class UserTestCase(UITestCase):
     def test_negative_update_email(self):
         """Update invalid Email Address in an User
 
-        @id: 6aec3816-16ca-487a-b0f1-a5c1fbc3e0a3
+        :id: 6aec3816-16ca-487a-b0f1-a5c1fbc3e0a3
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -811,14 +811,14 @@ class UserTestCase(UITestCase):
     def test_negative_update_password(self):
         """Update different values in Password and verify fields
 
-        @id: ab4a5dbf-70c2-4adc-b948-bc350329e166
+        :id: ab4a5dbf-70c2-4adc-b948-bc350329e166
 
-        @Steps:
-        1. Create User
-        2. Update the password by entering different values in Password and
-        verify fields
+        :Steps:
+            1. Create User
+            2. Update the password by entering different values in Password and
+                verify fields
 
-        @Assert: User is not updated.  Appropriate error shown.
+        :Assert: User is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -835,13 +835,13 @@ class UserTestCase(UITestCase):
     def test_negative_update_password_empty_confirmation(self):
         """Update user password without providing confirmation value
 
-        @id: c2b569c9-8120-4125-8bfe-61324a881395
+        :id: c2b569c9-8120-4125-8bfe-61324a881395
 
-        @Steps:
-        1. Create User
-        2. Update the password by entering value only in Password field
+        :Steps:
+            1. Create User
+            2. Update the password by entering value only in Password field
 
-        @Assert: User is not updated.  Appropriate error shown.
+        :Assert: User is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -858,9 +858,9 @@ class UserTestCase(UITestCase):
     def test_negative_update(self):
         """[UI ONLY] Attempt to update User info and Cancel
 
-        @id: 56c8ea13-4add-4a51-8428-9d9f9ddde33e
+        :id: 56c8ea13-4add-4a51-8428-9d9f9ddde33e
 
-        @Assert: User is not updated.
+        :Assert: User is not updated.
         """
         new_first_name = gen_string('alpha')
         new_last_name = gen_string('alpha')
@@ -882,9 +882,9 @@ class UserTestCase(UITestCase):
     def test_positive_delete_user(self):
         """Delete an existing User
 
-        @id: 49534eda-f8ea-404e-9714-a8d0d2210979
+        :id: 49534eda-f8ea-404e-9714-a8d0d2210979
 
-        @Assert: User is deleted successfully
+        :Assert: User is deleted successfully
         """
         with Session(self.browser) as session:
             for user_name in valid_strings():
@@ -896,9 +896,9 @@ class UserTestCase(UITestCase):
     def test_positive_delete_admin(self):
         """Delete an admin user
 
-        @id: afda171a-b464-461f-93ce-96d770935200
+        :id: afda171a-b464-461f-93ce-96d770935200
 
-        @Assert: User is deleted
+        :Assert: User is deleted
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -910,9 +910,9 @@ class UserTestCase(UITestCase):
     def test_negative_delete_user(self):
         """[UI ONLY] Attempt to delete an User and cancel
 
-        @id: 43aed0c0-a3c3-4044-addc-910dc29e4f37
+        :id: 43aed0c0-a3c3-4044-addc-910dc29e4f37
 
-        @Assert: User is not deleted
+        :Assert: User is not deleted
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -925,22 +925,22 @@ class UserTestCase(UITestCase):
     def test_positive_end_to_end(self):
         """Create User and perform different operations
 
-        @id: 57f7054e-2865-4ab8-bc2b-e300a8dacee5
+        :id: 57f7054e-2865-4ab8-bc2b-e300a8dacee5
 
-        @Steps:
-        1. Create User
-        2. Login with the new user
-        3. Upload Subscriptions
-        4. Provision Systems
-        5. Add/Remove Users
-        6. Add/Remove Orgs
-        7. Delete the User
+        :Steps:
+            1. Create User
+            2. Login with the new user
+            3. Upload Subscriptions
+            4. Provision Systems
+            5. Add/Remove Users
+            6. Add/Remove Orgs
+            7. Delete the User
 
-        @Assert: All actions passed
+        :Assert: All actions passed
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -949,37 +949,37 @@ class UserTestCase(UITestCase):
         """Create User with no Org assigned and attempt different
         operations
 
-        @id: 36b6d667-59cc-4442-aa40-c029bdb2b534
+        :id: 36b6d667-59cc-4442-aa40-c029bdb2b534
 
-        @Steps:
-        1. Create User.  Do not assign any Org
-        2. Login with the new user
-        3. Attempt to Upload Subscriptions
-        4. Attempt to Provision Systems
-        5. Attempt to Add/Remove Users
-        6. Attempt to Add/Remove Orgs
+        :Steps:
+            1. Create User.  Do not assign any Org
+            2. Login with the new user
+            3. Attempt to Upload Subscriptions
+            4. Attempt to Provision Systems
+            5. Attempt to Add/Remove Users
+            6. Attempt to Add/Remove Orgs
 
-        @Assert: All actions failed since the User is not assigned to any Org
+        :Assert: All actions failed since the User is not assigned to any Org
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @tier1
     def test_positive_set_timezone(self):
         """Set a new timezone for the user
 
-        @id: 3219c245-2914-4412-8df1-72e041a58a9f
+        :id: 3219c245-2914-4412-8df1-72e041a58a9f
 
-        @Steps:
+        :Steps:
 
-        1.Navigate to Administer -> Users
-        2.Click on the User
-        3.Select the Timezone Dropdown list
-        4.Try to apply some timezone
+            1. Navigate to Administer -> Users
+            2. Click on the User
+            3. Select the Timezone Dropdown list
+            4. Try to apply some timezone
 
-        @Assert: User should be able to change timezone
+        :Assert: User should be able to change timezone
         """
         with Session(self.browser) as session:
             for timezone in TIMEZONES:
@@ -994,17 +994,17 @@ class UserTestCase(UITestCase):
         """Check if the Dashboard shows the time according to the new
         timezone set
 
-        @id: c2d80855-631c-46f6-8950-c296df8c0cbe
+        :id: c2d80855-631c-46f6-8950-c296df8c0cbe
 
-        @Steps:
+        :Steps:
 
-        1.Change the timezone for a user in Administer -> Users tab
-        2.Navigate to Monitor -> Dashboard
-        3.The left corner displays time according to the new timezone set
+            1. Change the timezone for a user in Administer -> Users tab
+            2. Navigate to Monitor -> Dashboard
+            3. The left corner displays time according to the new timezone set
 
-        @Assert: Dashboard UI displays new time based on the new timezone
+        :Assert: Dashboard UI displays new time based on the new timezone
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
@@ -1013,20 +1013,20 @@ class UserTestCase(UITestCase):
         """Check if the logfiles reflect the new timezone set by
         the user
 
-        @id: b687182b-9d4f-4ff4-9f19-1b6ae3c126ad
+        :id: b687182b-9d4f-4ff4-9f19-1b6ae3c126ad
 
-        @Steps:
+        :Steps:
 
-        1.Change the timezones for user in Administer -> Users Tab
-        2.Try to modify content view or environment
-        so that the changes are reflected in log file
-        3.Check if log file shows the new timezone set
+            1. Change the timezones for user in Administer -> Users Tab
+            2. Try to modify content view or environment so that the changes
+               are reflected in log file
+            3. Check if log file shows the new timezone set
 
-        @Assert: Logfiles display time according to changed timezone
+        :Assert: Logfiles display time according to changed timezone
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @stubbed()
@@ -1035,20 +1035,20 @@ class UserTestCase(UITestCase):
         """Check if the mails are received according to new
         timezone set by the user
 
-        @id: ab34dd9d-4fc1-43f1-b40a-b0ebf0802887
+        :id: ab34dd9d-4fc1-43f1-b40a-b0ebf0802887
 
-        @Steps:
+        :Steps:
 
-        1.Change the timezones for user in Administer -> Users tab
-        2.Navigate to Administer -> Users tab
-        3.Make sure under Email Preferences -> Mail Enabled
-        4.Send daily/weekly/monthly mails
+            1. Change the timezones for user in Administer -> Users tab
+            2. Navigate to Administer -> Users tab
+            3. Make sure under Email Preferences -> Mail Enabled
+            4. Send daily/weekly/monthly mails
 
-        @Assert: Emails are sent according to new timezone set
+        :Assert: Emails are sent according to new timezone set
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @stubbed()
@@ -1057,28 +1057,28 @@ class UserTestCase(UITestCase):
         """Check if non admin users with edit_params permission can access
         parameters tab on organization details screen
 
-        @id: 086ea8bf-2219-425e-acf4-d2ba59a77ee9
+        :id: 086ea8bf-2219-425e-acf4-d2ba59a77ee9
 
-        @BZ: 1354572
+        :BZ: 1354572
 
-        @Steps:
+        :Steps:
 
-        1.Create a Role in Administer -> Roles
-        2.On Role creation set Resource type to Parameters
-        3.On Role creation add permission edit_params
-        4.On Role creation set Resource type to Organization
-        5.On Role creation add permissions edit_organizations and
-        view_organizations
-        6.Create a non admin user in Administer -> Users
-        7.Add previous role to this user
-        8.Login with previous user credentials
-        9.Go to Organization -> Manage Organizations
-        10.Choose Default Organization
-        11.Assert "Parameters" tab is present
+            1. Create a Role in Administer -> Roles
+            2. On Role creation set Resource type to Parameters
+            3. On Role creation add permission edit_params
+            4. On Role creation set Resource type to Organization
+            5. On Role creation add permissions edit_organizations and
+                view_organizations
+            6. Create a non admin user in Administer -> Users
+            7. Add previous role to this user
+            8. Login with previous user credentials
+            9. Go to Organization -> Manage Organizations
+            10. Choose Default Organization
+            11. Assert "Parameters" tab is present
 
-        @Assert: Parameters tab visible to users with edit_params permission
+        :Assert: Parameters tab visible to users with edit_params permission
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
@@ -1087,27 +1087,27 @@ class UserTestCase(UITestCase):
         """Check if non admin users without edit_params permission can not
         access parameters tab on organization details screen
 
-        @id: eac65b64-16d4-4df5-8402-e58ddb31050d
+        :id: eac65b64-16d4-4df5-8402-e58ddb31050d
 
-        @BZ: 1354572
+        :BZ: 1354572
 
-        @Steps:
+        :Steps:
 
-        1.Create a Role in Administer -> Roles
-        4.On Role creation set Resource type to Organization
-        5.On Role creation add permissions edit_organizations and
-        view_organizations
-        6.Create a non admin user in Administer -> Users
-        7.Add previous role to this user
-        8.Login with previous user credentials
-        9.Go to Organization -> Manage Organizations
-        10.Choose Default Organization
-        11.Assert "Parameters" tab is not present
+            1. Create a Role in Administer -> Roles
+            2. On Role creation set Resource type to Organization
+            3. On Role creation add permissions edit_organizations and
+                view_organizations
+            4. Create a non admin user in Administer -> Users
+            5. Add previous role to this user
+            6. Login with previous user credentials
+            7. Go to Organization -> Manage Organizations
+            8. Choose Default Organization
+            9. Assert "Parameters" tab is not present
 
-        @Assert: Parameters tab not visible to users with no edit_params
-        permission
+        :Assert: Parameters tab not visible to users with no edit_params
+            permission
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
 
@@ -1147,11 +1147,11 @@ class ActiveDirectoryUserTestCase(UITestCase):
     def test_positive_create_in_ldap_mode(self):
         """Create User in ldap mode
 
-        @id: 0668b2ca-831e-4568-94fb-80e45dd7d001
+        :id: 0668b2ca-831e-4568-94fb-80e45dd7d001
 
-        @Assert: User is created without specifying the password
+        :Assert: User is created without specifying the password
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:

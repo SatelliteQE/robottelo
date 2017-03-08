@@ -1,18 +1,18 @@
 """Test class for Active Directory Feature
 
-@Requirement: Adusergroup
+:Requirement: Adusergroup
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -94,16 +94,16 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         """Associate Admin role to User Group. [belonging to external AD User
         Group.]
 
-        @id: c3371810-1ddc-4a2c-b7e1-3b4d5db3a755
+        :id: c3371810-1ddc-4a2c-b7e1-3b4d5db3a755
 
-        @Steps:
+        :Steps:
 
-        1. Create an UserGroup.
-        2. Assign admin role to UserGroup.
-        3. Create and associate an External AD UserGroup.
+            1. Create an UserGroup.
+            2. Assign admin role to UserGroup.
+            3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to access some
-        of the pages.
+        :Assert: Whether a User belonging to User Group is able to access some
+            of the pages.
         """
         self.check_external_user()
         with Session(self.browser) as session:
@@ -136,18 +136,18 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         """Associate foreman roles to User Group.
         [belonging to external AD User Group.]
 
-        @id: c11fbf85-e144-4576-99e3-1ba111479f0f
+        :id: c11fbf85-e144-4576-99e3-1ba111479f0f
 
-        @Steps:
+        :Steps:
 
-        1. Create an UserGroup.
-        2. Assign some foreman roles to UserGroup.
-        3. Create and associate an External AD UserGroup.
+            1. Create an UserGroup.
+            2. Assign some foreman roles to UserGroup.
+            3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to access
-        foreman entities as per roles.
+        :Assert: Whether a User belonging to User Group is able to access
+            foreman entities as per roles.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self.check_external_user()
         strategy, value = locators['login.loggedin']
@@ -191,18 +191,18 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         """Associate katello roles to User Group.
         [belonging to external AD User Group.]
 
-        @id: aa5e3bf4-cb42-43a4-93ea-a2eea54b847a
+        :id: aa5e3bf4-cb42-43a4-93ea-a2eea54b847a
 
-        @Steps:
+        :Steps:
 
-        1. Create an UserGroup.
-        2. Assign some foreman roles to UserGroup.
-        3. Create and associate an External AD UserGroup.
+            1. Create an UserGroup.
+            2. Assign some foreman roles to UserGroup.
+            3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to access
-        katello entities as per roles.
+        :Assert: Whether a User belonging to User Group is able to access
+            katello entities as per roles.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self.check_external_user()
         katello_role = gen_string('alpha')
@@ -241,15 +241,15 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     def test_positive_create_external(self):
         """Create External AD User Group as per AD group
 
-        @id: b5e64316-55b9-4480-8701-308e91be9344
+        :id: b5e64316-55b9-4480-8701-308e91be9344
 
-        @Steps:
+        :Steps:
 
-        1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup as per the UserGroup name in AD
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup as per the UserGroup name in AD
 
-        @Assert: Whether creation of External AD User Group is possible.
+        :Assert: Whether creation of External AD User Group is possible.
         """
         with Session(self.browser) as session:
             make_usergroup(
@@ -266,16 +266,17 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         """Attempt to create two User Groups with same External AD User Group
         name
 
-        @id: 8f2cde96-644a-4729-880a-65a22c7e7262
+        :id: 8f2cde96-644a-4729-880a-65a22c7e7262
 
-        @Steps:
+        :Steps:
 
-        1. Create an UserGroup.
-        2. Assign External AD UserGroup as per the UserGroup name in AD.
-        3. Repeat steps 1) and 2), but provide the same external UserGroup name
+            1. Create an UserGroup.
+            2. Assign External AD UserGroup as per the UserGroup name in AD.
+            3. Repeat steps 1) and 2), but provide the same external UserGroup
+               name
 
-        @Assert: Creation of User Group should not be possible with same
-        External AD User Group name.
+        :Assert: Creation of User Group should not be possible with same
+            External AD User Group name.
         """
         new_usergroup_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -300,16 +301,16 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     def test_negative_create_external_with_invalid_name(self):
         """Create External AD User Group with random name
 
-        @id: 2fd12301-9a35-49f1-9723-2b74551414c2
+        :id: 2fd12301-9a35-49f1-9723-2b74551414c2
 
-        @Steps:
+        :Steps:
 
-        1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup with any random name.
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup with any random name.
 
-        @Assert: Creation of External AD User Group should not be possible with
-        random name.
+        :Assert: Creation of External AD User Group should not be possible with
+            random name.
         """
         with Session(self.browser) as session:
             make_usergroup(
@@ -329,24 +330,24 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     def test_positive_delete_external(self):
         """Delete External AD User Group
 
-        @id: 364e9ddc-4ab7-46a9-b52c-8159aab7f811
+        :id: 364e9ddc-4ab7-46a9-b52c-8159aab7f811
 
-        @Steps:
+        :Steps:
 
-        1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup as per the UserGroup name in AD.
-        4. Delete the External AD UserGroup.
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup as per the UserGroup name in AD.
+            4. Delete the External AD UserGroup.
+               Note:- Deletion as of sat6.1 is possible only via CLI and not
+               via UI.
 
-        Note:- Deletion as of sat6.1 is possible only via CLI and not via UI.
+        :Assert: Deletion of External AD User Group should be possible and the
+            user should not be able to perform the roles that were assigned to
+            it at the UserGroup level.
 
-        @Assert: Deletion of External AD User Group should be possible and the
-        user should not be able to perform the roles that were assigned to it
-        at the UserGroup level.
+        :caseautomation: notautomated
 
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @skip_if_bug_open('bugzilla', '1221971')
@@ -354,23 +355,23 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     def test_positive_update_external_roles(self):
         """Added AD UserGroup roles get pushed down to user
 
-        @id: f3ca1aae-5461-4af3-a508-82679bb6afed
+        :id: f3ca1aae-5461-4af3-a508-82679bb6afed
 
-        @setup: assign additional roles to the UserGroup
+        :setup: assign additional roles to the UserGroup
 
-        @steps:
-        1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup as per the UserGroup name in AD.
-        4. Login to sat6 with the AD user.
-        5. Assign additional roles to the UserGroup.
-        6. Login to sat6 with LDAP user that is part of aforementioned
-        UserGroup.
+        :steps:
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup as per the UserGroup name in AD.
+            4. Login to sat6 with the AD user.
+            5. Assign additional roles to the UserGroup.
+            6. Login to sat6 with LDAP user that is part of aforementioned
+               UserGroup.
 
-        @assert: User has access to all NEW functional areas that are assigned
-        to aforementioned UserGroup.
+        :assert: User has access to all NEW functional areas that are assigned
+            to aforementioned UserGroup.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self.check_external_user()
         foreman_role = gen_string('alpha')
@@ -434,23 +435,23 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     def test_positive_delete_external_roles(self):
         """Deleted AD UserGroup roles get pushed down to user
 
-        @id: 479bc8fe-f6a3-4c89-8c7e-3d997315383f
+        :id: 479bc8fe-f6a3-4c89-8c7e-3d997315383f
 
-        @setup: delete roles from an AD UserGroup
+        :setup: delete roles from an AD UserGroup
 
-        @steps:
-        1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup as per the UserGroup name in AD.
-        4. Login to sat6 with the AD user.
-        5. Unassign some of the existing roles of the UserGroup.
-        6. Login to sat6 with LDAP user that is part of aforementioned
-        UserGroup.
+        :steps:
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup as per the UserGroup name in AD.
+            4. Login to sat6 with the AD user.
+            5. Unassign some of the existing roles of the UserGroup.
+            6. Login to sat6 with LDAP user that is part of aforementioned
+               UserGroup.
 
-        @assert: User no longer has access to all deleted functional areas
-        that were assigned to aforementioned UserGroup.
+        :assert: User no longer has access to all deleted functional areas that
+            were assigned to aforementioned UserGroup.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self.check_external_user()
         foreman_role = gen_string('alpha')
@@ -502,26 +503,26 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         """Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
 
-        @id: a487f7d6-22f2-4e42-b34f-8d984f721c83
+        :id: a487f7d6-22f2-4e42-b34f-8d984f721c83
 
-        @setup: Assign roles to UserGroup and configure external
-        UserGroup subsequently assign specified roles to the user(s).
-        roles that are not part of the larger UserGroup
+        :setup: Assign roles to UserGroup and configure external UserGroup
+            subsequently assign specified roles to the user(s).  roles that are
+            not part of the larger UserGroup
 
-        @steps:
-        1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup as per the UserGroup name in AD.
-        4. Assign some more roles to a User(which is part of external AD
-        UserGroup) at the User level.
-        5. Login to sat6 with the above AD user and attempt to access areas
-        assigned specifically to user.
+        :steps:
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup as per the UserGroup name in AD.
+            4. Assign some more roles to a User(which is part of external AD
+               UserGroup) at the User level.
+            5. Login to sat6 with the above AD user and attempt to access areas
+               assigned specifically to user.
 
-        @assert: User can access not only those feature areas in his
-        UserGroup but those additional feature areas / roles assigned
-        specifically to user
+        :assert: User can access not only those feature areas in his UserGroup
+            but those additional feature areas / roles assigned specifically to
+            user
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         self.check_external_user()
         foreman_role = gen_string('alpha')
@@ -583,22 +584,22 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     def test_positive_add_external_user(self):
         """New user added to UserGroup at AD side inherits roles in Sat6
 
-        @id: da41d197-85d5-4405-98ec-30c1d69f4c93
+        :id: da41d197-85d5-4405-98ec-30c1d69f4c93
 
-        @setup: UserGroup with specified roles.
+        :setup: UserGroup with specified roles.
 
-        @steps:
-        1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. Create an External AD UserGroup as per the UserGroup name in AD.
-        4. On AD server side, assign a new user to a UserGroup.
-        5. Login to sat6 with the above new AD user and attempt to access the
-        functional areas assigned to the user.
+        :steps:
+            1. Create an UserGroup.
+            2. Assign some roles to UserGroup.
+            3. Create an External AD UserGroup as per the UserGroup name in AD.
+            4. On AD server side, assign a new user to a UserGroup.
+            5. Login to sat6 with the above new AD user and attempt to access
+               the functional areas assigned to the user.
 
-        @assert: User can access feature areas as defined by roles in the
-        UserGroup of which he is a part.
+        :assert: User can access feature areas as defined by roles in the
+            UserGroup of which he is a part.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """

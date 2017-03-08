@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Puppet Smart Variables
 
-@Requirement: Variables
+:Requirement: Variables
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from random import choice
 
@@ -92,11 +92,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_list_by_host_name(self):
         """List all smart variables associated to host by hostname.
 
-        @id: ee0da54c-ab60-4dde-8e1f-d548b52bac73
+        :id: ee0da54c-ab60-4dde-8e1f-d548b52bac73
 
-        @assert: Smart Variables listed for specific Host by hostname.
+        :assert: Smart Variables listed for specific Host by hostname.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
@@ -118,11 +118,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_list_by_host_id(self):
         """List all smart variables associated to host by host id.
 
-        @id: ee2e994b-2a6d-4069-a2f7-e244a3134772
+        :id: ee2e994b-2a6d-4069-a2f7-e244a3134772
 
-        @assert: Smart Variables listed for specific Host by host id.
+        :assert: Smart Variables listed for specific Host by host id.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
@@ -142,12 +142,12 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_list_by_hostgroup_name(self):
         """List all smart variables associated to hostgroup by hostgroup name
 
-        @id: cb69abe0-2349-4114-91e9-ef93f261dc50
+        :id: cb69abe0-2349-4114-91e9-ef93f261dc50
 
-        @assert: Smart Variables listed for specific HostGroup by hostgroup
-        name.
+        :assert: Smart Variables listed for specific HostGroup by hostgroup
+            name.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
@@ -168,11 +168,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_list_by_hostgroup_id(self):
         """List all smart variables associated to hostgroup by hostgroup id
 
-        @id: 0f167c4c-e4de-4b66-841f-d5a9e410391e
+        :id: 0f167c4c-e4de-4b66-841f-d5a9e410391e
 
-        @assert: Smart Variables listed for specific HostGroup by hostgroup id.
+        :assert: Smart Variables listed for specific HostGroup by hostgroup id.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
@@ -192,10 +192,10 @@ class SmartVariablesTestCase(CLITestCase):
         """List all smart variables associated to puppet class by puppet class
         name.
 
-        @id: 43b795c2-a64d-4a84-bb35-1e8fd0e1a0c9
+        :id: 43b795c2-a64d-4a84-bb35-1e8fd0e1a0c9
 
-        @assert: Smart Variables listed for specific puppet class by puppet
-        class name.
+        :assert: Smart Variables listed for specific puppet class by puppet
+            class name.
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
@@ -214,10 +214,10 @@ class SmartVariablesTestCase(CLITestCase):
         """List all smart variables associated to puppet class by puppet class
         id.
 
-        @id: 57d290e8-2ae2-4c09-ab1e-7c7914bc4ba8
+        :id: 57d290e8-2ae2-4c09-ab1e-7c7914bc4ba8
 
-        @assert: Smart Variables listed for specific puppet class by puppet
-        class id.
+        :assert: Smart Variables listed for specific puppet class by puppet
+            class id.
         """
         smart_variable = make_smart_variable(
             {'puppet-class-id': self.puppet_class['id']})
@@ -233,13 +233,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create(self):
         """Create a Smart Variable.
 
-        @id: 8be9ed26-9a27-42a8-8edd-b255637f205e
+        :id: 8be9ed26-9a27-42a8-8edd-b255637f205e
 
-        @steps:
+        :steps: Create a smart Variable with Valid name.
 
-        1. Create a smart Variable with Valid name.
-
-        @assert: The smart Variable is created successfully.
+        :assert: The smart Variable is created successfully.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -254,13 +252,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_create(self):
         """Create Smart Variable with invalid name.
 
-        @id: 3f71f39f-4178-42e7-be40-2a3538361466
+        :id: 3f71f39f-4178-42e7-be40-2a3538361466
 
-        @steps:
+        :steps: Create a smart Variable with Invalid name.
 
-        1. Create a smart Variable with Invalid name.
-
-        @assert: The smart Variable is not created.
+        :assert: The smart Variable is not created.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -275,13 +271,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_delete_smart_variable_by_id(self):
         """Delete a Smart Variable by id.
 
-        @id: b0c4f7f0-d568-411f-94c2-fa525f36a8fd
+        :id: b0c4f7f0-d568-411f-94c2-fa525f36a8fd
 
-        @steps:
+        :steps: Delete a smart Variable by id.
 
-        1. Delete a smart Variable by id.
-
-        @assert: The smart Variable is deleted successfully.
+        :assert: The smart Variable is deleted successfully.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -294,13 +288,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_delete_smart_variable_by_name(self):
         """Delete a Smart Variable by name.
 
-        @id: 52900000-d7e1-4f0c-b67e-a2a1d25fc76e
+        :id: 52900000-d7e1-4f0c-b67e-a2a1d25fc76e
 
-        @steps:
+        :steps: Delete a smart Variable by name.
 
-        1. Delete a smart Variable by name.
-
-        @assert: The smart Variable is deleted successfully.
+        :assert: The smart Variable is deleted successfully.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -313,15 +305,15 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_update_variable_puppet_class(self):
         """Update Smart Variable's puppet class.
 
-        @id: 0f2d617b-c9ec-46e9-ac84-7a0d59a84811
+        :id: 0f2d617b-c9ec-46e9-ac84-7a0d59a84811
 
-        @steps:
+        :steps:
 
-        1. Create a smart variable with valid name.
-        2. Update the puppet class associated to the smart variable created in
-           step1.
+            1. Create a smart variable with valid name.
+            2. Update the puppet class associated to the smart variable created
+               in step1.
 
-        @assert: The variable is updated with new puppet class.
+        :assert: The variable is updated with new puppet class.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -343,14 +335,14 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Update Smart Variable's name
 
-        @id: e73c1366-6745-4576-ae22-d87cbf03faf9
+        :id: e73c1366-6745-4576-ae22-d87cbf03faf9
 
-        @steps:
+        :steps:
 
-        1. Create a smart variable with valid name.
-        2. Update smart variable name created in step1.
+            1. Create a smart variable with valid name.
+            2. Update smart variable name created in step1.
 
-        @assert: The variable is updated with new name.
+        :assert: The variable is updated with new name.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -369,15 +361,16 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_duplicate_name_variable(self):
         """Create Smart Variable with an existing name.
 
-        @id: cc219111-1d2a-47ae-9b22-0b399f2d586d
+        :id: cc219111-1d2a-47ae-9b22-0b399f2d586d
 
-        @steps:
+        :steps:
 
-        1. Create a smart Variable with Valid name and default value.
-        2. Attempt to create a variable with same name from same/other class.
+            1. Create a smart Variable with Valid name and default value.
+            2. Attempt to create a variable with same name from same/other
+               class.
 
-        @assert: The variable with same name are not allowed to create from
-        any class.
+        :assert: The variable with same name are not allowed to create from any
+            class.
         """
         name = gen_string('alpha')
         make_smart_variable(
@@ -391,13 +384,12 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create_with_default_value(self):
         """Create a Smart Variable with default value.
 
-        @id: 31c9e92d-94d2-4cbf-b496-c5f038182c20
+        :id: 31c9e92d-94d2-4cbf-b496-c5f038182c20
 
-        @steps:
+        :steps: Create a smart Variable with Valid name and valid default
+            value.
 
-        1. Create a smart Variable with Valid name and valid default value.
-
-        @assert: The smart Variable is created successfully.
+        :assert: The smart Variable is created successfully.
         """
         for value in valid_data_list():
             with self.subTest(value):
@@ -415,15 +407,13 @@ class SmartVariablesTestCase(CLITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @id: 63d9c79a-5d54-44f8-b36d-45eb183cb148
+        :id: 63d9c79a-5d54-44f8-b36d-45eb183cb148
 
-        @steps:
+        :steps: Create a variable with valid key type and default value.
 
-        1.  Create a variable with valid key type and default value.
+        :assert: Variable is created with a new type successfully.
 
-        @assert: Variable is created with a new type successfully.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -434,15 +424,14 @@ class SmartVariablesTestCase(CLITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @id: aab8423e-3857-4ac9-9f18-aec64f95a90d
+        :id: aab8423e-3857-4ac9-9f18-aec64f95a90d
 
-        @steps:
+        :steps: Create a variable with valid key type and invalid default
+            value.
 
-        1.  Create a variable with valid key type and invalid default value.
+        :assert: Variable is not created with new type for invalid value.
 
-        @assert: Variable is not created with new type for invalid value.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -450,11 +439,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create_empty_matcher_value(self):
         """Create matcher with empty value for string type.
 
-        @id: 00fe9a2b-a4c0-4f3e-9bc3-db22f8625005
+        :id: 00fe9a2b-a4c0-4f3e-9bc3-db22f8625005
 
-        @steps: Create a matcher for variable with type string and empty value
+        :steps: Create a matcher for variable with type string and empty value
 
-        @assert: Matcher is created with empty value
+        :assert: Matcher is created with empty value
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -478,12 +467,12 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_create_empty_matcher_value(self):
         """Create matcher with empty value for non string type.
 
-        @id: 677a0881-c42a-4063-ac7b-7e7d9b5bc307
+        :id: 677a0881-c42a-4063-ac7b-7e7d9b5bc307
 
-        @steps: Create a matcher for variable with type other than string and
-        empty value
+        :steps: Create a matcher for variable with type other than string and
+            empty value
 
-        @assert: Matcher is not created with empty value
+        :assert: Matcher is not created with empty value
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -502,11 +491,11 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_create_with_invalid_match_value(self):
         """Attempt to create matcher with invalid match value.
 
-        @id: 1026bc74-1bd0-40ab-81f1-d1371cc49d8f
+        :id: 1026bc74-1bd0-40ab-81f1-d1371cc49d8f
 
-        @steps: Create a matcher for variable with invalid match value
+        :steps: Create a matcher for variable with invalid match value
 
-        @assert: Matcher is not created
+        :assert: Matcher is not created
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -523,14 +512,15 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_validate_default_value_with_regex(self):
         """Test variable is not created for unmatched validator type regex.
 
-        @id: f728ea2c-f7f4-4d9b-8c92-9681e0b21769
+        :id: f728ea2c-f7f4-4d9b-8c92-9681e0b21769
 
-        @steps:
+        :steps:
 
-        1.  Create a variable with value that doesn't match the regex of step 2
-        2.  Validate this value with regex validator type and valid rule.
+            1.  Create a variable with value that doesn't match the regex of
+                step 2
+            2.  Validate this value with regex validator type and valid rule.
 
-        @assert: Variable is not created for unmatched validator rule.
+        :assert: Variable is not created for unmatched validator rule.
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -552,15 +542,15 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_validate_default_value_with_regex(self):
         """Test variable is created for matched validator type regex.
 
-        @id: f720c888-0ed0-4d32-bf72-8f5db5c1b5ed
+        :id: f720c888-0ed0-4d32-bf72-8f5db5c1b5ed
 
-        @steps:
+        :steps:
 
-        1.  Create a variable with some default value that matches the regex of
-            step 2
-        2.  Validate this value with regex validator type and rule.
+            1.  Create a variable with some default value that matches the
+                regex of step 2
+            2.  Validate this value with regex validator type and rule.
 
-        @assert: Variable is created for matched validator rule.
+        :assert: Variable is created for matched validator rule.
         """
         value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
@@ -583,14 +573,15 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_validate_matcher_value_with_regex(self):
         """Test matcher is not created for unmatched validator type regex.
 
-        @id: 6542a847-7627-4bc2-828f-33b06d30d4e4
+        :id: 6542a847-7627-4bc2-828f-33b06d30d4e4
 
-        @steps:
+        :steps:
 
-        1.  Create a matcher with value that doesn't match the regex of step 2.
-        2.  Validate this value with regex validator type and rule.
+            1.  Create a matcher with value that doesn't match the regex of
+                step 2.
+            2.  Validate this value with regex validator type and rule.
 
-        @assert: Matcher is not created for unmatched validator rule.
+        :assert: Matcher is not created for unmatched validator rule.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -610,14 +601,14 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_validate_matcher_value_with_regex(self):
         """Test matcher is created for matched validator type regex.
 
-        @id: 67e20b4b-cf39-4dbc-b553-80c5d54b7ad2
+        :id: 67e20b4b-cf39-4dbc-b553-80c5d54b7ad2
 
-        @steps:
+        :steps:
 
-        1.  Create a matcher with value that matches the regex of step 2.
-        2.  Validate this value with regex validator type and rule.
+            1.  Create a matcher with value that matches the regex of step 2.
+            2.  Validate this value with regex validator type and rule.
 
-        @assert: Matcher is created for matched validator rule.
+        :assert: Matcher is created for matched validator rule.
         """
         value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
@@ -646,14 +637,12 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_validate_default_value_with_list(self):
         """Test variable is not created for unmatched validator type list.
 
-        @id: dc2b6471-99d7-448b-b90a-9675baacbebe
+        :id: dc2b6471-99d7-448b-b90a-9675baacbebe
 
-        @steps:
+        :steps: Attempt to create variable with default value that doesn't
+            match values from validator list
 
-        1.  Attempt to create variable with default value that doesn't match
-            values from validator list
-
-        @assert: Variable is not created for unmatched validator rule.
+        :assert: Variable is not created for unmatched validator rule.
         """
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.create({
@@ -668,14 +657,12 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_validate_default_value_with_list(self):
         """Test variable is created for matched validator type list.
 
-        @id: e3cbb3a6-5ac0-43b4-a566-6da758ae4cf6
+        :id: e3cbb3a6-5ac0-43b4-a566-6da758ae4cf6
 
-        @steps:
+        :steps: Create a variable with default value that matches the values
+            from validator list
 
-        1.  Create a variable with default value that matches the values from
-            validator list
-
-        @assert: Variable is created for matched validator rule.
+        :assert: Variable is created for matched validator rule.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -692,15 +679,15 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_validate_matcher_value_with_list(self):
         """Test matcher is not created for unmatched validator type list.
 
-        @id: b6523714-8d6f-4b23-8ecf-6972a584bfee
+        :id: b6523714-8d6f-4b23-8ecf-6972a584bfee
 
-        @steps:
+        :steps:
 
-        1.  Create smart variable with proper validator
-        2.  Attempt to associate a matcher with value that doesn't match values
-            from validator list
+            1.  Create smart variable with proper validator
+            2.  Attempt to associate a matcher with value that doesn't match
+                values from validator list
 
-        @assert: Matcher is not created for unmatched validator rule.
+        :assert: Matcher is not created for unmatched validator rule.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -720,15 +707,15 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_validate_matcher_value_with_list(self):
         """Test matcher is created for matched validator type list.
 
-        @id: 751e70ba-f1a4-4b73-878f-b2ab260a8a78
+        :id: 751e70ba-f1a4-4b73-878f-b2ab260a8a78
 
-        @steps:
+        :steps:
 
-        1.  Create smart variable with proper validator
-        2.  Create a matcher with value that matches the values from validator
-            list
+            1.  Create smart variable with proper validator
+            2.  Create a matcher with value that matches the values from
+                validator list
 
-        @assert: Matcher is created for matched validator rule.
+        :assert: Matcher is created for matched validator rule.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -757,14 +744,14 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_validate_matcher_value_with_default_type(self):
         """Matcher is not created for value not of default type.
 
-        @id: 84463d56-839f-4d5b-8646-cb6772fe5875
+        :id: 84463d56-839f-4d5b-8646-cb6772fe5875
 
-        @steps:
+        :steps:
 
-        1.  Create variable with valid default value.
-        2.  Create matcher with value that doesn't match the default type.
+            1.  Create variable with valid default value.
+            2.  Create matcher with value that doesn't match the default type.
 
-        @assert: Matcher is not created for unmatched type.
+        :assert: Matcher is not created for unmatched type.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -783,14 +770,14 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_validate_matcher_value_with_default_type(self):
         """Matcher is created for default type value.
 
-        @id: fc29aeb4-ead9-48ff-92de-3db659e8b0d1
+        :id: fc29aeb4-ead9-48ff-92de-3db659e8b0d1
 
-        @steps:
+        :steps:
 
-        1.  Create variable default type with valid value.
-        2.  Create a matcher with value that matches the default type.
+            1.  Create variable default type with valid value.
+            2.  Create a matcher with value that matches the default type.
 
-        @assert: Matcher is created for matched type.
+        :assert: Matcher is created for matched type.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -816,15 +803,13 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Test matcher creation for non-existing attribute.
 
-        @id: bde1edf6-12b8-457e-ac8f-a909666abfb5
+        :id: bde1edf6-12b8-457e-ac8f-a909666abfb5
 
-        @steps:
+        :steps: Attempt to create a matcher with non existing attribute.
 
-        1.  Attempt to create a matcher with non existing attribute.
+        :assert: Matcher is not created for non-existing attribute.
 
-        @assert: Matcher is not created for non-existing attribute.
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -832,17 +817,17 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create_matcher(self):
         """Create a Smart Variable with matcher.
 
-        @id: 9ab8ae74-ee58-4738-8d8b-0e465eee8696
+        :id: 9ab8ae74-ee58-4738-8d8b-0e465eee8696
 
-        @steps:
+        :steps:
 
-        1. Create a smart variable with valid name and default value.
-        2. Create a matcher for Host with valid value.
+            1. Create a smart variable with valid name and default value.
+            2. Create a matcher for Host with valid value.
 
-        @assert:
+        :assert:
 
-        1. The smart Variable with matcher is created successfully.
-        2. The variable is associated with host with match.
+            1. The smart Variable with matcher is created successfully.
+            2. The variable is associated with host with match.
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -866,19 +851,19 @@ class SmartVariablesTestCase(CLITestCase):
         """Create a Smart Variable with matcher and remove that matcher
         afterwards.
 
-        @id: 883e0f3b-6367-4fbb-a0b2-434fbeb10fcf
+        :id: 883e0f3b-6367-4fbb-a0b2-434fbeb10fcf
 
-        @steps:
+        :steps:
 
-        1. Create a smart variable with valid name and default value.
-        2. Create a matcher for that variable.
-        3. Remove just assigned matcher.
+            1. Create a smart variable with valid name and default value.
+            2. Create a matcher for that variable.
+            3. Remove just assigned matcher.
 
-        @assert:
+        :assert:
 
-        1. The smart Variable is created successfully.
-        2. The matcher is associated with variable.
-        3. Matcher removed successfully
+            1. The smart Variable is created successfully.
+            2. The matcher is associated with variable.
+            3. Matcher removed successfully
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -908,22 +893,22 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
-        @id: 1a774df6-d704-4e89-b951-bc6740c233cd
+        :id: 1a774df6-d704-4e89-b951-bc6740c233cd
 
-        @steps:
+        :steps:
 
-        1.  Create variable with some default value.
-        2.  Set fqdn as top priority attribute.
-        3.  Create first matcher for fqdn with valid details.
-        4.  Create second matcher for some attribute with valid details.
-            Note - The fqdn/host should have this attribute.
-        5.  Go to YAML output of associated host.
+            1.  Create variable with some default value.
+            2.  Set fqdn as top priority attribute.
+            3.  Create first matcher for fqdn with valid details.
+            4.  Create second matcher for some attribute with valid details.
+                Note - The fqdn/host should have this attribute.
+            5.  Go to YAML output of associated host.
 
-        @assert: The YAML output has the value only for fqdn matcher.
+        :assert: The YAML output has the value only for fqdn matcher.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -932,25 +917,26 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate priority.
 
-        @id: e4e8da4d-f37c-44c8-8cbb-17171cc0648b
+        :id: e4e8da4d-f37c-44c8-8cbb-17171cc0648b
 
-        @steps:
+        :steps:
 
-        1.  Create variable with some default value.
-        2.  Set some attribute(other than fqdn) as top priority attribute.
-            Note - The fqdn/host should have this attribute.
-        3.  Create first matcher for fqdn with valid details.
-        4.  Create second matcher for attribute of step 3 with valid details.
-        5.  Go to YAML output of associated host.
+            1.  Create variable with some default value.
+            2.  Set some attribute(other than fqdn) as top priority attribute.
+                Note - The fqdn/host should have this attribute.
+            3.  Create first matcher for fqdn with valid details.
+            4.  Create second matcher for attribute of step 3 with valid
+                details.
+            5.  Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1.  The YAML output has the value only for step 5 matcher.
-        2.  The YAML output doesn't have value for fqdn/host matcher.
+            1.  The YAML output has the value only for step 5 matcher.
+            2.  The YAML output doesn't have value for fqdn/host matcher.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -959,29 +945,29 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
-        @id: 2f8e80ff-612f-461e-9498-90ebab2352c5
+        :id: 2f8e80ff-612f-461e-9498-90ebab2352c5
 
-        @steps:
+        :steps:
 
-        1.  Create variable with some default value.
-        2.  Create first matcher for attribute fqdn with valid details.
-        3.  Create second matcher for other attribute with valid details.
-            Note - The fqdn/host should have this attribute.
-        4.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should have this attributes.
-        5.  Set --merge-overrides to true.
-        6.  Go to YAML output of associated host.
+            1.  Create variable with some default value.
+            2.  Create first matcher for attribute fqdn with valid details.
+            3.  Create second matcher for other attribute with valid details.
+                Note - The fqdn/host should have this attribute.
+            4.  Create more matchers for some more attributes if any.
+                Note - The fqdn/host should have this attributes.
+            5.  Set --merge-overrides to true.
+            6.  Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1.  The YAML output has the values merged from all the associated
-            matchers.
-        2.  The YAML output doesn't have the default value of variable.
-        3.  Duplicate values in YAML output if any are displayed.
+            1.  The YAML output has the values merged from all the associated
+                matchers.
+            2.  The YAML output doesn't have the default value of variable.
+            3.  Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1011,30 +997,30 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_create_matcher_merge_override(self):
         """Test merge the values from non associated matchers.
 
-        @id: 97831f91-c55a-4861-8730-4857c92f8829
+        :id: 97831f91-c55a-4861-8730-4857c92f8829
 
-        @steps:
+        :steps:
 
-        1.  Create variable with some default value.
-        2.  Create first matcher for attribute fqdn with valid details.
-        3.  Create second matcher for other attribute with valid details.
-            Note - The fqdn/host should not have this attribute.
-        4.  Create more matchers for some more attributes if any.
-            Note - The fqdn/host should not have this attributes.
-        5.  Set --merge-overrides to true.
-        6.  Go to YAML output of associated host.
+            1.  Create variable with some default value.
+            2.  Create first matcher for attribute fqdn with valid details.
+            3.  Create second matcher for other attribute with valid details.
+                Note - The fqdn/host should not have this attribute.
+            4.  Create more matchers for some more attributes if any.
+                Note - The fqdn/host should not have this attributes.
+            5.  Set --merge-overrides to true.
+            6.  Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1.  The YAML output has the values only for fqdn.
-        2.  The YAML output doesn't have the values for attribute
-            which are not associated to host.
-        3.  The YAML output doesn't have the default value of variable.
-        4.  Duplicate values in YAML output if any are displayed.
+            1.  The YAML output has the values only for fqdn.
+            2.  The YAML output doesn't have the values for attribute which are
+                not associated to host.
+            3.  The YAML output doesn't have the default value of variable.
+            4.  Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1043,30 +1029,30 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
-        @id: 3ff6bddd-c384-41bf-9209-d554b9859da0
+        :id: 3ff6bddd-c384-41bf-9209-d554b9859da0
 
-        @steps:
+        :steps:
 
-        1. Create variable with some default value.
-        2. Create first matcher for attribute fqdn with valid details.
-        3. Create second matcher for other attribute with valid details.
-           Note - The fqdn/host should have this attribute.
-        4. Create more matchers for some more attributes if any.
-           Note - The fqdn/host should have this attributes.
-        5. Set --merge-overrides to true.
-        6. Set --merge-default to true.
-        7. Go to YAML output of associated host.
+            1. Create variable with some default value.
+            2. Create first matcher for attribute fqdn with valid details.
+            3. Create second matcher for other attribute with valid details.
+               Note - The fqdn/host should have this attribute.
+            4. Create more matchers for some more attributes if any.
+               Note - The fqdn/host should have this attributes.
+            5. Set --merge-overrides to true.
+            6. Set --merge-default to true.
+            7. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all
-           the associated matchers.
-        2. The YAML output has the default value of variable.
-        3. Duplicate values in YAML output if any are displayed.
+            1. The YAML output has the values merged from all the associated
+               matchers.
+            2. The YAML output has the default value of variable.
+            3. Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1075,30 +1061,31 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_create_matcher_merge_default(self):
         """Test empty default value in merged values.
 
-        @id: 7a7211f2-be81-4d5b-9a9b-755ba064fc76
+        :id: 7a7211f2-be81-4d5b-9a9b-755ba064fc76
 
-        @steps:
+        :steps:
 
-        1. Create variable with some default value.
-        2. Create first matcher for attribute fqdn with valid details.
-        3. Create second matcher for other attribute with valid details.
-           Note - The fqdn/host should have this attribute.
-        4. Create more matchers for some more attributes if any.
-           Note - The fqdn/host should have this attributes.
-        5. Set --merge-overrides to true.
-        6. Set --merge-default to true.
-        7. Go to YAML output of associated host.
+            1. Create variable with some default value.
+            2. Create first matcher for attribute fqdn with valid details.
+            3. Create second matcher for other attribute with valid details.
+               Note - The fqdn/host should have this attribute.
+            4. Create more matchers for some more attributes if any.
+               Note - The fqdn/host should have this attributes.
+            5. Set --merge-overrides to true.
+            6. Set --merge-default to true.
+            7. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all
-           the associated matchers.
-        2. The YAML output doesn't have the empty default value of variable.
-        3. Duplicate values in YAML output if any are displayed.
+            1.  The YAML output has the values merged from all the associated
+                matchers.
+            2.  The YAML output doesn't have the empty default value of
+                variable.
+            3.  Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1107,30 +1094,30 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
-        @id: d37bb265-796b-485f-8305-85c84f830fe5
+        :id: d37bb265-796b-485f-8305-85c84f830fe5
 
-        @steps:
+        :steps:
 
-        1.  Create variable with type array and value.
-        2.  Create first matcher for attribute fqdn with some value.
-        3.  Create second matcher for other attribute with
-            same value as fqdn matcher.
-            Note - The fqdn/host should have this attribute.
-        4.  Set --merge-overrides to true.
-        5.  Set --merge-default to true.
-        6.  Set --avoid -duplicates' to true.
-        7.  Go to YAML output of associated host.
+            1.  Create variable with type array and value.
+            2.  Create first matcher for attribute fqdn with some value.
+            3.  Create second matcher for other attribute with same value as
+                fqdn matcher.
+                Note - The fqdn/host should have this attribute.
+            4.  Set --merge-overrides to true.
+            5.  Set --merge-default to true.
+            6.  Set --avoid -duplicates' to true.
+            7.  Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1.  The YAML output has the values merged from all
-            the associated matchers.
-        2.  The YAML output has the default value of variable.
-        3.  Duplicate values in YAML output are removed / not displayed.
+            1.  The YAML output has the values merged from all the associated
+                matchers.
+            2.  The YAML output has the default value of variable.
+            3.  Duplicate values in YAML output are removed / not displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1139,29 +1126,29 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_create_matcher_avoid_duplicate(self):
         """Duplicates not removed as they were not really present.
 
-        @id: 972cf68b-fd3d-4731-97bf-119e03c61b33
+        :id: 972cf68b-fd3d-4731-97bf-119e03c61b33
 
-        @steps:
+        :steps:
 
-        1.  Create variable with type array and value.
-        2.  Create first matcher for attribute fqdn with some value.
-        3.  Create second matcher for other attribute with other value
-            than fqdn matcher and default value.
-            Note - The fqdn/host should have this attribute.
-        4.  Set --merge-overrides to true.
-        5.  Set --merge-default to true.
-        6.  Set --avoid -duplicates' to true.
-        7.  Go to YAML output of associated host.
+            1.  Create variable with type array and value.
+            2.  Create first matcher for attribute fqdn with some value.
+            3.  Create second matcher for other attribute with other value than
+                fqdn matcher and default value.
+                Note - The fqdn/host should have this attribute.
+            4.  Set --merge-overrides to true.
+            5.  Set --merge-default to true.
+            6.  Set --avoid -duplicates' to true.
+            7.  Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1.  The YAML output has the values merged from all matchers.
-        2.  The YAML output has the default value of variable.
-        3.  No value removed as duplicate value.
+            1.  The YAML output has the values merged from all matchers.
+            2.  The YAML output has the default value of variable.
+            3.  No value removed as duplicate value.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1169,15 +1156,16 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_enable_merge_overrides_default_flags(self):
         """Enable Merge Overrides, Merge Default flags for supported types.
 
-        @id: c000f408-c293-4915-9432-6b597a2e6ad0
+        :id: c000f408-c293-4915-9432-6b597a2e6ad0
 
-        @steps:
+        :steps:
 
-        1.  Create smart variable with array/hash type.
-        2.  Update smart variable and set corresponding flags to True state.
+            1.  Create smart variable with array/hash type.
+            2.  Update smart variable and set corresponding flags to True
+                state.
 
-        @assert: The Merge Overrides, Merge Default flags are allowed to set
-        True.
+        :assert: The Merge Overrides, Merge Default flags are allowed to set
+            True.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1201,16 +1189,16 @@ class SmartVariablesTestCase(CLITestCase):
         """Attempt to enable Merge Overrides, Merge Default flags for non
         supported types.
 
-        @id: 306400df-e823-48d6-b541-ef3b20181c78
+        :id: 306400df-e823-48d6-b541-ef3b20181c78
 
-        @steps:
+        :steps:
 
-        1.  Create smart variable with type that is not array/hash.
-        2.  Attempt to update smart variable and set corresponding flags to
-            True state.
+            1.  Create smart variable with type that is not array/hash.
+            2.  Attempt to update smart variable and set corresponding flags to
+                True state.
 
-        @assert: The Merge Overrides, Merge Default flags are not allowed
-        to set to True.
+        :assert: The Merge Overrides, Merge Default flags are not allowed to
+            set to True.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1234,14 +1222,14 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_enable_avoid_duplicates_flag(self):
         """Enable Avoid duplicates flag for supported array type.
 
-        @id: 0c7063e0-8e85-44b7-abae-4def7f68833a
+        :id: 0c7063e0-8e85-44b7-abae-4def7f68833a
 
-        @steps:
+        :steps:
 
-        1. Create smart variable with array/hash type.
-        2. Set '--merge-overrides' to true.
+            1. Create smart variable with array/hash type.
+            2. Set '--merge-overrides' to true.
 
-        @assert: The '--avoid-duplicates' flag is allowed to set true.
+        :assert: The '--avoid-duplicates' flag is allowed to set true.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1265,20 +1253,20 @@ class SmartVariablesTestCase(CLITestCase):
     def test_negative_enable_avoid_duplicates_flag(self):
         """Attempt to enable Avoid duplicates flag for non supported types.
 
-        @id: ea1e8e31-4374-4172-82fd-538d29d70c03
+        :id: ea1e8e31-4374-4172-82fd-538d29d70c03
 
-        @steps:
+        :steps:
 
-        1.  Create smart variable with type that is not array/hash.
-        2.  Attempt to update smart variable and set corresponding flags to
-            True state.
+            1.  Create smart variable with type that is not array/hash.
+            2.  Attempt to update smart variable and set corresponding flags to
+                True state.
 
-        @assert:
+        :assert:
 
-        1.  The '--merge-overrides' is only allowed to set to true for type
-            hash.
-        2.  The '--avoid-duplicates' is not allowed to set to true for type
-            other than array.
+            1.  The '--merge-overrides' is only allowed to set to true for type
+                hash.
+            2.  The '--avoid-duplicates' is not allowed to set to true for type
+                other than array.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1301,21 +1289,21 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_impact_delete_attribute(self):
         """Impact on variable after deleting associated attribute.
 
-        @id: ac6f3a65-ed39-4e97-bdee-349f08bd878e
+        :id: ac6f3a65-ed39-4e97-bdee-349f08bd878e
 
-        @steps:
+        :steps:
 
-        1.  Create a variable with matcher for some attribute.
-        2.  Delete the attribute.
-        3.  Recreate the attribute with same name as earlier.
+            1.  Create a variable with matcher for some attribute.
+            2.  Delete the attribute.
+            3.  Recreate the attribute with same name as earlier.
 
-        @assert:
+        :assert:
 
-        1.  The matcher for deleted attribute removed from variable.
-        2.  On recreating attribute, the matcher should not reappear in
-            variable.
+            1.  The matcher for deleted attribute removed from variable.
+            2.  On recreating attribute, the matcher should not reappear in
+                variable.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         hostgroup_name = gen_string('alpha')
         matcher_value = gen_string('alpha')
@@ -1357,16 +1345,16 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_hide_default_value(self):
         """Test hiding of the default value of variable.
 
-        @id: 00dd5627-5d7c-4fb2-9bbc-bf812205459e
+        :id: 00dd5627-5d7c-4fb2-9bbc-bf812205459e
 
-        @steps:
+        :steps:
 
-        1. Create a variable.
-        2. Enter some valid default value.
-        3. Set '--hidden-value' to true.
+            1. Create a variable.
+            2. Enter some valid default value.
+            3. Set '--hidden-value' to true.
 
-        @assert: The 'hidden value' set to true for that variable. Default
-        value is hidden
+        :assert: The 'hidden value' set to true for that variable. Default
+            value is hidden
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1381,15 +1369,15 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_unhide_default_value(self):
         """Test unhiding of the default value of variable.
 
-        @id: e1928ebf-32dd-4fb6-a40b-4c84507c1e2f
+        :id: e1928ebf-32dd-4fb6-a40b-4c84507c1e2f
 
-        @steps:
+        :steps:
 
-        1. Create a variable with some default value.
-        2. Set '--hidden-value' to true.
-        3. After hiding, set '--hidden-value' to false.
+            1. Create a variable with some default value.
+            2. Set '--hidden-value' to true.
+            3. After hiding, set '--hidden-value' to false.
 
-        @assert: The hidden value is set to false.
+        :assert: The hidden value is set to false.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1410,18 +1398,18 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_update_hidden_value(self):
         """Update the hidden default value of variable.
 
-        @id: 944d3fb9-ce90-47d8-bc54-fdf505bd5317
+        :id: 944d3fb9-ce90-47d8-bc54-fdf505bd5317
 
-        @steps:
+        :steps:
 
-        1. Create a variable with some valid default value.
-        2. Set '--hidden-value' to true.
-        3. Again update the default value.
+            1. Create a variable with some valid default value.
+            2. Set '--hidden-value' to true.
+            3. Again update the default value.
 
-        @assert:
+        :assert:
 
-        1. The variable default value is updated.
-        2. The variable '--hidden-value' is set true.
+            1. The variable default value is updated.
+            2. The variable '--hidden-value' is set true.
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -1443,17 +1431,17 @@ class SmartVariablesTestCase(CLITestCase):
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
-        @id: dc4f7200-dd20-4b63-a27a-e6dc4d5607a5
+        :id: dc4f7200-dd20-4b63-a27a-e6dc4d5607a5
 
-        @steps:
+        :steps:
 
-        1.  Create a variable with empty value.
-        2.  Set '--hidden-value' to true.
+            1.  Create a variable with empty value.
+            2.  Set '--hidden-value' to true.
 
-        @assert:
+        :assert:
 
-        1.  The '--hidden-value' is set to true.
-        2.  The default value is empty.
+            1.  The '--hidden-value' is set to true.
+            2.  The default value is empty.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],

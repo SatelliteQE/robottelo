@@ -1,18 +1,18 @@
 """Unit tests for the ``architectures`` paths.
 
-@Requirement: Architecture
+:Requirement: Architecture
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -28,12 +28,12 @@ class ArchitectureTestCase(APITestCase):
     def test_positive_add_os(self):
         """Create an architecture and associate it with an OS.
 
-        @id: 9943063d-34f3-4dbc-a341-474ec781e4d9
+        :id: 9943063d-34f3-4dbc-a341-474ec781e4d9
 
-        @Assert: The architecture can be created, and the association can be
-        read back from the server.
+        :Assert: The architecture can be created, and the association can be
+            read back from the server.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         operating_sys = entities.OperatingSystem().create()
         arch = entities.Architecture(operatingsystem=[operating_sys]).create()
@@ -46,9 +46,9 @@ class ArchitectureTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create an architecture providing the initial name.
 
-        @id: acbadcda-3410-45cb-a3aa-932a0facadc1
+        :id: acbadcda-3410-45cb-a3aa-932a0facadc1
 
-        @Assert: Architecture is created and contains provided name.
+        :Assert: Architecture is created and contains provided name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -61,9 +61,9 @@ class ArchitectureTestCase(APITestCase):
         """Create architecture providing an invalid initial name.
         set.
 
-        @id: c740b8c4-8ee3-4481-b041-4eff2faf9055
+        :id: c740b8c4-8ee3-4481-b041-4eff2faf9055
 
-        @Assert: Architecture is not created
+        :Assert: Architecture is not created
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -75,9 +75,9 @@ class ArchitectureTestCase(APITestCase):
         """Create architecture then update its name to another
         valid name.
 
-        @id: 8dbbf4f8-188e-406a-9099-a707f553d6bb
+        :id: 8dbbf4f8-188e-406a-9099-a707f553d6bb
 
-        @Assert: Architecture is created, and its name can be updated.
+        :Assert: Architecture is created, and its name can be updated.
         """
         arch = entities.Architecture().create()
 
@@ -92,9 +92,9 @@ class ArchitectureTestCase(APITestCase):
     def test_negative_update_name(self):
         """Create architecture then update its name to an invalid name.
 
-        @id: 301b335e-9bc1-47d9-8bef-a8ca2e9ea18e
+        :id: 301b335e-9bc1-47d9-8bef-a8ca2e9ea18e
 
-        @Assert: Architecture is created, and its name is not updated.
+        :Assert: Architecture is created, and its name is not updated.
         """
         arch = entities.Architecture().create()
         for new_name in invalid_names_list():
@@ -109,9 +109,9 @@ class ArchitectureTestCase(APITestCase):
     def test_positive_delete(self):
         """Create architecture and then delete it.
 
-        @id: 114a2973-a889-4a5e-bfac-de4406826258
+        :id: 114a2973-a889-4a5e-bfac-de4406826258
 
-        @Assert: architecture is successfully deleted.
+        :Assert: architecture is successfully deleted.
         """
         for name in valid_data_list():
             with self.subTest(name):

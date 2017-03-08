@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Users CLI
 
-@Requirement: Myaccount
+:Requirement: Myaccount
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -99,9 +99,9 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_first_name(self):
         """Update Firstname in My Account
 
-        @id: f8de3843-f2dc-4121-ab75-625c8f542627
+        :id: f8de3843-f2dc-4121-ab75-625c8f542627
 
-        @Assert: Current User is updated
+        :Assert: Current User is updated
         """
         new_firstname = gen_string('alphanumeric')
         self.update_user({'firstname': new_firstname})
@@ -113,9 +113,9 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_surname(self):
         """Update Surname in My Account
 
-        @id: 40ad2e78-a2af-45ca-bbd8-e9ca5178dc41
+        :id: 40ad2e78-a2af-45ca-bbd8-e9ca5178dc41
 
-        @Assert: Current User is updated
+        :Assert: Current User is updated
         """
         new_lastname = gen_string('alphanumeric')
         self.update_user({'lastname': new_lastname})
@@ -127,9 +127,9 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_email(self):
         """Update Email Address in My Account
 
-        @id: 70bab43b-0842-45a1-81fb-e47ff8646c8e
+        :id: 70bab43b-0842-45a1-81fb-e47ff8646c8e
 
-        @Assert: Current User is updated
+        :Assert: Current User is updated
         """
         email = u'{0}@example.com'.format(gen_string('alphanumeric'))
         self.update_user({'mail': email})
@@ -140,14 +140,13 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_all_locales(self):
         """Update Language in My Account
 
-        @id: f0993495-5117-461d-a116-44867b820139
+        :id: f0993495-5117-461d-a116-44867b820139
 
-        @Steps:
-        1. Update current User with all different Language options
+        :Steps: Update current User with all different Language options
 
-        @Assert: Current User is updated
+        :Assert: Current User is updated
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
         for locale in LOCALES:
@@ -160,9 +159,9 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_first_name(self):
         """Update My Account with invalid FirstName
 
-        @id: 1e0e1a94-4cef-4110-b65c-8cd35df254e0
+        :id: 1e0e1a94-4cef-4110-b65c-8cd35df254e0
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'firstname': gen_string('alphanumeric', 300)})
@@ -171,9 +170,9 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_surname(self):
         """Update My Account with invalid Surname
 
-        @id: 4d31ba71-2dcc-47ee-94d2-adc168ba89d7
+        :id: 4d31ba71-2dcc-47ee-94d2-adc168ba89d7
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'lastname': gen_string('alphanumeric', 300)})
@@ -182,9 +181,9 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_email(self):
         """Update My Account with invalid Email Address
 
-        @id: 619f6285-8d50-47d4-b074-d8854c7567a6
+        :id: 619f6285-8d50-47d4-b074-d8854c7567a6
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -197,9 +196,9 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_locale(self):
         """Update My Account with invalid Locale
 
-        @id: 6f63c9b4-80e6-11e6-8ea1-68f72889dc7f
+        :id: 6f63c9b4-80e6-11e6-8ea1-68f72889dc7f
 
-        @Assert: User is not updated. Appropriate error shown.
+        :Assert: User is not updated. Appropriate error shown.
         """
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'locale': 'invalid'})
@@ -234,9 +233,9 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
     def test_positive_update_password(self):
         """Update Password in My Account
 
-        @id: e7e9b212-f0aa-4f7e-8433-b4639da89495
+        :id: e7e9b212-f0aa-4f7e-8433-b4639da89495
 
-        @Assert: User is updated
+        :Assert: User is updated
         """
         new_password = gen_string('alphanumeric')
         self.update_user({'password': new_password})
