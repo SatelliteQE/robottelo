@@ -22,6 +22,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.decorators import stubbed, tier1, tier2, tier3
 from robottelo.helpers import add_remote_execution_ssh_key, get_data_file
 from robottelo.test import UITestCase
@@ -404,6 +405,12 @@ class RemoteExecutionTestCase(UITestCase):
                     job_template='Run Command - SSH Default',
                     options_list=[{'name': 'command', 'value': 'ls'}]
                 )
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                JobInvocation.get_output({
+                     'id': invocation_id,
+                     'host': client.hostname
+                })
                 self.assertTrue(status)
 
     @tier3
@@ -448,6 +455,12 @@ class RemoteExecutionTestCase(UITestCase):
                     job_template=jobs_template_name,
                     options_list=[{'name': 'command', 'value': 'ls'}]
                 )
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                JobInvocation.get_output({
+                     'id': invocation_id,
+                     'host': client.hostname
+                })
                 self.assertTrue(status)
 
     @tier3
@@ -487,6 +500,12 @@ class RemoteExecutionTestCase(UITestCase):
                     strategy, value = locators['job_invocation.status']
                     self.job.wait_until_element(
                         (strategy, value % 'succeeded'), 240)
+                    # get job invocation id from the current url
+                    invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                    JobInvocation.get_output({
+                         'id': invocation_id,
+                         'host': client.hostname
+                    })
 
     @tier3
     def test_positive_run_scheduled_job_template(self):
@@ -535,6 +554,12 @@ class RemoteExecutionTestCase(UITestCase):
                     (strategy, value % 'queued'), 95)
                 self.job.wait_until_element(
                     (strategy, value % 'succeeded'), 30)
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                JobInvocation.get_output({
+                     'id': invocation_id,
+                     'host': client.hostname
+                })
 
     @stubbed()
     @tier3
