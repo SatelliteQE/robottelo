@@ -22,6 +22,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.decorators import (
     bz_bug_is_open,
     stubbed,
@@ -421,6 +422,30 @@ class RemoteExecutionTestCase(UITestCase):
             subnet.remote_execution_proxy_ids = [1]
             subnet.update(["remote_execution_proxy_ids"])
 
+    def get_client_datetime(self):
+        """Make Javascript call inside of browser session to get exact current
+        date and time. In that way, we will be isolated from any issue that can
+        happen due different environments where test automation code is
+        executing and where browser session is opened. That should help us to
+        have successful run for docker containers or separated virtual machines
+        When calling .getMonth() you need to add +1 to display the correct
+        month. Javascript count always starts at 0, so calling .getMonth() in
+        May will return 4 and not 5.
+
+        @return: Datetime object that contains data for current date and time
+            on a client
+        """
+        script = ('var currentdate = new Date(); return ({0} + "-" + {1} + '
+                  '"-" + {2} + " : " + {3} + ":" + {4});').format(
+            'currentdate.getFullYear()',
+            '(currentdate.getMonth()+1)',
+            'currentdate.getDate()',
+            'currentdate.getHours()',
+            'currentdate.getMinutes()',
+        )
+        client_datetime = self.browser.execute_script(script)
+        return datetime.strptime(client_datetime, '%Y-%m-%d : %H:%M')
+
     @tier2
     def test_positive_run_default_job_template(self):
         """Run a job template against a single host
@@ -455,7 +480,17 @@ class RemoteExecutionTestCase(UITestCase):
                     job_template='Run Command - SSH Default',
                     options_list=[{'name': 'command', 'value': 'ls'}]
                 )
-                self.assertTrue(status)
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                self.assertTrue(
+                        status,
+                        'host output: {0}'.format(
+                            ' '.join(JobInvocation.get_output({
+                                'id': invocation_id,
+                                'host': client.hostname})
+                            )
+                        )
+                    )
 
     @tier3
     def test_positive_run_custom_job_template(self):
@@ -503,7 +538,17 @@ class RemoteExecutionTestCase(UITestCase):
                     job_template=jobs_template_name,
                     options_list=[{'name': 'command', 'value': 'ls'}]
                 )
-                self.assertTrue(status)
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                self.assertTrue(
+                        status,
+                        'host output: {0}'.format(
+                            ' '.join(JobInvocation.get_output({
+                                'id': invocation_id,
+                                'host': client.hostname})
+                            )
+                        )
+                    )
 
     @tier3
     def test_positive_run_job_template_multiple_hosts(self):
@@ -544,8 +589,18 @@ class RemoteExecutionTestCase(UITestCase):
                         parameters_list=[{'command': 'ls'}],
                     )
                     strategy, value = locators['job_invocation.status']
-                    self.job.wait_until_element(
-                        (strategy, value % 'succeeded'), 240)
+                    if self.job.wait_until_element(
+                            (strategy, value % 'succeeded'), 240) is not None:
+                        status = True
+                    else:
+                        status = False
+                    # get job invocation id from the current url
+                    invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                    self.assertTrue(status, 'host output: {0}'.format(
+                        ' '.join(JobInvocation.get_output({
+                             'id': invocation_id,
+                             'host': client.hostname
+                         }))))
 
     @tier3
     def test_positive_run_scheduled_job_template(self):
@@ -581,8 +636,9 @@ class RemoteExecutionTestCase(UITestCase):
             with Session(self.browser) as session:
                 set_context(session, org=self.organization.name)
                 self.hosts.click(self.hosts.search(client.hostname))
-                plan_time = (datetime.now() + timedelta(seconds=90)).strftime(
-                    "%Y-%m-%d %H:%M")
+                plan_time = (
+                        self.get_client_datetime() + timedelta(seconds=90)
+                        ).strftime("%Y-%m-%d %H:%M")
                 status = self.job.run(
                     job_category='Commands',
                     job_template='Run Command - SSH Default',
@@ -596,8 +652,22 @@ class RemoteExecutionTestCase(UITestCase):
                 strategy, value = locators['job_invocation.status']
                 self.job.wait_until_element_is_not_visible(
                     (strategy, value % 'queued'), 95)
-                self.job.wait_until_element(
-                    (strategy, value % 'succeeded'), 30)
+                if self.job.wait_until_element(
+                        (strategy, value % 'succeeded'), 180) is not None:
+                    status2 = True
+                else:
+                    status2 = False
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                self.assertTrue(
+                        status2,
+                        'host output: {0}'.format(
+                            ' '.join(JobInvocation.get_output({
+                                'id': invocation_id,
+                                'host': client.hostname})
+                            )
+                        )
+                    )
 
     @stubbed()
     @tier3
