@@ -46,6 +46,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_0_ERRATA_ID,
+    FAKE_1_ERRATA_ID,
     FAKE_0_YUM_REPO,
     PRDS,
     REPOS,
@@ -1002,6 +1003,36 @@ class KatelloAgentTestCase(CLITestCase):
             u'errata-ids': FAKE_0_ERRATA_ID,
             u'host-id': self.host['id'],
         })
+
+    @tier3
+    @skip_if_bug_open('bugzilla', '1420671')
+    @run_only_on('sat')
+    def test_positive_apply_security_erratum(self):
+        """Apply security erratum to a host
+
+        @id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
+
+        @Assert: erratum is recognized by the
+        `yum update --security` command on client
+
+        @CaseLevel: System
+        """
+        self.client.download_install_rpm(
+            FAKE_0_YUM_REPO,
+            FAKE_1_CUSTOM_PACKAGE
+        )
+        # downgrade walrus package
+        self.client.run('yum downgrade -y {0}'.format(
+            FAKE_1_CUSTOM_PACKAGE_NAME))
+        # apply sea erratum that is security advisory
+        Host.errata_apply({
+            u'errata-ids': FAKE_1_ERRATA_ID,
+            u'host-id': self.host['id'],
+        })
+        result = self.client.run(
+            'yum update --security | grep "No packages needed for security"'
+        )
+        self.assertEqual(result.return_code, 1)
 
     @tier3
     @run_only_on('sat')
