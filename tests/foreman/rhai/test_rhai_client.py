@@ -1,18 +1,18 @@
 """Tests for Red Hat Access Insights Client rpm
 
-@Requirement: Rhai client
+:Requirement: Rhai client
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -73,10 +73,10 @@ class RHAIClientTestCase(TestCase):
         client rpm tests the connection with the satellite server connection
         with satellite server
 
-        @id: 167758c9-cbfa-4a81-9a11-27f88aaf9118
+        :id: 167758c9-cbfa-4a81-9a11-27f88aaf9118
 
-        @Assert: 'redhat-access-insights --test-connection' should return
-        zero on a successfully registered machine to RHAI service
+        :Assert: 'redhat-access-insights --test-connection' should return zero
+            on a successfully registered machine to RHAI service
         """
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.configure_rhai_client(self.ak_name, self.org_label,

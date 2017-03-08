@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Trend UI
 
-@Requirement: Trend
+:Requirement: Trend
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -39,9 +39,9 @@ class TrendTest(UITestCase):
     def test_positive_create(self):
         """Create new trend
 
-        @id: d0c040cf-8132-43cd-9569-26148b80a44b
+        :id: d0c040cf-8132-43cd-9569-26148b80a44b
 
-        @Assert: Trend is created successfully
+        :Assert: Trend is created successfully
         """
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['model'])
@@ -52,9 +52,9 @@ class TrendTest(UITestCase):
     def test_positive_update(self):
         """Update trend entity value
 
-        @id: 329af7a7-e7c1-4c09-9849-d9ec12ddcee9
+        :id: 329af7a7-e7c1-4c09-9849-d9ec12ddcee9
 
-        @Assert: Trend entity is updated successfully
+        :Assert: Trend entity is updated successfully
         """
         name = gen_string('alphanumeric')
         new_name = gen_string('alphanumeric')
@@ -76,9 +76,9 @@ class TrendTest(UITestCase):
     def test_positive_delete(self):
         """Delete existing trend
 
-        @id: 0b5376f0-c8ae-434a-a5da-10b16ac3b932
+        :id: 0b5376f0-c8ae-434a-a5da-10b16ac3b932
 
-        @Assert: Trend is deleted
+        :Assert: Trend is deleted
         """
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['environment'])

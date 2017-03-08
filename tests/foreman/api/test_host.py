@@ -5,19 +5,19 @@ An API reference can be found here:
 http://theforeman.org/api/apidoc/v2/hosts.html
 
 
-@Requirement: Host
+:Requirement: Host
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import client, entities
@@ -84,9 +84,9 @@ class HostTestCase(APITestCase):
     def test_positive_get_search(self):
         """GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
-        @id: d63f87e5-66e6-4886-8b44-4129259493a6
+        :id: d63f87e5-66e6-4886-8b44-4129259493a6
 
-        @Assert: HTTP 200 is returned, along with ``search`` term.
+        :Assert: HTTP 200 is returned, along with ``search`` term.
         """
         query = gen_string('utf8', gen_integer(1, 100))
         response = client.get(
@@ -103,9 +103,9 @@ class HostTestCase(APITestCase):
     def test_positive_get_per_page(self):
         """GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
-        @id: 9086f41c-b3b9-4af2-b6c4-46b80b4d1cfd
+        :id: 9086f41c-b3b9-4af2-b6c4-46b80b4d1cfd
 
-        @Assert: HTTP 200 is returned, along with per ``per_page`` value.
+        :Assert: HTTP 200 is returned, along with per ``per_page`` value.
         """
         per_page = gen_integer(1, 1000)
         response = client.get(
@@ -122,10 +122,10 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_owner_type(self):
         """Create a host and specify an ``owner_type``.
 
-        @id: 9f486875-1f30-4dcb-b7ce-b2cf515c413b
+        :id: 9f486875-1f30-4dcb-b7ce-b2cf515c413b
 
-        @Assert: The host can be read back, and the ``owner_type`` attribute is
-        correct.
+        :Assert: The host can be read back, and the ``owner_type`` attribute is
+            correct.
         """
         for owner_type in ('User', 'Usergroup'):
             with self.subTest(owner_type):
@@ -139,9 +139,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_owner_type(self):
         """Update a host's ``owner_type``.
 
-        @id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
+        :id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
 
-        @Assert: The host's ``owner_type`` attribute is updated as requested.
+        :Assert: The host's ``owner_type`` attribute is updated as requested.
         """
         host = entities.Host().create()
         for owner_type in ('User', 'Usergroup'):
@@ -157,9 +157,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a host with different names and minimal input parameters
 
-        @id: a7c0e8ec-3816-4092-88b1-0324cb271752
+        :id: a7c0e8ec-3816-4092-88b1-0324cb271752
 
-        @assert: A host is created with expected name
+        :assert: A host is created with expected name
         """
         for name in valid_hosts_list():
             with self.subTest(name):
@@ -174,9 +174,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_ip(self):
         """Create a host with IP address specified
 
-        @id: 3f266906-c509-42ce-9b20-def448bf8d86
+        :id: 3f266906-c509-42ce-9b20-def448bf8d86
 
-        @assert: A host is created with expected IP address
+        :assert: A host is created with expected IP address
         """
         ip_addr = gen_ipaddr()
         host = entities.Host(ip=ip_addr).create()
@@ -187,11 +187,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_hostgroup(self):
         """Create a host with hostgroup specified
 
-        @id: 8f9601f9-afd8-4a88-8f28-a5cbc996e805
+        :id: 8f9601f9-afd8-4a88-8f28-a5cbc996e805
 
-        @assert: A host is created with expected hostgroup assigned
+        :assert: A host is created with expected hostgroup assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -212,14 +212,14 @@ class HostTestCase(APITestCase):
         """Create a host with hostgroup specified. Make sure host inherited
         hostgroup's lifecycle environment and content-view
 
-        @id: 229cbdbc-838b-456c-bc6f-4ac895badfbc
+        :id: 229cbdbc-838b-456c-bc6f-4ac895badfbc
 
-        @Assert: Host's lifecycle environment and content view match the ones
-        specified in hostgroup
+        :Assert: Host's lifecycle environment and content view match the ones
+            specified in hostgroup
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1391656
+        :BZ: 1391656
         """
         hostgroup = entities.HostGroup(
             content_view=self.cv,
@@ -244,9 +244,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_puppet_proxy(self):
         """Create a host with puppet proxy specified
 
-        @id: 9269d87b-abb9-48e0-b0d1-9b8e258e1ae3
+        :id: 9269d87b-abb9-48e0-b0d1-9b8e258e1ae3
 
-        @assert: A host is created with expected puppet proxy assigned
+        :assert: A host is created with expected puppet proxy assigned
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -259,9 +259,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_puppet_ca_proxy(self):
         """Create a host with puppet CA proxy specified
 
-        @id: 1b73dd35-c2e8-44bd-b8f8-9e51428a6239
+        :id: 1b73dd35-c2e8-44bd-b8f8-9e51428a6239
 
-        @assert: A host is created with expected puppet CA proxy assigned
+        :assert: A host is created with expected puppet CA proxy assigned
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -274,9 +274,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_puppet_class(self):
         """Create a host with associated puppet classes
 
-        @id: 2690d6b0-441b-44c5-b7d2-4093616e037e
+        :id: 2690d6b0-441b-44c5-b7d2-4093616e037e
 
-        @assert: A host is created with expected puppet classes
+        :assert: A host is created with expected puppet classes
         """
         host = entities.Host(
             organization=self.org,
@@ -294,11 +294,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_subnet(self):
         """Create a host with subnet specified
 
-        @id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
+        :id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
 
-        @assert: A host is created with expected subnet assigned
+        :assert: A host is created with expected subnet assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -318,11 +318,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_compresource(self):
         """Create a host with compute resource specified
 
-        @id: 53069f2e-67a7-4d57-9846-acf6d8ce03cb
+        :id: 53069f2e-67a7-4d57-9846-acf6d8ce03cb
 
-        @assert: A host is created with expected compute resource assigned
+        :assert: A host is created with expected compute resource assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -342,11 +342,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_model(self):
         """Create a host with model specified
 
-        @id: 7a912a19-71e4-4843-87fd-bab98c156f4a
+        :id: 7a912a19-71e4-4843-87fd-bab98c156f4a
 
-        @assert: A host is created with expected model assigned
+        :assert: A host is created with expected model assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         model = entities.Model().create()
         host = entities.Host(model=model).create()
@@ -357,11 +357,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_user(self):
         """Create a host with user specified
 
-        @id: 72e20f8f-17dc-4e38-8ac1-d08df8758f56
+        :id: 72e20f8f-17dc-4e38-8ac1-d08df8758f56
 
-        @assert: A host is created with expected user assigned
+        :assert: A host is created with expected user assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user = entities.User().create()
         host = entities.Host(
@@ -375,11 +375,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_usergroup(self):
         """Create a host with user group specified
 
-        @id: 706e860c-8c05-4ddc-be20-0ecd9f0da813
+        :id: 706e860c-8c05-4ddc-be20-0ecd9f0da813
 
-        @assert: A host is created with expected user group assigned
+        :assert: A host is created with expected user group assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -407,9 +407,9 @@ class HostTestCase(APITestCase):
         """Create a host with 'build' parameter specified.
         Build parameter determines whether to enable the host for provisioning
 
-        @id: de30cf62-5036-4247-a5f0-37dd2b4aae23
+        :id: de30cf62-5036-4247-a5f0-37dd2b4aae23
 
-        @assert: A host is created with expected 'build' parameter value
+        :assert: A host is created with expected 'build' parameter value
         """
         host = entities.Host(build=True).create()
         self.assertEqual(host.build, True)
@@ -421,9 +421,9 @@ class HostTestCase(APITestCase):
         Enabled parameter determines whether to include the host within
         Satellite 6 reporting
 
-        @id: bd8d33f9-37de-4b8d-863e-9f73cd8dcec1
+        :id: bd8d33f9-37de-4b8d-863e-9f73cd8dcec1
 
-        @assert: A host is created with expected 'enabled' parameter value
+        :assert: A host is created with expected 'enabled' parameter value
         """
         host = entities.Host(enabled=False).create()
         self.assertEqual(host.enabled, False)
@@ -435,9 +435,9 @@ class HostTestCase(APITestCase):
         Managed flag shows whether the host is managed or unmanaged and
         determines whether some extra parameters are required
 
-        @id: 00dcfaed-6f54-4b6a-a022-9c97fb992324
+        :id: 00dcfaed-6f54-4b6a-a022-9c97fb992324
 
-        @assert: A host is created with expected managed parameter value
+        :assert: A host is created with expected managed parameter value
         """
         host = entities.Host(managed=True).create()
         self.assertEqual(host.managed, True)
@@ -447,9 +447,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_comment(self):
         """Create a host with a comment
 
-        @id: 9b78663f-139c-4d0b-9115-180624b0d41b
+        :id: 9b78663f-139c-4d0b-9115-180624b0d41b
 
-        @assert: A host is created with expected comment
+        :assert: A host is created with expected comment
         """
         for comment in valid_data_list():
             with self.subTest(comment):
@@ -461,11 +461,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_compute_profile(self):
         """Create a host with a compute profile specified
 
-        @id: 94be25e8-035d-42c5-b1f3-3aa20030410d
+        :id: 94be25e8-035d-42c5-b1f3-3aa20030410d
 
-        @assert: A host is created with expected compute profile assigned
+        :assert: A host is created with expected compute profile assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         profile = entities.ComputeProfile().create()
         host = entities.Host(compute_profile=profile).create()
@@ -476,11 +476,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_content_view(self):
         """Create a host with a content view specified
 
-        @id: 10f69c7a-088e-474c-b869-1ad12deda2ad
+        :id: 10f69c7a-088e-474c-b869-1ad12deda2ad
 
-        @Assert: A host is created with expected content view assigned
+        :Assert: A host is created with expected content view assigned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host(
             organization=self.org,
@@ -502,9 +502,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_host_parameters(self):
         """Create a host with a host parameters specified
 
-        @id: e3af6718-4016-4756-bbb0-e3c24ac1e340
+        :id: e3af6718-4016-4756-bbb0-e3c24ac1e340
 
-        @Assert: A host is created with expected host parameters
+        :Assert: A host is created with expected host parameters
         """
         parameters = [{
             'name': gen_string('alpha'), 'value': gen_string('alpha')
@@ -527,11 +527,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_image(self):
         """Create a host with an image specified
 
-        @id: 38b17b4d-d9d8-4ea1-aa0f-558496b990fc
+        :id: 38b17b4d-d9d8-4ea1-aa0f-558496b990fc
 
-        @Assert: A host is created with expected image
+        :Assert: A host is created with expected image
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host(
             organization=self.org,
@@ -546,9 +546,9 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_provision_method(self):
         """Create a host with provision method specified
 
-        @id: c2243c30-f70a-4063-a4a4-f67b598a892b
+        :id: c2243c30-f70a-4063-a4a4-f67b598a892b
 
-        @Assert: A host is created with expected provision method
+        :Assert: A host is created with expected provision method
         """
         for method in ['build', 'image']:
             with self.subTest(method):
@@ -566,9 +566,9 @@ class HostTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete a host
 
-        @id: ec725359-a75e-498c-9da8-f5abd2343dd3
+        :id: ec725359-a75e-498c-9da8-f5abd2343dd3
 
-        @assert: Host is deleted
+        :assert: Host is deleted
         """
         host = entities.Host().create()
         host.delete()
@@ -580,9 +580,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a host with a new name
 
-        @id: a82b606c-d683-44ba-9086-684396ef1c10
+        :id: a82b606c-d683-44ba-9086-684396ef1c10
 
-        @assert: A host is updated with expected name
+        :assert: A host is updated with expected name
         """
         host = entities.Host().create()
         for new_name in valid_hosts_list():
@@ -599,9 +599,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_mac(self):
         """Update a host with a new MAC address
 
-        @id: 72e3b020-7347-4500-8669-c6ddf6dfd0b6
+        :id: 72e3b020-7347-4500-8669-c6ddf6dfd0b6
 
-        @assert: A host is updated with a new MAC address
+        :assert: A host is updated with a new MAC address
         """
         host = entities.Host().create()
         new_mac = gen_mac()
@@ -614,11 +614,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_domain(self):
         """Update a host with a new domain
 
-        @id: 8ca9f67c-4c11-40f9-b434-4f200bad000f
+        :id: 8ca9f67c-4c11-40f9-b434-4f200bad000f
 
-        @assert: A host is updated with a new domain
+        :assert: A host is updated with a new domain
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host().create()
         new_domain = entities.Domain(
@@ -634,11 +634,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_env(self):
         """Update a host with a new environment
 
-        @id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
+        :id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
 
-        @assert: A host is updated with a new environment
+        :assert: A host is updated with a new environment
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host().create()
         new_env = entities.Environment(
@@ -654,11 +654,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_arch(self):
         """Update a host with a new architecture
 
-        @id: 5f190b14-e6db-46e1-8cd1-e94e048e6a77
+        :id: 5f190b14-e6db-46e1-8cd1-e94e048e6a77
 
-        @assert: A host is updated with a new architecture
+        :assert: A host is updated with a new architecture
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host().create()
         new_arch = entities.Architecture(
@@ -673,11 +673,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_os(self):
         """Update a host with a new operating system
 
-        @id: 46edced1-8909-4066-b196-b8e22512341f
+        :id: 46edced1-8909-4066-b196-b8e22512341f
 
-        @assert: A host is updated with a new operating system
+        :assert: A host is updated with a new operating system
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host().create()
         new_os = entities.OperatingSystem(
@@ -696,11 +696,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_medium(self):
         """Update a host with a new medium
 
-        @id: d81cb65c-48b3-4ce3-971e-51b9dd123697
+        :id: d81cb65c-48b3-4ce3-971e-51b9dd123697
 
-        @assert: A host is updated with a new medium
+        :assert: A host is updated with a new medium
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host().create()
         new_medium = entities.Media(
@@ -720,9 +720,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_ip(self):
         """Update a host with a new IP address
 
-        @id: 4c009db9-d720-429e-8150-bebf246d3a43
+        :id: 4c009db9-d720-429e-8150-bebf246d3a43
 
-        @assert: A host is updated with a new IP address
+        :assert: A host is updated with a new IP address
         """
         host = entities.Host(ip=gen_ipaddr()).create()
         new_ip = gen_ipaddr()
@@ -735,11 +735,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_hostgroup(self):
         """Update a host with a new hostgroup
 
-        @id: dbe15f9a-242e-40f1-be90-d4f135596790
+        :id: dbe15f9a-242e-40f1-be90-d4f135596790
 
-        @assert: A host is updated with a new hostgroup
+        :assert: A host is updated with a new hostgroup
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -765,9 +765,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_puppet_proxy(self):
         """Update a host with a new puppet proxy
 
-        @id: 98c11e9b-54b0-4f1f-819c-4ff1863457ff
+        :id: 98c11e9b-54b0-4f1f-819c-4ff1863457ff
 
-        @assert: A host is updated with a new puppet proxy
+        :assert: A host is updated with a new puppet proxy
         """
         host = entities.Host().create()
         new_proxy = entities.SmartProxy().search(query={
@@ -782,9 +782,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_puppet_ca_proxy(self):
         """Update a host with a new puppet CA proxy
 
-        @id: 82eacf60-cf89-4035-ad9a-3f78ceb41d39
+        :id: 82eacf60-cf89-4035-ad9a-3f78ceb41d39
 
-        @assert: A host is updated with a new puppet CA proxy
+        :assert: A host is updated with a new puppet CA proxy
         """
         host = entities.Host().create()
         new_proxy = entities.SmartProxy().search(query={
@@ -799,9 +799,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_puppet_class(self):
         """Update a host with a new puppet classes
 
-        @id: 73f9efce-3807-4196-b4e3-a6bfbfe95c99
+        :id: 73f9efce-3807-4196-b4e3-a6bfbfe95c99
 
-        @assert: A host is update with a new puppet classes
+        :assert: A host is update with a new puppet classes
         """
         host = entities.Host(organization=self.org, location=self.loc).create()
         self.assertEqual(len(host.puppetclass), 0)
@@ -818,11 +818,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_subnet(self):
         """Update a host with a new subnet
 
-        @id: c938e6b2-dbc0-4cd2-894a-8f2cc0e31063
+        :id: c938e6b2-dbc0-4cd2-894a-8f2cc0e31063
 
-        @assert: A host is updated with a new subnet
+        :assert: A host is updated with a new subnet
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -848,11 +848,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_compresource(self):
         """Update a host with a new compute resource
 
-        @id: 422f5db1-4eb6-43c2-a908-af9f8b5358f0
+        :id: 422f5db1-4eb6-43c2-a908-af9f8b5358f0
 
-        @assert: A host is updated with a new compute resource
+        :assert: A host is updated with a new compute resource
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -879,11 +879,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_model(self):
         """Update a host with a new model
 
-        @id: da584445-ec24-4bed-82d0-d964bafa49bf
+        :id: da584445-ec24-4bed-82d0-d964bafa49bf
 
-        @assert: A host is updated with a new model
+        :assert: A host is updated with a new model
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host(model=entities.Model().create()).create()
         new_model = entities.Model().create()
@@ -896,11 +896,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_user(self):
         """Update a host with a new user
 
-        @id: afb3a9d1-61ba-43c4-a00f-a1887441b8d0
+        :id: afb3a9d1-61ba-43c4-a00f-a1887441b8d0
 
-        @assert: A host is updated with a new user
+        :assert: A host is updated with a new user
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host(
             owner=entities.User().create(),
@@ -916,11 +916,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_usergroup(self):
         """Update a host with a new user group
 
-        @id: a8d702ee-592a-4b5d-9fec-2fa07d3fda1b
+        :id: a8d702ee-592a-4b5d-9fec-2fa07d3fda1b
 
-        @assert: A host is updated with a new user group
+        :assert: A host is updated with a new user group
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -954,9 +954,9 @@ class HostTestCase(APITestCase):
         """Update a host with a new 'build' parameter value.
         Build parameter determines whether to enable the host for provisioning
 
-        @id: f176ebc9-0406-4a7e-8e20-5325808d33db
+        :id: f176ebc9-0406-4a7e-8e20-5325808d33db
 
-        @assert: A host is updated with a new 'build' parameter value
+        :assert: A host is updated with a new 'build' parameter value
         """
         for build in (True, False):
             with self.subTest(build):
@@ -972,9 +972,9 @@ class HostTestCase(APITestCase):
         Enabled parameter determines whether to include the host within
         Satellite 6 reporting
 
-        @id: 8a84e842-3537-46d5-8275-1c593c2171b3
+        :id: 8a84e842-3537-46d5-8275-1c593c2171b3
 
-        @assert: A host is updated with a new 'enabled' parameter value
+        :assert: A host is updated with a new 'enabled' parameter value
         """
         for enabled in (True, False):
             with self.subTest(enabled):
@@ -990,9 +990,9 @@ class HostTestCase(APITestCase):
         Managed flag shows whether the host is managed or unmanaged and
         determines whether some extra parameters are required
 
-        @id: 623064aa-db84-4470-ac13-63f32d9f81b6
+        :id: 623064aa-db84-4470-ac13-63f32d9f81b6
 
-        @assert: A host is updated with a new 'managed' parameter value
+        :assert: A host is updated with a new 'managed' parameter value
         """
         for managed in (True, False):
             with self.subTest(managed):
@@ -1006,9 +1006,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_comment(self):
         """Update a host with a new comment
 
-        @id: ceca20ce-5ecc-4f7f-b920-28b7bd74d351
+        :id: ceca20ce-5ecc-4f7f-b920-28b7bd74d351
 
-        @assert: A host is updated with a new comment
+        :assert: A host is updated with a new comment
         """
         for new_comment in valid_data_list():
             with self.subTest(new_comment):
@@ -1022,11 +1022,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_compute_profile(self):
         """Update a host with a new compute profile
 
-        @id: a634c8a5-11ef-4d92-9df1-1f7e065f162e
+        :id: a634c8a5-11ef-4d92-9df1-1f7e065f162e
 
-        @assert: A host is updated with a new compute profile
+        :assert: A host is updated with a new compute profile
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host(
             compute_profile=entities.ComputeProfile().create(),
@@ -1041,11 +1041,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_content_view(self):
         """Update a host with a new content view
 
-        @id: f51612fd-cbbc-4f9f-b85b-a4104a0501e5
+        :id: f51612fd-cbbc-4f9f-b85b-a4104a0501e5
 
-        @assert: A host is updated with a new content view
+        :assert: A host is updated with a new content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host(organization=self.org, location=self.loc).create()
         self.assertFalse(hasattr(host, 'content_facet_attributes'))
@@ -1066,9 +1066,9 @@ class HostTestCase(APITestCase):
     def test_positive_update_host_parameters(self):
         """Update a host with a new host parameters
 
-        @id: db0f5731-b0cc-4429-85fb-4032cb43ce4a
+        :id: db0f5731-b0cc-4429-85fb-4032cb43ce4a
 
-        @assert: A host is updated with a new host parameters
+        :assert: A host is updated with a new host parameters
         """
         parameters = [{
             'name': gen_string('alpha'), 'value': gen_string('alpha')
@@ -1090,11 +1090,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_image(self):
         """Update a host with a new image
 
-        @id: e5d8a5b0-7834-4099-9047-8290c7008931
+        :id: e5d8a5b0-7834-4099-9047-8290c7008931
 
-        @assert: A host is updated with a new image
+        :assert: A host is updated with a new image
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host(organization=self.org, location=self.loc).create()
         host = entities.Host(
@@ -1112,9 +1112,9 @@ class HostTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update a host with invalid or empty name
 
-        @id: 1c46b44c-a2ea-43a6-b4d9-244101b081e8
+        :id: 1c46b44c-a2ea-43a6-b4d9-244101b081e8
 
-        @assert: A host is not updated
+        :assert: A host is not updated
         """
         host = entities.Host().create()
         for new_name in invalid_values_list():
@@ -1133,9 +1133,9 @@ class HostTestCase(APITestCase):
     def test_negative_update_mac(self):
         """Attempt to update a host with invalid or empty MAC address
 
-        @id: 1954ea4e-e0c2-475f-af67-557e91ebc1e2
+        :id: 1954ea4e-e0c2-475f-af67-557e91ebc1e2
 
-        @assert: A host is not updated
+        :assert: A host is not updated
         """
         host = entities.Host().create()
         for new_mac in invalid_values_list():
@@ -1151,11 +1151,11 @@ class HostTestCase(APITestCase):
         """Attempt to update a host with an architecture, which does not belong
         to host's operating system
 
-        @id: 07b9c0e7-f02b-4aff-99ae-5c203255aba1
+        :id: 07b9c0e7-f02b-4aff-99ae-5c203255aba1
 
-        @assert: A host is not updated
+        :assert: A host is not updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host().create()
         new_arch = entities.Architecture().create()
@@ -1171,11 +1171,11 @@ class HostTestCase(APITestCase):
         """Attempt to update a host with an operating system, which is not
         associated with host's medium
 
-        @id: 40e79f73-6356-4d61-9806-7ade2f4f8829
+        :id: 40e79f73-6356-4d61-9806-7ade2f4f8829
 
-        @assert: A host is not updated
+        :assert: A host is not updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         host = entities.Host().create()
         new_os = entities.OperatingSystem(
@@ -1194,22 +1194,19 @@ class HostTestCase(APITestCase):
     def test_positive_create_baremetal_with_bios(self):
         """Create a new Host from provided MAC address
 
-        @id: 9d74ed70-3197-4825-bf96-21eeb4a765f9
+        :id: 9d74ed70-3197-4825-bf96-21eeb4a765f9
 
-        @setup:
+        :setup: Create a PXE-based VM with BIOS boot mode (outside of
+            Satellite).
 
-        1. Create a PXE-based VM with BIOS boot mode (outside of Satellite).
+        :steps: Create a new host using 'BareMetal' option and MAC address of
+            the pre-created VM
 
-        @steps:
+        :assert: Host is created
 
-        1. Create a new host using 'BareMetal' option and MAC address of the
-        pre-created VM
+        :caseautomation: notautomated
 
-        @assert: Host is created
-
-        @caseautomation: notautomated
-
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -1218,22 +1215,19 @@ class HostTestCase(APITestCase):
     def test_positive_create_baremetal_with_uefi(self):
         """Create a new Host from provided MAC address
 
-        @id: 9b852c4d-a94f-4ba9-b666-ea4718320a42
+        :id: 9b852c4d-a94f-4ba9-b666-ea4718320a42
 
-        @setup:
+        :setup: Create a PXE-based VM with UEFI boot mode (outside of
+            Satellite).
 
-        1. Create a PXE-based VM with UEFI boot mode (outside of Satellite).
+        :steps: Create a new host using 'BareMetal' option and MAC address of
+            the pre-created VM
 
-        @steps:
+        :assert: Host is created
 
-        1. Create a new host using 'BareMetal' option and MAC address of the
-        pre-created VM
+        :caseautomation: notautomated
 
-        @assert: Host is created
-
-        @caseautomation: notautomated
-
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -1243,27 +1237,28 @@ class HostTestCase(APITestCase):
         """Provision a new Host and verify the tftp and dhcpd file
         structure is correct
 
-        @id: 0c51c8ad-858c-44e1-8b14-8e0c52c29da1
+        :id: 0c51c8ad-858c-44e1-8b14-8e0c52c29da1
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub UEFI
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub UEFI
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            grub/bootia32.efi
-            grub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert:
+            Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                grub/bootia32.efi
+                grub/bootx64.efi
+                grub/01-AA-BB-CC-DD-EE-FF
+                grub/efidefault
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -1273,27 +1268,27 @@ class HostTestCase(APITestCase):
         """Provision a new Host and verify the tftp and dhcpd file structure is
         correct
 
-        @id: ac4d535f-09bb-49db-b38b-90f9bad5fa19
+        :id: ac4d535f-09bb-49db-b38b-90f9bad5fa19
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub UEFI SecureBoot
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub UEFI SecureBoot
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            grub/bootia32.efi
-            grub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                grub/bootia32.efi
+                grub/bootx64.efi
+                grub/01-AA-BB-CC-DD-EE-FF
+                grub/efidefault
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -1303,28 +1298,28 @@ class HostTestCase(APITestCase):
         """Provision a new UEFI Host and verify the tftp and dhcpd file
         structure is correct
 
-        @id: fb951256-e173-4c2a-a812-92db80443cec
+        :id: fb951256-e173-4c2a-a812-92db80443cec
 
-        @steps:
+        :steps:
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub2 UEFI
+            3. Build the host
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub2 UEFI
-        3. Build the host
+        :assert:
+            Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                pxegrub2
+                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+                grub2/grub.cfg
+                grub2/grubx32.efi
+                grub2/grubx64.efi
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            pxegrub2
-            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-            grub2/grub.cfg
-            grub2/grubx32.efi
-            grub2/grubx64.efi
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :caseautomation: notautomated
 
-        @caseautomation: notautomated
-
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -1334,28 +1329,28 @@ class HostTestCase(APITestCase):
         """Provision a new UEFI Host and verify the tftp and dhcpd file
         structure is correct
 
-        @id: c0ea18df-d8c0-403a-b053-f5e500f8e3a3
+        :id: c0ea18df-d8c0-403a-b053-f5e500f8e3a3
 
-        @steps:
+        :steps:
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+               and PXE loader set to Grub2 UEFI SecureBoot
+            3. Build the host
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub2 UEFI SecureBoot
-        3. Build the host
+        :assert:
+            Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure:
+                pxegrub2
+                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+                grub2/grub.cfg
+                grub2/grubx32.efi
+                grub2/grubx64.efi
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            pxegrub2
-            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-            grub2/grub.cfg
-            grub2/grubx32.efi
-            grub2/grubx64.efi
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :caseautomation: notautomated
 
-        @caseautomation: notautomated
-
-        @caselevel: System
+        :caselevel: System
         """
 
     @tier1
@@ -1363,11 +1358,11 @@ class HostTestCase(APITestCase):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
 
-        @id: 8825462e-f1dc-4054-b7fb-69c2b10722a2
+        :id: 8825462e-f1dc-4054-b7fb-69c2b10722a2
 
-        @Assert: Field 'puppet_proxy_name' is returned
+        :Assert: Field 'puppet_proxy_name' is returned
 
-        @BZ: 1371900
+        :BZ: 1371900
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1381,11 +1376,11 @@ class HostTestCase(APITestCase):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response
 
-        @id: 8941395f-8040-4705-a981-5da21c47efd1
+        :id: 8941395f-8040-4705-a981-5da21c47efd1
 
-        @Assert: Field 'puppet_ca_proxy_name' is returned
+        :Assert: Field 'puppet_ca_proxy_name' is returned
 
-        @BZ: 1371900
+        :BZ: 1371900
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1409,9 +1404,9 @@ class HostInterfaceTestCase(APITestCase):
         """Create an interface with different names and minimal input
         parameters
 
-        @id: a45ee576-bec6-47a6-a018-a00e555eb2ad
+        :id: a45ee576-bec6-47a6-a018-a00e555eb2ad
 
-        @Assert: An interface is created with expected name
+        :Assert: An interface is created with expected name
         """
         for name in valid_interfaces_list():
             with self.subTest(name):
@@ -1424,9 +1419,9 @@ class HostInterfaceTestCase(APITestCase):
         """Attempt to create an interface with different invalid entries as
         names (>255 chars, unsupported string types)
 
-        @id: 6fae26d8-8f62-41ba-a1cc-0185137ef70f
+        :id: 6fae26d8-8f62-41ba-a1cc-0185137ef70f
 
-        @Assert: An interface is not created
+        :Assert: An interface is not created
         """
         for name in invalid_interfaces_list():
             with self.subTest(name):
@@ -1438,9 +1433,9 @@ class HostInterfaceTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update interface name with different valid inputs
 
-        @id: c5034b04-097e-47a4-908b-ee78de1699a4
+        :id: c5034b04-097e-47a4-908b-ee78de1699a4
 
-        @Assert: Interface name is successfully updated
+        :Assert: Interface name is successfully updated
         """
         interface = entities.Interface(host=self.host).create()
         for new_name in valid_interfaces_list():
@@ -1454,9 +1449,9 @@ class HostInterfaceTestCase(APITestCase):
         """Attempt to update interface name with different invalid entries
         (>255 chars, unsupported string types)
 
-        @id: 6a1fb718-adfb-47cb-b28c-fb3cd01f99b0
+        :id: 6a1fb718-adfb-47cb-b28c-fb3cd01f99b0
 
-        @Assert: An interface is not updated
+        :Assert: An interface is not updated
         """
         interface = entities.Interface(host=self.host).create()
         for new_name in invalid_interfaces_list():
@@ -1471,9 +1466,9 @@ class HostInterfaceTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete host's interface (not primary)
 
-        @id: 9bf83c3a-a4dc-420e-8d47-8572e5ae1dd6
+        :id: 9bf83c3a-a4dc-420e-8d47-8572e5ae1dd6
 
-        @Assert: An interface is successfully deleted
+        :Assert: An interface is successfully deleted
         """
         host = entities.Host().create()
         interface = entities.Interface(host=host).create()
@@ -1485,9 +1480,9 @@ class HostInterfaceTestCase(APITestCase):
     def test_negative_delete(self):
         """Attempt to delete host's primary interface
 
-        @id: 716a9dfd-0f31-45aa-a6d1-42add032a15c
+        :id: 716a9dfd-0f31-45aa-a6d1-42add032a15c
 
-        @Assert: An interface is not deleted
+        :Assert: An interface is not deleted
         """
         host = entities.Host().create()
         primary_interface = next(
@@ -1510,11 +1505,11 @@ class HostInterfaceTestCase(APITestCase):
         """Delete host's interface (not primary) and make sure the host was not
         accidentally removed altogether with the interface
 
-        @BZ: 1285669
+        :BZ: 1285669
 
-        @id: 3b3e9b3f-cfb2-433f-bd1f-0a8e1d9f0b34
+        :id: 3b3e9b3f-cfb2-433f-bd1f-0a8e1d9f0b34
 
-        @Assert: An interface was successfully deleted, host was not deleted
+        :Assert: An interface was successfully deleted, host was not deleted
         """
         host = entities.Host().create()
         interface = entities.Interface(host=host, primary=False).create()

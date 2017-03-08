@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Partition Table UI
 
-@Requirement: Partitiontable
+:Requirement: Partitiontable
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -45,11 +45,11 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_create_with_one_character_name(self):
         """Create a Partition table with 1 character in name
 
-        @id: 2b8ee84f-34d4-464f-8fcb-4dd9647e43f0
+        :id: 2b8ee84f-34d4-464f-8fcb-4dd9647e43f0
 
-        @Assert: Partition table is created
+        :Assert: Partition table is created
 
-        @BZ: 1229384
+        :BZ: 1229384
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=1):
@@ -67,9 +67,9 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new partition table
 
-        @id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
+        :id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
 
-        @Assert: Partition table is created
+        :Assert: Partition table is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -87,9 +87,9 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_create_with_snippet(self):
         """Create a new partition table with enabled snippet option
 
-        @id: 37bb748a-63d1-4d88-954f-71634168072a
+        :id: 37bb748a-63d1-4d88-954f-71634168072a
 
-        @Assert: Partition table is created
+        :Assert: Partition table is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -107,9 +107,9 @@ class PartitionTableTestCase(UITestCase):
         """Create a new partition table with some text inputted into audit
         comment section
 
-        @id: f17e16ff-b07f-44ec-a824-b9af460c35aa
+        :id: f17e16ff-b07f-44ec-a824-b9af460c35aa
 
-        @Assert: Partition table is created
+        :Assert: Partition table is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -129,12 +129,12 @@ class PartitionTableTestCase(UITestCase):
         """Create new partition table with enabled 'default' option. Check
         that newly created organization has that partition table assigned to it
 
-        @id: 91c64054-cd0c-4d4b-888b-17d42e298527
+        :id: 91c64054-cd0c-4d4b-888b-17d42e298527
 
-        @Assert: New partition table is created and is present in the list of
-        selected partition tables for any new organization
+        :Assert: New partition table is created and is present in the list of
+            selected partition tables for any new organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -161,12 +161,12 @@ class PartitionTableTestCase(UITestCase):
         """Create new partition table with disabled 'default' option. Check
         that newly created organization does not contain that partition table.
 
-        @id: 69e6df0f-af1f-4aa2-8987-3e3b9a16be37
+        :id: 69e6df0f-af1f-4aa2-8987-3e3b9a16be37
 
-        @Assert: New partition table is created and is not present in the list
-        of selected partition tables for any new organization
+        :Assert: New partition table is created and is not present in the list
+            of selected partition tables for any new organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -193,12 +193,12 @@ class PartitionTableTestCase(UITestCase):
         """Create new partition table with enabled 'default' option. Check
         that newly created location has that partition table assigned to it
 
-        @id: 8dfaae7c-2f33-4f0d-93f6-1f78ea4d750d
+        :id: 8dfaae7c-2f33-4f0d-93f6-1f78ea4d750d
 
-        @Assert: New partition table is created and is present in the list of
-        selected partition tables for any new location
+        :Assert: New partition table is created and is present in the list of
+            selected partition tables for any new location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         loc_name = gen_string('alpha')
@@ -225,12 +225,12 @@ class PartitionTableTestCase(UITestCase):
         """Create new partition table with disabled 'default' option. Check
         that newly created location does not contain that partition table.
 
-        @id: 094d4583-763b-48d4-a89a-23b90741fd6f
+        :id: 094d4583-763b-48d4-a89a-23b90741fd6f
 
-        @Assert: New partition table is created and is not present in the list
-        of selected partition tables for any new location
+        :Assert: New partition table is created and is not present in the list
+            of selected partition tables for any new location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -256,9 +256,9 @@ class PartitionTableTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create partition table with invalid names
 
-        @id: 225f1bb9-d5b2-4863-b89b-416f7cf5a7be
+        :id: 225f1bb9-d5b2-4863-b89b-416f7cf5a7be
 
-        @Assert: Partition table is not created
+        :Assert: Partition table is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -279,9 +279,9 @@ class PartitionTableTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create a new partition table with same name
 
-        @id: 3462ff33-1645-41c1-8fbd-513c7e4a18ed
+        :id: 3462ff33-1645-41c1-8fbd-513c7e4a18ed
 
-        @Assert: Partition table is not created
+        :Assert: Partition table is not created
         """
         name = gen_string('utf8')
         os_family = 'Red Hat'
@@ -307,9 +307,9 @@ class PartitionTableTestCase(UITestCase):
     def test_negative_create_with_empty_layout(self):
         """Create a new partition table with empty layout
 
-        @id: 427bce9b-c38e-4d78-943f-3cc7f422ebcd
+        :id: 427bce9b-c38e-4d78-943f-3cc7f422ebcd
 
-        @Assert: Partition table is not created
+        :Assert: Partition table is not created
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -324,9 +324,9 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a partition table
 
-        @id: 405ed98a-4207-4bf8-899e-dcea7791850e
+        :id: 405ed98a-4207-4bf8-899e-dcea7791850e
 
-        @Assert: Partition table is deleted
+        :Assert: Partition table is deleted
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -344,9 +344,9 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_update(self):
         """Update partition table with its name, layout and OS family
 
-        @id: 63203508-7c73-4ce0-853e-64564167bec3
+        :id: 63203508-7c73-4ce0-853e-64564167bec3
 
-        @Assert: Partition table is updated
+        :Assert: Partition table is updated
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -373,9 +373,9 @@ class PartitionTableTestCase(UITestCase):
     def test_negative_update_name(self):
         """Update invalid name in partition table
 
-        @id: 704e8336-e14a-4d1a-b9db-2f81c8af6ecc
+        :id: 704e8336-e14a-4d1a-b9db-2f81c8af6ecc
 
-        @Assert: Partition table is not updated.  Appropriate error shown.
+        :Assert: Partition table is not updated.  Appropriate error shown.
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:

@@ -5,19 +5,19 @@ tested can be found here:
 http://theforeman.org/api/apidoc/v2/organizations.html
 
 
-@Requirement: Organization
+:Requirement: Organization
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
@@ -57,9 +57,9 @@ class OrganizationTestCase(APITestCase):
     def test_positive_create_text_plain(self):
         """Create an organization using a 'text/plain' content-type.
 
-        @id: 6f67a3f0-0c1d-498c-9a35-28207b0faec2
+        :id: 6f67a3f0-0c1d-498c-9a35-28207b0faec2
 
-        @Assert: HTTP 415 is returned.
+        :Assert: HTTP 415 is returned.
         """
         organization = entities.Organization()
         organization.create_missing()
@@ -77,10 +77,10 @@ class OrganizationTestCase(APITestCase):
     def test_positive_create_with_auto_label(self):
         """Create an organization and provide a name.
 
-        @id: c9f69ee5-c6dd-4821-bb05-0d93ffa22460
+        :id: c9f69ee5-c6dd-4821-bb05-0d93ffa22460
 
-        @Assert: The organization has the provided attributes and an
-        auto-generated label.
+        :Assert: The organization has the provided attributes and an
+            auto-generated label.
         """
         org = entities.Organization().create()
         self.assertTrue(hasattr(org, 'label'))
@@ -90,9 +90,9 @@ class OrganizationTestCase(APITestCase):
     def test_positive_create_with_custom_label(self):
         """Create an org and provide a name and identical label.
 
-        @id: f0deab6a-b09b-4110-8575-d4bea945a545
+        :id: f0deab6a-b09b-4110-8575-d4bea945a545
 
-        @Assert: The organization has the provided attributes.
+        :Assert: The organization has the provided attributes.
         """
         # A label has a more restrictive allowable charset than a name, so we
         # use it for populating both name and label.
@@ -107,9 +107,9 @@ class OrganizationTestCase(APITestCase):
     def test_positive_create_with_name_and_label(self):
         """Create an organization and provide a name and label.
 
-        @id: 2bdd9aa8-a36a-4009-ac29-5c3d6416a2b7
+        :id: 2bdd9aa8-a36a-4009-ac29-5c3d6416a2b7
 
-        @Assert: The organization has the provided attributes.
+        :Assert: The organization has the provided attributes.
         """
         org = entities.Organization()
         org.name = name = org.get_fields()['name'].gen_value()
@@ -122,10 +122,10 @@ class OrganizationTestCase(APITestCase):
     def test_positive_create_with_name_and_description(self):
         """Create an organization and provide a name and description.
 
-        @id: afeea84b-61ca-40bf-bb16-476432919115
+        :id: afeea84b-61ca-40bf-bb16-476432919115
 
-        @Assert: The organization has the provided attributes and an
-        auto-generated label.
+        :Assert: The organization has the provided attributes and an
+            auto-generated label.
         """
         for name in valid_org_data_list():
             with self.subTest(name):
@@ -145,9 +145,9 @@ class OrganizationTestCase(APITestCase):
     def test_positive_create_with_name_label_description(self):
         """Create an org and provide a name, label and description.
 
-        @id: f7d92392-751e-45de-91da-5ed2a47afc3f
+        :id: f7d92392-751e-45de-91da-5ed2a47afc3f
 
-        @Assert: The organization has the provided name, label and description.
+        :Assert: The organization has the provided name, label and description.
         """
         org = entities.Organization()
         org.name = name = org.get_fields()['name'].gen_value()
@@ -162,9 +162,9 @@ class OrganizationTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create an org with an incorrect name.
 
-        @id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
+        :id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
 
-        @Assert: The organization cannot be created.
+        :Assert: The organization cannot be created.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -175,9 +175,9 @@ class OrganizationTestCase(APITestCase):
     def test_negative_create_with_same_name(self):
         """Create two organizations with identical names.
 
-        @id: a0f5333c-cc83-403c-9bf7-08fb372909dc
+        :id: a0f5333c-cc83-403c-9bf7-08fb372909dc
 
-        @Assert: The second organization cannot be created.
+        :Assert: The second organization cannot be created.
         """
         name = entities.Organization().create().name
         with self.assertRaises(HTTPError):
@@ -187,9 +187,9 @@ class OrganizationTestCase(APITestCase):
     def test_positive_search(self):
         """Create an organization, then search for it by name.
 
-        @id: f6f1d839-21f2-4676-8683-9f899cbdec4c
+        :id: f6f1d839-21f2-4676-8683-9f899cbdec4c
 
-        @Assert: Searching returns at least one result.
+        :Assert: Searching returns at least one result.
         """
         org = entities.Organization().create()
         orgs = entities.Organization().search(
@@ -213,9 +213,9 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update an organization's name with valid values.
 
-        @id: 68f2ba13-2538-407c-9f33-2447fca28cd5
+        :id: 68f2ba13-2538-407c-9f33-2447fca28cd5
 
-        @Assert: The organization's name is updated.
+        :Assert: The organization's name is updated.
         """
         for name in valid_org_data_list():
             with self.subTest(name):
@@ -227,9 +227,9 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_update_description(self):
         """Update an organization's description with valid values.
 
-        @id: bd223197-1021-467e-8714-c1a767ae89af
+        :id: bd223197-1021-467e-8714-c1a767ae89af
 
-        @Assert: The organization's description is updated.
+        :Assert: The organization's description is updated.
         """
         for desc in valid_org_data_list():
             with self.subTest(desc):
@@ -241,9 +241,9 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_update_name_and_description(self):
         """Update an organization with new name and description.
 
-        @id: 30036e70-b8fc-4c24-9494-b201bbd1c28d
+        :id: 30036e70-b8fc-4c24-9494-b201bbd1c28d
 
-        @Assert: The organization's name and description are updated.
+        :Assert: The organization's name and description are updated.
         """
         name = gen_string('alpha')
         desc = gen_string('alpha')
@@ -257,11 +257,11 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_update_user(self):
         """Update an organization, associate user with it.
 
-        @id: 2c0c0061-5b4e-4007-9f54-b61d6e65ef58
+        :id: 2c0c0061-5b4e-4007-9f54-b61d6e65ef58
 
-        @Assert: User is associated with organization.
+        :Assert: User is associated with organization.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user = entities.User().create()
         self.organization.user = [user]
@@ -273,11 +273,11 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_update_subnet(self):
         """Update an organization, associate subnet with it.
 
-        @id: 3aa0b9cb-37f7-4e7e-a6ec-c1b407225e54
+        :id: 3aa0b9cb-37f7-4e7e-a6ec-c1b407225e54
 
-        @Assert: Subnet is associated with organization.
+        :Assert: Subnet is associated with organization.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         subnet = entities.Subnet().create()
         self.organization.subnet = [subnet]
@@ -290,11 +290,11 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_add_media(self):
         """Update an organization and associate it with a media.
 
-        @id: 83f085d9-94c0-4462-9780-d29ea4cb5aac
+        :id: 83f085d9-94c0-4462-9780-d29ea4cb5aac
 
-        @Assert: An organization is associated with a media.
+        :Assert: An organization is associated with a media.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         media = entities.Media().create()
         self.organization.media = [media]
@@ -306,11 +306,11 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_add_hostgroup(self):
         """Add a hostgroup to an organization
 
-        @id: e8c2ccfd-9ae8-4a39-b459-bc5818f54e63
+        :id: e8c2ccfd-9ae8-4a39-b459-bc5818f54e63
 
-        @Assert: Hostgroup is added to organization
+        :Assert: Hostgroup is added to organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         hostgroup = entities.HostGroup().create()
@@ -324,11 +324,11 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_remove_hostgroup(self):
         """Add a hostgroup to an organization and then remove it
 
-        @id: 7eb1aca7-fd7b-404f-ab18-21be5052a11f
+        :id: 7eb1aca7-fd7b-404f-ab18-21be5052a11f
 
-        @Assert: Hostgroup is added to organization and then removed
+        :Assert: Hostgroup is added to organization and then removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         hostgroup = entities.HostGroup().create()
@@ -344,11 +344,11 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_add_smart_proxy(self):
         """Add a smart proxy to an organization
 
-        @id: e21de720-3fa2-429b-bd8e-b6a48a13146d
+        :id: e21de720-3fa2-429b-bd8e-b6a48a13146d
 
-        @Assert: Smart proxy is successfully added to organization
+        :Assert: Smart proxy is successfully added to organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Every Satellite has a built-in smart proxy, so let's find it
         smart_proxy = entities.SmartProxy().search(query={
@@ -376,11 +376,11 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_positive_remove_smart_proxy(self):
         """Remove a smart proxy from an organization
 
-        @id: 8045910e-d85c-47ee-9aed-ac0a6bbb646b
+        :id: 8045910e-d85c-47ee-9aed-ac0a6bbb646b
 
-        @Assert: Smart proxy is removed from organization
+        :Assert: Smart proxy is removed from organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # By default, newly created organization uses built-in smart proxy,
         # so we can remove it instead of adding and removing some another one
@@ -395,9 +395,9 @@ class OrganizationUpdateTestCase(APITestCase):
     def test_negative_update(self):
         """Update an organization's attributes with invalid values.
 
-        @id: b7152d0b-5ab0-4d68-bfdf-f3eabcb5fbc6
+        :id: b7152d0b-5ab0-4d68-bfdf-f3eabcb5fbc6
 
-        @Assert: The organization's attributes are not updated.
+        :Assert: The organization's attributes are not updated.
         """
         dataset = (
             {'name': gen_string(str_type='utf8', length=256)},
@@ -419,23 +419,23 @@ class OrganizationUpdateTestCase(APITestCase):
         using different transactions and different users to see that they
         actually added, but not overwrite each other
 
-        @id: 5f4fd2b7-d998-4980-b5e7-9822bd54156b
+        :id: 5f4fd2b7-d998-4980-b5e7-9822bd54156b
 
-        @Steps:
+        :Steps:
 
-        1. Use the admin user to create an organization and two compute
-           resources. Make one compute resource point at / belong to the
-           organization.
-        2. Create a user and give them the ability to update compute resources
-           and organizations. Have this user make the second compute resource
-           point at / belong to the organization.
-        3. Use the admin user to read information about the organization.
-           Verify that both compute resources are pointing at / belong to the
-           organization.
+            1. Use the admin user to create an organization and two compute
+               resources. Make one compute resource point at / belong to the
+               organization.
+            2. Create a user and give them the ability to update compute
+               resources and organizations. Have this user make the second
+               compute resource point at / belong to the organization.
+            3. Use the admin user to read information about the organization.
+               Verify that both compute resources are pointing at / belong to
+               the organization.
 
-        @Assert: Organization contains both compute resources
+        :Assert: Organization contains both compute resources
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # setUpClass() creates an organization w/admin user. Here, we use admin
         # to make two compute resources and make first belong to organization.

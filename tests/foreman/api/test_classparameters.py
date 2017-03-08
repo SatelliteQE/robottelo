@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Smart/Puppet Class Parameter
 
-@Requirement: Classparameters
+:Requirement: Classparameters
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import json
 from random import choice
@@ -164,11 +164,11 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_host_id(self):
         """List all the parameters included in specific Host by its id.
 
-        @id: a9e551f9-261b-40e6-b7f6-35621fc46285
+        :id: a9e551f9-261b-40e6-b7f6-35621fc46285
 
-        @assert: Parameters listed for specific Host.
+        :assert: Parameters listed for specific Host.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -190,11 +190,11 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_hostgroup_id(self):
         """List all the parameters included in specific HostGroup by id.
 
-        @id: 88ceea89-b8b5-4ca2-9d59-3b2614c7f9a7
+        :id: 88ceea89-b8b5-4ca2-9d59-3b2614c7f9a7
 
-        @assert: Parameters listed for specific HostGroup.
+        :assert: Parameters listed for specific HostGroup.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -212,9 +212,9 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_puppetclass_id(self):
         """List all the parameters for specific puppet class by id.
 
-        @id: c0378f1e-c215-4f85-892c-d21a8b5a7060
+        :id: c0378f1e-c215-4f85-892c-d21a8b5a7060
 
-        @assert: Parameters listed for specific Puppet class.
+        :assert: Parameters listed for specific Puppet class.
         """
         result = self.puppet_class.list_scparams()['results']
         self.assertGreater(len(result), 0)
@@ -227,9 +227,9 @@ class SmartClassParametersTestCase(APITestCase):
         """Import same puppet class twice (e.g. into different Content Views)
         but list class parameters only for specific puppet class.
 
-        @id: c20a56fd-a328-44ce-81ce-52e315c95a81
+        :id: c20a56fd-a328-44ce-81ce-52e315c95a81
 
-        @assert: Parameters listed for specific Puppet class.
+        :assert: Parameters listed for specific Puppet class.
 
         BZ: 1385351
         """
@@ -253,11 +253,11 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_environment_id(self):
         """List all the parameters for specific environment by id.
 
-        @id: d4a06038-7405-4d75-b8ac-c43f48a3bc59
+        :id: d4a06038-7405-4d75-b8ac-c43f48a3bc59
 
-        @assert: Parameters listed for specific environment.
+        :assert: Parameters listed for specific environment.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -273,14 +273,14 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_override(self):
         """Override the Default Parameter value.
 
-        @id: eaa11546-79df-452e-9552-5b2507a27b48
+        :id: eaa11546-79df-452e-9552-5b2507a27b48
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set the new valid Default Value.
+            1. Set override to True.
+            2. Set the new valid Default Value.
 
-        @assert: Parameter Value overridden with new value.
+        :assert: Parameter Value overridden with new value.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -296,14 +296,14 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_override(self):
         """Override the Default Parameter value - override Unchecked.
 
-        @id: f4d56d31-ac48-495f-9e56-545f274a060f
+        :id: f4d56d31-ac48-495f-9e56-545f274a060f
 
-        @steps:
+        :steps:
 
-        1. Set override to False.
-        2. Set the new valid Default Value.
+            1. Set override to False.
+            2. Set the new valid Default Value.
 
-        @assert: Parameter value not allowed/disabled to override.
+        :assert: Parameter value not allowed/disabled to override.
         """
         sc_param = self.sc_params_list.pop()
         self.assertEqual(sc_param.read().override, False)
@@ -320,14 +320,14 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_puppet_default(self):
         """On Override, Set Puppet Default Value.
 
-        @id: 7261b409-b482-41ba-934d-4b724e8113ac
+        :id: 7261b409-b482-41ba-934d-4b724e8113ac
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set 'Use Puppet Default' to True.
+            1. Set override to True.
+            2. Set 'Use Puppet Default' to True.
 
-        @assert: Puppet Default Value applied on parameter.
+        :assert: Puppet Default Value applied on parameter.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -342,15 +342,15 @@ class SmartClassParametersTestCase(APITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @id: 1140c3bf-ab3b-4da6-99fb-9c508cefbbd1
+        :id: 1140c3bf-ab3b-4da6-99fb-9c508cefbbd1
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Update the Key Type to any of available.
-        3. Set a 'valid' default Value.
+            1. Set override to True.
+            2. Update the Key Type to any of available.
+            3. Set a 'valid' default Value.
 
-        @assert: Parameter Updated with a new type successfully.
+        :assert: Parameter Updated with a new type successfully.
         """
         sc_param = self.sc_params_list.pop()
         for data in valid_sc_parameters_data():
@@ -387,18 +387,18 @@ class SmartClassParametersTestCase(APITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @id: 7f0ab885-5520-4431-a916-f739c0498a5b
+        :id: 7f0ab885-5520-4431-a916-f739c0498a5b
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Update the Key Type.
-        3. Attempt to set an 'Invalid' default Value.
+            1. Set override to True.
+            2. Update the Key Type.
+            3. Attempt to set an 'Invalid' default Value.
 
-        @assert:
+        :assert:
 
-        1. Parameter not updated with string type for invalid value.
-        2. Error raised for invalid default value.
+            1. Parameter not updated with string type for invalid value.
+            2. Error raised for invalid default value.
         """
         sc_param = self.sc_params_list.pop()
         for test_data in invalid_sc_parameters_data():
@@ -422,15 +422,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_puppet_default_value(self):
         """Validation doesn't work on puppet default value.
 
-        @id: 7d934091-e642-45df-b296-397865c0fe8e
+        :id: 7d934091-e642-45df-b296-397865c0fe8e
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set puppet default value to 'Use Puppet Default'.
-        3. Set Validator Type and Rule to validate this value.
+            1. Set override to True.
+            2. Set puppet default value to 'Use Puppet Default'.
+            3. Set Validator Type and Rule to validate this value.
 
-        @assert: Validation shouldn't work with puppet default value.
+        :assert: Validation shouldn't work with puppet default value.
         """
 
     @run_only_on('sat')
@@ -438,15 +438,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_default_value_required_check(self):
         """No error raised for non-empty default Value - Required check.
 
-        @id: 92977eb0-92c2-4734-84d9-6fda8ff9d2d8
+        :id: 92977eb0-92c2-4734-84d9-6fda8ff9d2d8
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default value, Not empty.
-        3. Set 'required' to true.
+            1. Set override to True.
+            2. Set some default value, Not empty.
+            3. Set 'required' to true.
 
-        @assert: No error raised for non-empty default value
+        :assert: No error raised for non-empty default value
         """
         sc_param = self.sc_params_list.pop()
         sc_param.parameter_type = 'boolean'
@@ -465,16 +465,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_required_check(self):
         """Error is raised for blank matcher Value - Required check.
 
-        @id: 49de2c9b-40f1-4837-8ebb-dfa40d8fcb89
+        :id: 49de2c9b-40f1-4837-8ebb-dfa40d8fcb89
 
-        @steps:
+        :steps:
+            1. Set override to True.
+            2. Create a matcher for Parameter for some attribute.
+            3. Set no value for matcher. Keep blank.
+            4. Set 'required' to true.
 
-        1. Set override to True.
-        2. Create a matcher for Parameter for some attribute.
-        3. Set no value for matcher. Keep blank.
-        4. Set 'required' to true.
-
-        @assert: Error raised for blank matcher value.
+        :assert: Error raised for blank matcher value.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -496,16 +495,16 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_required_check(self):
         """Error is not raised for matcher Value - Required checkbox.
 
-        @id: bf620cef-c7ab-4a32-9050-bd06040dc8d1
+        :id: bf620cef-c7ab-4a32-9050-bd06040dc8d1
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Create a matcher for Parameter for some attribute.
-        3. Set some Value for matcher.
-        4. Set 'required' to true.
+            1. Set override to True.
+            2. Create a matcher for Parameter for some attribute.
+            3. Set some Value for matcher.
+            4. Set 'required' to true.
 
-        @assert: Error not raised for matcher value.
+        :assert: Error not raised for matcher value.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -526,15 +525,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_default_value_with_regex(self):
         """Error is raised for default value not matching with regex.
 
-        @id: 99628b78-3037-4c20-95f0-7ce5455093ac
+        :id: 99628b78-3037-4c20-95f0-7ce5455093ac
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set default value that doesn't matches the regex of step 3.
-        3. Validate this value with regex validator type and rule.
+            1. Set override to True.
+            2. Set default value that doesn't matches the regex of step 3.
+            3. Validate this value with regex validator type and rule.
 
-        @assert: Error raised for default value not matching with regex.
+        :assert: Error raised for default value not matching with regex.
         """
         value = gen_string('alpha')
         sc_param = self.sc_params_list.pop()
@@ -558,15 +557,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_default_value_with_regex(self):
         """Error is not raised for default value matching with regex.
 
-        @id: d5df7804-9633-4ef8-a065-10807351d230
+        :id: d5df7804-9633-4ef8-a065-10807351d230
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set default value that matches the regex of step 3.
-        3. Validate this value with regex validator type and rule.
+            1. Set override to True.
+            2. Set default value that matches the regex of step 3.
+            3. Validate this value with regex validator type and rule.
 
-        @assert: Error not raised for default value matching with regex.
+        :assert: Error not raised for default value matching with regex.
         """
         value = gen_string('numeric')
         sc_param = self.sc_params_list.pop()
@@ -587,16 +586,16 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_with_regex(self):
         """Error is raised for matcher value not matching with regex.
 
-        @id: 08820c89-2b93-40f1-be17-0bd38c519e90
+        :id: 08820c89-2b93-40f1-be17-0bd38c519e90
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Create a matcher with value that doesn't match
-           the regex of step 3.
-        3. Validate this value with regex validator type and rule.
+            1. Set override to True.
+            2. Create a matcher with value that doesn't match the regex of step
+               3.
+            3. Validate this value with regex validator type and rule.
 
-        @assert: Error raised for matcher value not matching with regex.
+        :assert: Error raised for matcher value not matching with regex.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('numeric')
@@ -627,15 +626,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_with_regex(self):
         """Error is not raised for matcher value matching with regex.
 
-        @id: 74164406-885b-4f5b-8ea0-06738314310f
+        :id: 74164406-885b-4f5b-8ea0-06738314310f
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Create a matcher with value that matches the regex of step 3.
-        3. Validate this value with regex validator type and rule.
+            1. Set override to True.
+            2. Create a matcher with value that matches the regex of step 3.
+            3. Validate this value with regex validator type and rule.
 
-        @assert: Error not raised for matcher value matching with regex.
+        :assert: Error not raised for matcher value matching with regex.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('numeric')
@@ -658,15 +657,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_default_value_with_list(self):
         """Error is raised for default value not in list.
 
-        @id: 75b1dc0b-2287-4b99-b8dc-e50b83355819
+        :id: 75b1dc0b-2287-4b99-b8dc-e50b83355819
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set default value that doesn't matches the list of step 3.
-        3. Validate this value with list validator type and rule.
+            1. Set override to True.
+            2. Set default value that doesn't matches the list of step 3.
+            3. Validate this value with list validator type and rule.
 
-        @assert: Error is raised for default value that is not in list.
+        :assert: Error is raised for default value that is not in list.
         """
         value = gen_string('alphanumeric')
         sc_param = self.sc_params_list.pop()
@@ -692,15 +691,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_default_value_with_list(self):
         """Error is not raised for default value in list.
 
-        @id: d5d5f084-fa62-4ec3-90ea-9fcabd7bda4f
+        :id: d5d5f084-fa62-4ec3-90ea-9fcabd7bda4f
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set default value that matches the list of step 3.
-        3. Validate this value with list validator type and rule.
+            1. Set override to True.
+            2. Set default value that matches the list of step 3.
+            3. Validate this value with list validator type and rule.
 
-        @assert: Error not raised for default value in list.
+        :assert: Error not raised for default value in list.
         """
         # Generate list of values
         values_list = [
@@ -733,16 +732,16 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_with_list(self):
         """Error is raised for matcher value not in list.
 
-        @id: a5e89e86-253f-4254-9ebb-eefb3dc2c2ab
+        :id: a5e89e86-253f-4254-9ebb-eefb3dc2c2ab
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Create a matcher with value that doesn't match
-           the list of step 3.
-        3. Validate this value with list validator type and rule.
+            1. Set override to True.
+            2. Create a matcher with value that doesn't match the list of step
+               3.
+            3. Validate this value with list validator type and rule.
 
-        @assert: Error raised for matcher value not in list.
+        :assert: Error raised for matcher value not in list.
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -772,15 +771,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_with_list(self):
         """Error is not raised for matcher value in list.
 
-        @id: 05c1a0bb-ba27-4842-bb6a-8420114cffe7
+        :id: 05c1a0bb-ba27-4842-bb6a-8420114cffe7
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Create a matcher with value that matches the list of step 3.
-        3. Validate this value with list validator type and rule.
+            1. Set override to True.
+            2. Create a matcher with value that matches the list of step 3.
+            3. Validate this value with list validator type and rule.
 
-        @assert: Error not raised for matcher value in list.
+        :assert: Error not raised for matcher value in list.
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -802,15 +801,16 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_with_default_type(self):
         """Error is raised for matcher value not of default type.
 
-        @id: 21668ef4-1a7a-41cb-98e3-dc4c664db351
+        :id: 21668ef4-1a7a-41cb-98e3-dc4c664db351
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Update parameter default type with valid value.
-        3. Create a matcher with value that doesn't matches the default type.
+            1. Set override to True.
+            2. Update parameter default type with valid value.
+            3. Create a matcher with value that doesn't matches the default
+               type.
 
-        @assert: Error raised for matcher value not of default type.
+        :assert: Error raised for matcher value not of default type.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -833,15 +833,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
 
-        @id: 77b6e90d-e38a-4973-98e3-c698eae5c534
+        :id: 77b6e90d-e38a-4973-98e3-c698eae5c534
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Update parameter default type with valid value.
-        3. Create a matcher with value that matches the default type.
+            1. Set override to True.
+            2. Update parameter default type with valid value.
+            3. Create a matcher with value that matches the default type.
 
-        @assert: Error not raised for matcher value of default type.
+        :assert: Error not raised for matcher value of default type.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -863,15 +863,16 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value is raised both at a time.
 
-        @id: e46a12cb-b3ea-42eb-b1bb-b750655b6a4a
+        :id: e46a12cb-b3ea-42eb-b1bb-b750655b6a4a
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Update parameter default type with Invalid value.
-        3. Create a matcher with value that doesn't matches the default type.
+            1. Set override to True.
+            2. Update parameter default type with Invalid value.
+            3. Create a matcher with value that doesn't matches the default
+               type.
 
-        @assert: Error raised for invalid default and matcher value both.
+        :assert: Error raised for invalid default and matcher value both.
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -894,14 +895,14 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
 
-        @id: bef0e457-16be-4ca6-bc56-fa32dff55a01
+        :id: bef0e457-16be-4ca6-bc56-fa32dff55a01
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Create a matcher with non existing attribute in org.
+            1. Set override to True.
+            2. Create a matcher with non existing attribute in org.
 
-        @assert: Error raised for non existing attribute.
+        :assert: Error raised for non existing attribute.
         """
         sc_param = self.sc_params_list.pop()
         with self.assertRaises(HTTPError) as context:
@@ -921,15 +922,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher(self):
         """Create matcher for attribute in parameter.
 
-        @id: 19d319e6-9b12-485e-a680-c84d18742c40
+        :id: 19d319e6-9b12-485e-a680-c84d18742c40
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Create a matcher with all valid values.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Create a matcher with all valid values.
 
-        @assert: The matcher has been created successfully.
+        :assert: The matcher has been created successfully.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -949,16 +950,16 @@ class SmartClassParametersTestCase(APITestCase):
         """Create matcher for attribute in parameter where
         value is puppet default value.
 
-        @id: 2b205e9c-e50c-48cd-8ebb-3b6bea09be77
+        :id: 2b205e9c-e50c-48cd-8ebb-3b6bea09be77
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Create matcher with valid attribute type, name and
-           puppet default value.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Create matcher with valid attribute type, name and puppet
+               default value.
 
-        @assert: The matcher has been created successfully.
+        :assert: The matcher has been created successfully.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -983,22 +984,22 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
-        @id: f951bdaa-eb3e-40a7-9314-8b67514dabe8
+        :id: f951bdaa-eb3e-40a7-9314-8b67514dabe8
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Set fqdn as top priority attribute.
-        4. Create first matcher for fqdn with valid details.
-        5. Create second matcher for some attribute with valid details.
-           Note - The fqdn/host should have this attribute.
-        6. Update the parameter with above steps.
-        7. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Set fqdn as top priority attribute.
+            4. Create first matcher for fqdn with valid details.
+            5. Create second matcher for some attribute with valid details.
+               Note - The fqdn/host should have this attribute.
+            6. Update the parameter with above steps.
+            7. Go to YAML output of associated host.
 
-        @assert: The YAML output has the value only for fqdn matcher.
+        :assert: The YAML output has the value only for fqdn matcher.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1007,25 +1008,26 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate priority.
 
-        @id: 99c66726-83eb-40cb-949f-8d70e74beb09
+        :id: 99c66726-83eb-40cb-949f-8d70e74beb09
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Set some attribute(other than fqdn) as top priority attribute.
-           Note - The fqdn/host should have this attribute.
-        4. Create first matcher for fqdn with valid details.
-        5. Create second matcher for attribute of step 3 with valid details.
-        6. Update the parameter with above steps.
-        7. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Set some attribute(other than fqdn) as top priority attribute.
+               Note - The fqdn/host should have this attribute.
+            4. Create first matcher for fqdn with valid details.
+            5. Create second matcher for attribute of step 3 with valid
+               details.
+            6. Update the parameter with above steps.
+            7. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the value only for step 5 matcher.
-        2. The YAML output doesn't have value for fqdn/host matcher.
+            1. The YAML output has the value only for step 5 matcher.
+            2. The YAML output doesn't have value for fqdn/host matcher.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1034,29 +1036,29 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
-        @id: ebbb3aa4-2a86-4f1a-b633-eb7bd91c9d3c
+        :id: ebbb3aa4-2a86-4f1a-b633-eb7bd91c9d3c
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Create first matcher for attribute fqdn with valid details.
-        4. Create second matcher for other attribute with valid details.
-           Note - The fqdn/host should have this attribute.
-        5. Create more matchers for some more attributes if any.
-           Note - The fqdn/host should have this attributes.
-        6. Set 'merge overrides' to True.
-        7. Update the parameter with above steps.
-        8. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Create first matcher for attribute fqdn with valid details.
+            4. Create second matcher for other attribute with valid details.
+               Note - The fqdn/host should have this attribute.
+            5. Create more matchers for some more attributes if any.
+               Note - The fqdn/host should have this attributes.
+            6. Set 'merge overrides' to True.
+            7. Update the parameter with above steps.
+            8. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all the associated
-           matchers.
-        2. The YAML output doesn't have the default value of parameter.
-        3. Duplicate values in YAML output if any are displayed.
+            1. The YAML output has the values merged from all the associated
+               matchers.
+            2. The YAML output doesn't have the default value of parameter.
+            3. Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1065,30 +1067,30 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_merge_override(self):
         """Attempt to merge the values from non associated matchers.
 
-        @id: 2a37310d-1dc3-489d-8674-08d3b244c61e
+        :id: 2a37310d-1dc3-489d-8674-08d3b244c61e
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Create first matcher for attribute fqdn with valid details.
-        4. Create second matcher for other attribute with valid details.
-           Note - The fqdn/host should not have this attribute.
-        5. Create more matchers for some more attributes if any.
-           Note - The fqdn/host should not have this attributes.
-        6. Set 'merge overrides' to True.
-        7. Update the parameter with above steps.
-        8. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Create first matcher for attribute fqdn with valid details.
+            4. Create second matcher for other attribute with valid details.
+               Note - The fqdn/host should not have this attribute.
+            5. Create more matchers for some more attributes if any.
+               Note - The fqdn/host should not have this attributes.
+            6. Set 'merge overrides' to True.
+            7. Update the parameter with above steps.
+            8. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values only for fqdn.
-        2. The YAML output doesn't have the values for attribute
-           which are not associated to host.
-        3. The YAML output doesn't have the default value of parameter.
-        4. Duplicate values in YAML output if any are displayed.
+            1. The YAML output has the values only for fqdn.
+            2. The YAML output doesn't have the values for attribute
+               which are not associated to host.
+            3. The YAML output doesn't have the default value of parameter.
+            4. Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1097,31 +1099,32 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_override_puppet_value(self):
         """Merge the values of all the associated matchers + puppet default value.
 
-        @id: 0d829b65-a7cf-49d7-a907-6ab170a2004d
+        :id: 0d829b65-a7cf-49d7-a907-6ab170a2004d
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Create first matcher for attribute fqdn with valid details.
-        4. Create second matcher for other attribute with value
-           as puppet default.
-           Note - The fqdn/host should have this attribute.
-        5. Create more matchers for some more attributes with value
-           as puppet default.
-           Note - The fqdn/host should have this attributes.
-        6. Set 'merge overrides' to True.
-        7. Set 'merge default' to True.
-        8. Update the parameter with above steps.
-        9. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Create first matcher for attribute fqdn with valid details.
+            4. Create second matcher for other attribute with value as puppet
+               default.
+               Note - The fqdn/host should have this attribute.
+            5. Create more matchers for some more attributes with value as
+               puppet default.
+               Note - The fqdn/host should have this attributes.
+            6. Set 'merge overrides' to True.
+            7. Set 'merge default' to True.
+            8. Update the parameter with above steps.
+            9. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the value only for fqdn.
-        2. The YAML output doesn't have the puppet default values of matchers.
-        3. Duplicate values in YAML output if any are displayed.
+            1. The YAML output has the value only for fqdn.
+            2. The YAML output doesn't have the puppet default values of
+               matchers.
+            3. Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1130,30 +1133,30 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
-        @id: b338f637-449c-44a3-89e2-51e7278a6957
+        :id: b338f637-449c-44a3-89e2-51e7278a6957
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value.
-        3. Create first matcher for attribute fqdn with valid details.
-        4. Create second matcher for other attribute with valid details.
-           Note - The fqdn/host should have this attribute.
-        5. Create more matchers for some more attributes if any.
-           Note - The fqdn/host should have this attributes.
-        6. Set 'merge overrides' to True.
-        7. Set 'merge default' to True.
-        8. Update the parameter with above steps.
-        9. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value.
+            3. Create first matcher for attribute fqdn with valid details.
+            4. Create second matcher for other attribute with valid details.
+               Note - The fqdn/host should have this attribute.
+            5. Create more matchers for some more attributes if any.
+               Note - The fqdn/host should have this attributes.
+            6. Set 'merge overrides' to True.
+            7. Set 'merge default' to True.
+            8. Update the parameter with above steps.
+            9. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all
-           the associated matchers.
-        2. The YAML output has the default value of parameter.
-        3. Duplicate values in YAML output if any are displayed.
+            1. The YAML output has the values merged from all the associated
+               matchers.
+            2. The YAML output has the default value of parameter.
+            3. Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1162,30 +1165,31 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_merge_default(self):
         """Empty default value is not shown in merged values.
 
-        @id: 757b3e32-8789-4124-9ed8-e0d7e7735b0e
+        :id: 757b3e32-8789-4124-9ed8-e0d7e7735b0e
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set empty default Value.
-        3. Create first matcher for attribute fqdn with valid details.
-        4. Create second matcher for other attribute with valid details.
-           Note - The fqdn/host should have this attribute.
-        5. Create more matchers for some more attributes if any.
-           Note - The fqdn/host should have this attributes.
-        6. Set 'merge overrides' to True.
-        7. Set 'merge default' to True.
-        8. Update the parameter with above steps.
-        9. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set empty default Value.
+            3. Create first matcher for attribute fqdn with valid details.
+            4. Create second matcher for other attribute with valid details.
+               Note - The fqdn/host should have this attribute.
+            5. Create more matchers for some more attributes if any.
+               Note - The fqdn/host should have this attributes.
+            6. Set 'merge overrides' to True.
+            7. Set 'merge default' to True.
+            8. Update the parameter with above steps.
+            9. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all
-           the associated matchers.
-        2. The YAML output doesn't have the empty default value of parameter.
-        3. Duplicate values in YAML output if any are displayed.
+            1. The YAML output has the values merged from all the associated
+               matchers.
+            2. The YAML output doesn't have the empty default value of
+               parameter.
+            3. Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1194,30 +1198,30 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_puppet_default(self):
         """Merge the values of all the associated matchers + puppet default value.
 
-        @id: de18fbfd-1a71-4651-b3f8-fab6b22ccbc0
+        :id: de18fbfd-1a71-4651-b3f8-fab6b22ccbc0
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set default Value as puppet default value.
-        3. Create first matcher for attribute fqdn with valid details.
-        4. Create second matcher for other attribute with valid details.
-           Note - The fqdn/host should have this attribute.
-        5. Create more matchers for some more attributes if any.
-           Note - The fqdn/host should have this attributes.
-        6. Set 'merge overrides' to True.
-        7. Set 'merge default' to True.
-        8. Update the parameter with above steps.
-        9. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set default Value as puppet default value.
+            3. Create first matcher for attribute fqdn with valid details.
+            4. Create second matcher for other attribute with valid details.
+               Note - The fqdn/host should have this attribute.
+            5. Create more matchers for some more attributes if any.
+               Note - The fqdn/host should have this attributes.
+            6. Set 'merge overrides' to True.
+            7. Set 'merge default' to True.
+            8. Update the parameter with above steps.
+            9. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all
-           the associated matchers.
-        2. The YAML output doesn't have the puppet default value.
-        3. Duplicate values in YAML output if any are displayed.
+            1. The YAML output has the values merged from all the associated
+               matchers.
+            2. The YAML output doesn't have the puppet default value.
+            3. Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1226,30 +1230,30 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
-        @id: 4c150b7d-3a1f-47c3-a2bd-be91435c4dfb
+        :id: 4c150b7d-3a1f-47c3-a2bd-be91435c4dfb
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value of array type.
-        3. Create first matcher for attribute fqdn with some value.
-        4. Create second matcher for other attribute with
-           same value as fqdn matcher.
-           Note - The fqdn/host should have this attribute.
-        5. Set 'merge overrides' to True.
-        6. Set 'merge default' to True.
-        7. Set 'avoid duplicate' to True.
-        8. Update the parameter with above steps.
-        9. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value of array type.
+            3. Create first matcher for attribute fqdn with some value.
+            4. Create second matcher for other attribute with same value as
+               fqdn matcher.
+               Note - The fqdn/host should have this attribute.
+            5. Set 'merge overrides' to True.
+            6. Set 'merge default' to True.
+            7. Set 'avoid duplicate' to True.
+            8. Update the parameter with above steps.
+            9. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all
-           the associated matchers.
-        2. The YAML output has the default value of parameter.
-        3. Duplicate values in YAML output are removed / not displayed.
+            1. The YAML output has the values merged from all the associated
+               matchers.
+            2. The YAML output has the default value of parameter.
+            3. Duplicate values in YAML output are removed / not displayed.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1258,29 +1262,29 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_avoid_duplicate(self):
         """Duplicates are not removed as they were not really present.
 
-        @id: 71cc1f74-5acb-4516-8d30-213b5657dfd4
+        :id: 71cc1f74-5acb-4516-8d30-213b5657dfd4
 
-        @steps:
+        :steps:
 
-        1. Set override to True.
-        2. Set some default Value of array type.
-        3. Create first matcher for attribute fqdn with some value.
-        4. Create second matcher for other attribute with other value
-           than fqdn matcher and default value.
-           Note - The fqdn/host should have this attribute.
-        5. Set 'merge overrides' to True.
-        6. Set 'merge default' to True.
-        7. Set 'merge avoid duplicates' to True.
-        8. Update the parameter with above steps.
-        9. Go to YAML output of associated host.
+            1. Set override to True.
+            2. Set some default Value of array type.
+            3. Create first matcher for attribute fqdn with some value.
+            4. Create second matcher for other attribute with other value than
+               fqdn matcher and default value.
+               Note - The fqdn/host should have this attribute.
+            5. Set 'merge overrides' to True.
+            6. Set 'merge default' to True.
+            7. Set 'merge avoid duplicates' to True.
+            8. Update the parameter with above steps.
+            9. Go to YAML output of associated host.
 
-        @assert:
+        :assert:
 
-        1. The YAML output has the values merged from all matchers.
-        2. The YAML output has the default value of parameter.
-        3. No value removed as duplicate value.
+            1. The YAML output has the values merged from all matchers.
+            2. The YAML output has the default value of parameter.
+            3. No value removed as duplicate value.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1288,14 +1292,12 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_enable_merge_overrides_default_checkboxes(self):
         """Enable Merge Overrides, Merge Default checkbox for supported types.
 
-        @id: ae1c8e2d-c15d-4325-9aa6-cc6b091fb95a
+        :id: ae1c8e2d-c15d-4325-9aa6-cc6b091fb95a
 
-        @steps:
+        :steps: Set parameter type to array/hash.
 
-        1. Set parameter type to array/hash.
-
-        @assert: The Merge Overrides, Merge Default checks are enabled to
-        check.
+        :assert: The Merge Overrides, Merge Default checks are enabled to
+            check.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1320,14 +1322,12 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
 
-        @id: d7b1c336-bd9f-40a3-a573-939f2a021cdc
+        :id: d7b1c336-bd9f-40a3-a573-939f2a021cdc
 
-        @steps:
+        :steps: Set parameter type other than array/hash.
 
-        1. Set parameter type other than array/hash.
-
-        @assert: The Merge Overrides, Merge Default checks are not enabled to
-        check.
+        :assert: The Merge Overrides, Merge Default checks are not enabled to
+            check.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1368,14 +1368,14 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_enable_avoid_duplicates_checkbox(self):
         """Enable Avoid duplicates checkbox for supported type- array.
 
-        @id: 80bf52df-e678-4384-a4d5-7a88928620ce
+        :id: 80bf52df-e678-4384-a4d5-7a88928620ce
 
-        @steps:
+        :steps:
 
-        1. Set parameter type to array.
-        2. Set 'merge overrides' to True.
+            1. Set parameter type to array.
+            2. Set 'merge overrides' to True.
 
-        @assert: The Avoid Duplicates is enabled to set to True.
+        :assert: The Avoid Duplicates is enabled to set to True.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1398,18 +1398,16 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_enable_avoid_duplicates_checkbox(self):
         """Disable Avoid duplicates checkbox for non supported types.
 
-        @id: 11d75f6d-7105-4ee8-b147-b8329cae4156
+        :id: 11d75f6d-7105-4ee8-b147-b8329cae4156
 
-        @steps:
+        :steps: Set parameter type other than array.
 
-        1. Set parameter type other than array.
+        :assert:
 
-        @assert:
-
-        1. The Merge Overrides checkbox is only enabled to check
-           for type hash other than array.
-        2. The Avoid duplicates checkbox not enabled to check
-           for any type than array.
+            1. The Merge Overrides checkbox is only enabled to check for type
+               hash other than array.
+            2. The Avoid duplicates checkbox not enabled to check for any type
+               than array.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1435,14 +1433,14 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_remove_matcher(self):
         """Removal of matcher from parameter.
 
-        @id: 9018d624-07f2-4fb2-b421-8888c7d324a7
+        :id: 9018d624-07f2-4fb2-b421-8888c7d324a7
 
-        @steps:
+        :steps:
 
-        1. Override the parameter and create a matcher for some attribute.
-        2. Remove the matcher created in step 1.
+            1. Override the parameter and create a matcher for some attribute.
+            2. Remove the matcher created in step 1.
 
-        @assert: The matcher removed from parameter.
+        :assert: The matcher removed from parameter.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -1461,20 +1459,20 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
 
-        @id: 3ffbf403-dac9-4172-a586-82267765abd8
+        :id: 3ffbf403-dac9-4172-a586-82267765abd8
 
-        @steps:
+        :steps:
 
-        1. Set the parameter to True and create a matcher
-           for some attribute.
-        2. Delete the attribute.
-        3. Recreate the attribute with same name as earlier.
+            1. Set the parameter to True and create a matcher for some
+               attribute.
+            2. Delete the attribute.
+            3. Recreate the attribute with same name as earlier.
 
-        @assert:
+        :assert:
 
-        1. The matcher for deleted attribute removed from parameter.
-        2. On recreating attribute, the matcher should not
-           reappear in parameter.
+            1. The matcher for deleted attribute removed from parameter.
+            2. On recreating attribute, the matcher should not reappear in
+               parameter.
         """
         sc_param = self.sc_params_list.pop()
         hostgroup_name = gen_string('alpha')
@@ -1509,15 +1507,15 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_hide_parameter_default_value(self):
         """Hide the default value of parameter.
 
-        @id: 0cb8ab59-7910-4573-9dea-2e489d1578d4
+        :id: 0cb8ab59-7910-4573-9dea-2e489d1578d4
 
-        @steps:
+        :steps:
 
-        1. Set the override flag to True.
-        2. Set some valid default value.
-        3. Set 'Hidden Value' to true.
+            1. Set the override flag to True.
+            2. Set some valid default value.
+            3. Set 'Hidden Value' to true.
 
-        @assert: The 'hidden value' set to True for that parameter.
+        :assert: The 'hidden value' set to True for that parameter.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1533,16 +1531,16 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_unhide_parameter_default_value(self):
         """Unhide the default value of parameter.
 
-        @id: 73151830-e902-4b9e-888e-149570869530
+        :id: 73151830-e902-4b9e-888e-149570869530
 
-        @steps:
+        :steps:
 
-        1. Set the override flag to True.
-        2. Set some valid default value.
-        3. Set 'Hidden Value' to True and update parameter.
-        4. After hiding, set the 'Hidden Value' to False.
+            1. Set the override flag to True.
+            2. Set some valid default value.
+            3. Set 'Hidden Value' to True and update parameter.
+            4. After hiding, set the 'Hidden Value' to False.
 
-        @assert: The 'hidden value' set to false for that parameter.
+        :assert: The 'hidden value' set to false for that parameter.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1561,19 +1559,19 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_update_hidden_value_in_parameter(self):
         """Update the hidden default value of parameter.
 
-        @id: 6f7ad3c4-7745-45bf-a9f9-697f049556da
+        :id: 6f7ad3c4-7745-45bf-a9f9-697f049556da
 
-        @steps:
+        :steps:
 
-        1. Set the override flag for the parameter.
-        2. Set some valid default value.
-        3. Set 'Hidden Value' to true and update the parameter.
-        4. Now in hidden state, update the default value.
+            1. Set the override flag for the parameter.
+            2. Set some valid default value.
+            3. Set 'Hidden Value' to true and update the parameter.
+            4. Now in hidden state, update the default value.
 
-        @assert:
+        :assert:
 
-        1. The parameter default value is updated.
-        2. The 'hidden value' set/displayed as True for that parameter.
+            1. The parameter default value is updated.
+            2. The 'hidden value' set/displayed as True for that parameter.
         """
         old_value = gen_string('alpha')
         new_value = gen_string('alpha')
@@ -1596,18 +1594,18 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
-        @id: b6882658-9201-4e87-978a-0195a99ec07d
+        :id: b6882658-9201-4e87-978a-0195a99ec07d
 
-        @steps:
+        :steps:
 
-        1. Set the override flag to True.
-        2. Don't set any default value/Set empty value.
-        3. Set 'Hidden Value' to true and update the parameter.
+            1. Set the override flag to True.
+            2. Don't set any default value/Set empty value.
+            3. Set 'Hidden Value' to true and update the parameter.
 
-        @assert:
+        :assert:
 
-        1. The 'hidden value' set to True for that parameter.
-        2. The default value is empty even after hide.
+            1. The 'hidden value' set to True for that parameter.
+            2. The default value is empty even after hide.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True

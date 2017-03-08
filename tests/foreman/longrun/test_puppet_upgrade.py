@@ -1,18 +1,18 @@
 """Test for upgrading Puppet to Puppet4
 
-@Requirement: Puppet
+:Requirement: Puppet
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.config import settings
@@ -27,11 +27,11 @@ from robottelo.test import CLITestCase
 
 
 @run_in_one_thread
-@skip_if_not_set('clients')
 class PuppetUpgradeTestCase(CLITestCase):
     """Implements Puppet test scenario"""
 
     @classmethod
+    @skip_if_not_set('clients')
     def setUpClass(cls):
         super(PuppetUpgradeTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
@@ -42,24 +42,24 @@ class PuppetUpgradeTestCase(CLITestCase):
     def test_positive_puppet_upgrade(self):
         """Upgrade Satellite/client puppet versions
 
-        @id: fd311168-afda-49b6-ac5f-533c4fd411b5
+        :id: fd311168-afda-49b6-ac5f-533c4fd411b5
 
-        @Steps:
+        :Steps:
 
-        1. register client (p3)
-        2. prepare puppet module
-        3. upgrade Satellite from p3 to p4
-        4. apply puppet module to p3 client
-        5. upgrade client from p3 to p4
-        6. apply puppet module to the client
-        7. register another client (p4)
-        8. apply puppet module to the client
+            1. register client (p3)
+            2. prepare puppet module
+            3. upgrade Satellite from p3 to p4
+            4. apply puppet module to p3 client
+            5. upgrade client from p3 to p4
+            6. apply puppet module to the client
+            7. register another client (p4)
+            8. apply puppet module to the client
 
-        @Assert: multiple asserts along the code that motd module was applied
+        :Assert: multiple asserts along the code that motd module was applied
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -67,22 +67,23 @@ class PuppetUpgradeTestCase(CLITestCase):
     @tier4
     def test_positive_puppet_capsule_upgrade(self):
         """Upgrade standalone Capsule/client puppet versions
-        @id: 7e8e9047-d012-4fc5-9e6e-f11c1b05df5d
 
-        @Steps:
+        :id: 7e8e9047-d012-4fc5-9e6e-f11c1b05df5d
 
-        1. register client (p3)
-        2. prepare puppet module
-        3. upgrade Capsule from p3 to p4
-        4. apply puppet module to p3 client
-        5. upgrade client from p3 to p4
-        6. apply puppet module to the client
-        7. register another client (p4)
-        8. apply puppet module to the client
+        :Steps:
 
-        @Assert: multiple asserts along the code that motd module was applied
+            1. register client (p3)
+            2. prepare puppet module
+            3. upgrade Capsule from p3 to p4
+            4. apply puppet module to p3 client
+            5. upgrade client from p3 to p4
+            6. apply puppet module to the client
+            7. register another client (p4)
+            8. apply puppet module to the client
 
-        @caseautomation: notautomated
+        :Assert: multiple asserts along the code that motd module was applied
 
-        @CaseLevel: System
+        :caseautomation: notautomated
+
+        :CaseLevel: System
         """

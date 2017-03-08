@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Locations UI
 
-@Requirement: Location
+:Requirement: Location
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_ipaddr, gen_string
@@ -86,9 +86,9 @@ class LocationTestCase(UITestCase):
     def test_positive_auto_search(self):
         """Can auto-complete search for location by partial name
 
-        @id: 6aaf104b-481a-4dd9-8639-8ddb1e4d6828
+        :id: 6aaf104b-481a-4dd9-8639-8ddb1e4d6828
 
-        @assert: Created location can be auto search by its partial name
+        :assert: Created location can be auto search by its partial name
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -110,9 +110,9 @@ class LocationTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create Location with valid name only
 
-        @id: 92b23082-09e4-49e1-92e1-d6d89d5180ac
+        :id: 92b23082-09e4-49e1-92e1-d6d89d5180ac
 
-        @assert: Location is created, label is auto-generated
+        :assert: Location is created, label is auto-generated
         """
         with Session(self.browser) as session:
             for loc_name in generate_strings_list():
@@ -125,9 +125,9 @@ class LocationTestCase(UITestCase):
     def test_negative_create_with_invalid_names(self):
         """Create location with invalid name
 
-        @id: 85f05458-b86c-4d94-a412-ea03412c4588
+        :id: 85f05458-b86c-4d94-a412-ea03412c4588
 
-        @assert: location is not created
+        :assert: location is not created
         """
         with Session(self.browser) as session:
             for loc_name in invalid_values_list(interface='ui'):
@@ -143,9 +143,9 @@ class LocationTestCase(UITestCase):
         """Create location with valid values, then create a new one with same
         values.
 
-        @id: 33983f00-406b-4289-b9e2-ffe6901bf99d
+        :id: 33983f00-406b-4289-b9e2-ffe6901bf99d
 
-        @assert: location is not created
+        :assert: location is not created
         """
         loc_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -161,11 +161,11 @@ class LocationTestCase(UITestCase):
     def test_positive_create_with_location_and_org(self):
         """Create and select both organization and location.
 
-        @id: a1640ada-d4e9-447e-9e1b-40d17e1ede7e
+        :id: a1640ada-d4e9-447e-9e1b-40d17e1ede7e
 
-        @assert: Both organization and location are selected.
+        :assert: Both organization and location are selected.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for test_data in valid_org_loc_data():
@@ -188,9 +188,9 @@ class LocationTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create Location with valid values then update its name
 
-        @id: 79d8dbbb-9b7f-4482-a0f5-4fe72713d575
+        :id: 79d8dbbb-9b7f-4482-a0f5-4fe72713d575
 
-        @assert: Location name is updated
+        :assert: Location name is updated
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -210,9 +210,9 @@ class LocationTestCase(UITestCase):
         """Create Location with valid values then fail to update
         its name
 
-        @id: 57fed455-47f0-4b7c-a58e-3d8f6d761da9
+        :id: 57fed455-47f0-4b7c-a58e-3d8f6d761da9
 
-        @assert: Location name is not updated
+        :assert: Location name is not updated
         """
         loc_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -229,9 +229,9 @@ class LocationTestCase(UITestCase):
     def test_positive_delete(self):
         """Create location with valid values then delete it.
 
-        @id: b7664152-9398-499c-b165-3107f4350ba4
+        :id: b7664152-9398-499c-b165-3107f4350ba4
 
-        @assert: Location is deleted
+        :assert: Location is deleted
         """
         with Session(self.browser) as session:
             for loc_name in generate_strings_list():
@@ -245,11 +245,11 @@ class LocationTestCase(UITestCase):
     def test_positive_add_subnet(self):
         """Add a subnet by using location name and subnet name
 
-        @id: fe70ffba-e594-48d5-b2c5-be93e827cc60
+        :id: fe70ffba-e594-48d5-b2c5-be93e827cc60
 
-        @assert: subnet is added
+        :assert: subnet is added
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -276,11 +276,11 @@ class LocationTestCase(UITestCase):
     def test_positive_add_domain(self):
         """Add a domain to a Location
 
-        @id: 4f50f5cb-64eb-4790-b4c5-62d67669f48f
+        :id: 4f50f5cb-64eb-4790-b4c5-62d67669f48f
 
-        @assert: Domain is added to Location
+        :assert: Domain is added to Location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -303,11 +303,11 @@ class LocationTestCase(UITestCase):
     def test_positive_add_user(self):
         """Create user then add that user by using the location name
 
-        @id: bf9b3fc2-6193-4edc-aaec-cd7b87f0804c
+        :id: bf9b3fc2-6193-4edc-aaec-cd7b87f0804c
 
-        @assert: User is added to location
+        :assert: User is added to location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -339,9 +339,9 @@ class LocationTestCase(UITestCase):
     def test_positive_check_all_values_hostgroup(self):
         """check whether host group has the 'All values' checked.
 
-        @id: ca2f2522-ba34-4d20-87f4-7777ec9a1282
+        :id: ca2f2522-ba34-4d20-87f4-7777ec9a1282
 
-        @assert: host group 'All values' checkbox is checked.
+        :assert: host group 'All values' checkbox is checked.
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -361,11 +361,11 @@ class LocationTestCase(UITestCase):
     def test_positive_add_hostgroup(self):
         """Add a hostgroup by using the location name and hostgroup name
 
-        @id: e998d20c-e201-4675-b45f-8768f59584da
+        :id: e998d20c-e201-4675-b45f-8768f59584da
 
-        @assert: hostgroup is added to location
+        :assert: hostgroup is added to location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:
@@ -387,11 +387,11 @@ class LocationTestCase(UITestCase):
     def test_positive_add_org(self):
         """Add a organization by using the location name
 
-        @id: 27d56d64-6866-46b6-962d-1ac2a11ae136
+        :id: 27d56d64-6866-46b6-962d-1ac2a11ae136
 
-        @assert: organization is added to location
+        :assert: organization is added to location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -416,11 +416,11 @@ class LocationTestCase(UITestCase):
     def test_add_environment(self):
         """Add environment by using location name and environment name
 
-        @id: bbca1af0-a31f-4096-bc6e-bb341ffed575
+        :id: bbca1af0-a31f-4096-bc6e-bb341ffed575
 
-        @assert: environment is added
+        :assert: environment is added
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -445,11 +445,11 @@ class LocationTestCase(UITestCase):
         """Add compute resource using the location name and compute resource
         name
 
-        @id: 1d24414a-666d-490d-89b9-cd0704684cdd
+        :id: 1d24414a-666d-490d-89b9-cd0704684cdd
 
-        @assert: compute resource is added successfully
+        :assert: compute resource is added successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -476,11 +476,11 @@ class LocationTestCase(UITestCase):
     def test_positive_add_medium(self):
         """Add medium by using the location name and medium name
 
-        @id: 738c5ff1-ef09-466f-aaac-64f194cac78d
+        :id: 738c5ff1-ef09-466f-aaac-64f194cac78d
 
-        @assert: medium is added
+        :assert: medium is added
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -507,9 +507,9 @@ class LocationTestCase(UITestCase):
     def test_positive_check_all_values_template(self):
         """check whether config template has the 'All values' checked.
 
-        @id: 358cf1c0-4187-4b5a-b900-5971e708b83f
+        :id: 358cf1c0-4187-4b5a-b900-5971e708b83f
 
-        @assert: configtemplate 'All values' checkbox is checked.
+        :assert: configtemplate 'All values' checkbox is checked.
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -526,11 +526,11 @@ class LocationTestCase(UITestCase):
     def test_positive_add_template(self):
         """Add config template by using location name and config template name.
 
-        @id: 8faf60d1-f4d6-4a58-a484-606a42957ce7
+        :id: 8faf60d1-f4d6-4a58-a484-606a42957ce7
 
-        @assert: config template is added.
+        :assert: config template is added.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:
@@ -558,11 +558,11 @@ class LocationTestCase(UITestCase):
     def test_positive_remove_environment(self):
         """Remove environment by using location name & environment name
 
-        @id: eaf08f82-d76c-4bd5-bc9b-ac91ca409b81
+        :id: eaf08f82-d76c-4bd5-bc9b-ac91ca409b81
 
-        @assert: environment is removed from Location
+        :assert: environment is removed from Location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -602,11 +602,11 @@ class LocationTestCase(UITestCase):
     def test_positive_remove_subnet(self):
         """Remove subnet by using location name and subnet name
 
-        @id: 53bc28a4-1fe1-4628-b7b9-18ea4b07dfc8
+        :id: 53bc28a4-1fe1-4628-b7b9-18ea4b07dfc8
 
-        @assert: subnet is added then removed
+        :assert: subnet is added then removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -648,11 +648,11 @@ class LocationTestCase(UITestCase):
         """Add a domain to an location and remove it by location name and
         domain name
 
-        @id: 39374e24-2b38-47f4-b69b-c2b0ca0d754f
+        :id: 39374e24-2b38-47f4-b69b-c2b0ca0d754f
 
-        @assert: the domain is removed from the location
+        :assert: the domain is removed from the location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -693,11 +693,11 @@ class LocationTestCase(UITestCase):
         """Create admin users then add user and remove it by using the location
         name
 
-        @id: c2dd189d-c928-4051-ae38-c08a15b95879
+        :id: c2dd189d-c928-4051-ae38-c08a15b95879
 
-        @assert: The user is added then removed from the location
+        :assert: The user is added then removed from the location
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -743,11 +743,11 @@ class LocationTestCase(UITestCase):
         """Add a hostgroup and remove it by using the location name and
         hostgroup name
 
-        @id: dd8c58af-3037-44c0-a7f7-5e8337f110c9
+        :id: dd8c58af-3037-44c0-a7f7-5e8337f110c9
 
-        @assert: hostgroup is added to location then removed
+        :assert: hostgroup is added to location then removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:
@@ -787,11 +787,11 @@ class LocationTestCase(UITestCase):
         """Remove compute resource by using the location name and compute
         resource name
 
-        @id: dae7c7ae-b162-4601-8727-f227d1544e09
+        :id: dae7c7ae-b162-4601-8727-f227d1544e09
 
-        @assert: compute resource is added then removed
+        :assert: compute resource is added then removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -834,11 +834,11 @@ class LocationTestCase(UITestCase):
     def test_positive_remove_medium(self):
         """Remove medium by using location name and medium name
 
-        @id: 61dece81-73bf-4f80-8894-ed7ca745120c
+        :id: 61dece81-73bf-4f80-8894-ed7ca745120c
 
-        @assert: medium is added then removed
+        :assert: medium is added then removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -880,11 +880,11 @@ class LocationTestCase(UITestCase):
     def test_positive_remove_template(self):
         """Remove config template
 
-        @id: f510eb04-6bbb-4153-bda0-a183d070b9f2
+        :id: f510eb04-6bbb-4153-bda0-a183d070b9f2
 
-        @assert: config template is added and then removed
+        :assert: config template is added and then removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:

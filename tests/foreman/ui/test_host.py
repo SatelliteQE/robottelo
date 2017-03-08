@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Hosts UI
 
-@Requirement: Host
+:Requirement: Host
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
@@ -337,11 +337,11 @@ class HostTestCase(UITestCase):
     def test_positive_create_libvirt(self):
         """Create a new Host on libvirt compute resource
 
-        @id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
+        :id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
 
-        @Assert: Host is created
+        :Assert: Host is created
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string('alpha', 15)
@@ -381,22 +381,19 @@ class HostTestCase(UITestCase):
     def test_positive_create_baremetal_with_bios(self):
         """Create a new Host from provided MAC address
 
-        @id: 2cedc634-7761-4326-b77a-b999098f5c00
+        :id: 2cedc634-7761-4326-b77a-b999098f5c00
 
-        @setup:
+        :setup: Create a PXE-based VM with BIOS boot mode (outside of
+            Satellite).
 
-        1. Create a PXE-based VM with BIOS boot mode (outside of Satellite).
+        :steps: Create a new host using 'BareMetal' option and MAC address of
+            the pre-created VM
 
-        @steps:
+        :assert: Host is created
 
-        1. Create a new host using 'BareMetal' option and MAC address of the
-        pre-created VM
+        :caseautomation: notautomated
 
-        @assert: Host is created
-
-        @caseautomation: notautomated
-
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -405,23 +402,19 @@ class HostTestCase(UITestCase):
     def test_positive_create_baremetal_with_uefi(self):
         """Create a new Host from provided MAC address
 
-        @id: ec62e90b-1b2a-4eac-8b15-7e36c8179086
+        :id: ec62e90b-1b2a-4eac-8b15-7e36c8179086
 
-        @setup:
+        :setup: Create a PXE-based VM with UEFI boot mode (outside of
+            Satellite).
 
-        1. Create a PXE-based VM with UEFI boot mode (outside of Satellite).
+        :steps: Create a new host using 'BareMetal' option and MAC address of
+            the pre-created VM
 
-        @steps:
+        :assert: Host is created
 
-        1. Create a new host using 'BareMetal' option and MAC address of the
-        pre-created VM
+        :caseautomation: notautomated
 
-        @assert: Host is created
-
-        @caseautomation: notautomated
-
-        @caselevel: System
-
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -431,27 +424,26 @@ class HostTestCase(UITestCase):
         """Provision a new Host and verify the tftp and dhcpd file
         structure is correct
 
-        @id: e3dd2334-6e82-4272-a099-6f4214b77151
+        :id: e3dd2334-6e82-4272-a099-6f4214b77151
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub UEFI
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+                and PXE loader set to Grub UEFI
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            grub/bootia32.efi
-            grub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure: grub/bootia32.efi
+                grub/bootx64.efi
+                grub/01-AA-BB-CC-DD-EE-FF
+                grub/efidefault
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -461,27 +453,26 @@ class HostTestCase(UITestCase):
         """Provision a new Host and verify the tftp and dhcpd file
         structure is correct
 
-        @id: fc97dfcc-15d0-4eab-a778-fa1bcf82be22
+        :id: fc97dfcc-15d0-4eab-a778-fa1bcf82be22
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub UEFI SecureBoot
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+                and PXE loader set to Grub UEFI SecureBoot
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            grub/bootia32.efi
-            grub/bootx64.efi
-            grub/01-AA-BB-CC-DD-EE-FF
-            grub/efidefault
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure: grub/bootia32.efi
+                grub/bootx64.efi
+                grub/01-AA-BB-CC-DD-EE-FF
+                grub/efidefault
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -491,28 +482,27 @@ class HostTestCase(UITestCase):
         """Provision a new UEFI Host and verify the and dhcpd file
         structure is correct
 
-        @id: eec31881-eb20-4fb3-8d19-e3a4012ba4a0
+        :id: eec31881-eb20-4fb3-8d19-e3a4012ba4a0
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub2 UEFI
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+                and PXE loader set to Grub2 UEFI
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            pxegrub2
-            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-            grub2/grub.cfg
-            grub2/grubx32.efi
-            grub2/grubx64.efi
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure: pxegrub2
+                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+                grub2/grub.cfg
+                grub2/grubx32.efi
+                grub2/grubx64.efi
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -522,28 +512,27 @@ class HostTestCase(UITestCase):
         """Provision a new UEFI Host and verify the tftp and dhcpd file
         structure is correct
 
-        @id: fdbb3617-74f2-46c4-930f-028dd4edcf9e
+        :id: fdbb3617-74f2-46c4-930f-028dd4edcf9e
 
-        @steps:
+        :steps:
 
-        1. Associate a pxegrub-type provisioning template with the os
-        2. Create new host (can be fictive bare metal) with the above OS and
-        PXE loader set to Grub2 UEFI SecureBoot
-        3. Build the host
+            1. Associate a pxegrub-type provisioning template with the os
+            2. Create new host (can be fictive bare metal) with the above OS
+                and PXE loader set to Grub2 UEFI SecureBoot
+            3. Build the host
 
-        @assert:
-        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
-            pxegrub2
-            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-            grub2/grub.cfg
-            grub2/grubx32.efi
-            grub2/grubx64.efi
-            grub/shim.efi
-        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
+            structure: pxegrub2
+                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+                grub2/grub.cfg
+                grub2/grubx32.efi
+                grub2/grubx64.efi
+                grub/shim.efi
+            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @caselevel: System
+        :caselevel: System
         """
 
     @run_only_on('sat')
@@ -551,11 +540,11 @@ class HostTestCase(UITestCase):
     def test_positive_create(self):
         """Create a new Host
 
-        @id: 4821444d-3c86-4f93-849b-60460e025ba0
+        :id: 4821444d-3c86-4f93-849b-60460e025ba0
 
-        @Assert: Host is created
+        :Assert: Host is created
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -600,11 +589,11 @@ class HostTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create a new Host and update its name to valid one
 
-        @id: f1c19599-f613-431d-bf09-62addec1e60b
+        :id: f1c19599-f613-431d-bf09-62addec1e60b
 
-        @Assert: Host is updated successfully
+        :Assert: Host is updated successfully
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -655,11 +644,11 @@ class HostTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a Host
 
-        @id: 13735af1-f1c7-466e-a969-80618a1d854d
+        :id: 13735af1-f1c7-466e-a969-80618a1d854d
 
-        @Assert: Host is delete
+        :Assert: Host is delete
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -703,14 +692,14 @@ class HostTestCase(UITestCase):
         inherited hostgroup's lifecycle environment, content view and both
         fields are properly reflected via WebUI
 
-        @id: c83f6819-2649-4a8b-bb1d-ce93b2243765
+        :id: c83f6819-2649-4a8b-bb1d-ce93b2243765
 
-        @Assert: Host's lifecycle environment and content view match the ones
-        specified in hostgroup
+        :Assert: Host's lifecycle environment and content view match the ones
+            specified in hostgroup
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1391656
+        :BZ: 1391656
         """
         host = entities.Host()
         host.create_missing()
@@ -767,13 +756,13 @@ class HostTestCase(UITestCase):
     def test_positive_create_with_user(self):
         """Create Host with new user specified
 
-        @id: b97d6fe5-b0a1-4ddc-8d7f-cbf7b17c823d
+        :id: b97d6fe5-b0a1-4ddc-8d7f-cbf7b17c823d
 
-        @Assert: Host is created
+        :Assert: Host is created
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -781,13 +770,13 @@ class HostTestCase(UITestCase):
     def test_positive_update_with_user(self):
         """Update Host with new user specified
 
-        @id: 4c030cf5-b89c-4dec-bb3e-0cb3215a2315
+        :id: 4c030cf5-b89c-4dec-bb3e-0cb3215a2315
 
-        @Assert: Host is updated
+        :Assert: Host is updated
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
 
@@ -1069,12 +1058,12 @@ class AtomicHostTestCase(UITestCase):
     def test_positive_provision_atomic_host(self):
         """Provision an atomic host on libvirt and register it with satellite
 
-        @id: 5ddf2f7f-f7aa-4321-8717-372c7b6e99b6
+        :id: 5ddf2f7f-f7aa-4321-8717-372c7b6e99b6
 
-        @Assert: Atomic host should be provisioned and listed under
-        content-hosts/Hosts
+        :Assert: Atomic host should be provisioned and listed under
+            content-hosts/Hosts
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string('alpha', 15)
@@ -1109,14 +1098,14 @@ class AtomicHostTestCase(UITestCase):
         """Register a pre-installed atomic host with satellite using admin
         credentials
 
-        @id: 09729944-b60b-4742-8f1b-e8859e2e36d3
+        :id: 09729944-b60b-4742-8f1b-e8859e2e36d3
 
-        @Assert: Atomic host should be registered successfully and listed under
-        content-hosts/Hosts
+        :Assert: Atomic host should be registered successfully and listed under
+            content-hosts/Hosts
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -1125,26 +1114,26 @@ class AtomicHostTestCase(UITestCase):
         """Register a pre-installed atomic host with satellite using activation
         key
 
-        @id: 31e5ffcf-2e3c-474a-a6a3-6d8e2f392abe
+        :id: 31e5ffcf-2e3c-474a-a6a3-6d8e2f392abe
 
-        @Assert: Atomic host should be registered successfully and listed under
-        content-hosts/Hosts
+        :Assert: Atomic host should be registered successfully and listed under
+            content-hosts/Hosts
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @tier3
     def test_positive_delete_atomic_host(self):
         """Delete a provisioned atomic host
 
-        @id: c0bcf753-8ddf-4e95-b214-42d1e077a6cf
+        :id: c0bcf753-8ddf-4e95-b214-42d1e077a6cf
 
-        @Assert: Atomic host should be deleted successfully and shouldn't be
-        listed under hosts/content-hosts
+        :Assert: Atomic host should be deleted successfully and shouldn't be
+            listed under hosts/content-hosts
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string('alpha', 15)
@@ -1177,13 +1166,13 @@ class AtomicHostTestCase(UITestCase):
     def test_positive_bulk_delete_atomic_host(self):
         """Delete a multiple atomic hosts
 
-        @id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
+        :id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
 
-        @Assert: All selected atomic hosts should be deleted successfully
+        :Assert: All selected atomic hosts should be deleted successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -1191,13 +1180,13 @@ class AtomicHostTestCase(UITestCase):
     def test_positive_update_atomic_host_cv(self):
         """Update atomic-host with a new environment and content-view
 
-        @id: 2ddd3bb7-ef58-42c0-908c-ae4d4bd0bff9
+        :id: 2ddd3bb7-ef58-42c0-908c-ae4d4bd0bff9
 
-        @Assert: Atomic host should be updated with new content-view
+        :Assert: Atomic host should be updated with new content-view
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -1206,12 +1195,12 @@ class AtomicHostTestCase(UITestCase):
         """Execute ostree/atomic commands on provisioned atomic host with job
         templates
 
-        @id: 56a46a1e-9e24-4ad7-9cea-3d78c7310b14
+        :id: 56a46a1e-9e24-4ad7-9cea-3d78c7310b14
 
-        @Assert: Ostree/atomic commands should be executed successfully via job
-        templates
+        :Assert: Ostree/atomic commands should be executed successfully via job
+            templates
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """

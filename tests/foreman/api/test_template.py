@@ -4,19 +4,19 @@ A full API reference is available here:
 http://theforeman.org/api/apidoc/v2/config_templates.html
 
 
-@Requirement: Template
+:Requirement: Template
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from random import choice
 
@@ -38,11 +38,11 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_build_pxe_default(self):
         """Call the "build_pxe_default" path.
 
-        @id: ca19d9da-1049-4b39-823b-933fc1a0cebd
+        :id: ca19d9da-1049-4b39-823b-933fc1a0cebd
 
-        @Assert: The response is a JSON payload.
+        :Assert: The response is a JSON payload.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         response = client.get(
             entities.ConfigTemplate().path('build_pxe_default'),
@@ -57,11 +57,11 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_add_orgs(self):
         """Associate a config template with organizations.
 
-        @id: b60907c3-47b9-4bc7-99d6-08615ebe9d68
+        :id: b60907c3-47b9-4bc7-99d6-08615ebe9d68
 
-        @Assert: Config template is associated with organization
+        :Assert: Config template is associated with organization
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         orgs = [entities.Organization().create() for _ in range(2)]
 
@@ -93,9 +93,9 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a configuration template providing the initial name.
 
-        @id: 20ccd5c8-98c3-4f22-af50-9760940e5d39
+        :id: 20ccd5c8-98c3-4f22-af50-9760940e5d39
 
-        @Assert: Configuration Template is created and contains provided name.
+        :Assert: Configuration Template is created and contains provided name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -106,9 +106,9 @@ class ConfigTemplateTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create configuration template providing an invalid name.
 
-        @id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
+        :id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
 
-        @Assert: Configuration Template is not created
+        :Assert: Configuration Template is not created
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -119,10 +119,10 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_create_with_template_kind(self):
         """Create a provisioning template providing the template_kind.
 
-        @id: d7309be8-b5c9-4f77-8c4e-e9f2b8982076
+        :id: d7309be8-b5c9-4f77-8c4e-e9f2b8982076
 
-        @Assert: Provisioning Template is created and contains provided
-        template kind.
+        :Assert: Provisioning Template is created and contains provided
+            template kind.
         """
         template_kind = choice(entities.TemplateKind().search())
         template = entities.ProvisioningTemplate(
@@ -135,11 +135,11 @@ class ConfigTemplateTestCase(APITestCase):
         """Create a provisioning template providing existing
         template_kind name.
 
-        @id: 4a1410e4-aa3c-4d27-b062-089e34722bd9
+        :id: 4a1410e4-aa3c-4d27-b062-089e34722bd9
 
-        @Assert: Provisioning Template is created
+        :Assert: Provisioning Template is created
 
-        @BZ: 1379006
+        :BZ: 1379006
         """
         template_kind = choice(entities.TemplateKind().search())
         template = entities.ProvisioningTemplate(snippet=False)
@@ -154,11 +154,11 @@ class ConfigTemplateTestCase(APITestCase):
         """Create a provisioning template providing non-existing
         template_kind name.
 
-        @id: e6de9ceb-fe4b-43ce-b7e3-5453ca4bd164
+        :id: e6de9ceb-fe4b-43ce-b7e3-5453ca4bd164
 
-        @Assert: 404 error and expected message is returned
+        :Assert: 404 error and expected message is returned
 
-        @BZ: 1379006
+        :BZ: 1379006
         """
         template = entities.ProvisioningTemplate(snippet=False)
         template.create_missing()
@@ -177,10 +177,10 @@ class ConfigTemplateTestCase(APITestCase):
         """Create configuration template providing the initial name,
         then update its name to another valid name.
 
-        @id: 58ccc4ee-5faa-4fb2-bfd0-e19412e230dd
+        :id: 58ccc4ee-5faa-4fb2-bfd0-e19412e230dd
 
-        @Assert: Configuration Template is created, and its name can be
-        updated.
+        :Assert: Configuration Template is created, and its name can be
+            updated.
         """
         c_temp = entities.ConfigTemplate().create()
 
@@ -195,10 +195,10 @@ class ConfigTemplateTestCase(APITestCase):
         """Create configuration template then update its name to an
         invalid name.
 
-        @id: f6167dc5-26ba-46d7-b61f-14c290d6a8fa
+        :id: f6167dc5-26ba-46d7-b61f-14c290d6a8fa
 
-        @Assert: Configuration Template is created, and its name is not
-        updated.
+        :Assert: Configuration Template is created, and its name is not
+            updated.
         """
         c_temp = entities.ConfigTemplate().create()
         for new_name in invalid_names_list():
@@ -213,9 +213,9 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_delete(self):
         """Create configuration template and then delete it.
 
-        @id: 1471f17c-4412-4717-a6c4-b57a8d2f8cfd
+        :id: 1471f17c-4412-4717-a6c4-b57a8d2f8cfd
 
-        @Assert: Configuration Template is successfully deleted.
+        :Assert: Configuration Template is successfully deleted.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -228,11 +228,11 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_clone(self):
         """Assure ability to clone a provisioning template
 
-        @id: 8dfbb234-7a52-4873-be72-4de086472669
+        :id: 8dfbb234-7a52-4873-be72-4de086472669
 
-        @Assert: The template is cloned successfully with all values
+        :Assert: The template is cloned successfully with all values
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         template = entities.ConfigTemplate().create()
         template_origin = template.read_json()

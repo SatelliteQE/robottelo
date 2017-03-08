@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# This script finds empty @id: and replace with new uuids
+# This script finds empty :id: and replace with new uuids
 # Then it finds for duplicates and replaces last occurrence with new uuids
-# finally it fixes '@id:xyz' to '@id: xyz' (missing space after :)
+# finally it fixes ':id:xyz' to ':id: xyz' (missing space after :)
 
-ID_TOKEN="@id:"
+ID_TOKEN=":id:"
 
 if [ "$1" = "--check" ]; then
     CHECK_ONLY=true
@@ -29,7 +29,7 @@ else
    echo "No empty $ID_TOKEN was found"
 fi
 
-# iterate if any empty @id found
+# iterate if any empty :id found
 for output_line in $EMPTY_IDS
 do
     if (echo "$output_line" | grep "tests/foreman"); then
@@ -43,11 +43,11 @@ do
     fi
 done
 
-# This script finds duplicated @id and replaces with new uuids
+# This script finds duplicated :id and replaces with new uuids
 
-# Finds occurrences of @id: in testimony tags then
+# Finds occurrences of :id: in testimony tags then
 # sort the output and filters only the duplicated
-# then looks for existence of "@id:" in final output
+# then looks for existence of ":id:" in final output
 # NOTE: can't print the line number -n here because of uniq -d
 DUP_EXISTS=$(grep -r -i $ID_TOKEN tests/foreman/ --include=*.py | sort | uniq -d | grep $ID_TOKEN)
 

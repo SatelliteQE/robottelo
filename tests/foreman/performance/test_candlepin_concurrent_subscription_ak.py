@@ -1,18 +1,18 @@
 """Test class for concurrent subscription by Activation Key
 
-@Requirement: Candlepin concurrent subscription ak
+:Requirement: Candlepin concurrent subscription ak
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: OTHER
+:CaseComponent: OTHER
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
@@ -107,49 +107,47 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
     def test_subscribe_ak_sequential(self):
         """Subscribe system sequentially using 1 virtual machine
 
-        @id: b6315e54-4722-476e-9c31-518b12e458db
+        :id: b6315e54-4722-476e-9c31-518b12e458db
 
-        @Steps:
+        :Steps:
 
-        1. create activation key (setup)
-        2. get subscription id (setup)
-        3. add activation key to subscription (setup)
-        4. create result dictionary
-        5. sequentially run by one thread;
-           the thread iterates all total number of iterations
-        6. produce result of timing
+            1. create activation key (setup)
+            2. get subscription id (setup)
+            3. add activation key to subscription (setup)
+            4. create result dictionary
+            5. sequentially run by one thread;
+               the thread iterates all total number of iterations
+            6. produce result of timing
 
-        @Assert: Restoring where there's no activation key or registration
-
+        :Assert: Restoring where there's no activation key or registration
         """
         self.kick_off_ak_test(self.num_threads[0], 5000)
 
     def test_subscribe_ak_2_clients(self):
         """Subscribe system concurrently using 2 virtual machines
 
-        @id: b1dfabf0-ff3d-471e-8285-4fc5aca8506e
+        :id: b1dfabf0-ff3d-471e-8285-4fc5aca8506e
 
-        @Steps:
+        :Steps:
 
-        1. create activation key (setup)
-        2. get subscription id (setup)
-        3. add activation key to subscription (setup)
-        4. create result dictionary
-        5. concurrent run by multiple threads;
-           each thread iterates a limited number of times
-        6. produce result of timing
+            1. create activation key (setup)
+            2. get subscription id (setup)
+            3. add activation key to subscription (setup)
+            4. create result dictionary
+            5. concurrent run by multiple threads; each thread iterates a
+               limited number of times
+            6. produce result of timing
 
-        @Assert: Restoring where there's no activation key or registration
-
+        :Assert: Restoring where there's no activation key or registration
         """
         self.kick_off_ak_test(self.num_threads[1], 5000)
 
     def test_subscribe_ak_4_clients(self):
         """Subscribe system concurrently using 4 virtual machines
 
-        @id: 65059f79-fea2-4359-b039-843951c383dc
+        :id: 65059f79-fea2-4359-b039-843951c383dc
 
-        @Assert: Restoring where there's no activation key or registration
+        :Assert: Restoring where there's no activation key or registration
 
         """
         self.kick_off_ak_test(self.num_threads[2], 5000)
@@ -157,39 +155,36 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
     def test_subscribe_ak_6_clients(self):
         """Subscribe system concurrently using 6 virtual machines
 
-        @id: cf893a78-73ab-4f0c-a077-11e4ee43cd3d
+        :id: cf893a78-73ab-4f0c-a077-11e4ee43cd3d
 
-        @Assert: Restoring where there's no activation key or registration
-
+        :Assert: Restoring where there's no activation key or registration
         """
         self.kick_off_ak_test(self.num_threads[3], 6000)
 
     def test_subscribe_ak_8_clients(self):
         """Subscribe system concurrently using 8 virtual machines
 
-        @id: fa0f85fc-027f-4aac-8b81-8e9cf25f7f2b
+        :id: fa0f85fc-027f-4aac-8b81-8e9cf25f7f2b
 
-        @Assert: Restoring where there's no activation key or registration
-
+        :Assert: Restoring where there's no activation key or registration
         """
         self.kick_off_ak_test(self.num_threads[4], 5000)
 
     def test_subscribe_ak_10_clients(self):
         """Subscribe system concurrently using 10 virtual machines
 
-        @id: 9e9794be-c6f1-4843-9249-425b603853b1
+        :id: 9e9794be-c6f1-4843-9249-425b603853b1
 
-        @Steps:
+        :Steps:
 
-        1. create activation key (setup)
-        2. get subscription id (setup)
-        3. add activation key to subscription (setup)
-        4. create result dictionary
-        5. concurrent run by multiple threads
-           each thread iterates a limited number of times
-        6. produce result of timing
+            1. create activation key (setup)
+            2. get subscription id (setup)
+            3. add activation key to subscription (setup)
+            4. create result dictionary
+            5. concurrent run by multiple threads each thread iterates a
+               limited number of times
+            6. produce result of timing
 
-        @Assert: Restoring where there's no activation key or registration
-
+        :Assert: Restoring where there's no activation key or registration
         """
         self.kick_off_ak_test(self.num_threads[5], 5000)

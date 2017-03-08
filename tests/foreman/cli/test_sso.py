@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for SSO (CLI)
 
-@Requirement: Sso
+:Requirement: Sso
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.decorators import stubbed
@@ -37,37 +37,37 @@ class SingleSignOnTestCase(CLITestCase):
     def test_positive_login_kerberos_user(self):
         """kerberos user can login to CLI
 
-        @id: 59a1b463-67b3-4f18-b851-afaa3c65ccb6
+        :id: 59a1b463-67b3-4f18-b851-afaa3c65ccb6
 
-        @setup: kerberos configured against foreman.
+        :setup: kerberos configured against foreman.
 
-        @assert: Log in to hammer cli successfully
+        :assert: Log in to hammer cli successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_login_ipa_user(self):
         """IPA user can login to CLI
 
-        @id: cbd0df84-6a4d-4c82-bf30-cecd51f40c03
+        :id: cbd0df84-6a4d-4c82-bf30-cecd51f40c03
 
-        @setup: IPA configured against foreman.
+        :setup: IPA configured against foreman.
 
-        @assert: Log in to hammer cli successfully
+        :assert: Log in to hammer cli successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_login_openldap_user(self):
         """OpenLDAP user can login to CLI
 
-        @id: de31d5eb-4e0d-495e-bf31-bc49f9d50d68
+        :id: de31d5eb-4e0d-495e-bf31-bc49f9d50d68
 
-        @setup: OpenLDAP configured against foreman.
+        :setup: OpenLDAP configured against foreman.
 
-        @assert: Log in to hammer cli successfully
+        :assert: Log in to hammer cli successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """

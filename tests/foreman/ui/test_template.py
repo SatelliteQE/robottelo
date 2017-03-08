@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Template UI
 
-@Requirement: Template
+:Requirement: Template
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -44,10 +44,10 @@ class TemplateTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new template using different valid names
 
-        @id: 12767d13-2531-4a3c-9527-3191bc9a1149
+        :id: 12767d13-2531-4a3c-9527-3191bc9a1149
 
-        @Assert: New template of type 'Provisioning template' should be created
-        successfully
+        :Assert: New template of type 'Provisioning template' should be created
+            successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -66,9 +66,9 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create a new template with invalid names
 
-        @id: cfbc8e10-96b3-425c-ac21-f995a8b038e8
+        :id: cfbc8e10-96b3-425c-ac21-f995a8b038e8
 
-        @Assert: Template is not created
+        :Assert: Template is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -88,9 +88,9 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Template - Create a new template with same name
 
-        @id: 52382553-2708-47d0-97b2-fce6ddb366ad
+        :id: 52382553-2708-47d0-97b2-fce6ddb366ad
 
-        @Assert: Template is not created
+        :Assert: Template is not created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -117,9 +117,9 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_without_type(self):
         """Template - Create a new template without selecting its type
 
-        @id: 370af6a5-0814-4474-b758-46ec25ccbc4a
+        :id: 370af6a5-0814-4474-b758-46ec25ccbc4a
 
-        @Assert: Template is not created
+        :Assert: Template is not created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -141,9 +141,9 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_without_upload(self):
         """Template - Create a new template without uploading a template
 
-        @id: dd4bb3cb-a7a0-46fa-bc16-e2d117ce79d8
+        :id: dd4bb3cb-a7a0-46fa-bc16-e2d117ce79d8
 
-        @Assert: Template is not created
+        :Assert: Template is not created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -165,9 +165,9 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_with_too_long_audit(self):
         """Create a new template with 256 characters in audit comments
 
-        @id: 62b06765-f9d5-4e69-967f-76f2649f83ff
+        :id: 62b06765-f9d5-4e69-967f-76f2649f83ff
 
-        @Assert: Template is not created
+        :Assert: Template is not created
         """
         with Session(self.browser) as session:
             make_templates(
@@ -186,10 +186,10 @@ class TemplateTestCase(UITestCase):
     def test_positive_create_with_snippet_type(self):
         """Create new template of type snippet
 
-        @id: 56f62153-6dd2-4120-9f23-386442f643c4
+        :id: 56f62153-6dd2-4120-9f23-386442f643c4
 
-        @Assert: New provisioning template of type 'snippet' should be created
-        successfully
+        :Assert: New provisioning template of type 'snippet' should be created
+            successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -208,9 +208,9 @@ class TemplateTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing template
 
-        @id: e4a687e5-6581-4481-ad9b-8d2ac3f2c9d5
+        :id: e4a687e5-6581-4481-ad9b-8d2ac3f2c9d5
 
-        @Assert: Template is deleted successfully
+        :Assert: Template is deleted successfully
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -227,9 +227,9 @@ class TemplateTestCase(UITestCase):
     def test_positive_update_name_and_type(self):
         """Update template name and template type
 
-        @id: f1a7d44d-5ac8-47e1-9084-ce8f166dbde5
+        :id: f1a7d44d-5ac8-47e1-9084-ce8f166dbde5
 
-        @Assert: The template name and type should be updated successfully
+        :Assert: The template name and type should be updated successfully
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -252,10 +252,10 @@ class TemplateTestCase(UITestCase):
         """Creates new template, along with two OS's and associate list
         of OS's with created template
 
-        @id: 160d7906-dd60-4870-8ca0-dde61ccab67c
+        :id: 160d7906-dd60-4870-8ca0-dde61ccab67c
 
-        @Assert: The template should be updated with newly created OS's
-        successfully
+        :Assert: The template should be updated with newly created OS's
+            successfully
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -279,15 +279,15 @@ class TemplateTestCase(UITestCase):
     def test_positive_clone(self):
         """Assure ability to clone a provisioning template
 
-        @id: 912f1619-4bb0-4e0f-88ce-88b5726fdbe0
+        :id: 912f1619-4bb0-4e0f-88ce-88b5726fdbe0
 
-        @Steps:
-         1.  Go to Provisioning template UI
-         2.  Choose a template and attempt to clone it
+        :Steps:
+            1.  Go to Provisioning template UI
+            2.  Choose a template and attempt to clone it
 
-        @Assert: The template is cloned
+        :Assert: The template is cloned
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         clone_name = gen_string('alpha')
@@ -318,11 +318,11 @@ class TemplateTestCase(UITestCase):
         organization and location. Also associate it with new hostgroup.
         Afterwards search for that template by hostgroup
 
-        @id: 5bcecd40-28af-4913-92a4-863c8dc05ecc
+        :id: 5bcecd40-28af-4913-92a4-863c8dc05ecc
 
-        @BZ: 1386334
+        :BZ: 1386334
 
-        @Assert: Template can be found successfully and no error is raised
+        :Assert: Template can be found successfully and no error is raised
         """
         org = entities.Organization().create()
         loc = entities.Location().create()

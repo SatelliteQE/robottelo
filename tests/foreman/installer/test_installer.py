@@ -1,18 +1,18 @@
 """Smoke tests to check installation health
 
-@Requirement: Installer
+:Requirement: Installer
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: INSTALLER
+:CaseComponent: INSTALLER
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import re
 
@@ -34,10 +34,9 @@ class SELinuxTestCase(TestCase):
     def test_positive_foreman_module(self):
         """Check if SELinux foreman module has the right version
 
-        @id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
+        :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
 
-        @Assert: Foreman RPM and SELinux module versions match
-
+        :Assert: Foreman RPM and SELinux module versions match
         """
         rpm_result = ssh.command('rpm -q foreman-selinux')
         self.assertEqual(rpm_result.return_code, 0)
@@ -64,13 +63,12 @@ class SELinuxTestCase(TestCase):
     def test_positive_check_installer_services(self):
         """Check if services start correctly
 
-        @id: 85fd4388-6d94-42f5-bed2-24be38e9f104
+        :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
-        @Assert: All services {'elasticsearch', 'foreman-proxy',
-        'foreman-tasks', 'httpd', 'mongod', 'postgresql', 'pulp_celerybeat',
-        'pulp_resource_manager', 'pulp_workers', 'qdrouterd', 'qpidd',
-        'tomcat'} are started
-
+        :Assert: All services {'elasticsearch', 'foreman-proxy',
+            'foreman-tasks', 'httpd', 'mongod', 'postgresql',
+            'pulp_celerybeat', 'pulp_resource_manager', 'pulp_workers',
+            'qdrouterd', 'qpidd', 'tomcat'} are started
         """
         major_version = get_host_info()[1]
         services = (
@@ -126,16 +124,13 @@ class SELinuxTestCase(TestCase):
     def test_positive_check_installer_logfile(self):
         """Look for ERROR or FATAL references in logfiles
 
-        @id: 80537809-8be4-42db-9cc8-5155378ee4d4
+        :id: 80537809-8be4-42db-9cc8-5155378ee4d4
 
-        @Steps:
+        :Steps: search all relevant logfiles for ERROR/FATAL
 
-        1. search all relevant logfiles for ERROR/FATAL
-
-        @Assert: No ERROR/FATAL notifcations occur in {katello-jobs, tomcat6,
-        foreman, pulp, passenger-analytics, httpd, foreman_proxy,
-        elasticsearch, postgresql, mongod} logfiles.
-
+        :Assert: No ERROR/FATAL notifcations occur in {katello-jobs, tomcat6,
+            foreman, pulp, passenger-analytics, httpd, foreman_proxy,
+            elasticsearch, postgresql, mongod} logfiles.
         """
         logfiles = (
             {

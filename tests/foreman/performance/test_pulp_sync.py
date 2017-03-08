@@ -1,18 +1,18 @@
 """Test class for concurrent Synchronization
 
-@Requirement: Pulp sync
+:Requirement: Pulp sync
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: OTHER
+:CaseComponent: OTHER
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 
@@ -99,24 +99,25 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
     def test_concurrent_synchronization(self):
         """Synchronize two repos concurrently
 
-        @id: ba0e8b76-f24d-433b-b14f-5bc7a7fefd95
+        :id: ba0e8b76-f24d-433b-b14f-5bc7a7fefd95
 
-        @Steps:
+        :Steps:
 
-        1. get list of all enabled repositories (setUpClass)
-        2. sync 2, 3, ..., X repositories as consecutive test cases
-        3. for each test case, delegate synchronization to
-            ``robottelo.tests.kick_off_sync_test``
-        4. in each test case, get the max timing value on each iteration
-            and store into max-timing-dict. For example, for 2-repo
-            test case, it sync 2 repositories and repeat 3 three times
-                     1       2       3
-            repo-1   21.48   13.87   33.16
-            repo-2   95.33   81.77   21.69
+            1. get list of all enabled repositories (setUpClass)
+            2. sync 2, 3, ..., X repositories as consecutive test cases
+            3. for each test case, delegate synchronization to
+                ``robottelo.tests.kick_off_sync_test``
+            4. in each test case, get the max timing value on each iteration
+                and store into max-timing-dict. For example, for 2-repo
+                test case, it sync 2 repositories and repeat 3 three times::
 
-            Then it would extract the max only and return the dictionary:
-            ``{2: [95.33, 81.77, 33.16]}``. Repeat from 2-repo test case
-            to 10-repo case.
+                             1       2       3
+                    repo-1   21.48   13.87   33.16
+                    repo-2   95.33   81.77   21.69
+
+                Then it would extract the max only and return the dictionary:
+                ``{2: [95.33, 81.77, 33.16]}``. Repeat from 2-repo test case
+                to 10-repo case.
         """
         total_max_timing = {}
         for current_num_threads in range(2, self.max_num_tests + 1):
@@ -228,16 +229,16 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
     def test_sequential_synchronization(self):
         """Synchronize two repos sequentially
 
-        @id: 78ec0c73-d29e-4b11-b58d-7de473b16f61
+        :id: 78ec0c73-d29e-4b11-b58d-7de473b16f61
 
-        @Steps:
+        :Steps:
 
-        1. get list of all enabled repositories (setUpClass)
-        2. Synchronize from the first to last repo sequentially
-        3. produce result of timing, delegated to
-           ``robottelo.tests.kick_off_sync_test``
+            1. get list of all enabled repositories (setUpClass)
+            2. Synchronize from the first to last repo sequentially
+            3. produce result of timing, delegated to
+               ``robottelo.tests.kick_off_sync_test``
 
-        @Assert: Target repositories are enabled
+        :Assert: Target repositories are enabled
         """
         time_result_dict_sync = Pulp.repositories_sequential_sync(
             self.repo_names_list,

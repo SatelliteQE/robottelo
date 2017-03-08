@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Repository UI
 
-@Requirement: Repository
+:Requirement: Repository
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 import time
@@ -130,9 +130,9 @@ class RepositoryTestCase(UITestCase):
         """Create repository with different names and minimal input
         parameters
 
-        @id: 3713c811-ea80-43ce-a753-344d1dcb7486
+        :id: 3713c811-ea80-43ce-a753-344d1dcb7486
 
-        @Assert: Repository is created successfully
+        :Assert: Repository is created successfully
         """
         prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -152,11 +152,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_in_different_orgs(self):
         """Create repository in two different orgs with same name
 
-        @id: 019c2242-8802-4bae-82c5-accf8f793dbc
+        :id: 019c2242-8802-4bae-82c5-accf8f793dbc
 
-        @Assert: Repository is created successfully for both organizations
+        :Assert: Repository is created successfully for both organizations
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org_2 = entities.Organization(name=gen_string('alpha')).create()
         product_1 = entities.Product(organization=self.session_org).create()
@@ -186,12 +186,12 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_puppet_repo_same_url_different_orgs(self):
         """Create two repos with the same URL in two different organizations.
 
-        @id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
+        :id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
 
-        @Assert: Repositories are created and puppet modules are visible from
-        different organizations.
+        :Assert: Repositories are created and puppet modules are visible from
+            different organizations.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         url = 'https://omaciel.fedorapeople.org/f4cb00ed/'
         # Create first repository
@@ -232,9 +232,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_repo_with_checksum(self):
         """Create repository with checksum type as sha256.
 
-        @id: 06f37bb3-b0cf-4f1f-ae12-df13a6a7eaab
+        :id: 06f37bb3-b0cf-4f1f-ae12-df13a6a7eaab
 
-        @Assert: Repository is created with expected checksum type.
+        :Assert: Repository is created with expected checksum type.
         """
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
@@ -258,9 +258,9 @@ class RepositoryTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create repository with invalid names
 
-        @id: 385d0222-6466-4bc0-9686-b215f41e4274
+        :id: 385d0222-6466-4bc0-9686-b215f41e4274
 
-        @Assert: Repository is not created
+        :Assert: Repository is not created
         """
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
@@ -283,9 +283,9 @@ class RepositoryTestCase(UITestCase):
     def test_negative_create_with_same_names(self):
         """Try to create two repositories with same name
 
-        @id: f9515a61-0c5e-4767-9fc9-b17d440418d8
+        :id: f9515a61-0c5e-4767-9fc9-b17d440418d8
 
-        @Assert: Repository is not created
+        :Assert: Repository is not created
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.session_org).create()
@@ -312,9 +312,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_url(self):
         """Update content repository with new URL
 
-        @id: cb864338-9d18-4e18-a2ee-37f22e7036b8
+        :id: cb864338-9d18-4e18-a2ee-37f22e7036b8
 
-        @Assert: Repository is updated with expected url value
+        :Assert: Repository is updated with expected url value
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -341,9 +341,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_gpg(self):
         """Update content repository with new gpg-key
 
-        @id: 51da6572-02d0-43d7-96cc-895b5bebfadb
+        :id: 51da6572-02d0-43d7-96cc-895b5bebfadb
 
-        @Assert: Repository is updated with new gpg key
+        :Assert: Repository is updated with new gpg key
         """
         repo_name = gen_string('alphanumeric')
         key_1_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -381,9 +381,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_checksum_type(self):
         """Update content repository with new checksum type
 
-        @id: eed4e77d-baa2-42c2-9774-f1bed52efe39
+        :id: eed4e77d-baa2-42c2-9774-f1bed52efe39
 
-        @Assert: Repository is updated with expected checksum type.
+        :Assert: Repository is updated with expected checksum type.
         """
         repo_name = gen_string('alphanumeric')
         checksum_default = CHECKSUM_TYPE['default']
@@ -412,9 +412,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_delete(self):
         """Create content repository and then remove it
 
-        @id: 9edc93b1-d4e5-453e-b4ee-0731df491397
+        :id: 9edc93b1-d4e5-453e-b4ee-0731df491397
 
-        @Assert: Repository is deleted successfully
+        :Assert: Repository is deleted successfully
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -436,26 +436,27 @@ class RepositoryTestCase(UITestCase):
     def test_negative_delete_puppet_repo_associated_with_cv(self):
         """Delete a puppet repo associated with a content view - BZ#1271000
 
-        @id: 72639e14-4089-4f40-bad7-e18021ad376f
+        :id: 72639e14-4089-4f40-bad7-e18021ad376f
 
-        @Steps:
+        :Steps:
 
-        1. Create a new product
-        2. Create a new puppet repo, no sync source
-        3. Upload a puppet module (say ntpd) to repo
-        4. Create a CV, go to add puppet modules page
-        5. Add latest version of the puppet module from Step 3
-        6. View puppet repo details, it should show "Latest (Currently X.Y.Z)"
-        7. Go back to product, drill down into repo and delete the puppet
-        module from Step 3
-        8. Go back to same CV puppet module details page
+            1. Create a new product
+            2. Create a new puppet repo, no sync source
+            3. Upload a puppet module (say ntpd) to repo
+            4. Create a CV, go to add puppet modules page
+            5. Add latest version of the puppet module from Step 3
+            6. View puppet repo details, it should show "Latest (Currently
+                X.Y.Z)"
+            7. Go back to product, drill down into repo and delete the puppet
+                module from Step 3
+            8. Go back to same CV puppet module details page
 
-        @Assert: Proper error message saying that the puppet module version is
-        not found
+        :Assert: Proper error message saying that the puppet module version is
+            not found
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -463,11 +464,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_discover_repo_via_existing_product(self):
         """Create repository via repo-discovery under existing product
 
-        @id: 9181950c-a756-456f-a46a-059e7a2add3c
+        :id: 9181950c-a756-456f-a46a-059e7a2add3c
 
-        @Assert: Repository is discovered and created
+        :Assert: Repository is discovered and created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         discovered_urls = 'fakerepo01/'
         product = entities.Product(organization=self.session_org).create()
@@ -485,11 +486,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_discover_repo_via_new_product(self):
         """Create repository via repo discovery under new product
 
-        @id: dc5281f8-1a8a-4a17-b746-728f344a1504
+        :id: dc5281f8-1a8a-4a17-b746-728f344a1504
 
-        @Assert: Repository is discovered and created
+        :Assert: Repository is discovered and created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product_name = gen_string('alpha')
         discovered_urls = 'fakerepo01/'
@@ -510,11 +511,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_sync_custom_repo_yum(self):
         """Create Custom yum repos and sync it via the repos page.
 
-        @id: afa218f4-e97a-4240-a82a-e69538d837a1
+        :id: afa218f4-e97a-4240-a82a-e69538d837a1
 
-        @Assert: Sync procedure for specific yum repository is successful
+        :Assert: Sync procedure for specific yum repository is successful
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -539,11 +540,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_sync_custom_repo_puppet(self):
         """Create Custom puppet repos and sync it via the repos page.
 
-        @id: 135176cc-7664-41ee-8c41-b77e193f2f22
+        :id: 135176cc-7664-41ee-8c41-b77e193f2f22
 
-        @Assert: Sync procedure for specific puppet repository is successful
+        :Assert: Sync procedure for specific puppet repository is successful
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
@@ -570,11 +571,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_sync_custom_repo_docker(self):
         """Create Custom docker repos and sync it via the repos page.
 
-        @id: 942e0b4f-3524-4f00-812d-bdad306f81de
+        :id: 942e0b4f-3524-4f00-812d-bdad306f81de
 
-        @Assert: Sync procedure for specific docker repository is successful
+        :Assert: Sync procedure for specific docker repository is successful
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
@@ -600,13 +601,13 @@ class RepositoryTestCase(UITestCase):
         """Check that repository content is resynced after packages were
         removed from repository
 
-        @id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
+        :id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
 
-        @Assert: Repository has updated non-zero package count
+        :Assert: Repository has updated non-zero package count
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1318004
+        :BZ: 1318004
         """
         with Session(self.browser) as session:
             repo = entities.Repository(
@@ -644,13 +645,13 @@ class RepositoryTestCase(UITestCase):
         """Check that repository content is resynced after packages were
         removed from repository
 
-        @id: c82dfe9d-aa1c-4922-ab3f-5d66ba8375c5
+        :id: c82dfe9d-aa1c-4922-ab3f-5d66ba8375c5
 
-        @Assert: Repository has updated non-zero package count
+        :Assert: Repository has updated non-zero package count
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1318004
+        :BZ: 1318004
         """
         with Session(self.browser) as session:
             repo = entities.Repository(
@@ -689,9 +690,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_custom_ostree_repo(self):
         """Create Custom ostree repository.
 
-        @id: 852cccdc-7289-4d2f-b23a-7caad2dfa195
+        :id: 852cccdc-7289-4d2f-b23a-7caad2dfa195
 
-        @Assert: Create custom ostree repository should be successful
+        :Assert: Create custom ostree repository should be successful
         """
         prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -714,9 +715,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_delete_custom_ostree_repo(self):
         """Delete custom ostree repository.
 
-        @id: 87dcb236-4eb4-4897-9c2a-be1d0f4bc3e7
+        :id: 87dcb236-4eb4-4897-9c2a-be1d0f4bc3e7
 
-        @Assert: Delete custom ostree repository should be successful
+        :Assert: Delete custom ostree repository should be successful
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -740,11 +741,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_custom_ostree_repo_name(self):
         """Update custom ostree repository name.
 
-        @id: 098ee88f-6cdb-45e0-850a-e1b71662f7ab
+        :id: 098ee88f-6cdb-45e0-850a-e1b71662f7ab
 
-        @Steps: Update repo name
+        :Steps: Update repo name
 
-        @Assert: ostree repo name should be updated successfully
+        :Assert: ostree repo name should be updated successfully
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -772,11 +773,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_custom_ostree_repo_url(self):
         """Update custom ostree repository url.
 
-        @id: dfd392f9-6f1d-4d87-a43b-ced40606b8c2
+        :id: dfd392f9-6f1d-4d87-a43b-ced40606b8c2
 
-        @Steps: Update ostree repo URL
+        :Steps: Update ostree repo URL
 
-        @Assert: ostree repo URL should be updated successfully
+        :Assert: ostree repo URL should be updated successfully
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -808,9 +809,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_download_policy_displayed_for_yum_repos(self):
         """Verify that YUM repositories can be created with download policy
 
-        @id: 8037a68b-66b8-4b42-a80b-fb08495f948d
+        :id: 8037a68b-66b8-4b42-a80b-fb08495f948d
 
-        @Assert: Dropdown for download policy is displayed for yum repo
+        :Assert: Dropdown for download policy is displayed for yum repo
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
@@ -828,9 +829,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
-        @id: 8099fb98-963d-4370-bf51-6807f5efd6d3
+        :id: 8099fb98-963d-4370-bf51-6807f5efd6d3
 
-        @Assert: YUM repository with a download policy is created
+        :Assert: YUM repository with a download policy is created
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -850,9 +851,9 @@ class RepositoryTestCase(UITestCase):
         """Verify if the default download policy is assigned when creating
         a YUM repo without `download_policy` field
 
-        @id: ee7637fe-3864-4b2f-a153-14312658d75a
+        :id: ee7637fe-3864-4b2f-a153-14312658d75a
 
-        @Assert: YUM repository with a default download policy
+        :Assert: YUM repository with a default download policy
         """
         repo_name = gen_string('alphanumeric')
         default_dl_policy = entities.Setting().search(
@@ -888,9 +889,9 @@ class RepositoryTestCase(UITestCase):
         """Update `immediate` download policy to `on_demand` for a newly
         created YUM repository
 
-        @id: 4aa4d914-74f3-4c2e-9e8a-6e1b7fdb34ea
+        :id: 4aa4d914-74f3-4c2e-9e8a-6e1b7fdb34ea
 
-        @Assert: immediate download policy is updated to on_demand
+        :Assert: immediate download policy is updated to on_demand
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -908,9 +909,9 @@ class RepositoryTestCase(UITestCase):
         """Update `immediate` download policy to `background` for a newly
         created YUM repository
 
-        @id: d61bf6b6-6485-4d3a-816a-b533e96deb69
+        :id: d61bf6b6-6485-4d3a-816a-b533e96deb69
 
-        @Assert: immediate download policy is updated to background
+        :Assert: immediate download policy is updated to background
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -928,9 +929,9 @@ class RepositoryTestCase(UITestCase):
         """Update `on_demand` download policy to `immediate` for a newly
         created YUM repository
 
-        @id: 51cac66d-05a4-47da-adb5-d2909725457e
+        :id: 51cac66d-05a4-47da-adb5-d2909725457e
 
-        @Assert: on_demand download policy is updated to immediate
+        :Assert: on_demand download policy is updated to immediate
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
@@ -948,9 +949,9 @@ class RepositoryTestCase(UITestCase):
         """Update `on_demand` download policy to `background` for a newly
         created YUM repository
 
-        @id: 25b5ba4e-a1cf-41c2-8ca8-4fa3153570f8
+        :id: 25b5ba4e-a1cf-41c2-8ca8-4fa3153570f8
 
-        @Assert: on_demand download policy is updated to background
+        :Assert: on_demand download policy is updated to background
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
@@ -968,9 +969,9 @@ class RepositoryTestCase(UITestCase):
         """Update `background` download policy to `immediate` for a newly
         created YUM repository
 
-        @id: 7a6efe70-8edb-4fa8-b2a4-93762d6e4bc5
+        :id: 7a6efe70-8edb-4fa8-b2a4-93762d6e4bc5
 
-        @Assert: background download policy is updated to immediate
+        :Assert: background download policy is updated to immediate
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
@@ -988,9 +989,9 @@ class RepositoryTestCase(UITestCase):
         """Update `background` download policy to `on_demand` for a newly
         created YUM repository
 
-        @id: d36b96b1-6e09-455e-82e7-36a23f8c6c06
+        :id: d36b96b1-6e09-455e-82e7-36a23f8c6c06
 
-        @Assert: background download policy is updated to on_demand
+        :Assert: background download policy is updated to on_demand
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
@@ -1008,9 +1009,9 @@ class RepositoryTestCase(UITestCase):
         """Verify that YUM repository cannot be created with invalid download
         policy
 
-        @id: dded6dda-3576-4485-8f3c-bb7c091e7ff2
+        :id: dded6dda-3576-4485-8f3c-bb7c091e7ff2
 
-        @Assert: YUM repository is not created with invalid download policy
+        :Assert: YUM repository is not created with invalid download policy
         """
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1030,9 +1031,9 @@ class RepositoryTestCase(UITestCase):
         """Verify that YUM repository cannot be updated to invalid download
         policy
 
-        @id: e6c725f2-172e-49f6-ae92-c56af8a1200b
+        :id: e6c725f2-172e-49f6-ae92-c56af8a1200b
 
-        @Assert: YUM repository is not updated to invalid download policy
+        :Assert: YUM repository is not updated to invalid download policy
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -1051,9 +1052,9 @@ class RepositoryTestCase(UITestCase):
         """Verify that non-YUM repositories cannot be created with download
         policy
 
-        @id: 47d55251-5f89-443d-b980-a441da34e205
+        :id: 47d55251-5f89-443d-b980-a441da34e205
 
-        @Assert: Dropdown for download policy is not displayed for non-yum repo
+        :Assert: Dropdown for download policy is not displayed for non-yum repo
         """
         os_version = get_host_os_version()
         # ostree is not supported for rhel6 so the following check
@@ -1087,11 +1088,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_srpm_sync(self):
         """Synchronize repository with SRPMs
 
-        @id: 1967a540-a265-4046-b87b-627524b63688
+        :id: 1967a540-a265-4046-b87b-627524b63688
 
-        @Assert: srpms can be listed in repository
+        :Assert: srpms can be listed in repository
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -1126,11 +1127,11 @@ class RepositoryTestCase(UITestCase):
         """Synchronize repository with SRPMs, add repository to content view
         and publish content view
 
-        @id: 2a57cbde-c616-440d-8bcb-6e18bd2d5c5f
+        :id: 2a57cbde-c616-440d-8bcb-6e18bd2d5c5f
 
-        @Assert: srpms can be listed in content view
+        :Assert: srpms can be listed in content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -1176,12 +1177,12 @@ class RepositoryTestCase(UITestCase):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
 
-        @id: 4563d1c1-cdce-4838-a67f-c0a5d4e996a6
+        :id: 4563d1c1-cdce-4838-a67f-c0a5d4e996a6
 
-        @Assert: srpms can be listed in content view in proper lifecycle
-        environment
+        :Assert: srpms can be listed in content view in proper lifecycle
+            environment
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(
             organization=self.session_org).create()
@@ -1232,11 +1233,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_drpm_sync(self):
         """Synchronize repository with DRPMs
 
-        @id: 5e703d9a-ea26-4062-9d5c-d31bfbe87417
+        :id: 5e703d9a-ea26-4062-9d5c-d31bfbe87417
 
-        @Assert: drpms can be listed in repository
+        :Assert: drpms can be listed in repository
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -1271,11 +1272,11 @@ class RepositoryTestCase(UITestCase):
         """Synchronize repository with DRPMs, add repository to content view
         and publish content view
 
-        @id: cffa862c-f972-4aa4-96b2-5a4513cb3eef
+        :id: cffa862c-f972-4aa4-96b2-5a4513cb3eef
 
-        @Assert: drpms can be listed in content view
+        :Assert: drpms can be listed in content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -1321,12 +1322,12 @@ class RepositoryTestCase(UITestCase):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
 
-        @id: e33ee07c-4677-4be8-bd53-73689edfda34
+        :id: e33ee07c-4677-4be8-bd53-73689edfda34
 
-        @Assert: drpms can be listed in content view in proper lifecycle
-        environment
+        :Assert: drpms can be listed in content view in proper lifecycle
+            environment
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(
             organization=self.session_org).create()
@@ -1379,10 +1380,10 @@ class RepositoryTestCase(UITestCase):
         Verify that puppet modules list for specific repo is correct
         and does not affected by other repositories.
 
-        @id: 82ef2987-cb71-4164-aee5-4496b974d1bd
+        :id: 82ef2987-cb71-4164-aee5-4496b974d1bd
 
-        @Assert: Number of modules has no changed after a second repo
-        was synced.
+        :Assert: Number of modules has no changed after a second repo was
+            synced.
         """
         with Session(self.browser):
             # Create and sync first repo
@@ -1423,11 +1424,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_reposet_disable(self):
         """Enable RH repo, sync it and then disable
 
-        @id: de596c56-1327-49e8-86d5-a1ab907f26aa
+        :id: de596c56-1327-49e8-86d5-a1ab907f26aa
 
-        @Assert: RH repo was disabled
+        :Assert: RH repo was disabled
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -1456,11 +1457,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_upload_rpm(self):
         """Create yum repository and upload rpm package
 
-        @id: 201d5742-cb1a-4534-ac02-91b5a4669d22
+        :id: 201d5742-cb1a-4534-ac02-91b5a4669d22
 
-        @Assert: Upload is successful and package is listed
+        :Assert: Upload is successful and package is listed
 
-        @BZ: 1394390, 1154384
+        :BZ: 1394390, 1154384
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1491,9 +1492,9 @@ class RepositoryTestCase(UITestCase):
     def test_negative_upload_rpm(self):
         """Create yum repository but upload any content except rpm
 
-        @id: 77a098c2-3f63-4e9f-88b9-f0657b721611
+        :id: 77a098c2-3f63-4e9f-88b9-f0657b721611
 
-        @Assert: Error is raised during upload and file is not listed
+        :Assert: Error is raised during upload and file is not listed
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1514,11 +1515,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_upload_puppet(self):
         """Create puppet repository and upload puppet module
 
-        @id: 2da4ddeb-3d6a-4b77-b44a-190a0c20a4f6
+        :id: 2da4ddeb-3d6a-4b77-b44a-190a0c20a4f6
 
-        @Assert: Upload is successful and module is listed
+        :Assert: Upload is successful and module is listed
 
-        @BZ: 1154384
+        :BZ: 1154384
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1551,9 +1552,9 @@ class RepositoryTestCase(UITestCase):
     def test_negative_upload_puppet(self):
         """Create puppet repository but upload any content except puppet module
 
-        @id: 79ebea29-2c5c-476d-8d1a-54e6b9d49e17
+        :id: 79ebea29-2c5c-476d-8d1a-54e6b9d49e17
 
-        @Assert: Error is raised during upload and file is not listed
+        :Assert: Error is raised during upload and file is not listed
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1576,9 +1577,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_remove_content_rpm(self):
         """Synchronize repository and remove content from it
 
-        @id: 054763e5-b6a8-4f06-a9f7-6819fbc7aba8
+        :id: 054763e5-b6a8-4f06-a9f7-6819fbc7aba8
 
-        @Assert: Content Counts shows zero rpm packages
+        :Assert: Content Counts shows zero rpm packages
         """
         with Session(self.browser) as session:
             repo = entities.Repository(
@@ -1607,9 +1608,9 @@ class RepositoryTestCase(UITestCase):
     def test_positive_remove_content_puppet(self):
         """Synchronize repository and remove content from it
 
-        @id: be178e21-5d64-46d4-8a41-c3f0f62dabe0
+        :id: be178e21-5d64-46d4-8a41-c3f0f62dabe0
 
-        @Assert: Content Counts shows zero puppet modules
+        :Assert: Content Counts shows zero puppet modules
         """
         with Session(self.browser) as session:
             repo = entities.Repository(
@@ -1651,20 +1652,18 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_local_create(self):
         """Create repository with local git puppet mirror.
 
-        @id: b1d3ef84-cf59-4d08-8123-abda3b2086ca
+        :id: b1d3ef84-cf59-4d08-8123-abda3b2086ca
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: Assure local GIT puppet has been created and found by pulp
+        :Setup: Assure local GIT puppet has been created and found by pulp
 
-        @Steps:
+        :Steps: Create link to local puppet mirror
 
-        1.  Create link to local puppet mirror
+        :Assert: Content source containing local GIT puppet mirror content is
+            created
 
-        @Assert: Content source containing local GIT puppet mirror content
-        is created
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1672,20 +1671,18 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_local_update(self):
         """Update repository with local git puppet mirror.
 
-        @id: d8b32e52-ee3e-4c99-b47f-8726ece6ab94
+        :id: d8b32e52-ee3e-4c99-b47f-8726ece6ab94
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: Assure local GIT puppet has been created and found by pulp
+        :Setup: Assure local GIT puppet has been created and found by pulp
 
-        @Steps:
+        :Steps: Modify details for existing puppet repo (name, etc.)
 
-        1.  Modify details for existing puppet repo (name, etc.)
+        :Assert: Content source containing local GIT puppet mirror content is
+            modified
 
-        @Assert: Content source containing local GIT puppet mirror content
-        is modified
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1693,20 +1690,18 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_local_delete(self):
         """Delete repository with local git puppet mirror.
 
-        @id: 45b02a5d-0536-4a89-8222-3584a69363ea
+        :id: 45b02a5d-0536-4a89-8222-3584a69363ea
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: Assure local GIT puppet has been created and found by pulp
+        :Setup: Assure local GIT puppet has been created and found by pulp
 
-        @Steps:
+        :Steps: Delete link to local puppet mirror
 
-        1.  Delete link to local puppet mirror
+        :Assert: Content source containing local GIT puppet mirror content no
+            longer exists/is available.
 
-        @Assert: Content source containing local GIT puppet mirror content
-        no longer exists/is available.
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1714,20 +1709,18 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_remote_create(self):
         """Create repository with remote git puppet mirror.
 
-        @id: 50d90ae5-9c3d-4ec7-bdd8-9c418d56e167
+        :id: 50d90ae5-9c3d-4ec7-bdd8-9c418d56e167
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: Assure remote GIT puppet has been created and found by pulp
+        :Setup: Assure remote GIT puppet has been created and found by pulp
 
-        @Steps:
+        :Steps: Create link to local puppet mirror
 
-        1.  Create link to local puppet mirror
+        :Assert: Content source containing remote GIT puppet mirror content is
+            created
 
-        @Assert: Content source containing remote GIT puppet mirror content
-        is created
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1735,20 +1728,18 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_remote_update(self):
         """Update repository with remote git puppet mirror.
 
-        @id: df53b612-eadb-411a-abf0-07eae3ae1059
+        :id: df53b612-eadb-411a-abf0-07eae3ae1059
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: Assure remote  GIT puppet has been created and found by pulp
+        :Setup: Assure remote  GIT puppet has been created and found by pulp
 
-        @Steps:
+        :Steps: modify details for existing puppet repo (name, etc.)
 
-        1.  modify details for existing puppet repo (name, etc.)
+        :Assert: Content source containing remote GIT puppet mirror content is
+            modified
 
-        @Assert: Content source containing remote GIT puppet mirror content
-        is modified
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1756,42 +1747,40 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_remote_delete(self):
         """Delete repository with remote git puppet mirror.
 
-        @id: 3971f330-2b91-44cb-89e4-350002ef0ee8
+        :id: 3971f330-2b91-44cb-89e4-350002ef0ee8
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: Assure remote GIT puppet has been created and found by pulp
+        :Setup: Assure remote GIT puppet has been created and found by pulp
 
-        @Steps:
+        :Steps: Delete link to remote puppet mirror
 
-        1.  Delete link to remote puppet mirror
+        :Assert: Content source containing remote GIT puppet mirror content no
+            longer exists/is available.
 
-        @Assert: Content source containing remote GIT puppet mirror content
-        no longer exists/is available.
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
     @tier2
     def test_positive_git_sync(self):
         """Sync repository with git puppet mirror.
-        @id: f46fa078-81d3-492b-86e9-c11fa97fae0b
 
-        @CaseLevel: Integration
+        :id: f46fa078-81d3-492b-86e9-c11fa97fae0b
 
-        @Setup: git mirror (local or remote) exists as a content source
+        :CaseLevel: Integration
 
-        @Steps:
+        :Setup: git mirror (local or remote) exists as a content source
 
-        1.  Attempt to sync content from mirror
+        :Steps: Attempt to sync content from mirror
 
-        @Assert: Content is pulled down without error
+        :Assert:
 
-        @Assert: Confirmation that various resources actually exist in
-        local content repo
+            1. Content is pulled down without error
+            2. Confirmation that various resources actually exist in local
+                content repo
 
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1801,25 +1790,26 @@ class GitPuppetMirrorTestCase(UITestCase):
         If module changes in GIT mirror but the version in manifest
         does not change, content still pulled.
 
-        @id: 7b0484c2-df0a-46e8-95a7-1535435e6079
+        :id: 7b0484c2-df0a-46e8-95a7-1535435e6079
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: Assure remote GIT puppet has been created and found by pulp
+        :Setup: Assure remote GIT puppet has been created and found by pulp
 
-        @Steps:
+        :Steps:
 
-        1.  Sync a git repo and observe the contents/checksum etc. of an
-            existing puppet module
-        2.  Assure a puppet module in git repo has changed but the manifest
-            version for this module does not change.
-        3.  Using pulp script, update repo mirror and re-sync within satellite
-        4.  View contents/details of same puppet module
+            1.  Sync a git repo and observe the contents/checksum etc. of an
+                existing puppet module
+            2.  Assure a puppet module in git repo has changed but the manifest
+                version for this module does not change.
+            3.  Using pulp script, update repo mirror and re-sync within
+                satellite
+            4.  View contents/details of same puppet module
 
-        @Assert: Puppet module has been updated in our content, even though
-        the module's version number has not changed.
+        :Assert: Puppet module has been updated in our content, even though the
+            module's version number has not changed.
 
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1827,19 +1817,17 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_sync_schedule(self):
         """Scheduled sync of git puppet mirror.
 
-        @id: 1e15e4ad-35e8-493f-84f5-47ad180d2a7a
+        :id: 1e15e4ad-35e8-493f-84f5-47ad180d2a7a
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: git mirror (local or remote) exists as a content source
+        :Setup: git mirror (local or remote) exists as a content source
 
-        @Steps:
+        :Steps: Attempt to create a scheduled sync content from mirror
 
-        1.  Attempt to create a scheduled sync content from mirror
+        :Assert: Content is pulled down without error  on expected schedule
 
-        @Assert: Content is pulled down without error  on expected schedule
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """
 
     @stubbed()
@@ -1847,18 +1835,16 @@ class GitPuppetMirrorTestCase(UITestCase):
     def test_positive_git_view_content(self):
         """View content in synced git puppet mirror
 
-        @id: bb536b1b-13f6-448d-b1b2-44e2fdf93b5f
+        :id: bb536b1b-13f6-448d-b1b2-44e2fdf93b5f
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @Setup: git mirror (local or remote) exists as a content source
+        :Setup: git mirror (local or remote) exists as a content source
 
-        @Steps:
+        :Steps: Attempt to list contents of repo
 
-        1.  Attempt to list contents of repo
+        :Assert: Spot-checked items (filenames, dates, perhaps checksums?) are
+            correct.
 
-        @Assert: Spot-checked items (filenames, dates, perhaps checksums?)
-        are correct.
-
-        @CaseAutomation: notautomated
+        :CaseAutomation: notautomated
         """

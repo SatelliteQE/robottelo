@@ -1,18 +1,18 @@
 """API Tests for the errata management feature
 
-@Requirement: Errata
+:Requirement: Errata
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 # For ease of use hc refers to host-collection throughout this document
@@ -174,17 +174,15 @@ class ErrataTestCase(APITestCase):
     def test_positive_install_in_hc(self):
         """Install errata in a host-collection
 
-        @id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
+        :id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: PUT /api/v2/hosts/bulk/update_content
 
-        1. PUT /api/v2/hosts/bulk/update_content
+        :Assert: errata is installed in the host-collection.
 
-        @Assert: errata is installed in the host-collection.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
                 distro=DISTRO_RHEL7) as client2:
@@ -214,17 +212,15 @@ class ErrataTestCase(APITestCase):
     def test_positive_install_in_host(self):
         """Install errata in a host
 
-        @id: 1e6fc159-b0d6-436f-b945-2a5731c46df5
+        :id: 1e6fc159-b0d6-436f-b945-2a5731c46df5
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: PUT /api/v2/hosts/:id/errata/apply
 
-        1. PUT /api/v2/hosts/:id/errata/apply
+        :Assert: errata is installed in the host.
 
-        @Assert: errata is installed in the host.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
@@ -244,16 +240,16 @@ class ErrataTestCase(APITestCase):
     def test_positive_list(self):
         """View all errata specific to repository
 
-        @id: 1efceabf-9821-4804-bacf-2213ac0c7550
+        :id: 1efceabf-9821-4804-bacf-2213ac0c7550
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps: Create two repositories each synced and containing errata
+        :Steps: Create two repositories each synced and containing errata
 
-        @Assert: Check that the errata belonging to one repo is not showing in
-        the other.
+        :Assert: Check that the errata belonging to one repo is not showing in
+            the other.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo1 = entities.Repository(
             id=self.custom_entities['repository-id']).read()
@@ -283,17 +279,15 @@ class ErrataTestCase(APITestCase):
     def test_positive_list_updated(self):
         """View all errata in an Org sorted by Updated
 
-        @id: 560d6584-70bd-4d1b-993a-cc7665a9e600
+        :id: 560d6584-70bd-4d1b-993a-cc7665a9e600
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: GET /katello/api/errata
 
-        1. GET /katello/api/errata
+        :Assert: Errata is filtered by Org and sorted by Updated date.
 
-        @Assert: Errata is filtered by Org and sorted by Updated date.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo = entities.Repository(name=REPOS['rhva6']['name']).search(
                 query={'organization_id': self.org.id})
@@ -321,17 +315,15 @@ class ErrataTestCase(APITestCase):
     def test_positive_filter_by_cve(self):
         """Filter errata by CVE
 
-        @id: a921d4c2-8d3d-4462-ba6c-fbd4b898a3f2
+        :id: a921d4c2-8d3d-4462-ba6c-fbd4b898a3f2
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: GET /katello/api/errata
 
-        1. GET /katello/api/errata
+        :Assert: Errata is filtered by CVE.
 
-        @Assert: Errata is filtered by CVE.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo = entities.Repository(name=REPOS['rhva6']['name']).search(
             query={'organization_id': self.org.id})
@@ -365,17 +357,15 @@ class ErrataTestCase(APITestCase):
     def test_positive_sort_by_issued_date(self):
         """Filter errata by issued date
 
-        @id: 6b4a783a-a7b4-4af4-b9e6-eb2928b7f7c1
+        :id: 6b4a783a-a7b4-4af4-b9e6-eb2928b7f7c1
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: GET /katello/api/errata
 
-        1. GET /katello/api/errata
+        :Assert: Errata is sorted by issued date.
 
-        @Assert: Errata is sorted by issued date.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo = entities.Repository(name=REPOS['rhva6']['name']).search(
             query={'organization_id': self.org.id})
@@ -404,21 +394,20 @@ class ErrataTestCase(APITestCase):
         """Filter applicable errata for a content host by current and
         Library environments
 
-        @id: f41bfcc2-39ee-4ae1-a71f-d2c9288875be
+        :id: f41bfcc2-39ee-4ae1-a71f-d2c9288875be
 
-        @Setup:
+        :Setup:
 
-        1. Make sure multiple environments are present.
-        2. One of Content host's previous environment has additional errata.
+            1. Make sure multiple environments are present.
+            2. One of Content host's previous environment has additional
+               errata.
 
-        @Steps:
+        :Steps: GET /katello/api/errata
 
-        1. GET /katello/api/errata
+        :Assert: The errata for the content host is filtered by current and
+            Library environments.
 
-        @Assert: The errata for the content host is filtered by current and
-        Library environments.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(
@@ -460,20 +449,18 @@ class ErrataTestCase(APITestCase):
     def test_positive_get_count_for_host(self):
         """Available errata count when retrieving Host
 
-        @id: 2f35933f-8026-414e-8f75-7f4ec048faae
+        :id: 2f35933f-8026-414e-8f75-7f4ec048faae
 
-        @Setup:
+        :Setup:
 
-        1. Errata synced on satellite server.
-        2. Some Content hosts present.
+            1. Errata synced on satellite server.
+            2. Some Content hosts present.
 
-        @Steps:
+        :Steps: GET /api/v2/hosts
 
-        1. GET /api/v2/hosts
+        :Assert: The available errata count is retrieved.
 
-        @Assert: The available errata count is retrieved.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(
@@ -541,20 +528,17 @@ class ErrataTestCase(APITestCase):
     def test_positive_get_applicable_for_host(self):
         """Get applicable errata ids for a host
 
-        @id: 51d44d51-eb3f-4ee4-a1df-869629d427ac
+        :id: 51d44d51-eb3f-4ee4-a1df-869629d427ac
 
-        @Setup:
+        :Setup:
+            1. Errata synced on satellite server.
+            2. Some Content hosts present.
 
-        1. Errata synced on satellite server.
-        2. Some Content hosts present.
+        :Steps: GET /api/v2/hosts/:id/errata
 
-        @Steps:
+        :Assert: The available errata is retrieved.
 
-        1. GET /api/v2/hosts/:id/errata
-
-        @Assert: The available errata is retrieved.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(
@@ -632,21 +616,19 @@ class ErrataTestCase(APITestCase):
         """Generate a difference in errata between a set of environments
         for a content view
 
-        @id: 96732506-4a89-408c-8d7e-f30c8d469769
+        :id: 96732506-4a89-408c-8d7e-f30c8d469769
 
-        @Setup:
+        :Setup:
 
-        1. Errata synced on satellite server.
-        2. Multiple environments present.
+            1. Errata synced on satellite server.
+            2. Multiple environments present.
 
-        @Steps:
+        :Steps: GET /katello/api/compare
 
-        1. GET /katello/api/compare
+        :Assert: Difference in errata between a set of environments for a
+            content view is retrieved.
 
-        @Assert: Difference in errata between a set of environments for a
-        content view is retrieved.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(
@@ -700,23 +682,20 @@ class ErrataTestCase(APITestCase):
         """Select multiple errata and apply them to multiple content
         views in multiple environments
 
-        @id: 5d8f6aee-baac-4217-ba34-13adccdf1ca8
+        :id: 5d8f6aee-baac-4217-ba34-13adccdf1ca8
 
-        @Setup:
+        :Setup:
+            1. Errata synced on satellite server.
+            2. Multiple environments/content views present.
 
-        1. Errata synced on satellite server.
-        2. Multiple environments/content views present.
+        :Steps: POST /katello/api/hosts/bulk/available_incremental_updates
 
-        @Steps:
+        :Assert: Selected errata are applied to multiple content views in
+            multiple environments.
 
-        1. POST /katello/api/hosts/bulk/available_incremental_updates
+        :caseautomation: notautomated
 
-        @Assert: Selected errata are applied to multiple content views in
-        multiple environments.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -725,22 +704,19 @@ class ErrataTestCase(APITestCase):
         """Query a subset of environments or content views to push new
         errata
 
-        @id: f6ec8066-36cc-42a8-9a1a-156721e733c3
+        :id: f6ec8066-36cc-42a8-9a1a-156721e733c3
 
-        @Setup:
+        :Setup:
+            1. Errata synced on satellite server.
+            2. Multiple environments/content views present.
 
-        1. Errata synced on satellite server.
-        2. Multiple environments/content views present.
+        :Steps: POST /katello/api/content_view_versions/incremental_update
 
-        @Steps:
+        :Assert: Subset of environments/content views retrieved.
 
-        1. POST /katello/api/content_view_versions/incremental_update
+        :caseautomation: notautomated
 
-        @Assert: Subset of environments/content views retrieved.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -749,20 +725,17 @@ class ErrataTestCase(APITestCase):
         """Select multiple packages and apply them to multiple content
         views in multiple environments
 
-        @id: 61549360-ce99-42a3-8d6b-2cd713f8b556
+        :id: 61549360-ce99-42a3-8d6b-2cd713f8b556
 
-        @Setup:
+        :Setup:
+            1. Errata synced on satellite server.
+            2. Multiple environments/content views present.
 
-        1. Errata synced on satellite server.
-        2. Multiple environments/content views present.
+        :Steps: POST /katello/api/content_view_versions/incremental_update
 
-        @Steps:
+        :Assert: Packages are applied to multiple environments/content views.
 
-        1. POST /katello/api/content_view_versions/incremental_update
+        :caseautomation: notautomated
 
-        @Assert: Packages are applied to multiple environments/content views.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        :CaseLevel: System
         """

@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Operating System CLI
 
-@Requirement: Operatingsystem
+:Requirement: Operatingsystem
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -55,9 +55,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_search_by_name(self):
         """Search for newly created OS by name
 
-        @id: ff9f667c-97ca-49cd-902b-a9b18b5aa021
+        :id: ff9f667c-97ca-49cd-902b-a9b18b5aa021
 
-        @assert: Operating System is created and listed
+        :assert: Operating System is created and listed
         """
         os_list_before = OperatingSys.list()
         os = make_os()
@@ -72,9 +72,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_search_by_title(self):
         """Search for newly created OS by title
 
-        @id: a555e848-f1f2-4326-aac6-9de8ff45abee
+        :id: a555e848-f1f2-4326-aac6-9de8ff45abee
 
-        @assert: Operating System is created and listed
+        :assert: Operating System is created and listed
         """
         os_list_before = OperatingSys.list()
         os = make_os()
@@ -89,9 +89,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_list(self):
         """Displays list for operating system
 
-        @id: fca309c5-edff-4296-a800-55470669935a
+        :id: fca309c5-edff-4296-a800-55470669935a
 
-        @assert: Operating System is created and listed
+        :assert: Operating System is created and listed
         """
         os_list_before = OperatingSys.list()
         name = gen_string('alpha')
@@ -107,9 +107,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_info_by_id(self):
         """Displays info for operating system by its ID
 
-        @id: b8f23b53-439a-4726-9757-164d99d5ed05
+        :id: b8f23b53-439a-4726-9757-164d99d5ed05
 
-        @assert: Operating System is created and can be looked up by its ID
+        :assert: Operating System is created and can be looked up by its ID
         """
         os = make_os()
         os_info = OperatingSys.info({'id': os['id']})
@@ -125,9 +125,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create Operating System for all variations of name
 
-        @id: d36eba9b-ccf6-4c9d-a07f-c74eebada89b
+        :id: d36eba9b-ccf6-4c9d-a07f-c74eebada89b
 
-        @assert: Operating System is created and can be found
+        :assert: Operating System is created and can be found
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -139,9 +139,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_create_with_arch_medium_ptable(self):
         """Create an OS pointing to an arch, medium and partition table.
 
-        @id: 05bdb2c6-0d2e-4141-9e07-3ada3933b577
+        :id: 05bdb2c6-0d2e-4141-9e07-3ada3933b577
 
-        @assert: An operating system is created.
+        :assert: An operating system is created.
         """
         architecture = make_architecture()
         medium = make_medium()
@@ -167,9 +167,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Create Operating System using invalid names
 
-        @id: 848a20ce-292a-47d8-beea-da5916c43f11
+        :id: 848a20ce-292a-47d8-beea-da5916c43f11
 
-        @assert: Operating System is not created
+        :assert: Operating System is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -181,9 +181,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Positive update of operating system name
 
-        @id: 49b655f7-ba9b-4bb9-b09d-0f7140969a40
+        :id: 49b655f7-ba9b-4bb9-b09d-0f7140969a40
 
-        @assert: Operating System name is updated
+        :assert: Operating System name is updated
         """
         os = make_os({'name': gen_alphanumeric()})
         for new_name in valid_data_list():
@@ -201,9 +201,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_update_major_version(self):
         """Update an Operating System's major version.
 
-        @id: 38a89dbe-6d1c-4602-a4c1-664425668de8
+        :id: 38a89dbe-6d1c-4602-a4c1-664425668de8
 
-        @assert: Operating System major version is updated
+        :assert: Operating System major version is updated
         """
         os = make_os()
         # New value for major
@@ -222,9 +222,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Negative update of system name
 
-        @id: 4b18ff6d-7728-4245-a1ce-38e62c05f454
+        :id: 4b18ff6d-7728-4245-a1ce-38e62c05f454
 
-        @assert: Operating System name is not updated
+        :assert: Operating System name is not updated
         """
         os = make_os({'name': gen_alphanumeric()})
         for new_name in invalid_values_list():
@@ -242,9 +242,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Successfully deletes Operating System by its ID
 
-        @id: a67a7b01-081b-42f8-a9ab-1f41166d649e
+        :id: a67a7b01-081b-42f8-a9ab-1f41166d649e
 
-        @assert: Operating System is deleted
+        :assert: Operating System is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -258,9 +258,9 @@ class OperatingSystemTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Delete Operating System using invalid data
 
-        @id: d29a9c95-1fe3-4a7a-9f7b-127be065856d
+        :id: d29a9c95-1fe3-4a7a-9f7b-127be065856d
 
-        @assert: Operating System is not deleted
+        :assert: Operating System is not deleted
         """
         for test_data in negative_delete_data():
             with self.subTest(test_data):
@@ -278,11 +278,11 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_add_arch(self):
         """Add Architecture to operating system
 
-        @id: 99add22d-d936-4232-9441-beff85867040
+        :id: 99add22d-d936-4232-9441-beff85867040
 
-        @assert: Architecture is added to Operating System
+        :assert: Architecture is added to Operating System
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         architecture = make_architecture()
         os = make_os()
@@ -299,11 +299,11 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_add_template(self):
         """Add provisioning template to operating system
 
-        @id: 0ea9eb88-2d27-423d-a9d3-fdd788b4e28a
+        :id: 0ea9eb88-2d27-423d-a9d3-fdd788b4e28a
 
-        @assert: Provisioning template is added to Operating System
+        :assert: Provisioning template is added to Operating System
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         template = make_template()
         os = make_os()
@@ -321,11 +321,11 @@ class OperatingSystemTestCase(CLITestCase):
     def test_positive_add_ptable(self):
         """Add partition table to operating system
 
-        @id: beba676f-b4e4-48e1-bb0c-18ad91847566
+        :id: beba676f-b4e4-48e1-bb0c-18ad91847566
 
-        @assert: Partition table is added to Operating System
+        :assert: Partition table is added to Operating System
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a partition table.
         ptable_name = make_partition_table()['name']

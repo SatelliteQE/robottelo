@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for PuppetModule CLI
 
-@Requirement: Puppetmodule
+:Requirement: Puppetmodule
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.cli.factory import make_org, make_product, make_repository
@@ -49,9 +49,9 @@ class PuppetModuleTestCase(CLITestCase):
         """Check if puppet-module list retrieves puppet-modules of
         the given org
 
-        @id: 77635e70-19e7-424d-9c89-ec5dbe91de75
+        :id: 77635e70-19e7-424d-9c89-ec5dbe91de75
 
-        @Assert: Puppet-modules are retrieved for the given org
+        :Assert: Puppet-modules are retrieved for the given org
         """
         result = PuppetModule.list({'organization-id': self.org['id']})
         # There are 4 puppet modules in the test puppet-module url
@@ -63,9 +63,9 @@ class PuppetModuleTestCase(CLITestCase):
         """Check if puppet-module info retrieves info for the given
         puppet-module id
 
-        @id: 8aaa9243-5e20-49d6-95ce-620cc1ba18dc
+        :id: 8aaa9243-5e20-49d6-95ce-620cc1ba18dc
 
-        @Assert: The puppet-module info is retrieved
+        :Assert: The puppet-module info is retrieved
         """
         return_value = PuppetModule.list({
             'organization-id': self.org['id'],
@@ -83,10 +83,10 @@ class PuppetModuleTestCase(CLITestCase):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.
 
-        @id: f36d25b3-2495-4e89-a1cf-e39d52762d95
+        :id: f36d25b3-2495-4e89-a1cf-e39d52762d95
 
-        @Assert: Number of modules has no changed after a second repo
-        was synced.
+        :Assert: Number of modules has no changed after a second repo was
+            synced.
         """
         # Verify that number of synced modules is correct
         repo1 = Repository.info({'id': self.repo['id']})

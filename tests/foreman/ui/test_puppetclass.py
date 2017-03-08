@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Puppet Classes UI
 
-@Requirement: Puppetclass
+:Requirement: Puppetclass
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from nailgun import entities
@@ -32,9 +32,9 @@ class PuppetClassTestCase(UITestCase):
         """Create new puppet-class and update its description to a valid
         one
 
-        @id: 711fe4de-b62f-48b5-9845-2d8725eb3548
+        :id: 711fe4de-b62f-48b5-9845-2d8725eb3548
 
-        @Assert: Puppet-Classes is updated successfully.
+        :Assert: Puppet-Classes is updated successfully.
         """
         class_name = 'foreman_scap_client'
         param_name = 'ca_file'
@@ -59,9 +59,9 @@ class PuppetClassTestCase(UITestCase):
     def test_positive_delete(self):
         """Create new puppet-class and then delete it
 
-        @id: 0d6e579e-8a7a-46a1-9932-5f345905671d
+        :id: 0d6e579e-8a7a-46a1-9932-5f345905671d
 
-        @Assert: Puppet-Class is deleted successfully.
+        :Assert: Puppet-Class is deleted successfully.
         """
         with Session(self.browser):
             for name in valid_data_list():

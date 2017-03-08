@@ -4,19 +4,19 @@ An API reference is available here:
 http://theforeman.org/api/apidoc/v2/filters.html
 
 
-@Requirement: Filter
+:Requirement: Filter
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -40,9 +40,9 @@ class FilterTestCase(APITestCase):
     def test_positive_create_with_permission(self):
         """Create a filter and assign it some permissions.
 
-        @id: b8631d0a-a71a-41aa-9f9a-d12d62adc496
+        :id: b8631d0a-a71a-41aa-9f9a-d12d62adc496
 
-        @Assert: The created filter has the assigned permissions.
+        :Assert: The created filter has the assigned permissions.
         """
         # Create a filter and assign all ProvisioningTemplate permissions to it
         filter_ = entities.Filter(permission=self.ct_perms).create()
@@ -55,9 +55,9 @@ class FilterTestCase(APITestCase):
     def test_positive_delete(self):
         """Create a filter and delete it afterwards.
 
-        @id: f0c56fd8-c91d-48c3-ad21-f538313b17eb
+        :id: f0c56fd8-c91d-48c3-ad21-f538313b17eb
 
-        @Assert: The deleted filter cannot be fetched.
+        :Assert: The deleted filter cannot be fetched.
         """
         filter_ = entities.Filter(permission=self.ct_perms).create()
         filter_.delete()
@@ -68,9 +68,9 @@ class FilterTestCase(APITestCase):
     def test_positive_delete_role(self):
         """Create a filter and delete the role it points at.
 
-        @id: b129642d-926d-486a-84d9-5952b44ac446
+        :id: b129642d-926d-486a-84d9-5952b44ac446
 
-        @Assert: The filter cannot be fetched.
+        :Assert: The filter cannot be fetched.
         """
         role = entities.Role().create()
         filter_ = entities.Filter(permission=self.ct_perms, role=role).create()

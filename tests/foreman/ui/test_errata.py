@@ -1,18 +1,18 @@
 """UI Tests for the errata management feature
 
-@Requirement: Errata
+:Requirement: Errata
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -113,39 +113,37 @@ class ErrataTestCase(UITestCase):
     def test_positive_sort(self):
         """Sort the columns of Errata page
 
-        @id: 213b8592-ccb5-485d-b5fa-e445b853b20c
+        :id: 213b8592-ccb5-485d-b5fa-e445b853b20c
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps:
 
-        1. Go to Content -> Errata.
-        2. Sort by Errata Id, Title, Type, Affected Content Hosts, Updated.
+            1. Go to Content -> Errata.
+            2. Sort by Errata Id, Title, Type, Affected Content Hosts, Updated.
 
-        @Assert: Errata is sorted by selected column.
+        :Assert: Errata is sorted by selected column.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @tier2
     def test_positive_list(self):
         """View all errata in an Org
 
-        @id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
+        :id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: Create two Orgs each having a product synced which contains
+            errata.
 
-        1. Create two Orgs each having a product synced which contains errata.
+        :Assert: Check that the errata belonging to one Org is not showing in
+            the other.
 
-        @Assert: Check that the errata belonging to one Org is not showing in
-        the other.
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(organization=org).create()
@@ -176,22 +174,21 @@ class ErrataTestCase(UITestCase):
     def test_positive_list_permission(self):
         """Show errata only if the User has permissions to view them
 
-        @id: cdb28f6a-23df-47a2-88ab-cd3b492126b2
+        :id: cdb28f6a-23df-47a2-88ab-cd3b492126b2
 
-        @Setup:
+        :Setup:
 
-        1. Create two products with one repo each. Sync them.
-        2. Make sure that they both have errata.
-        3. Create a user with view access on one product and not on the other.
+            1. Create two products with one repo each. Sync them.
+            2. Make sure that they both have errata.
+            3. Create a user with view access on one product and not on the
+                other.
 
-        @Steps:
+        :Steps: Go to Content -> Errata.
 
-        1. Go to Content -> Errata.
+        :Assert: Check that the new user is able to see errata for one product
+            only.
 
-        @Assert: Check that the new user is able to see errata for one product
-        only.
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         role = entities.Role().create()
         entities.Filter(
@@ -218,19 +215,19 @@ class ErrataTestCase(UITestCase):
     def test_positive_apply_for_host(self):
         """Apply an erratum for selected content hosts
 
-        @id: 442d1c20-bf7e-4e4c-9a48-ab3f4809fa61
+        :id: 442d1c20-bf7e-4e4c-9a48-ab3f4809fa61
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps:
 
-        1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
-        2. Select few Content Hosts and apply the erratum.
+            1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
+            2. Select few Content Hosts and apply the erratum.
 
-        @Assert: Check that the erratum is applied in the selected content
-        hosts.
+        :Assert: Check that the erratum is applied in the selected content
+            hosts.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
@@ -253,18 +250,18 @@ class ErrataTestCase(UITestCase):
     def test_positive_apply_for_all_hosts(self):
         """Apply an erratum for all content hosts
 
-        @id: d70a1bee-67f4-4883-a0b9-2ccc08a91738
+        :id: d70a1bee-67f4-4883-a0b9-2ccc08a91738
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps:
 
-        1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
-        2. Select all Content Hosts and apply the erratum.
+            1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
+            2. Select all Content Hosts and apply the erratum.
 
-        @Assert: Check that the erratum is applied in all the content hosts.
+        :Assert: Check that the erratum is applied in all the content hosts.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
                 distro=DISTRO_RHEL7) as client2:
@@ -294,18 +291,16 @@ class ErrataTestCase(UITestCase):
     def test_positive_view(self):
         """View erratum similar to RH Customer portal
 
-        @id: 7d0814fd-70e8-4451-ac96-c632cae55731
+        :id: 7d0814fd-70e8-4451-ac96-c632cae55731
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: Go to Content -> Errata. Review the Errata page.
 
-        1. Go to Content -> Errata. Review the Errata page.
+        :Assert: The following fields: Errata Id, Title, Type, Affected Content
+            Hosts, Updated has expected values for errata table.
 
-        @Assert: The following fields: Errata Id, Title, Type, Affected Content
-        Hosts, Updated has expected values for errata table.
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser):
             self.errata.validate_table_fields(
@@ -318,19 +313,17 @@ class ErrataTestCase(UITestCase):
     def test_positive_view_details(self):
         """View erratum details similar to RH Customer portal
 
-        @id: c00aeacc-eefb-4371-a0ee-5a68041a16a2
+        :id: c00aeacc-eefb-4371-a0ee-5a68041a16a2
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: Go to Content -> Errata.  Select an Errata -> Details tab.
 
-        1. Go to Content -> Errata.  Select an Errata -> Details tab.
+        :Assert: The following fields are displayed: : Advisory, CVEs, Type,
+            Severity, Issued, Last Update on, Reboot Suggested, Topic,
+            Description, Solution, Affected Packages.
 
-        @Assert: The following fields are displayed: : Advisory, CVEs, Type,
-        Severity, Issued, Last Update on, Reboot Suggested, Topic, Description,
-        Solution, Affected Packages.
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser):
             self.errata.check_errata_details(
@@ -343,17 +336,15 @@ class ErrataTestCase(UITestCase):
     def test_positive_view_products_and_repos(self):
         """View a list of products/repositories for an erratum
 
-        @id: 3023006d-514f-436a-b12b-dc08d9609fa6
+        :id: 3023006d-514f-436a-b12b-dc08d9609fa6
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: Go to Content -> Errata.  Select an Errata -> Repositories tab.
 
-        1. Go to Content -> Errata.  Select an Errata -> Repositories tab.
+        :Assert: The Repositories tab lists affected Products and Repositories.
 
-        @Assert: The Repositories tab lists affected Products and Repositories.
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = entities.Product(
             id=self.custom_entitites['product-id']).read()
@@ -373,21 +364,18 @@ class ErrataTestCase(UITestCase):
     def test_positive_view_cve(self):
         """View CVE number(s) in Errata Details page
 
-        @id: e1c2de13-fed8-448e-b618-c2adb6e82a35
+        :id: e1c2de13-fed8-448e-b618-c2adb6e82a35
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: Go to Content -> Errata.  Select an Errata.
 
-        1. Go to Content -> Errata.  Select an Errata.
+        :Assert:
 
-        @Assert:
+            1. Check if the CVE information is shown in Errata Details page.
+            2. Check if 'N/A' is displayed if CVE information is not present.
 
-        1: Check if the CVE information is shown in Errata Details page.
-
-        2. Check if 'N/A' is displayed if CVE information is not present.
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         real_errata_id = 'RHSA-2014:1873'  # rhva6 errata with CVEs
         real_errata_cves = 'CVE-2014-3633 , CVE-2014-3657 , CVE-2014-7823'
@@ -420,18 +408,16 @@ class ErrataTestCase(UITestCase):
     def test_positive_filter(self):
         """Filter Content hosts by environment
 
-        @id: 578c3a92-c4d8-4933-b122-7ff511c276ec
+        :id: 578c3a92-c4d8-4933-b122-7ff511c276ec
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: Go to Content -> Errata.  Select an Errata -> Content Hosts tab
+            -> Filter content hosts by Environment.
 
-        1. Go to Content -> Errata.  Select an Errata -> Content Hosts tab ->
-        Filter content hosts by Environment.
+        :Assert: Content hosts can be filtered by Environment.
 
-        @Assert: Content hosts can be filtered by Environment.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
                 distro=DISTRO_RHEL7) as client2:
@@ -502,17 +488,15 @@ class ErrataTestCase(UITestCase):
     def test_positive_search_autocomplete(self):
         """Check if autocomplete works in search field of Errata page
 
-        @id: d93941d9-faad-4a31-9815-87dff9132082
+        :id: d93941d9-faad-4a31-9815-87dff9132082
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps: Go to Content -> Errata.
 
-        1. Go to Content -> Errata.
+        :Assert: Check if autocomplete works in search field of Errata page.
 
-        @Assert: Check if autocomplete works in search field of Errata page.
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser):
             self.assertIsNotNone(
@@ -526,29 +510,28 @@ class ErrataTestCase(UITestCase):
         """Check if all the errata searches are redirected to the new
         errata page
 
-        @id: 3de38510-d0d9-447e-8dee-a3aadba1f3c7
+        :id: 3de38510-d0d9-447e-8dee-a3aadba1f3c7
 
-        @Setup: Errata synced on satellite server.
+        :Setup: Errata synced on satellite server.
 
-        @Steps:
+        :Steps:
 
-        1. Go to Content -> Products -> Repositories ->
-        Click on any of the errata hyperlink.
-        2. Go to Content -> Products -> Repositories -> Click on a repository->
-        Click on any of the errata hyperlink.
-        3. Go to Content -> Content Views -> Select a Content View -> Yum
-        Content -> Click on any of the errata hyperlink.
-        4. Go to Content -> Content Views -> Select a Content View -> Yum
-        Content -> Filters -> Select a Filter -> Click on any of the errata
-        hyperlink.
+            1. Go to Content -> Products -> Repositories -> Click on any of the
+                errata hyperlink.
+            2. Go to Content -> Products -> Repositories -> Click on a
+                repository-> Click on any of the errata hyperlink.
+            3. Go to Content -> Content Views -> Select a Content View -> Yum
+                Content -> Click on any of the errata hyperlink.
+            4. Go to Content -> Content Views -> Select a Content View -> Yum
+                Content -> Filters -> Select a Filter -> Click on any of the
+                errata hyperlink.
 
-        @Assert: Check if all the above mentioned scenarios redirect to the new
-        errata page.
+        :Assert: Check if all the above mentioned scenarios redirect to the new
+            errata page.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @tier3
@@ -556,21 +539,19 @@ class ErrataTestCase(UITestCase):
         """Check if the applicable errata are available from the content
         host's previous environment
 
-        @id: 78110ba8-3942-46dd-8c14-bffa1dbd5195
+        :id: 78110ba8-3942-46dd-8c14-bffa1dbd5195
 
-        @Setup:
+        :Setup:
 
-        1. Make sure multiple environments are present.
-        2. Content host's previous environments have additional errata.
+            1. Make sure multiple environments are present.
+            2. Content host's previous environments have additional errata.
 
-        @Steps:
+        :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
+            Select Previous environments.
 
-        1. Go to Content Hosts -> Select content host -> Errata Tab -> Select
-        Previous environments.
+        :Assert: The errata from previous environments are displayed.
 
-        @Assert: The errata from previous environments are displayed.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
                 client.install_katello_ca()
@@ -619,21 +600,19 @@ class ErrataTestCase(UITestCase):
         """Check if the applicable errata are available from the content
         host's Library
 
-        @id: 4e627410-b7b8-471b-b9b4-a18e77fdd3f8
+        :id: 4e627410-b7b8-471b-b9b4-a18e77fdd3f8
 
-        @Setup:
+        :Setup:
 
-        1. Make sure multiple environments are present.
-        2. Content host's Library environment has additional errata.
+            1. Make sure multiple environments are present.
+            2. Content host's Library environment has additional errata.
 
-        @Steps:
+        :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
+            Select 'Library'.
 
-        1. Go to Content Hosts -> Select content host -> Errata Tab -> Select
-        'Library'.
+        :Assert: The errata from Library are displayed.
 
-        @Assert: The errata from Library are displayed.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
@@ -659,27 +638,25 @@ class ErrataTestCase(UITestCase):
     def test_positive_show_count_on_chost_page(self):
         """Available errata count displayed in Content hosts page
 
-        @id: 8575e282-d56e-41dc-80dd-f5f6224417cb
+        :id: 8575e282-d56e-41dc-80dd-f5f6224417cb
 
-        @Setup:
+        :Setup:
 
-        1. Errata synced on satellite server.
-        2. Some content hosts are present.
+            1. Errata synced on satellite server.
+            2. Some content hosts are present.
 
-        @Steps:
+        :Steps: Go to Hosts -> Content Hosts.
 
-        1. Go to Hosts -> Content Hosts.
+        :Assert:
 
-        @Assert:
-
-        1. The available errata count is displayed.
-        2. Errata count is displayed with color icons.
+            1. The available errata count is displayed.
+            2. Errata count is displayed with color icons.
 
            - An errata count of 0 = black
            - If security errata, >0 = red
            - If any other errata, >0 = yellow
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(
@@ -766,25 +743,24 @@ class ErrataTestCase(UITestCase):
     def test_positive_show_count_on_chost_details_page(self):
         """Errata count on Content host Details page
 
-        @id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
+        :id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
 
-        @Setup:
+        :Setup:
 
-        1. Errata synced on satellite server.
-        2. Some content hosts are present.
+            1. Errata synced on satellite server.
+            2. Some content hosts are present.
 
-        @Steps:
+        :Steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details
+            page.
 
-        1. Go to Hosts -> Content Hosts -> Select Content Host -> Details page.
+        :Assert:
 
-        @Assert:
+            1. The errata section should be displayed with Security, Bugfix,
+                Enhancement types.
+            2. The number should link to the errata details page, filtered  by
+                type.
 
-        1. The errata section should be displayed with Security, Bugfix,
-        Enhancement types.
-        2. The number should link to the errata details page, filtered  by
-        type.
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(
@@ -876,28 +852,25 @@ class ErrataTestCase(UITestCase):
         """Update composite content views and environments with new
         point releases
 
-        @id: d30bae6f-e45f-4ba9-9151-32dfa14ed2b8
+        :id: d30bae6f-e45f-4ba9-9151-32dfa14ed2b8
 
-        @Setup:
+        :Setup:
 
-        1. Errata synced on satellite server.
-        2. Composite content views present.
+            1. Errata synced on satellite server.
+            2. Composite content views present.
 
-        @Steps:
+        :Steps: As a user, I would expect updated point releases to update
+            composites with a new point release as well in the respective
+            environments (i.e. if ComponentA gets updated from 1.0 to 1.1, any
+            composite that is using 1.0 will have a new point release bumped
+            and published with the new 1.1 ComponentA and pushed to the
+            environment it was in.
 
-        1. As a user, I would expect updated point releases to update
-        composites with a new point release as well in the respective
-        environments (i.e. if ComponentA gets updated from 1.0 to 1.1, any
-        composite that is using 1.0 will have a new point release bumped and
-        published with the new 1.1 ComponentA and pushed to the environment
-        it was in.
+        :Assert: Composite content views updated with point releases.
 
-        @Assert: Composite content views updated with point releases.
+        :caseautomation: notautomated
 
-        @caseautomation: notautomated
-
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
 
@@ -918,25 +891,26 @@ class FilteredErrataTestCase(UITestCase):
         correspondence to filtered errata and `errata status installable`
         settings flag value
 
-        @id: ed94cf34-b8b9-4411-8edc-5e210ea6af4f
+        :id: ed94cf34-b8b9-4411-8edc-5e210ea6af4f
 
-        @Steps:
+        :Steps:
 
-        1. Prepare setup: Create Lifecycle Environment, Content View,
-        Activation Key and all necessary repos
-        2. Register Content Host using created data
-        3. Create necessary Content View Filter and Rule for repository errata
-        4. Publish and Promote Content View to a new version and remove old
-        ones.
-        5. Go to created Host page and check its properties
-        6. Change 'errata status installable' flag in the settings and check
-        host properties once more
+            1. Prepare setup: Create Lifecycle Environment, Content View,
+                Activation Key and all necessary repos
+            2. Register Content Host using created data
+            3. Create necessary Content View Filter and Rule for repository
+                errata
+            4. Publish and Promote Content View to a new version and remove old
+                ones.
+            5. Go to created Host page and check its properties
+            6. Change 'errata status installable' flag in the settings and
+                check host properties once more
 
-        @Assert: Check that 'errata status installable' flag works as intended
+        :Assert: Check that 'errata status installable' flag works as intended
 
-        @BZ: 1368254
+        :BZ: 1368254
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         env = entities.LifecycleEnvironment(
             organization=self.session_org).create()

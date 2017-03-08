@@ -1,18 +1,18 @@
 """Unit tests for the ``activation_keys`` paths.
 
-@Requirement: Activationkey
+:Requirement: Activationkey
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
@@ -58,10 +58,10 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_create_unlimited_hosts(self):
         """Create a plain vanilla activation key.
 
-        @id: 1d73b8cc-a754-4637-8bae-d9d2aaf89003
+        :id: 1d73b8cc-a754-4637-8bae-d9d2aaf89003
 
-        @Assert: Check that activation key is created and its "unlimited_hosts"
-        attribute defaults to true.
+        :Assert: Check that activation key is created and its "unlimited_hosts"
+            attribute defaults to true.
         """
         self.assertTrue(
             entities.ActivationKey().create().unlimited_hosts
@@ -71,10 +71,10 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_create_limited_hosts(self):
         """Create an activation key with limited hosts.
 
-        @id: 9bbba620-fd98-4139-a44b-af8ce330c7a4
+        :id: 9bbba620-fd98-4139-a44b-af8ce330c7a4
 
-        @Assert: Check that activation key is created and that hosts number
-        is limited
+        :Assert: Check that activation key is created and that hosts number is
+            limited
         """
         for max_host in _good_max_hosts():
             with self.subTest(max_host):
@@ -87,9 +87,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create an activation key providing the initial name.
 
-        @id: 749e0d28-640e-41e5-89d6-b92411ce73a3
+        :id: 749e0d28-640e-41e5-89d6-b92411ce73a3
 
-        @Assert: Activation key is created and contains provided name.
+        :Assert: Activation key is created and contains provided name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -100,9 +100,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create an activation key and provide a description.
 
-        @id: 64d93726-6f96-4a2e-ab29-eb5bfa2ff8ff
+        :id: 64d93726-6f96-4a2e-ab29-eb5bfa2ff8ff
 
-        @Assert: Created entity contains the provided description.
+        :Assert: Created entity contains the provided description.
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -113,9 +113,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_negative_create_with_no_host_limit(self):
         """Create activation key without providing limitation for hosts number
 
-        @id: a9e756e1-886d-4f0d-b685-36ce4247517d
+        :id: a9e756e1-886d-4f0d-b685-36ce4247517d
 
-        @Assert: Activation key is not created
+        :Assert: Activation key is not created
         """
         with self.assertRaises(HTTPError):
             entities.ActivationKey(unlimited_hosts=False).create()
@@ -124,9 +124,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_negative_create_with_invalid_host_limit(self):
         """Create activation key with invalid limit values for hosts number.
 
-        @id: c018b177-2074-4f1a-a7e0-9f38d6c9a1a6
+        :id: c018b177-2074-4f1a-a7e0-9f38d6c9a1a6
 
-        @Assert: Activation key is not created
+        :Assert: Activation key is not created
         """
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
@@ -140,9 +140,9 @@ class ActivationKeyTestCase(APITestCase):
         """Create activation key with unlimited hosts and set max hosts of
         varied values.
 
-        @id: 71b9b000-b978-4a95-b6f8-83c09ed39c01
+        :id: 71b9b000-b978-4a95-b6f8-83c09ed39c01
 
-        @Assert: Activation key is not created
+        :Assert: Activation key is not created
         """
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
@@ -154,9 +154,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create activation key providing an invalid name.
 
-        @id: 5f7051be-0320-4d37-9085-6904025ad909
+        :id: 5f7051be-0320-4d37-9085-6904025ad909
 
-        @Assert: Activation key is not created
+        :Assert: Activation key is not created
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -167,9 +167,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_update_limited_host(self):
         """Create activation key then update it to limited hosts.
 
-        @id: 34ca8303-8135-4694-9cf7-b20f8b4b0a1e
+        :id: 34ca8303-8135-4694-9cf7-b20f8b4b0a1e
 
-        @Assert: Activation key is created, updated to limited host
+        :Assert: Activation key is created, updated to limited host
         """
         # unlimited_hosts defaults to True.
         act_key = entities.ActivationKey().create()
@@ -187,9 +187,9 @@ class ActivationKeyTestCase(APITestCase):
         """Create activation key providing the initial name, then update
         its name to another valid name.
 
-        @id: f219f2dc-8759-43ab-a277-fbabede6795e
+        :id: f219f2dc-8759-43ab-a277-fbabede6795e
 
-        @Assert: Activation key is created, and its name can be updated.
+        :Assert: Activation key is created, and its name can be updated.
         """
         act_key = entities.ActivationKey().create()
         for new_name in valid_data_list():
@@ -202,13 +202,13 @@ class ActivationKeyTestCase(APITestCase):
     def test_negative_update_limit(self):
         """Create activation key then update its limit to invalid value.
 
-        @id: 0f857d2f-81ed-4b8b-b26e-34b4f294edbc
+        :id: 0f857d2f-81ed-4b8b-b26e-34b4f294edbc
 
-        @Assert:
+        :Assert:
 
-        1. Activation key is created
-        2. Update fails
-        3. Record is not changed
+            1. Activation key is created
+            2. Update fails
+            3. Record is not changed
         """
         act_key = entities.ActivationKey().create()
         want = {
@@ -229,9 +229,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_negative_update_name(self):
         """Create activation key then update its name to an invalid name.
 
-        @id: da85a32c-942b-4ab8-a133-36b028208c4d
+        :id: da85a32c-942b-4ab8-a133-36b028208c4d
 
-        @Assert: Activation key is created, and its name is not updated.
+        :Assert: Activation key is created, and its name is not updated.
         """
         act_key = entities.ActivationKey().create()
         for new_name in invalid_names_list():
@@ -248,9 +248,9 @@ class ActivationKeyTestCase(APITestCase):
         """Create an activation key with ``max_hosts == 1``, then update that
         field with a string value.
 
-        @id: 3bcff792-105a-4577-b7c2-5b0de4f79c77
+        :id: 3bcff792-105a-4577-b7c2-5b0de4f79c77
 
-        @Assert: The update fails with an HTTP 422 return code.
+        :Assert: The update fails with an HTTP 422 return code.
         """
         act_key = entities.ActivationKey(max_hosts=1).create()
         with self.assertRaises(HTTPError):
@@ -262,11 +262,11 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_get_releases_status_code(self):
         """Get an activation key's releases. Check response format.
 
-        @id: e1ea4797-8d92-4bec-ae6b-7a26599825ab
+        :id: e1ea4797-8d92-4bec-ae6b-7a26599825ab
 
-        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+        :Assert: HTTP 200 is returned with an ``application/json`` content-type
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         act_key = entities.ActivationKey().create()
         path = act_key.path('releases')
@@ -283,11 +283,11 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_get_releases_content(self):
         """Get an activation key's releases. Check response contents.
 
-        @id: 2fec3d71-33e9-40e5-b934-90b03afc26a1
+        :id: 2fec3d71-33e9-40e5-b934-90b03afc26a1
 
-        @Assert: A list of results is returned.
+        :Assert: A list of results is returned.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         act_key = entities.ActivationKey().create()
         response = client.get(
@@ -302,17 +302,17 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_add_host_collections(self):
         """Associate an activation key with several host collections.
 
-        @id: 1538808c-621e-4cf9-9b9b-840c5dd54644
+        :id: 1538808c-621e-4cf9-9b9b-840c5dd54644
 
-        @Assert:
+        :Assert:
 
-        1. By default, an activation key is associated with no host
-           collections.
-        2. After associating an activation key with some set of host
-           collections and reading that activation key, the correct host
-           collections are listed.
+            1. By default, an activation key is associated with no host
+               collections.
+            2. After associating an activation key with some set of host
+               collections and reading that activation key, the correct host
+               collections are listed.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()  # re-use this to speed up test
 
@@ -338,17 +338,18 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_remove_host_collection(self):
         """Disassociate host collection from the activation key
 
-        @id: 31992ac4-fe55-45bb-bd17-a191928ec2ab
+        :id: 31992ac4-fe55-45bb-bd17-a191928ec2ab
 
-        @Assert:
+        :Assert:
 
-        1. By default, an activation key is associated with no host
-           collections.
-        2. Associating host collection with activation key add it to the list.
-        3. Disassociating host collection from the activation key actually
-           removes it from the list
+            1. By default, an activation key is associated with no host
+               collections.
+            2. Associating host collection with activation key add it to the
+               list.
+            3. Disassociating host collection from the activation key actually
+               removes it from the list
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
 
@@ -375,9 +376,9 @@ class ActivationKeyTestCase(APITestCase):
         """Create an activation key, then update the auto_attach
         field with the inverse boolean value.
 
-        @id: ec225dad-2d27-4b37-989d-1ba2c7f74ac4
+        :id: ec225dad-2d27-4b37-989d-1ba2c7f74ac4
 
-        @Assert: The value is changed.
+        :Assert: The value is changed.
         """
         act_key = entities.ActivationKey().create()
         act_key_2 = entities.ActivationKey(
@@ -390,9 +391,9 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_delete(self):
         """Create activation key and then delete it.
 
-        @id: aa28d8fb-e07d-45fa-b43a-fc90c706d633
+        :id: aa28d8fb-e07d-45fa-b43a-fc90c706d633
 
-        @Assert: Activation key is successfully deleted.
+        :Assert: Activation key is successfully deleted.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -406,11 +407,11 @@ class ActivationKeyTestCase(APITestCase):
         """Delete any user who has previously created an activation key
         and check that activation key still exists
 
-        @id: 02ce92d4-8f49-48a0-bf9e-5d401f84cf46
+        :id: 02ce92d4-8f49-48a0-bf9e-5d401f84cf46
 
-        @Assert: Activation Key can be read
+        :Assert: Activation Key can be read
 
-        @BZ: 1291271
+        :BZ: 1291271
         """
         password = gen_string('alpha')
         user = entities.User(
@@ -433,14 +434,14 @@ class ActivationKeyTestCase(APITestCase):
     def test_positive_fetch_product_content(self):
         """Associate RH & custom product with AK and fetch AK's product content
 
-        @id: 424f3dfb-0112-464b-b633-e8c9bce6e0f1
+        :id: 424f3dfb-0112-464b-b633-e8c9bce6e0f1
 
-        @Assert: Both Red Hat and custom product subscriptions are assigned as
-        Activation Key's product content
+        :Assert: Both Red Hat and custom product subscriptions are assigned as
+            Activation Key's product content
 
-        @BZ: 1360239
+        :BZ: 1360239
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -498,9 +499,9 @@ class ActivationKeySearchTestCase(APITestCase):
     def test_positive_search_by_org(self):
         """Search for all activation keys in an organization.
 
-        @id: aedba598-2e47-44a8-826c-4dc304ba00be
+        :id: aedba598-2e47-44a8-826c-4dc304ba00be
 
-        @Assert: Only activation keys in the organization are returned.
+        :Assert: Only activation keys in the organization are returned.
         """
         act_keys = entities.ActivationKey(organization=self.org).search()
         self.assertEqual(len(act_keys), 1)

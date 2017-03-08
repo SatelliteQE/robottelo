@@ -7,10 +7,14 @@ Submodules:
 
     tests.foreman.api
     tests.foreman.cli
-    tests.foreman.performance
     tests.foreman.endtoend
+    tests.foreman.installer
+    tests.foreman.longrun
+    tests.foreman.performance
+    tests.foreman.rhai
     tests.foreman.rhci
-    tests.foreman.ui
     tests.foreman.sys
+    tests.foreman.ui
+    tests.foreman.upgrade
 
 .. automodule:: tests.foreman

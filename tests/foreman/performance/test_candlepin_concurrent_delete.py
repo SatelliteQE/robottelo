@@ -1,18 +1,18 @@
 """Test class for concurrent subscription deletion
 
-@Requirement: Candlepin concurrent delete
+:Requirement: Candlepin concurrent delete
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: OTHER
+:CaseComponent: OTHER
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo import ssh
 from robottelo.performance.constants import (
@@ -55,85 +55,79 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
     def test_delete_sequential(self):
         """Delete subscriptions using 1 thread
 
-        @id: 19909194-23a4-4ac4-95c0-e8e107cd95b0
+        :id: 19909194-23a4-4ac4-95c0-e8e107cd95b0
 
-        @Steps:
+        :Steps:
 
-        1. get list of all registered systems' uuid
-        2. create result dictionary
-        3. create thread names
-        4. run by only one thread as deleting sequentially
-        5. produce result of timing
+            1. get list of all registered systems' uuid
+            2. create result dictionary
+            3. create thread names
+            4. run by only one thread as deleting sequentially
+            5. produce result of timing
 
-        @Assert: Restoring from database would have 5k registered systems.
-
+        :Assert: Restoring from database would have 5k registered systems.
         """
         self.kick_off_del_test(self.num_threads[0])
 
     def test_delete_2_clients(self):
         """Delete subscriptions concurrently using 2 threads
 
-        @id: 3691eff7-2482-474a-8efb-0e5275a8ca4c
+        :id: 3691eff7-2482-474a-8efb-0e5275a8ca4c
 
-        @Steps:
+        :Steps:
 
-        1. get list of all registered systems' uuid
-        2. create result dictionary
-        3. create a list of thread names
-        4. concurrent run by multiple threads;
-           each thread delete only a sublist of uuids
-        5. produce result of timing
+            1. get list of all registered systems' uuid
+            2. create result dictionary
+            3. create a list of thread names
+            4. concurrent run by multiple threads; each thread delete only a
+               sublist of uuids
+            5. produce result of timing
 
-        @Assert: Restoring from database would have 5k registered systems.
-
+        :Assert: Restoring from database would have 5k registered systems.
         """
         self.kick_off_del_test(self.num_threads[1])
 
     def test_delete_4_clients(self):
         """Delete subscriptions concurrently using 4 threads
 
-        @id: 7c68ab12-503d-4aa6-b9fe-0ac44c9a72f2
+        :id: 7c68ab12-503d-4aa6-b9fe-0ac44c9a72f2
 
-        @Assert: Restoring from database would have 5k registered systems.
-
+        :Assert: Restoring from database would have 5k registered systems.
         """
         self.kick_off_del_test(self.num_threads[2])
 
     def test_delete_6_clients(self):
         """Delete subscriptions concurrently using 6 threads
 
-        @id: 7a9dddf3-cc0f-4f27-8f8e-329af6eb85a0
+        :id: 7a9dddf3-cc0f-4f27-8f8e-329af6eb85a0
 
-        @Assert: Restoring from database would have 5k registered systems.
-
+        :Assert: Restoring from database would have 5k registered systems.
         """
         self.kick_off_del_test(self.num_threads[3])
 
     def test_delete_8_clients(self):
         """Delete subscriptions concurrently using 8 threads
 
-        @id: 7ce2c9d3-2eda-4f71-b360-d5f7219d524f
+        :id: 7ce2c9d3-2eda-4f71-b360-d5f7219d524f
 
-        @Assert: Restoring from database would have 5k registered systems.
-
+        :Assert: Restoring from database would have 5k registered systems.
         """
         self.kick_off_del_test(self.num_threads[4])
 
     def test_delete_10_clients(self):
         """Delete subscriptions concurrently using 10 virtual machines
 
-        @id: edd74cec-30e3-435a-b604-42c21963b5a3
+        :id: edd74cec-30e3-435a-b604-42c21963b5a3
 
-        @Steps:
+        :Steps:
 
-        1. get list of all registered systems' uuid
-        2. create result dictionary
-        3. create a list of thread names
-        4. concurrent run by multiple threads;
-           each thread delete only a sublist of uuids
-        5. produce result of timing
+            1. get list of all registered systems' uuid
+            2. create result dictionary
+            3. create a list of thread names
+            4. concurrent run by multiple threads; each thread delete only a
+               sublist of uuids
+            5. produce result of timing
 
-        @Assert: Restoring from database would have 5k registered systems.
-
+        :Assert: Restoring from database would have 5k registered systems.
         """
         self.kick_off_del_test(self.num_threads[5])

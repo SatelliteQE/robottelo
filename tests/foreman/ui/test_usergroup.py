@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for UserGroup UI
 
-@Requirement: Usergroup
+:Requirement: Usergroup
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -37,9 +37,9 @@ class UserGroupTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new Usergroup using different names
 
-        @id: 43e70c8d-455e-4da8-9c69-ab80dae2a0bc
+        :id: 43e70c8d-455e-4da8-9c69-ab80dae2a0bc
 
-        @Assert: Usergroup is created successfully
+        :Assert: Usergroup is created successfully
         """
         user_name = gen_string('alpha')
         # Create a new user
@@ -63,9 +63,9 @@ class UserGroupTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create a new UserGroup with invalid names
 
-        @id: 2c67dcd6-89b7-4a04-8528-d1f1f2c4530d
+        :id: 2c67dcd6-89b7-4a04-8528-d1f1f2c4530d
 
-        @Assert: Usergroup is not created
+        :Assert: Usergroup is not created
         """
         with Session(self.browser) as session:
             for group_name in invalid_names_list():
@@ -80,9 +80,9 @@ class UserGroupTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create a new UserGroup with same name
 
-        @id: 5dafa0d4-e2a2-4ac0-926d-fa57d56bbe0b
+        :id: 5dafa0d4-e2a2-4ac0-926d-fa57d56bbe0b
 
-        @Assert: Usergroup cannot be created with existing name
+        :Assert: Usergroup cannot be created with existing name
         """
         group_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -98,9 +98,9 @@ class UserGroupTestCase(UITestCase):
     def test_positive_delete_empty(self):
         """Delete an empty Usergroup
 
-        @id: ca82f84b-bc5a-4f7d-b70d-9ee3e1b0fffa
+        :id: ca82f84b-bc5a-4f7d-b70d-9ee3e1b0fffa
 
-        @Assert: Usergroup is deleted
+        :Assert: Usergroup is deleted
         """
         with Session(self.browser) as session:
             for group_name in generate_strings_list():
@@ -113,11 +113,11 @@ class UserGroupTestCase(UITestCase):
     def test_positive_delete_with_user(self):
         """Delete an Usergroup that contains a user
 
-        @id: 2bda3db5-f54f-412f-831f-8e005631f271
+        :id: 2bda3db5-f54f-412f-831f-8e005631f271
 
-        @Assert: Usergroup is deleted but not the added user
+        :Assert: Usergroup is deleted but not the added user
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_name = gen_string('alpha')
         group_name = gen_string('utf8')
@@ -142,9 +142,9 @@ class UserGroupTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update usergroup with new name
 
-        @id: 2f49ab7c-2f11-48c0-99c2-448fc86b5ad2
+        :id: 2f49ab7c-2f11-48c0-99c2-448fc86b5ad2
 
-        @Assert: Usergroup is updated
+        :Assert: Usergroup is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -160,9 +160,9 @@ class UserGroupTestCase(UITestCase):
     def test_positive_update_user(self):
         """Update usergroup with new user
 
-        @id: 5fdb1c36-196d-4ba5-898d-40f484b81090
+        :id: 5fdb1c36-196d-4ba5-898d-40f484b81090
 
-        @Assert: Usergroup is updated
+        :Assert: Usergroup is updated
         """
         name = gen_string('alpha')
         user_name = gen_string('alpha')

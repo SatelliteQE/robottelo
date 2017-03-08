@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """API Tests for foreman discovery feature
 
-@Requirement: Discoveryrule
+:Requirement: Discoveryrule
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
@@ -63,9 +63,9 @@ class DiscoveryRuleTestCase(APITestCase):
 
         Set query as (e.g CPU_Count = 1)
 
-        @id: b8ae7a80-b9a8-4924-808c-482a2b4102c4
+        :id: b8ae7a80-b9a8-4924-808c-482a2b4102c4
 
-        @Assert: Rule should be created with given name and query
+        :Assert: Rule should be created with given name and query
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -82,9 +82,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_create_with_org_loc(self):
         """Create discovery rule by associating org and location
 
-        @id: 121e0a30-8a24-47d7-974d-998886ed1ea7
+        :id: 121e0a30-8a24-47d7-974d-998886ed1ea7
 
-        @Assert: Rule was created and with given org & location.
+        :Assert: Rule was created and with given org & location.
         """
         org = entities.Organization().create()
         loc = entities.Location().create()
@@ -103,9 +103,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete a discovery rule
 
-        @id: 9fdba953-dcc7-4532-9204-17a45b0d9e05
+        :id: 9fdba953-dcc7-4532-9204-17a45b0d9e05
 
-        @Assert: Rule should be deleted successfully
+        :Assert: Rule should be deleted successfully
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -119,9 +119,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_negative_create_with_too_long_name(self):
         """Create a discovery rule with more than 255 char in name
 
-        @id: 415379b7-0134-40b9-adb1-2fe0adb1ac36
+        :id: 415379b7-0134-40b9-adb1-2fe0adb1ac36
 
-        @Assert: Validation error should be raised
+        :Assert: Validation error should be raised
         """
         for name in (
                 gen_string(str_type, 256)
@@ -135,9 +135,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_negative_create_with_invalid_host_limit(self):
         """Create a discovery rule with invalid host limit
 
-        @id: 84503d8d-86f6-49bf-ab97-eff418d3e3d0
+        :id: 84503d8d-86f6-49bf-ab97-eff418d3e3d0
 
-        @Assert: Validation error should be raised
+        :Assert: Validation error should be raised
         """
         self.discovery_rule.max_count = gen_string('alpha')
         with self.assertRaises(HTTPError):
@@ -147,9 +147,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_negative_create_with_invalid_priority(self):
         """Create a discovery rule with invalid priority
 
-        @id: 4ec7d76a-22ba-4c3e-952c-667a6f0a5728
+        :id: 4ec7d76a-22ba-4c3e-952c-667a6f0a5728
 
-        @Assert: Validation error should be raised
+        :Assert: Validation error should be raised
         """
         self.discovery_rule.priority = gen_string('alpha')
         with self.assertRaises(HTTPError):
@@ -160,9 +160,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update an existing discovery rule name
 
-        @id: 769c0739-538b-4451-af7b-deb2ecd3dc0d
+        :id: 769c0739-538b-4451-af7b-deb2ecd3dc0d
 
-        @Assert: User should be able to update the rule
+        :Assert: User should be able to update the rule
         """
         discovery_rule = self.discovery_rule.create()
         for name in valid_data_list():
@@ -176,9 +176,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_org_loc(self):
         """Update org and location of selected discovery rule
 
-        @id: 0f8ec302-f9de-4713-87b7-0f1aca515149
+        :id: 0f8ec302-f9de-4713-87b7-0f1aca515149
 
-        @Assert: Rule was updated and with given org & location.
+        :Assert: Rule was updated and with given org & location.
         """
         org = entities.Organization().create()
         loc = entities.Location().create()
@@ -199,9 +199,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_search_rule(self):
         """Update an existing discovery search rule
 
-        @id: 2c5ecb7e-87bc-4980-9620-7ae00e3f360e
+        :id: 2c5ecb7e-87bc-4980-9620-7ae00e3f360e
 
-        @Assert: User should be able to update the rule
+        :Assert: User should be able to update the rule
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.search_ = 'Location = Default_Location'
@@ -214,9 +214,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_host_limit(self):
         """Update an existing rule with valid host limit.
 
-        @id: 33084060-2866-46b9-bfab-23d91aea73d8
+        :id: 33084060-2866-46b9-bfab-23d91aea73d8
 
-        @Assert: User should be able to update the rule
+        :Assert: User should be able to update the rule
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.max_count = gen_integer(1, 100)
@@ -229,9 +229,9 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_disable(self):
         """Disable an existing enabled discovery rule.
 
-        @id: 330aa943-167b-46dd-b434-1a6e5fe8f283
+        :id: 330aa943-167b-46dd-b434-1a6e5fe8f283
 
-        @Assert: User should be able to update the rule
+        :Assert: User should be able to update the rule
         """
         discovery_rule = self.discovery_rule.create()
         self.assertEqual(discovery_rule.enabled, True)
@@ -245,11 +245,11 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_rule_hostgroup(self):
         """Update host group of an existing rule.
 
-        @id: dcf15e83-c529-462a-b5da-fd45bb457fde
+        :id: dcf15e83-c529-462a-b5da-fd45bb457fde
 
-        @Assert: User should be able to update the rule
+        :Assert: User should be able to update the rule
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.hostgroup = entities.HostGroup().create()

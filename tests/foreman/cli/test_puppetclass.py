@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Puppet Classes CLI
 
-@Requirement: Puppetclass
+:Requirement: Puppetclass
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.cli.environment import Environment
@@ -57,9 +57,9 @@ class PuppetClassTestCase(CLITestCase):
     def test_positive_list_smart_class_parameters(self):
         """List smart class parameters associated with the puppet class.
 
-        @id: 56b370c2-8fc6-49be-9676-242178cc709a
+        :id: 56b370c2-8fc6-49be-9676-242178cc709a
 
-        @assert: Smart class parameters listed for the class.
+        :assert: Smart class parameters listed for the class.
         """
         class_sc_parameters = Puppet.sc_params({
             u'puppet-class': self.puppet['name']})
@@ -70,9 +70,9 @@ class PuppetClassTestCase(CLITestCase):
     def test_positive_list_smart_variables(self):
         """List smart variables associated with the puppet class.
 
-        @id: cb2b41c0-29cc-4c0b-a7c8-38403d6dda5b
+        :id: cb2b41c0-29cc-4c0b-a7c8-38403d6dda5b
 
-        @assert: Smart variables listed for the class.
+        :assert: Smart variables listed for the class.
         """
         make_smart_variable({'puppet-class': self.puppet['name']})
         class_smart_variables = Puppet.smart_variables({

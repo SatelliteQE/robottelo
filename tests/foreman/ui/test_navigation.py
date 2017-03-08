@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Navigation UI
 
-@Requirement: Navigation
+:Requirement: Navigation
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.decorators import skip_if_bug_open, tier1
@@ -78,9 +78,9 @@ class NavigationTestCase(UITestCase):
     def test_positive_navigate(self):
         """Navigate through application pages
 
-        @id: da8b1242-364e-44ec-8a17-dd5d8047a386
+        :id: da8b1242-364e-44ec-8a17-dd5d8047a386
 
-        @Assert: Page is opened without errors
+        :Assert: Page is opened without errors
         """
         with Session(self.browser) as session:
             for page in self.page_objects().values():
@@ -97,12 +97,12 @@ class NavigationTestCase(UITestCase):
         """Check that we can be redirected from current page using application
         logo in the top left section of the screen
 
-        @id: 9f05ac85-3b0f-4220-b2b4-a9fd050f3dc0
+        :id: 9f05ac85-3b0f-4220-b2b4-a9fd050f3dc0
 
-        @BZ: 1394974
+        :BZ: 1394974
 
-        @Assert: No error is raised after redirection and logo is still present
-        on the page
+        :Assert: No error is raised after redirection and logo is still present
+            on the page
         """
         with Session(self.browser) as session:
             pages = self.page_objects()

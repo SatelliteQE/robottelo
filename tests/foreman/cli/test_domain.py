@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Domain  CLI
 
-@Requirement: Domain
+:Requirement: Domain
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -129,9 +129,9 @@ class DomainTestCase(CLITestCase):
     def test_positive_create_with_name_description(self):
         """Create domain with valid name and description
 
-        @id: 018740bf-1551-4162-b88e-4d4905af097b
+        :id: 018740bf-1551-4162-b88e-4d4905af097b
 
-        @Assert: Domain successfully created
+        :Assert: Domain successfully created
 
         """
         for options in valid_create_params():
@@ -146,9 +146,9 @@ class DomainTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Check if domain with location can be created
 
-        @id: 033cc37d-0189-4b88-94cf-97a96839197a
+        :id: 033cc37d-0189-4b88-94cf-97a96839197a
 
-        @Assert: Domain is created and has new location assigned
+        :Assert: Domain is created and has new location assigned
 
         """
         location = make_location()
@@ -160,9 +160,9 @@ class DomainTestCase(CLITestCase):
     def test_positive_create_with_org(self):
         """Check if domain with organization can be created
 
-        @id: f4dfef1b-9b2a-49b8-ade5-031da29e7f6a
+        :id: f4dfef1b-9b2a-49b8-ade5-031da29e7f6a
 
-        @Assert: Domain is created and has new organization assigned
+        :Assert: Domain is created and has new organization assigned
 
         """
         org = make_org()
@@ -174,9 +174,9 @@ class DomainTestCase(CLITestCase):
     def test_negative_create(self):
         """Create domain with invalid values
 
-        @id: 6d3aec19-75dc-41ca-89af-fef0ca37082d
+        :id: 6d3aec19-75dc-41ca-89af-fef0ca37082d
 
-        @Assert: Domain is not created
+        :Assert: Domain is not created
 
         """
         for options in invalid_create_params():
@@ -189,9 +189,9 @@ class DomainTestCase(CLITestCase):
     def test_positive_update(self):
         """Update domain with valid values
 
-        @id: 9da3cc96-c146-4f82-bb25-b237a367ba91
+        :id: 9da3cc96-c146-4f82-bb25-b237a367ba91
 
-        @Assert: Domain is updated
+        :Assert: Domain is updated
 
         """
         domain = make_domain({
@@ -211,9 +211,9 @@ class DomainTestCase(CLITestCase):
     def test_negative_update(self):
         """Update domain with invalid values
 
-        @id: 9fc708dc-20f9-4d7c-af53-863826462981
+        :id: 9fc708dc-20f9-4d7c-af53-863826462981
 
-        @Assert: Domain is not updated
+        :Assert: Domain is not updated
 
         """
         domain = make_domain()
@@ -231,9 +231,9 @@ class DomainTestCase(CLITestCase):
     def test_positive_set_parameter(self):
         """Domain set-parameter with valid key and value
 
-        @id: 62fea9f7-95e2-47f7-bf4b-415ea6fd72f8
+        :id: 62fea9f7-95e2-47f7-bf4b-415ea6fd72f8
 
-        @Assert: Domain parameter is set
+        :Assert: Domain parameter is set
 
         """
         for options in valid_set_params():
@@ -253,9 +253,9 @@ class DomainTestCase(CLITestCase):
     def test_negative_set_parameter(self):
         """Domain set-parameter with invalid values
 
-        @id: 991fb849-83be-48f4-a12b-81eabb2bd8d3
+        :id: 991fb849-83be-48f4-a12b-81eabb2bd8d3
 
-        @Assert: Domain parameter is not set
+        :Assert: Domain parameter is not set
 
         """
         domain = make_domain()
@@ -275,9 +275,9 @@ class DomainTestCase(CLITestCase):
         """Create Domain with valid values then delete it
         by ID
 
-        @id: b50a5daa-67f8-4ecd-8e03-2a3c492d3c25
+        :id: b50a5daa-67f8-4ecd-8e03-2a3c492d3c25
 
-        @assert: Domain is deleted
+        :assert: Domain is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -291,9 +291,9 @@ class DomainTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Create Domain then delete it by wrong ID
 
-        @id: 0e4ef107-f006-4433-abc3-f872613e0b91
+        :id: 0e4ef107-f006-4433-abc3-f872613e0b91
 
-        @assert: Domain is not deleted
+        :assert: Domain is not deleted
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -305,9 +305,9 @@ class DomainTestCase(CLITestCase):
     def test_positive_delete_parameter(self):
         """Domain delete-parameter removes parameter
 
-        @id: 481afe1c-0b9e-435f-a581-159d9619291c
+        :id: 481afe1c-0b9e-435f-a581-159d9619291c
 
-        @Assert: Domain parameter is removed
+        :Assert: Domain parameter is removed
 
         """
         for options in valid_delete_params():

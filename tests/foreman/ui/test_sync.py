@@ -1,18 +1,18 @@
 """Test class for Custom Sync UI
 
-@Requirement: Sync
+:Requirement: Sync
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -63,9 +63,9 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_custom_repo(self):
         """Create Content Custom Sync with minimal input parameters
 
-        @id: 00fb0b04-0293-42c2-92fa-930c75acee89
+        :id: 00fb0b04-0293-42c2-92fa-930c75acee89
 
-        @Assert: Sync procedure is successful
+        :Assert: Sync procedure is successful
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -92,11 +92,11 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_rh_repos(self):
         """Create Content RedHat Sync with two repos.
 
-        @id: e30f6509-0b65-4bcc-a522-b4f3089d3911
+        :id: e30f6509-0b65-4bcc-a522-b4f3089d3911
 
-        @Assert: Sync procedure for RedHat Repos is successful
+        :Assert: Sync procedure for RedHat Repos is successful
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repos = self.sync.create_repos_tree(RHCT)
         with manifests.clone() as manifest:
@@ -114,28 +114,29 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_disconnected_to_connected_rh_repos(self):
         """Migrating from disconnected to connected satellite.
 
-        @id: 03b3d904-1697-441b-bb12-8b353a556218
+        :id: 03b3d904-1697-441b-bb12-8b353a556218
 
-        @Steps:
-        1. Update the link to an internal http link where the content has been
-           extracted from ISO's.
-        2. Import a valid manifest.
-        3. Enable few RedHat repos and Sync them.
-        4. Now let's revert back the link to CDN's default link which is,
-           'https://cdn.redhat.com'.
-        5. Now Navigate to the 'Sync Page' and resync the repos synced earlier.
+        :Steps:
+            1. Update the link to an internal http link where the content has
+                been extracted from ISO's.
+            2. Import a valid manifest.
+            3. Enable few RedHat repos and Sync them.
+            4. Now let's revert back the link to CDN's default link which is,
+                'https://cdn.redhat.com'.
+            5. Now Navigate to the 'Sync Page' and resync the repos synced
+                earlier.
 
-        @Assert:
-        1. Syncing should work fine without any issues.
-        2. Only the deltas are re-downloaded and not the entire repo.
-           [ Could be an exception when 7Server was earlier pointing to 7.1
-             and current 7Server points to latest 7.2]
-        3. After reverting the link the repos should not be seen in
-           'Others Tab' and should be seen only in 'RPM's Tab'.
+        :Assert:
+            1. Syncing should work fine without any issues.
+            2. Only the deltas are re-downloaded and not the entire repo.  [
+                Could be an exception when 7Server was earlier pointing to 7.1
+                and current 7Server points to latest 7.2]
+            3. After reverting the link the repos should not be seen in 'Others
+                Tab' and should be seen only in 'RPM's Tab'.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -144,11 +145,11 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_custom_ostree_repo(self):
         """Create custom ostree repository and sync it.
 
-        @id: e4119b9b-0356-4661-a3ec-e5807224f7d2
+        :id: e4119b9b-0356-4661-a3ec-e5807224f7d2
 
-        @Assert: ostree repo should be synced successfully
+        :Assert: ostree repo should be synced successfully
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         prod = entities.Product(organization=self.organization).create()
         repo_name = gen_string('alpha')
@@ -174,15 +175,15 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_rh_ostree_repo(self):
         """Sync CDN based ostree repository .
 
-        @id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
+        :id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
 
-        @Steps:
-        1. Import a valid manifest
-        2. Enable the OStree repo and sync it
+        :Steps:
+            1. Import a valid manifest
+            2. Enable the OStree repo and sync it
 
-        @Assert: ostree repo should be synced successfully from CDN
+        :Assert: ostree repo should be synced successfully from CDN
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repos = self.sync.create_repos_tree(ATOMIC_HOST_TREE)
         org = entities.Organization().create()

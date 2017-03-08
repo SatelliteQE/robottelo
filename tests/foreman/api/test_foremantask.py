@@ -1,18 +1,18 @@
 """Unit tests for the ``foreman_tasks/api/v2/tasks`` paths.
 
-@Requirement: Foremantask
+:Requirement: Foremantask
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -28,9 +28,9 @@ class ForemanTaskTestCase(APITestCase):
     def test_negative_fetch_non_existent_task(self):
         """Fetch a non-existent task.
 
-        @id: a2a81ca2-63c4-47f5-9314-5852f5e2617f
+        :id: a2a81ca2-63c4-47f5-9314-5852f5e2617f
 
-        @Assert: An HTTP 4XX or 5XX message is returned.
+        :Assert: An HTTP 4XX or 5XX message is returned.
         """
         with self.assertRaises(HTTPError):
             entities.ForemanTask(id='abc123').read()
@@ -40,9 +40,9 @@ class ForemanTaskTestCase(APITestCase):
     def test_positive_get_summary(self):
         """Get a summary of foreman tasks.
 
-        @id: bdcab413-a25d-4fe1-9db4-b50b5c31ebce
+        :id: bdcab413-a25d-4fe1-9db4-b50b5c31ebce
 
-        @Assert: A list of dicts is returned.
+        :Assert: A list of dicts is returned.
         """
         summary = entities.ForemanTask().summary()
         self.assertIsInstance(summary, list)

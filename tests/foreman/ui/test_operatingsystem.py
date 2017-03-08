@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Operating System UI
 
-@Requirement: Operatingsystem
+:Requirement: Operatingsystem
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -74,9 +74,9 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new OS using different string types as a name
 
-        @id: 08cb212e-586f-4630-af1b-ad3e749e82e7
+        :id: 08cb212e-586f-4630-af1b-ad3e749e82e7
 
-        @Assert: OS is created
+        :Assert: OS is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -96,9 +96,9 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_create(self):
         """Create a new OS with different data values
 
-        @id: fcb41aff-c963-403b-a80f-5f9c467d0632
+        :id: fcb41aff-c963-403b-a80f-5f9c467d0632
 
-        @Assert: OS is created
+        :Assert: OS is created
         """
         with Session(self.browser) as session:
             for test_data in valid_os_parameters():
@@ -121,9 +121,9 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """OS - Create a new OS with invalid name
 
-        @id: aa035ef6-a503-48c4-b95a-021a03a145c0
+        :id: aa035ef6-a503-48c4-b95a-021a03a145c0
 
-        @Assert: OS is not created
+        :Assert: OS is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -145,9 +145,9 @@ class OperatingSystemTestCase(UITestCase):
         """OS - Create a new OS with description containing
         256 characters
 
-        @id: 7f395b9a-2d48-468a-937b-bba4e6576ba9
+        :id: 7f395b9a-2d48-468a-937b-bba4e6576ba9
 
-        @Assert: OS is not created
+        :Assert: OS is not created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -170,9 +170,9 @@ class OperatingSystemTestCase(UITestCase):
         """OS - Create a new OS with incorrect major version value
         (More than 5 characters, empty value, negative number)
 
-        @id: 89d061a8-cb4c-4460-a7fb-7cea73c323af
+        :id: 89d061a8-cb4c-4460-a7fb-7cea73c323af
 
-        @Assert: OS is not created
+        :Assert: OS is not created
         """
         with Session(self.browser) as session:
             for major_version in gen_string('numeric', 6), '', '-6':
@@ -196,9 +196,9 @@ class OperatingSystemTestCase(UITestCase):
         """OS - Create a new OS with incorrect minor version value
         (More than 16 characters and negative number)
 
-        @id: 2828cd68-d57a-4e3e-bced-90937290251e
+        :id: 2828cd68-d57a-4e3e-bced-90937290251e
 
-        @Assert: OS is not created
+        :Assert: OS is not created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -221,11 +221,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_create_with_same_name_and_version(self):
         """OS - Create a new OS with same name and version
 
-        @id: f1865efe-bdc0-4065-90b8-b48c9fad80bb
+        :id: f1865efe-bdc0-4065-90b8-b48c9fad80bb
 
-        @Assert: OS is not created
+        :Assert: OS is not created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         major_version = gen_string('numeric', 1)
@@ -256,9 +256,9 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing OS
 
-        @id: 252f1512-78a6-415d-a4fd-5f6d268cbb82
+        :id: 252f1512-78a6-415d-a4fd-5f6d268cbb82
 
-        @Assert: OS is deleted successfully
+        :Assert: OS is deleted successfully
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
@@ -270,9 +270,9 @@ class OperatingSystemTestCase(UITestCase):
         """Update OS name, major_version, minor_version, os_family
         and arch
 
-        @id: d86aeac2-c2b6-4766-96a8-c2e427a9c8be
+        :id: d86aeac2-c2b6-4766-96a8-c2e427a9c8be
 
-        @Assert: OS is updated
+        :Assert: OS is updated
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
@@ -295,9 +295,9 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_update_medium(self):
         """Update OS medium
 
-        @id: 4fbcd341-5aff-465c-b251-7ecd97471e01
+        :id: 4fbcd341-5aff-465c-b251-7ecd97471e01
 
-        @Assert: OS is updated
+        :Assert: OS is updated
         """
         medium_name = gen_string('alpha')
         entities.Media(
@@ -317,9 +317,9 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_update_ptable(self):
         """Update OS partition table
 
-        @id: 08ddbc40-dcc1-4695-b209-ba72a6a458df
+        :id: 08ddbc40-dcc1-4695-b209-ba72a6a458df
 
-        @Assert: OS is updated
+        :Assert: OS is updated
         """
         ptable = gen_string('alpha', 4)
         script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -342,9 +342,9 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_update_template(self):
         """Update provisioning template
 
-        @id: df21419a-1fdd-414c-86fc-64cde10d3e05
+        :id: df21419a-1fdd-414c-86fc-64cde10d3e05
 
-        @Assert: OS is updated
+        :Assert: OS is updated
         """
         os_name = gen_string('alpha')
         template_name = gen_string('alpha')
@@ -365,11 +365,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_set_parameter(self):
         """Set Operating System parameter
 
-        @id: 05b504d8-2518-4359-a53a-f577339f1ebe
+        :id: 05b504d8-2518-4359-a53a-f577339f1ebe
 
-        @Assert: OS is updated with new parameter
+        :Assert: OS is updated with new parameter
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser):
             try:
@@ -386,11 +386,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_set_parameter_with_blank_value(self):
         """Set OS parameter with blank value
 
-        @id: 38ef9293-0f83-4c9d-8314-0c72fdf7e2a6
+        :id: 38ef9293-0f83-4c9d-8314-0c72fdf7e2a6
 
-        @Assert: Parameter is created with blank value
+        :Assert: Parameter is created with blank value
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser):
             try:
@@ -407,11 +407,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_remove_parameter(self):
         """Remove selected OS parameter
 
-        @id: 14aa3459-9941-43ba-8c17-d7f32e9db43b
+        :id: 14aa3459-9941-43ba-8c17-d7f32e9db43b
 
-        @Assert: Expected OS parameter is removed
+        :Assert: Expected OS parameter is removed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         param_name = gen_string('alpha', 4)
         os_name = entities.OperatingSystem().create().name
@@ -428,11 +428,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_set_parameter_same_values(self):
         """Set same OS parameter again as it was set earlier
 
-        @id: 4211c9c6-d61f-4254-ac45-6791f7577142
+        :id: 4211c9c6-d61f-4254-ac45-6791f7577142
 
-        @Assert: Proper error should be raised - Name is already taken
+        :Assert: Proper error should be raised - Name is already taken
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         param_name = gen_string('alpha', 4)
         param_value = gen_string('alpha', 3)
@@ -453,11 +453,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_set_parameter_with_blank_name_and_value(self):
         """Set OS parameter with blank name and value
 
-        @id: 635c354f-3360-403c-9bcb-78f2da9ed893
+        :id: 635c354f-3360-403c-9bcb-78f2da9ed893
 
-        @Assert: Proper error should be raised - Name can't contain whitespaces
+        :Assert: Proper error should be raised - Name can't contain whitespaces
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser):
             try:
@@ -474,11 +474,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_set_parameter_with_too_long_values(self):
         """Set OS parameter with name and value exceeding 255 characters
 
-        @id: e961ce00-f86b-476e-afad-468491cb2a12
+        :id: e961ce00-f86b-476e-afad-468491cb2a12
 
-        @Assert: Proper error should be raised, Name should contain a value
+        :Assert: Proper error should be raised, Name should contain a value
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):

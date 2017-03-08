@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery
 
-@Requirement: Discoveredhost
+:Requirement: Discoveredhost
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import subprocess
 import time
@@ -145,16 +145,15 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
         PXE default
 
-        @id: 43a8857d-2f08-436e-97fb-ffec6a0c84dd
+        :id: 43a8857d-2f08-436e-97fb-ffec6a0c84dd
 
-        @Setup: Provisioning should be configured
+        :Setup: Provisioning should be configured
 
-        @Steps: PXE boot a host/VM
+        :Steps: PXE boot a host/VM
 
-        @Assert: Host should be successfully discovered
+        :Assert: Host should be successfully discovered
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -171,16 +170,15 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with dhcp via bootable discovery ISO by setting
         "proxy.type=proxy" in PXE default in unattended mode.
 
-        @id: fc13167f-6fa0-4fe5-8584-7716292866ce
+        :id: fc13167f-6fa0-4fe5-8584-7716292866ce
 
-        @Setup: Provisioning should be configured
+        :Setup: Provisioning should be configured
 
-        @Steps: Boot a host/VM using modified discovery ISO.
+        :Steps: Boot a host/VM using modified discovery ISO.
 
-        @Assert: Host should be successfully discovered
+        :Assert: Host should be successfully discovered
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -198,17 +196,17 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with dhcp via bootable discovery ISO in
         semi-automated mode.
 
-        @id: 05c88618-6f15-4eb8-8501-3505160c5450
+        :id: 05c88618-6f15-4eb8-8501-3505160c5450
 
-        @Setup: Provisioning should be configured
+        :Setup: Provisioning should be configured
 
-        @Steps: Boot a host/VM using discovery ISO
+        :Steps: Boot a host/VM using discovery ISO
 
-        @Assert: Host should be successfully discovered
+        :Assert: Host should be successfully discovered
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -218,17 +216,17 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with dhcp via bootable discovery ISO using
         interactive TUI mode.
 
-        @id: 08780627-9ac1-4837-88eb-df673d974d05
+        :id: 08780627-9ac1-4837-88eb-df673d974d05
 
-        @Setup: Provisioning should be configured
+        :Setup: Provisioning should be configured
 
-        @Steps: Boot a host/VM using discovery ISO
+        :Steps: Boot a host/VM using discovery ISO
 
-        @Assert: Host should be successfully discovered
+        :Assert: Host should be successfully discovered
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -238,13 +236,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with single NIC on a network without DHCP and PXE
         using ISO image in interactive TUI interface.
 
-        @id: 9703eb00-9857-4076-8b83-031a58d7c1cd
+        :id: 9703eb00-9857-4076-8b83-031a58d7c1cd
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -254,13 +252,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with single NIC on a network without DHCP and PXE
         using ISO image in semi-automated mode.
 
-        @id: 8254a85f-21c8-4483-b453-15126762f6e5
+        :id: 8254a85f-21c8-4483-b453-15126762f6e5
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -270,13 +268,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with single NIC on a network without DHCP and PXE
         using ISO image in unattended mode.
 
-        @id: ae75173f-8358-4886-9420-06cff3a8510e
+        :id: ae75173f-8358-4886-9420-06cff3a8510e
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -286,13 +284,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a EFI host with single NIC on a network
         using ISO image in interactive TUI mode.
 
-        @id: f13fd843-6b39-4c5e-bb7a-b9af9e71eb7b
+        :id: f13fd843-6b39-4c5e-bb7a-b9af9e71eb7b
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -302,13 +300,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a EFI host with single NIC on a network
         using ISO image in unattended mode.
 
-        @id: 515d32ce-44eb-4d27-a353-699bc80fc566
+        :id: 515d32ce-44eb-4d27-a353-699bc80fc566
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -317,11 +315,11 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with multiple NIC on a network with dhcp
         using ISO image in unattended mode.
 
-        @id: cdfebc3d-d8c1-4f82-a384-cc5cd9926c65
+        :id: cdfebc3d-d8c1-4f82-a384-cc5cd9926c65
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -345,13 +343,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with multiple NIC on a network with dhcp
         using ISO image in interactive TUI mode.
 
-        @id: e29c7f71-096e-42ef-9bbf-77fecac86a9c
+        :id: e29c7f71-096e-42ef-9bbf-77fecac86a9c
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -361,13 +359,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with multiple NIC on a network without dhcp
         using ISO image in interactive TUI mode.
 
-        @id: 206a375c-3f42-4cc8-b338-bb85127cffc9
+        :id: 206a375c-3f42-4cc8-b338-bb85127cffc9
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -377,13 +375,13 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with multiple NIC on a network without dhcp
         using ISO image in unattended mode.
 
-        @id: 1e25326d-2976-4a12-8e02-c4be6705f522
+        :id: 1e25326d-2976-4a12-8e02-c4be6705f522
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -392,11 +390,11 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host with multiple NIC on a network with dhcp
         using pxe in unattended mode.
 
-        @id: 0d004ed0-594f-492f-8756-33349094aa8e
+        :id: 0d004ed0-594f-492f-8756-33349094aa8e
 
-        @Assert: Host should be discovered successfully
+        :Assert: Host should be discovered successfully
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -418,16 +416,15 @@ class DiscoveryTestCase(UITestCase):
     def test_custom_facts_discovery(self):
         """Check if defined custom facts are displayed under host's facts
 
-        @id: 5492e063-72db-44b8-a34a-9c75c351b89a
+        :id: 5492e063-72db-44b8-a34a-9c75c351b89a
 
-        @Setup: Provisioning should be configured
+        :Setup: Provisioning should be configured
 
-        @Steps: Validate specified custom facts
+        :Steps: Validate specified custom facts
 
-        @Assert: All defined custom facts should be displayed correctly
+        :Assert: All defined custom facts should be displayed correctly
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         param_value = 'myfact'
         with Session(self.browser) as session:
@@ -450,14 +447,14 @@ class DiscoveryTestCase(UITestCase):
         """Provision the selected discovered host from facts page by
         clicking 'provision'
 
-        @id: 610bbf32-b342-44ef-8339-0201e0592260
+        :id: 610bbf32-b342-44ef-8339-0201e0592260
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Host should be provisioned successfully and entry from
-        discovered host should be auto removed
+        :Assert: Host should be provisioned successfully and entry from
+            discovered host should be auto removed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -488,13 +485,13 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete the selected discovered host
 
-        @id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
+        :id: 25a2a3ea-9659-4bdb-8631-c4dd19766014
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        :Assert: Selected host should be removed successfully
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -510,13 +507,13 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_delete_from_facts(self):
         """Delete the selected discovered host from facts page
 
-        @id: 892aa809-bcf0-46ae-8495-70d7a6483b75
+        :id: 892aa809-bcf0-46ae-8495-70d7a6483b75
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        :Assert: Selected host should be removed successfully
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -534,14 +531,13 @@ class DiscoveryTestCase(UITestCase):
         """Delete multiple discovered hosts from 'Select Action'
         drop down
 
-        @id: 556fb306-512f-46a4-8a0f-af8013161efe
+        :id: 556fb306-512f-46a4-8a0f-af8013161efe
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        :Assert: Selected host should be removed successfully
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -576,14 +572,13 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_refresh_facts_pxe(self):
         """Refresh the facts of pxe-based discovered host by adding a new NIC.
 
-        @id: cda4103c-6d1a-4f9e-bf57-e516ef1f2a37
+        :id: cda4103c-6d1a-4f9e-bf57-e516ef1f2a37
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Facts should be refreshed successfully with new NIC
+        :Assert: Facts should be refreshed successfully with new NIC
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
         param_value = 'interfaces'
         with Session(self.browser) as session:
@@ -611,13 +606,13 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_refresh_facts_pxe_less(self):
         """Refresh the facts of pxe-less discovered host by adding a new NIC.
 
-        @id: 367a5336-a0fa-491b-8153-3e39d68eb978
+        :id: 367a5336-a0fa-491b-8153-3e39d68eb978
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Facts should be refreshed successfully with new NIC
+        :Assert: Facts should be refreshed successfully with new NIC
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -644,13 +639,13 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_reboot(self):
         """Reboot a discovered host.
 
-        @id: 5edc6831-bfc8-4e69-9029-b4c0caa3ee32
+        :id: 5edc6831-bfc8-4e69-9029-b4c0caa3ee32
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Host should be successfully rebooted.
+        :Assert: Host should be successfully rebooted.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -680,13 +675,13 @@ class DiscoveryTestCase(UITestCase):
         """Change the default org of more than one discovered hosts
         from 'Select Action' drop down
 
-        @id: fe6ab6e0-c942-46c1-8ae2-4f4caf00e0d8
+        :id: fe6ab6e0-c942-46c1-8ae2-4f4caf00e0d8
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Default org should be successfully changed for multiple hosts
+        :Assert: Default org should be successfully changed for multiple hosts
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         new_org = gen_string('alpha')
         entities.Organization(name=new_org).create()
@@ -714,14 +709,14 @@ class DiscoveryTestCase(UITestCase):
         """Change the default location of more than one discovered hosts
         from 'Select Action' drop down
 
-        @id: 537bfb51-144a-44be-a087-d2437f074464
+        :id: 537bfb51-144a-44be-a087-d2437f074464
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Default Location should be successfully changed for multiple
-        hosts
+        :Assert: Default Location should be successfully changed for multiple
+            hosts
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         loc = entities.Location().create()
         with Session(self.browser) as session:
@@ -752,15 +747,15 @@ class DiscoveryTestCase(UITestCase):
 
         Set query as (e.g IP=IP_of_discovered_host)
 
-        @id: 00686008-87eb-4b76-9579-ceddb578ef31
+        :id: 00686008-87eb-4b76-9579-ceddb578ef31
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Host should reboot and provision
+        :Assert: Host should reboot and provision
 
-        @CaseLevel: System
+        :CaseLevel: System
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -771,13 +766,13 @@ class DiscoveryTestCase(UITestCase):
 
         Set query as (e.g IP=IP_of_discovered_host)
 
-        @id: 4488ab9a-d462-4a62-a1a1-e5656c8a8b99
+        :id: 4488ab9a-d462-4a62-a1a1-e5656c8a8b99
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Host should reboot and provision
+        :Assert: Host should reboot and provision
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         rule_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -818,15 +813,15 @@ class DiscoveryTestCase(UITestCase):
         that applies to multi hosts.
         Set query as cpu_count = 1 OR mem > 500
 
-        @id: d25c088f-ee7a-4a3a-9b51-8f65f545e680
+        :id: d25c088f-ee7a-4a3a-9b51-8f65f545e680
 
-        @Setup: Multiple hosts should already be discovered in same subnet.
+        :Setup: Multiple hosts should already be discovered in same subnet.
 
-        @Assert: All Hosts of same subnet should reboot and provision
+        :Assert: All Hosts of same subnet should reboot and provision
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -836,16 +831,16 @@ class DiscoveryTestCase(UITestCase):
         """Create multiple discovery rules with different priority and check
         rule with highest priority executed first
 
-        @id: 8daf0b35-912b-441d-97d3-45f48799f4ba
+        :id: 8daf0b35-912b-441d-97d3-45f48799f4ba
 
-        @Setup: Multiple hosts should already be discovered
+        :Setup: Multiple hosts should already be discovered
 
-        @Assert: Host with lower count have higher priority
-        and that rule should be executed first.
+        :Assert: Host with lower count have higher priority and that rule
+            should be executed first.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -854,13 +849,13 @@ class DiscoveryTestCase(UITestCase):
         """Create a discovery rule and execute it when
         "auto_provisioning" flag set to 'false'
 
-        @id: 25f5112b-7bbd-4bda-8d75-c43bd6390aa8
+        :id: 25f5112b-7bbd-4bda-8d75-c43bd6390aa8
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Host should not be rebooted automatically
+        :Assert: Host should not be rebooted automatically
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         try:
             # Disable flag to auto provision
@@ -908,14 +903,14 @@ class DiscoveryTestCase(UITestCase):
         """Create a discovery rule with invalid query
         e.g. BIOS = xyz
 
-        @id: 89014adf-6346-4681-9107-6d92e14b6a3e
+        :id: 89014adf-6346-4681-9107-6d92e14b6a3e
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Rule should automatically be skipped on clicking
-        'Auto provision'. UI Should raise 'No matching rule found'
+        :Assert: Rule should automatically be skipped on clicking 'Auto
+            provision'. UI Should raise 'No matching rule found'
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -925,16 +920,16 @@ class DiscoveryTestCase(UITestCase):
         """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
         provision more than one host with same rule
 
-        @id: ab14c56d-331f-466b-aeb0-41fb19f7b3aa
+        :id: ab14c56d-331f-466b-aeb0-41fb19f7b3aa
 
-        @Setup: Host with two CPUs should already be discovered
+        :Setup: Host with two CPUs should already be discovered
 
-        @Assert: Rule should only be applied to one discovered host and for
-        other rule should already be skipped.
+        :Assert: Rule should only be applied to one discovered host and for
+            other rule should already be skipped.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -943,16 +938,16 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_update_discovery_rule(self):
         """Update an existing rule and execute it
 
-        @id: 0969cf6f-215d-44c5-96b5-91cb1d865ad0
+        :id: 0969cf6f-215d-44c5-96b5-91cb1d865ad0
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: User should be able to update the rule and it should be
-        executed on discovered host
+        :Assert: User should be able to update the rule and it should be
+            executed on discovered host
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -960,13 +955,13 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update the discovered host name and provision it
 
-        @id: 3770b007-5006-4815-ae03-fbd330aad304
+        :id: 3770b007-5006-4815-ae03-fbd330aad304
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: The hostname should be updated and host should be provisioned
+        :Assert: The hostname should be updated and host should be provisioned
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -994,11 +989,11 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_auto_provision_all(self):
         """Discover a bunch of hosts and auto-provision all
 
-        @id: e26129b5-16fa-418c-b768-21670e9f0b74
+        :id: e26129b5-16fa-418c-b768-21670e9f0b74
 
-        @Assert: All host should be successfully rebooted and provisioned
+        :Assert: All host should be successfully rebooted and provisioned
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         rule_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1039,21 +1034,18 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_add_fact_column(self):
         """Add a new fact column to display on discovered host page
 
-        @id: 914bd47f-b2a6-459e-b166-70dbc9ce1bc6
+        :id: 914bd47f-b2a6-459e-b166-70dbc9ce1bc6
 
-        @Steps:
+        :Steps:
+            1. Goto settings -> Discovered tab -> discovery_fact_coloumn
+            2. Edit discovery_fact_coloumn
+            3. Add bios_vendor
 
-        1. Goto settings -> Discovered tab -> discovery_fact_coloumn
-
-        2. Edit discovery_fact_coloumn
-
-        3. Add bios_vendor
-
-        @Assert: The added fact should be displayed on 'discovered_host' page
-        after successful discovery
+        :Assert: The added fact should be displayed on 'discovered_host' page
+            after successful discovery
 
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         param_value = 'bios_vendor'
         with Session(self.browser) as session:
@@ -1076,18 +1068,18 @@ class DiscoveryTestCase(UITestCase):
         """Add a new fact column with invalid fact to display on
         discovered host page
 
-        @id: 4e9bc843-4ba2-40d4-a1b3-2d7be117664f
+        :id: 4e9bc843-4ba2-40d4-a1b3-2d7be117664f
 
-        @Steps:
+        :Steps:
 
-        1. Goto settings -> Discovered tab -> discovery_fact_coloumn
-        2. Edit discovery_fact_coloumn
-        3. Add 'test'
+            1. Goto settings -> Discovered tab -> discovery_fact_coloumn
+            2. Edit discovery_fact_coloumn
+            3. Add 'test'
 
-        @Assert: The added fact should be displayed on 'discovered_host' page
-        after successful discovery and shows 'N/A'
+        :Assert: The added fact should be displayed on 'discovered_host' page
+            after successful discovery and shows 'N/A'
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         param_value = 'test'
         expected_value = u'N/A'
@@ -1113,15 +1105,15 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_discovery_manager_role(self):
         """Assign 'Discovery_Manager' role to a normal user
 
-        @id: c219c877-e785-41a3-9abe-803a9b26bcad
+        :id: c219c877-e785-41a3-9abe-803a9b26bcad
 
-        @Assert: User should be able to view, provision, edit and destroy one
-        or more discovered host as well view, create_new, edit, execute and
-        delete discovery rules.
+        :Assert: User should be able to view, provision, edit and destroy one
+            or more discovered host as well view, create_new, edit, execute and
+            delete discovery rules.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1130,13 +1122,13 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_discovery_reader_role(self):
         """Assign 'Discovery Reader" role to a normal user
 
-        @id: 075bd559-a3bb-42ca-86a4-60581c650a1d
+        :id: 075bd559-a3bb-42ca-86a4-60581c650a1d
 
-        @Assert: User should be able to view existing discovered host and rule
+        :Assert: User should be able to view existing discovered host and rule
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1146,13 +1138,13 @@ class DiscoveryTestCase(UITestCase):
         """Validate all the buttons from "Discovery Status" TUI screen of a
         pxe-less discovered host
 
-        @id: a18694ad-7642-472f-8e7c-c911c892a763
+        :id: a18694ad-7642-472f-8e7c-c911c892a763
 
-        @Assert: All buttons should work
+        :Assert: All buttons should work
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1162,13 +1154,13 @@ class DiscoveryTestCase(UITestCase):
         """Validate network configuration screen by specifying invalid
         IP/gateway/DNS address notation.
 
-        @id: b1d24367-9a7e-4d8e-85b6-989d8c520498
+        :id: b1d24367-9a7e-4d8e-85b6-989d8c520498
 
-        @Assert: User should get an error message
+        :Assert: User should get an error message
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1178,15 +1170,15 @@ class DiscoveryTestCase(UITestCase):
         """Discover a host via pxe-less and select "Discover using DHCP"
         interactively when no dhcp is available.
 
-        @id: adef940c-8948-4cd9-88b3-f0b307134536
+        :id: adef940c-8948-4cd9-88b3-f0b307134536
 
-        @Assert: User should get an error message "Unable to bring network via
-        DHCP" and click on 'OK' should open the ''Network configuration screen"
-        to manually specify the IP/GW/DNS.
+        :Assert: User should get an error message "Unable to bring network via
+            DHCP" and click on 'OK' should open the ''Network configuration
+            screen" to manually specify the IP/GW/DNS.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1196,13 +1188,13 @@ class DiscoveryTestCase(UITestCase):
         """Provision a discovered host manually by associating org & loc from
         host properties model window and select create host button.
 
-        @id: 8c6a7d3f-e34e-4888-9b1c-58e71ee584a3
+        :id: 8c6a7d3f-e34e-4888-9b1c-58e71ee584a3
 
-        @Assert: Provisioned host is associated with selected org & location
+        :Assert: Provisioned host is associated with selected org & location
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1211,12 +1203,12 @@ class DiscoveryTestCase(UITestCase):
         """Provision a discovered host manually by associating hostgroup from
         host properties model window and select create host button.
 
-        @id: f17fb8c9-f9cb-4547-80bc-3b40c6691bb1
+        :id: f17fb8c9-f9cb-4547-80bc-3b40c6691bb1
 
-        @Assert: Provisioned host is created with selected host-group and entry
-        from discovered host should be auto removed.
+        :Assert: Provisioned host is created with selected host-group and entry
+            from discovered host should be auto removed.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -1243,17 +1235,17 @@ class DiscoveryTestCase(UITestCase):
         """Associate hostgroup while provisioning a discovered host from
         host properties model window and select quick host.
 
-        @id: 34c1e9ea-f210-4a1e-aead-421eb962643b
+        :id: 34c1e9ea-f210-4a1e-aead-421eb962643b
 
-        @Setup:
+        :Setup:
 
-        1. Host should already be discovered
-        2. Hostgroup should already be created with all required entities.
+            1. Host should already be discovered
+            2. Hostgroup should already be created with all required entities.
 
-        @Assert: Host should be quickly provisioned and entry from
-        discovered host should be auto removed.
+        :Assert: Host should be quickly provisioned and entry from discovered
+            host should be auto removed.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -1282,19 +1274,19 @@ class DiscoveryTestCase(UITestCase):
         """Provision a discovered host with clear_all_facts setting's default
         value 'No'
 
-        @id: 5dbb9a9f-117d-41aa-8f15-d4da6163b244
+        :id: 5dbb9a9f-117d-41aa-8f15-d4da6163b244
 
-        @Setup:
+        :Setup:
 
-        1. Host should already be discovered
-        2. Go to setting -> clear_all_facts -> No
+            1. Host should already be discovered
+            2. Go to setting -> clear_all_facts -> No
 
-        @Assert: After successful provisioning, all facts set by user should be
-        visible, including the one started with discovery keyword.
+        :Assert: After successful provisioning, all facts set by user should be
+            visible, including the one started with discovery keyword.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1304,18 +1296,18 @@ class DiscoveryTestCase(UITestCase):
         """Provision a discovered host by setting clear_all_facts
         value to 'Yes'
 
-        @id: 9f153b3a-4c21-41a2-b2a0-a0b1bee262d3
+        :id: 9f153b3a-4c21-41a2-b2a0-a0b1bee262d3
 
-        @Setup:
-        1. Host should already be discovered
-        2. Go to setting -> clear_all_facts -> Yes
+        :Setup:
+            1. Host should already be discovered
+            2. Go to setting -> clear_all_facts -> Yes
 
-        @Assert: After successful provisioning, all facts set by user should be
-        deleted execpt the one started with discovery keyword.
+        :Assert: After successful provisioning, all facts set by user should be
+            deleted execpt the one started with discovery keyword.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1324,19 +1316,19 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_lock_discovered_host_into_discovery(self):
         """Lock host into discovery via PXE configuration
 
-        @id: 4ba9f923-0b8f-40ee-8bcb-90ff496587c4
+        :id: 4ba9f923-0b8f-40ee-8bcb-90ff496587c4
 
-        @Steps:
+        :Steps:
 
-        1. Go to setting -> discovery_lock -> true
-        2. Go to setting -> discovery_lock_template -> template to be locked
-            with
+            1. Go to setting -> discovery_lock -> true
+            2. Go to setting -> discovery_lock_template -> template to be
+                locked with
 
-        @Assert: Host should boot into discovery mode and should be discovered.
+        :Assert: Host should boot into discovery mode and should be discovered.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1346,19 +1338,19 @@ class DiscoveryTestCase(UITestCase):
         """On provisioning a host associate hostgroup and see if PuppetCA
         and Puppetmaster are being populated.
 
-        @id: 21e55ffa-02bc-4f96-b463-887da30fb1c4
+        :id: 21e55ffa-02bc-4f96-b463-887da30fb1c4
 
-        @Steps:
+        :Steps:
 
-        1. Discover a host
-        2. Create a hostgroup with puppetCA and puppetmaster
+            1. Discover a host
+            2. Create a hostgroup with puppetCA and puppetmaster
 
-        @Assert: Parameters like PuppetCA/Puppetmaster should be populated on
-        associating hostgroup to discovered host
+        :Assert: Parameters like PuppetCA/Puppetmaster should be populated on
+            associating hostgroup to discovered host
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1368,19 +1360,19 @@ class DiscoveryTestCase(UITestCase):
         """Update the default 'Discovery Organization' settings to place the
         discovered hosts in.
 
-        @id: 596a98ad-90f6-42ff-b8ef-47f02dc5d595
+        :id: 596a98ad-90f6-42ff-b8ef-47f02dc5d595
 
-        @Steps:
+        :Steps:
 
-        1. Go to setting -> Discovered -> Discovery organization
-        2. Update default org from dropdown
+            1. Go to setting -> Discovered -> Discovery organization
+            2. Update default org from dropdown
 
-        @Assert: Discovered host should automatically be placed in selected
-        default org
+        :Assert: Discovered host should automatically be placed in selected
+            default org
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1390,19 +1382,19 @@ class DiscoveryTestCase(UITestCase):
         """Update the default 'Discovery Location' settings to place the
         discovered hosts in.
 
-        @id: 4bba9899-a53e-4521-b212-aee893f7a726
+        :id: 4bba9899-a53e-4521-b212-aee893f7a726
 
-        @Steps:
+        :Steps:
 
-        1. Go to setting -> Discovered -> Discovery Location
-        2. Update default location from dropdown
+            1. Go to setting -> Discovered -> Discovery Location
+            2. Update default location from dropdown
 
-        @Assert: Discovered host should automatically be placed in selected
-        default location
+        :Assert: Discovered host should automatically be placed in selected
+            default location
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1412,18 +1404,18 @@ class DiscoveryTestCase(UITestCase):
         """Check if network facts ending with _eth0 are correctly displayed
         under discovered host page
 
-        @id: 5a06236c-05dc-4a98-b1b5-9586c95203f9
+        :id: 5a06236c-05dc-4a98-b1b5-9586c95203f9
 
-        @Assert: Network facts like below should be displayed on discovered
-        host page:
+        :Assert: Network facts like below should be displayed on discovered
+            host page:
 
-        1. facts ending with _eth0
-        2. auto_negotiation_XXX
-        3. LLDAP facts like lldp_neighbor_portid_XXX
+            1. facts ending with _eth0
+            2. auto_negotiation_XXX
+            3. LLDAP facts like lldp_neighbor_portid_XXX
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1432,15 +1424,15 @@ class DiscoveryTestCase(UITestCase):
     def test_positive_rebuild_dns_on_provisioning(self):
         """Force DNS rebuild when provisioning discovered host
 
-        @id: 87aa3279-7c29-40e8-a4d2-0aab43f0972f
+        :id: 87aa3279-7c29-40e8-a4d2-0aab43f0972f
 
-        @Setup: Make sure 'discovery_always_rebuild_dns' setting set to true
+        :Setup: Make sure 'discovery_always_rebuild_dns' setting set to true
 
-        @Assert: DNS record should be recreated on provisioning discovered host
+        :Assert: DNS record should be recreated on provisioning discovered host
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
 
@@ -1478,18 +1470,19 @@ class DiscoveryPrefixTestCase(UITestCase):
     def test_positive_update_discovery_prefix(self):
         """Update the discovery_prefix parameter other than mac
 
-        @id: 08f1d852-e9a0-430e-b73a-e2a7a144ac10
+        :id: 08f1d852-e9a0-430e-b73a-e2a7a144ac10
 
-        @Steps:
+        :Steps:
 
-        1. Goto settings -> Discovered tab -> discovery_prefix
-        2. Edit discovery_prefix using any text that must start with a letter
+            1. Goto settings -> Discovered tab -> discovery_prefix
+            2. Edit discovery_prefix using any text that must start with a
+               letter
 
-        @Setup: Host should already be discovered
+        :Setup: Host should already be discovered
 
-        @Assert: Host should be discovered with updated prefix.
+        :Assert: Host should be discovered with updated prefix.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)

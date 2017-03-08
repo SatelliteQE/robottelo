@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for GPG Key CLI
 
-@Requirement: Gpgkey
+:Requirement: Gpgkey
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import (
@@ -87,9 +87,9 @@ class TestGPGKey(CLITestCase):
     def test_verify_redmine_4272(self):
         """gpg info should display key content
 
-        @id: 2c6176ca-34dd-4d52-930d-6e79da6b0c15
+        :id: 2c6176ca-34dd-4d52-930d-6e79da6b0c15
 
-        @Assert: gpg info should display key content
+        :Assert: gpg info should display key content
         """
         # Setup a new key file
         content = gen_alphanumeric()
@@ -107,9 +107,9 @@ class TestGPGKey(CLITestCase):
     def test_positive_get_info_by_name(self):
         """Create single gpg key and get its info by name
 
-        @id: be418cf8-8a90-46db-9e8c-8ff349c98401
+        :id: be418cf8-8a90-46db-9e8c-8ff349c98401
 
-        @Assert: specific information for GPG key matches the creation name
+        :Assert: specific information for GPG key matches the creation name
         """
         name = gen_string('utf8')
         gpg_key = make_gpg_key({
@@ -131,9 +131,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import using the default created organization
 
-        @id: c64d4959-e53e-44c0-82da-dc4dd4c89733
+        :id: c64d4959-e53e-44c0-82da-dc4dd4c89733
 
-        @assert: gpg key is created
+        :assert: gpg key is created
         """
         org = Org.info({'name': DEFAULT_ORG})
         for name in valid_data_list():
@@ -159,9 +159,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import using a new organization
 
-        @id: f1bcf748-0890-4b54-8f30-2df4924c80b3
+        :id: f1bcf748-0890-4b54-8f30-2df4924c80b3
 
-        @assert: gpg key is created
+        :assert: gpg key is created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -188,9 +188,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then try to create new one with same name
 
-        @id: 3f1423da-bcc1-4320-8b9b-260784eb123c
+        :id: 3f1423da-bcc1-4320-8b9b-260784eb123c
 
-        @assert: gpg key is not created
+        :assert: gpg key is not created
         """
         name = gen_string('alphanumeric')
         gpg_key = make_gpg_key({
@@ -215,9 +215,9 @@ class TestGPGKey(CLITestCase):
     def test_negative_create_with_no_gpg_key(self):
         """Create gpg key with valid name and no gpg key
 
-        @id: 9440a1a0-eb0d-445e-88d3-3139c2b1d17a
+        :id: 9440a1a0-eb0d-445e-88d3-3139c2b1d17a
 
-        @assert: gpg key is not created
+        :assert: gpg key is not created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -233,9 +233,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with invalid name and valid gpg key via
         file import
 
-        @id: 93160f88-b653-42a9-b44f-9b2ba56f38d9
+        :id: 93160f88-b653-42a9-b44f-9b2ba56f38d9
 
-        @assert: gpg key is not created
+        :assert: gpg key is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -253,9 +253,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then delete it
 
-        @id: 5bf72e5c-767a-4321-8781-a5cea9474421
+        :id: 5bf72e5c-767a-4321-8781-a5cea9474421
 
-        @assert: gpg key is deleted
+        :assert: gpg key is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -289,9 +289,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then update its name
 
-        @id: e18d7cd8-2757-4134-9ed9-7eb68f2872e2
+        :id: e18d7cd8-2757-4134-9ed9-7eb68f2872e2
 
-        @assert: gpg key is updated
+        :assert: gpg key is updated
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for new_name in valid_data_list():
@@ -312,9 +312,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
 
-        @id: 58a8ed14-adfc-4046-af63-59a7008ff4d7
+        :id: 58a8ed14-adfc-4046-af63-59a7008ff4d7
 
-        @assert: gpg key is updated
+        :assert: gpg key is updated
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         content = gen_alphanumeric(gen_integer(20, 50))
@@ -341,9 +341,9 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
 
-        @id: 938d2925-c82c-43b6-8dfc-29c42eca7424
+        :id: 938d2925-c82c-43b6-8dfc-29c42eca7424
 
-        @assert: gpg key is not updated
+        :assert: gpg key is not updated
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for new_name in invalid_values_list():
@@ -362,11 +362,11 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
 
-        @id: b7477c2f-586c-4593-96c0-1fbc532ce8bf
+        :id: b7477c2f-586c-4593-96c0-1fbc532ce8bf
 
-        @assert: gpg key is associated with product
+        :assert: gpg key is associated with product
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         product = make_product({
@@ -381,12 +381,12 @@ class TestGPGKey(CLITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
 
-        @id: 5529a852-9ef6-48f8-b2bc-2bbf463657dd
+        :id: 5529a852-9ef6-48f8-b2bc-2bbf463657dd
 
-        @assert: gpg key is associated with product as well as with
-        the repository
+        :assert: gpg key is associated with product as well as with the
+            repository
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
@@ -411,12 +411,12 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product that has more than one
         repository
 
-        @id: b05c5223-44d5-4a48-9d99-18ca351c84a5
+        :id: b05c5223-44d5-4a48-9d99-18ca351c84a5
 
-        @assert: gpg key is associated with product as well as with
-        the repositories
+        :assert: gpg key is associated with product as well as with the
+            repositories
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = make_product({'organization-id': self.org['id']})
         repos = [
@@ -446,13 +446,13 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product using Repo discovery
         method
 
-        @id: fb12db0f-583f-49f4-9d8f-d19f2d5550ee
+        :id: fb12db0f-583f-49f4-9d8f-d19f2d5550ee
 
-        @assert: gpg key is associated with product but not the repositories
+        :assert: gpg key is associated with product but not the repositories
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -462,12 +462,12 @@ class TestGPGKey(CLITestCase):
         import then associate it to repository from custom product that has
         one repository
 
-        @id: 1427f145-9faf-41ef-ae42-dc91d61ce1f6
+        :id: 1427f145-9faf-41ef-ae42-dc91d61ce1f6
 
-        @assert: gpg key is associated with the repository but not with
-        the product
+        :assert: gpg key is associated with the repository but not with the
+            product
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = make_product({'organization-id': self.org['id']})
         repo = make_repository({'product-id': product['id']})
@@ -494,11 +494,11 @@ class TestGPGKey(CLITestCase):
         to one repository from custom product. Make sure custom product should
         have more than one repository.
 
-        @id: 9796f6f0-e688-4f14-89ec-447feb4e4911
+        :id: 9796f6f0-e688-4f14-89ec-447feb4e4911
 
-        @assert: gpg key is associated with the repository
+        :assert: gpg key is associated with the repository
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         product = make_product({'organization-id': self.org['id']})
         repos = [
@@ -532,13 +532,13 @@ class TestGPGKey(CLITestCase):
         import then associate it to repos from custom product using Repo
         discovery method
 
-        @id: 1e91871c-0298-4cd0-b63b-f02d02622259
+        :id: 1e91871c-0298-4cd0-b63b-f02d02622259
 
-        @assert: gpg key is associated with product and all the repositories
+        :assert: gpg key is associated with product and all the repositories
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -548,11 +548,11 @@ class TestGPGKey(CLITestCase):
         import then associate it with empty (no repos) custom product then
         update the key
 
-        @id: c0c84c45-21fc-4940-9d52-00babb807ec7
+        :id: c0c84c45-21fc-4940-9d52-00babb807ec7
 
-        @assert: gpg key is associated with product before/after update
+        :assert: gpg key is associated with product before/after update
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -596,12 +596,12 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product that has one repository
         then update the key
 
-        @id: 3fb550a7-507e-4988-beb6-35bdfc2e99a8
+        :id: 3fb550a7-507e-4988-beb6-35bdfc2e99a8
 
-        @assert: gpg key is associated with product before/after update as well
-        as with the repository
+        :assert: gpg key is associated with product before/after update as well
+            as with the repository
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -652,12 +652,12 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product that has more than one
         repository then update the key
 
-        @id: a95eb51b-4b6b-4c04-bb4d-cbe600431850
+        :id: a95eb51b-4b6b-4c04-bb4d-cbe600431850
 
-        @assert: gpg key is associated with product before/after update as well
-        as with the repositories
+        :assert: gpg key is associated with product before/after update as well
+            as with the repositories
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -714,14 +714,14 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product using Repo discovery
         method then update the key
 
-        @id: 8092bd11-75f3-4657-9309-d327498e7d52
+        :id: 8092bd11-75f3-4657-9309-d327498e7d52
 
-        @assert: gpg key is associated with product before/after update but
-        not the repositories
+        :assert: gpg key is associated with product before/after update but not
+            the repositories
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -731,12 +731,12 @@ class TestGPGKey(CLITestCase):
         import then associate it to repository from custom product that has
         one repository then update the key
 
-        @id: 549e2e1e-fd10-4487-a3a5-fdee9b8cfc48
+        :id: 549e2e1e-fd10-4487-a3a5-fdee9b8cfc48
 
-        @assert: gpg key is associated with the repository before/after update,
-        but not with the product
+        :assert: gpg key is associated with the repository before/after update,
+            but not with the product
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -778,12 +778,12 @@ class TestGPGKey(CLITestCase):
         import then associate it to repository from custom product that has
         more than one repository then update the key
 
-        @id: 773a9141-9f04-40ba-b3df-4b6d80db25a6
+        :id: 773a9141-9f04-40ba-b3df-4b6d80db25a6
 
-        @assert: gpg key is associated with a single repository before/after
-        update and not associated with product or other repositories
+        :assert: gpg key is associated with a single repository before/after
+            update and not associated with product or other repositories
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a product and a gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -837,14 +837,14 @@ class TestGPGKey(CLITestCase):
         import then associate it to repos from custom product using Repo
         discovery method then update the key
 
-        @id: 21dfd9b0-3de9-4876-aeea-c856adb5ed98
+        :id: 21dfd9b0-3de9-4876-aeea-c856adb5ed98
 
-        @assert: gpg key is associated with product and all repositories
-        before/after update
+        :assert: gpg key is associated with product and all repositories
+            before/after update
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -854,12 +854,12 @@ class TestGPGKey(CLITestCase):
         import then associate it with empty (no repos) custom product
         then delete it
 
-        @id: da76cada-5ccf-47e1-8c12-24f30c41c8b6
+        :id: da76cada-5ccf-47e1-8c12-24f30c41c8b6
 
-        @assert: gpg key is associated with product during creation but removed
-        from product after deletion
+        :assert: gpg key is associated with product during creation but removed
+            from product after deletion
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create a product and a gpg key
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
@@ -894,12 +894,13 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product that has one repository
         then delete it
 
-        @id: a5d4ea02-f015-4026-b4dc-7365eaf00049
+        :id: a5d4ea02-f015-4026-b4dc-7365eaf00049
 
-        @assert: gpg key is associated with product but and its repository
-        during creation but removed from product and repository after deletion
+        :assert: gpg key is associated with product but and its repository
+            during creation but removed from product and repository after
+            deletion
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create product, repository and gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -946,13 +947,13 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product that has more than one
         repository then delete it
 
-        @id: f92d4643-1892-4f95-ae6b-fcea8e726946
+        :id: f92d4643-1892-4f95-ae6b-fcea8e726946
 
-        @assert: gpg key is associated with product and its repositories
-        during creation but removed from the product and the repositories after
-        deletion
+        :assert: gpg key is associated with product and its repositories during
+            creation but removed from the product and the repositories after
+            deletion
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create product, repositories and gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -1006,14 +1007,14 @@ class TestGPGKey(CLITestCase):
         import then associate it with custom product using Repo discovery
         method then delete it
 
-        @id: f8492db8-12f3-4d32-833a-f177734e2253
+        :id: f8492db8-12f3-4d32-833a-f177734e2253
 
-        @assert: gpg key is associated with product but not the repositories
-        during creation but removed from product after deletion
+        :assert: gpg key is associated with product but not the repositories
+            during creation but removed from product after deletion
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1023,12 +1024,13 @@ class TestGPGKey(CLITestCase):
         import then associate it to repository from custom product that has
         one repository then delete the key
 
-        @id: 3658e04d-fc63-499f-a22d-b512941cc96b
+        :id: 3658e04d-fc63-499f-a22d-b512941cc96b
 
-        @assert: gpg key is associated with the single repository but not the
-        product during creation and was removed from repository after deletion
+        :assert: gpg key is associated with the single repository but not the
+            product during creation and was removed from repository after
+            deletion
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create product, repository and gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -1071,12 +1073,12 @@ class TestGPGKey(CLITestCase):
         import then associate it to repository from custom product that has
         more than one repository then delete the key
 
-        @id: e7ed4ed9-ecfe-4954-b806-cdd0668e8822
+        :id: e7ed4ed9-ecfe-4954-b806-cdd0668e8822
 
-        @assert: gpg key is associated with a single repository but not the
-        product during creation and removed from repository after deletion
+        :assert: gpg key is associated with a single repository but not the
+            product during creation and removed from repository after deletion
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Create product, repositories and gpg key
         product = make_product({'organization-id': self.org['id']})
@@ -1123,15 +1125,15 @@ class TestGPGKey(CLITestCase):
         import then associate it to repos from custom product using Repo
         discovery method then delete the key
 
-        @id: 8ae226c6-f27c-4fb5-94f2-89792cccda0b
+        :id: 8ae226c6-f27c-4fb5-94f2-89792cccda0b
 
-        @assert: gpg key is associated with product and all repositories
-        during creation but removed from product and all repositories after
-        deletion
+        :assert: gpg key is associated with product and all repositories during
+            creation but removed from product and all repositories after
+            deletion
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     # Content
@@ -1143,13 +1145,13 @@ class TestGPGKey(CLITestCase):
         """Hosts can install packages using gpg key associated with
         single custom repository
 
-        @id: 39357649-4c60-4c82-9114-a43dfef81e5b
+        :id: 39357649-4c60-4c82-9114-a43dfef81e5b
 
-        @assert: host can install package from custom repository
+        :assert: host can install package from custom repository
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -1159,13 +1161,13 @@ class TestGPGKey(CLITestCase):
         """Hosts can install packages using gpg key associated with
         multiple custom repositories
 
-        @id: fedd6fa2-e28b-468b-8e15-802b52970bb9
+        :id: fedd6fa2-e28b-468b-8e15-802b52970bb9
 
-        @assert: host can install package from custom repositories
+        :assert: host can install package from custom repositories
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -1175,13 +1177,13 @@ class TestGPGKey(CLITestCase):
         """Hosts can install packages using different gpg keys
         associated with multiple custom repositories
 
-        @id: ac908aee-0928-4f81-a98b-b60d46b10c90
+        :id: ac908aee-0928-4f81-a98b-b60d46b10c90
 
-        @assert: host can install package from custom repositories
+        :assert: host can install package from custom repositories
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     # Miscelaneous
@@ -1191,9 +1193,9 @@ class TestGPGKey(CLITestCase):
     def test_positive_list(self):
         """Create gpg key and list it
 
-        @id: 5da535b3-1728-4edf-bd33-3822c4427ef3
+        :id: 5da535b3-1728-4edf-bd33-3822c4427ef3
 
-        @assert: gpg key is displayed/listed
+        :assert: gpg key is displayed/listed
         """
         gpg_key = make_gpg_key({
             'key': VALID_GPG_KEY_FILE_PATH,
@@ -1207,9 +1209,9 @@ class TestGPGKey(CLITestCase):
     def test_positive_search(self):
         """Create gpg key and search/find it
 
-        @id: 9ef15add-b067-4134-b930-aaeda18bddfa
+        :id: 9ef15add-b067-4134-b930-aaeda18bddfa
 
-        @assert: gpg key can be found
+        :assert: gpg key can be found
         """
         for name in valid_data_list():
             with self.subTest(name):

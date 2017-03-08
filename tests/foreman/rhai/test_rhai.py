@@ -1,18 +1,18 @@
 """Tests for Red Hat Access Insights
 
-@Requirement: Rhai
+:Requirement: Rhai
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 import time
@@ -76,11 +76,10 @@ class RHAITestCase(UITestCase):
     def test_positive_register_client_to_rhai(self):
         """Check client registration to redhat-access-insights service.
 
-        @id: f3aefdb3-ac99-402d-afd9-e53e9ee1e8d7
+        :id: f3aefdb3-ac99-402d-afd9-e53e9ee1e8d7
 
-        @Assert: Registered client should appear in the Systems sub-menu of Red
-        Hat Access Insights
-
+        :Assert: Registered client should appear in the Systems sub-menu of Red
+            Hat Access Insights
         """
         # Register a VM to Access Insights Service
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
@@ -104,12 +103,11 @@ class RHAITestCase(UITestCase):
         """Verify that user attempting to access RHAI is directed to select an
         Organization if there is no organization selected
 
-        @id: 6ddfdb29-eeb5-41a4-8851-ad19130b112c
+        :id: 6ddfdb29-eeb5-41a4-8851-ad19130b112c
 
-        @Assert: 'Organization Selection Required' message must be displayed if
-        the user tries to view Access Insights overview without selecting an
-        org
-
+        :Assert: 'Organization Selection Required' message must be displayed if
+            the user tries to view Access Insights overview without selecting
+            an org
         """
         with Session(self.browser) as session:
             # Given that the user does not specify any Organization
@@ -126,12 +124,11 @@ class RHAITestCase(UITestCase):
         """Verify that 'Unregister' a system from RHAI works correctly then the
         system should not be able to use the service.
 
-        @id: 580f9704-8c6d-4f63-b027-68a6ac97af77
+        :id: 580f9704-8c6d-4f63-b027-68a6ac97af77
 
-        @Assert: Once the system is unregistered from the RHAI web interface
-        then the unregistered system should return `1` on running the
-        service 'redhat-access-insights'
-
+        :Assert: Once the system is unregistered from the RHAI web interface
+            then the unregistered system should return `1` on running the
+            service 'redhat-access-insights'
         """
         # Register a VM to Access Insights Service
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:

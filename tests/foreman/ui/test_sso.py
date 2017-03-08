@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for SSO (UI)
 
-@Requirement: Sso
+:Requirement: Sso
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.decorators import stubbed, tier3
@@ -50,21 +50,21 @@ class SingleSignOnTestCase(UITestCase):
     def test_positive_sso_kerberos_basic_no_roles(self):
         """SSO - kerberos (IdM or AD) login (basic) that has no roles
 
-        @id: c271d9fd-7528-4b19-b5c6-e9c0148c2047
+        :id: c271d9fd-7528-4b19-b5c6-e9c0148c2047
 
-        @setup: Assure SSO with kerberos (IdM or AD) is set up.
+        :setup: Assure SSO with kerberos (IdM or AD) is set up.
 
-        @steps:
-        1. Login using a kerberos (IdM or AD) ID to the client
-        2. Login to the Web-UI should be automatic without the need to fill in
-        the form.
+        :steps:
+            1. Login using a kerberos (IdM or AD) ID to the client
+            2. Login to the Web-UI should be automatic without the need to fill
+                in the form.
 
-        @assert: Log in to sat6 UI successfully but cannot access anything
-        useful in UI
+        :assert: Log in to sat6 UI successfully but cannot access anything
+            useful in UI
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -73,22 +73,21 @@ class SingleSignOnTestCase(UITestCase):
         """SSO - kerberos (IdM or AD) login (basic) that has roles
         assigned.
 
-        @id: df55a0e7-1387-4ea5-9b2f-27836dd4815e
+        :id: df55a0e7-1387-4ea5-9b2f-27836dd4815e
 
-        @setup: Assure SSO with kerberos (IdM or AD) is set up.
+        :setup: Assure SSO with kerberos (IdM or AD) is set up.
 
-        @steps:
-        1. Login using a kerberos (IdM or AD) ID to the client
-        2. Login to the Web-UI should be automatic without the need to fill in
-        the form.
+        :steps:
+            1. Login using a kerberos (IdM or AD) ID to the client
+            2. Login to the Web-UI should be automatic without the need to fill
+                in the form.
 
-        @assert: Log in to sat6 UI successfully and can access functional
-        areas in UI
+        :assert: Log in to sat6 UI successfully and can access functional areas
+            in UI
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @stubbed()
@@ -97,16 +96,16 @@ class SingleSignOnTestCase(UITestCase):
         """Kerberos (IdM or AD) user activity when kerb (IdM or AD)
         account has been deleted or deactivated.
 
-        @id: ee838e76-2522-470e-ae70-f22d845e683e
+        :id: ee838e76-2522-470e-ae70-f22d845e683e
 
-        @steps:
-        1. Login to the foreman UI
-        2. Delete or disable userid on IdM server or AD side.
+        :steps:
+            1. Login to the foreman UI
+            2. Delete or disable userid on IdM server or AD side.
 
-        @assert: This is handled gracefully (user is logged out perhaps?)
-        and no data corruption
+        :assert: This is handled gracefully (user is logged out perhaps?) and
+            no data corruption
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """

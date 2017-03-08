@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Medium UI
 
-@Requirement: Medium
+:Requirement: Medium
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -34,9 +34,9 @@ class MediumTestCase(UITestCase):
     def test_positive_create(self):
         """Create a new media
 
-        @id: 17067a4d-a639-4187-a51b-1eae825e4f9c
+        :id: 17067a4d-a639-4187-a51b-1eae825e4f9c
 
-        @Assert: Media is created
+        :Assert: Media is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -51,9 +51,9 @@ class MediumTestCase(UITestCase):
     def test_negative_create_with_too_long_name(self):
         """Create a new install media with 256 characters in name
 
-        @id: a15307a3-5a1f-4cca-8594-44e8f3295a51
+        :id: a15307a3-5a1f-4cca-8594-44e8f3295a51
 
-        @Assert: Media is not created
+        :Assert: Media is not created
         """
         name = gen_string('alpha', 256)
         path = INSTALL_MEDIUM_URL % name
@@ -68,9 +68,9 @@ class MediumTestCase(UITestCase):
     def test_negative_create_with_blank_name(self):
         """Create a new install media with blank and whitespace in name
 
-        @id: db7a58dd-8f4a-4443-be17-e5029e1c2b0e
+        :id: db7a58dd-8f4a-4443-be17-e5029e1c2b0e
 
-        @Assert: Media is not created
+        :Assert: Media is not created
         """
         path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         with Session(self.browser) as session:
@@ -88,9 +88,9 @@ class MediumTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create a new install media with same name
 
-        @id: 6379b9b4-a67e-4abf-b8b5-930e40b6c293
+        :id: 6379b9b4-a67e-4abf-b8b5-930e40b6c293
 
-        @Assert: Media is not created
+        :Assert: Media is not created
         """
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
@@ -107,9 +107,9 @@ class MediumTestCase(UITestCase):
     def test_negative_create_without_path(self):
         """Create a new install media without media URL
 
-        @id: 8ccdd659-3c11-4266-848f-919f3ac853be
+        :id: 8ccdd659-3c11-4266-848f-919f3ac853be
 
-        @Assert: Media is not created
+        :Assert: Media is not created
         """
         name = gen_string('alpha', 6)
         with Session(self.browser) as session:
@@ -123,9 +123,9 @@ class MediumTestCase(UITestCase):
     def test_negative_create_medium_with_same_path(self):
         """Create an install media with an existing URL
 
-        @id: ce3367ef-5ad3-4d81-8174-fe5ba4eecb00
+        :id: ce3367ef-5ad3-4d81-8174-fe5ba4eecb00
 
-        @Assert: Media is not created
+        :Assert: Media is not created
         """
         name = gen_string('alpha', 6)
         new_name = gen_string('alpha', 6)
@@ -144,9 +144,9 @@ class MediumTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a media
 
-        @id: 08c982ef-e8de-4d50-97f5-b8803d7eb9ca
+        :id: 08c982ef-e8de-4d50-97f5-b8803d7eb9ca
 
-        @Assert: Media is deleted
+        :Assert: Media is deleted
         """
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
@@ -159,9 +159,9 @@ class MediumTestCase(UITestCase):
     def test_positive_update(self):
         """Updates Install media with name, path, OS family
 
-        @id: 6926eaec-fe74-4171-bc8e-76e28926456b
+        :id: 6926eaec-fe74-4171-bc8e-76e28926456b
 
-        @Assert: Media is updated
+        :Assert: Media is updated
         """
         name = gen_string('alpha', 6)
         newname = gen_string('alpha', 4)

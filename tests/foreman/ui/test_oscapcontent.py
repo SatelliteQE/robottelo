@@ -1,18 +1,18 @@
 """Tests for Oscapcontent
 
-@Requirement: Oscapcontent
+:Requirement: Oscapcontent
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import unittest2
 
@@ -57,14 +57,14 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_create(self):
         """Create OpenScap content.
 
-        @id: 6580cffa-da37-40d5-affa-cfb1ff27c545
+        :id: 6580cffa-da37-40d5-affa-cfb1ff27c545
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Provide all the appropriate parameters.
+            1. Create an openscap content.
+            2. Provide all the appropriate parameters.
 
-        @Assert: Whether creating  content for OpenScap is successful.
+        :Assert: Whether creating  content for OpenScap is successful.
         """
         with Session(self.browser) as session:
             for content_name in valid_data_list():
@@ -83,16 +83,16 @@ class OpenScapContentTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create OpenScap content with negative values
 
-        @id: 8ce0e8b4-396a-43cd-8cbe-fb60fcf853b0
+        :id: 8ce0e8b4-396a-43cd-8cbe-fb60fcf853b0
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Provide all the appropriate parameters.
+            1. Create an openscap content.
+            2. Provide all the appropriate parameters.
 
-        @Assert: Creating content for OpenScap is not successful.
+        :Assert: Creating content for OpenScap is not successful.
 
-        @BZ: 1289571
+        :BZ: 1289571
         """
         with Session(self.browser) as session:
             for content_name in invalid_values_list(interface='ui'):
@@ -112,14 +112,14 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_default(self):
         """Check whether OpenScap content exists by default.
 
-        @id: 0beca127-8294-4d85-bace-b9170215c0cd
+        :id: 0beca127-8294-4d85-bace-b9170215c0cd
 
-        @Steps:
+        :Steps:
 
-        1. Set Org as Any Org.
-        2. Navigate to oscap Content page.
+            1. Set Org as Any Org.
+            2. Navigate to oscap Content page.
 
-        @Assert: Whether oscap content exists by default.
+        :Assert: Whether oscap content exists by default.
         """
         # see BZ 1336374
         with Session(self.browser):
@@ -132,17 +132,17 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_update(self):
         """Update OpenScap content.
 
-        @id: 9870555d-0b60-41ab-a481-81d4d3f78fec
+        :id: 9870555d-0b60-41ab-a481-81d4d3f78fec
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Provide all the appropriate parameters.
-        3. Update the openscap content, here the Org.
+            1. Create an openscap content.
+            2. Provide all the appropriate parameters.
+            3. Update the openscap content, here the Org.
 
-        @Assert: Whether creating  content for OpenScap is successful.
+        :Assert: Whether creating  content for OpenScap is successful.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization(name=gen_string('alpha')).create()
         content_name = gen_string('alpha')
@@ -162,15 +162,15 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_delete(self):
         """Create OpenScap content and then delete it.
 
-        @id: 8eade129-5666-4e90-ba3e-f0c51a3090ce
+        :id: 8eade129-5666-4e90-ba3e-f0c51a3090ce
 
-        @Steps:
+        :Steps:
 
-        1. Create an openscap content.
-        2. Provide all the appropriate parameters.
-        3. Delete the openscap content.
+            1. Create an openscap content.
+            2. Provide all the appropriate parameters.
+            3. Delete the openscap content.
 
-        @Assert: Deleting content for OpenScap is successful.
+        :Assert: Deleting content for OpenScap is successful.
         """
         with Session(self.browser) as session:
             for content_name in valid_data_list():

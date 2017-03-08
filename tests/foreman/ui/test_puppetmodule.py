@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Puppet Module UI
 
-@Requirement: Puppet Module
+:Requirement: Puppet Module
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from nailgun import entities
@@ -50,10 +50,10 @@ class PuppetModuleTestCase(UITestCase):
         """Create product with puppet repository assigned to it. Search for
         modules inside of it
 
-        @id: 86af4bff-a404-453e-b05a-912ac8aeb52d
+        :id: 86af4bff-a404-453e-b05a-912ac8aeb52d
 
-        @Assert: Content search functionality works as intended and expected
-        puppet modules are present inside of repository
+        :Assert: Content search functionality works as intended and expected
+            puppet modules are present inside of repository
         """
         with Session(self.browser):
             self.assertIsNotNone(self.puppetmodule.search('ntp'))
@@ -64,10 +64,10 @@ class PuppetModuleTestCase(UITestCase):
         module inside of it and then open it. Check all the details about that
         puppet module
 
-        @id: 15dc567c-1e9a-4008-a3bc-40c1dbd69ae1
+        :id: 15dc567c-1e9a-4008-a3bc-40c1dbd69ae1
 
-        @Assert: Puppet module is present inside of repository and has all
-        expected values in details section
+        :Assert: Puppet module is present inside of repository and has all
+            expected values in details section
         """
         with Session(self.browser):
             self.puppetmodule.check_puppet_details(
@@ -96,10 +96,10 @@ class PuppetModuleTestCase(UITestCase):
         module inside of it and then open it. Check that proper repositories
         are displayed for Puppet Module in Library Repositories tab
 
-        @id: 7de4325c-905a-4fde-8e30-01a6a40b9e31
+        :id: 7de4325c-905a-4fde-8e30-01a6a40b9e31
 
-        @Assert: Puppet module is present inside of repository and has proper
-        repositories assigned to
+        :Assert: Puppet module is present inside of repository and has proper
+            repositories assigned to
         """
         with Session(self.browser):
             self.puppetmodule.check_repo('ntp', [self.repo.name])

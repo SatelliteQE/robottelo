@@ -1,18 +1,18 @@
 """Test class for Environment Preparation after a fresh installation
 
-@Requirement: Standard prep
+:Requirement: Standard prep
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: OTHER
+:CaseComponent: OTHER
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -218,18 +218,17 @@ class StandardPrepTestCase(TestCase):
     def test_standard_prep(self):
         """add Manifest to Satellite Server
 
-        @id: c77a1afe-1e9b-4d31-bebf-2650049d524d
+        :id: c77a1afe-1e9b-4d31-bebf-2650049d524d
 
-        @Steps:
+        :Steps:
 
-        1. download manifest
-        2. upload to subscription
-        3. update Red Hat CDN URL
-        4. enable repositories
-        5. take db snapshot backup
+            1. download manifest
+            2. upload to subscription
+            3. update Red Hat CDN URL
+            4. enable repositories
+            5. take db snapshot backup
 
-        @Assert: Restoring from database where its status is clean
-
+        :Assert: Restoring from database where its status is clean
         """
         self._download_manifest()
         self._upload_manifest()

@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test for Roles CLI
 
-@Requirement: Filter
+:Requirement: Filter
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from robottelo.cli.base import CLIReturnCodeError
@@ -50,9 +50,9 @@ class FilterTestCase(APITestCase):
     def test_positive_create_with_permission(self):
         """Create a filter and assign it some permissions.
 
-        @id: 6da6c5d3-2727-4eb7-aa15-9f7b6f91d3b2
+        :id: 6da6c5d3-2727-4eb7-aa15-9f7b6f91d3b2
 
-        @Assert: The created filter has the assigned permissions.
+        :Assert: The created filter has the assigned permissions.
         """
         # Assign filter to created role
         filter_ = make_filter({
@@ -69,9 +69,9 @@ class FilterTestCase(APITestCase):
     def test_positive_create_with_org(self):
         """Create a filter and assign it some permissions.
 
-        @id: f6308192-0e1f-427b-a296-b285f6684691
+        :id: f6308192-0e1f-427b-a296-b285f6684691
 
-        @Assert: The created filter has the assigned permissions.
+        :Assert: The created filter has the assigned permissions.
         """
         org = make_org()
         # Assign filter to created role
@@ -88,9 +88,9 @@ class FilterTestCase(APITestCase):
     def test_positive_create_with_loc(self):
         """Create a filter and assign it some permissions.
 
-        @id: d7d1969a-cb30-4e97-a9a3-3a4aaf608795
+        :id: d7d1969a-cb30-4e97-a9a3-3a4aaf608795
 
-        @Assert: The created filter has the assigned permissions.
+        :Assert: The created filter has the assigned permissions.
         """
         loc = make_location()
         # Assign filter to created role
@@ -106,9 +106,9 @@ class FilterTestCase(APITestCase):
     def test_positive_delete(self):
         """Create a filter and delete it afterwards.
 
-        @id: 97d1093c-0d49-454b-86f6-f5be87b32775
+        :id: 97d1093c-0d49-454b-86f6-f5be87b32775
 
-        @Assert: The deleted filter cannot be fetched.
+        :Assert: The deleted filter cannot be fetched.
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -122,9 +122,9 @@ class FilterTestCase(APITestCase):
     def test_positive_delete_role(self):
         """Create a filter and delete the role it points at.
 
-        @id: e2adb6a4-e408-4912-a32d-2bf2c43187d9
+        :id: e2adb6a4-e408-4912-a32d-2bf2c43187d9
 
-        @Assert: The filter cannot be fetched.
+        :Assert: The filter cannot be fetched.
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -143,9 +143,9 @@ class FilterTestCase(APITestCase):
     def test_positive_update_permissions(self):
         """Create a filter and update its permissions.
 
-        @id: 3d6a52d8-2f8f-4f97-a155-9b52888af16e
+        :id: 3d6a52d8-2f8f-4f97-a155-9b52888af16e
 
-        @Assert: Permissions updated.
+        :Assert: Permissions updated.
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -170,9 +170,9 @@ class FilterTestCase(APITestCase):
     def test_positive_update_role(self):
         """Create a filter and assign it to another role.
 
-        @id: 2950b3a1-2bce-447f-9df2-869b1d10eaf5
+        :id: 2950b3a1-2bce-447f-9df2-869b1d10eaf5
 
-        @Assert: Filter is created and assigned to new role.
+        :Assert: Filter is created and assigned to new role.
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -192,9 +192,9 @@ class FilterTestCase(APITestCase):
     def test_positive_update_org_loc(self):
         """Create a filter and assign it to another organization and location.
 
-         @id: 9bb59109-9701-4ef3-95c6-81f387d372da
+         :id: 9bb59109-9701-4ef3-95c6-81f387d372da
 
-         @Assert: Filter is created and assigned to new org and loc.
+         :Assert: Filter is created and assigned to new org and loc.
          """
         org = make_org()
         loc = make_location()

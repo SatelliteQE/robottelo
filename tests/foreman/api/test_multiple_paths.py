@@ -1,18 +1,18 @@
 """Data-driven unit tests for multiple paths.
 
-@Requirement: Multiple paths
+:Requirement: Multiple paths
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import logging
 
@@ -156,9 +156,9 @@ class EntityTestCase(APITestCase):
     def test_positive_get_status_code(self):
         """GET an entity-dependent path.
 
-        @id: 89e4fafe-7780-4be4-acc1-90f7c02a8530
+        :id: 89e4fafe-7780-4be4-acc1-90f7c02a8530
 
-        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+        :Assert: HTTP 200 is returned with an ``application/json`` content-type
         """
         exclude_list = (
             entities.ActivationKey,  # need organization_id or environment_id
@@ -189,9 +189,9 @@ class EntityTestCase(APITestCase):
     def test_negative_get_unauthorized(self):
         """GET an entity-dependent path without credentials.
 
-        @id: 49127c71-55a2-42d1-b418-59229e9bad00
+        :id: 49127c71-55a2-42d1-b418-59229e9bad00
 
-        @Assert: HTTP 401 is returned
+        :Assert: HTTP 401 is returned
         """
         exclude_list = (
             entities.ActivationKey,  # need organization_id or environment_id
@@ -212,9 +212,9 @@ class EntityTestCase(APITestCase):
     def test_positive_post_status_code(self):
         """Issue a POST request and check the returned status code.
 
-        @id: 40247cdd-ad72-4b7b-97c6-583addb1b25a
+        :id: 40247cdd-ad72-4b7b-97c6-583addb1b25a
 
-        @Assert: HTTP 201 is returned with an ``application/json`` content-type
+        :Assert: HTTP 201 is returned with an ``application/json`` content-type
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -244,9 +244,9 @@ class EntityTestCase(APITestCase):
     def test_negative_post_unauthorized(self):
         """POST to an entity-dependent path without credentials.
 
-        @id: 2ec82336-5bcc-451a-90ed-9abcecc5a0a8
+        :id: 2ec82336-5bcc-451a-90ed-9abcecc5a0a8
 
-        @Assert: HTTP 401 is returned
+        :Assert: HTTP 401 is returned
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -270,9 +270,9 @@ class EntityIdTestCase(APITestCase):
     def test_positive_get_status_code(self):
         """Create an entity and GET it.
 
-        @id: 4fb6cca6-c63f-4d4f-811e-53bf4e6b9752
+        :id: 4fb6cca6-c63f-4d4f-811e-53bf4e6b9752
 
-        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+        :Assert: HTTP 200 is returned with an ``application/json`` content-type
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -296,9 +296,9 @@ class EntityIdTestCase(APITestCase):
     def test_positive_put_status_code(self):
         """Issue a PUT request and check the returned status code.
 
-        @id: 1a2186b1-0709-4a73-8199-71114e10afce
+        :id: 1a2186b1-0709-4a73-8199-71114e10afce
 
-        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+        :Assert: HTTP 200 is returned with an ``application/json`` content-type
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -334,10 +334,10 @@ class EntityIdTestCase(APITestCase):
         """Issue an HTTP DELETE request and check the returned status
         code.
 
-        @id: bacf4bf2-eb2b-4201-a21c-8d15f5b06e7a
+        :id: bacf4bf2-eb2b-4201-a21c-8d15f5b06e7a
 
-        @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
-        content-type.
+        :Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
+            content-type.
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -383,9 +383,9 @@ class DoubleCheckTestCase(APITestCase):
     def test_positive_put_and_get_requests(self):
         """Update an entity, then read it back.
 
-        @id: f5d3039f-5468-4dd2-8ac9-6e948ef39866
+        :id: f5d3039f-5468-4dd2-8ac9-6e948ef39866
 
-        @Assert: The entity is updated with the given attributes.
+        :Assert: The entity is updated with the given attributes.
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -424,9 +424,9 @@ class DoubleCheckTestCase(APITestCase):
     def test_positive_post_and_get_requests(self):
         """Create an entity, then read it back.
 
-        @id: c658095b-2bf9-4c3e-8ddf-c1792e743a10
+        :id: c658095b-2bf9-4c3e-8ddf-c1792e743a10
 
-        @Assert: The entity is created with the given attributes.
+        :Assert: The entity is created with the given attributes.
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -451,9 +451,9 @@ class DoubleCheckTestCase(APITestCase):
     def test_positive_delete_and_get_requests(self):
         """Issue an HTTP DELETE request and GET the deleted entity.
 
-        @id: 04a37ba7-c553-40e1-bc4c-ec2ebf567647
+        :id: 04a37ba7-c553-40e1-bc4c-ec2ebf567647
 
-        @Assert: An HTTP 404 is returned when fetching the missing entity.
+        :Assert: An HTTP 404 is returned when fetching the missing entity.
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -485,9 +485,9 @@ class EntityReadTestCase(APITestCase):
         """Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @id: 78bddedd-bbcf-4e26-a9f7-746874f58529
+        :id: 78bddedd-bbcf-4e26-a9f7-746874f58529
 
-        @Assert: The just-read entity is an instance of the correct class.
+        :Assert: The just-read entity is an instance of the correct class.
         """
         exclude_list = (
             entities.Architecture,  # see test_architecture_read
@@ -508,10 +508,10 @@ class EntityReadTestCase(APITestCase):
     def test_positive_architecture_read(self):
         """Create an arch that points to an OS, and read the arch.
 
-        @id: e4c7babe-11d8-4f85-8382-5267a49046e9
+        :id: e4c7babe-11d8-4f85-8382-5267a49046e9
 
-        @Assert: The call to ``Architecture.read`` succeeds, and the response
-        contains the correct operating system ID.
+        :Assert: The call to ``Architecture.read`` succeeds, and the response
+            contains the correct operating system ID.
         """
         os_id = entities.OperatingSystem().create_json()['id']
         arch_id = entities.Architecture(
@@ -526,9 +526,9 @@ class EntityReadTestCase(APITestCase):
         """Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @id: 2a5f53c7-262a-44a6-b7bf-d57fbaef3dc7
+        :id: 2a5f53c7-262a-44a6-b7bf-d57fbaef3dc7
 
-        @Assert: The just-read entity is an instance of the correct class.
+        :Assert: The just-read entity is an instance of the correct class.
         """
         org_id = entities.Organization().create_json()['id']
         syncplan_id = entities.SyncPlan(
@@ -545,9 +545,9 @@ class EntityReadTestCase(APITestCase):
         """Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @id: 1de63937-5ca1-4101-b4ee-4b398c66b630
+        :id: 1de63937-5ca1-4101-b4ee-4b398c66b630
 
-        @Assert: The just-read entity is an instance of the correct class.
+        :Assert: The just-read entity is an instance of the correct class.
         """
         os_id = entities.OperatingSystem().create_json()['id']
         osp_id = entities.OperatingSystemParameter(
@@ -567,10 +567,10 @@ class EntityReadTestCase(APITestCase):
         """Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @id: 5631a1eb-33ff-4abe-bf01-6c8d98c47a96
+        :id: 5631a1eb-33ff-4abe-bf01-6c8d98c47a96
 
-        @Assert: The just-read entity is an instance of the correct class and
-        name and resource_type fields are populated
+        :Assert: The just-read entity is an instance of the correct class and
+            name and resource_type fields are populated
         """
         perm = entities.Permission().search(query={'per_page': 1})[0]
         self.assertGreater(len(perm.name), 0)
@@ -580,9 +580,9 @@ class EntityReadTestCase(APITestCase):
     def test_positive_media_read(self):
         """Create a media pointing at an OS and read the media.
 
-        @id: 67b656fe-9302-457a-b544-3addb11c85e0
+        :id: 67b656fe-9302-457a-b544-3addb11c85e0
 
-        @Assert: The media points at the correct operating system.
+        :Assert: The media points at the correct operating system.
         """
         os_id = entities.OperatingSystem().create_json()['id']
         media_id = entities.Media(operatingsystem=[os_id]).create_json()['id']

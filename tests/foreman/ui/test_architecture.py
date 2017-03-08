@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Architecture UI
 
-@Requirement: Architecture
+:Requirement: Architecture
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -49,9 +49,9 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_create_with_os(self):
         """Create a new Architecture with OS
 
-        @id: 6c386230-2285-4f41-a3a5-6a17ae844f80
+        :id: 6c386230-2285-4f41-a3a5-6a17ae844f80
 
-        @Assert: Architecture is created
+        :Assert: Architecture is created
         """
         with Session(self.browser) as session:
             for test_data in valid_arch_os_names():
@@ -71,9 +71,9 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new Architecture with different data
 
-        @id: 0ac5f63b-b296-425b-8bb2-e0fe32d394c5
+        :id: 0ac5f63b-b296-425b-8bb2-e0fe32d394c5
 
-        @Assert: Architecture is created
+        :Assert: Architecture is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -87,9 +87,9 @@ class ArchitectureTestCase(UITestCase):
         """Try to create architecture and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
-        @id: f4b8ed72-f20b-4f5d-bf0a-3475a6124f3a
+        :id: f4b8ed72-f20b-4f5d-bf0a-3475a6124f3a
 
-        @Assert: Architecture is not created
+        :Assert: Architecture is not created
         """
         with Session(self.browser) as session:
             for invalid_name in invalid_values_list(interface='ui'):
@@ -103,9 +103,9 @@ class ArchitectureTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create a new Architecture with same name
 
-        @id: 4000674e-7b39-4958-8992-1363b25b2cd6
+        :id: 4000674e-7b39-4958-8992-1363b25b2cd6
 
-        @Assert: Architecture is not created
+        :Assert: Architecture is not created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -121,9 +121,9 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing Architecture
 
-        @id: f58af0ba-45c8-456c-abe3-8aaf48055c23
+        :id: f58af0ba-45c8-456c-abe3-8aaf48055c23
 
-        @Assert: Architecture is deleted
+        :Assert: Architecture is deleted
         """
         os = entities.OperatingSystem(name=gen_string('alpha')).create()
         with Session(self.browser):
@@ -138,9 +138,9 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_update_name_and_os(self):
         """Update Architecture with new name and OS
 
-        @id: cbb2e8fc-1dde-42c4-aab0-479bd16fb5ec
+        :id: cbb2e8fc-1dde-42c4-aab0-479bd16fb5ec
 
-        @Assert: Architecture is updated
+        :Assert: Architecture is updated
         """
         old_name = gen_string('alpha')
         os_name = gen_string('alpha')

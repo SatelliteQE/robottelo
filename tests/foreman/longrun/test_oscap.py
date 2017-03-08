@@ -1,18 +1,18 @@
 """Tests for the Oscap report upload feature
 
-@Requirement: Oscap
+:Requirement: Oscap
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from fauxfactory import gen_string
 from robottelo.api.utils import configure_puppet_test
@@ -57,7 +57,6 @@ class OpenScapTestCase(UITestCase):
         6. Promote/publish content-view
         7. Create an activation-key
         8. Add product to activation-key
-
         """
         super(OpenScapTestCase, cls).setUpClass()
         cls.config_env = configure_puppet_test()
@@ -67,12 +66,12 @@ class OpenScapTestCase(UITestCase):
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test and upload reports.
 
-        @id: 17a0978d-64f9-44ad-8303-1f54ada08602
+        :id: 17a0978d-64f9-44ad-8303-1f54ada08602
 
-        @Assert: Oscap reports from rhel6 and rhel7 clients should be
-        uploaded to satellite6 and be searchable.
+        :Assert: Oscap reports from rhel6 and rhel7 clients should be uploaded
+            to satellite6 and be searchable.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         if settings.rhel6_repo is None:
             self.skipTest('Missing configuration for rhel6_repo')
@@ -184,12 +183,12 @@ class OpenScapTestCase(UITestCase):
         """Perform end to end oscap test, and push the updated scap content
          after first run.
 
-        @id: 7eb75ca5-2ea1-434e-bb43-1223fa4d8e9f
+        :id: 7eb75ca5-2ea1-434e-bb43-1223fa4d8e9f
 
-        @Assert: Satellite should push updated content to Clients
-        and satellite should get updated reports
+        :Assert: Satellite should push updated content to Clients and satellite
+            should get updated reports
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         if settings.rhel7_repo is None:
             self.skipTest('Missing configuration for rhel7_repo')
@@ -302,18 +301,18 @@ class OpenScapTestCase(UITestCase):
     def test_positive_has_arf_report_summary_page(self):
         """OSCAP ARF Report now has summary page
 
-        @id: 25be7898-50c5-4825-adc7-978c7b4e3488
+        :id: 25be7898-50c5-4825-adc7-978c7b4e3488
 
-        @Steps:
-        1. Make sure the oscap report with it's corresponding hostname
-           is visible in the UI.
-        2. Click on the host name to access the oscap report.
+        :Steps:
+            1. Make sure the oscap report with it's corresponding hostname
+               is visible in the UI.
+            2. Click on the host name to access the oscap report.
 
-        @Assert: Oscap ARF reports should have summary page.
+        :Assert: Oscap ARF reports should have summary page.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -322,19 +321,19 @@ class OpenScapTestCase(UITestCase):
     def test_positive_view_full_report_button(self):
         """'View full Report' button should exist for OSCAP Reports.
 
-        @id: 5a41916d-66db-4d2f-8261-b83f833189b9
+        :id: 5a41916d-66db-4d2f-8261-b83f833189b9
 
-        @Steps:
-        1. Make sure the oscap report with it's corresponding hostname
-           is visible in the UI.
-        2. Click on the host name to access the oscap report.
+        :Steps:
+            1. Make sure the oscap report with it's corresponding hostname
+               is visible in the UI.
+            2. Click on the host name to access the oscap report.
 
-        @Assert: Should have 'view full report' button to view the
-        actual HTML report.
+        :Assert: Should have 'view full report' button to view the actual HTML
+            report.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -344,19 +343,19 @@ class OpenScapTestCase(UITestCase):
         """'Download xml' button should exist for OSCAP Reports
         to be downloaded in xml format.
 
-        @id: 07a5f495-a702-4ca4-b5a4-579a133f9181
+        :id: 07a5f495-a702-4ca4-b5a4-579a133f9181
 
-        @Steps:
-        1. Make sure the oscap report with it's corresponding hostname
-           is visible in the UI.
-        2. Click on the host name to access the oscap report.
+        :Steps:
+            1. Make sure the oscap report with it's corresponding hostname
+               is visible in the UI.
+            2. Click on the host name to access the oscap report.
 
-        @Assert: Should have 'Download xml in bzip' button to download
-        the xml report.
+        :Assert: Should have 'Download xml in bzip' button to download the xml
+            report.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -366,18 +365,17 @@ class OpenScapTestCase(UITestCase):
         """Oscap-Proxy select box should exist while filling hosts
         and host-groups form.
 
-        @id: d56576c8-6fab-4af6-91c1-6a56d9cca94b
+        :id: d56576c8-6fab-4af6-91c1-6a56d9cca94b
 
-        @Steps:
-        1.Choose the Oscap Proxy/capsule appropriately for the host
-          or host-groups.
+        :Steps: Choose the Oscap Proxy/capsule appropriately for the host or
+            host-groups.
 
-        @Assert: Should have an Oscap-Proxy select box while filling
-        hosts and host-groups form.
+        :Assert: Should have an Oscap-Proxy select box while filling hosts and
+            host-groups form.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -386,20 +384,20 @@ class OpenScapTestCase(UITestCase):
     def test_positive_delete_multiple_arf_reports(self):
         """Multiple arf reports deletion should be possible.
 
-        @id: c1a8ce02-f42f-4c48-893d-8f31432b5520
+        :id: c1a8ce02-f42f-4c48-893d-8f31432b5520
 
-        @Steps:
-        1. Run Oscap scans are run for multiple Hosts.
-        2. Make sure the oscap reports with it's corresponding hostnames
-           are visible in the UI.
-        3. Now select multiple reports from the checkbox and delete the
-           reports.
+        :Steps:
+            1. Run Oscap scans are run for multiple Hosts.
+            2. Make sure the oscap reports with it's corresponding hostnames
+               are visible in the UI.
+            3. Now select multiple reports from the checkbox and delete the
+               reports.
 
-        @Assert: Multiple Oscap ARF reports can be deleted.
+        :Assert: Multiple Oscap ARF reports can be deleted.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -408,11 +406,11 @@ class OpenScapTestCase(UITestCase):
     def test_positive_reporting_emails_of_oscap_reports(self):
         """Email Reporting of oscap reports should be possible.
 
-        @id: 003d4d28-f694-4e54-a149-247f58298ecc
+        :id: 003d4d28-f694-4e54-a149-247f58298ecc
 
-        @Assert: Whether email reporting of oscap reports is possible.
+        :Assert: Whether email reporting of oscap reports is possible.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """

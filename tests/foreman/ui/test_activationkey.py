@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Activation key UI
 
-@Requirement: Activationkey
+:Requirement: Activationkey
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 import random
@@ -140,9 +140,9 @@ class ActivationKeyTestCase(UITestCase):
         """Create Activation key for all variations of Activation key
         name
 
-        @id: 091f1034-9850-4004-a0ca-d398d1626a5e
+        :id: 091f1034-9850-4004-a0ca-d398d1626a5e
 
-        @Assert: Activation key is created
+        :Assert: Activation key is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -159,9 +159,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_create_with_description(self):
         """Create Activation key with description
 
-        @id: 4c8f4dca-723f-4dae-a8df-4e00a7fc7d95
+        :id: 4c8f4dca-723f-4dae-a8df-4e00a7fc7d95
 
-        @Assert: Activation key is created
+        :Assert: Activation key is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -179,11 +179,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_create_with_envs(self):
         """Create Activation key for all variations of Environments
 
-        @id: f75e994a-6da1-40a3-9685-f8387388b3f0
+        :id: f75e994a-6da1-40a3-9685-f8387388b3f0
 
-        @Assert: Activation key is created
+        :Assert: Activation key is created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for env_name in valid_data_list():
@@ -208,11 +208,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_create_with_cv(self):
         """Create Activation key for all variations of Content Views
 
-        @id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
+        :id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
 
-        @Assert: Activation key is created
+        :Assert: Activation key is created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for cv_name in valid_data_list():
@@ -235,11 +235,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_create_with_host_collection(self):
         """Create Activation key with Host Collection
 
-        @id: 0e4ad2b4-47a7-4087-828f-2b0535a97b69
+        :id: 0e4ad2b4-47a7-4087-828f-2b0535a97b69
 
-        @Assert: Activation key is created
+        :Assert: Activation key is created
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string(str_type='alpha')
         # create Host Collection using API
@@ -272,11 +272,11 @@ class ActivationKeyTestCase(UITestCase):
         """Test that host collection can be associated to Activation Keys
         by non-admin user.
 
-        @id: 417f0b36-fd49-4414-87ab-6f72a09696f2
+        :id: 417f0b36-fd49-4414-87ab-6f72a09696f2
 
-        @Assert: Activation key is created, added host collection is listed
+        :Assert: Activation key is created, added host collection is listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         ak_name = gen_string('alpha')
         # create Host Collection using API
@@ -318,12 +318,12 @@ class ActivationKeyTestCase(UITestCase):
         """Test that host collection can be removed from Activation Keys
         by non-admin user.
 
-        @id: 187456ec-5690-4524-9701-8bdb74c7912a
+        :id: 187456ec-5690-4524-9701-8bdb74c7912a
 
-        @Assert: Activation key is created, removed host collection
-        is not listed
+        :Assert: Activation key is created, removed host collection is not
+            listed
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         ak_name = gen_string('alpha')
         # create Host Collection using API
@@ -373,9 +373,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_create_with_usage_limit(self):
         """Create Activation key with finite Usage limit
 
-        @id: cd45363e-8a79-4aa4-be97-885aea9434c9
+        :id: cd45363e-8a79-4aa4-be97-885aea9434c9
 
-        @Assert: Activation key is created
+        :Assert: Activation key is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -392,11 +392,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Activation key with invalid Name
 
-        @id: 143ca57d-89ff-45e0-99cf-4d4033ea3690
+        :id: 143ca57d-89ff-45e0-99cf-4d4033ea3690
 
-        @Assert: Activation key is not created. Appropriate error shown.
+        :Assert: Activation key is not created. Appropriate error shown.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for name in invalid_names_list():
@@ -416,11 +416,11 @@ class ActivationKeyTestCase(UITestCase):
         """Create Activation key with invalid Usage Limit. Both with too
         long numbers and using letters.
 
-        @id: 71ecf5b2-ce4f-41b0-b30d-45f89713f8c1
+        :id: 71ecf5b2-ce4f-41b0-b30d-45f89713f8c1
 
-        @Assert: Activation key is not created. Appropriate error shown.
+        :Assert: Activation key is not created. Appropriate error shown.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for limit in invalid_names_list():
@@ -442,9 +442,9 @@ class ActivationKeyTestCase(UITestCase):
         """Create Activation key and delete it for all variations of
         Activation key name
 
-        @id: 113e4c1e-cf4d-4c6a-88c9-766db8271933
+        :id: 113e4c1e-cf4d-4c6a-88c9-766db8271933
 
-        @Assert: Activation key is deleted
+        :Assert: Activation key is deleted
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -464,11 +464,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_delete_with_env(self):
         """Create Activation key with environment and delete it
 
-        @id: b6019881-3d6e-4b75-89f5-1b62aff3b1ca
+        :id: b6019881-3d6e-4b75-89f5-1b62aff3b1ca
 
-        @Assert: Activation key is deleted
+        :Assert: Activation key is deleted
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -492,11 +492,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_delete_with_cv(self):
         """Create Activation key with content view and delete it
 
-        @id: 7e40e1ed-8314-406b-9451-05f64806a6e6
+        :id: 7e40e1ed-8314-406b-9451-05f64806a6e6
 
-        @Assert: Activation key is deleted
+        :Assert: Activation key is deleted
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         cv_name = gen_string('utf8')
@@ -520,16 +520,16 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_delete_with_system(self):
         """Delete an Activation key which has registered systems
 
-        @id: 86cd070e-cf46-4bb1-b555-e7cb42e4dc9f
+        :id: 86cd070e-cf46-4bb1-b555-e7cb42e4dc9f
 
-        @Steps:
-        1. Create an Activation key
-        2. Register systems to it
-        3. Delete the Activation key
+        :Steps:
+            1. Create an Activation key
+            2. Register systems to it
+            3. Delete the Activation key
 
-        @Assert: Activation key is deleted
+        :Assert: Activation key is deleted
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -560,14 +560,14 @@ class ActivationKeyTestCase(UITestCase):
     def test_negative_delete(self):
         """[UI ONLY] Attempt to delete an Activation Key and cancel it
 
-        @id: 07a17b98-b756-405c-b0c2-516f2a16aff1
+        :id: 07a17b98-b756-405c-b0c2-516f2a16aff1
 
-        @Steps:
-        1. Create an Activation key
-        2. Attempt to remove an Activation Key
-        3. Click Cancel in the confirmation dialog box
+        :Steps:
+            1. Create an Activation key
+            2. Attempt to remove an Activation Key
+            3. Click Cancel in the confirmation dialog box
 
-        @Assert: Activation key is not deleted
+        :Assert: Activation key is not deleted
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -584,9 +584,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update Activation Key Name in an Activation key
 
-        @id: 81d74424-893d-46c4-a20c-c20c85d4e898
+        :id: 81d74424-893d-46c4-a20c-c20c85d4e898
 
-        @Assert: Activation key is updated
+        :Assert: Activation key is updated
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -608,9 +608,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_update_description(self):
         """Update Description in an Activation key
 
-        @id: 24988466-af1d-4dcd-80b7-9c7d317fb805
+        :id: 24988466-af1d-4dcd-80b7-9c7d317fb805
 
-        @Assert: Activation key is updated
+        :Assert: Activation key is updated
         """
         name = gen_string('alpha')
         description = gen_string('alpha')
@@ -634,11 +634,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_update_env(self):
         """Update Environment in an Activation key
 
-        @id: 895cda6a-bb1e-4b94-a858-95f0be78a17b
+        :id: 895cda6a-bb1e-4b94-a858-95f0be78a17b
 
-        @Assert: Activation key is updated
+        :Assert: Activation key is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -668,16 +668,16 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_update_cv(self):
         """Update Content View in an Activation key
 
-        @id: 68880ca6-acb9-4a16-aaa0-ced680126732
+        :id: 68880ca6-acb9-4a16-aaa0-ced680126732
 
-        @Steps:
-        1. Create Activation key
-        2. Update the Content view with another Content view which has custom
-        products
+        :Steps:
+            1. Create Activation key
+            2. Update the Content view with another Content view which has
+                custom products
 
-        @Assert: Activation key is updated
+        :Assert: Activation key is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Pick one of the valid data list items - data driven tests is not
         # necessary for this test
@@ -717,17 +717,17 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_update_rh_product(self):
         """Update Content View in an Activation key
 
-        @id: 9b0ac209-45de-4cc4-97e8-e191f3f37239
+        :id: 9b0ac209-45de-4cc4-97e8-e191f3f37239
 
-        @Steps:
+        :Steps:
 
-        1. Create an activation key
-        2. Update the content view with another content view which has RH
-           products
+            1. Create an activation key
+            2. Update the content view with another content view which has RH
+                products
 
-        @Assert: Activation key is updated
+        :Assert: Activation key is updated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Pick one of the valid data list items - data driven tests is not
         # necessary for this test
@@ -785,9 +785,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_update_limit(self):
         """Update Usage limit from Unlimited to a finite number
 
-        @id: e6ef8dbe-dfb6-4226-8253-ff2e24cabe12
+        :id: e6ef8dbe-dfb6-4226-8253-ff2e24cabe12
 
-        @Assert: Activation key is updated
+        :Assert: Activation key is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -806,9 +806,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_update_limit_to_unlimited(self):
         """Update Usage limit from definite number to Unlimited
 
-        @id: 2585ac91-baf0-43de-ba6e-862415402e62
+        :id: 2585ac91-baf0-43de-ba6e-862415402e62
 
-        @Assert: Activation key is updated
+        :Assert: Activation key is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -828,9 +828,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_negative_update_name(self):
         """Update invalid name in an activation key
 
-        @id: 6eb0f747-cd4d-421d-b11e-b8917bb0cec6
+        :id: 6eb0f747-cd4d-421d-b11e-b8917bb0cec6
 
-        @Assert: Activation key is not updated.  Appropriate error shown.
+        :Assert: Activation key is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -852,9 +852,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_negative_update_limit(self):
         """Update invalid Usage Limit in an activation key
 
-        @id: d42d8b6a-d3f4-4baa-be20-127f52f2313e
+        :id: d42d8b6a-d3f4-4baa-be20-127f52f2313e
 
-        @Assert: Activation key is not updated.  Appropriate error shown.
+        :Assert: Activation key is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -881,17 +881,18 @@ class ActivationKeyTestCase(UITestCase):
     def test_negative_usage_limit(self):
         """Test that Usage limit actually limits usage
 
-        @id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
+        :id: 9fe2d661-66f8-46a4-ae3f-0a9329494bdd
 
-        @Steps:
-        1. Create Activation key
-        2. Update Usage Limit to a finite number
-        3. Register Systems to match the Usage Limit
-        4. Attempt to register an other system after reaching the Usage Limit
+        :Steps:
+            1. Create Activation key
+            2. Update Usage Limit to a finite number
+            3. Register Systems to match the Usage Limit
+            4. Attempt to register an other system after reaching the Usage
+                Limit
 
-        @Assert: System Registration fails. Appropriate error shown
+        :Assert: System Registration fails. Appropriate error shown
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         name = gen_string('alpha')
         host_limit = '1'
@@ -928,16 +929,16 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_add_host(self):
         """Test that hosts can be associated to Activation Keys
 
-        @id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
+        :id: 886e9ea5-d917-40e0-a3b1-41254c4bf5bf
 
-        @Steps:
-        1. Create Activation key
-        2. Create different hosts
-        3. Associate the hosts to Activation key
+        :Steps:
+            1. Create Activation key
+            2. Create different hosts
+            3. Associate the hosts to Activation key
 
-        @Assert: Hosts are successfully associated to Activation key
+        :Assert: Hosts are successfully associated to Activation key
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         key_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -963,11 +964,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_add_rh_product(self):
         """Test that RH product can be associated to Activation Keys
 
-        @id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
+        :id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
 
-        @Assert: RH products are successfully associated to Activation key
+        :Assert: RH products are successfully associated to Activation key
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -1008,11 +1009,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
 
-        @id: e66db2bf-517a-46ff-ba23-9f9744bef884
+        :id: e66db2bf-517a-46ff-ba23-9f9744bef884
 
-        @Assert: Custom products are successfully associated to Activation key
+        :Assert: Custom products are successfully associated to Activation key
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -1042,16 +1043,16 @@ class ActivationKeyTestCase(UITestCase):
         """Test that RH/Custom product can be associated to Activation
         keys
 
-        @id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
+        :id: 3d8876fa-1412-47ca-a7a4-bce2e8baf3bc
 
-        @Steps:
-        1. Create Activation key
-        2. Associate RH product(s) to Activation Key
-        3. Associate custom product(s) to Activation Key
+        :Steps:
+            1. Create Activation key
+            2. Associate RH product(s) to Activation Key
+            3. Associate custom product(s) to Activation Key
 
-        @Assert: RH/Custom product is successfully associated to Activation key
+        :Assert: RH/Custom product is successfully associated to Activation key
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         name = gen_string('alpha')
         rh_repo = {
@@ -1114,16 +1115,16 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_delete_manifest(self):
         """Check if deleting a manifest removes it from Activation key
 
-        @id: 512d8e41-b937-451e-a9c6-840457d3d7d4
+        :id: 512d8e41-b937-451e-a9c6-840457d3d7d4
 
-        @Steps:
-        1. Create Activation key
-        2. Associate a manifest to the Activation Key
-        3. Delete the manifest
+        :Steps:
+            1. Create Activation key
+            2. Associate a manifest to the Activation Key
+            3. Delete the manifest
 
-        @Assert: Deleting a manifest removes it from the Activation key
+        :Assert: Deleting a manifest removes it from the Activation key
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         # Upload manifest
         org = entities.Organization().create()
@@ -1168,11 +1169,11 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_add_multiple_aks_to_system(self):
         """Check if multiple Activation keys can be attached to a system
 
-        @id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
+        :id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
 
-        @Assert: Multiple Activation keys are attached to a system
+        :Assert: Multiple Activation keys are attached to a system
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         key_1_name = gen_string('alpha')
         key_2_name = gen_string('alpha')
@@ -1236,19 +1237,19 @@ class ActivationKeyTestCase(UITestCase):
         Associate activation-key with host-group to auto-register the
         content-host during provisioning itself.
 
-        @id: 1dc0079d-f41f-454b-9554-1235cabd1a4c
+        :id: 1dc0079d-f41f-454b-9554-1235cabd1a4c
 
-        @Steps:
-        1. Create Activation key
-        2. Associate it to host-group
-        3. Provision content-host with same Activation key
+        :Steps:
+            1. Create Activation key
+            2. Associate it to host-group
+            3. Provision content-host with same Activation key
 
-        @Assert: Content-host should be successfully provisioned and registered
-        with Activation key
+        :Assert: Content-host should be successfully provisioned and registered
+            with Activation key
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1256,9 +1257,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_copy(self):
         """Create Activation key and copy it
 
-        @id: f43d9ecf-f8ec-49cc-bd12-be7cdb3bf07c
+        :id: f43d9ecf-f8ec-49cc-bd12-be7cdb3bf07c
 
-        @Assert: Activation Key copy exists
+        :Assert: Activation Key copy exists
         """
         with Session(self.browser) as session:
             for new_name in valid_data_list():
@@ -1275,9 +1276,9 @@ class ActivationKeyTestCase(UITestCase):
     def test_negative_copy(self):
         """Create Activation key and fail copying it
 
-        @id: 117af9a8-e669-46cb-8a54-071087d0d082
+        :id: 117af9a8-e669-46cb-8a54-071087d0d082
 
-        @Assert: Activation Key copy does not exist
+        :Assert: Activation Key copy does not exist
         """
         with Session(self.browser) as session:
             for new_name in invalid_names_list():
@@ -1294,16 +1295,16 @@ class ActivationKeyTestCase(UITestCase):
         """Verify only hosts registered by specific activation key are listed
         on Activation Key -> Associations -> Content Hosts page
 
-        @id: 9364bfcc-ef69-4183-9ca8-e2904b3f4068
+        :id: 9364bfcc-ef69-4183-9ca8-e2904b3f4068
 
-        @Steps:
-        1. Create 2 activation keys
-        2. Register 2 hosts, one for each activation key
+        :Steps:
+            1. Create 2 activation keys
+            2. Register 2 hosts, one for each activation key
 
-        @Assert: Activation Key -> Associations -> Content Hosts page should
-        show only hosts registered via the key
+        :Assert: Activation Key -> Associations -> Content Hosts page should
+            show only hosts registered via the key
 
-        @BZ: 1372826
+        :BZ: 1372826
         """
         org = make_org()
         env = make_lifecycle_environment({'organization-id': org['id']})
@@ -1365,11 +1366,11 @@ class ActivationKeyTestCase(UITestCase):
         """Delete any user who has previously created an activation key
         and check that activation key still exists
 
-        @id: f0504bd8-52d2-40cd-91c6-64d71b14c876
+        :id: f0504bd8-52d2-40cd-91c6-64d71b14c876
 
-        @Assert: Activation Key can be read
+        :Assert: Activation Key can be read
 
-        @BZ: 1291271
+        :BZ: 1291271
         """
         ak_name = gen_string('alpha')
         # Create user
@@ -1401,14 +1402,14 @@ class ActivationKeyTestCase(UITestCase):
     def test_positive_fetch_product_content(self):
         """Associate RH & custom product with AK and fetch AK's product content
 
-        @id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
+        :id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
 
-        @Assert: Both Red Hat and custom product subscriptions are assigned as
-        Activation Key's product content
+        :Assert: Both Red Hat and custom product subscriptions are assigned as
+            Activation Key's product content
 
-        @BZ: 1360239
+        :BZ: 1360239
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:

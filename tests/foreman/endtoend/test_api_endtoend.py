@@ -1,19 +1,19 @@
 # coding=utf-8
 """Smoke tests for the ``API`` end-to-end scenario.
 
-@Requirement: Api endtoend
+:Requirement: Api endtoend
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import random
 
@@ -786,9 +786,9 @@ class AvailableURLsTestCase(TestCase):
     def test_positive_get_status_code(self):
         """GET ``api/v2`` and examine the response.
 
-        @id: 9d9c1afd-9158-419e-9a6e-91e9888f0c04
+        :id: 9d9c1afd-9158-419e-9a6e-91e9888f0c04
 
-        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+        :Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
         response = client.get(
@@ -802,9 +802,9 @@ class AvailableURLsTestCase(TestCase):
     def test_positive_get_links(self):
         """GET ``api/v2`` and check the links returned.
 
-        @id: 7b2dd77a-a821-485b-94db-b583f93c9a89
+        :id: 7b2dd77a-a821-485b-94db-b583f93c9a89
 
-        @Assert: The paths returned are equal to ``API_PATHS``.
+        :Assert: The paths returned are equal to ``API_PATHS``.
 
         """
         # Did the server give us any paths at all?
@@ -868,9 +868,9 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
-        @id: c6e45b36-d8b6-4507-8dcd-0645668496b9
+        :id: c6e45b36-d8b6-4507-8dcd-0645668496b9
 
-        @Assert: 'Default Organization' is found
+        :Assert: 'Default Organization' is found
 
         """
         results = entities.Organization().search(
@@ -882,9 +882,9 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
-        @id: 1f40b3c6-488d-4037-a7ab-250a02bf919a
+        :id: 1f40b3c6-488d-4037-a7ab-250a02bf919a
 
-        @Assert: 'Default Location' is found
+        :Assert: 'Default Location' is found
 
         """
         results = entities.Location().search(
@@ -896,9 +896,9 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
-        @id: 892fdfcd-18c0-42ef-988b-f13a04097f5c
+        :id: 892fdfcd-18c0-42ef-988b-f13a04097f5c
 
-        @Assert: Admin User is found and has Admin role
+        :Assert: Admin User is found and has Admin role
 
         """
         results = entities.User().search(query={'search': 'login=admin'})
@@ -908,9 +908,9 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
     def test_positive_ping(self):
         """Check if all services are running
 
-        @id: b8ecc7ba-8007-4067-bf99-21a82c833de7
+        :id: b8ecc7ba-8007-4067-bf99-21a82c833de7
 
-        @Assert: Overall and individual services status should be 'ok'.
+        :Assert: Overall and individual services status should be 'ok'.
 
         """
         response = entities.Ping().search_json()
@@ -958,10 +958,10 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             19. Create a new hostgroup and associate previous entities to it
             20. Provision a client
 
-        @id: b2f73740-d3ce-4e6e-abc7-b23e5562bac1
+        :id: b2f73740-d3ce-4e6e-abc7-b23e5562bac1
 
-        @Assert: All tests should succeed and Content should be successfully
-        fetched by client.
+        :Assert: All tests should succeed and Content should be successfully
+            fetched by client.
         """
         # step 1: Create a new user with admin permissions
         login = gen_string('alphanumeric')

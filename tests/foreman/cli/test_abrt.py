@@ -1,18 +1,18 @@
 """Test for abrt report
 
-@Requirement: Abrt
+:Requirement: Abrt
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
@@ -25,19 +25,17 @@ class AbrtTestCase(CLITestCase):
     def test_positive_create_report(self):
         """a crashed program and abrt reports are send
 
-        @id: 6e6e7525-895a-4192-9e56-4a0df1ad41ff
+        :id: 6e6e7525-895a-4192-9e56-4a0df1ad41ff
 
-        @Setup: abrt
+        :Setup: abrt
 
-        @Steps:
+        :Steps: start a sleep process in background, kill it send the report
+            using smart-proxy-abrt-send
 
-        1. start a sleep process in background, kill it send the report using
-        smart-proxy-abrt-send
+        :Assert: A abrt report with ccpp.* extension  created under
+            /var/tmp/abrt
 
-        @Assert: A abrt report with ccpp.* extension  created under
-        /var/tmp/abrt
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -45,18 +43,18 @@ class AbrtTestCase(CLITestCase):
     def test_positive_create_reports(self):
         """Counts are correct when abrt sends multiple reports
 
-        @id: 13aed05c-b72d-4a35-aa0e-5ac2029300e7
+        :id: 13aed05c-b72d-4a35-aa0e-5ac2029300e7
 
-        @Setup: abrt
+        :Setup: abrt
 
-        @Steps:
+        :Steps:
 
-        1. Create multiple reports of abrt
-        2. Keep track of counts
+            1. Create multiple reports of abrt
+            2. Keep track of counts
 
-        @Assert: Count is updated in proper manner
+        :Assert: Count is updated in proper manner
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -64,17 +62,15 @@ class AbrtTestCase(CLITestCase):
     def test_positive_update_timer(self):
         """Edit the smart-proxy-abrt timer
 
-        @id: 8e62d8d4-9b1c-4eb7-9352-c001be09a4d9
+        :id: 8e62d8d4-9b1c-4eb7-9352-c001be09a4d9
 
-        @Setup: abrt
+        :Setup: abrt
 
-        @Steps:
+        :Steps: edit the timer for /etc/cron.d/rubygem-smart_proxy_abrt
 
-        1. edit the timer for /etc/cron.d/rubygem-smart_proxy_abrt
+        :Assert: the timer file is edited
 
-        @Assert: the timer file is edited
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -82,17 +78,15 @@ class AbrtTestCase(CLITestCase):
     def test_positive_identify_hostname(self):
         """Identifying the hostnames
 
-        @id: d9ab279b-45cf-412e-bc0f-af31737cfa74
+        :id: d9ab279b-45cf-412e-bc0f-af31737cfa74
 
-        @Setup: abrt
+        :Setup: abrt
 
-        @Steps:
+        :Steps: UI => Settings => Abrt tab => edit hostnames
 
-        1. UI => Settings => Abrt tab => edit hostnames
+        :Assert: Assertion of hostnames is possible
 
-        @Assert: Assertion of hostnames is possible
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """
 
@@ -100,16 +94,14 @@ class AbrtTestCase(CLITestCase):
     def test_positive_search_report(self):
         """Able to retrieve reports in CLI
 
-        @id: b0623309-1b76-466d-a026-496e117f2d04
+        :id: b0623309-1b76-466d-a026-496e117f2d04
 
-        @Setup: abrt
+        :Setup: abrt
 
-        @Steps:
+        :Steps: access /var/tmp/abrt/ccpp-* files
 
-        1. access /var/tmp/abrt/ccpp-* files
+        :Assert: Assertion of parameters
 
-        @Assert: Assertion of parameters
-
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
         """

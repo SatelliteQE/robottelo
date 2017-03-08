@@ -1,18 +1,18 @@
 """Tests related to hammer command and its options and subcommands.
 
-@Requirement: Hammer
+:Requirement: Hammer
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import json
 
@@ -149,9 +149,9 @@ class HammerCommandsTestCase(CLITestCase):
     def test_positive_all_options(self):
         """check all provided options for every hammer command
 
-        @id: 1203ab9f-896d-4039-a166-9e2d36925b5b
+        :id: 1203ab9f-896d-4039-a166-9e2d36925b5b
 
-        @Assert: All expected options are present
+        :Assert: All expected options are present
         """
         self.maxDiff = None
         self._traverse_command_tree('hammer')

@@ -1,18 +1,18 @@
 """Tests for cli repository set
 
-@Requirement: Repository set
+:Requirement: Repository set
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: CLI
+:CaseComponent: CLI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product
@@ -33,10 +33,10 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_list_available_repositories(self):
         """List available repositories for repository-set
 
-        @id: 987d6b08-acb0-4264-a459-9cef0d2c6f3f
+        :id: 987d6b08-acb0-4264-a459-9cef0d2c6f3f
 
-        @Assert: List of available repositories is displayed, with
-        valid amount of enabled repositories
+        :Assert: List of available repositories is displayed, with valid amount
+            of enabled repositories
         """
         rhel_product_name = PRDS['rhel']
         rhel_repo_set = REPOSET['rhva6']
@@ -145,9 +145,9 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_enable_by_name(self):
         """Enable repo from reposet by names of reposet, org and product
 
-        @id: a78537bd-b88d-4f00-8901-e7944e5de729
+        :id: a78537bd-b88d-4f00-8901-e7944e5de729
 
-        @Assert: Repository was enabled
+        :Assert: Repository was enabled
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -181,9 +181,9 @@ class RepositorySetTestCase(CLITestCase):
         """Enable repo from reposet by org label, reposet and product
         names
 
-        @id: 5230c1cd-fed7-40ac-8445-bac4f9c5ee68
+        :id: 5230c1cd-fed7-40ac-8445-bac4f9c5ee68
 
-        @Assert: Repository was enabled
+        :Assert: Repository was enabled
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -216,9 +216,9 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_enable_by_id(self):
         """Enable repo from reposet by IDs of reposet, org and product
 
-        @id: f7c88534-1d45-45d9-9b87-c50c4e268e8d
+        :id: f7c88534-1d45-45d9-9b87-c50c4e268e8d
 
-        @Assert: Repository was enabled
+        :Assert: Repository was enabled
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -261,9 +261,9 @@ class RepositorySetTestCase(CLITestCase):
         """Disable repo from reposet by names of reposet, org and
         product
 
-        @id: 1690a701-ae41-4724-bbc6-b0adba5a5319
+        :id: 1690a701-ae41-4724-bbc6-b0adba5a5319
 
-        @Assert: Repository was disabled
+        :Assert: Repository was disabled
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -304,9 +304,9 @@ class RepositorySetTestCase(CLITestCase):
         """Disable repo from reposet by org label, reposet and product
         names
 
-        @id: a87a5df6-f8ab-469e-94e5-ca79378f8dbe
+        :id: a87a5df6-f8ab-469e-94e5-ca79378f8dbe
 
-        @Assert: Repository was disabled
+        :Assert: Repository was disabled
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -346,9 +346,9 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_disable_by_id(self):
         """Disable repo from reposet by IDs of reposet, org and product
 
-        @id: 0d6102ba-3fb9-4eb8-972e-d537e252a8e6
+        :id: 0d6102ba-3fb9-4eb8-972e-d537e252a8e6
 
-        @Assert: Repository was disabled
+        :Assert: Repository was disabled
         """
         org = make_org()
         with manifests.clone() as manifest:

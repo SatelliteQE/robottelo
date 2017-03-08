@@ -1,18 +1,18 @@
 """Test class for Config Groups UI
 
-@Requirement: Config group
+:Requirement: Config group
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -36,9 +36,9 @@ class ConfigGroupTestCase(UITestCase):
     def test_positive_create(self):
         """Create new Config-Group
 
-        @id: b9e170a3-29b1-49e6-bfc6-c48fb0021ecb
+        :id: b9e170a3-29b1-49e6-bfc6-c48fb0021ecb
 
-        @Assert: Config-Groups is created
+        :Assert: Config-Groups is created
 
         """
         with Session(self.browser) as session:
@@ -53,9 +53,9 @@ class ConfigGroupTestCase(UITestCase):
         """Try to create config group and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
-        @id: 1c8d098c-60c2-4dc4-af24-1c8a4cfff5e2
+        :id: 1c8d098c-60c2-4dc4-af24-1c8a4cfff5e2
 
-        @Assert: Config-Groups is not created
+        :Assert: Config-Groups is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -70,9 +70,9 @@ class ConfigGroupTestCase(UITestCase):
     def test_positive_update(self):
         """Update selected config-group
 
-        @id: c8589969-1fdb-4977-b973-3795a36704be
+        :id: c8589969-1fdb-4977-b973-3795a36704be
 
-        @Assert: Config-Groups is updated.
+        :Assert: Config-Groups is updated.
 
         """
         name = gen_string('alpha')
@@ -90,9 +90,9 @@ class ConfigGroupTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete selected config-groups
 
-        @id: 50879d3c-7c38-4294-aae4-0f3f146c9613
+        :id: 50879d3c-7c38-4294-aae4-0f3f146c9613
 
-        @Assert: Config-Groups is deleted
+        :Assert: Config-Groups is deleted
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

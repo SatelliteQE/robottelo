@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Packages UI
 
-@Requirement: Packages
+:Requirement: Packages
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -64,12 +64,12 @@ class PackagesTestCase(UITestCase):
         """Create product with yum repository assigned to it. Search for
         packages inside of it
 
-        @id: e182a89f-74e4-4b29-8152-1ea3bd014fd3
+        :id: e182a89f-74e4-4b29-8152-1ea3bd014fd3
 
-        @Assert: Content search functionality works as intended and expected
-        packages are present inside of repository
+        :Assert: Content search functionality works as intended and expected
+            packages are present inside of repository
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -83,12 +83,12 @@ class PackagesTestCase(UITestCase):
         Search for packages inside of these repositories. Make sure that unique
         packages present in corresponding repos.
 
-        @id: 249ac04b-8e31-42e9-ac37-08608bf867a1
+        :id: 249ac04b-8e31-42e9-ac37-08608bf867a1
 
-        @Assert: Content search functionality works as intended and expected
-        packages are present inside of repositories
+        :Assert: Content search functionality works as intended and expected
+            packages are present inside of repositories
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -107,12 +107,12 @@ class PackagesTestCase(UITestCase):
         package inside of it and then open it. Check all the details about that
         package
 
-        @id: 57625386-4a9e-4bea-b2d5-d97326043150
+        :id: 57625386-4a9e-4bea-b2d5-d97326043150
 
-        @Assert: Package is present inside of repository and has all expected
-        values in details section
+        :Assert: Package is present inside of repository and has all expected
+            values in details section
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -142,14 +142,14 @@ class PackagesTestCase(UITestCase):
         """Upload custom rpm package to repository. Search for package
         and then open it. Check that package details are available
 
-        @id: 679622a7-003e-4887-8622-b95b9468da7d
+        :id: 679622a7-003e-4887-8622-b95b9468da7d
 
-        @Assert: Package is present inside of repository and it possible to
-        view its details
+        :Assert: Package is present inside of repository and it possible to
+            view its details
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @BZ: 1384673
+        :BZ: 1384673
         """
         with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
             self.yum_repo.upload_content(files={'content': handle})
@@ -190,12 +190,12 @@ class RHPackagesTestCase(UITestCase):
         """Synchronize one of RH repos (for example Satellite Tools). Search
         for packages inside of it
 
-        @id: 8eae9cc1-6902-49ed-a474-ef175fe5ab5f
+        :id: 8eae9cc1-6902-49ed-a474-ef175fe5ab5f
 
-        @Assert: Content search functionality works as intended and expected
-        packages are present inside of repository
+        :Assert: Content search functionality works as intended and expected
+            packages are present inside of repository
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -209,12 +209,12 @@ class RHPackagesTestCase(UITestCase):
         for packages inside of it. Open one of the package and check list of
         file inside of it
 
-        @id: 01c9dccb-2b2b-4b90-b277-047e772e56e7
+        :id: 01c9dccb-2b2b-4b90-b277-047e772e56e7
 
-        @Assert: Content search functionality works as intended and package
-        contains expected list of files
+        :Assert: Content search functionality works as intended and package
+            contains expected list of files
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)

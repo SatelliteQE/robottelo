@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host/System Unification
 
-@Requirement: Hostunification
+:Requirement: Hostunification
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string
@@ -64,17 +64,17 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_register_host_via_rhsm(self):
         """Register a pre-installed host via rhsm using credentials
 
-        @id: 4e685241-b671-4cfd-bfaa-f44a5cf78654
+        :id: 4e685241-b671-4cfd-bfaa-f44a5cf78654
 
-        @steps:
-        1.  Register a host via rhsm using credentials
-        2.  View host under content hosts
-        3.  View host under 'All Hosts'
+        :steps:
+            1.  Register a host via rhsm using credentials
+            2.  View host under content hosts
+            3.  View host under 'All Hosts'
 
-        @assert: Hosts registered via rhsm appears under 'All hosts' as well
-        as under content-hosts.
+        :assert: Hosts registered via rhsm appears under 'All hosts' as well as
+            under content-hosts.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
@@ -91,17 +91,17 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_register_host_via_ak(self):
         """Register a pre-installed host via rhsm using activation-key
 
-        @id: b42a1a13-49ef-418e-bb66-12ed71cf3038
+        :id: b42a1a13-49ef-418e-bb66-12ed71cf3038
 
-        @steps:
-        1.  Register a host via rhsm using activation-key
-        2.  View host under content hosts
-        3.  View host under 'All Hosts'
+        :steps:
+            1.  Register a host via rhsm using activation-key
+            2.  View host under content hosts
+            3.  View host under 'All Hosts'
 
-        @assert: Hosts registered via activation key appears under 'All hosts'
-        as well as under content-hosts
+        :assert: Hosts registered via activation key appears under 'All hosts'
+            as well as under content-hosts
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(organization=org).create()
@@ -133,18 +133,18 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_provision_foreman_host(self):
         """Test if a foreman host can be provisioned
 
-        @id: 985b4432-4d99-43a7-a304-1b93760257dd
+        :id: 985b4432-4d99-43a7-a304-1b93760257dd
 
-        @steps:
+        :steps:
 
-        1.  Provision a host via foreman
-        2.  View host under content hosts
-        3.  View host under 'All Hosts'
+            1.  Provision a host via foreman
+            2.  View host under content hosts
+            3.  View host under 'All Hosts'
 
-        @assert: Hosts provisioned via foreman should appear under 'All hosts'
-        as well as under content-hosts.
+        :assert: Hosts provisioned via foreman should appear under 'All hosts'
+            as well as under content-hosts.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -187,16 +187,16 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_rename_foreman_host(self):
         """Hosts renamed in foreman appears in katello under content-hosts
 
-        @id: 24182edc-8bff-46a1-b158-bcc7a3615166
+        :id: 24182edc-8bff-46a1-b158-bcc7a3615166
 
-        @steps:
-        1.  Rename a host from 'All Hosts' page
-        2.  View host under content-hosts page
-        3.  View host under 'All Hosts'
+        :steps:
+            1.  Rename a host from 'All Hosts' page
+            2.  View host under content-hosts page
+            3.  View host under 'All Hosts'
 
-        @assert: Host appears in both places despite being renamed
+        :assert: Host appears in both places despite being renamed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
@@ -227,16 +227,16 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_rename_content_host(self):
         """Hosts renamed in katello via content-hosts appear in foreman
 
-        @id: 34a2c507-b992-46fa-81d9-e4b31ffd9706
+        :id: 34a2c507-b992-46fa-81d9-e4b31ffd9706
 
-        @steps:
-        1.  Rename a host from 'Content-hosts' page
-        2.  View host under content-hosts
-        3.  View host under 'All Hosts'
+        :steps:
+            1.  Rename a host from 'Content-hosts' page
+            2.  View host under content-hosts
+            3.  View host under 'All Hosts'
 
-        @assert: Host appears in both places despite being renamed
+        :assert: Host appears in both places despite being renamed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
@@ -259,17 +259,17 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_delete_from_allhosts(self):
         """Delete a host from 'All hosts'
 
-        @id: 896c1a7e-9292-45f2-a2b7-3d2560ae4a2d
+        :id: 896c1a7e-9292-45f2-a2b7-3d2560ae4a2d
 
-        @steps:
-        1.  Delete a host from 'All hosts' page
-        2.  View host under 'Content-hosts'
-        3.  View host under 'All hosts'
+        :steps:
+            1.  Delete a host from 'All hosts' page
+            2.  View host under 'Content-hosts'
+            3.  View host under 'All hosts'
 
-        @assert: Host should be removed from 'All hosts' as well as
-        content-hosts
+        :assert: Host should be removed from 'All hosts' as well as
+            content-hosts
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
@@ -286,17 +286,17 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_unregister_content_host(self):
         """Unregister a host from content-hosts page
 
-        @id: a7d8a081-b0f2-4944-a8dc-5527cb6ab914
+        :id: a7d8a081-b0f2-4944-a8dc-5527cb6ab914
 
-        @steps:
-        1.  Un-register a host from content-host page
-        2.  View host under content hosts
-        3.  View host under 'All hosts'
+        :steps:
+            1.  Un-register a host from content-host page
+            2.  View host under content hosts
+            3.  View host under 'All hosts'
 
-        @assert: Hosts un-registered from content-host should appear in both
-        sides of UI
+        :assert: Hosts un-registered from content-host should appear in both
+            sides of UI
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(organization=org).create()
@@ -332,17 +332,17 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_delete_content_host(self):
         """Unregister and delete a host from content-hosts page
 
-        @id: 3c75c1e6-85e3-49e6-a10e-6052a0db2b7f
+        :id: 3c75c1e6-85e3-49e6-a10e-6052a0db2b7f
 
-        @steps:
-        1.  Un-register and delete a host from content-host page
-        2.  View host under content hosts
-        3.  View host under 'All hosts'
+        :steps:
+            1.  Un-register and delete a host from content-host page
+            2.  View host under content hosts
+            3.  View host under 'All hosts'
 
-        @assert: Hosts un-registered from content-host should disappear from
-        both sides of UI
+        :assert: Hosts un-registered from content-host should disappear from
+            both sides of UI
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(organization=org).create()
@@ -375,17 +375,17 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_positive_re_register_host(self):
         """Re-register a host which was un-registered earlier from content-host
 
-        @id: 898695dc-36ff-45b8-85be-6734e6a232d6
+        :id: 898695dc-36ff-45b8-85be-6734e6a232d6
 
-        @steps:
-        1.  Re-register a host which was unregistered before
-        2.  View host under content hosts
-        3.  View host under 'All hosts'
+        :steps:
+            1.  Re-register a host which was unregistered before
+            2.  View host under content hosts
+            3.  View host under 'All hosts'
 
-        @assert: A single entry of host should appear at both places on
-        re-registering
+        :assert: A single entry of host should appear at both places on
+            re-registering
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         org = entities.Organization().create()
         env = entities.LifecycleEnvironment(organization=org).create()
@@ -425,16 +425,16 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_negative_add_subs_to_unregistered_host(self):
         """Perform a subscription action on a host which is not registered
 
-        @id: 83ebd98e-309d-4209-bf01-0547334af5af
+        :id: 83ebd98e-309d-4209-bf01-0547334af5af
 
-        @steps:
-        1.  Provision a host via foreman which is not registered via rhsm
-        2.  Try to add subscription from content-hosts page
+        :steps:
+            1.  Provision a host via foreman which is not registered via rhsm
+            2.  Try to add subscription from content-hosts page
 
-        @assert: User get a warning:
-        This Host is not currently registered with subscription-manager.
+        :assert: User get a warning: This Host is not currently registered with
+            subscription-manager.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -480,16 +480,16 @@ class HostContentHostUnificationTestCase(UITestCase):
     def test_negative_add_contents_to_unregistered_host(self):
         """Perform a content action like on a host which is not registered
 
-        @id: 67396c26-67fa-4cee-9937-65c2b9befabc
+        :id: 67396c26-67fa-4cee-9937-65c2b9befabc
 
-        @steps:
-        1.  Provision a host via foreman which is not registered via rhsm
-        2.  Try to add package from content-hosts page
+        :steps:
+            1.  Provision a host via foreman which is not registered via rhsm
+            2.  Try to add package from content-hosts page
 
-        @assert: User get a warning:
-        This Host is not currently registered with subscription-manager.
+        :assert: User get a warning: This Host is not currently registered with
+            subscription-manager.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()

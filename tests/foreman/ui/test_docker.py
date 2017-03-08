@@ -1,18 +1,18 @@
 """WebUI tests for the Docker feature.
 
-@Requirement: Docker
+:Requirement: Docker
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: UI
+:CaseComponent: UI
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 
 from fauxfactory import gen_string, gen_url
@@ -108,11 +108,11 @@ class DockerTagTestCase(UITestCase):
     def test_positive_search_docker_image(self):
         """Search for a docker image
 
-        @id: 28640396-c44d-4487-9d6d-3d5f2ed599d7
+        :id: 28640396-c44d-4487-9d6d-3d5f2ed599d7
 
-        @Assert: The docker tag can be searched and found
+        :Assert: The docker tag can be searched and found
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         organization = entities.Organization().create()
         pr = entities.Product(organization=organization).create()
@@ -146,9 +146,9 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create one Docker-type repository using different names
 
-        @id: 233f39b5-ec75-4035-a45f-0f37a40bbdfe
+        :id: 233f39b5-ec75-4035-a45f-0f37a40bbdfe
 
-        @Assert: A repository is created with a Docker upstream repository.
+        :Assert: A repository is created with a Docker upstream repository.
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -169,10 +169,10 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
 
-        @id: f6e7d9fe-7dec-42ef-8cbd-071871e4b8ac
+        :id: f6e7d9fe-7dec-42ef-8cbd-071871e4b8ac
 
-        @Assert: Multiple docker repositories are created with a Docker
-        upstream repository and they all belong to the same product.
+        :Assert: Multiple docker repositories are created with a Docker
+            upstream repository and they all belong to the same product.
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -192,10 +192,11 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_create_repos_using_multiple_products(self):
         """Create multiple Docker-type repositories on multiple products.
 
-        @id: da76f1e8-236e-455d-b300-676e00e3df8e
+        :id: da76f1e8-236e-455d-b300-676e00e3df8e
 
-        @Assert: Multiple docker repositories are created with a Docker
-        upstream repository and they all belong to their respective products.
+        :Assert: Multiple docker repositories are created with a Docker
+            upstream repository and they all belong to their respective
+            products.
         """
         with Session(self.browser) as session:
             for _ in range(randint(2, 3)):
@@ -216,12 +217,12 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_sync(self):
         """Create and sync a Docker-type repository
 
-        @id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
+        :id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
 
-        @Assert: A repository is created with a Docker repository and it is
-        synchronized.
+        :Assert: A repository is created with a Docker repository and it is
+            synchronized.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.organization).create()
@@ -243,10 +244,10 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
 
-        @id: 64878d14-39ed-44fd-9a71-5923edaa6e3d
+        :id: 64878d14-39ed-44fd-9a71-5923edaa6e3d
 
-        @Assert: A repository is created with a Docker upstream repository and
-        that its name can be updated.
+        :Assert: A repository is created with a Docker upstream repository and
+            that its name can be updated.
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -271,10 +272,10 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
 
-        @id: b7e17891-e248-4044-ac88-8f8a9d0e95f2
+        :id: b7e17891-e248-4044-ac88-8f8a9d0e95f2
 
-        @Assert: A repository is created with a Docker upstream repository and
-        that its upstream name can be updated.
+        :Assert: A repository is created with a Docker upstream repository and
+            that its upstream name can be updated.
         """
         with Session(self.browser) as session:
             repo_name = gen_string('alphanumeric')
@@ -302,10 +303,10 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
-        @id: d85892a2-a887-413d-81c6-97a2a518f365
+        :id: d85892a2-a887-413d-81c6-97a2a518f365
 
-        @Assert: A repository is created with a Docker upstream repository and
-        that its URL can be updated.
+        :Assert: A repository is created with a Docker upstream repository and
+            that its URL can be updated.
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -332,10 +333,10 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_delete(self):
         """Create and delete a Docker-type repository
 
-        @id: 725a0f6b-67c5-4a59-a7b9-2308333a42bd
+        :id: 725a0f6b-67c5-4a59-a7b9-2308333a42bd
 
-        @Assert: A repository is created with a Docker upstream repository and
-        then deleted.
+        :Assert: A repository is created with a Docker upstream repository and
+            then deleted.
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -359,12 +360,12 @@ class DockerRepositoryTestCase(UITestCase):
         """Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
 
-        @id: a3dce435-c46e-41d7-a2f8-29421f7427f5
+        :id: a3dce435-c46e-41d7-a2f8-29421f7427f5
 
-        @Assert: Random repository can be deleted from random product without
-        altering the other products.
+        :Assert: Random repository can be deleted from random product without
+            altering the other products.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         entities_list = []
         products = [
@@ -418,12 +419,12 @@ class DockerContentViewTestCase(UITestCase):
     def test_positive_add_docker_repo(self):
         """Add one Docker-type repository to a non-composite content view
 
-        @id: 2868cfd5-d27e-4db9-b4a3-2827e31d1601
+        :id: 2868cfd5-d27e-4db9-b4a3-2827e31d1601
 
-        @Assert: A repository is created with a Docker repository and the
-        product is added to a non-composite content view
+        :Assert: A repository is created with a Docker repository and the
+            product is added to a non-composite content view
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -447,12 +448,12 @@ class DockerContentViewTestCase(UITestCase):
         """Add multiple Docker-type repositories to a non-composite
         content view.
 
-        @id: 60d0ea23-fe8c-49f3-bed9-cc062ab1118d
+        :id: 60d0ea23-fe8c-49f3-bed9-cc062ab1118d
 
-        @Assert: Repositories are created with Docker upstream repositories and
-        the product is added to a non-composite content view.
+        :Assert: Repositories are created with Docker upstream repositories and
+            the product is added to a non-composite content view.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repos = []
         content_view = entities.ContentView(
@@ -478,12 +479,12 @@ class DockerContentViewTestCase(UITestCase):
     def test_positive_add_synced_docker_repo(self):
         """Create and sync a Docker-type repository
 
-        @id: 338a7ed4-9e10-4bc0-8666-5c8cd0ff0504
+        :id: 338a7ed4-9e10-4bc0-8666-5c8cd0ff0504
 
-        @Assert: A repository is created with a Docker repository and it is
-        synchronized.
+        :Assert: A repository is created with a Docker repository and it is
+            synchronized.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -510,13 +511,13 @@ class DockerContentViewTestCase(UITestCase):
     def test_positive_add_docker_repo_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
-        @id: 76b68407-b429-4ad7-b8b5-bfde327a0404
+        :id: 76b68407-b429-4ad7-b8b5-bfde327a0404
 
-        @Assert: A repository is created with a Docker repository and the
-        product is added to a content view which is then added to a composite
-        content view.
+        :Assert: A repository is created with a Docker repository and the
+            product is added to a content view which is then added to a
+            composite content view.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -546,13 +547,13 @@ class DockerContentViewTestCase(UITestCase):
         """Add multiple Docker-type repositories to a composite content
         view.
 
-        @id: 30187102-7106-45de-a68b-e32fbaecedb9
+        :id: 30187102-7106-45de-a68b-e32fbaecedb9
 
-        @Assert: One repository is created with a Docker upstream repository
-        and the product is added to a random number of content views which are
-        then added to a composite content view.
+        :Assert: One repository is created with a Docker upstream repository
+            and the product is added to a random number of content views which
+            are then added to a composite content view.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         cvs = []
         with Session(self.browser) as session:
@@ -585,13 +586,13 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it
         once.
 
-        @id: 2004b2d4-177b-47de-9e61-bcfb58f05f88
+        :id: 2004b2d4-177b-47de-9e61-bcfb58f05f88
 
-        @Assert: One repository is created with a Docker upstream repository
-        and the product is added to a content view which is then published only
-        once.
+        :Assert: One repository is created with a Docker upstream repository
+            and the product is added to a content view which is then published
+            only once.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for repo_name in valid_data_list():
@@ -619,14 +620,14 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to composite content view and
         publish it once.
 
-        @id: 7aad525a-a9d3-4100-9611-ca02c6a95a22
+        :id: 7aad525a-a9d3-4100-9611-ca02c6a95a22
 
-        @Assert: One repository is created with a Docker upstream repository
-        and the product is added to a content view which is then published only
-        once and then added to a composite content view which is also published
-        only once.
+        :Assert: One repository is created with a Docker upstream repository
+            and the product is added to a content view which is then published
+            only once and then added to a composite content view which is also
+            published only once.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -660,13 +661,13 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
-        @id: acc703b7-6e99-48d7-96ce-ea0985409ef9
+        :id: acc703b7-6e99-48d7-96ce-ea0985409ef9
 
-        @Assert: One repository is created with a Docker upstream repository
-        and the product is added to a content view which is then published
-        multiple times.
+        :Assert: One repository is created with a Docker upstream repository
+            and the product is added to a content view which is then published
+            multiple times.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -694,14 +695,14 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
-        @id: 07755bff-9071-45e5-b861-77a5c2fed3d9
+        :id: 07755bff-9071-45e5-b861-77a5c2fed3d9
 
-        @Assert: One repository is created with a Docker upstream repository
-        and the product is added to a content view which is then added to a
-        composite content view which is then published multiple times.
+        :Assert: One repository is created with a Docker upstream repository
+            and the product is added to a content view which is then added to a
+            composite content view which is then published multiple times.
 
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -735,12 +736,12 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
 
-        @id: c7e8c4a2-9676-429b-a452-f50d7bdd78b3
+        :id: c7e8c4a2-9676-429b-a452-f50d7bdd78b3
 
-        @Assert: Docker-type repository is promoted to content view found in
-        the specific lifecycle-environment.
+        :Assert: Docker-type repository is promoted to content view found in
+            the specific lifecycle-environment.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
         lce = entities.LifecycleEnvironment(
@@ -773,12 +774,12 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
 
-        @id: c23d582e-502c-49ac-83f7-dcf0f192cbc6
+        :id: c23d582e-502c-49ac-83f7-dcf0f192cbc6
 
-        @Assert: Docker-type repository is promoted to content view found in
-        the specific lifecycle-environments.
+        :Assert: Docker-type repository is promoted to content view found in
+            the specific lifecycle-environments.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -813,13 +814,13 @@ class DockerContentViewTestCase(UITestCase):
         publish it. Then promote it to the next available
         lifecycle-environment.
 
-        @id: 1c7817c7-60b5-4383-bc6f-2878c2b27fa5
+        :id: 1c7817c7-60b5-4383-bc6f-2878c2b27fa5
 
-        @Assert: Docker-type repository is promoted to content view found in
-        the specific lifecycle-environment.
+        :Assert: Docker-type repository is promoted to content view found in
+            the specific lifecycle-environment.
 
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         lce = entities.LifecycleEnvironment(
@@ -858,12 +859,12 @@ class DockerContentViewTestCase(UITestCase):
         publish it. Then promote it to the multiple available
         lifecycle-environments.
 
-        @id: b735b1fa-3d60-4fc0-92d2-4af0ab003097
+        :id: b735b1fa-3d60-4fc0-92d2-4af0ab003097
 
-        @Assert: Docker-type repository is promoted to content view found in
-        the specific lifecycle-environments.
+        :Assert: Docker-type repository is promoted to content view found in
+            the specific lifecycle-environments.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -931,11 +932,11 @@ class DockerActivationKeyTestCase(UITestCase):
         publish it. Then create an activation key and associate it with the
         Docker content view.
 
-        @id: e4935729-c5bc-46be-a23a-93ebde6b3506
+        :id: e4935729-c5bc-46be-a23a-93ebde6b3506
 
-        @Assert: Docker-based content view can be added to activation key
+        :Assert: Docker-based content view can be added to activation key
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         ak_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -957,14 +958,14 @@ class DockerActivationKeyTestCase(UITestCase):
         publish it. Create an activation key and associate it with the Docker
         content view. Then remove this content view from the activation key.
 
-        @id: 4336093e-141b-47e0-9a39-3952cfaaf377
+        :id: 4336093e-141b-47e0-9a39-3952cfaaf377
 
-        @Assert: Docker-based content view can be added and then removed
-        from the activation key.
+        :Assert: Docker-based content view can be added and then removed from
+            the activation key.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -975,11 +976,11 @@ class DockerActivationKeyTestCase(UITestCase):
         publish it. Create an activation key and associate it with the
         composite Docker content view.
 
-        @id: 0d412f54-6333-413e-8040-4e51ae5c069c
+        :id: 0d412f54-6333-413e-8040-4e51ae5c069c
 
-        @Assert: Docker-based content view can be added to activation key
+        :Assert: Docker-based content view can be added to activation key
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         ak_name = gen_string('utf8')
         composite_name = gen_string('utf8')
@@ -1014,14 +1015,14 @@ class DockerActivationKeyTestCase(UITestCase):
         composite Docker content view. Then, remove the composite content view
         from the activation key.
 
-        @id: 0bf0360f-555a-4d79-9a14-71360f56633f
+        :id: 0bf0360f-555a-4d79-9a14-71360f56633f
 
-        @Assert: Docker-based composite content view can be added and then
-        removed from the activation key.
+        :Assert: Docker-based composite content view can be added and then
+            removed from the activation key.
 
-        @caseautomation: notautomated
+        :caseautomation: notautomated
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
 
 
@@ -1041,9 +1042,9 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance.
 
-        @id: 78a65ed3-0dbf-413f-91cf-3a02f7ee12d1
+        :id: 78a65ed3-0dbf-413f-91cf-3a02f7ee12d1
 
-        @Assert: Compute Resource can be created and listed.
+        :Assert: Compute Resource can be created and listed.
         """
         with Session(self.browser) as session:
             for comp_name in valid_data_list():
@@ -1067,10 +1068,10 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
-        @id: 6a22e770-6a9a-48ab-94b6-e991e484812d
+        :id: 6a22e770-6a9a-48ab-94b6-e991e484812d
 
-        @Assert: Compute Resource can be created, listed and its attributes can
-        be updated.
+        :Assert: Compute Resource can be created, listed and its attributes can
+            be updated.
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1096,12 +1097,12 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
-        @id: ebac82ed-5a29-4a06-8aae-bd5b08f60fba
+        :id: ebac82ed-5a29-4a06-8aae-bd5b08f60fba
 
-        @Assert: Compute Resource can be created, listed and existing running
-        instances can be listed.
+        :Assert: Compute Resource can be created, listed and existing running
+            instances can be listed.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         cr_internal = entities.DockerComputeResource(
             organization=[self.organization],
@@ -1133,9 +1134,9 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource using an external
         Docker-enabled system.
 
-        @id: 73ca3ee1-4353-4399-90ba-56560407246e
+        :id: 73ca3ee1-4353-4399-90ba-56560407246e
 
-        @Assert: Compute Resource can be created and listed.
+        :Assert: Compute Resource can be created and listed.
         """
         with Session(self.browser) as session:
             for comp_name in valid_data_list():
@@ -1159,10 +1160,10 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource using an external
         Docker-enabled system then edit its attributes.
 
-        @id: 13d6c7ee-0c90-46cd-8661-73fa1a3c4ef3
+        :id: 13d6c7ee-0c90-46cd-8661-73fa1a3c4ef3
 
-        @Assert: Compute Resource can be created, listed and its
-        attributes can be updated.
+        :Assert: Compute Resource can be created, listed and its attributes can
+            be updated.
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1189,9 +1190,9 @@ class DockerComputeResourceTestCase(UITestCase):
     def test_positive_delete(self):
         """Create a Docker-based Compute Resource then delete it.
 
-        @id: 151d5c08-4f66-461d-9535-f904cd26ce49
+        :id: 151d5c08-4f66-461d-9535-f904cd26ce49
 
-        @Assert: Compute Resource can be created, listed and deleted.
+        :Assert: Compute Resource can be created, listed and deleted.
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1272,11 +1273,11 @@ class DockerContainerTestCase(UITestCase):
     def test_positive_create_with_compresource(self):
         """Create containers for local and external compute resources
 
-        @id: 4916c72f-e921-450c-8023-2ee516deaf25
+        :id: 4916c72f-e921-450c-8023-2ee516deaf25
 
-        @Assert: The docker container is created for each compute resource
+        :Assert: The docker container is created for each compute resource
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1295,12 +1296,12 @@ class DockerContainerTestCase(UITestCase):
         """Create containers for local and external compute resource,
         then power them on and finally power them off
 
-        @id: cc27bb6f-7fa4-4c87-bf7e-339f2f888717
+        :id: cc27bb6f-7fa4-4c87-bf7e-339f2f888717
 
-        @Assert: The docker container is created for each compute resource and
-        the power status is showing properly
+        :Assert: The docker container is created for each compute resource and
+            the power status is showing properly
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1324,12 +1325,12 @@ class DockerContainerTestCase(UITestCase):
         """Create a container pulling an image from a custom external
         registry
 
-        @id: e609b411-7533-4f65-917a-bed3672ae03c
+        :id: e609b411-7533-4f65-917a-bed3672ae03c
 
-        @Assert: The docker container is created and the image is pulled from
-        the external registry
+        :Assert: The docker container is created and the image is pulled from
+            the external registry
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         repo_name = 'rhel'
         container_name = gen_string('alphanumeric')
@@ -1367,12 +1368,12 @@ class DockerContainerTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete containers in local and external compute resources
 
-        @id: e69808e7-6a0c-4310-b57a-2271ac61d11a
+        :id: e69808e7-6a0c-4310-b57a-2271ac61d11a
 
-        @Assert: The docker containers are deleted in local and external
-        compute resources
+        :Assert: The docker containers are deleted in local and external
+            compute resources
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1395,12 +1396,12 @@ class DockerContainerTestCase(UITestCase):
         """Create and delete containers using direct API calls and verify
         result of these operations through UI interface
 
-        @id: 047e2ef9-66b6-41e2-9c29-b7c2da2b64f8
+        :id: 047e2ef9-66b6-41e2-9c29-b7c2da2b64f8
 
-        @Assert: The docker containers are deleted successfully and are not
-        present on UI
+        :Assert: The docker containers are deleted successfully and are not
+            present on UI
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         for compute_resource in (self.cr_internal, self.cr_external):
             with self.subTest(compute_resource.url):
@@ -1439,9 +1440,9 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create an external docker registry
 
-        @id: 7d2a2271-801e-454b-af0e-fedf1d96a7d5
+        :id: 7d2a2271-801e-454b-af0e-fedf1d96a7d5
 
-        @Assert: the external registry is created
+        :Assert: the external registry is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -1463,9 +1464,9 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create an external docker registry and update its name
 
-        @id: 2b59f929-4a47-4216-b8b3-7f923d8e7de9
+        :id: 2b59f929-4a47-4216-b8b3-7f923d8e7de9
 
-        @Assert: the external registry is updated with the new name
+        :Assert: the external registry is updated with the new name
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1492,9 +1493,9 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_url(self):
         """Create an external docker registry and update its URL
 
-        @id: cf477436-085d-4517-ad86-23e3d254ad70
+        :id: cf477436-085d-4517-ad86-23e3d254ad70
 
-        @Assert: the external registry is updated with the new URL
+        :Assert: the external registry is updated with the new URL
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1520,9 +1521,9 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_description(self):
         """Create an external docker registry and update its description
 
-        @id: 0ca5e992-b28e-452e-a2be-fca57b4b5195
+        :id: 0ca5e992-b28e-452e-a2be-fca57b4b5195
 
-        @Assert: the external registry is updated with the new description
+        :Assert: the external registry is updated with the new description
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1549,9 +1550,9 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_username(self):
         """Create an external docker registry and update its username
 
-        @id: 9cb24a5a-e383-446e-9b1a-3bf02e0ef439
+        :id: 9cb24a5a-e383-446e-9b1a-3bf02e0ef439
 
-        @Assert: the external registry is updated with the new username
+        :Assert: the external registry is updated with the new username
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1578,9 +1579,9 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_delete(self):
         """Create an external docker registry and then delete it
 
-        @id: a85d82f5-88b1-4235-8763-1d2f05c8913a
+        :id: a85d82f5-88b1-4235-8763-1d2f05c8913a
 
-        @Assert: The external registry is deleted successfully
+        :Assert: The external registry is deleted successfully
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

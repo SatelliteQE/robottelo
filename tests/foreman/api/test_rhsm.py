@@ -4,19 +4,19 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 1112802 provides some relevant information.
 
 
-@Requirement: Rhsm
+:Requirement: Rhsm
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 from nailgun import client
 from robottelo.config import settings
@@ -32,10 +32,10 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
     def test_positive_path(self):
         """Check whether the path exists.
 
-        @id: a8706cb7-549b-4426-9bd9-4beecc33c797
+        :id: a8706cb7-549b-4426-9bd9-4beecc33c797
 
-        @Assert: Issuing an HTTP GET produces an HTTP 200 response with an
-        ``application/json`` content-type, and the response is a list.
+        :Assert: Issuing an HTTP GET produces an HTTP 200 response with an
+            ``application/json`` content-type, and the response is a list.
 
         This test targets bugzilla bug 1112802.
         """
