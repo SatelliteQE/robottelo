@@ -1,15 +1,14 @@
 """Unit tests for :mod:`robottelo.decorators`."""
-import six
+from itertools import product, chain
 
+import six
 from fauxfactory import gen_integer
+from unittest2 import SkipTest, TestCase
+
 from robottelo import decorators
 from robottelo.config.base import BugzillaSettings
-from robottelo.constants import (
-    BUGZILLA_URL,
-    BZ_CLOSED_STATUSES,
-    BZ_OPEN_STATUSES
-)
-from unittest2 import SkipTest, TestCase
+from robottelo.constants import BZ_CLOSED_STATUSES, BZ_OPEN_STATUSES
+
 # (Too many public methods) pylint: disable=R0904
 
 if six.PY2:
@@ -20,6 +19,7 @@ else:
 
 class BzBugIsOpenTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.bz_bug_is_open`."""
+
     # (protected-access) pylint:disable=W0212
     # (test names are long to make it readable) pylint:disable=C0103
     def setUp(self):
@@ -51,61 +51,63 @@ class BzBugIsOpenTestCase(TestCase):
 
     def test_bug_is_open(self):
         """Assert ``True`` is returned if the bug is 'NEW' or 'ASSIGNED'."""
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug with an open status."""
-            status = 'NEW'
-            whiteboard = None
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug
+
+        original_bug = {
+            'id': 1,
+            'status': 'NEW',
+            'whiteboard': ''
+        }
+
+        decorators._get_bugzilla_bug = lambda bug_id: original_bug
         self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
-        MockBug.status = 'ASSIGNED'
+        original_bug['status'] = 'ASSIGNED'
         self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
     def test_bug_is_closed(self):
         """Assert ``False`` is returned if the bug is not open."""
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug with a closed status."""
-            status = 'CLOSED'
-            whiteboard = None
-            flags = [
-                {'status': '', 'name': 'sat-6.2.z'},
-                {'status': '+', 'name': 'sat-6.3.0'},
-            ]
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug
+        original_bug = {
+            'id': 1,
+            'status': 'CLOSED',
+            'whiteboard': '',
+            'target_milestone': 'Unspecified',
+            'flags': {'sat-6.2.z': '', 'sat-6.3.0': '+'}
+        }
+
+        decorators._get_bugzilla_bug = lambda bug_id: original_bug
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
-        MockBug.status = 'ON_QA'
+        original_bug['status'] = 'ON_QA'
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
-        MockBug.status = 'SLOWLY DRIVING A DEV INSANE'
+        original_bug['status'] = 'SLOWLY DRIVING A DEV INSANE'
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
 
     def test_bug_lookup_fails(self):
         """Assert ``False`` is returned if the bug cannot be found."""
-        def bomb(_):
-            """A function that mocks a failure to fetch a bug."""
-            raise decorators.BugFetchError
-        decorators._get_bugzilla_bug = bomb
+        decorators._get_bugzilla_bug = lambda _: None
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
 
     @mock.patch('robottelo.decorators.settings')
     def test_upstream_with_whiteboard(self, dec_settings):
         """Assert that upstream bug is not affected by whiteboard texts"""
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug"""
-            status = None
-            whiteboard = None
-            flags = []
+
+        original_bug = {
+            'id': 1,
+            'status': 'NEW',
+            'whiteboard': '',
+        }
+
         dec_settings.upstream = True
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
+        decorators._get_bugzilla_bug = lambda bug_id: original_bug
         # Assert bug is really closed with valid/invalid whiteboard texts
-        for MockBug.status in BZ_CLOSED_STATUSES:
-            for MockBug.whiteboard in (self.valid_whiteboard_data +
-                                       self.invalid_whiteboard_data):
-                self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+        white_board_data = (
+            self.valid_whiteboard_data + self.invalid_whiteboard_data)
+        for original_bug['status'], original_bug['whiteboard'] in \
+                product(BZ_CLOSED_STATUSES, white_board_data):
+            self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
 
         # Assert bug is really open with valid/invalid whiteboard texts
-        for MockBug.status in BZ_OPEN_STATUSES:
-            for MockBug.whiteboard in (self.valid_whiteboard_data +
-                                       self.invalid_whiteboard_data):
-                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+        for original_bug['status'], original_bug['whiteboard'] in \
+                product(BZ_OPEN_STATUSES, white_board_data):
+            self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
     @mock.patch('robottelo.decorators.settings')
     def test_downstream_valid_whiteboard(self, dec_settings):
@@ -115,23 +117,24 @@ class BzBugIsOpenTestCase(TestCase):
         - robottelo in downstream mode
 
         """
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug with a closed status."""
-            status = None
-            whiteboard = None
-            flags = [
-                {'status': '', 'name': 'sat-6.2.z'},
-                {'status': '+', 'name': 'sat-6.3.0'},
-            ]
+
+        original_bug = {
+            'id': 1,
+            'status': 'CLOSED',
+            'whiteboard': '',
+            'target_milestone': 'Unspecified',
+            'flags': {'sat-6.2.z': '', 'sat-6.3.0': '+'}
+        }
+
         dec_settings.upstream = False
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
-        for MockBug.status in BZ_OPEN_STATUSES + BZ_CLOSED_STATUSES:
-            for MockBug.whiteboard in self.valid_whiteboard_data:
-                # 'CLOSED' state overides whiteboard 'verified in upstream'
-                if MockBug.status == 'CLOSED':
-                    self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
-                else:
-                    self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+        decorators._get_bugzilla_bug = lambda bug_id: original_bug
+        all_statuses = chain(BZ_OPEN_STATUSES, BZ_CLOSED_STATUSES)
+        for original_bug['status'], original_bug['whiteboard'] in \
+                product(all_statuses, self.valid_whiteboard_data):
+            if original_bug['status'] == 'CLOSED':
+                self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+            else:
+                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
     @mock.patch('robottelo.decorators.settings')
     def test_downstream_closedbug_invalid_whiteboard(self, dec_settings):
@@ -141,19 +144,20 @@ class BzBugIsOpenTestCase(TestCase):
         - robottelo in downstream mode
 
         """
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug with a closed status."""
-            status = None
-            whiteboard = None
-            flags = [
-                {'status': '', 'name': 'sat-6.2.z'},
-                {'status': '+', 'name': 'sat-6.3.0'},
-            ]
+
+        original_bug = {
+            'id': 1,
+            'status': 'CLOSED',
+            'whiteboard': '',
+            'target_milestone': 'Unspecified',
+            'flags': {'sat-6.2.z': '', 'sat-6.3.0': '+'}
+        }
+
         dec_settings.upstream = False
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
-        for MockBug.status in BZ_CLOSED_STATUSES:
-            for MockBug.whiteboard in self.invalid_whiteboard_data:
-                self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+        decorators._get_bugzilla_bug = lambda bug_id: original_bug
+        for original_bug['status'], original_bug['whiteboard'] in \
+                product(BZ_CLOSED_STATUSES, self.invalid_whiteboard_data):
+            self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
 
     @mock.patch('robottelo.decorators.settings')
     def test_downstream_openbug_whiteboard(self, dec_settings):
@@ -163,21 +167,24 @@ class BzBugIsOpenTestCase(TestCase):
         - robottelo in downstream mode
 
         """
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug"""
-            status = None
-            whiteboard = None
-            flags = []
-        dec_settings.upstream = False
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
-        for MockBug.status in BZ_OPEN_STATUSES:
-            for MockBug.whiteboard in (self.valid_whiteboard_data +
-                                       self.invalid_whiteboard_data):
-                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
-    @mock.patch('robottelo.decorators.bugzilla.RHBugzilla')
+        original_bug = {
+            'id': 1,
+            'status': '',
+            'whiteboard': ''
+        }
+
+        dec_settings.upstream = False
+        decorators._get_bugzilla_bug = lambda bug_id: original_bug
+        all_whiteboard_data = chain(
+            self.valid_whiteboard_data, self.invalid_whiteboard_data)
+        for original_bug['status'], original_bug['whiteboard'] in \
+                product(BZ_OPEN_STATUSES, all_whiteboard_data):
+            self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+
+    @mock.patch('robottelo.decorators.BZReader')
     @mock.patch('robottelo.decorators.settings')
-    def test_unauthenticated_bz_call(self, dec_settings, RHBugzilla):
+    def test_unauthenticated_bz_call(self, dec_settings, BZReader):
         """Assert flags are not taken into account if bz credentials section is
         not present on robottelo.properties
 
@@ -187,52 +194,68 @@ class BzBugIsOpenTestCase(TestCase):
         bz_credentials = {'user': 'foo', 'password': None}
         dec_settings.bugzilla.get_credentials.return_value = bz_credentials
 
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug if empty flags"""
-            status = 'VERIFIED'
-            whiteboard = None
-            flags = []
+        original_bug = {
+            'id': 1,
+            'status': 'VERIFIED',
+            'target_milestone': 'Unspecified',
+            'whiteboard': ''
+        }
 
-        bz_conn_mock = mock.Mock()
-        RHBugzilla.return_value = bz_conn_mock
-        bz_conn_mock.getbug.return_value = MockBug
+        bz_reader = mock.Mock()
+        BZReader.return_value = bz_reader
+        bz_reader.get_bug_data.return_value = original_bug
 
-        self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
-        RHBugzilla.assert_called_once_with(url=BUGZILLA_URL)
-        bz_conn_mock.getbug.assert_called_once_with(
-            self.bug_id,
-            include_fields=['id', 'status', 'whiteboard', 'flags']
+        self.assertFalse(decorators.bz_bug_is_open(original_bug['id']))
+        BZReader.assert_called_once_with(
+            {},
+            include_fields=[
+                'id', 'status', 'whiteboard', 'flags', 'resolution',
+                'target_milestone'
+            ],
+            follow_clones=True
         )
-        MockBug.status = 'NEW'
+        bz_reader.get_bug_data.assert_called_once_with(original_bug['id'])
+        original_bug['status'] = 'ASSIGNED'
         # Missing user
         bz_credentials.update({'user': None, 'password': 'foo'})
         # avoiding cache adding 1 to id
-        self.assertTrue(decorators.bz_bug_is_open(self.bug_id + 1))
+        self.assertTrue(decorators.bz_bug_is_open(original_bug['id'] + 1))
 
     @mock.patch('robottelo.decorators.settings')
     def test_complete_bug_workflow(self, dec_settings):
-        """Assert ``True`` is returned if host version is minor then 6.3,
+        """Assert ``True`` is returned if host version is minor than 6.3,
         the minor version version with positive status
         """
 
-        # ------------- Bug found on Satellite 6.2.3, 6.3 is GA version
-        class MockBug(object):  # pylint:disable=R0903
-            """A mock bug"""
-            status = 'NEW'
-            whiteboard = ''
-            flags = [
-                {'status': '?', 'name': 'sat-6.2.z'},
-                {'status': '?', 'name': 'sat-6.3.0'},
-            ]
+        def set_downstream_flag(bug, value):
+            bug['flags']['sat-6.3.0'] = value
+
+        def set_zstream_flag(bug, value):
+            bug['flags']['sat-6.2.z'] = value
 
         # Downstream
         dec_settings.upstream = False
-        decorators._get_bugzilla_bug = lambda bug_id: MockBug
+        original_bug = {
+            'id': 1,
+            'status': 'NEW',
+            'whiteboard': '',
+            'flags': {'sat-6.2.z': '?', 'sat-6.3.0': '?'},
+            'target_milestone': 'Unspecified'
+        }
+
+        bugzilla_server = {}
+
+        def add_bug_on_server(bug):
+            bugzilla_server[bug['id']] = bug
+
+        decorators._get_bugzilla_bug = lambda bug_id: bugzilla_server[bug_id]
+
+        add_bug_on_server(original_bug)
 
         for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(self.bug_id),
+                decorators.bz_bug_is_open(original_bug['id']),
                 'Should be open for all version because of status NEW'
             )
 
@@ -243,24 +266,21 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertTrue(
-            decorators.bz_bug_is_open(self.bug_id),
+            decorators.bz_bug_is_open(original_bug['id']),
             'Should be open because of status NEW'
         )
 
         # ------------ Bug is fixed and verified on upstream
-        MockBug.status = 'VERIFIED'
-        MockBug.whiteboard = 'verified in upstream'
-        MockBug.flags = [
-            {'status': '?', 'name': 'sat-6.2.z'},
-            {'status': '+', 'name': 'sat-6.3.0'},
-        ]
+        original_bug['status'] = 'VERIFIED'
+        original_bug['whiteboard'] = 'verified in upstream'
+        set_downstream_flag(original_bug, '+')
 
         # Test running against upstream
         dec_settings.upstream = True
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(self.bug_id),
+            decorators.bz_bug_is_open(original_bug['id']),
             'Should be closed for testing on upstream'
         )
 
@@ -270,59 +290,20 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(self.bug_id),
+                decorators.bz_bug_is_open(original_bug['id']),
                 'Should be open for all versions because it is not on '
                 'downstream'
             )
 
-        # ------------ Bug landed z stream and we forget to remove verified
-        # on upstream msg
-        MockBug.status = 'VERIFIED'
-        MockBug.whiteboard = 'verified in upstream'
-        MockBug.flags = [
-            {'status': '+', 'name': 'sat-6.2.z'},
-            {'status': '+', 'name': 'sat-6.3.0'},
-        ]
-
-        # Test running against upstream
-        dec_settings.upstream = False
-        self.get_sat_versions_mock.return_value = 'Does not apply'
-
-        self.assertFalse(
-            decorators.bz_bug_is_open(self.bug_id),
-            'Should be closed for testing on upstream'
-        )
-
-        # Test running against downstream
-        dec_settings.upstream = False
-
-        for v in ['6.2', '6.3', '6.4', '6.5']:
-            self.get_sat_versions_mock.return_value = v
-            self.assertFalse(
-                decorators.bz_bug_is_open(self.bug_id),
-                'Should be closed for all versions because it landed z stream'
-            )
-
-        self.get_sat_versions_mock.return_value = '6.1'
-        self.assertTrue(
-            decorators.bz_bug_is_open(self.bug_id),
-            'Should be open because 6.1 < 6.2 on flags '
-        )
-
         # ------------ Bug landed downstream snap
-        MockBug.status = 'VERIFIED'
-        MockBug.whiteboard = ''
-        MockBug.flags = [
-            {'status': '?', 'name': 'sat-6.2.z'},
-            {'status': '+', 'name': 'sat-6.3.0'},
-        ]
+        original_bug['whiteboard'] = ''
 
         # Test running against upstream
         dec_settings.upstream = True
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(self.bug_id),
+            decorators.bz_bug_is_open(original_bug['id']),
             'Should be closed for testing on upstream'
         )
 
@@ -332,25 +313,103 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(self.bug_id),
+                decorators.bz_bug_is_open(original_bug['id']),
                 'Should be closed for all versions greater or equals to 6.3, '
                 'version present on flags'
             )
 
-        # ------------ Bug landed z stream
-        MockBug.status = 'VERIFIED'
-        MockBug.whiteboard = ''
-        MockBug.flags = [
-            {'status': '+', 'name': 'sat-6.2.z'},
-            {'status': '+', 'name': 'sat-6.3.0'},
-        ]
+        # ------------ Bug has 2 positive flags and target_milestone
+        # Unspecified
+        set_downstream_flag(original_bug, '+')
+        set_zstream_flag(original_bug, '+')
 
         # Test running against upstream
         dec_settings.upstream = True
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(self.bug_id),
+            decorators.bz_bug_is_open(original_bug['id']),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be open for all versions because bug has 2 '
+                'positive sat version flags and no defined target milestone'
+            )
+
+        # ------------ Bug has 2 positive flags and target_milestone GA
+        original_bug['target_milestone'] = 'GA'
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(original_bug['id']),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be False for all versions greater than 6.3'
+                'because target_milestone is GA and non zstream flag is 6.3'
+            )
+
+        for v in ['6.1', '6.2']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be True for all versions less than 6.3'
+            )
+
+        # ------------ Bug has 2 positive flags and target_milestone 6.3.0
+        original_bug['target_milestone'] = '6.3.0'
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(original_bug['id']),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be False for all versions greater than 6.3'
+                'because target_milestone is GA and non zstrem flag '
+                'is 6.3'
+            )
+
+        for v in ['6.1', '6.2']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be True for all versions less than 6.3'
+            )
+
+        # ------------ Bug has 2 positive flags and target_milestone 6.2.9
+        original_bug['target_milestone'] = '6.2.9'
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(original_bug['id']),
             'Should be closed for testing on upstream'
         )
 
@@ -360,27 +419,127 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(self.bug_id),
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be False for all versions greater than 6.2'
+            )
+
+        for v in ['6.1']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be True for all versions less than 6.2'
+            )
+
+        # ------------ Bug has 2 positive flags and target_milestone 6.3.0
+        original_bug['target_milestone'] = '6.3.0'
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(original_bug['id']),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be False for all versions greater than 6.3'
+            )
+
+        for v in ['6.2', '6.1']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be True for all versions less than 6.3'
+            )
+
+        # ------------ Decided to cherry pick fix to z stream
+
+        # clone
+        cloned_bug = {
+            'id': 2,
+            'status': 'NEW',
+            'whiteboard': '',
+            'target_milestone': 'Unspecified',
+            'flags': {'sat-6.2.z': '+', 'sat-6.3.0': '?'}
+        }
+
+        add_bug_on_server(cloned_bug)
+        original_bug['other_clones'] = {cloned_bug['id']: cloned_bug}
+
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(original_bug['id']),
+            'Should be closed for testing on upstream'
+        )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.1', '6.2']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be open for all versions less or equals to 6.3, '
+                'version present on flags'
+            )
+
+        for v in ['6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(original_bug['id']),
                 'Should be closed for all versions greater or equals to 6.3, '
                 'version present on flags'
             )
 
-        self.get_sat_versions_mock.return_value = '6.1'
-        self.assertTrue(
-            decorators.bz_bug_is_open(self.bug_id),
-            'Should be open because 6.1 is less then 6.2, the minor version '
-            'on flags with +'
+        # ------------ Cherry pick landed z stream
+        cloned_bug['status'] = 'ON_QA'
+
+        # Test running against upstream
+        dec_settings.upstream = True
+        self.get_sat_versions_mock.return_value = 'Does not apply'
+
+        self.assertFalse(
+            decorators.bz_bug_is_open(original_bug['id']),
+            'Should be closed for testing on upstream'
         )
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.0', '6.1']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be open for all versions less or equals to 6.2, minor'
+                ' version present on flags for orignal_bug + clones'
+            )
+
+        for v in ['6.2', '6.3', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be closed for all versions greater or equals to '
+                '6.2, minor version present on flags for orignal_bug + clones'
+            )
 
         # ------------ Bug is closed
-        MockBug.status = 'CLOSED'
+        cloned_bug['status'] = 'CLOSED'
 
         # Test running against upstream
         dec_settings.upstream = True
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(self.bug_id),
+            decorators.bz_bug_is_open(original_bug['id']),
             'Should be closed for testing on upstream'
         )
 
@@ -390,21 +549,22 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(self.bug_id),
-                'Should be closed for all versions greater or equals to 6.3, '
-                'version present on flags'
+                decorators.bz_bug_is_open(original_bug['id']),
+                'Should be closed for all versions greater or equals to to '
+                '6.2, minor version present on flags for orignal_bug + clones'
             )
 
         self.get_sat_versions_mock.return_value = '6.1'
         self.assertTrue(
-            decorators.bz_bug_is_open(self.bug_id),
-            'Should be open because 6.1 is less then 6.2, the minor version '
+            decorators.bz_bug_is_open(original_bug['id']),
+            'Should be open because 6.1 is less than 6.2, the minor version '
             'on flags with +'
         )
 
 
 class CacheableTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.cacheable`."""
+
     def setUp(self):
         self.object_cache_patcher = mock.patch.dict(
             'robottelo.decorators.OBJECT_CACHE')
@@ -440,6 +600,7 @@ class CacheableTestCase(TestCase):
 
 class RmBugIsOpenTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.rm_bug_is_open`."""
+
     # (protected-access) pylint:disable=W0212
     def setUp(self):  # noqa pylint:disable=C0103
         """Back up objects and generate common values."""
@@ -469,17 +630,20 @@ class RmBugIsOpenTestCase(TestCase):
 
     def test_bug_lookup_fails(self):
         """Assert ``False`` is returned if the bug cannot be found."""
+
         def bomb(_):
             """A function that mocks a failure to fetch a bug."""
             raise decorators.BugFetchError
+
         decorators._get_redmine_bug_status_id = bomb
         self.assertFalse(decorators.rm_bug_is_open(self.bug_id))
 
 
 class GetBugzillaBugStatusIdTestCase(TestCase):
     """Tests for ``robottelo.decorators._get_bugzilla_bug``."""
+
     def setUp(self):
-        self.bugzilla_patcher = mock.patch('robottelo.decorators.bugzilla')
+        self.robozilla_patcher = mock.patch('robottelo.decorators.BZReader')
         self.settings_patcher = mock.patch(
             'robottelo.decorators.settings')
         self.settings = BugzillaSettings()
@@ -487,68 +651,46 @@ class GetBugzillaBugStatusIdTestCase(TestCase):
         self.settings.password = 'changeme'
         settings_mock = self.settings_patcher.start()
         settings_mock.bugzilla = self.settings
-        self.bugzilla = self.bugzilla_patcher.start()
+        self.BZReader = self.robozilla_patcher.start()
 
     def tearDown(self):
-        self.bugzilla_patcher.stop()
+        self.robozilla_patcher.stop()
         self.settings_patcher.stop()
 
-    def test_cached_bug(self):
+    def test_cached(self):
         """Return bug information from the cache."""
-        with mock.patch.dict(
-                'robottelo.decorators._bugzilla', {'4242': 42}):
+        with mock.patch.dict('robottelo.decorators._bugzilla', {'4242': 42}):
             self.assertEqual(decorators._get_bugzilla_bug('4242'), 42)
 
     def test_not_cached_bug(self):
         """Fetch bug information and cache it."""
-        bug = {'id': 42}
-        connection = mock.MagicMock()
-        connection.getbug.return_value = bug
-        self.bugzilla.RHBugzilla.return_value = connection
+        bug = {'id': 4242}
+        get_bug_data = self.BZReader.return_value.get_bug_data
+        get_bug_data.return_value = bug
 
-        with mock.patch.dict(
-                'robottelo.decorators._bugzilla', {}):
-            self.assertEqual(id(decorators._get_bugzilla_bug('4242')), id(bug))
-        self.bugzilla.RHBugzilla.assert_called_once_with(
-            url=BUGZILLA_URL,
-            user=self.settings.username,
-            password=self.settings.password
+        with mock.patch.dict('robottelo.decorators._bugzilla', {}):
+            self.assertIs(decorators._get_bugzilla_bug(bug['id']), bug)
+        credentials = {
+            'user': self.settings.username, 'password': self.settings.password}
+        self.BZReader.assert_called_once_with(
+            credentials,
+            include_fields=[
+                'id', 'status', 'whiteboard', 'flags', 'resolution',
+                'target_milestone'
+            ],
+            follow_clones=True
         )
 
-    def test_raise_bug_fetch_error_getbug_fault(self):
-        """Raise BugFetchError due to Fault exception on getbugsimple."""
-        connection = mock.MagicMock()
-        connection.getbug.side_effect = [
-            decorators.Fault(42, 'What is the answer?')]
-        self.bugzilla.RHBugzilla.return_value = connection
-
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', {}):
-            with self.assertRaises(decorators.BugFetchError):
-                decorators._get_bugzilla_bug('4242')
-
-    def test_raise_bug_fetch_error_getbug_expaterror(self):
-        """Raise BugFetchError due to an ExpatError exception on
-        getbugsimple.
-        """
-        expaterror = decorators.ExpatError()
-        expaterror.code = 12
-        connection = mock.MagicMock()
-        connection.getbug.side_effect = [expaterror]
-        self.bugzilla.RHBugzilla.return_value = connection
-
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', {}):
-            with self.assertRaises(decorators.BugFetchError):
-                decorators._get_bugzilla_bug('4242')
+        get_bug_data.assert_called_once_with(bug['id'])
 
 
 class GetRedmineBugStatusIdTestCase(TestCase):
     """Tests for ``robottelo.decorators._get_redmine_bug_status_id``."""
+
     def test_cached_bug(self):
         """Return bug status from the cache."""
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', issues={'4242': 42}):
+        with mock.patch.dict('robottelo.decorators._redmine',
+                             issues={'4242': 42}):
             self.assertEqual(decorators._get_redmine_bug_status_id('4242'), 42)
 
     @mock.patch('robottelo.decorators.requests')
@@ -559,8 +701,7 @@ class GetRedmineBugStatusIdTestCase(TestCase):
         result.json.side_effect = [{'issue': {'status': {'id': 42}}}]
         result.status_code = 200
         requests.get.side_effect = [result]
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', issues={}):
+        with mock.patch.dict('robottelo.decorators._redmine', issues={}):
             self.assertEqual(decorators._get_redmine_bug_status_id('4242'), 42)
             requests.get.assert_called_once_with(
                 '{0}/issues/{1}.json'.format(decorators.REDMINE_URL, bug_id))
@@ -571,8 +712,7 @@ class GetRedmineBugStatusIdTestCase(TestCase):
         result = mock.MagicMock()
         result.status_code = 404
         requests.get.side_effect = [result]
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', issues={}):
+        with mock.patch.dict('robottelo.decorators._redmine', issues={}):
             with self.assertRaises(decorators.BugFetchError):
                 decorators._get_redmine_bug_status_id('4242')
 
@@ -584,8 +724,7 @@ class GetRedmineBugStatusIdTestCase(TestCase):
         result.json.side_effect = [{'issue': {'status': {}}}]
         result.status_code = 200
         requests.get.side_effect = [result]
-        with mock.patch.dict(
-                'robottelo.decorators._redmine', issues={}):
+        with mock.patch.dict('robottelo.decorators._redmine', issues={}):
             with self.assertRaises(decorators.BugFetchError):
                 decorators._get_redmine_bug_status_id('4242')
         requests.get.assert_called_once_with(
@@ -594,6 +733,7 @@ class GetRedmineBugStatusIdTestCase(TestCase):
 
 class RedmineClosedIssueStatusesTestCase(TestCase):
     """Tests for ``robottelo.decorators._redmine_closed_issue_statuses``."""
+
     @mock.patch('robottelo.decorators.requests')
     def test_build_cache(self, requests):
         """Build closed issue statuses cache."""
@@ -632,12 +772,14 @@ class RedmineClosedIssueStatusesTestCase(TestCase):
 
 class RunOnlyOnTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.run_only_on`."""
+
     @mock.patch('robottelo.decorators.settings')
     def test_project_mode_different_cases(self, settings):
         """Assert ``True`` for different cases of accepted input values
            for project / robottelo modes."""
-        accepted_values = ('SAT', 'SAt', 'SaT', 'Sat', 'sat', 'sAt',
-                           'SAM', 'SAm', 'SaM', 'Sam', 'sam', 'sAm')
+        accepted_values = (
+            'SAT', 'SAt', 'SaT', 'Sat', 'sat', 'sAt',
+            'SAM', 'SAm', 'SaM', 'Sam', 'sam', 'sAm')
 
         # Test different project values
         settings.project = 'sam'
@@ -698,6 +840,7 @@ class RunOnlyOnTestCase(TestCase):
 
 class SkipIfBugOpen(TestCase):
     """Tests for :func:`robottelo.decorators.skip_if_bug_open`."""
+
     def test_raise_bug_type_error(self):
         with self.assertRaises(decorators.BugTypeError):
             @decorators.skip_if_bug_open('notvalid', 123456)
@@ -749,6 +892,7 @@ class SkipIfBugOpen(TestCase):
 
 class SkipIfNotSetTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.skip_if_not_set`."""
+
     def setUp(self):
         self.settings_patcher = mock.patch('robottelo.decorators.settings')
         self.settings = self.settings_patcher.start()
@@ -826,9 +970,9 @@ class SkipIfNotSetTestCase(TestCase):
 
 class StubbedTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.stubbed`."""
+
     @mock.patch('robottelo.decorators.unittest2.skip')
     def test_default_reason(self, skip):
-
         @decorators.stubbed()
         def foo():
             pass
@@ -837,7 +981,6 @@ class StubbedTestCase(TestCase):
 
     @mock.patch('robottelo.decorators.unittest2.skip')
     def test_reason(self, skip):
-
         @decorators.stubbed('42 is the answer')
         def foo():
             pass
