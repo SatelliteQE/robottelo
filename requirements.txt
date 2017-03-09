@@ -10,6 +10,7 @@ paramiko==2.0.2
 pygal==2.2.3
 pylint==1.6.4
 pytest==2.9.2
+pytest_services==1.1.14
 requests==2.10.0
 sauceclient==0.2.1
 selenium==2.48.0
