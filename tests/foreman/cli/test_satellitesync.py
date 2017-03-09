@@ -236,14 +236,14 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole CV version contents to a directory specified in
-        settings.
+           settings.
         2. Copy exported contents to /var/www/html/pub/export directory.
         3. Import these copied contents from some other org/satellite.
 
         @assert:
 
         1. Whole CV version contents has been exported to directory
-        specified in settings.
+           specified in settings.
         2. All The exported contents has been imported in org/satellite.
 
         @caseautomation: notautomated
@@ -262,15 +262,15 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole CV version contents to a directory specified in
-        settings.
+           settings.
         2. Don't copy exported contents to /var/www/html/pub/export directory.
         3. Attempt to import these not copied contents from some other
-        org/satellite.
+           org/satellite.
 
         @assert:
 
         1. Whole CV version contents has been exported to directory specified
-        in settings.
+           in settings.
         2. The exported contents are not imported due to non availability.
         3. Error is thrown for non availability of CV contents to import.
 
@@ -291,12 +291,12 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export whole CV version contents to a directory which
-        has less memory available than contents size.
+           has less memory available than contents size.
 
         @assert:
 
         1. The export CV version contents has been aborted due to insufficient
-        memory.
+           memory.
 
         @caseautomation: notautomated
 
@@ -314,14 +314,14 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole CV version contents as ISO to a directory specified in
-        settings.
+           settings.
         2. Copy exported ISO to /var/www/html/pub/export directory.
         3. Import these copied ISO from some other org/satellite.
 
         @assert:
 
         1. CV version has been exported to directory as ISO in specified in
-        settings.
+           settings.
         2. The exported ISO has been imported in org/satellite.
 
         @caseautomation: notautomated
@@ -340,10 +340,10 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole CV version as ISO to a directory specified in
-        settings.
+           settings.
         2. Don't copy exported ISO to /var/www/html/pub/export directory.
         3. Attempt to import this not copied ISO from some other
-        org/satellite.
+           org/satellite.
 
         @assert:
 
@@ -367,12 +367,12 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export whole CV version as iso to a directory which has
-        less memory available than contents size.
+           less memory available than contents size.
 
         @assert:
 
         1. The export CV version to iso has been aborted due to insufficient
-        memory.
+           memory.
 
         @caseautomation: notautomated
 
@@ -391,12 +391,12 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export whole CV version as iso with mb size less than
-        required.
+           required.
 
         @assert:
 
         1. The export CV version to iso has been aborted due to maximum size is
-        not enough to contain the CV version contents.
+           not enough to contain the CV version contents.
 
         @caseautomation: notautomated
 
@@ -414,7 +414,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export whole CV version as iso with mb size more than
-        required.
+           required.
 
         @assert:
 
@@ -436,9 +436,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. In upstream, Export CV version contents to a directory specified in
-        settings.
+           settings.
         2. In downstream, Import these copied contents from some other
-        org/satellite.
+           org/satellite.
         3. In upstream, Add new packages to the CV.
         4. Export the CV incrementally from the last date time.
         5. In downstream, Import the CV incrementally.
@@ -465,9 +465,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. In upstream, Export CV version contents to a directory specified in
-        settings.
+           settings.
         2. In downstream, Import these copied contents from some other
-        org/satellite.
+           org/satellite.
         3. In upstream, Don't add any new packages to the CV.
         4. Export the CV incrementally from the last date time.
         5. In downstream, Import the CV incrementally.
@@ -542,7 +542,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. Export repo to a directory specified in settings.
         2. Dont copy exported repo to /var/www/html/pub/export directory.
         3. Attempt to import this not copied repo from some other
-        org/satellite.
+           org/satellite.
 
         @assert:
 
@@ -566,7 +566,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export repo to a directory which has less memory
-        available than contents size.
+           available than contents size.
 
         @assert:
 
@@ -592,7 +592,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert:
 
         1. An Error is raised for updating the repo download policy to
-        'immediate' to be exported.
+           'immediate' to be exported.
 
         @caseautomation: notautomated
 
@@ -660,7 +660,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. Export repo as ISO to a directory specified in settings.
         2. Dont copy exported ISO to /var/www/html/pub/export directory.
         3. Attempt to import this not copied ISO from some other
-        org/satellite.
+           org/satellite.
 
         @assert:
 
@@ -683,7 +683,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export repo as iso to a directory which has less memory
-        available than contents size.
+           available than contents size.
 
         @assert:
 
@@ -709,7 +709,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert:
 
         1. The export repo to iso has been aborted due to maximum size is not
-        enough to contain the repo  contents.
+           enough to contain the repo  contents.
 
         @caseautomation: notautomated
 
@@ -727,7 +727,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export repo as iso with mb size more than
-        required.
+           required.
 
         @assert:
 
@@ -770,7 +770,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. In upstream, Export repo to a directory specified in
-        settings.
+           settings.
         2. In downstream, Import this repo fully.
         3. In upstream, Add new packages to the repo.
         4. Export the repo incrementally from the last date time.
@@ -853,7 +853,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert:
 
         1. Whole kickstart tree contents has been exported to directory
-        specified in settings.
+           specified in settings.
         2. All The exported contents has been imported in org/satellite.
 
         @caseautomation: notautomated
@@ -872,15 +872,15 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole kickstart tree contents to a directory specified in
-        settings.
+           settings.
         2. Dont copy exported contents to /var/www/html/pub/export directory.
         3. Attempt to import these not copied contents from some other
-        org/satellite.
+           org/satellite.
 
         @assert:
 
         1. Whole kickstart tree has been exported to directory specified
-        in settings.
+           in settings.
         2. The exported contents are not imported due to non availability.
         3. Error is thrown for non availability of kickstart tree to import.
 
@@ -901,12 +901,12 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Attempt to Export whole kickstart tree contents to a directory which
-        has less memory available than contents size.
+           has less memory available than contents size.
 
         @assert:
 
         1. The export kickstart tree has been aborted due to insufficient
-        memory.
+           memory.
 
         @caseautomation: notautomated
 
@@ -947,7 +947,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. Export Red Hat YUM repo to path which will be accessible over HTTP.
         2. Import the repository by defining the CDN URL the same as the
-        exported HTTP URL.
+           exported HTTP URL.
 
         @assert: All the exported YUM repo contents are imported successfully.
 
@@ -1033,7 +1033,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. Export whole Red Hat YUM repo as ISO.
         2. Mount exported ISO and explore the ISO contents on HTTP.
         3. Import the repository by defining the CDN URL the same as the
-        exported HTTP URL.
+           exported HTTP URL.
 
         @assert: All The exported repo contents in ISO has been imported
         successfully.
@@ -1100,7 +1100,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole CV version having Red Hat contents to a directory
-        specified in settings.
+           specified in settings.
 
         @assert: Whole CV version contents has been exported to directory
         specified in settings.
@@ -1122,9 +1122,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole CV version having Red Hat contents to a path accessible
-        over HTTP.
+           over HTTP.
         2. Import the repository by defining the CDN URL from the exported HTTP
-        URL.
+           URL.
 
         @assert: The repo from an exported CV contents has been imported
         successfully.
@@ -1146,11 +1146,11 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole CV version having mixed repos to a path accessible over
-        HTTP.
+           HTTP.
         2. Import the Red Hat repository by defining the CDN URL from the
-        exported HTTP URL.
+           exported HTTP URL.
         3. Import custom repo by creating new repo and setting yum repo url to
-        exported HTTP url.
+           exported HTTP url.
 
         @assert: Both custom and Red Hat repos are imported successfully.
 
@@ -1191,7 +1191,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. Export whole CV version having Red Hat contents as ISO.
         2. Mount ISO to local filesystem and explore iso contents over HTTP.
         3. Import the Red Hat repository by defining the CDN URL from the
-        exported HTTP URL.
+           exported HTTP URL.
 
         @assert: The repo is imported successfully from exported CV ISO
         contents.
@@ -1212,12 +1212,12 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @steps:
 
         1. Export whole Red Hat YUM repo to a path accessible over HTTP.
-        3. Import the Red Hat repository by defining the CDN URL from the
-        exported HTTP URL.
-        4. In downstream satellite create CV, AK with this imported repo.
-        5. Register/Subscribe a client with a downstream satellite.
-        6. Attempt to install a package on a client from imported repo of
-        downstream.
+        2. Import the Red Hat repository by defining the CDN URL from the
+           exported HTTP URL.
+        3. In downstream satellite create CV, AK with this imported repo.
+        4. Register/Subscribe a client with a downstream satellite.
+        5. Attempt to install a package on a client from imported repo of
+           downstream.
 
         @assert: The package is installed on client from imported repo of
         downstream satellite.

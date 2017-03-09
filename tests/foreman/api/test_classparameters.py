@@ -593,7 +593,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. Set override to True.
         2. Create a matcher with value that doesn't match
-        the regex of step 3.
+           the regex of step 3.
         3. Validate this value with regex validator type and rule.
 
         @assert: Error raised for matcher value not matching with regex.
@@ -739,7 +739,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. Set override to True.
         2. Create a matcher with value that doesn't match
-        the list of step 3.
+           the list of step 3.
         3. Validate this value with list validator type and rule.
 
         @assert: Error raised for matcher value not in list.
@@ -956,7 +956,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Set override to True.
         2. Set some default Value.
         3. Create matcher with valid attribute type, name and
-        puppet default value.
+           puppet default value.
 
         @assert: The matcher has been created successfully.
         """
@@ -992,7 +992,7 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set fqdn as top priority attribute.
         4. Create first matcher for fqdn with valid details.
         5. Create second matcher for some attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         6. Update the parameter with above steps.
         7. Go to YAML output of associated host.
 
@@ -1014,7 +1014,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Set override to True.
         2. Set some default Value.
         3. Set some attribute(other than fqdn) as top priority attribute.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         4. Create first matcher for fqdn with valid details.
         5. Create second matcher for attribute of step 3 with valid details.
         6. Update the parameter with above steps.
@@ -1042,9 +1042,9 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default Value.
         3. Create first matcher for attribute fqdn with valid details.
         4. Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         5. Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+           Note - The fqdn/host should have this attributes.
         6. Set 'merge overrides' to True.
         7. Update the parameter with above steps.
         8. Go to YAML output of associated host.
@@ -1052,7 +1052,7 @@ class SmartClassParametersTestCase(APITestCase):
         @assert:
 
         1. The YAML output has the values merged from all the associated
-        matchers.
+           matchers.
         2. The YAML output doesn't have the default value of parameter.
         3. Duplicate values in YAML output if any are displayed.
 
@@ -1073,9 +1073,9 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default Value.
         3. Create first matcher for attribute fqdn with valid details.
         4. Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should not have this attribute.
+           Note - The fqdn/host should not have this attribute.
         5. Create more matchers for some more attributes if any.
-        Note - The fqdn/host should not have this attributes.
+           Note - The fqdn/host should not have this attributes.
         6. Set 'merge overrides' to True.
         7. Update the parameter with above steps.
         8. Go to YAML output of associated host.
@@ -1084,7 +1084,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. The YAML output has the values only for fqdn.
         2. The YAML output doesn't have the values for attribute
-        which are not associated to host.
+           which are not associated to host.
         3. The YAML output doesn't have the default value of parameter.
         4. Duplicate values in YAML output if any are displayed.
 
@@ -1105,11 +1105,11 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default Value.
         3. Create first matcher for attribute fqdn with valid details.
         4. Create second matcher for other attribute with value
-        as puppet default.
-        Note - The fqdn/host should have this attribute.
+           as puppet default.
+           Note - The fqdn/host should have this attribute.
         5. Create more matchers for some more attributes with value
-        as puppet default.
-        Note - The fqdn/host should have this attributes.
+           as puppet default.
+           Note - The fqdn/host should have this attributes.
         6. Set 'merge overrides' to True.
         7. Set 'merge default' to True.
         8. Update the parameter with above steps.
@@ -1138,9 +1138,9 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default Value.
         3. Create first matcher for attribute fqdn with valid details.
         4. Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         5. Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+           Note - The fqdn/host should have this attributes.
         6. Set 'merge overrides' to True.
         7. Set 'merge default' to True.
         8. Update the parameter with above steps.
@@ -1149,7 +1149,7 @@ class SmartClassParametersTestCase(APITestCase):
         @assert:
 
         1. The YAML output has the values merged from all
-        the associated matchers.
+           the associated matchers.
         2. The YAML output has the default value of parameter.
         3. Duplicate values in YAML output if any are displayed.
 
@@ -1170,9 +1170,9 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set empty default Value.
         3. Create first matcher for attribute fqdn with valid details.
         4. Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         5. Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+           Note - The fqdn/host should have this attributes.
         6. Set 'merge overrides' to True.
         7. Set 'merge default' to True.
         8. Update the parameter with above steps.
@@ -1181,7 +1181,7 @@ class SmartClassParametersTestCase(APITestCase):
         @assert:
 
         1. The YAML output has the values merged from all
-        the associated matchers.
+           the associated matchers.
         2. The YAML output doesn't have the empty default value of parameter.
         3. Duplicate values in YAML output if any are displayed.
 
@@ -1202,9 +1202,9 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set default Value as puppet default value.
         3. Create first matcher for attribute fqdn with valid details.
         4. Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         5. Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+           Note - The fqdn/host should have this attributes.
         6. Set 'merge overrides' to True.
         7. Set 'merge default' to True.
         8. Update the parameter with above steps.
@@ -1213,7 +1213,7 @@ class SmartClassParametersTestCase(APITestCase):
         @assert:
 
         1. The YAML output has the values merged from all
-        the associated matchers.
+           the associated matchers.
         2. The YAML output doesn't have the puppet default value.
         3. Duplicate values in YAML output if any are displayed.
 
@@ -1234,8 +1234,8 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default Value of array type.
         3. Create first matcher for attribute fqdn with some value.
         4. Create second matcher for other attribute with
-        same value as fqdn matcher.
-        Note - The fqdn/host should have this attribute.
+           same value as fqdn matcher.
+           Note - The fqdn/host should have this attribute.
         5. Set 'merge overrides' to True.
         6. Set 'merge default' to True.
         7. Set 'avoid duplicate' to True.
@@ -1245,7 +1245,7 @@ class SmartClassParametersTestCase(APITestCase):
         @assert:
 
         1. The YAML output has the values merged from all
-        the associated matchers.
+           the associated matchers.
         2. The YAML output has the default value of parameter.
         3. Duplicate values in YAML output are removed / not displayed.
 
@@ -1266,8 +1266,8 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default Value of array type.
         3. Create first matcher for attribute fqdn with some value.
         4. Create second matcher for other attribute with other value
-        than fqdn matcher and default value.
-        Note - The fqdn/host should have this attribute.
+           than fqdn matcher and default value.
+           Note - The fqdn/host should have this attribute.
         5. Set 'merge overrides' to True.
         6. Set 'merge default' to True.
         7. Set 'merge avoid duplicates' to True.
@@ -1407,9 +1407,9 @@ class SmartClassParametersTestCase(APITestCase):
         @assert:
 
         1. The Merge Overrides checkbox is only enabled to check
-        for type hash other than array.
+           for type hash other than array.
         2. The Avoid duplicates checkbox not enabled to check
-        for any type than array.
+           for any type than array.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1466,7 +1466,7 @@ class SmartClassParametersTestCase(APITestCase):
         @steps:
 
         1. Set the parameter to True and create a matcher
-        for some attribute.
+           for some attribute.
         2. Delete the attribute.
         3. Recreate the attribute with same name as earlier.
 
@@ -1474,7 +1474,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. The matcher for deleted attribute removed from parameter.
         2. On recreating attribute, the matcher should not
-        reappear in parameter.
+           reappear in parameter.
         """
         sc_param = self.sc_params_list.pop()
         hostgroup_name = gen_string('alpha')

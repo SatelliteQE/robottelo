@@ -177,7 +177,7 @@ class AnsibleTestCase(UITestCase):
         @steps:
 
         1. From Web UI -> Hosts -> Select a Host -> Edit -> Ansible Roles ->
-        Select the required Ansible roles -> Click Submit.
+           Select the required Ansible roles -> Click Submit.
         2. Run the associated Ansible roles in the hosts.
 
         @assert:
@@ -204,7 +204,7 @@ class AnsibleTestCase(UITestCase):
            "echo 'task: shell: touch /tmp/file.test' >
            /etc/ansible/roles/custom/"
         2. From Web UI -> Hosts -> Select a Host -> Edit -> Ansible Roles ->
-        Select the new custom Ansible role -> Click Submit.
+           Select the new custom Ansible role -> Click Submit.
         3. Run the associated Ansible role in the host.
 
         @assert:
@@ -229,7 +229,7 @@ class AnsibleTestCase(UITestCase):
         @steps:
 
         1. From Web UI -> Configure -> Host groups -> Select a Host group ->
-        Ansible Roles -> Select the required Ansible roles -> Click Submit
+           Ansible Roles -> Select the required Ansible roles -> Click Submit
         2. Provision a host with the Host group from above
 
         @assert:
@@ -265,7 +265,7 @@ class AnsibleTestCase(UITestCase):
         @steps:
 
         1. From Web UI -> Hosts -> Select multiple hosts -> Select Action ->
-        Play Ansible Roles
+           Play Ansible Roles
 
         @assert: Ansibles roles ran successfully on multiple hosts
 
@@ -367,11 +367,11 @@ class AnsibleTestCase(UITestCase):
         @steps:
 
         1. Make sure that the user does not have the following permissions:
-             * view_ansible_roles
-             * import_ansible_roles
-             * destroy_ansible_roles
-             * play_roles
-             * play_multiple_roles
+            * view_ansible_roles
+            * import_ansible_roles
+            * destroy_ansible_roles
+            * play_roles
+            * play_multiple_roles
 
         @assert:
 

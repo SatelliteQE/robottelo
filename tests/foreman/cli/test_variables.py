@@ -319,7 +319,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         1. Create a smart variable with valid name.
         2. Update the puppet class associated to the smart variable created in
-        step1.
+           step1.
 
         @assert: The variable is updated with new puppet class.
         """
@@ -557,7 +557,7 @@ class SmartVariablesTestCase(CLITestCase):
         @steps:
 
         1.  Create a variable with some default value that matches the regex of
-        step 2
+            step 2
         2.  Validate this value with regex validator type and rule.
 
         @assert: Variable is created for matched validator rule.
@@ -651,7 +651,7 @@ class SmartVariablesTestCase(CLITestCase):
         @steps:
 
         1.  Attempt to create variable with default value that doesn't match
-        values from validator list
+            values from validator list
 
         @assert: Variable is not created for unmatched validator rule.
         """
@@ -673,7 +673,7 @@ class SmartVariablesTestCase(CLITestCase):
         @steps:
 
         1.  Create a variable with default value that matches the values from
-        validator list
+            validator list
 
         @assert: Variable is created for matched validator rule.
         """
@@ -698,7 +698,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         1.  Create smart variable with proper validator
         2.  Attempt to associate a matcher with value that doesn't match values
-        from validator list
+            from validator list
 
         @assert: Matcher is not created for unmatched validator rule.
         """
@@ -726,7 +726,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         1.  Create smart variable with proper validator
         2.  Create a matcher with value that matches the values from validator
-        list
+            list
 
         @assert: Matcher is created for matched validator rule.
         """
@@ -916,7 +916,7 @@ class SmartVariablesTestCase(CLITestCase):
         2.  Set fqdn as top priority attribute.
         3.  Create first matcher for fqdn with valid details.
         4.  Create second matcher for some attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         5.  Go to YAML output of associated host.
 
         @assert: The YAML output has the value only for fqdn matcher.
@@ -938,7 +938,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         1.  Create variable with some default value.
         2.  Set some attribute(other than fqdn) as top priority attribute.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         3.  Create first matcher for fqdn with valid details.
         4.  Create second matcher for attribute of step 3 with valid details.
         5.  Go to YAML output of associated host.
@@ -966,16 +966,16 @@ class SmartVariablesTestCase(CLITestCase):
         1.  Create variable with some default value.
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         4.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         5.  Set --merge-overrides to true.
         6.  Go to YAML output of associated host.
 
         @assert:
 
         1.  The YAML output has the values merged from all the associated
-        matchers.
+            matchers.
         2.  The YAML output doesn't have the default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1016,19 +1016,19 @@ class SmartVariablesTestCase(CLITestCase):
         @steps:
 
         1.  Create variable with some default value.
-        3.  Create first matcher for attribute fqdn with valid details.
-        4.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should not have this attribute.
-        5.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should not have this attributes.
-        6.  Set --merge-overrides to true.
-        7.  Go to YAML output of associated host.
+        2.  Create first matcher for attribute fqdn with valid details.
+        3.  Create second matcher for other attribute with valid details.
+            Note - The fqdn/host should not have this attribute.
+        4.  Create more matchers for some more attributes if any.
+            Note - The fqdn/host should not have this attributes.
+        5.  Set --merge-overrides to true.
+        6.  Go to YAML output of associated host.
 
         @assert:
 
         1.  The YAML output has the values only for fqdn.
         2.  The YAML output doesn't have the values for attribute
-        which are not associated to host.
+            which are not associated to host.
         3.  The YAML output doesn't have the default value of variable.
         4.  Duplicate values in YAML output if any are displayed.
 
@@ -1050,9 +1050,9 @@ class SmartVariablesTestCase(CLITestCase):
         1. Create variable with some default value.
         2. Create first matcher for attribute fqdn with valid details.
         3. Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         4. Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+           Note - The fqdn/host should have this attributes.
         5. Set --merge-overrides to true.
         6. Set --merge-default to true.
         7. Go to YAML output of associated host.
@@ -1060,7 +1060,7 @@ class SmartVariablesTestCase(CLITestCase):
         @assert:
 
         1. The YAML output has the values merged from all
-        the associated matchers.
+           the associated matchers.
         2. The YAML output has the default value of variable.
         3. Duplicate values in YAML output if any are displayed.
 
@@ -1082,19 +1082,19 @@ class SmartVariablesTestCase(CLITestCase):
         1. Create variable with some default value.
         2. Create first matcher for attribute fqdn with valid details.
         3. Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+           Note - The fqdn/host should have this attribute.
         4. Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+           Note - The fqdn/host should have this attributes.
         5. Set --merge-overrides to true.
         6. Set --merge-default to true.
         7. Go to YAML output of associated host.
 
         @assert:
 
-        1.  The YAML output has the values merged from all
-        the associated matchers.
-        2.  The YAML output doesn't have the empty default value of variable.
-        3.  Duplicate values in YAML output if any are displayed.
+        1. The YAML output has the values merged from all
+           the associated matchers.
+        2. The YAML output doesn't have the empty default value of variable.
+        3. Duplicate values in YAML output if any are displayed.
 
         @caseautomation: notautomated
 
@@ -1114,8 +1114,8 @@ class SmartVariablesTestCase(CLITestCase):
         1.  Create variable with type array and value.
         2.  Create first matcher for attribute fqdn with some value.
         3.  Create second matcher for other attribute with
-        same value as fqdn matcher.
-        Note - The fqdn/host should have this attribute.
+            same value as fqdn matcher.
+            Note - The fqdn/host should have this attribute.
         4.  Set --merge-overrides to true.
         5.  Set --merge-default to true.
         6.  Set --avoid -duplicates' to true.
@@ -1124,7 +1124,7 @@ class SmartVariablesTestCase(CLITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output has the default value of variable.
         3.  Duplicate values in YAML output are removed / not displayed.
 
@@ -1146,8 +1146,8 @@ class SmartVariablesTestCase(CLITestCase):
         1.  Create variable with type array and value.
         2.  Create first matcher for attribute fqdn with some value.
         3.  Create second matcher for other attribute with other value
-        than fqdn matcher and default value.
-        Note - The fqdn/host should have this attribute.
+            than fqdn matcher and default value.
+            Note - The fqdn/host should have this attribute.
         4.  Set --merge-overrides to true.
         5.  Set --merge-default to true.
         6.  Set --avoid -duplicates' to true.
@@ -1207,7 +1207,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         1.  Create smart variable with type that is not array/hash.
         2.  Attempt to update smart variable and set corresponding flags to
-        True state.
+            True state.
 
         @assert: The Merge Overrides, Merge Default flags are not allowed
         to set to True.
@@ -1271,14 +1271,14 @@ class SmartVariablesTestCase(CLITestCase):
 
         1.  Create smart variable with type that is not array/hash.
         2.  Attempt to update smart variable and set corresponding flags to
-        True state.
+            True state.
 
         @assert:
 
         1.  The '--merge-overrides' is only allowed to set to true for type
-        hash.
+            hash.
         2.  The '--avoid-duplicates' is not allowed to set to true for type
-        other than array.
+            other than array.
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1313,7 +1313,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         1.  The matcher for deleted attribute removed from variable.
         2.  On recreating attribute, the matcher should not reappear in
-        variable.
+            variable.
 
         @CaseLevel: Integration
         """

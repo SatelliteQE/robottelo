@@ -81,7 +81,7 @@ class InterSatelliteSyncTestCase(UITestCase):
         1. In upstream, Export Redhat repo/CV to a directory.
         2. Copy exported contents to /var/www/html.
         3. In downstream, Update CDN URL with step 2 location to import the
-        Redhat contents.
+           Redhat contents.
         4. Enable and sync the imported repo from Redhat Repositories page.
 
         @assert:
@@ -103,7 +103,7 @@ class InterSatelliteSyncTestCase(UITestCase):
         @steps:
 
         1. In downstream, Update CDN URL with some non existing url.
-        4. Attempt to Enable and sync some repo from Redhat Repositories page.
+        2. Attempt to Enable and sync some repo from Redhat Repositories page.
 
         @assert:
 
@@ -126,7 +126,7 @@ class InterSatelliteSyncTestCase(UITestCase):
         1. Export Red Hat YUM repo to path which will be accessible over HTTP.
         2. Define the CDN URL the same as the exported HTTP URL.
         3. Attempt to Import/Enable non exported repos from Redhat Repositories
-        page.
+           page.
 
         @assert: The import of non exported repos is restricted.
 
