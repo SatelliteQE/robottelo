@@ -35,7 +35,52 @@ Options::
 """
 
 from robottelo.cli import hammer
-from robottelo.cli.base import Base
+from robottelo.cli.base import Base, CLIError
+
+
+class ContentViewFilterRule(Base):
+    """Manipulates content view filter rules."""
+
+    command_base = 'content-view filter rule'
+
+    @classmethod
+    def create(cls, options=None):
+        """Create a content-view filter rule"""
+        if (
+                not options or
+                'content-view-filter' not in options and
+                'content-view-filter-id' not in options):
+            raise CLIError(
+                'Could not find content_view_filter, please set one of options'
+                ' "content-view-filter" or "content-view-filter-id".'
+            )
+        cls.command_sub = 'create'
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+        # Extract new CV filter rule ID if it was successfully created
+        if len(result) > 0 and 'id' in result[0]:
+            cvfr_id = result[0]['id']
+            # CV filter rule can only be fetched by specifying either
+            # content-view-filter-id or content-view-filter + content-view-id.
+            # Passing these options to info command
+            info_options = {
+                'content-view-id': options.get('content-view-id'),
+                'content-view-filter': options.get('content-view-filter'),
+                'content-view-filter-id': options.get(
+                    'content-view-filter-id'),
+                'id': cvfr_id,
+            }
+            result = cls.info(info_options)
+        return result
+
+
+class ContentViewFilter(Base):
+    """Manipulates content view filters."""
+
+    command_base = 'content-view filter'
+
+    rule = ContentViewFilterRule
 
 
 class ContentView(Base):

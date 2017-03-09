@@ -697,6 +697,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Puppet')]"),
     "settings.tab_discovered": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Discovered')]"),
+    "settings.tab_katello": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Katello')]"),
     "settings.tab_foremantasks": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href, 'ForemanTasks')]"),
@@ -1327,6 +1329,20 @@ locators = LocatorDict({
     "host.yaml_button": (By.XPATH, "//a[text()='YAML' and "
                                    "contains(@class, 'btn')]"),
     "host.yaml_output": (By.XPATH, "//pre"),
+    "host.property_status": (
+        By.XPATH, "//td[text()='Status']/following-sibling::td/span[2]"),
+    "host.property_errata": (
+        By.XPATH, "//td[text()='Errata']/following-sibling::td/span[2]"),
+    "host.property_subscription": (
+        By.XPATH, "//td[text()='Subscription']/following-sibling::td/span[2]"),
+    "host.property_ip_address": (
+        By.XPATH, "//table[@id='properties_table']//td[text()='IP Address']/"
+                  "following-sibling::td"),
+    "host.property_mac_address": (
+        By.XPATH, "//table[@id='properties_table']//td[text()='MAC Address']/"
+                  "following-sibling::td"),
+    "host.property_host_architecture": (
+        By.XPATH, "//td[text()='Host Architecture']/following-sibling::td/a"),
     "host.name": (By.ID, "host_name"),
     "host.organization": (
         By.XPATH,
