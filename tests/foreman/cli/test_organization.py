@@ -1282,7 +1282,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_add_parameter(self):
+    def test_positive_add_parameter_by_org_name(self):
         """Add a parameter to organization
 
         @id: b0b59650-5718-45e2-8724-151dc52b1486
@@ -1296,6 +1296,27 @@ class OrganizationTestCase(CLITestCase):
             'name': param_name,
             'value': param_value,
             'organization': org['name'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        self.assertEqual(param_value, result['parameters'][param_name.lower()])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_add_parameter_by_org_id(self):
+        """Add a parameter to organization
+
+        @id: bb76f67e-5329-4777-b563-3fe4ebffc9ce
+
+        @Assert: Parameter is added to the org
+        """
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        org = make_org()
+        Org.set_parameter({
+            'name': param_name,
+            'value': param_value,
+            'organization-id': org['id'],
         })
         result = Org.info({'id': org['id']})
         self.assertEqual(len(result['parameters']), 1)
@@ -1334,7 +1355,7 @@ class OrganizationTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1395229)
     @tier1
-    def test_positive_remove_parameter(self):
+    def test_positive_remove_parameter_by_org_name(self):
         """Remove a parameter from organization
 
         @id: e4099279-4e73-4c14-9e7c-912b3787b99f
@@ -1353,6 +1374,32 @@ class OrganizationTestCase(CLITestCase):
         Org.delete_parameter({
             'name': param_name,
             'organization': org['name'],
+        })
+        self.assertEqual(len(result['parameters']), 0)
+        self.assertNotIn(param_name.lower(), result['parameters'])
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1395229)
+    @tier1
+    def test_positive_remove_parameter_by_org_id(self):
+        """Remove a parameter from organization
+
+        @id: 9b0e7c5c-32cd-4428-8798-3469599c9b05
+
+        @Assert: Parameter is removed from the org
+        """
+        param_name = gen_string('alpha')
+        org = make_org()
+        Org.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'organization-id': org['id'],
+        })
+        result = Org.info({'id': org['id']})
+        self.assertEqual(len(result['parameters']), 1)
+        Org.delete_parameter({
+            'name': param_name,
+            'organization-id': org['id'],
         })
         self.assertEqual(len(result['parameters']), 0)
         self.assertNotIn(param_name.lower(), result['parameters'])
