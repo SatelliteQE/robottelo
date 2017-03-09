@@ -27,11 +27,11 @@ from robottelo.test import UITestCase
 
 
 @run_in_one_thread
-@skip_if_not_set('clients')
 class PuppetTestCase(UITestCase):
     """Implements Puppet test scenario"""
 
     @classmethod
+    @skip_if_not_set('clients')
     def setUpClass(cls):
         super(PuppetTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname
@@ -73,11 +73,11 @@ class PuppetTestCase(UITestCase):
 
 
 @run_in_one_thread
-@skip_if_not_set('clients')
 class PuppetCapsuleTestCase(UITestCase):
     """Implements Puppet test scenario with standalone capsule"""
 
     @classmethod
+    @skip_if_not_set('clients')
     def setUpClass(cls):
         super(PuppetCapsuleTestCase, cls).setUpClass()
         cls.sat6_hostname = settings.server.hostname

@@ -18,15 +18,25 @@
 
 .. automodule:: tests.foreman.cli.test_architecture
 
-:mod:`tests.foreman.cli.test_capsule`
--------------------------------------
+:mod:`tests.foreman.cli.test_bootstrap_script`
+----------------------------------------------
 
-.. automodule:: tests.foreman.cli.test_capsule
+.. automodule:: tests.foreman.cli.test_bootstrap_script
 
 :mod:`tests.foreman.cli.test_capsule_installer`
 -----------------------------------------------
 
 .. automodule:: tests.foreman.cli.test_capsule_installer
+
+:mod:`tests.foreman.cli.test_capsule`
+-------------------------------------
+
+.. automodule:: tests.foreman.cli.test_capsule
+
+:mod:`tests.foreman.cli.test_classparameters`
+---------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_classparameters
 
 :mod:`tests.foreman.cli.test_computeresource`
 ---------------------------------------------
@@ -49,7 +59,7 @@
 .. automodule:: tests.foreman.cli.test_discoveredhost
 
 :mod:`tests.foreman.cli.test_discoveryrule`
---------------------------------------------
+-------------------------------------------
 
 .. automodule:: tests.foreman.cli.test_discoveryrule
 
@@ -98,11 +108,6 @@
 
 .. automodule:: tests.foreman.cli.test_hammer
 
-:mod:`tests.foreman.cli.test_host`
-----------------------------------
-
-.. automodule:: tests.foreman.cli.test_host
-
 :mod:`tests.foreman.cli.test_host_collection`
 ---------------------------------------------
 
@@ -112,6 +117,11 @@
 ---------------------------------------
 
 .. automodule:: tests.foreman.cli.test_hostgroup
+
+:mod:`tests.foreman.cli.test_host`
+----------------------------------
+
+.. automodule:: tests.foreman.cli.test_host
 
 :mod:`tests.foreman.cli.test_import`
 ------------------------------------
@@ -123,15 +133,15 @@
 
 .. automodule:: tests.foreman.cli.test_installer
 
-:mod:`tests.foreman.cli.test_location`
---------------------------------------------------
-
-.. automodule:: tests.foreman.cli.test_location
-
 :mod:`tests.foreman.cli.test_lifecycleenvironment`
 --------------------------------------------------
 
 .. automodule:: tests.foreman.cli.test_lifecycleenvironment
+
+:mod:`tests.foreman.cli.test_location`
+--------------------------------------
+
+.. automodule:: tests.foreman.cli.test_location
 
 :mod:`tests.foreman.cli.test_medium`
 ------------------------------------
@@ -148,15 +158,15 @@
 
 .. automodule:: tests.foreman.cli.test_myaccount
 
-:mod:`tests.foreman.cli.test_organization`
-------------------------------------------
-
-.. automodule:: tests.foreman.cli.test_organization
-
 :mod:`tests.foreman.cli.test_operatingsystem`
 ---------------------------------------------
 
 .. automodule:: tests.foreman.cli.test_operatingsystem
+
+:mod:`tests.foreman.cli.test_organization`
+------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_organization
 
 :mod:`tests.foreman.cli.test_oscap`
 -----------------------------------
@@ -184,7 +194,7 @@
 .. automodule:: tests.foreman.cli.test_product
 
 :mod:`tests.foreman.cli.test_puppetclass`
-------------------------------------------
+-----------------------------------------
 
 .. automodule:: tests.foreman.cli.test_puppetclass
 
@@ -192,6 +202,11 @@
 ------------------------------------------
 
 .. automodule:: tests.foreman.cli.test_puppetmodule
+
+:mod:`tests.foreman.cli.test_puppet`
+------------------------------------
+
+.. automodule:: tests.foreman.cli.test_puppet
 
 :mod:`tests.foreman.cli.test_remoteexecution`
 ---------------------------------------------
@@ -218,6 +233,11 @@
 
 .. automodule:: tests.foreman.cli.test_role
 
+:mod:`tests.foreman.cli.test_satellitesync`
+-------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_satellitesync
+
 :mod:`tests.foreman.cli.test_sso`
 ---------------------------------
 
@@ -243,12 +263,17 @@
 
 .. automodule:: tests.foreman.cli.test_template
 
+:mod:`tests.foreman.cli.test_usergroup`
+---------------------------------------
+
+.. automodule:: tests.foreman.cli.test_usergroup
+
 :mod:`tests.foreman.cli.test_user`
 ----------------------------------
 
 .. automodule:: tests.foreman.cli.test_user
 
-:mod:`tests.foreman.cli.test_usergroup`
+:mod:`tests.foreman.cli.test_variables`
 ---------------------------------------
 
-.. automodule:: tests.foreman.cli.test_usergroup
+.. automodule:: tests.foreman.cli.test_variables

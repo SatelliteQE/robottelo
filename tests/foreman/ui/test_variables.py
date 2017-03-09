@@ -212,9 +212,9 @@ class SmartVariablesTestCase(UITestCase):
 
         1. The smart Variable is created successfully.
         2. In YAML output of associated host, the variable with name and its
-        default value is displayed.
+           default value is displayed.
         3. In Host-> variables tab, the smart variable should be displayed with
-        its respective puppet class.
+           its respective puppet class.
 
         @CaseLevel: Integration
         """
@@ -351,7 +351,7 @@ class SmartVariablesTestCase(UITestCase):
         @steps:
 
         1. In Puppet Class, creates a smart variable with valid name and
-        default value.
+           default value.
         2. After successful creation, update the puppet class of variable.
 
         @assert: The variable is updated with new puppet class.
@@ -380,14 +380,14 @@ class SmartVariablesTestCase(UITestCase):
         @steps:
 
         1. In Puppet Class, create a smart Variable with valid name and default
-        value.
+           value.
         2. After successful creation, attempt to create a variable with same
-        name from same/other class.
+           name from same/other class.
 
         @assert:
 
         1. An error is displayed in front of Variable Key field as 'has already
-        been taken'.
+           been taken'.
         2. The variable with same name are not allowed to create from any class
         """
         name = gen_string('alpha')
@@ -501,7 +501,7 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Provide regexp to validator rule
         2.  Provide default value that doesn't match the regex from validator
-        rule
+            rule
         3.  Submit the change.
 
         @assert: Error is raised for default value not matching with regex.
@@ -559,7 +559,7 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Provide regexp to validator rule
         2.  Create a matcher with value that doesn't match the regexp from
-        validator rule
+            validator rule
         3.  Submit the change.
 
         @assert: Error is raised for matcher value not matching with regex.
@@ -594,7 +594,7 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Provide regexp to validator rule
         2.  Create a matcher with value that matches the regex from validator
-        rule
+            rule
         3.  Submit the change.
 
         @assert: Smart Variable is created successfully and error is not raised
@@ -690,7 +690,7 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Provide list of values to validator rule
         2.  Create a matcher with value that is not in the list from validator
-        rule
+            rule
         3.  Submit the change.
 
         @assert: Error is raised for matcher value that is not in list from
@@ -726,7 +726,7 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Provide list of values to validator rule
         2.  Create a matcher with value that present in the list from validator
-        rule
+            rule
         3.  Submit the change.
 
         @assert: Smart Variable is created successfully
@@ -896,9 +896,9 @@ class SmartVariablesTestCase(UITestCase):
 
         1. The smart Variable with matcher is created successfully.
         2. In YAML output, the variable name with overrided value for
-        host is displayed.
+           host is displayed.
         3. In Host-> variables tab, the variable name with overrided value
-        for host is displayed.
+           for host is displayed.
 
         @CaseLevel: Integration
         """
@@ -941,7 +941,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  Set fqdn as top priority attribute.
         3.  Create first matcher for fqdn with valid details.
         4.  Create second matcher for some attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         5.  Submit the change.
         6.  Go to YAML output of associated host.
 
@@ -989,7 +989,7 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Create variable with some default value.
         2.  Set some attribute(other than fqdn) as top priority attribute.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         3.  Create first matcher for fqdn with valid details.
         4.  Create second matcher for attribute of step 2 with valid details.
         5.  Submit the change.
@@ -1043,9 +1043,9 @@ class SmartVariablesTestCase(UITestCase):
         1.  Create variable with some default value.
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         4.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         5.  Select 'Merge overrides' checkbox.
         6.  Submit the change.
         7.  Go to YAML output of associated host.
@@ -1053,7 +1053,7 @@ class SmartVariablesTestCase(UITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all the associated
-        matchers.
+            matchers.
         2.  The YAML output doesn't have the default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1098,20 +1098,20 @@ class SmartVariablesTestCase(UITestCase):
         @steps:
 
         1.  Create variable with some default value.
-        3.  Create first matcher for attribute fqdn with valid details.
-        4.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should not have this attribute.
-        5.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should not have this attributes.
-        6.  Select 'Merge overrides' checkbox.
-        7.  Submit the change.
-        8.  Go to YAML output of associated host.
+        2.  Create first matcher for attribute fqdn with valid details.
+        3.  Create second matcher for other attribute with valid details.
+            Note - The fqdn/host should not have this attribute.
+        4.  Create more matchers for some more attributes if any.
+            Note - The fqdn/host should not have this attributes.
+        5.  Select 'Merge overrides' checkbox.
+        6.  Submit the change.
+        7.  Go to YAML output of associated host.
 
         @assert:
 
         1.  The YAML output has the values only for fqdn.
         2.  The YAML output doesn't have the values for attribute
-        which are not associated to host.
+            which are not associated to host.
         3.  The YAML output doesn't have the default value of variable.
         4.  Duplicate values in YAML output if any are displayed.
 
@@ -1157,9 +1157,9 @@ class SmartVariablesTestCase(UITestCase):
         1.  Create variable with some default value.
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         4.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         5.  Select 'Merge overrides' checkbox.
         6.  Select 'Merge default' checkbox.
         7.  Submit the change.
@@ -1168,7 +1168,7 @@ class SmartVariablesTestCase(UITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output has the default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1217,9 +1217,9 @@ class SmartVariablesTestCase(UITestCase):
         1.  Create variable with empty default value.
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         4.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         5.  Select 'Merge overrides' checkbox.
         6.  Select 'Merge default' checkbox.
         7.  Submit the change.
@@ -1228,7 +1228,7 @@ class SmartVariablesTestCase(UITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output doesn't have the empty default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1276,8 +1276,8 @@ class SmartVariablesTestCase(UITestCase):
         1.  Create variable with type array and value.
         2.  Create first matcher for attribute fqdn with some value.
         3.  Create second matcher for other attribute with
-        same value as fqdn matcher.
-        Note - The fqdn/host should have this attribute.
+            same value as fqdn matcher.
+            Note - The fqdn/host should have this attribute.
         4.  Select 'Merge overrides' checkbox.
         5.  Select 'Merge default' checkbox.
         6.  Select 'Avoid Duplicates' checkbox.
@@ -1287,7 +1287,7 @@ class SmartVariablesTestCase(UITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output has the default value of variable.
         3.  Duplicate values in YAML output are removed / not displayed.
 
@@ -1335,8 +1335,8 @@ class SmartVariablesTestCase(UITestCase):
         1.  Create variable with type array and value.
         2.  Create first matcher for attribute fqdn with some value.
         3.  Create second matcher for other attribute with other value
-        than fqdn matcher and default value.
-        Note - The fqdn/host should have this attribute.
+            than fqdn matcher and default value.
+            Note - The fqdn/host should have this attribute.
         4.  Select 'Merge overrides' checkbox.
         5.  Select 'Merge default' checkbox.
         6.  Select 'Avoid Duplicates' checkbox.
@@ -1457,7 +1457,7 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  The matcher for deleted attribute removed from variable.
         2.  On recreating attribute, the matcher should not reappear in
-        variable.
+            variable.
 
         @CaseLevel: Integration
         """
@@ -1540,7 +1540,7 @@ class SmartVariablesTestCase(UITestCase):
         1.  Create a variable.
         2.  Associate variable with fqdn/hostgroup.
         3.  From host/hostgroup, attempt to override the variable with some
-        other key type of value.
+            other key type of value.
 
         @assert:
 
@@ -1634,7 +1634,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  Associate variable with fqdn/hostgroup.
         3.  Create a matcher for fqdn/hostgroup with valid details.
         4.  From host/hostgroup, attempt to edit the variable
-        with invalid value.
+            with invalid value.
 
         @assert:
 

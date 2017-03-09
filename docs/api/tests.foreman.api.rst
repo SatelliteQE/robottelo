@@ -13,20 +13,35 @@
 
 .. automodule:: tests.foreman.api.test_architecture
 
+:mod:`tests.foreman.api.test_bookmarks`
+---------------------------------------
+
+.. automodule:: tests.foreman.api.test_bookmarks
+
+:mod:`tests.foreman.api.test_classparameters`
+---------------------------------------------
+
+.. automodule:: tests.foreman.api.test_classparameters
+
+:mod:`tests.foreman.api.test_computeprofile`
+--------------------------------------------
+
+.. automodule:: tests.foreman.api.test_computeprofile
+
 :mod:`tests.foreman.api.test_computeresource`
 ---------------------------------------------
 
 .. automodule:: tests.foreman.api.test_computeresource
 
-:mod:`tests.foreman.api.test_contentview`
------------------------------------------
-
-.. automodule:: tests.foreman.api.test_contentview
-
 :mod:`tests.foreman.api.test_contentviewfilter`
 -----------------------------------------------
 
 .. automodule:: tests.foreman.api.test_contentviewfilter
+
+:mod:`tests.foreman.api.test_contentview`
+-----------------------------------------
+
+.. automodule:: tests.foreman.api.test_contentview
 
 :mod:`tests.foreman.api.test_contentviewversion`
 ------------------------------------------------
@@ -78,11 +93,6 @@
 
 .. automodule:: tests.foreman.api.test_gpgkey
 
-:mod:`tests.foreman.api.test_host`
-----------------------------------
-
-.. automodule:: tests.foreman.api.test_host
-
 :mod:`tests.foreman.api.test_hostcollection`
 --------------------------------------------
 
@@ -92,6 +102,11 @@
 ---------------------------------------
 
 .. automodule:: tests.foreman.api.test_hostgroup
+
+:mod:`tests.foreman.api.test_host`
+----------------------------------
+
+.. automodule:: tests.foreman.api.test_host
 
 :mod:`tests.foreman.api.test_lifecycleenvironment`
 --------------------------------------------------
@@ -138,6 +153,16 @@
 
 .. automodule:: tests.foreman.api.test_product
 
+:mod:`tests.foreman.api.test_puppetmodule`
+------------------------------------------
+
+.. automodule:: tests.foreman.api.test_puppetmodule
+
+:mod:`tests.foreman.api.test_puppet`
+------------------------------------
+
+.. automodule:: tests.foreman.api.test_puppet
+
 :mod:`tests.foreman.api.test_repository`
 ----------------------------------------
 
@@ -173,21 +198,27 @@
 
 .. automodule:: tests.foreman.api.test_syncplan
 
+:mod:`tests.foreman.api.test_template_combination`
+--------------------------------------------------
+
+.. automodule:: tests.foreman.api.test_template_combination
+
 :mod:`tests.foreman.api.test_template`
 --------------------------------------
 
 .. automodule:: tests.foreman.api.test_template
-
-:mod:`tests.foreman.api.test_user`
-----------------------------------
-
-.. automodule:: tests.foreman.api.test_user
 
 :mod:`tests.foreman.api.test_usergroup`
 ---------------------------------------
 
 .. automodule:: tests.foreman.api.test_usergroup
 
+:mod:`tests.foreman.api.test_user`
+----------------------------------
+
+.. automodule:: tests.foreman.api.test_user
+
 :mod:`tests.foreman.api.test_variables`
 ---------------------------------------
+
 .. automodule:: tests.foreman.api.test_variables

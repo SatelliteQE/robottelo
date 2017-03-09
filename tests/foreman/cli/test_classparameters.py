@@ -513,7 +513,7 @@ class SmartClassParametersTestCase(CLITestCase):
         1.  Override the parameter.
         2.  Update the Key Type.
         3.  Provide a 'valid' default Value.
-        3.  Submit the changes.
+        4.  Submit the changes.
 
         @assert: Parameter Updated with a new type successfully.
         """
@@ -561,7 +561,7 @@ class SmartClassParametersTestCase(CLITestCase):
         1.  Override the parameter.
         2.  Update the Key Type.
         3.  Enter an 'Invalid' default Value.
-        3.  Submit the changes.
+        4.  Submit the changes.
 
         @assert:
 
@@ -726,7 +726,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1.  Override the parameter.
         2.  Create a matcher with value that doesn't match
-        the regex of step 3.
+            the regex of step 3.
         3.  Validate this value with regex validator type and rule.
         4.  Submit the change.
 
@@ -864,7 +864,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1.  Override the parameter.
         2.  Create a matcher with value that doesn't match
-        the list of step 3.
+            the list of step 3.
         3.  Validate this value with list validator type and rule.
         4.  Submit the change.
 
@@ -1035,7 +1035,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1.  Override the parameter.
         2.  Create a matcher with non existing attribute in org.
-        4.  Attempt to submit the change.
+        3.  Attempt to submit the change.
 
         @assert: Error raised for non existing attribute.
         """
@@ -1092,7 +1092,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1.  Override the parameter.
         2.  Create a matcher with empty value.
-        4.  Attempt to submit the change.
+        3.  Attempt to submit the change.
 
         @assert: Error is raised for attempt to add matcher with empty value
         """
@@ -1117,7 +1117,7 @@ class SmartClassParametersTestCase(CLITestCase):
         1.  Override the parameter.
         2.  Set some default Value.
         3.  Create matcher with valid attribute type, name and
-        puppet default value.
+            puppet default value.
         4.  Submit the change.
 
         @assert: The matcher has been created successfully.
@@ -1157,7 +1157,7 @@ class SmartClassParametersTestCase(CLITestCase):
         3.  Set fqdn as top priority attribute.
         4.  Create first matcher for fqdn with valid details.
         5.  Create second matcher for some attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         6.  Submit the change.
         7.  Go to YAML output of associated host.
 
@@ -1179,7 +1179,7 @@ class SmartClassParametersTestCase(CLITestCase):
         1.  Override the parameter.
         2.  Set some default Value.
         3.  Set some attribute(other than fqdn) as top priority attribute.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         4.  Create first matcher for fqdn with valid details.
         5.  Create second matcher for attribute of step 3 with valid details.
         6.  Submit the change.
@@ -1207,9 +1207,9 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set some default Value.
         3.  Create first matcher for attribute fqdn with valid details.
         4.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         5.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         6.  Set '--merge overrides' check.
         7.  Submit the change.
         8.  Go to YAML output of associated host.
@@ -1217,7 +1217,7 @@ class SmartClassParametersTestCase(CLITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all the associated
-        matchers.
+            matchers.
         2.  The YAML output doesn't have the default value of parameter.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1238,9 +1238,9 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set some default Value.
         3.  Create first matcher for attribute fqdn with valid details.
         4.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should not have this attribute.
+            Note - The fqdn/host should not have this attribute.
         5.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should not have this attributes.
+            Note - The fqdn/host should not have this attributes.
         6.  Set '--merge overrides' check.
         7.  Submit the change.
         8.  Go to YAML output of associated host.
@@ -1249,7 +1249,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1.  The YAML output has the values only for fqdn.
         2.  The YAML output doesn't have the values for attribute
-        which are not associated to host.
+            which are not associated to host.
         3.  The YAML output doesn't have the default value of parameter.
         4.  Duplicate values in YAML output if any are displayed.
 
@@ -1270,11 +1270,11 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set some default Value.
         3.  Create first matcher for attribute fqdn with valid details.
         4.  Create second matcher for other attribute with value
-        as puppet default.
-        Note - The fqdn/host should have this attribute.
+            as puppet default.
+            Note - The fqdn/host should have this attribute.
         5.  Create more matchers for some more attributes with value
-        as puppet default.
-        Note - The fqdn/host should have this attributes.
+            as puppet default.
+            Note - The fqdn/host should have this attributes.
         6.  Set '--merge overrides' check.
         7.  Set '--merge default' check.
         8.  Submit the change.
@@ -1303,9 +1303,9 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set some default Value.
         3.  Create first matcher for attribute fqdn with valid details.
         4.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         5.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         6.  Set '--merge overrides' check.
         7.  Set '--merge default' check.
         8.  Submit the change.
@@ -1314,7 +1314,7 @@ class SmartClassParametersTestCase(CLITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output has the default value of parameter.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1335,9 +1335,9 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set empty default Value.
         3.  Create first matcher for attribute fqdn with valid details.
         4.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         5.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         6.  Set '--merge overrides' check.
         7.  Set '--merge default' check.
         8.  Submit the change.
@@ -1346,7 +1346,7 @@ class SmartClassParametersTestCase(CLITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output doesn't have the empty default value of parameter.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1367,9 +1367,9 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set default Value as puppet default value.
         3.  Create first matcher for attribute fqdn with valid details.
         4.  Create second matcher for other attribute with valid details.
-        Note - The fqdn/host should have this attribute.
+            Note - The fqdn/host should have this attribute.
         5.  Create more matchers for some more attributes if any.
-        Note - The fqdn/host should have this attributes.
+            Note - The fqdn/host should have this attributes.
         6.  Set '--merge overrides' check.
         7.  Set '--merge default' check.
         8.  Submit the change.
@@ -1378,7 +1378,7 @@ class SmartClassParametersTestCase(CLITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output doesn't have the puppet default value.
         3.  Duplicate values in YAML output if any are displayed.
 
@@ -1399,8 +1399,8 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set some default Value of array type.
         3.  Create first matcher for attribute fqdn with some value.
         4.  Create second matcher for other attribute with
-        same value as fqdn matcher.
-        Note - The fqdn/host should have this attribute.
+            same value as fqdn matcher.
+            Note - The fqdn/host should have this attribute.
         5.  Set '--merge overrides' check.
         6.  Set '--merge default' check.
         7.  Set '--avoid duplicate' check.
@@ -1410,7 +1410,7 @@ class SmartClassParametersTestCase(CLITestCase):
         @assert:
 
         1.  The YAML output has the values merged from all
-        the associated matchers.
+            the associated matchers.
         2.  The YAML output has the default value of parameter.
         3.  Duplicate values in YAML output are removed / not displayed.
 
@@ -1431,8 +1431,8 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set some default Value of array type.
         3.  Create first matcher for attribute fqdn with some value.
         4.  Create second matcher for other attribute with other value
-        than fqdn matcher and default value.
-        Note - The fqdn/host should have this attribute.
+            than fqdn matcher and default value.
+            Note - The fqdn/host should have this attribute.
         5.  Set '--merge overrides' check.
         6.  Set '--merge default' check.
         7.  Set '--merge avoid duplicates' check.

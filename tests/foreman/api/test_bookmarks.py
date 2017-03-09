@@ -37,7 +37,7 @@ class BookmarkTestCase(APITestCase):
         @Steps:
 
         1. Create a bookmark with a random name, query and random valid
-        controller
+           controller
         2. List the bookmarks
 
         @Assert: No errors, Bookmark is listed, controller matches the
@@ -64,7 +64,7 @@ class BookmarkTestCase(APITestCase):
         @Steps:
 
         1. Create a bookmark with a random query, name and random valid
-        controller
+           controller
         2. List the bookmarks
 
         @Assert: No errors, Bookmark is listed, controller matches the
@@ -174,9 +174,9 @@ class BookmarkTestCase(APITestCase):
 
         1. Create a new bookmark using a random name
         2. Create a second bookmark, using the same name as
-        the previous Bookmark. Assert that an error is raised.
+           the previous Bookmark. Assert that an error is raised.
         3. List the bookmarks. Assert that the Bookmark created is present and
-        there's only one listed
+           there's only one listed
 
         @Assert: Error notification - name already taken, Bookmark is not
         created (not listed)
@@ -207,7 +207,7 @@ class BookmarkTestCase(APITestCase):
         @Steps:
 
         1. Create a new bookmark using a random name, random query and omit the
-        'public' parameter
+           'public' parameter
         2. List the bookmarks
 
         @Assert: Error notification - public is required, Bookmark is not
@@ -270,7 +270,7 @@ class BookmarkTestCase(APITestCase):
         @Steps:
 
         1. Try to update the name of the first (or second) Bookmark created in
-        the Setup with the name of the second (or first) Bookmark
+           the Setup with the name of the second (or first) Bookmark
 
         @Assert: Error - name already taken, bookmark not updated
         """
@@ -303,7 +303,7 @@ class BookmarkTestCase(APITestCase):
         @Steps:
 
         1. Update the name of the previously created bookmarks to an invalid
-        value
+           value
 
         @Assert: Error - bookmark not updated
         """
@@ -384,7 +384,7 @@ class BookmarkTestCase(APITestCase):
         @Setup:
 
         1. Create a bookmark with a random name and random query with public
-        attribute set to True/False
+           attribute set to True/False
 
         @Steps:
 
