@@ -51,12 +51,13 @@ ssh_key=
 #   other valid webdriver values are going to be translated to firefox.
 # browser=selenium
 
-# Webdriver to use. Valid values are chrome, firefox, ie, phantomjs
+# Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
 # webdriver=firefox
 
 # Binary location for selected wedriver
 # webdriver_binary=/usr/bin/firefox
 # webdriver_binary=/usr/bin/chromedriver
+# webdriver_binary=C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe
 
 # webdriver_desired_capabilities accepts extra configuration to be passed to
 # saucelabs in order to configure the test options. You can use the platform

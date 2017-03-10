@@ -46,6 +46,18 @@ def browser():
                 webdriver.Ie() if settings.webdriver_binary is None
                 else webdriver.Ie(executable_path=settings.webdriver_binary)
             )
+        elif webdriver_name == 'edge':
+            capabilities = webdriver.DesiredCapabilities.EDGE.copy()
+            capabilities['acceptSslCerts'] = True
+            capabilities['javascriptEnabled'] = True
+            return (
+                webdriver.Edge(capabilities=capabilities)
+                if settings.webdriver_binary is None
+                else webdriver.Edge(
+                    capabilities=capabilities,
+                    executable_path=settings.webdriver_binary,
+                )
+            )
         elif webdriver_name == 'phantomjs':
             return webdriver.PhantomJS(
                 service_args=['--ignore-ssl-errors=true'])
