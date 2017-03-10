@@ -2372,3 +2372,7 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
             u'name': module['name'],
             u'content-view-id': cv['id'],
         })
+    # CV publishing will automatically create Environment and
+    # Puppet Class entities
+    ContentView.publish({u'id': cv['id']})
+    return ContentView.info({u'id': cv['id']})
