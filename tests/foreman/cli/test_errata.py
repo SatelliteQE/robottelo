@@ -18,16 +18,25 @@ from operator import itemgetter
 from fauxfactory import gen_string
 from robottelo import manifests, ssh
 from robottelo.cli.factory import (
+    make_activation_key,
+    make_content_view,
     make_filter,
+    make_host_collection,
+    make_lifecycle_environment,
     make_org,
     make_product,
     make_repository,
     make_role,
     make_user,
+    setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
 )
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.erratum import Erratum
 from robottelo.cli.filter import Filter
+from robottelo.cli.host import Host
+from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -35,6 +44,9 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.constants import (
     DEFAULT_ROLE,
+    DISTRO_RHEL7,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE,
     FAKE_0_ERRATA_ID,
     FAKE_1_ERRATA_ID,
     FAKE_2_ERRATA_ID,
@@ -58,17 +70,120 @@ from robottelo.decorators import (
     stubbed,
     tier3,
     run_in_one_thread,
-    run_only_on
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
 )
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
 
 ERRATUM_MAX_IDS_INFO = 10
 
 
+@skip_if_bug_open('bugzilla', 1405428)
+@run_in_one_thread
 class HostCollectionErrataInstallTestCase(CLITestCase):
     """CLI Tests for the errata management feature"""
 
-    @stubbed()
+    CUSTOM_REPO_URL = FAKE_6_YUM_REPO
+    CUSTOM_PACKAGE = FAKE_1_CUSTOM_PACKAGE
+    CUSTOM_ERRATA_ID = FAKE_2_ERRATA_ID
+    CUSTOM_PACKAGE_ERRATA_APPLIED = FAKE_2_CUSTOM_PACKAGE
+    VIRTUAL_MACHINES_COUNT = 2
+
+    @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key,
+        Host, Host-Collection
+
+        """
+        super(HostCollectionErrataInstallTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.env = make_lifecycle_environment({
+            'organization-id': cls.org['id']
+        })
+        cls.content_view = make_content_view({
+            'organization-id': cls.org['id']
+        })
+        cls.activation_key = make_activation_key({
+            'lifecycle-environment-id': cls.env['id'],
+            'organization-id': cls.org['id']
+        })
+        # add subscription to Satellite Tools repo to activation key
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': cls.org['id'],
+            'content-view-id': cls.content_view['id'],
+            'lifecycle-environment-id': cls.env['id'],
+            'activationkey-id': cls.activation_key['id']
+        })
+        # create custom repository and add subscription to activation key
+        setup_org_for_a_custom_repo({
+            'url': cls.CUSTOM_REPO_URL,
+            'organization-id': cls.org['id'],
+            'content-view-id': cls.content_view['id'],
+            'lifecycle-environment-id': cls.env['id'],
+            'activationkey-id': cls.activation_key['id']
+        })
+
+    def _create_host_collection(self):
+        self.virtual_machines = []
+        self.host_collection = make_host_collection({
+            'organization-id': self.org['id']
+        })
+        for _ in range(self.VIRTUAL_MACHINES_COUNT):
+            # create VM
+            virtual_machine = VirtualMachine(distro=DISTRO_RHEL7)
+            virtual_machine.create()
+            self.virtual_machines.append(virtual_machine)
+            virtual_machine.install_katello_ca()
+            # register content host
+            virtual_machine.register_contenthost(
+                self.org['name'],
+                activation_key=self.activation_key['name']
+            )
+            # enable red hat satellite repository
+            virtual_machine.enable_repo(REPOS['rhst7']['id'])
+            # install katello-agent
+            virtual_machine.install_katello_agent()
+            host = Host.info({'name': virtual_machine.hostname})
+            HostCollection.add_host({
+                'id': self.host_collection['id'],
+                'organization-id': self.org['id'],
+                'host-ids': host['id']
+            })
+            # because of the bz 1405434, install the custom package on each
+            # host here, rather than using HostCollection.package_install
+            virtual_machine.run(
+                'yum install -y {0}'.format(self.CUSTOM_PACKAGE)
+            )
+        ActivationKey.add_host_collection({
+            'id': self.activation_key['id'],
+            'host-collection-id': self.host_collection['id'],
+            'organization-id': self.org['id']
+        })
+
+    def _destroy_virtual_machines(self):
+        for virtual_machine in self.virtual_machines:
+            virtual_machine.destroy()
+
+    def setUp(self):
+        super(HostCollectionErrataInstallTestCase, self).setUp()
+        try:
+            self._create_host_collection()
+        except Exception as exp:
+            self._destroy_virtual_machines()
+            raise exp
+
+    def tearDown(self):
+        self._destroy_virtual_machines()
+        super(HostCollectionErrataInstallTestCase, self).tearDown()
+
+    @tier3
+    @run_only_on('sat')
     def test_positive_install_by_hc_id_and_org_id(self):
         """Using hc-id and org id to install an erratum in a hc
 
@@ -83,11 +198,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Erratum is installed.
 
-        @caseautomation: notautomated
-
         """
+        HostCollection.erratum_install({
+            'id': self.host_collection['id'],
+            'organization-id': self.org['id'],
+            'errata': [self.CUSTOM_ERRATA_ID]
+        })
+        for virtual_machine in self.virtual_machines:
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+            self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_positive_install_by_hc_id_and_org_name(self):
         """Using hc-id and org name to install an erratum in a hc
 
@@ -102,11 +225,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Erratum is installed.
 
-        @caseautomation: notautomated
-
         """
+        HostCollection.erratum_install({
+            'id': self.host_collection['id'],
+            'organization': self.org['name'],
+            'errata': [self.CUSTOM_ERRATA_ID]
+        })
+        for virtual_machine in self.virtual_machines:
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+            self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_positive_install_by_hc_id_and_org_label(self):
         """Use hc-id and org label to install an erratum in a hc
 
@@ -121,11 +252,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Errata is installed.
 
-        @caseautomation: notautomated
-
         """
+        HostCollection.erratum_install({
+            'id': self.host_collection['id'],
+            'organization-label': self.org['label'],
+            'errata': [self.CUSTOM_ERRATA_ID]
+        })
+        for virtual_machine in self.virtual_machines:
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+            self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_positive_install_by_hc_name_and_org_id(self):
         """Use hc-name and org id to install an erratum in a hc
 
@@ -140,11 +279,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Erratum is installed.
 
-        @caseautomation: notautomated
-
         """
+        HostCollection.erratum_install({
+            'name': self.host_collection['name'],
+            'organization-id': self.org['id'],
+            'errata': [self.CUSTOM_ERRATA_ID]
+        })
+        for virtual_machine in self.virtual_machines:
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+            self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_positive_install_by_hc_name_and_org_name(self):
         """Use hc name and org name to install an erratum in a hc
 
@@ -159,11 +306,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Erratum is installed.
 
-        @caseautomation: notautomated
-
         """
+        HostCollection.erratum_install({
+            'name': self.host_collection['name'],
+            'organization': self.org['name'],
+            'errata': [self.CUSTOM_ERRATA_ID]
+        })
+        for virtual_machine in self.virtual_machines:
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+            self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_positive_install_by_hc_name_and_org_label(self):
         """Use hc-name and org label to install an erratum in a hc
 
@@ -178,11 +333,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Erratum is installed.
 
-        @caseautomation: notautomated
-
         """
+        HostCollection.erratum_install({
+            'name': self.host_collection['name'],
+            'organization-label': self.org['label'],
+            'errata': [self.CUSTOM_ERRATA_ID]
+        })
+        for virtual_machine in self.virtual_machines:
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+            self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_negative_install_by_hc_id_without_errata_info(self):
         """Attempt to install an erratum in a hc using hc-id and not
         specifying the erratum info
@@ -197,11 +360,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Error message thrown.
 
-        @caseautomation: notautomated
-
         """
+        with self.assertRaises(CLIReturnCodeError) as context:
+            HostCollection.erratum_install({
+                'id': self.host_collection['id'],
+                'organization-id': self.org['id'],
+            })
+        self.assertIn(
+            "Error: option '--errata' is required",
+            context.exception.message
+        )
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_negative_install_by_hc_name_without_errata_info(self):
         """Attempt to install an erratum in a hc using hc-name and not
         specifying the erratum info
@@ -217,11 +388,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Error message thrown.
 
-        @caseautomation: notautomated
-
         """
+        with self.assertRaises(CLIReturnCodeError) as context:
+            HostCollection.erratum_install({
+                'name': self.host_collection['name'],
+                'organization-id': self.org['id'],
+            })
+        self.assertIn(
+            "Error: option '--errata' is required",
+            context.exception.message
+        )
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_negative_install_without_hc_info(self):
         """Attempt to install an erratum in a hc by not specifying hc
         info
@@ -237,11 +416,22 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Error message thrown.
 
-        @caseautomation: notautomated
-
         """
+        with self.assertRaises(CLIReturnCodeError):
+            HostCollection.erratum_install({
+                'organization-id': self.org['label'],
+                'errata': [self.CUSTOM_ERRATA_ID]
+            })
+        # because of the bug we cannot verify the output of the error message
+        # it seems that hammer verify errata resource before host-collection
+        # verify that the errata package is not installed
+        for virtual_machine in self.virtual_machines:
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE_ERRATA_APPLIED))
+            self.assertNotEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_negative_install_by_hc_id_without_org_info(self):
         """Attempt to install an erratum in a hc using hc-id and not
         specifying org info
@@ -256,11 +446,19 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Error message thrown.
 
-        @caseautomation: notautomated
-
         """
+        with self.assertRaises(CLIReturnCodeError) as context:
+            HostCollection.erratum_install({
+                'id': self.host_collection['id'],
+                'errata': [self.CUSTOM_ERRATA_ID]
+            })
+        self.assertIn(
+            'Error: Could not find organization',
+            context.exception.message
+        )
 
-    @stubbed()
+    @tier3
+    @run_only_on('sat')
     def test_negative_install_by_hc_name_without_org_info(self):
         """Attempt to install an erratum in a hc without specifying org
         info
@@ -275,9 +473,16 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         @Assert: Error message thrown.
 
-        @caseautomation: notautomated
-
         """
+        with self.assertRaises(CLIReturnCodeError) as context:
+            HostCollection.erratum_install({
+                'name': self.host_collection['name'],
+                'errata': [self.CUSTOM_ERRATA_ID]
+            })
+        self.assertIn(
+            'Error: Could not find organization',
+            context.exception.message
+        )
 
 
 class ErrataTestCase(CLITestCase):
