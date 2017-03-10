@@ -879,7 +879,7 @@ class Settings(object):
         """Validate Robottelo's general settings."""
         validation_errors = []
         browsers = ('selenium', 'docker', 'saucelabs')
-        webdrivers = ('chrome', 'firefox', 'ie', 'phantomjs', 'remote')
+        webdrivers = ('chrome', 'edge', 'firefox', 'ie', 'phantomjs', 'remote')
         if self.browser not in browsers:
             validation_errors.append(
                 '[robottelo] browser should be one of {0}.'
