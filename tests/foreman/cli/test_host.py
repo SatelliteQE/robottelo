@@ -1637,7 +1637,6 @@ class KatelloAgentTestCase(CLITestCase):
         })
 
     @tier3
-    @skip_if_bug_open('bugzilla', '1420671')
     @run_only_on('sat')
     def test_positive_apply_security_erratum(self):
         """Apply security erratum to a host
