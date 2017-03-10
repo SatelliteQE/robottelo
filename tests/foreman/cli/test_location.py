@@ -738,3 +738,124 @@ class LocationTestCase(CLITestCase):
         Location.delete({'id': loc['id']})
         with self.assertRaises(CLIReturnCodeError):
             Location.info({'id': loc['id']})
+
+    @tier1
+    def test_positive_add_parameter_by_loc_name(self):
+        """Add a parameter to location
+
+        @id: d4c2f27d-7c16-4296-9da6-2e7135bfb6ad
+
+        @Assert: Parameter is added to the location
+        """
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        location = make_location()
+        Location.set_parameter({
+            'name': param_name,
+            'value': param_value,
+            'location': location['name'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        self.assertEqual(
+            param_value, location['parameters'][param_name.lower()])
+
+    @tier1
+    def test_positive_add_parameter_by_loc_id(self):
+        """Add a parameter to location
+
+        @id: 61b564f2-a42a-48de-833d-bec3a127d0f5
+
+        @Assert: Parameter is added to the location
+        """
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        location = make_location()
+        Location.set_parameter({
+            'name': param_name,
+            'value': param_value,
+            'location-id': location['id'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        self.assertEqual(
+            param_value, location['parameters'][param_name.lower()])
+
+    @tier1
+    def test_positive_update_parameter(self):
+        """Update a parameter associated with location
+
+        @id: 7b61fa71-0203-4709-9abd-9bb51ce6c19f
+
+        @Assert: Parameter is updated
+        """
+        param_name = gen_string('alpha')
+        param_new_value = gen_string('alpha')
+        location = make_location()
+        # Create parameter
+        Location.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'location': location['name'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        Location.set_parameter({
+            'name': param_name,
+            'value': param_new_value,
+            'location': location['name'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        self.assertEqual(
+            param_new_value, location['parameters'][param_name.lower()])
+
+    @tier1
+    def test_positive_remove_parameter_by_loc_name(self):
+        """Remove a parameter from location
+
+        @id: 97fda466-1894-431e-bc76-3b1c7643522f
+
+        @Assert: Parameter is removed from the location
+        """
+        param_name = gen_string('alpha')
+        location = make_location()
+        Location.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'location': location['name'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        Location.delete_parameter({
+            'name': param_name,
+            'location': location['name'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 0)
+        self.assertNotIn(param_name.lower(), location['parameters'])
+
+    @tier1
+    def test_positive_remove_parameter_by_loc_id(self):
+        """Remove a parameter from location
+
+        @id: 13836073-3e39-4d3e-b4b4-e87619c28bae
+
+        @Assert: Parameter is removed from the location
+        """
+        param_name = gen_string('alpha')
+        location = make_location()
+        Location.set_parameter({
+            'name': param_name,
+            'value': gen_string('alpha'),
+            'location-id': location['id'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        Location.delete_parameter({
+            'name': param_name,
+            'location-id': location['id'],
+        })
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 0)
+        self.assertNotIn(param_name.lower(), location['parameters'])
