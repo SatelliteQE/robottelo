@@ -759,9 +759,10 @@ class LocationTestCase(CLITestCase):
             'value': param_value,
             'location': location['name'],
         })
-        result = Location.info({'id': location['id']})
-        self.assertEqual(len(result['parameters']), 1)
-        self.assertEqual(param_value, result['parameters'][param_name.lower()])
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        self.assertEqual(
+            param_value, location['parameters'][param_name.lower()])
 
     @tier1
     def test_positive_add_parameter_by_loc_id(self):
@@ -779,9 +780,10 @@ class LocationTestCase(CLITestCase):
             'value': param_value,
             'location-id': location['id'],
         })
-        result = Location.info({'id': location['id']})
-        self.assertEqual(len(result['parameters']), 1)
-        self.assertEqual(param_value, result['parameters'][param_name.lower()])
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
+        self.assertEqual(
+            param_value, location['parameters'][param_name.lower()])
 
     @tier1
     def test_positive_update_parameter(self):
@@ -800,19 +802,18 @@ class LocationTestCase(CLITestCase):
             'value': gen_string('alpha'),
             'location': location['name'],
         })
-        result = Location.info({'id': location['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
         Location.set_parameter({
             'name': param_name,
             'value': param_new_value,
             'location': location['name'],
         })
-        result = Location.info({'id': location['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
         self.assertEqual(
-            param_new_value, result['parameters'][param_name.lower()])
+            param_new_value, location['parameters'][param_name.lower()])
 
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier1
     def test_positive_remove_parameter_by_loc_name(self):
         """Remove a parameter from location
@@ -828,16 +829,16 @@ class LocationTestCase(CLITestCase):
             'value': gen_string('alpha'),
             'location': location['name'],
         })
-        result = Location.info({'id': location['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
         Location.delete_parameter({
             'name': param_name,
             'location': location['name'],
         })
-        self.assertEqual(len(result['parameters']), 0)
-        self.assertNotIn(param_name.lower(), result['parameters'])
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 0)
+        self.assertNotIn(param_name.lower(), location['parameters'])
 
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier1
     def test_positive_remove_parameter_by_loc_id(self):
         """Remove a parameter from location
@@ -853,11 +854,12 @@ class LocationTestCase(CLITestCase):
             'value': gen_string('alpha'),
             'location-id': location['id'],
         })
-        result = Location.info({'id': location['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 1)
         Location.delete_parameter({
             'name': param_name,
             'location-id': location['id'],
         })
-        self.assertEqual(len(result['parameters']), 0)
-        self.assertNotIn(param_name.lower(), result['parameters'])
+        location = Location.info({'id': location['id']})
+        self.assertEqual(len(location['parameters']), 0)
+        self.assertNotIn(param_name.lower(), location['parameters'])

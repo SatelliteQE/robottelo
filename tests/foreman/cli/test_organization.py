@@ -1199,9 +1199,9 @@ class OrganizationTestCase(CLITestCase):
             'location-id': loc['id'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['locations']), 1)
+        self.assertIn(loc['name'], org['locations'])
 
     @run_only_on('sat')
     @tier2
@@ -1220,9 +1220,9 @@ class OrganizationTestCase(CLITestCase):
             'location': loc['name'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['locations']), 1)
+        self.assertIn(loc['name'], org['locations'])
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1395229)
@@ -1242,15 +1242,15 @@ class OrganizationTestCase(CLITestCase):
             'location-id': loc['id'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['locations']), 1)
+        self.assertIn(loc['name'], org['locations'])
         Org.remove_location({
             'location-id': loc['id'],
             'id': org['id'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 0)
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['locations']), 0)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1395229)
@@ -1270,15 +1270,15 @@ class OrganizationTestCase(CLITestCase):
             'location': loc['name'],
             'name': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 1)
-        self.assertIn(loc['name'], result['locations'])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['locations']), 1)
+        self.assertIn(loc['name'], org['locations'])
         Org.remove_location({
             'location': loc['name'],
             'id': org['id'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['locations']), 0)
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['locations']), 0)
 
     @run_only_on('sat')
     @tier1
@@ -1297,9 +1297,9 @@ class OrganizationTestCase(CLITestCase):
             'value': param_value,
             'organization': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['parameters']), 1)
-        self.assertEqual(param_value, result['parameters'][param_name.lower()])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 1)
+        self.assertEqual(param_value, org['parameters'][param_name.lower()])
 
     @run_only_on('sat')
     @tier1
@@ -1318,9 +1318,9 @@ class OrganizationTestCase(CLITestCase):
             'value': param_value,
             'organization-id': org['id'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['parameters']), 1)
-        self.assertEqual(param_value, result['parameters'][param_name.lower()])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 1)
+        self.assertEqual(param_value, org['parameters'][param_name.lower()])
 
     @run_only_on('sat')
     @tier1
@@ -1340,20 +1340,19 @@ class OrganizationTestCase(CLITestCase):
             'value': gen_string('alpha'),
             'organization': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 1)
         Org.set_parameter({
             'name': param_name,
             'value': param_new_value,
             'organization': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 1)
         self.assertEqual(
-            param_new_value, result['parameters'][param_name.lower()])
+            param_new_value, org['parameters'][param_name.lower()])
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier1
     def test_positive_remove_parameter_by_org_name(self):
         """Remove a parameter from organization
@@ -1369,17 +1368,17 @@ class OrganizationTestCase(CLITestCase):
             'value': gen_string('alpha'),
             'organization': org['name'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 1)
         Org.delete_parameter({
             'name': param_name,
             'organization': org['name'],
         })
-        self.assertEqual(len(result['parameters']), 0)
-        self.assertNotIn(param_name.lower(), result['parameters'])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 0)
+        self.assertNotIn(param_name.lower(), org['parameters'])
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1395229)
     @tier1
     def test_positive_remove_parameter_by_org_id(self):
         """Remove a parameter from organization
@@ -1395,14 +1394,15 @@ class OrganizationTestCase(CLITestCase):
             'value': gen_string('alpha'),
             'organization-id': org['id'],
         })
-        result = Org.info({'id': org['id']})
-        self.assertEqual(len(result['parameters']), 1)
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 1)
         Org.delete_parameter({
             'name': param_name,
             'organization-id': org['id'],
         })
-        self.assertEqual(len(result['parameters']), 0)
-        self.assertNotIn(param_name.lower(), result['parameters'])
+        org = Org.info({'id': org['id']})
+        self.assertEqual(len(org['parameters']), 0)
+        self.assertNotIn(param_name.lower(), org['parameters'])
 
     # Negative Create
 
