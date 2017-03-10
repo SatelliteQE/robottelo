@@ -261,11 +261,12 @@ class ContentHostTestCase(UITestCase):
             self.assertEqual(
                 result['Registered By'], self.activation_key.name)
 
+    @skip_if_bug_open('bugzilla', 1377676)
     @skip_if_bug_open('bugzilla', 1387892)
     @tier3
     def test_positive_provisioning_host_link(self):
         """Check that the host link in provisioning tab of content host page
-         point to the host details page.
+        point to the host details page.
 
         @id: 28f5fb0e-007b-4ee6-876e-9693fb7f5841
 
@@ -287,7 +288,6 @@ class ContentHostTestCase(UITestCase):
                 tab_locators['contenthost.tab_provisioning_details_host_link'])
             # assert that the current url is equal to:
             # server_host_url/hosts/hostname
-
             host_url = urljoin(settings.server.get_url(),
                                'hosts/{0}'.format(self.client.hostname))
             self.assertEqual(self.browser.current_url, host_url)
