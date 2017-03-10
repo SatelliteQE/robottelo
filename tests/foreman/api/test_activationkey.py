@@ -18,12 +18,22 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import (
     filtered_datapoint,
     invalid_names_list,
     valid_data_list,
 )
-from robottelo.decorators import rm_bug_is_open, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    rm_bug_is_open,
+    run_in_one_thread,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+    tier2,
+)
+from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from six.moves import http_client
@@ -416,6 +426,60 @@ class ActivationKeyTestCase(APITestCase):
             entities.ActivationKey(id=ak.id).read()
         except HTTPError:
             self.fail("Activation Key can't be read")
+
+    @run_in_one_thread
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    def test_positive_fetch_product_content(self):
+        """Associate RH & custom product with AK and fetch AK's product content
+
+        @id: 424f3dfb-0112-464b-b633-e8c9bce6e0f1
+
+        @Assert: Both Red Hat and custom product subscriptions are assigned as
+        Activation Key's product content
+
+        @BZ: 1360239
+
+        @CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo.sync()
+        custom_repo = entities.Repository(
+            product=entities.Product(organization=org).create(),
+        ).create()
+        custom_repo.sync()
+        cv = entities.ContentView(
+            organization=org,
+            repository=[rh_repo_id, custom_repo.id],
+        ).create()
+        cv.publish()
+        ak = entities.ActivationKey(content_view=cv, organization=org).create()
+        org_subscriptions = entities.Subscription(organization=org).search()
+        for subscription in org_subscriptions:
+            provided_products_ids = [
+                prod.id for prod in subscription.read().provided_product]
+            if (custom_repo.product.id in provided_products_ids or
+                    rh_repo.product.id in provided_products_ids):
+                ak.add_subscriptions(data={
+                    'quantity': 1,
+                    'subscription_id': subscription.id,
+                })
+        ak_subscriptions = ak.product_content()['results']
+        self.assertEqual(
+            {custom_repo.product.id, rh_repo.product.id},
+            {subscr['product']['id'] for subscr in ak_subscriptions}
+        )
 
 
 class ActivationKeySearchTestCase(APITestCase):
