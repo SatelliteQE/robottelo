@@ -1641,17 +1641,22 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_apply_security_erratum(self):
         """Apply security erratum to a host
 
-        @id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
+        :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
 
-        @Assert: erratum is recognized by the
-        `yum update --security` command on client
+        :Assert: erratum is recognized by the
+            `yum update --security` command on client
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
             FAKE_1_CUSTOM_PACKAGE
         )
+        # check the system is up to date
+        result = self.client.run(
+            'yum update --security | grep "No packages needed for security"'
+        )
+        self.assertEqual(result.return_code, 0)
         # downgrade walrus package
         self.client.run('yum downgrade -y {0}'.format(
             FAKE_1_CUSTOM_PACKAGE_NAME))
@@ -1660,6 +1665,7 @@ class KatelloAgentTestCase(CLITestCase):
             u'errata-ids': FAKE_1_ERRATA_ID,
             u'host-id': self.host['id'],
         })
+        # check the erratum becomes available
         result = self.client.run(
             'yum update --security | grep "No packages needed for security"'
         )
