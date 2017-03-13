@@ -435,7 +435,8 @@ class DashboardTestCase(UITestCase):
             self.assertTrue(self.dashboard.validate_error_navigation(
                 'Create',
                 'error',
-                'Validation failed: Name has already been taken'
+                'Validation failed: Name has already been taken, Title has'
+                ' already been taken'
             ))
 
     @tier2
