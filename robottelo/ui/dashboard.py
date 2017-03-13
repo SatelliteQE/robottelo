@@ -49,6 +49,7 @@ class Dashboard(Base):
 
     def search(self, name, search_key=None):
         """Perform search on Dashboard page"""
+        self.navigate_to_entity()
         if search_key is None:
             search_string = name
         else:
