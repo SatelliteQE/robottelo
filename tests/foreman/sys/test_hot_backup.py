@@ -21,7 +21,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import BACKUP_FILES
 from robottelo.decorators import stubbed, tier3, backup, skip_if_bug_open
-from robottelo.ssh import get_connection
+from robottelo.ssh import _get_connection
 from robottelo.test import TestCase
 
 BCK_MSG = 'BACKUP Complete, contents can be found in: /tmp/{0}'
@@ -61,7 +61,7 @@ class HotBackupTestCase(TestCase):
         contains all the default files needed to restore.
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(dir_name),
@@ -93,7 +93,7 @@ class HotBackupTestCase(TestCase):
         containing all the default files needed to restore.
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             dir_name = gen_string('alpha')
             connection.run('rm -rf /tmp/{0}'.format(dir_name))
             result = connection.run(
@@ -126,7 +126,7 @@ class HotBackupTestCase(TestCase):
         present.
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup '
@@ -157,7 +157,7 @@ class HotBackupTestCase(TestCase):
         @Assert: Backup "ib1" is backed up.
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
             result = connection.run(
