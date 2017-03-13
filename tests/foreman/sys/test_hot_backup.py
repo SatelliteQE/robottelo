@@ -46,6 +46,7 @@ class HotBackupTestCase(TestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @tier3
+    @skip_if_bug_open('bugzilla', 1399244)
     def test_positive_backup_with_existing_directory(self):
         """katello-backup with existing directory
 
@@ -76,7 +77,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
 
     @tier3
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1399244)
     def test_positive_directory_created(self):
         """katello-backup with non-existing directory
 
@@ -109,6 +110,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
 
     @tier3
+    @skip_if_bug_open('bugzilla', 1399244)
     def test_positive_skip_pulp(self):
         """Katello-backup with --skip-pulp option should not create pulp
         files in destination.
@@ -138,7 +140,7 @@ class HotBackupTestCase(TestCase):
             self.assertNotIn(u'pulp.snar', files.stdout)
 
     @tier3
-    @skip_if_bug_open('bugzilla', 1390355)
+    @skip_if_bug_open('bugzilla', 1399244)
     def test_positive_incremental(self):
         """Make an incremental backup
 
