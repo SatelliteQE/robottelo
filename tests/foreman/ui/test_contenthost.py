@@ -268,14 +268,15 @@ class ContentHostTestCase(UITestCase):
         """Check that the host link in provisioning tab of content host page
         point to the host details page.
 
-        @id: 28f5fb0e-007b-4ee6-876e-9693fb7f5841
+        :id: 28f5fb0e-007b-4ee6-876e-9693fb7f5841
 
-        @assert: The Provisioning host details name link at
-        content_hosts/provisioning point to host detail page eg: hosts/hostname
+        :assert: The Provisioning host details name link at
+            content_hosts/provisioning point to host detail page
+            eg: hosts/hostname
 
-        @BZ: 1387892
+        :BZ: 1387892
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             # open the content host
