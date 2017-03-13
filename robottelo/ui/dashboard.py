@@ -20,8 +20,8 @@ class Dashboard(Base):
         'Content View History': 'Content Views Widget',
         'Sync Overview': 'Sync Widget',
         'Latest Events': 'Report summary',
-        'Latest Compliance Reports': 'Latest Compliance Reports',
-        'Compliance Reports Breakdown': 'Compliance Reports Breakdown',
+        'Latest Compliance Reports': 'OpenSCAP Host reports widget',
+        'Compliance Reports Breakdown': 'OpenSCAP Reports breakdown widget',
         'Latest Errata': 'Errata Widget',
     }
 
@@ -63,30 +63,25 @@ class Dashboard(Base):
         be the same as on UI(e.g. 'Task Status')
         """
         self.navigate_to_entity()
+        strategy, value = locators['dashboard.remove_widget']
         self.click(
-            locators['dashboard.remove_widget'] %
-            self.widgets_locators[widget_name],
+            (strategy, value % self.widgets_locators[widget_name]),
             wait_for_ajax=False
         )
         self.handle_alert(True)
-        self.wait_until_element_is_not_visible(
-            locators['dashboard.remove_widget'] %
-            self.widgets_locators[widget_name]
-        )
+        self.wait_until_element_is_not_visible((
+            strategy, value % self.widgets_locators[widget_name]))
 
     def minimize_widget(self, widget_name):
         """Minimize specified widget on dashboard. Name for each widget should
         be the same as on UI(e.g. 'Task Status')
         """
         self.navigate_to_entity()
-        self.click(
-            locators['dashboard.minimize_widget'] %
-            self.widgets_locators[widget_name],
-        )
-        self.wait_until_element_is_not_visible(
-            locators['dashboard.minimize_widget'] %
-            self.widgets_locators[widget_name]
-        )
+        strategy, value = locators['dashboard.minimize_widget']
+        self.click((
+            strategy, value % self.widgets_locators[widget_name]))
+        self.wait_until_element_is_not_visible((
+            strategy, value % self.widgets_locators[widget_name]))
 
     def manage_widget(self, action_name, widget_name=None):
         """Execute specified action from Dashboard Manage dropdown"""
@@ -96,30 +91,28 @@ class Dashboard(Base):
         elif action_name == 'Reset Dashboard':
             self.click(locators['dashboard.reset_dashboard'])
         elif action_name == 'Restore Widget':
-            self.click(
-                locators['dashboard.restore_widget'] %
-                self.widgets_locators[widget_name]
-            )
+            strategy, value = locators['dashboard.restore_widget']
+            self.click((
+                strategy, value % self.widgets_locators[widget_name]))
         elif action_name == 'Add Widget':
-            self.click(
-                locators['dashboard.add_widget'] %
-                self.widgets_locators[widget_name]
-            )
+            strategy, value = locators['dashboard.add_widget']
+            self.click((
+                strategy, value % self.widgets_locators[widget_name]))
 
     def get_widget(self, widget_name):
         """Get widget element from dashboard"""
         self.navigate_to_entity()
-        return self.wait_until_element(
-            locators['dashboard.widget_element'] %
-            self.widgets_locators[widget_name]
-        )
+        strategy, value = locators['dashboard.widget_element']
+        return self.wait_until_element((
+            strategy, value % self.widgets_locators[widget_name]))
 
     def get_hcs_host_count(self, criteria_name):
         """Get information about hosts count per specific criteria for Host
         Configuration Status widget
         """
-        return int(self.wait_until_element(
-            locators['dashboard.hcs.hosts_count'] % criteria_name).text)
+        strategy, value = locators['dashboard.hcs.hosts_count']
+        return int(self.wait_until_element((
+            strategy, value % criteria_name)).text)
 
     def validate_hcs_navigation(
             self, criteria_name, expected_search_value=None, host_name=None):
@@ -130,7 +123,8 @@ class Dashboard(Base):
         and present in the list
         """
         self.navigate_to_entity()
-        self.click(locators['dashboard.hcs.search_criteria'] % criteria_name)
+        strategy, value = locators['dashboard.hcs.search_criteria']
+        self.click((strategy, value % criteria_name))
         if self.wait_until_element(locators['host.page_title']) is None:
             raise UIError(
                 'Redirection to Hosts page does not work properly')
@@ -141,9 +135,9 @@ class Dashboard(Base):
                 raise UIError(
                     'Search box contains invalid data')
         if host_name:
-            found_host_name = self.wait_until_element(
-                locators['host.select_name'] % host_name
-            ).text
+            strategy, value = locators['host.select_name']
+            found_host_name = self.wait_until_element((
+                strategy, value % host_name)).text
             if found_host_name is None:
                 raise UIError(
                     'Expected host was not found in the list')
@@ -154,8 +148,8 @@ class Dashboard(Base):
         Host Configuration Chart widget
         """
         self.navigate_to_entity()
-        return self.wait_until_element(
-            locators['dashboard.hcc.hosts_percentage'] % criteria_name).text
+        strategy, value = locators['dashboard.hcc.hosts_percentage']
+        return self.wait_until_element((strategy, value % criteria_name)).text
 
     def validate_task_navigation(
             self, criteria_name, expected_search_value=None, task_name=None):
@@ -166,7 +160,8 @@ class Dashboard(Base):
         present in the list
         """
         self.navigate_to_entity()
-        self.click(locators['dashboard.task.search_criteria'] % criteria_name)
+        strategy, value = locators['dashboard.task.search_criteria']
+        self.click((strategy, value % criteria_name))
         if self.wait_until_element(locators['task.page_title']) is None:
             raise UIError(
                 'Redirection to Tasks page does not work properly')
@@ -177,8 +172,9 @@ class Dashboard(Base):
                 raise UIError(
                     'Search box contains invalid data')
         if task_name:
-            found_host_name = self.wait_until_element(
-                locators['task.select_name'] % task_name).text
+            strategy, value = locators['task.select_name']
+            found_host_name = self.wait_until_element((
+                strategy, value % task_name)).text
             if found_host_name is None:
                 raise UIError(
                     'Expected task was not found in the list')
@@ -192,7 +188,8 @@ class Dashboard(Base):
         in summary section
         """
         self.navigate_to_entity()
-        self.click(locators['dashboard.lwe_task.name'] % task_name)
+        strategy, value = locators['dashboard.lwe_task.name']
+        self.click((strategy, value % task_name))
         if self.wait_until_element(locators['task.selected.id']) is None:
             raise UIError(
                 'Redirection to task details page does not work properly')
@@ -215,9 +212,10 @@ class Dashboard(Base):
         Content View History widget
         """
         self.navigate_to_entity()
+        strategy, value = locators['dashboard.cvh.tasks_statuses']
         elements_list = [
-            element.text for element in self.find_elements(
-                locators['dashboard.cvh.tasks_statuses'] % cv_name)
+            element.text for element in self.find_elements((
+                strategy, value % cv_name))
         ]
         # return list of task-status pairs
         return [
@@ -228,19 +226,20 @@ class Dashboard(Base):
         widget
         """
         self.navigate_to_entity()
-        return int(self.wait_until_element(
-            locators['dashboard.hc.hosts_count'] % hc_name).text)
+        strategy, value = locators['dashboard.hc.hosts_count']
+        return int(self.wait_until_element((strategy, value % hc_name)).text)
 
     def get_so_product_status(self, product_name):
         """Get status for specific product on Sync Overview widget"""
         self.navigate_to_entity()
-        return self.wait_until_element(
-            locators['dashboard.so.product_status'] % product_name).text
+        strategy, value = locators['dashboard.so.product_status']
+        return self.wait_until_element((strategy, value % product_name)).text
 
     def get_cst_subs_count(self, criteria_name):
         """Get subscriptions count per specific criteria for Current
         Subscription Totals widget
         """
         self.navigate_to_entity()
-        return int(self.wait_until_element(
-            locators['dashboard.cst.subs_count'] % criteria_name).text)
+        strategy, value = locators['dashboard.cst.subs_count']
+        return int(self.wait_until_element((
+            strategy, value % criteria_name)).text)
