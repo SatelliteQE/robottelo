@@ -47,8 +47,9 @@ help:
 	@echo "  logs-join                  to join xdist log files into one"
 	@echo "  logs-clean                 to delete all xdist log files in the root"
 	@echo "  pyc-clean                  to delete all temporary artifacts"
-	@echo "  uuid-check                 to check for duplicated or empty @id: in testimony docstring tags"
-	@echo "  uuid-fix                   to fix all duplicated or empty @id: in testimony docstring tags"
+	@echo "  uuid-check                 to check for duplicated or empty :id: in testimony docstring tags"
+	@echo "  uuid-fix                   to fix all duplicated or empty :id: in testimony docstring tags"
+	@echo "  token-prefix-editor        to fix all tokens prefix and ensure :<token>: format"
 	@echo "  can-i-push?                to check if local changes are suitable to push"
 	@echo "  install-commit-hook        to install pre-commit hook to check if changes are suitable to push"
 	@echo "  gitflake8                  to check flake8 styling only for modified files"
@@ -150,6 +151,9 @@ uuid-check:  ## list duplicated or empty uuids
 uuid-fix:
 	@scripts/fix_uuids.sh
 
+token-prefix-editor:
+	@scripts/token_editor.py
+
 gitflake8:
 	$(info "Checking style and syntax errors with flake8 linter...")
 	@flake8 $(shell git diff --name-only | grep ".py$$") --show-source
@@ -176,5 +180,5 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
         graph-entities lint logs-join logs-clean pyc-clean \
-        uuid-check uuid-fix can-i-push? install-commit-hook gitflake8 \
-        clean-cache clean-all
+        uuid-check uuid-fix token-prefix-editor can-i-push? \
+        install-commit-hook gitflake8 clean-cache clean-all
