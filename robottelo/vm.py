@@ -267,7 +267,8 @@ class VirtualMachine(object):
                 'Failed to download and install the katello-ca rpm')
 
     def register_contenthost(self, org, activation_key=None, lce=None,
-                             force=True, releasever=None):
+                             force=True, releasever=None, username=None,
+                             password=None):
         """Registers content host on foreman server using activation-key. This
         can be done in two ways: either by specifying organization name and
         activation key name or by specifying organization name and lifecycle
@@ -276,21 +277,28 @@ class VirtualMachine(object):
 
         :param activation_key: Activation key name to register content host
             with.
+        :param lce: lifecycle environment name to which register the content
+            host.
         :param org: Organization name to register content host for.
         :param force: Register the content host even if it's already registered
         :param releasever: Set a release version
+        :param username: a user name to register the content host with
+        :param password: the user password
         :return: SSHCommandResult instance filled with the result of the
             registration.
-
         """
         cmd = (u'subscription-manager register --org {0}'.format(org))
         if activation_key is not None:
             cmd += u' --activationkey {0}'.format(activation_key)
         elif lce is not None:
+            if username is None and password is None:
+                username = settings.server.admin_username
+                password = settings.server.admin_password
+
             cmd += u' --environment {0} --username {1} --password {2}'.format(
                 lce,
-                settings.server.admin_username,
-                settings.server.admin_password,
+                username,
+                password,
             )
         else:
             raise VirtualMachineError(

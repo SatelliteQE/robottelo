@@ -35,15 +35,19 @@ from robottelo.cli.factory import (
     make_role,
     make_user,
 )
+from robottelo.cli.filter import Filter
+from robottelo.cli.host import Host
+from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.puppetmodule import PuppetModule
+from robottelo.cli.role import Role
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
     DEFAULT_CV,
     DEFAULT_ROLE,
+    DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
@@ -70,6 +74,7 @@ from robottelo.decorators import (
 from robottelo.decorators.host import skip_if_os
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
 
 
 class ContentViewTestCase(CLITestCase):
@@ -2422,6 +2427,168 @@ class ContentViewTestCase(CLITestCase):
         })
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_subscribe_host_with_restricted_user_permissions(self):
+        """Attempt to subscribe a host with restricted user permissions.
+
+        @id: 7b5ec90b-3942-48a9-9cc1-a361e698d16d
+
+        @BZ: 1379856
+
+        @steps:
+
+            1. Create organization, content view with custom yum repository.
+            2. Publish the content view
+            3. Create a user within the created organization with the following
+               permissions::
+
+                - (Miscellaneous) [my_organizations]
+                - Environment [view_environments]
+                - Organization [view_organizations]
+                - Katello::Subscription [view_subscriptions,
+                    attach_subscriptions,
+                    unattach_subscriptions,
+                    import_manifest,
+                    delete_manifest]
+                - Katello::ContentView [view_content_views]
+                - ConfigGroup [view_config_groups]
+                - Hostgroup view_hostgroups
+                - Host [view_hosts, create_hosts, edit_hosts]
+                - Location [view_locations]
+                - Katello::KTEnvironment [view_lifecycle_environments]
+                - SmartProxy [view_smart_proxies, view_capsule_content]
+                - Architecture [view_architectures]
+                - Katello::System ['create_content_hosts']
+
+        @assert: host subscribed to content view with user that has restricted
+            permissions.
+
+        @CaseLevel: System
+        """
+        # prepare the user and the required permissions data
+        user_name = gen_alphanumeric()
+        user_password = gen_alphanumeric()
+        required_rc_permissions = {
+            '(Miscellaneous)': ['my_organizations'],
+            'Environment': ['view_environments'],
+            'Organization': ['view_organizations'],
+            'Katello::Subscription': [
+                'view_subscriptions',
+                'attach_subscriptions',
+                'unattach_subscriptions',
+                'import_manifest',
+                'delete_manifest'
+            ],
+            'Katello::ContentView': ['view_content_views'],
+            'ConfigGroup': ['view_config_groups'],
+            'Hostgroup': ['view_hostgroups'],
+            'Host': ['view_hosts', 'create_hosts', 'edit_hosts'],
+            'Location': ['view_locations'],
+            'Katello::KTEnvironment': ['view_lifecycle_environments'],
+            'SmartProxy': ['view_smart_proxies', 'view_capsule_content'],
+            'Architecture': ['view_architectures'],
+            'Katello::System': ['create_content_hosts']
+        }
+        # Create an organization
+        org = make_org()
+        # Create a non admin user, for the moment without any permissions
+        user = make_user({
+            'admin': False,
+            'default-organization-id': org['id'],
+            'organization-ids': [org['id']],
+            'login': user_name,
+            'password': user_password,
+        })
+        # Create a new role
+        role = make_role()
+        # Get the available permissions
+        available_permissions = Filter.available_permissions()
+        # group the available permissions by resource type
+        available_rc_permissions = {}
+        for permission in available_permissions:
+            permission_resource = permission['resource']
+            if permission_resource not in available_rc_permissions:
+                available_rc_permissions[permission_resource] = []
+            available_rc_permissions[permission_resource].append(
+                permission)
+        # create only the required role permissions per resource type
+        for resource_type, permission_names in required_rc_permissions.items():
+            # assert that the required resource type is available
+            self.assertIn(resource_type, available_rc_permissions)
+            available_permission_names = [
+                permission['name']
+                for permission in available_rc_permissions[resource_type]
+                if permission['name'] in permission_names
+            ]
+            # assert that all the required permissions are available
+            self.assertEqual(set(permission_names),
+                             set(available_permission_names))
+            # Create the current resource type role permissions
+            make_filter({
+                'role-id': role['id'],
+                'permissions': permission_names,
+            })
+        # Add the created and initiated role with permissions to user
+        User.add_role({'id': user['id'], 'role-id': role['id']})
+        # assert that the user is not an admin one and cannot read the current
+        # role info (note: view_roles is not in the required permissions)
+        with self.assertRaises(CLIReturnCodeError) as context:
+            Role.with_user(user_name, user_password).info(
+                {'id': role['id']})
+        self.assertIn(
+            'Forbidden - server refused to process the request',
+            context.exception.stderr
+        )
+        # Create a lifecycle environment
+        env = make_lifecycle_environment({'organization-id': org['id']})
+        # Create a product
+        product = make_product({'organization-id': org['id']})
+        # Create a yum repository and synchronize
+        repo = make_repository({
+            'product-id': product['id'],
+            'url': FAKE_1_YUM_REPO
+        })
+        Repository.synchronize({'id': repo['id']})
+        # Create a content view, add the yum repository and publish
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'organization-id': org['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        # assert that the content view has been published and has versions
+        self.assertGreater(len(content_view['versions']), 0)
+        content_view_version = content_view['versions'][0]
+        # Promote the content view version to the created environment
+        ContentView.version_promote({
+            'id': content_view_version['id'],
+            'to-lifecycle-environment-id': env['id'],
+        })
+        # assert that the user can read the content view info as per required
+        # permissions
+        user_content_view = ContentView.with_user(
+            user_name, user_password).info({'id': content_view['id']})
+        # assert that this is the same content view
+        self.assertEqual(content_view['name'], user_content_view['name'])
+        # create a client host and register it with the created user
+        with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
+            host_client.install_katello_ca()
+            result = host_client.register_contenthost(
+                org['name'],
+                lce=u'{0}/{1}'.format(env['name'], content_view['name']),
+                username=user_name,
+                password=user_password
+            )
+            self.assertIn(u'The system has been registered with ID',
+                          u''.join(result.stdout))
+            # check that the client host exist in the system
+            org_hosts = Host.list({'organization-id': org['id']})
+            self.assertEqual(len(org_hosts), 1)
+            self.assertEqual(org_hosts[0]['name'], host_client.hostname)
 
     @tier2
     @run_only_on('sat')
