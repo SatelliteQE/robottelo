@@ -50,6 +50,11 @@ class HostCollection(Base):
             ]
             if host_ids:
                 options['host-ids'] = ','.join(host_ids)
+        if 'host-id' in options:
+            host_id = options.get('host-id')
+            if host_id and not host_id.isdigit():
+                host_name = ContentHost.info({'id': host_id})['name'].lower()
+                options['host-id'] = Host.info({'name': host_name})['id']
 
     @classmethod
     def add_host(cls, options=None):
@@ -99,6 +104,13 @@ class HostCollection(Base):
         cls.command_sub = 'hosts'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def list(cls, options=None, per_page=True):
+        """List host collections"""
+        if options:
+            cls.transform_ids(options)
+        return super(HostCollection, cls).list(options, per_page)
 
     @classmethod
     def erratum_install(cls, options):

@@ -374,9 +374,11 @@ class HostCollectionTestCase(CLITestCase):
         host_col = self._new_host_collection()
         self._new_host_collection()
         # List all host collections
-        self.assertGreaterEqual(len(HostCollection.list()), 2)
+        self.assertGreaterEqual(
+            len(HostCollection.list({'organization-id': self.org['id']})), 2)
         # Filter list by name
-        result = HostCollection.list({'name': host_col['name']})
+        result = HostCollection.list(
+            {'name': host_col['name'], 'organization-id': self.org['id']})
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['id'], host_col['id'])
 
@@ -395,8 +397,6 @@ class HostCollectionTestCase(CLITestCase):
         new_org = make_org()
         host_col = self._new_host_collection(
             {'organization-id': new_org['id']})
-        # List all host collections
-        self.assertGreaterEqual(len(HostCollection.list()), 2)
         # Filter list by org id
         result = HostCollection.list({'organization-id': new_org['id']})
         self.assertEqual(len(result), 1)
@@ -417,8 +417,6 @@ class HostCollectionTestCase(CLITestCase):
         new_org = make_org()
         host_col = self._new_host_collection(
             {'organization-id': new_org['id']})
-        # List all host collections
-        self.assertGreaterEqual(len(HostCollection.list()), 2)
         # Filter list by org id
         result = HostCollection.list({'organization': new_org['name']})
         self.assertEqual(len(result), 1)
@@ -440,7 +438,7 @@ class HostCollectionTestCase(CLITestCase):
         # associated host that will be used for filtering
         host_col = self._new_host_collection()
         self._new_host_collection()
-        host = self._make_fake_host_helper()
+        host = self._make_content_host_helper()
         HostCollection.add_host({
             'host-ids': host['id'],
             'id': host_col['id'],
@@ -479,9 +477,9 @@ class HostCollectionTestCase(CLITestCase):
         # associated host that will be used for filtering
         host_col = self._new_host_collection()
         self._new_host_collection()
-        host = self._make_fake_host_helper()
+        host = self._make_content_host_helper()
         HostCollection.add_host({
-            'hosts': host['name'],
+            'hosts': host['name'].lower(),
             'name': host_col['name'],
             'organization': self.org['name'],
         })
@@ -496,7 +494,7 @@ class HostCollectionTestCase(CLITestCase):
         # Filter list by associated host name
         result = HostCollection.list({
             'organization': self.org['name'],
-            'host': host['name']
+            'host': host['name'].lower(),
         })
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]['name'], host_col['name'])
