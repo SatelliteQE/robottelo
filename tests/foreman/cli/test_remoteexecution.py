@@ -30,13 +30,16 @@ from robottelo.cli.factory import (
     make_lifecycle_environment,
     make_org,
     make_subnet,
+    setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
+from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.constants import (
     DISTRO_RHEL7,
+    FAKE_0_YUM_REPO,
     PRDS,
     REPOS,
     REPOSET
@@ -45,6 +48,7 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import (
     bz_bug_is_open,
     skip_if_not_set,
+    stubbed,
     tier1,
     tier2,
     tier3
@@ -238,7 +242,7 @@ class RemoteExecutionTestCase(CLITestCase):
 
     def setUp(self):
         """Create VM, subscribe it to satellite-tools repo, install katello-ca
-        and katello-agent packages, add remote execution key
+            and katello-agent packages, add remote execution key
         """
         super(RemoteExecutionTestCase, self).setUp()
         # Create VM and register content host
@@ -300,6 +304,59 @@ class RemoteExecutionTestCase(CLITestCase):
             )
 
     @tier2
+    def test_positive_run_job_effective_user(self):
+        """Run default job template as effective user against a single host
+
+        :id: ecd3f24f-26df-4a2c-9112-6af33b68b601
+
+        :expectedresults: Verify the job was successfully run under the
+            effective user identity on host
+        """
+        # create a user on client via remote job
+        username = gen_string('alpha')
+        filename = gen_string('alpha')
+        make_user_job = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': "command='useradd {0}'".format(username),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(
+                make_user_job[u'success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': make_user_job[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+        # create a file as new user
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': "command='touch /home/{0}/{1}'".format(
+                username, filename),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+            'effective-user': '{0}'.format(username),
+        })
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+        # check the file owner
+        result = ssh.command(
+            '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
+            hostname=self.client.hostname
+        )
+        # assert the file is owned by the effective user
+        self.assertEqual(username, result.stdout[0])
+
+    @tier2
     def test_positive_run_custom_job_template(self):
         """Run custom job template against a single host
 
@@ -348,7 +405,7 @@ class RemoteExecutionTestCase(CLITestCase):
             'start-at': plan_time,
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        # Wait unitl the job runs
+        # Wait until the job runs
         pending_state = u'1'
         while pending_state != u'0':
             invocation_info = JobInvocation.info({
@@ -367,3 +424,137 @@ class RemoteExecutionTestCase(CLITestCase):
                     )
                 )
             )
+
+    @tier3
+    def test_positive_run_default_job_template_multiple_hosts(self):
+        """Run default job template against multiple hosts
+
+        :id: 415c0156-be77-4676-918b-c0d4be810b0e
+
+        :expectedresults: Verify the job was successfully ran against all hosts
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client2:
+            client2.install_katello_ca()
+            client2.register_contenthost(
+                    self.org['label'], lce='Library')
+            add_remote_execution_ssh_key(client2.ip_addr)
+            invocation_command = make_job_invocation({
+                'job-template': 'Run Command - SSH Default',
+                'inputs': 'command="ls"',
+                'search-query': "name ~ {0} or name ~ {1}".format(
+                    self.client.hostname, client2.hostname),
+            })
+            # collect output messages from clients
+            output_msgs = []
+            for vm in self.client, client2:
+                output_msgs.append('host output from {0}: {1}'.format(
+                        vm.hostname,
+                        ' '.join(JobInvocation.get_output({
+                            'id': invocation_command[u'id'],
+                            'host': vm.hostname})
+                        )
+                    )
+                )
+            self.assertEqual(invocation_command['success'], u'1', output_msgs)
+
+    @tier3
+    def test_positive_install_multiple_packages_with_a_job(self):
+        """Run job to install several packages on host
+
+        :id: 1cf2709e-e6cd-46c9-a7b7-c2e542c0e943
+
+        :expectedresults: Verify the packages were successfully installed
+            on host
+        """
+        packages = ["cow", "dog", "lion"]
+        # Create a custom repo
+        setup_org_for_a_custom_repo({
+            u'url': FAKE_0_YUM_REPO,
+            u'organization-id': self.org['id'],
+            u'content-view-id': self.content_view['id'],
+            u'lifecycle-environment-id': self.env['id'],
+            u'activationkey-id': self.activation_key['id'],
+        })
+        invocation_command = make_job_invocation({
+            'job-template': 'Install Package - Katello SSH Default',
+            'inputs': 'package={0} {1} {2}'.format(*packages),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+        result = ssh.command(
+                "rpm -q {0}".format(" ".join(packages)),
+                hostname=self.client.hostname
+                )
+        self.assertEqual(result.return_code, 0)
+
+    @tier3
+    def test_positive_run_recurring_job_with_max_iterations(self):
+        """Run default job template multiple times with max iteration
+
+        :id: 37fb7d77-dbb1-45ae-8bd7-c70be7f6d949
+
+        :expectedresults: Verify the job was run not more than the specified
+            number of times.
+        """
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': 'command="ls"',
+            'search-query': "name ~ {0}".format(self.client.hostname),
+            'cron-line': '* * * * *',  # every minute
+            'max-iteration': 2,  # just two runs
+        })
+        if not bz_bug_is_open(1431190):
+            JobInvocation.get_output({
+                 'id': invocation_command[u'id'],
+                 'host': self.client.hostname
+            })
+            self.assertEqual(
+                    invocation_command['status'],
+                    u'queued',
+                    'host output: {0}'.format(
+                        ' '.join(JobInvocation.get_output({
+                            'id': invocation_command[u'id'],
+                            'host': self.client.hostname})
+                        )
+                    )
+                )
+        sleep(150)
+        rec_logic = RecurringLogic.info({
+                'id': invocation_command['recurring-logic-id']})
+        self.assertEqual(rec_logic['state'], u'finished')
+        self.assertEqual(rec_logic['iteration'], u'2')
+
+    @stubbed
+    @tier3
+    def test_positive_run_job_multiple_hosts_time_span(self):
+        """Run job against multiple hosts with time span setting
+
+        :id: 82d69069-0592-4083-8992-8969235cc8c9
+
+        :expectedresults: Verify the jobs were successfully distributed
+            across the specified time sequence
+        """
+        # currently it is not possible to get subtasks from
+        # a task other than via UI
+
+    @stubbed
+    @tier3
+    def test_positive_run_job_multiple_hosts_concurrency(self):
+        """Run job against multiple hosts with concurrency-level
+
+        :id: 15639753-fe50-4e33-848a-04fe464947a6
+
+        :expectedresults: Verify the number of running jobs does comply
+            with the concurrency-level setting
+        """
+        # currently it is not possible to get subtasks from
+        # a task other than via UI
