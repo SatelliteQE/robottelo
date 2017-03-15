@@ -1537,3 +1537,26 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'destroy_sync_plans', 'bz': [1306359]},
     ],
 }
+
+BACKUP_FILES = [
+    u'config_files.tar.gz',
+    u'.config.snar',
+    u'metadata',
+    u'mongo_data.tar.gz',
+    u'.mongo.snar',
+    u'pgsql_data.tar.gz',
+    u'.postgres.snar',
+    u'pulp_data.tar',
+    u'.pulp.snar',
+]
+
+HOT_BACKUP_FILES = [
+    u'candlepin.dump',
+    u'config_files.tar.gz',
+    u'.config.snar',
+    u'foreman.dump',
+    u'metadata',
+    u'mongo_dump',
+    u'pulp_data.tar',
+    u'.pulp.snar',
+]
