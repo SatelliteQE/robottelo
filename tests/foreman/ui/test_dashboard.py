@@ -473,6 +473,42 @@ class DashboardTestCase(UITestCase):
                 for element, exp_element in zip(sublist, exp_sublist)
             ))
 
+    @tier2
+    def test_positive_rendering_after_env_removed(self):
+        """Check if Dashboard UI rendered properly after lc environment for
+        active organization is removed from the system
+
+        :id: 81c52395-3476-4123-bc3b-49d6c658da9a
+
+        :Steps:
+
+            1. Create an environment (e.g. Dev)
+            2. Create a content view and promote it to the environment
+            3. Remove the environment.
+            4. Visit the dashboard page and verify that it loads successfully.
+
+        :Assert: Dashboard search box and necessary widgets are rendered before
+            and after necessary environment is removed
+
+        :BZ: 1361793
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        content_view.publish()
+        promote(content_view.read().version[0], lc_env.id)
+        with Session(self.browser) as session:
+            set_context(session, org=org.name)
+            self.assertIsNotNone(
+                self.dashboard.search(lc_env.name, 'lifecycle_environment'))
+            entities.LifecycleEnvironment(id=lc_env.id).delete()
+            self.assertIsNotNone(
+                self.dashboard.search(lc_env.name, 'lifecycle_environment'))
+            self.assertIsNotNone(
+                self.dashboard.get_widget('Content View History'))
+
     @stubbed()
     @tier2
     def test_positive_discovered_hosts(self):
