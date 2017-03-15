@@ -294,8 +294,8 @@ class CapsuleTestCase(UITestCase):
             4. Check the capsule's Puppet tab in the show Page.
             5. Now check the Enviroments Tab.
 
-        :Assert: The puppet-classes count is visible in the
-        'Number of classes' column.
+        :Assert: The puppet-classes count is visible in the 'Number of classes'
+            column.
 
         :caseautomation: notautomated
         """
@@ -406,8 +406,8 @@ class CapsuleTestCase(UITestCase):
             3. Check the capsule's Puppet-ca tab in the show Page.
             4. Now check the 'autosign entries' Tab.
             5. Click the new button to add a host entry.
-            6. Puppet run should now be possible on the host, without
-            having to manually sign the certificate.
+            6. Puppet run should now be possible on the host, without having to
+               manually sign the certificate.
 
         :Assert: The puppet run on host is possible without having to sign the
             certs manually for the host.

@@ -682,12 +682,14 @@ class HostCreateTestCase(CLITestCase):
 
         :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
             structure:
+
                 grub/bootia32.efi
                 grub/bootx64.efi
                 grub/01-AA-BB-CC-DD-EE-FF
                 grub/efidefault
                 grub/shim.efi
-            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
         :caseautomation: notautomated
 
@@ -713,12 +715,14 @@ class HostCreateTestCase(CLITestCase):
 
         :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
             structure:
+
                 grub/bootia32.efi
                 grub/bootx64.efi
                 grub/01-AA-BB-CC-DD-EE-FF
                 grub/efidefault
                 grub/shim.efi
-            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
         :caseautomation: notautomated
 
@@ -743,13 +747,15 @@ class HostCreateTestCase(CLITestCase):
 
         :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
             structure:
+
                 pxegrub2
                 grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
                 grub2/grub.cfg
                 grub2/grubx32.efi
                 grub2/grubx64.efi
                 grub/shim.efi
-            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
         :caseautomation: notautomated
 
@@ -774,13 +780,15 @@ class HostCreateTestCase(CLITestCase):
 
         :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
             structure:
+
                 pxegrub2
                 grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
                 grub2/grub.cfg
                 grub2/grubx32.efi
                 grub2/grubx64.efi
                 grub/shim.efi
-            and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
 
         :caseautomation: notautomated
 
