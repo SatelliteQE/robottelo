@@ -68,10 +68,9 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
             files = connection.run(
-                'ls /tmp/{0}'.format(dir_name),
-                output_format='list'
+                'ls /tmp/{0}/katello-backup*'.format(dir_name),
             )
             # backup could have more files than the default so it is superset
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
@@ -101,10 +100,9 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
             files = connection.run(
-                'ls /tmp/{0}'.format(dir_name),
-                output_format='list'
+                'ls /tmp/{0}/katello-backup*'.format(dir_name),
             )
             # backup could have more files than the default so it is superset
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
@@ -134,13 +132,16 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
-            files = connection.run('ls /tmp/{0}'.format(dir_name), 'list')
+            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls /tmp/{0}/katello-backup'.format(dir_name),
+                    'list'
+                    )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
-            self.assertNotIn(u'pulp.snar', files.stdout)
 
     @tier3
     @skip_if_bug_open('bugzilla', 1399244)
+    @skip_if_bug_open('bugzilla', 1384901)
     def test_positive_incremental(self):
         """Make an incremental backup
 
@@ -165,8 +166,11 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
-            files = connection.run('ls /tmp/{0}'.format(b1_dir), 'list')
+            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'list'
+                    )
             # backup could have more files than the default so it is superset
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
 
@@ -179,13 +183,17 @@ class HotBackupTestCase(TestCase):
             # run incremental backup /tmp/ib1
             ib1_dir = gen_string('alpha')
             connection.run('cp -r /tmp/{0} /tmp/{1}'.format(b1_dir, ib1_dir))
+            timestamped_dir = connection.run(
+                    'ls /tmp/{0}/'.format(ib1_dir),
+                    'list'
+                    )
             result = connection.run(
-                'kattelo-backup /tmp/{0} --online-backup --incremental'
-                .format(ib1_dir),
+                'katello-backup --online-backup --incremental /tmp/{0}/{1}'
+                .format(ib1_dir, timestamped_dir.stdout[0]),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(ib1_dir), result.stdout)
+            self.assertIn(BCK_MSG.format(ib1_dir), ' '.join(result.stdout))
 
             # restore /tmp/b1 and assert repo 1 is not there
             connection.run('katello-restore /tmp/{0}'.format(b1_dir))

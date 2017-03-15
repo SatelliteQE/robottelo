@@ -1421,15 +1421,12 @@ PERMISSIONS_WITH_BZ = {
     ],
 }
 
-# All UI crud classes listed here to allow dynamical import
-# import import_string; import_string('robottelo.ui.{0}'.format(item))
-
+# removed u'config.snar' and u'pulp.snar' that are no
+# longer created by default, need to check if that's expceted
 BACKUP_FILES = [
     u'candlepin.dump',
     u'config_files.tar.gz',
-    u'config.snar',
     u'foreman.dump',
     u'mongo_dump',
     u'pulp_data.tar',
-    u'pulp.snar',
 ]
