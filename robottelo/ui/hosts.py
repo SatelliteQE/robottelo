@@ -285,3 +285,13 @@ class Hosts(Base):
             strategy, value = locators['host.smart_variable_value']
         self.assign_value((strategy, value % sv_name), sv_value)
         self.click(common_locators['submit'])
+
+    def get_host_properties(self, host, parameters_list):
+        """Get necessary host properties by theirs names"""
+        self.search_and_click(host)
+        result = {}
+        for parameter_name in parameters_list:
+            locator = locators['.property_'.join(
+                ('host', (parameter_name.lower()).replace(' ', '_')))]
+            result[parameter_name] = self.wait_until_element(locator).text
+        return result
