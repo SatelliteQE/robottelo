@@ -210,6 +210,9 @@ class VirtualMachine(object):
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
+        gofer_check = self.run('service goferd status')
+        if gofer_check.return_code != 0:
+            raise VirtualMachineError('katello-agent is not running')
 
     def install_katello_ca(self):
         """Downloads and installs katello-ca rpm on the virtual machine.
