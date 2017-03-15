@@ -32,6 +32,9 @@ from robottelo.constants import (
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
+    PRDS,
+    REPOSET,
+    REPOS,
     REPO_TYPE,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
