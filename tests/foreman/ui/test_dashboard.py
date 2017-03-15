@@ -478,21 +478,21 @@ class DashboardTestCase(UITestCase):
         """Check if Dashboard UI rendered properly after lc environment for
         active organization is removed from the system
 
-        :id: 81c52395-3476-4123-bc3b-49d6c658da9a
+        @id: 81c52395-3476-4123-bc3b-49d6c658da9a
 
-        :Steps:
+        @Steps:
 
             1. Create an environment (e.g. Dev)
             2. Create a content view and promote it to the environment
             3. Remove the environment.
             4. Visit the dashboard page and verify that it loads successfully.
 
-        :Assert: Dashboard search box and necessary widgets are rendered before
+        @Assert: Dashboard search box and necessary widgets are rendered before
             and after necessary environment is removed
 
-        :BZ: 1361793
+        @BZ: 1361793
 
-        :CaseLevel: Integration
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         lc_env = entities.LifecycleEnvironment(organization=org).create()
