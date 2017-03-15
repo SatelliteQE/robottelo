@@ -1042,6 +1042,7 @@ STRING_TYPES = [
     u'latin1', u'utf8', u'cjk', u'html'
 ]
 
+
 # To create custom role for bugzilla's
 # Append bugzilla id to dict, also see utils.get_perms_by_bz()
 PERMISSIONS_WITH_BZ = {
@@ -1452,3 +1453,13 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'destroy_sync_plans', 'bz': [1306359]},
     ],
 }
+
+# removed u'config.snar' and u'pulp.snar' that are no
+# longer created by default, need to check if that's expceted
+BACKUP_FILES = [
+    u'candlepin.dump',
+    u'config_files.tar.gz',
+    u'foreman.dump',
+    u'mongo_dump',
+    u'pulp_data.tar',
+]
