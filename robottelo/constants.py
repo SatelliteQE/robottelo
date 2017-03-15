@@ -175,6 +175,7 @@ CHECKSUM_TYPE = {
 PRDS = {
     'rhcf': 'Red Hat CloudForms',
     'rhel': 'Red Hat Enterprise Linux Server',
+    'rhsc': 'Red Hat Satellite Capsule',
 }
 
 REPOSET = {
@@ -183,12 +184,26 @@ REPOSET = {
     'rhva6': (
         'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
     ),
+    'rhsc7': 'Red Hat Satellite Capsule 6.2 (for RHEL 7 Server) (RPMs)',
+    'rhsc6': 'Red Hat Satellite Capsule 6.2 (for RHEL 6 Server) (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.2 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.2 (for RHEL 6 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'
 }
 
 REPOS = {
+    'rhsc7': {
+        'id': 'rhel-7-server-satellite-capsule-6.2-rpms',
+        'name': (
+            'Red Hat Satellite Capsule 6.2 for RHEL 7 Server RPMs x86_64'
+        ),
+    },
+    'rhsc6': {
+        'id': 'rhel-6-server-satellite-capsule-6.2-rpms',
+        'name': (
+            'Red Hat Satellite Capsule 6.2 for RHEL 6 Server RPMs x86_64'
+        ),
+    },
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.2-rpms',
         'name': (
@@ -228,6 +243,14 @@ PRD_SETS = {
         'releasever': u'6.7',
         'label': u'rhel-6-server-rpms'
     },
+    'rhel_68': {
+        'product': u'Red Hat Enterprise Linux Server',
+        'reposet': u'Red Hat Enterprise Linux 6 Server (RPMs)',
+        'reponame': u'Red Hat Enterprise Linux 6 Server RPMs x86_64 6.8',
+        'arch': u'x86_64',
+        'releasever': u'6.8',
+        'label': u'rhel-6-server-rpms'
+    },
     'rhel6_sat6tools': {
         'product': u'Red Hat Enterprise Linux Server',
         'reposet': u'Red Hat Satellite Tools 6.2 (for RHEL 6 Server) '
@@ -237,7 +260,15 @@ PRD_SETS = {
         'arch': u'x86_64',
         'releasever': None,
         'label': u'rhel-6-server-satellite-tools-6.2-rpms'
-    }
+    },
+    'rhel_72': {
+        'product': u'Red Hat Enterprise Linux Server',
+        'reposet': u'Red Hat Enterprise Linux 7 Server (RPMs)',
+        'reponame': u'Red Hat Enterprise Linux 7 Server RPMs x86_64 7.2',
+        'arch': u'x86_64',
+        'releasever': u'7.2',
+        'label': u'rhel-7-server-rpms'
+    },
 }
 
 RHEL_6_MAJOR_VERSION = 6
@@ -276,6 +307,8 @@ SAT6_TOOLS_TREE = [
     ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
     ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.2'),
 ]
+
+SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 
 DEFAULT_ORG_ID = 1
 #: Name (not label!) of the default organization.
