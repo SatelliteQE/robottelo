@@ -50,11 +50,10 @@ class HostCollection(Base):
             ]
             if host_ids:
                 options['host-ids'] = ','.join(host_ids)
-        if 'host-id' in options:
-            host_id = options.get('host-id')
-            if host_id and not host_id.isdigit():
-                host_name = ContentHost.info({'id': host_id})['name'].lower()
-                options['host-id'] = Host.info({'name': host_name})['id']
+        host_id = options.get('host-id')
+        if host_id and not host_id.isdigit():
+            host_name = ContentHost.info({'id': host_id})['name'].lower()
+            options['host-id'] = Host.info({'name': host_name})['id']
 
     @classmethod
     def add_host(cls, options=None):
