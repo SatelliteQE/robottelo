@@ -361,6 +361,145 @@ class HostCollectionTestCase(CLITestCase):
         self.assertEqual(new_system['name'].lower(), result[0]['name'])
 
     @tier2
+    def test_positive_list_by_name(self):
+        """Check if host collection list can be filtered by name
+
+        @id: 2d611a48-1e51-49b5-8f20-81b09f96c542
+
+        @Assert: Only host-collection with specific name is listed
+
+        @CaseLevel: Integration
+        """
+        # Create two host collections within the same org
+        host_col = self._new_host_collection()
+        self._new_host_collection()
+        # List all host collections
+        self.assertGreaterEqual(
+            len(HostCollection.list({'organization-id': self.org['id']})), 2)
+        # Filter list by name
+        result = HostCollection.list(
+            {'name': host_col['name'], 'organization-id': self.org['id']})
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['id'], host_col['id'])
+
+    @tier2
+    def test_positive_list_by_org_id(self):
+        """Check if host collection list can be filtered by organization id
+
+        @id: afbe077a-0de1-432c-a0c4-082129aab92e
+
+        @Assert: Only host-collection within specific org is listed
+
+        @CaseLevel: Integration
+        """
+        # Create two host collections within different organizations
+        self._new_host_collection()
+        new_org = make_org()
+        host_col = self._new_host_collection(
+            {'organization-id': new_org['id']})
+        # Filter list by org id
+        result = HostCollection.list({'organization-id': new_org['id']})
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['id'], host_col['id'])
+
+    @tier2
+    def test_positive_list_by_org_name(self):
+        """Check if host collection list can be filtered by organization name
+
+        @id: 0102094f-f5af-4067-8a07-541ba9d94f61
+
+        @Assert: Only host-collection within specific org is listed
+
+        @CaseLevel: Integration
+        """
+        # Create two host collections within different organizations
+        self._new_host_collection()
+        new_org = make_org()
+        host_col = self._new_host_collection(
+            {'organization-id': new_org['id']})
+        # Filter list by org id
+        result = HostCollection.list({'organization': new_org['name']})
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['name'], host_col['name'])
+
+    @tier2
+    def test_positive_list_by_host_id(self):
+        """Check if host collection list can be filtered by associated host id
+
+        @id: de272461-9804-4524-83c8-23e47abfc8e3
+
+        @Assert: Only host-collection with specific host is listed
+
+        @CaseLevel: Integration
+
+        @BZ: 1379372
+        """
+        # Create two host collections within the same org but only one with
+        # associated host that will be used for filtering
+        host_col = self._new_host_collection()
+        self._new_host_collection()
+        host = self._make_content_host_helper()
+        HostCollection.add_host({
+            'host-ids': host['id'],
+            'id': host_col['id'],
+            'organization-id': self.org['id'],
+        })
+        host_col = HostCollection.info({
+            'id': host_col['id'],
+            'organization-id': self.org['id']
+        })
+        self.assertEqual(host_col['total-hosts'], '1')
+        # List all host collections within organization
+        result = HostCollection.list({'organization-id': self.org['id']})
+        self.assertGreaterEqual(len(result), 2)
+        # Filter list by associated host name
+        result = HostCollection.list({
+            'organization-id': self.org['id'],
+            'host-id': host['id']
+        })
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['id'], host_col['id'])
+
+    @tier2
+    def test_positive_list_by_host_name(self):
+        """Check if host collection list can be filtered by
+        associated host name
+
+        @id: 2a99e11f-50b8-48b4-8dce-e6ad8ff9c051
+
+        @Assert: Only host-collection with specific host is listed
+
+        @CaseLevel: Integration
+
+        @BZ: 1379372
+        """
+        # Create two host collections within the same org but only one with
+        # associated host that will be used for filtering
+        host_col = self._new_host_collection()
+        self._new_host_collection()
+        host = self._make_content_host_helper()
+        HostCollection.add_host({
+            'hosts': host['name'].lower(),
+            'name': host_col['name'],
+            'organization': self.org['name'],
+        })
+        host_col = HostCollection.info({
+            'name': host_col['name'],
+            'organization': self.org['name']
+        })
+        self.assertEqual(host_col['total-hosts'], '1')
+        # List all host collections within organization
+        result = HostCollection.list({'organization': self.org['name']})
+        self.assertGreaterEqual(len(result), 2)
+        # Filter list by associated host name
+        result = HostCollection.list({
+            'organization': self.org['name'],
+            'host': host['name'].lower(),
+        })
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['name'], host_col['name'])
+
+    @tier2
     def test_positive_host_collection_host_pagination(self):
         """Check if pagination configured on per-page param defined in hammer
         host-collection hosts command overrides global configuration defined
