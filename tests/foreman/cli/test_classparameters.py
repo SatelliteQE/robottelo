@@ -41,7 +41,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-)
+    bz_bug_is_open)
 from robottelo.test import CLITestCase
 
 
@@ -184,6 +184,12 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in env_sc_params})
         )
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(env_sc_params),
+                len({scp['id'] for scp in env_sc_params})
+            )
 
     @run_only_on('sat')
     @tier2
@@ -203,6 +209,12 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in env_sc_params})
         )
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(env_sc_params),
+                len({scp['id'] for scp in env_sc_params})
+            )
 
     @run_only_on('sat')
     @tier2
@@ -234,6 +246,12 @@ class SmartClassParametersTestCase(CLITestCase):
         host_sc_params = SmartClassParameter.list({'host': host.name})
         self.assertGreater(len(host_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(host_sc_params),
+                len({scp['id'] for scp in host_sc_params})
+            )
 
     @run_only_on('sat')
     @tier2
@@ -265,6 +283,12 @@ class SmartClassParametersTestCase(CLITestCase):
         host_sc_params = SmartClassParameter.list({'host-id': host.id})
         self.assertGreater(len(host_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(host_sc_params),
+                len({scp['id'] for scp in host_sc_params})
+            )
 
     @run_only_on('sat')
     @tier2
@@ -295,6 +319,12 @@ class SmartClassParametersTestCase(CLITestCase):
             {'hostgroup': hostgroup['name']})
         self.assertGreater(len(hostgroup_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(hostgroup_sc_params),
+                len({scp['id'] for scp in hostgroup_sc_params})
+            )
 
     @run_only_on('sat')
     @tier2
@@ -325,6 +355,12 @@ class SmartClassParametersTestCase(CLITestCase):
             {'hostgroup-id': hostgroup['id']})
         self.assertGreater(len(hostgroup_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(hostgroup_sc_params),
+                len({scp['id'] for scp in hostgroup_sc_params})
+            )
 
     @run_only_on('sat')
     @tier1
@@ -342,6 +378,10 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in sc_params})
         )
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @run_only_on('sat')
     @tier1
@@ -359,6 +399,41 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in sc_params})
         )
+        if not bz_bug_is_open(1432927):
+            # Check that only unique results are returned
+            self.assertEqual(
+                len(sc_params), len({scp['id'] for scp in sc_params}))
+
+    @skip_if_bug_open('bugzilla', 1432927)
+    @run_only_on('sat')
+    @tier1
+    def test_positive_import_twice_list_by_puppetclass_id(self):
+        """Import same puppet class twice (e.g. into different Content Views)
+        but list class parameters only for specific puppet class.
+
+        @id: 79a33641-54af-4e04-89ff-3b7f9a4e3ec2
+
+        @assert: Parameters listed for specific Puppet class.
+
+        BZ: 1385351
+        """
+        cv = publish_puppet_module(
+            self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
+        env = Environment.list({
+            'search': u'content_view="{0}"'.format(cv['name'])
+        })[0]
+        puppet_class = Puppet.info({
+            'name': self.puppet_modules[0]['name'],
+            'environment': env['name'],
+        })
+        sc_params = SmartClassParameter.list({
+            'environment': env['name'],
+            'puppet-class-id': puppet_class['id'],
+            'per-page': 1000,
+        })
+        self.assertGreater(len(sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @run_only_on('sat')
     @tier1
