@@ -741,6 +741,7 @@ class Settings(object):
         self._configured = False
         self._validation_errors = []
         self.browser = None
+        self.cdn = None
         self.locale = None
         self.project = None
         self.reader = None
@@ -748,6 +749,8 @@ class Settings(object):
         self.rhel7_repo = None
         self.rhel6_os = None
         self.rhel7_os = None
+        self.capsule_repo = None
+        self.sattools_repo = None
         self.screenshots_path = None
         self.saucelabs_key = None
         self.saucelabs_user = None
@@ -840,12 +843,16 @@ class Settings(object):
         )
         self.browser = self.reader.get(
             'robottelo', 'browser', 'selenium')
+        self.cdn = self.reader.get('robottelo', 'cdn', True, bool)
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
         self.project = self.reader.get('robottelo', 'project', 'sat')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
+        self.capsule_repo = self.reader.get('robottelo', 'capsule_repo', None)
+        self.sattools_repo = self.reader.get(
+            'robottelo', 'sattools_repo', None)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.run_one_datapoint = self.reader.get(

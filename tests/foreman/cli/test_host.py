@@ -1560,16 +1560,26 @@ class KatelloAgentTestCase(CLITestCase):
             u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
             u'organization-id': KatelloAgentTestCase.org['id'],
         })
-        # Add subscription to Satellite Tools repo to activation key
-        setup_org_for_a_rh_repo({
-            u'product': PRDS['rhel'],
-            u'repository-set': REPOSET['rhst7'],
-            u'repository': REPOS['rhst7']['name'],
-            u'organization-id': KatelloAgentTestCase.org['id'],
-            u'content-view-id': KatelloAgentTestCase.content_view['id'],
-            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-            u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
-        })
+        if settings.cdn:
+            # Add subscription to Satellite Tools repo to activation key
+            setup_org_for_a_rh_repo({
+                u'product': PRDS['rhel'],
+                u'repository-set': REPOSET['rhst7'],
+                u'repository': REPOS['rhst7']['name'],
+                u'organization-id': KatelloAgentTestCase.org['id'],
+                u'content-view-id': KatelloAgentTestCase.content_view['id'],
+                u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+                u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
+            })
+        else:
+            # Create custom internal Tools repo, add to activation key
+            setup_org_for_a_custom_repo({
+                u'url': settings.sattools_repo,
+                u'organization-id': KatelloAgentTestCase.org['id'],
+                u'content-view-id': KatelloAgentTestCase.content_view['id'],
+                u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+                u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
+            })
         # Create custom repo, add subscription to activation key
         setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
@@ -1596,7 +1606,8 @@ class KatelloAgentTestCase(CLITestCase):
             KatelloAgentTestCase.activation_key['name'],
         )
         self.host = Host.info({'name': self.client.hostname})
-        self.client.enable_repo(REPOS['rhst7']['id'])
+        if settings.cdn:
+            self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
 
     @tier3
