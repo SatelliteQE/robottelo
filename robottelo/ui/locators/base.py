@@ -124,6 +124,7 @@ locators = LocatorDict({
         By.XPATH,
         "//li[@data-name='Subscription Status Widget']//td[text()='%s']"
         "/following-sibling::td"),
+    "dashboard.chss.search_criteria": (By.XPATH, "//td/a[contains(., '%s')]"),
 
     # Organizations
     "org.new": (
@@ -414,6 +415,8 @@ locators = LocatorDict({
         "//div[@id='images_list']//tbody/tr/td[1]"),
 
     # Content Hosts
+    "contenthost.page_title": (
+        By.XPATH, "//h2/div[contains(., 'Content Hosts')]"),
     "contenthost.select_name": (
         By.XPATH,
         "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),

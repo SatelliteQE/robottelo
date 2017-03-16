@@ -158,6 +158,33 @@ class Dashboard(Base):
         return self.wait_until_element(
             locators['dashboard.hcc.hosts_percentage'] % criteria_name).text
 
+    def validate_chss_navigation(
+            self, criteria_name, expected_search_value=None, host_name=None):
+        """Find specific criteria on Content Host Subscription Status widget
+        and then click on it. After application navigate on Content Hosts page,
+        check whether proper search string is inherited into search box and
+        that search is actually executed afterwards. Then check whether
+        expected host is found and present in the list
+        """
+        self.navigate_to_entity()
+        self.click(locators['dashboard.chss.search_criteria'] % criteria_name)
+        if self.wait_until_element(locators['contenthost.page_title']) is None:
+            raise UIError(
+                'Redirection to Content Hosts page does not work properly')
+        if expected_search_value:
+            actual_value = self.wait_until_element(
+                common_locators['kt_search']).get_attribute('value')
+            if actual_value != expected_search_value:
+                raise UIError(
+                    'Search box contains invalid data')
+        if host_name:
+            found_host_name = self.wait_until_element(
+                locators['contenthost.select_name'] % host_name).text
+            if found_host_name is None:
+                raise UIError(
+                    'Expected task was not found in the list')
+        return True
+
     def validate_task_navigation(
             self, criteria_name, expected_search_value=None, task_name=None):
         """Find specific criteria on Task Status widget and then click on it.
@@ -178,9 +205,9 @@ class Dashboard(Base):
                 raise UIError(
                     'Search box contains invalid data')
         if task_name:
-            found_host_name = self.wait_until_element(
+            found_task_name = self.wait_until_element(
                 locators['task.select_name'] % task_name).text
-            if found_host_name is None:
+            if found_task_name is None:
                 raise UIError(
                     'Expected task was not found in the list')
         return True
