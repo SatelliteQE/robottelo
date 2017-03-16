@@ -239,7 +239,7 @@ class HostGroupTestCase(CLITestCase):
             'puppet-classes': self.puppet_class['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
+            'organization': self.org['name'],
         })
         self.assertIn(self.puppet_class['name'], hostgroup['puppetclasses'])
 
@@ -569,7 +569,7 @@ class HostGroupTestCase(CLITestCase):
             'puppet-classes': self.puppet_class['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
+            'organization': self.org['name'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -597,7 +597,7 @@ class HostGroupTestCase(CLITestCase):
             'puppet-classes': self.puppet_class['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
+            'organization': self.org['name'],
         })
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -625,7 +625,7 @@ class HostGroupTestCase(CLITestCase):
             'puppet-classes': self.puppet_class['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
+            'organization': self.org['name'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(
@@ -650,7 +650,7 @@ class HostGroupTestCase(CLITestCase):
             'puppet-classes': self.puppet_class['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
-            'query-organization': self.org['name'],
+            'organization': self.org['name'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(

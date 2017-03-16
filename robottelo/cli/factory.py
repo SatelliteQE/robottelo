@@ -1789,17 +1789,22 @@ def make_hostgroup(options=None):
 
         --location-ids LOCATION_IDS   REPLACE locations with given ids
                                       Comma separated list of values.
+        --locations LOCATION_NAMES    Comma separated list of values.
         --medium MEDIUM_NAME          Medium name
         --medium-id MEDIUM_ID
         --name NAME
         --operatingsystem OPERATINGSYSTEM_TITLE Operating system title
         --operatingsystem-id OPERATINGSYSTEM_ID
+        --organization ORGANIZATION_NAME        Organization name to search by
+        --organization-id ORGANIZATION_ID       Organization ID to search by
         --organization-ids ORGANIZATION_IDS     REPLACE organizations with
                                                 given ids.
                                                 Comma separated list of values.
+        --organizations ORGANIZATION_NAMES      Comma separated list of values.
+        --parent PARENT_NAME                    Name of parent hostgroup
         --parent-id PARENT_ID
-        --ptable PTABLE_NAME                    Partition table name
-        --ptable-id PTABLE_ID
+        --partition-table PARTITION_TABLE_NAME  Partition table name
+        --partition-table-id PARTITION_TABLE_ID
         --puppet-ca-proxy PUPPET_CA_PROXY_NAME  Name of puppet CA proxy
         --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
         --puppet-class-ids PUPPETCLASS_IDS      List of puppetclass ids
@@ -1809,6 +1814,7 @@ def make_hostgroup(options=None):
         --puppet-proxy-id PUPPET_PROXY_ID
         --realm REALM_NAME                 Name to search by
         --realm-id REALM_ID                May be numerical id or realm name
+        --root-pass ROOT_PASSWORD          Root password
         --subnet SUBNET_NAME               Subnet name
         --subnet-id SUBNET_ID
         -h, --help                         print help
@@ -1834,6 +1840,7 @@ def make_hostgroup(options=None):
         u'name': gen_alphanumeric(6),
         u'operatingsystem': None,
         u'operatingsystem-id': None,
+        u'organization': None,
         u'organization-id': None,
         u'organization-ids': None,
         u'parent-id': None,
@@ -1845,9 +1852,6 @@ def make_hostgroup(options=None):
         u'puppet-classes': None,
         u'puppet-proxy': None,
         u'puppet-proxy-id': None,
-        u'query-organization': None,
-        u'query-organization-id': None,
-        u'query-organization-label': None,
         u'realm': None,
         u'realm-id': None,
         u'subnet': None,
