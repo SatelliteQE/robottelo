@@ -102,7 +102,8 @@ tab_locators = LocatorDict({
         "//a[@data-toggle='tab' and contains(@href,'media')]"),
     "context.tab_template": (
         By.XPATH,
-        "//a[@data-toggle='tab' and contains(@href,'template')]"),
+        "//a[@data-toggle='tab' and contains(@href,'provisioning_templates')]"
+    ),
     "context.tab_ptable": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'ptables')]"),

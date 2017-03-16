@@ -1,8 +1,12 @@
 # -*- encoding: utf-8 -*-
+from fauxfactory import gen_string
 
 from robottelo.config import settings
+from robottelo.ui.factory import make_org
 from robottelo.ui.login import Login
 from robottelo.ui.navigator import Navigator
+
+_org_cache = {}
 
 
 class Session(object):
@@ -46,3 +50,22 @@ class Session(object):
     def close(self):
         """Exits session and also closes the browser (used in shell)"""
         self.browser.close()
+
+    def get_org_name(self):
+        """
+        Make a Organization and cache its name to be returned through session,
+        avoiding overhead of its recreation on each test.
+
+        Organization Must be at same state (not mutate) at the end of the test
+
+        Create your own organization if mutation is needed. Otherwise other
+        tests can break with your tests side effects
+
+        :return: str: Organization name
+        """
+        if 'org_name' in _org_cache:
+            return _org_cache['org_name']
+        org_name = gen_string('alpha')
+        make_org(self, org_name=org_name)
+        _org_cache['org_name'] = org_name
+        return org_name
