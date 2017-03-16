@@ -34,7 +34,13 @@ from robottelo.datafactory import (
     valid_hosts_list,
     valid_interfaces_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+)
 from robottelo.decorators.func_locker import lock_function
 from robottelo.test import APITestCase
 
@@ -1185,6 +1191,7 @@ class HostTestCase(APITestCase):
             host.read().operatingsystem.read().name, new_os.name)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1427192)
     def test_positive_read_puppet_proxy_name(self):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
@@ -1203,6 +1210,7 @@ class HostTestCase(APITestCase):
         self.assertEqual(proxy.name, host['puppet_proxy_name'])
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1427192)
     def test_positive_read_puppet_ca_proxy_name(self):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response

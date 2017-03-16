@@ -1183,6 +1183,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         )
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1427192)
     def test_positive_read_puppet_proxy_name(self):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
@@ -1201,6 +1202,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
         self.assertEqual(proxy.name, hg['puppet_proxy_name'])
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1427192)
     def test_positive_read_puppet_ca_proxy_name(self):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response
