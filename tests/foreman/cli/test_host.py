@@ -20,7 +20,6 @@ from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
     make_activation_key,
@@ -46,7 +45,6 @@ from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
-    DEFAULT_CV,
     DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
@@ -161,7 +159,7 @@ class HostCreateTestCase(CLITestCase):
         # Create host with associated puppet class
         host = entities.Host(
             puppetclass=self.puppet_class['id'],
-            environment=self.puppet_env['id'],
+            environment=entities.Environment(id=self.puppet_env['id']).read(),
             organization=self.new_org['id'],
         ).create()
         # Override one of the sc-params from puppet class
@@ -172,7 +170,7 @@ class HostCreateTestCase(CLITestCase):
         scp_id = choice(sc_params_list)['id']
         SmartClassParameter.update({'id': scp_id, 'override': 1})
         # Verify that affected sc-param is listed
-        host_scparams = Host.sc_params({'host': host['name']})
+        host_scparams = Host.sc_params({'host': host.name})
         self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
 
     @run_only_on('sat')
@@ -189,7 +187,7 @@ class HostCreateTestCase(CLITestCase):
         # Create host with associated puppet class
         host = entities.Host(
             puppetclass=self.puppet_class['id'],
-            environment=self.puppet_env['id'],
+            environment=entities.Environment(id=self.puppet_env['id']).read(),
             organization=self.new_org['id'],
         ).create()
         # Override one of the sc-params from puppet class
@@ -200,7 +198,7 @@ class HostCreateTestCase(CLITestCase):
         scp_id = choice(sc_params_list)['id']
         SmartClassParameter.update({'id': scp_id, 'override': 1})
         # Verify that affected sc-param is listed
-        host_scparams = Host.sc_params({'host': host['name']})
+        host_scparams = Host.sc_params({'host': host.name})
         self.assertIn(scp_id, [scp['id'] for scp in host_scparams])
 
     @run_only_on('sat')
@@ -217,14 +215,14 @@ class HostCreateTestCase(CLITestCase):
         # Create host with associated puppet class
         host = entities.Host(
             puppetclass=self.puppet_class['id'],
-            environment=self.puppet_env['id'],
+            environment=entities.Environment(id=self.puppet_env['id']).read(),
             organization=self.new_org['id'],
         ).create()
         # Create smart variable
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
         # Verify that affected sc-param is listed
-        host_variables = Host.smart_variables({'host-id': host['id']})
+        host_variables = Host.smart_variables({'host-id': host.id})
         self.assertIn(
             smart_variable['id'], [sv['id'] for sv in host_variables])
 
@@ -242,14 +240,14 @@ class HostCreateTestCase(CLITestCase):
         # Create host with associated puppet class
         host = entities.Host(
             puppetclass=self.puppet_class['id'],
-            environment=self.puppet_env['id'],
+            environment=entities.Environment(id=self.puppet_env['id']).read(),
             organization=self.new_org['id'],
         ).create()
         # Create smart variable
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
         # Verify that affected sc-param is listed
-        host_variables = Host.smart_variables({'host': host['name']})
+        host_variables = Host.smart_variables({'host': host.name})
         self.assertIn(
             smart_variable['id'], [sv['id'] for sv in host_variables])
 

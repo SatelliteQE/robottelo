@@ -109,8 +109,8 @@ class SmartVariablesTestCase(CLITestCase):
         host_variables = SmartVariable.list({'host': host.name})
         self.assertGreater(len(host_variables), 0)
         self.assertIn(
-            smart_variable['variable'],
-            [sv['variable'] for sv in host_variables]
+            smart_variable['name'],
+            [sv['name'] for sv in host_variables]
         )
 
     @run_only_on('sat')
@@ -159,8 +159,8 @@ class SmartVariablesTestCase(CLITestCase):
             {'hostgroup': hostgroup['name']})
         self.assertGreater(len(hostgroup_variables), 0)
         self.assertIn(
-            smart_variable['variable'],
-            [sv['variable'] for sv in hostgroup_variables]
+            smart_variable['name'],
+            [sv['name'] for sv in hostgroup_variables]
         )
 
     @run_only_on('sat')
@@ -204,8 +204,8 @@ class SmartVariablesTestCase(CLITestCase):
         })
         self.assertGreater(len(sc_params_list), 0)
         self.assertIn(
-            smart_variable['variable'],
-            [sv['variable'] for sv in sc_params_list]
+            smart_variable['name'],
+            [sv['name'] for sv in sc_params_list]
         )
 
     @run_only_on('sat')
