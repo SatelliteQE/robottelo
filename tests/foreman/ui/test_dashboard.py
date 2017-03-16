@@ -18,13 +18,28 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo import manifests
 from robottelo.api.utils import promote, upload_manifest
-from robottelo.constants import ANY_CONTEXT, FAKE_0_YUM_REPO
+from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.constants import (
+    ANY_CONTEXT,
+    DISTRO_RHEL7,
+    FAKE_0_YUM_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 from robottelo.datafactory import gen_string
-from robottelo.decorators import run_in_one_thread, stubbed, tier1, tier2
+from robottelo.decorators import (
+    run_in_one_thread,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
 class DashboardTestCase(UITestCase):
@@ -579,8 +594,9 @@ class DashboardTestCase(UITestCase):
                 'Syncing Complete.'
             )
 
-    @stubbed()
     @tier2
+    @run_in_one_thread
+    @skip_if_not_set('clients', 'fake_manifest')
     def test_positive_content_host_subscription_status(self):
         """Check if the Content Host Subscription Status is working in the
         Dashboard UI
@@ -589,21 +605,57 @@ class DashboardTestCase(UITestCase):
 
         @Steps:
 
-        1.Register Content Host and subscribe it
-        2.Navigate Monitor -> Dashboard
-        3.Review the Content Host Subscription Status
-        4.Click each link :
-          a.Invalid Subscriptions
-          b.Insufficient Subscriptions
-          c.Current Subscriptions
+            1. Register Content Host and subscribe it
+            2. Navigate Monitor -> Dashboard
+            3. Review the Content Host Subscription Status
+            4. Click each link:
 
-        @Assert: The widget is updated with all details for Current,
-        Invalid and Insufficient Subscriptions
+                a. Invalid Subscriptions
+                b. Partial Subscriptions
+                c. Valid Subscriptions
 
-        @caseautomation: notautomated
+        @Assert: The widget is updated with all details for Valid, Invalid
+            and Partial Subscriptions
+
+        @BZ: 1180573
 
         @CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(
+            environment=env,
+            organization=org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        })
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            result = client.register_contenthost(
+                org.label, activation_key.name)
+            self.assertEqual(result.return_code, 0)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            with Session(self.browser) as session:
+                set_context(session, org=org.name)
+                self.assertTrue(self.dashboard.validate_chss_navigation(
+                    'Invalid', u'subscription_status = invalid'))
+                self.assertIsNotNone(self.dashboard.wait_until_element(
+                    common_locators['kt_search_no_results']))
+                self.assertTrue(self.dashboard.validate_chss_navigation(
+                    'Partial', u'subscription_status = partial'))
+                self.assertIsNotNone(self.dashboard.wait_until_element(
+                    common_locators['kt_search_no_results']))
+                self.assertTrue(self.dashboard.validate_chss_navigation(
+                    'Valid', u'subscription_status = valid', client.hostname))
 
     @tier1
     def test_positive_current_subscription_totals(self):
