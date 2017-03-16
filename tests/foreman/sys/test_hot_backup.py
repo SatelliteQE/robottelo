@@ -20,7 +20,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import BACKUP_FILES
-from robottelo.decorators import stubbed, tier3, backup, skip_if_bug_open
+from robottelo.decorators import stubbed, backup, skip_if_bug_open
 from robottelo.ssh import _get_connection
 from robottelo.test import TestCase
 
@@ -34,7 +34,6 @@ def make_random_tmp_directory(connection):
     return name
 
 
-@backup
 class HotBackupTestCase(TestCase):
     """Implements ``katello-backup --online`` tests"""
 
@@ -45,7 +44,7 @@ class HotBackupTestCase(TestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
-    @tier3
+    @backup
     @skip_if_bug_open('bugzilla', 1399244)
     def test_positive_backup_with_existing_directory(self):
         """katello-backup with existing directory
@@ -75,7 +74,7 @@ class HotBackupTestCase(TestCase):
             # backup could have more files than the default so it is superset
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
 
-    @tier3
+    @backup
     @skip_if_bug_open('bugzilla', 1399244)
     def test_positive_directory_created(self):
         """katello-backup with non-existing directory
@@ -107,7 +106,7 @@ class HotBackupTestCase(TestCase):
             # backup could have more files than the default so it is superset
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
 
-    @tier3
+    @backup
     @skip_if_bug_open('bugzilla', 1399244)
     def test_positive_skip_pulp(self):
         """Katello-backup with --skip-pulp option should not create pulp
@@ -139,7 +138,7 @@ class HotBackupTestCase(TestCase):
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
 
-    @tier3
+    @backup
     @skip_if_bug_open('bugzilla', 1399244)
     @skip_if_bug_open('bugzilla', 1384901)
     def test_positive_incremental(self):
@@ -209,7 +208,7 @@ class HotBackupTestCase(TestCase):
             )
             self.assertEqual(len(repo_list), 1)
 
-    @tier3
+    @backup
     @stubbed()
     def test_positive_restore_after_update(self):
         """Restore from a backup in updated version of satellite
@@ -232,7 +231,7 @@ class HotBackupTestCase(TestCase):
         """
         # IS THIS CASE REASONABLE?
 
-    @tier3
+    @backup
     @stubbed()
     def test_positive_restore(self):
         """Restore to a Satellite with config that has been updated since the
@@ -253,7 +252,7 @@ class HotBackupTestCase(TestCase):
 
         """
 
-    @tier3
+    @backup
     @stubbed()
     def test_positive_load_backup(self):
         """Load testing, backup
@@ -272,7 +271,7 @@ class HotBackupTestCase(TestCase):
 
         """
 
-    @tier3
+    @backup
     @stubbed()
     def test_positive_load_restore(self):
         """Load testing, restore
@@ -290,7 +289,7 @@ class HotBackupTestCase(TestCase):
 
         """
 
-    @tier3
+    @backup
     @stubbed()
     def test_positive_pull_content(self):
         """Pull content while a backup is running.
