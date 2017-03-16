@@ -35,10 +35,11 @@ class VirtualMachineTestCase(unittest2.TestCase):
     @patch('robottelo.ssh.command', side_effect=[
         ssh.SSHCommandResult(),
         ssh.SSHCommandResult(stdout=['(192.168.0.1)']),
+        ssh.SSHCommandResult()
     ])
     def test_dont_create_if_already_created(
             self, ssh_command, sleep):
-        """Check if the creation steps does run more than one"""
+        """Check if the creation steps are run more than once"""
         self.configure_provisoning_server()
         vm = VirtualMachine()
 
@@ -50,8 +51,7 @@ class VirtualMachineTestCase(unittest2.TestCase):
             vm.create()
             vm.create()
         self.assertEqual(vm.ip_addr, '192.168.0.1')
-        self.assertEqual(ssh_command.call_count, 2)
-        self.assertEqual(sleep.call_count, 1)
+        self.assertEqual(ssh_command.call_count, 3)
 
     def test_invalid_distro(self):
         """Check if an exception is raised if an invalid distro is passed"""
