@@ -2433,11 +2433,11 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_subscribe_host_with_restricted_user_permissions(self):
         """Attempt to subscribe a host with restricted user permissions.
 
-        @id: 7b5ec90b-3942-48a9-9cc1-a361e698d16d
+        :id: 7b5ec90b-3942-48a9-9cc1-a361e698d16d
 
-        @BZ: 1379856
+        :BZ: 1379856
 
-        @steps:
+        :steps:
 
             1. Create organization, content view with custom yum repository.
             2. Publish the content view
@@ -2446,8 +2446,8 @@ class ContentViewTestCase(CLITestCase):
 
                 - (Miscellaneous) [my_organizations]
                 - Environment [view_environments]
-                - Organization [view_organizations]
-                - Katello::Subscription [view_subscriptions,
+                - Organization [view_organizations,
+                    view_subscriptions,
                     attach_subscriptions,
                     unattach_subscriptions,
                     import_manifest,
@@ -2460,12 +2460,11 @@ class ContentViewTestCase(CLITestCase):
                 - Katello::KTEnvironment [view_lifecycle_environments]
                 - SmartProxy [view_smart_proxies, view_capsule_content]
                 - Architecture [view_architectures]
-                - Katello::System ['create_content_hosts']
 
-        @assert: host subscribed to content view with user that has restricted
+        :assert: host subscribed to content view with user that has restricted
             permissions.
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         # prepare the user and the required permissions data
         user_name = gen_alphanumeric()
@@ -2473,8 +2472,8 @@ class ContentViewTestCase(CLITestCase):
         required_rc_permissions = {
             '(Miscellaneous)': ['my_organizations'],
             'Environment': ['view_environments'],
-            'Organization': ['view_organizations'],
-            'Katello::Subscription': [
+            'Organization': [
+                'view_organizations',
                 'view_subscriptions',
                 'attach_subscriptions',
                 'unattach_subscriptions',
@@ -2489,7 +2488,6 @@ class ContentViewTestCase(CLITestCase):
             'Katello::KTEnvironment': ['view_lifecycle_environments'],
             'SmartProxy': ['view_smart_proxies', 'view_capsule_content'],
             'Architecture': ['view_architectures'],
-            'Katello::System': ['create_content_hosts']
         }
         # Create an organization
         org = make_org()
