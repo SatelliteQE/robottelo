@@ -558,11 +558,12 @@ class ActivationKeyTestCase(CLITestCase):
                 vm1.install_katello_ca()
                 result = vm1.register_contenthost(
                     self.org['label'], new_ak['name'])
-                self.assertEqual(result.return_code, 0)
+                self.assertTrue(vm1.subscribed())
                 vm2.install_katello_ca()
                 result = vm2.register_contenthost(
                     self.org['label'], new_ak['name'])
-                self.assertEqual(result.return_code, 255)
+                self.assertFalse(vm2.subscribed())
+                self.assertEqual(result.return_code, 70)
                 self.assertGreater(len(result.stderr), 0)
 
     @skip_if_bug_open('bugzilla', 1110476)
@@ -783,9 +784,9 @@ class ActivationKeyTestCase(CLITestCase):
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
             for i in range(2):
-                result = vm.register_contenthost(
+                vm.register_contenthost(
                     self.org['label'], new_aks[i]['name'])
-                self.assertEqual(result.return_code, 0)
+                self.assertTrue(vm.subscribed())
 
     @skip_if_not_set('clients')
     @stubbed()
