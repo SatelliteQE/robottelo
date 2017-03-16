@@ -74,6 +74,7 @@ from robottelo.decorators import (
     tier2,
     tier3,
 )
+from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
@@ -82,6 +83,7 @@ class HostCreateTestCase(CLITestCase):
     """Tests for creating the hosts via CLI."""
 
     @classmethod
+    @lock_function
     def setUpClass(cls):
         """Create organization, lifecycle environment, content view, publish
         and promote new version to re-use in tests.

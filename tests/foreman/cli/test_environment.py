@@ -39,6 +39,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
+from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
 
 
@@ -46,6 +47,7 @@ class EnvironmentTestCase(CLITestCase):
     """Test class for Environment CLI"""
 
     @classmethod
+    @lock_function
     def setUpClass(cls):
         super(EnvironmentTestCase, cls).setUpClass()
         cls.org = make_org()
