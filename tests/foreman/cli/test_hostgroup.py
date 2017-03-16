@@ -55,6 +55,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
+from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
 
 
@@ -62,6 +63,7 @@ class HostGroupTestCase(CLITestCase):
     """Test class for Host Group CLI"""
 
     @classmethod
+    @lock_function
     def setUpClass(cls):
         super(HostGroupTestCase, cls).setUpClass()
         cls.org = make_org()
