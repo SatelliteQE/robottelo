@@ -11,7 +11,6 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 """
 import logging
 import os
-import time
 
 from robottelo import ssh
 from robottelo.config import settings
@@ -90,6 +89,10 @@ class VirtualMachine(object):
             self._target_image = tag + self._target_image
 
     @property
+    def subscribed(self):
+        return self._subscribed
+
+    @property
     def domain(self):
         if self._domain is None:
             try:
@@ -162,10 +165,9 @@ class VirtualMachine(object):
                 u'Failed to run snap-guest: {0}'.format(result.stderr))
 
         # Give some time to machine boot
-        time.sleep(60)
-
         result = ssh.command(
-            u'ping -c 1 {0}.local'.format(self._target_image),
+            u'for i in {{1..60}}; do ping -c1 {0}.local && exit 0; sleep 1;'
+            u' done; exit 1'.format(self._target_image),
             self.provisioning_server
         )
         if result.return_code != 0:
@@ -173,6 +175,14 @@ class VirtualMachine(object):
                 'Failed to fetch virtual machine IP address information')
         output = ''.join(result.stdout)
         self.ip_addr = output.split('(')[1].split(')')[0]
+        ssh_check = ssh.command(
+            u'for i in {{1..60}}; do nc -vn {0} 22 <<< "" && exit 0; sleep 1;'
+            u' done; exit 1'.format(self.ip_addr),
+            self.provisioning_server
+        )
+        if ssh_check.return_code != 0:
+            raise VirtualMachineError(
+                'Failed to connect to SSH port of the virtual machine')
         self._created = True
 
     def destroy(self):
@@ -302,7 +312,8 @@ class VirtualMachine(object):
         if force:
             cmd += u' --force'
         result = self.run(cmd)
-        if result.return_code == 0:
+        if (u'The system has been registered with ID' in
+                u''.join(result.stdout)):
             self._subscribed = True
         return result
 
