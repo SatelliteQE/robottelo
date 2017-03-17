@@ -1181,3 +1181,41 @@ class HostGroupMissingAttrTestCase(APITestCase):
                 self.host_group_attrs
             )
         )
+
+    @tier1
+    @skip_if_bug_open('bugzilla', 1427192)
+    def test_positive_read_puppet_proxy_name(self):
+        """Read a hostgroup created with puppet proxy and inspect server's
+        response
+
+        @id: f93d0866-0073-4577-8777-6d645b63264f
+
+        @Assert: Field 'puppet_proxy_name' is returned
+
+        @BZ: 1371900
+        """
+        proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        hg = entities.HostGroup(puppet_proxy=proxy).create().read_json()
+        self.assertIn('puppet_proxy_name', hg)
+        self.assertEqual(proxy.name, hg['puppet_proxy_name'])
+
+    @tier1
+    @skip_if_bug_open('bugzilla', 1427192)
+    def test_positive_read_puppet_ca_proxy_name(self):
+        """Read a hostgroup created with puppet ca proxy and inspect server's
+        response
+
+        @id: ab151e09-8e64-4377-95e8-584629750659
+
+        @Assert: Field 'puppet_ca_proxy_name' is returned
+
+        @BZ: 1371900
+        """
+        proxy = entities.SmartProxy().search(query={
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        hg = entities.HostGroup(puppet_ca_proxy=proxy).create().read_json()
+        self.assertIn('puppet_ca_proxy_name', hg)
+        self.assertEqual(proxy.name, hg['puppet_ca_proxy_name'])
