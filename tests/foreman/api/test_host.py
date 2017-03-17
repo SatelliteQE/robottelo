@@ -1501,7 +1501,7 @@ class HostInterfaceTestCase(APITestCase):
         )
         with self.assertRaises(HTTPError):
             primary_interface.delete()
-        with self.assertNotRaises(HTTPError, http_status_code=404):
+        with self.assertNotRaises(HTTPError, expected_value=404):
             primary_interface.read()
 
     @tier1
@@ -1520,5 +1520,5 @@ class HostInterfaceTestCase(APITestCase):
         interface.delete()
         with self.assertRaises(HTTPError):
             interface.read()
-        with self.assertNotRaises(HTTPError, http_status_code=404):
+        with self.assertNotRaises(HTTPError, expected_value=404):
             host.read()
