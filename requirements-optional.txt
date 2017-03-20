@@ -3,6 +3,7 @@ codecov
 flake8
 pytest-cov
 pytest-xdist
+redis
 tox
 
 # Voluntary (recommended!) tool for checking code quality.
