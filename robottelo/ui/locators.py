@@ -858,6 +858,8 @@ common_locators = LocatorDict({
     "kt_search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
     "kt_clear_search": (
         By.XPATH, "//button[contains(@ng-click, 'searchCompleted = false')]"),
+    "kt_search_no_results": (
+        By.XPATH, "//span[@data-block='no-rows-message']"),
     "kt_search_button": (
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
@@ -1023,6 +1025,7 @@ locators = LocatorDict({
         By.XPATH,
         "//li[@data-name='Subscription Status Widget']//td[text()='%s']"
         "/following-sibling::td"),
+    "dashboard.chss.search_criteria": (By.XPATH, "//td/a[contains(., '%s')]"),
 
     # Organizations
     "org.new": (
@@ -1263,6 +1266,8 @@ locators = LocatorDict({
          "contains(@href, 'vms/') and contains(., '%s')]")),
 
     # Content Hosts
+    "contenthost.page_title": (
+        By.XPATH, "//h2/div[contains(., 'Content Hosts')]"),
     "contenthost.select_name": (
         By.XPATH,
         "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),
