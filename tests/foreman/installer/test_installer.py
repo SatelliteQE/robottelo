@@ -19,7 +19,6 @@ import re
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-from robottelo.decorators import bz_bug_is_open
 from robottelo.helpers import get_host_info
 from robottelo.log import LogFile
 from robottelo.test import TestCase
@@ -47,18 +46,11 @@ class SELinuxTestCase(TestCase):
         # Sample rpm output: foreman-selinux-1.7.2.8-1.el7sat.noarch
         rpm_version = self.version_regex.search(
             ''.join(rpm_result.stdout)).group(1)
-        # Sample semodule output: foreman        1.7.2.8.1
+        # Sample semodule output: foreman        1.7.2.8
         semodule_version = self.version_regex.search(
             ''.join(semodule_result.stdout)).group(1)
 
-        if rpm_version.endswith('-0'):
-            # Examples of matching RPM and semodule version numbers:
-            #
-            # 1.7.2.8-0    1.7.2.8
-            # 1.7.2.8-1    1.7.2.8.1
-            # 1.7.2.8-2    1.7.2.8.2
-            rpm_version = rpm_version[:-2]
-
+        rpm_version = rpm_version[:-2]
         self.assertEqual(rpm_version.replace('-', '.'), semodule_version)
 
     def test_positive_check_installer_services(self):
@@ -74,7 +66,6 @@ class SELinuxTestCase(TestCase):
         """
         major_version = get_host_info()[1]
         services = (
-            'elasticsearch',
             'foreman-proxy',
             'foreman-tasks',
             'httpd',
@@ -82,9 +73,12 @@ class SELinuxTestCase(TestCase):
             'postgresql',
             'pulp_celerybeat',
             'pulp_resource_manager',
+            'pulp_streamer',
             'pulp_workers',
             'qdrouterd',
             'qpidd',
+            'smart_proxy_dynflow_core',
+            'squid',
             'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat',
         )
 
@@ -95,16 +89,10 @@ class SELinuxTestCase(TestCase):
             status_format = 'service {0} status'
 
         for service in services:
-            result = ssh.command(status_format.format(service))
-            if (major_version == RHEL_6_MAJOR_VERSION and
-                    service is 'qpidd' and
-                    not bz_bug_is_open(1246152)):
-                # This is a note to fix this test once Bug 1246152 is fixed
-                self.fail('Bug 1246152 is fixed. Fix Me.')
-            else:
-                continue
-            self.assertEqual(result.return_code, 0)
-            self.assertEqual(len(result.stderr), 0)
+            with self.subTest(service):
+                result = ssh.command(status_format.format(service))
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
 
         # check status reported by hammer ping command
         result = ssh.command(u'hammer -u {0[0]} -p {0[1]} ping'.format(
@@ -143,7 +131,7 @@ class SELinuxTestCase(TestCase):
                 'pattern': r'ERROR'
             },
             {
-                'path': '/var/log/katello-installer/katello-installer.log',
+                'path': '/var/log/foreman-installer/satellite.log',
                 'pattern': r'\[\s*(ERROR|FATAL)'
             },
         )
