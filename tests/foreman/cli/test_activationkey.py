@@ -558,11 +558,11 @@ class ActivationKeyTestCase(CLITestCase):
                 vm1.install_katello_ca()
                 result = vm1.register_contenthost(
                     self.org['label'], new_ak['name'])
-                self.assertTrue(vm1.subscribed())
+                self.assertTrue(vm1.subscribed)
                 vm2.install_katello_ca()
                 result = vm2.register_contenthost(
                     self.org['label'], new_ak['name'])
-                self.assertFalse(vm2.subscribed())
+                self.assertFalse(vm2.subscribed)
                 self.assertEqual(result.return_code, 70)
                 self.assertGreater(len(result.stderr), 0)
 
@@ -786,7 +786,7 @@ class ActivationKeyTestCase(CLITestCase):
             for i in range(2):
                 vm.register_contenthost(
                     self.org['label'], new_aks[i]['name'])
-                self.assertTrue(vm.subscribed())
+                self.assertTrue(vm.subscribed)
 
     @skip_if_not_set('clients')
     @stubbed()
