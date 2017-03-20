@@ -53,6 +53,7 @@ help:
 	@echo "  can-i-push?                to check if local changes are suitable to push"
 	@echo "  install-commit-hook        to install pre-commit hook to check if changes are suitable to push"
 	@echo "  gitflake8                  to check flake8 styling only for modified files"
+	@echo "  clean-shared               to clean shared functions storage data files"
 	@echo "  clean-cache                to clean pytest cache files"
 	@echo "  clean-all                  to clean cache, pyc, logs and docs"
 
@@ -139,6 +140,10 @@ logs-clean:
 	$(info "Removing pytest worker logs...")
 	-rm -f robottelo_gw*.log
 
+clean-shared:
+	$(info "Removing /tmp/robottelo/shared_functions folder...")
+	-rm -rf /tmp/robottelo/shared_functions
+
 uuid-check:  ## list duplicated or empty uuids
 	$(info "Checking for empty or duplicated @id: in docstrings...")
 	@scripts/fix_uuids.sh --check
@@ -165,7 +170,7 @@ clean-cache:
 	$(info "Cleaning the .cache directory...")
 	rm -rf .cache
 
-clean-all: docs-clean logs-clean pyc-clean clean-cache
+clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
 
 # Special Targets -------------------------------------------------------------
 
@@ -176,4 +181,4 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache
         test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
         graph-entities lint logs-join logs-clean pyc-clean \
         uuid-check uuid-fix token-prefix-editor can-i-push? \
-        install-commit-hook gitflake8 clean-cache clean-all
+        install-commit-hook gitflake8 clean-shared clean-cache clean-all

@@ -4,6 +4,7 @@ flake8
 mock
 pytest-cov
 pytest-xdist
+redis
 testimony
 tox
 
