@@ -14,13 +14,15 @@ from robottelo.config import settings
 
 class ManifestCloner(object):
     """Manifest clonning utility class."""
-    def __init__(self, template=None, signing_key=None):
-        self.template = template
+    def __init__(self, template=None, signing_key=None, manifest="default"):
+        self.manifest = manifest
         self.signing_key = signing_key
+        self.template = template
 
     def _download_manifest_info(self):
         """Download and cache the manifest information."""
-        self.template = requests.get(settings.fake_manifest.url).content
+        self.template = requests.get(
+            settings.fake_manifest.urls.get(self.manifest)).content
         self.signing_key = requests.get(settings.fake_manifest.key_url).content
         self.private_key = serialization.load_pem_private_key(
             self.signing_key,
@@ -103,10 +105,14 @@ class ManifestCloner(object):
             self._download_manifest_info()
         return six.BytesIO(self.template)
 
-
+if not settings.configured:
+    settings.configure()
 # Cache the ManifestCloner in order to avoid downloading the manifest template
 # every single time.
-_manifest_cloner = ManifestCloner()
+_manifest_cloner = {
+    key: ManifestCloner(manifest=key) for key
+    in settings.fake_manifest.urls.keys()
+    }
 
 
 class Manifest(object):
@@ -119,12 +125,13 @@ class Manifest(object):
         with Manifest() as manifest:
             # my fancy stuff
     """
-    def __init__(self, content=None, filename=None):
+    def __init__(self, content=None, filename=None, manifest='default'):
         self._content = content
         self.filename = filename
+        self.manifest = manifest
 
         if self._content is None:
-            self._content = _manifest_cloner.clone()
+            self._content = _manifest_cloner[self.manifest].clone()
         if self.filename is None:
             self.filename = u'/tmp/manifest-{0}.zip'.format(int(time.time()))
 
@@ -143,7 +150,7 @@ class Manifest(object):
             self.content.close()
 
 
-def clone():
+def clone(manifest='default'):
     """Clone the cached manifest and return a ``Manifest`` object.
 
     Is hightly recommended to use this with the ``with`` statement to make that
@@ -151,11 +158,12 @@ def clone():
 
         with clone() as manifest:
             # my fancy stuff
+    :parameter manifest: a target manifest from settings.fake_manifest.urls
     """
-    return Manifest()
+    return Manifest(manifest=manifest)
 
 
-def original_manifest():
+def original_manifest(manifest='default'):
     """Returns a ``Manifest`` object filed with the template manifest.
 
     Make sure to remove the manifest after its usage otherwiser the Satellite 6
@@ -166,5 +174,6 @@ def original_manifest():
 
         with original_manifest() as manifest:
             # my fancy stuff
+    :parameter manifest: a key from settings.fake_manifest.urls
     """
-    return Manifest(_manifest_cloner.original())
+    return Manifest(_manifest_cloner.original(manifest))

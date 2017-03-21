@@ -122,8 +122,11 @@ ssh_key=
 
 # Fake manifest testing.
 # [fake_manifest]
-# URL of the base manifest
-# url=http://example.org/valid-redhat-manifest.zip
+# URLs of the base manifests, comma-separated key-value pairs
+# urls=
+#    manifest1=http://example.org/valid-redhat-manifest.zip,
+#    manifest2=http://example.org/another-valid-redhat-manifest.zip,
+#    ...
 # URL of the key file
 # key_url=http://example.org/fake_manifest.key
 # URL of the certificate file
