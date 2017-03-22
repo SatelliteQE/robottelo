@@ -77,6 +77,10 @@ class Chrome(DriverLoggerMixin, webdriver.Chrome):
     """Custom Chrome for custom logging"""
 
 
+class Edge(DriverLoggerMixin, webdriver.Edge):
+    """Custom Edge for custom logging"""
+
+
 class Ie(DriverLoggerMixin, webdriver.Ie):
     """Custom Ie for custom logging"""
 
@@ -108,6 +112,18 @@ def browser():
             return (
                 Ie() if settings.webdriver_binary is None
                 else Ie(executable_path=settings.webdriver_binary)
+            )
+        elif webdriver_name == 'edge':
+            capabilities = webdriver.DesiredCapabilities.EDGE.copy()
+            capabilities['acceptSslCerts'] = True
+            capabilities['javascriptEnabled'] = True
+            return (
+                Edge(capabilities=capabilities)
+                if settings.webdriver_binary is None
+                else Edge(
+                    capabilities=capabilities,
+                    executable_path=settings.webdriver_binary,
+                )
             )
         elif webdriver_name == 'phantomjs':
             return PhantomJS(
