@@ -30,7 +30,6 @@ from robottelo.constants import (
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -717,26 +716,25 @@ class DashboardTestCase(UITestCase):
                 1
             )
 
-    @skip_if_bug_open('bugzilla', 1417114)
     @tier2
     def test_positive_user_access_with_host_filter(self):
         """Check if user with necessary host permissions can access dashboard
         and required widgets are rendered
 
-        :id: 24b4b371-cba0-4bc8-bc6a-294c62e0586d
+        @id: 24b4b371-cba0-4bc8-bc6a-294c62e0586d
 
-        :Steps:
+        @Steps:
 
             1. Specify proper filter with permission for your role
             2. Create new user and assign role to it
             3. Login into application using this new user
             4. Check dashboard and widgets on it
 
-        :Assert: Dashboard and Errata Widget rendered without errors
+        @Assert: Dashboard and Errata Widget rendered without errors
 
-        :BZ: 1417114
+        @BZ: 1232877
 
-        :CaseLevel: Integration
+        @CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
