@@ -1501,14 +1501,8 @@ class HostInterfaceTestCase(APITestCase):
         )
         with self.assertRaises(HTTPError):
             primary_interface.delete()
-        # mark the test as failed instead of errored in case of 404 error
-        try:
+        with self.assertNotRaises(HTTPError, expected_value=404):
             primary_interface.read()
-        except HTTPError as error:
-            if error.response.status_code == 404:
-                self.fail('Primary interface was removed')
-            else:
-                raise
 
     @tier1
     def test_positive_delete_and_check_host(self):
@@ -1526,11 +1520,5 @@ class HostInterfaceTestCase(APITestCase):
         interface.delete()
         with self.assertRaises(HTTPError):
             interface.read()
-        # mark the test as failed instead of errored in case of 404 error
-        try:
+        with self.assertNotRaises(HTTPError, expected_value=404):
             host.read()
-        except HTTPError as error:
-            if error.response.status_code == 404:
-                self.fail('Interface deletion removed the host itself')
-            else:
-                raise
