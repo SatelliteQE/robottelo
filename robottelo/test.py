@@ -475,7 +475,7 @@ class UITestCase(TestCase):
         """We do want a new browser instance for every test."""
         super(UITestCase, self).setUp()
         if settings.browser == 'docker':
-            self._docker_browser = DockerBrowser()
+            self._docker_browser = DockerBrowser(name=self.id())
             self._docker_browser.start()
             self.browser = self._docker_browser.webdriver
             self.addCleanup(self._docker_browser.stop)
