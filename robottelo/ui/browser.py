@@ -2,6 +2,7 @@
 import six
 import time
 
+from fauxfactory import gen_string
 from robottelo.config import settings
 from selenium import webdriver
 
@@ -64,7 +65,7 @@ def browser():
 
 class DockerBrowser(object):
     """Provide a browser instance running inside a docker container."""
-    def __init__(self):
+    def __init__(self, name=None):
         if docker is None:
             raise DockerBrowserError(
                 'Package docker-py is not installed. Install it in order to '
@@ -73,6 +74,7 @@ class DockerBrowser(object):
         self.webdriver = None
         self.container = None
         self._client = None
+        self._name = name
         self._started = False
 
     def start(self):
@@ -164,17 +166,22 @@ class DockerBrowser(object):
         """
         if self.container:
             return
-        self.container = self._client.create_container(
-            detach=True,
-            environment={
+        args = {
+            u'detach': True,
+            u'environment': {
                 'SCREEN_WIDTH': '1920',
                 'SCREEN_HEIGHT': '1080',
             },
-            host_config=self._client.create_host_config(
+            u'host_config': self._client.create_host_config(
                 publish_all_ports=True),
-            image='selenium/standalone-firefox',
-            ports=[4444],
-        )
+            u'image': 'selenium/standalone-firefox',
+            u'ports': [4444],
+        }
+        if self._name:
+            args['name'] = str(self._name).split('.', 4)[-1] + '_{0}'.format(
+                    gen_string('alphanumeric', 3)),
+
+        self.container = self._client.create_container(**args)
         self._client.start(self.container['Id'])
         self.container.update(
             self._client.port(self.container['Id'], 4444)[0])
