@@ -30,6 +30,7 @@ from robottelo.constants import (
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
     run_in_one_thread,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -715,6 +716,66 @@ class DashboardTestCase(UITestCase):
                 self.dashboard.get_hc_host_count(host_collection.name),
                 1
             )
+
+    @skip_if_bug_open('bugzilla', 1417114)
+    @tier2
+    def test_positive_user_access_with_host_filter(self):
+        """Check if user with necessary host permissions can access dashboard
+        and required widgets are rendered
+
+        :id: 24b4b371-cba0-4bc8-bc6a-294c62e0586d
+
+        :Steps:
+
+            1. Specify proper filter with permission for your role
+            2. Create new user and assign role to it
+            3. Login into application using this new user
+            4. Check dashboard and widgets on it
+
+        :Assert: Dashboard and Errata Widget rendered without errors
+
+        :BZ: 1417114
+
+        :CaseLevel: Integration
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        org = entities.Organization().create()
+        # create a role with necessary permissions
+        role = entities.Role().create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Organization',
+                name='view_organizations').search(),
+            role=role,
+            search=None
+        ).create()
+        entities.Filter(
+            organization=[org],
+            permission=entities.Permission(name='view_hosts').search(),
+            role=role,
+            search='compute_resource = RHEV'
+        ).create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type=None, name='access_dashboard').search(),
+            role=role,
+            search=None
+        ).create()
+        # create a user and assign the above created role
+        entities.User(
+            default_organization=org,
+            organization=[org],
+            role=[role],
+            login=user_login,
+            password=user_password
+        ).create()
+        with Session(self.browser, user_login, user_password):
+            self.assertEqual(
+                self.dashboard.get_total_hosts_count(), 0)
+            self.assertIsNotNone(self.dashboard.get_widget('Latest Errata'))
+            self.assertIsNotNone(self.dashboard.wait_until_element(
+                locators['dashboard.latest_errata.empty']))
 
     @stubbed()
     @tier2

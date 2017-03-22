@@ -1026,6 +1026,10 @@ locators = LocatorDict({
         "//li[@data-name='Subscription Status Widget']//td[text()='%s']"
         "/following-sibling::td"),
     "dashboard.chss.search_criteria": (By.XPATH, "//td/a[contains(., '%s')]"),
+    "dashboard.latest_errata.empty": (
+        By.XPATH,
+        "//li[@data-name='Errata Widget']//p[contains(., 'There are no errata "
+        "that need to be applied')]"),
 
     # Organizations
     "org.new": (
