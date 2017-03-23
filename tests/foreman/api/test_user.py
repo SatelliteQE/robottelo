@@ -43,7 +43,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for username in valid_usernames_list():
             with self.subTest(username):
@@ -58,7 +58,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for firstname in generate_strings_list(
                 exclude_types=['html'], max_length=50):
@@ -74,7 +74,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for lastname in generate_strings_list(
                 exclude_types=['html'], max_length=50):
@@ -90,7 +90,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for mail in valid_emails_list():
             with self.subTest(mail):
@@ -105,7 +105,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for password in generate_strings_list(
                 exclude_types=['html'], max_length=50):
@@ -121,7 +121,7 @@ class UserTestCase(APITestCase):
 
         :Assert: The user cannot be fetched after deletion.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for mail in valid_emails_list():
             with self.subTest(mail):
@@ -138,7 +138,7 @@ class UserTestCase(APITestCase):
 
         :Assert: The user's ``admin`` attribute is updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for admin_enable in (True, False):
             with self.subTest(admin_enable):
@@ -154,7 +154,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for mail in invalid_emails_list():
             with self.subTest(mail):
@@ -169,7 +169,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for invalid_name in invalid_usernames_list():
             with self.subTest(invalid_name):
@@ -184,7 +184,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for invalid_name in invalid_names_list():
             with self.subTest(invalid_name):
@@ -199,7 +199,7 @@ class UserTestCase(APITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for invalid_name in invalid_names_list():
             with self.subTest(invalid_name):
@@ -229,7 +229,7 @@ class UserRoleTestCase(APITestCase):
 
         This test targets BZ 1216239.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for i in range(2):
             chosen_roles = self.roles[0:i]
@@ -252,7 +252,7 @@ class UserRoleTestCase(APITestCase):
 
         This test targets BZ 1216239.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = entities.User().create()
         self.assertEqual(len(user.role), 1)  # the 'Anonymous' role

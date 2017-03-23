@@ -78,7 +78,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -102,7 +102,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for test_data in valid_os_parameters():
@@ -129,7 +129,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -155,7 +155,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -182,7 +182,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for major_version in gen_string('numeric', 6), '', '-6':
@@ -210,7 +210,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -272,7 +272,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
@@ -288,7 +288,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
@@ -315,7 +315,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         medium_name = gen_string('alpha')
         entities.Media(
@@ -339,7 +339,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = gen_string('alpha', 4)
         script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -366,7 +366,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :Assert: OS is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_name = gen_string('alpha')
         template_name = gen_string('alpha')

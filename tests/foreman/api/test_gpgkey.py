@@ -50,7 +50,7 @@ class GPGKeyTestCase(APITestCase):
         :Assert: Only one GPG key is in the search results: the created GPG
             key.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         gpg_key = entities.GPGKey(organization=org).create()
@@ -67,7 +67,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: A GPG key is created with the given name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -84,7 +84,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: A GPG key is created with the expected content.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = entities.GPGKey(
             organization=self.org, content=self.key_content).create()
@@ -99,7 +99,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: A GPG key is not created and error is raised.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -116,7 +116,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: A GPG key is not created and error is raised.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         entities.GPGKey(organization=self.org, name=name).create()
@@ -132,7 +132,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: A GPG key is not created and error is raised.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
             entities.GPGKey(content='').create()
@@ -146,7 +146,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: The GPG key name can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = entities.GPGKey(organization=self.org).create()
         for new_name in valid_data_list():
@@ -164,7 +164,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: The GPG key content text can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = entities.GPGKey(
             organization=self.org,
@@ -183,7 +183,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: GPG key is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = entities.GPGKey(organization=self.org).create()
         for new_name in invalid_values_list():
@@ -202,7 +202,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: GPG key is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         entities.GPGKey(organization=self.org, name=name).create()
@@ -220,7 +220,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: GPG key is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = entities.GPGKey(
             organization=self.org, content=self.key_content).create()
@@ -238,7 +238,7 @@ class GPGKeyTestCase(APITestCase):
 
         :Assert: The GPG key deleted successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = entities.GPGKey(organization=self.org).create()
         gpg_key.delete()

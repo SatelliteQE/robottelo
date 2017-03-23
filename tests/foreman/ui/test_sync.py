@@ -67,7 +67,7 @@ class SyncTestCase(UITestCase):
 
         :Assert: Sync procedure is successful
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()

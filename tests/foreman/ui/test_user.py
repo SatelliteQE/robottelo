@@ -89,7 +89,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for user_name in valid_strings():
@@ -105,7 +105,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for first_name in valid_strings():
@@ -122,7 +122,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for last_name in valid_strings(50):
@@ -139,7 +139,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for email in valid_emails_list():
@@ -156,7 +156,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for language in LANGUAGES:
@@ -173,7 +173,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         test_data = valid_strings()
         extra_passwords = (
@@ -201,7 +201,7 @@ class UserTestCase(UITestCase):
 
         :Assert: Admin User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -216,7 +216,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         role = entities.Role().create()
@@ -280,7 +280,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -332,7 +332,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created with default Org selected.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -357,7 +357,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is created with default Location selected.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         loc_name = gen_string('alpha')
@@ -382,7 +382,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -404,7 +404,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for user_name in invalid_values_list(interface='ui'):
@@ -421,7 +421,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             # invalid_values_list is not used here because first name is an
@@ -444,7 +444,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             # invalid_values_list is not used here because sur name is an
@@ -467,7 +467,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for email in invalid_emails_list():
@@ -485,7 +485,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_user(session, username=gen_string('alpha'), authorized_by='')
@@ -500,7 +500,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_user(
@@ -520,7 +520,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         password = gen_string('alpha')
@@ -553,7 +553,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated successful
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         first_name = gen_string('alpha')
         new_first_name = gen_string('alpha')
@@ -571,7 +571,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated successful
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         last_name = gen_string('alpha')
         new_last_name = gen_string('alpha')
@@ -589,7 +589,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         email = u'{0}@example.com'.format(gen_string('alpha'))
         new_email = u'{0}@myexample.com'.format(gen_string('alpha'))
@@ -607,7 +607,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         locale = random.choice(list(LANGUAGES.keys()))
         username = gen_string('alpha')
@@ -625,7 +625,7 @@ class UserTestCase(UITestCase):
         :Assert: User password is updated successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         new_password = gen_string('alpha')
@@ -649,7 +649,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated and has proper admin role value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -666,7 +666,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated and has proper admin role value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -682,7 +682,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User role is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -755,7 +755,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -803,7 +803,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -822,7 +822,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -841,7 +841,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -860,7 +860,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -884,7 +884,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -909,7 +909,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -930,7 +930,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_first_name = gen_string('alpha')
         new_last_name = gen_string('alpha')
@@ -956,7 +956,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for user_name in valid_strings():
@@ -972,7 +972,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -988,7 +988,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1057,7 +1057,7 @@ class UserTestCase(UITestCase):
 
         :Assert: User should be able to change timezone
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for timezone in TIMEZONES:
@@ -1084,7 +1084,7 @@ class UserTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -1160,7 +1160,7 @@ class UserTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -1191,7 +1191,7 @@ class UserTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
 

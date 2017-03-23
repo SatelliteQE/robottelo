@@ -278,7 +278,7 @@ class AnsibleTestCase(UITestCase):
 
         :caselevel: Acceptance
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -298,7 +298,7 @@ class AnsibleTestCase(UITestCase):
         :caselevel: Acceptance
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -318,7 +318,7 @@ class AnsibleTestCase(UITestCase):
         :caselevel: Acceptance
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -395,7 +395,7 @@ class AnsibleTestCase(UITestCase):
         :caselevel: Acceptance
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -413,5 +413,5 @@ class AnsibleTestCase(UITestCase):
         :caselevel: Acceptance
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """

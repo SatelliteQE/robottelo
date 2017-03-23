@@ -43,7 +43,7 @@ class BookmarkTestCase(APITestCase):
         :Assert: No errors, Bookmark is listed, controller matches the
             controller the bookmark was created for
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -72,7 +72,7 @@ class BookmarkTestCase(APITestCase):
         :Assert: No errors, Bookmark is listed, controller matches the
             controller the bookmark was created for
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -99,7 +99,7 @@ class BookmarkTestCase(APITestCase):
         :Assert: No errors, Bookmark is listed, controller matches the entity
             the bookmark was created for and is displayed as public
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -125,7 +125,7 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: Error returned, Bookmark is not created (not listed)
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -155,7 +155,7 @@ class BookmarkTestCase(APITestCase):
         :Assert: Error notification - search query cannot be empty, Bookmark is
             not created (not listed)
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -189,7 +189,7 @@ class BookmarkTestCase(APITestCase):
         :Assert: Error notification - name already taken, Bookmark is not
             created (not listed)
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -225,7 +225,7 @@ class BookmarkTestCase(APITestCase):
 
         :BZ: 1302725
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -253,7 +253,7 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: The new bookmark name is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -281,7 +281,7 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: Error - name already taken, bookmark not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -312,7 +312,7 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: Error - bookmark not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -340,7 +340,7 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: The updated query submitted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -366,7 +366,7 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: Error - search query cannot be empty, bookmark not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -395,7 +395,7 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: Bookmark is updated with new public state
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):

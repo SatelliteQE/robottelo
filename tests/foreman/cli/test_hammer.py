@@ -153,7 +153,7 @@ class HammerCommandsTestCase(CLITestCase):
 
         :Assert: All expected options are present
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.maxDiff = None
         self._traverse_command_tree('hammer')

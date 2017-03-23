@@ -62,7 +62,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: The job template was successfully created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -92,7 +92,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: Verify the template correctly imported the file's contents
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -125,7 +125,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: The job template was successfully saved with new input added
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         var_name = gen_string('alpha')
@@ -159,7 +159,7 @@ class JobsTemplateTestCase(UITestCase):
         :Assert: Job Template with invalid name cannot be created and error is
             raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -187,7 +187,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: The name duplication is caught and error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -223,7 +223,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: The Job Template has been deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -252,7 +252,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: Verify all job template contents were successfully copied
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         clone_name = gen_string('alpha')
@@ -283,7 +283,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: Verify that the new changes are displayed in the window
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         old_template = gen_string('alpha')
@@ -319,7 +319,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: Verify no errors are thrown
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         var_name = gen_string('alpha')
@@ -362,7 +362,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :Assert: Verify appropriate errors are thrown
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:

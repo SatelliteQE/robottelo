@@ -91,7 +91,7 @@ class TestGPGKey(CLITestCase):
 
         :Assert: gpg info should display key content
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Setup a new key file
         content = gen_alphanumeric()
@@ -113,7 +113,7 @@ class TestGPGKey(CLITestCase):
 
         :Assert: specific information for GPG key matches the creation name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         gpg_key = make_gpg_key({
@@ -139,7 +139,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = Org.info({'name': DEFAULT_ORG})
         for name in valid_data_list():
@@ -169,7 +169,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -200,7 +200,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         gpg_key = make_gpg_key({
@@ -229,7 +229,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -249,7 +249,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -271,7 +271,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -309,7 +309,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for new_name in valid_data_list():
@@ -334,7 +334,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         content = gen_alphanumeric(gen_integer(20, 50))
@@ -365,7 +365,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for new_name in invalid_values_list():
@@ -1219,7 +1219,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key is displayed/listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({
             'key': VALID_GPG_KEY_FILE_PATH,
@@ -1237,7 +1237,7 @@ class TestGPGKey(CLITestCase):
 
         :assert: gpg key can be found
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

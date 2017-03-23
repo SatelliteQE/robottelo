@@ -61,7 +61,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is created and has random name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -81,7 +81,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is created and has random label
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for label in valid_labels_list():
             with self.subTest(label):
@@ -103,7 +103,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is created and has random description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -124,7 +124,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is created and has gpg key
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({u'organization-id': self.org['id']})
         for name in valid_data_list():
@@ -145,7 +145,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is created and has random sync plan
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sync_plan = make_sync_plan({
             u'organization-id': self.org['id']
@@ -168,7 +168,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for invalid_name in invalid_values_list():
             with self.subTest(invalid_name):
@@ -186,7 +186,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product_name = gen_alphanumeric()
         for invalid_label in (gen_string('latin1', 15), gen_string('utf8', 15),
@@ -207,7 +207,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product description is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = make_product({u'organization-id': self.org['id']})
         for desc in valid_data_list():
@@ -231,7 +231,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         first_gpg_key = make_gpg_key({u'organization-id': self.org['id']})
         second_gpg_key = make_gpg_key({u'organization-id': self.org['id']})
@@ -261,7 +261,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product sync plan is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         first_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
         second_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
@@ -291,7 +291,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product Renamed to original
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for prod_name in generate_strings_list():
             with self.subTest(prod_name):
@@ -332,7 +332,7 @@ class ProductTestCase(CLITestCase):
 
         :Assert: Product is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_product = make_product({u'organization-id': self.org['id']})
         Product.delete({u'id': new_product['id']})

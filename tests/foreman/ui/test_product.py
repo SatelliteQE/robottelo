@@ -45,7 +45,7 @@ class ProductTestCase(UITestCase):
 
         :Assert: Product is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for prd_name in generate_strings_list():
@@ -93,7 +93,7 @@ class ProductTestCase(UITestCase):
 
         :Assert: Product is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -117,7 +117,7 @@ class ProductTestCase(UITestCase):
 
         :Assert: Product is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prd_name = gen_string('alphanumeric')
         description = gen_string('alphanumeric')
@@ -143,7 +143,7 @@ class ProductTestCase(UITestCase):
 
         :Assert: Product is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prd_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -197,7 +197,7 @@ class ProductTestCase(UITestCase):
 
         :Assert: Product is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prd_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -222,7 +222,7 @@ class ProductTestCase(UITestCase):
 
         :Assert: Product is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for prd_name in generate_strings_list():

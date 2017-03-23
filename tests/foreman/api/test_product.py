@@ -51,7 +51,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: A product is created with expected name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -68,7 +68,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: A product is created with expected label.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         label = gen_string('alphanumeric')
         product = entities.Product(label=label, organization=self.org).create()
@@ -84,7 +84,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: A product is created with expected description.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -124,7 +124,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: A product is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -140,7 +140,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: A product is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         entities.Product(name=name, organization=self.org).create()
@@ -156,7 +156,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: A product is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Product(label=gen_string('utf8')).create()
@@ -170,7 +170,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: Product name can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
         for new_name in valid_data_list():
@@ -188,7 +188,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: Product description can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
         for new_desc in valid_data_list():
@@ -206,7 +206,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: Product Renamed to original
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
         new_name = gen_string('alpha')
@@ -280,7 +280,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: Product is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
         for new_name in invalid_values_list():
@@ -300,7 +300,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: Product is not updated and error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
         product.label = gen_string('alpha')
@@ -316,7 +316,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: Product is successfully deleted.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -333,7 +333,7 @@ class ProductTestCase(APITestCase):
 
         :Assert: Repository within a product is successfully synced.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product().create()
         rpm_repo = entities.Repository(

@@ -115,7 +115,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: repository info command returns upstream-repository-name value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repository = self._make_repository({
             u'content-type': u'docker',
@@ -135,7 +135,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is created and has random name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -151,7 +151,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is created and has random name and labels
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -173,7 +173,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: YUM repository is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for url in (FAKE_0_YUM_REPO, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO,
                     FAKE_3_YUM_REPO, FAKE_4_YUM_REPO):
@@ -193,7 +193,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Puppet repository is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for url in (FAKE_1_PUPPET_REPO, FAKE_2_PUPPET_REPO, FAKE_3_PUPPET_REPO,
                     FAKE_4_PUPPET_REPO, FAKE_5_PUPPET_REPO):
@@ -214,7 +214,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: YUM repository is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         url = FAKE_5_YUM_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -235,7 +235,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: YUM repository with a download policy is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for policy in DOWNLOAD_POLICIES:
             with self.subTest(policy):
@@ -254,7 +254,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: YUM repository with a default download policy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         default_dl_policy = Settings.list(
             {'search': 'name=default_download_policy'}
@@ -274,7 +274,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: immediate download policy is updated to on_demand
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
@@ -296,7 +296,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: immediate download policy is updated to background
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
@@ -318,7 +318,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: on_demand download policy is updated to immediate
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
@@ -340,7 +340,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: on_demand download policy is updated to background
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
@@ -362,7 +362,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: background download policy is updated to immediate
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
@@ -384,7 +384,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: background download policy is updated to on_demand
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'yum',
@@ -405,7 +405,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Puppet repository is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         url = FAKE_7_PUPPET_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -427,7 +427,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is created and has gpg key
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Make a new gpg key
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
@@ -452,7 +452,7 @@ class RepositoryTestCase(CLITestCase):
 
         :BZ: 1103944
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for name in valid_data_list():
@@ -474,7 +474,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is created and is published via http
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for use_http in u'true', u'yes', u'1':
             with self.subTest(use_http):
@@ -490,7 +490,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is created and is not published via http
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for use_http in u'false', u'no', u'0':
             with self.subTest(use_http):
@@ -507,7 +507,7 @@ class RepositoryTestCase(CLITestCase):
         :Assert: A YUM repository is created and contains the correct checksum
             type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for checksum_type in u'sha1', u'sha256':
             with self.subTest(checksum_type):
@@ -528,7 +528,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Docker repository is created and contains correct values.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content_type = u'docker'
         new_repo = self._make_repository({
@@ -551,7 +551,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Docker repository is created and contains correct values.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -607,7 +607,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository cannot be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -622,7 +622,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository cannot be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # get a list of valid credentials without quoting them
         for cred in [creds for creds in valid_http_credentials()
@@ -640,7 +640,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository cannot be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for cred in invalid_http_credentials():
             with self.subTest(cred):
@@ -656,7 +656,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: YUM repository is not created with invalid download policy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIFactoryError):
             self._make_repository({
@@ -672,7 +672,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: YUM repository is not updated to invalid download policy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             new_repo = self._make_repository({u'content-type': u'yum'})
@@ -689,7 +689,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Non-YUM repository is not created with a download policy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_version = get_host_os_version()
         # ostree is not supported for rhel6 so the following check
@@ -939,7 +939,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository url is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository()
         # generate repo URLs with all valid credentials
@@ -971,7 +971,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository url not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository()
         # get auth repos with credentials containing unquoted special chars
@@ -1001,7 +1001,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository url not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository()
         # generate repo URLs with all invalid credentials
@@ -1031,7 +1031,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         gpg_key_new = make_gpg_key({'organization-id': self.org['id']})
@@ -1054,7 +1054,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository publishing method is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'publish-via-http': 'no',
@@ -1076,7 +1076,7 @@ class RepositoryTestCase(CLITestCase):
         :Assert: A YUM repository is updated and contains the correct checksum
             type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content_type = u'yum'
         repository = self._make_repository({
@@ -1103,7 +1103,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is created and then deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1121,7 +1121,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is created and then deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1142,7 +1142,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Repository is deleted.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'yum', u'url': FAKE_1_YUM_REPO})
@@ -1166,7 +1166,7 @@ class RepositoryTestCase(CLITestCase):
 
         :BZ: 1316681
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'puppet', u'url': FAKE_1_PUPPET_REPO})
@@ -1191,7 +1191,7 @@ class RepositoryTestCase(CLITestCase):
 
         :BZ: 1349646, 1413145
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Create repository and synchronize it
         repo = self._make_repository({
@@ -1234,7 +1234,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Content Counts shows zero packages
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Create repository and synchronize it
         repo = self._make_repository({
@@ -1263,7 +1263,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: Content Counts shows zero puppet modules
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Create repository and synchronize it
         repo = self._make_repository({
@@ -1292,7 +1292,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: upload content is successful
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD),
@@ -1317,7 +1317,7 @@ class RepositoryTestCase(CLITestCase):
 
         :Assert: File successfully uploaded
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(local_file=get_data_file(SRPM_TO_UPLOAD),
@@ -1363,7 +1363,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :Assert: ostree repository is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1385,7 +1385,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :Assert: Validation error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for checksum_type in u'sha1', u'sha256':
             with self.subTest(checksum_type):
@@ -1409,7 +1409,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :Assert: ostree repository is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for use_http in u'true', u'yes', u'1':
             with self.subTest(use_http):
@@ -1453,7 +1453,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :Assert: Repository is deleted by name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'ostree',
@@ -1476,7 +1476,7 @@ class OstreeRepositoryTestCase(CLITestCase):
 
         :Assert: Repository is deleted by id
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_repo = self._make_repository({
             u'content-type': u'ostree',

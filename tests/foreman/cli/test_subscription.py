@@ -63,7 +63,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :Assert: Manifest are uploaded properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -79,7 +79,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :Assert: Manifest are deleted properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -131,7 +131,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :Assert: Manifest history is shown properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -154,7 +154,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :Assert: Manifests can be refreshed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self._upload_manifest(
             self.org['id'], manifests.original_manifest())
@@ -180,7 +180,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :BZ: 1226425
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(

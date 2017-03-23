@@ -150,7 +150,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :Assert: A repository is created with a Docker upstream repository.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -176,7 +176,7 @@ class DockerRepositoryTestCase(UITestCase):
         :Assert: Multiple docker repositories are created with a Docker
             upstream repository and they all belong to the same product.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -202,7 +202,7 @@ class DockerRepositoryTestCase(UITestCase):
             upstream repository and they all belong to their respective
             products.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for _ in range(randint(2, 3)):
@@ -255,7 +255,7 @@ class DockerRepositoryTestCase(UITestCase):
         :Assert: A repository is created with a Docker upstream repository and
             that its name can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -285,7 +285,7 @@ class DockerRepositoryTestCase(UITestCase):
         :Assert: A repository is created with a Docker upstream repository and
             that its upstream name can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             repo_name = gen_string('alphanumeric')
@@ -318,7 +318,7 @@ class DockerRepositoryTestCase(UITestCase):
         :Assert: A repository is created with a Docker upstream repository and
             that its URL can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -350,7 +350,7 @@ class DockerRepositoryTestCase(UITestCase):
         :Assert: A repository is created with a Docker upstream repository and
             then deleted.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -1060,7 +1060,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :Assert: Compute Resource can be created and listed.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for comp_name in valid_data_list():
@@ -1089,7 +1089,7 @@ class DockerComputeResourceTestCase(UITestCase):
         :Assert: Compute Resource can be created, listed and its attributes can
             be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1156,7 +1156,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :Assert: Compute Resource can be created and listed.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for comp_name in valid_data_list():
@@ -1185,7 +1185,7 @@ class DockerComputeResourceTestCase(UITestCase):
         :Assert: Compute Resource can be created, listed and its attributes can
             be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1216,7 +1216,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :Assert: Compute Resource can be created, listed and deleted.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1468,7 +1468,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :Assert: the external registry is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -1494,7 +1494,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :Assert: the external registry is updated with the new name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1525,7 +1525,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :Assert: the external registry is updated with the new URL
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1555,7 +1555,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :Assert: the external registry is updated with the new description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1586,7 +1586,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :Assert: the external registry is updated with the new username
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1617,7 +1617,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :Assert: The external registry is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

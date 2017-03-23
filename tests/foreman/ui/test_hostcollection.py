@@ -77,7 +77,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -94,7 +94,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -114,7 +114,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -131,7 +131,7 @@ class HostCollectionTestCase(UITestCase):
         :Assert: Host Collection is not created and appropriate error message
             thrown
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -153,7 +153,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for limit in invalid_names_list():
@@ -177,7 +177,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -198,7 +198,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -227,7 +227,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -248,7 +248,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -269,7 +269,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -292,7 +292,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -312,7 +312,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -330,7 +330,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection copy exists
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -351,7 +351,7 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection copy does not exist
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:

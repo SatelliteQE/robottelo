@@ -134,7 +134,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain successfully created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in valid_create_params():
             with self.subTest(options):
@@ -153,7 +153,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain is created and has new location assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         location = make_location()
         domain = make_domain({'location-ids': location['id']})
@@ -169,7 +169,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain is created and has new organization assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         domain = make_domain({'organization-ids': org['id']})
@@ -185,7 +185,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in invalid_create_params():
             with self.subTest(options):
@@ -202,7 +202,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain is updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain = make_domain({
             u'description': gen_string(str_type='utf8')
@@ -226,7 +226,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain = make_domain()
         for options in invalid_update_params():
@@ -248,7 +248,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain parameter is set
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in valid_set_params():
             with self.subTest(options):
@@ -272,7 +272,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain parameter is not set
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain = make_domain()
         for options in invalid_set_params():
@@ -295,7 +295,7 @@ class DomainTestCase(CLITestCase):
 
         :assert: Domain is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -313,7 +313,7 @@ class DomainTestCase(CLITestCase):
 
         :assert: Domain is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -330,7 +330,7 @@ class DomainTestCase(CLITestCase):
         :Assert: Domain parameter is removed
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in valid_delete_params():
             with self.subTest(options):

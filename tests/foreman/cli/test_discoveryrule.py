@@ -112,7 +112,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule should be successfully created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -129,7 +129,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :Assert: Rule should be successfully created and has expected search
             value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         search_query = 'cpu_count = 2'
         rule = self._make_discoveryrule({u'search': search_query})
@@ -145,7 +145,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :Assert: Rule should be successfully created and has expected hostname
             value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_name = 'myhost'
         rule = self._make_discoveryrule({u'hostname': host_name})
@@ -161,7 +161,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule was created and with given org & location names.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule({
             u'hostgroup-id': self.hostgroup['id'],
@@ -182,7 +182,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :Assert: Rule should be successfully created and has expected hosts
             limit value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hosts_limit = '5'
         rule = self._make_discoveryrule({u'hosts-limit': hosts_limit})
@@ -199,7 +199,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :Assert: Rule should be successfully created and has max_count set as
             per given value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         max_count = '10'
         rule = self._make_discoveryrule({u'max-count': max_count})
@@ -216,7 +216,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :Assert: Rule should be successfully created and has expected priority
             value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule_priority = '100'
         rule = self._make_discoveryrule({u'priority': rule_priority})
@@ -231,7 +231,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Disabled rule should be successfully created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule({u'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
@@ -245,7 +245,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -261,7 +261,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in self.invalid_hostnames_list():
             with self.subTest(name):
@@ -281,7 +281,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         :Assert: Validation error should be raised and rule should not be
             created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIFactoryError):
             self._make_discoveryrule({u'hosts-limit': '9999999999'})
@@ -295,7 +295,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         self._make_discoveryrule({u'name': name})
@@ -311,7 +311,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule should be successfully deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
         DiscoveryRule.delete({u'id': rule['id']})
@@ -327,7 +327,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
         new_name = gen_string('numeric')
@@ -368,7 +368,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule search field is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
         new_query = 'model = KVM'
@@ -385,7 +385,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule host group is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_hostgroup = make_hostgroup({u'organization-ids': self.org['id']})
         rule = self._make_discoveryrule()
@@ -405,7 +405,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule host name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_hostname = gen_string('alpha')
         rule = self._make_discoveryrule()
@@ -422,7 +422,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule host limit field is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule({u'hosts-limit': '5'})
         new_limit = '10'
@@ -439,7 +439,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule priority is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule({u'priority': 100})
         new_priority = '1'
@@ -456,7 +456,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule is successfully enabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule({u'enabled': 'false'})
         self.assertEqual(rule['enabled'], 'false')
@@ -473,7 +473,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
         for name in invalid_values_list():
@@ -490,7 +490,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule host name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
         with self.assertRaises(CLIReturnCodeError):
@@ -505,7 +505,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule host limit is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
         host_limit = gen_string('alpha')
@@ -521,7 +521,7 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :Assert: Rule priority is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rule = self._make_discoveryrule()
         priority = gen_string('alpha')

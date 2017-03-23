@@ -54,7 +54,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources are created with expected names
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -74,7 +74,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources are created with expected descriptions
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -95,7 +95,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources are created with expected display_type value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for display_type in ('spice', 'vnc'):
             with self.subTest(display_type):
@@ -116,7 +116,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources are created with expected providers
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in (entities.DockerComputeResource(),
                        entities.LibvirtComputeResource()):
@@ -183,7 +183,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resource is updated with expected names
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -204,7 +204,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resource is updated with expected descriptions
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         compresource = entities.LibvirtComputeResource(
             description=gen_string('alpha'),
@@ -227,7 +227,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resource is updated with expected display_type value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         compresource = entities.LibvirtComputeResource(
             display_type='VNC',
@@ -249,7 +249,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resource is updated with expected url
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_url = 'qemu+tcp://localhost:16509/system'
 
@@ -362,7 +362,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources is successfully deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -381,7 +381,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources are not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -401,7 +401,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
@@ -426,7 +426,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources are not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for url in ('', gen_string('alpha')):
             with self.subTest(url):
@@ -445,7 +445,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resource is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         compresource = entities.LibvirtComputeResource(
@@ -469,7 +469,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
@@ -496,7 +496,7 @@ class ComputeResourceTestCase(APITestCase):
 
         :Assert: Compute resources is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],

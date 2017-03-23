@@ -41,7 +41,7 @@ class ConfigGroupTestCase(UITestCase):
         :Assert: Config-Groups is created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -59,7 +59,7 @@ class ConfigGroupTestCase(UITestCase):
 
         :Assert: Config-Groups is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -79,7 +79,7 @@ class ConfigGroupTestCase(UITestCase):
         :Assert: Config-Groups is updated.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -100,7 +100,7 @@ class ConfigGroupTestCase(UITestCase):
 
         :Assert: Config-Groups is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

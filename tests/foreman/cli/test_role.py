@@ -38,7 +38,7 @@ class RoleTestCase(CLITestCase):
 
         :BZ: 1138553
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(length=10):
             with self.subTest(name):
@@ -53,7 +53,7 @@ class RoleTestCase(CLITestCase):
 
         :assert: Role is created and correct filter is assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         role = make_role()
         # Pick permissions by its resource type
@@ -77,7 +77,7 @@ class RoleTestCase(CLITestCase):
 
         :assert: Role is created and has correct set of permissions
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         role = make_role()
         # Pick permissions by its resource type
@@ -104,7 +104,7 @@ class RoleTestCase(CLITestCase):
 
         :Assert: Role is created and then deleted by its ID
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(length=10):
             with self.subTest(name):
@@ -122,7 +122,7 @@ class RoleTestCase(CLITestCase):
 
         :Assert: Role is created and its name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         role = make_role({'name': gen_string('alpha', 15)})
         for new_name in generate_strings_list(length=10):
@@ -151,7 +151,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -167,7 +167,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -190,7 +190,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -212,7 +212,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -230,7 +230,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -254,7 +254,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -270,7 +270,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -286,7 +286,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -306,7 +306,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed

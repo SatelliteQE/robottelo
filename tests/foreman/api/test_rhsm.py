@@ -39,7 +39,7 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
 
         This test targets bugzilla bug 1112802.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         path = '{0}/rhsm'.format(settings.server.get_url())
         response = client.get(

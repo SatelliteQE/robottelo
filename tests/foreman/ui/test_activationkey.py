@@ -144,7 +144,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -165,7 +165,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -381,7 +381,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -452,7 +452,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -577,7 +577,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -598,7 +598,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -624,7 +624,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         description = gen_string('alpha')
@@ -803,7 +803,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -826,7 +826,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -850,7 +850,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -876,7 +876,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation key is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1283,7 +1283,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation Key copy exists
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for new_name in valid_data_list():
@@ -1304,7 +1304,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :Assert: Activation Key copy does not exist
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for new_name in invalid_names_list():

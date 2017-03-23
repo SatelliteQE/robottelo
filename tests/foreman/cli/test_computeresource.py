@@ -128,7 +128,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute resource is created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ComputeResource.create({
             'name': 'cr {0}'.format(gen_string(str_type='alpha')),
@@ -146,7 +146,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute resource Info is displayed
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         compute_resource = make_compute_resource({
@@ -167,7 +167,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute resource List is displayed
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -190,7 +190,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute resource deleted
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
@@ -213,7 +213,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute Resource created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in valid_name_desc_data():
             with self.subTest(options):
@@ -234,7 +234,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute resource is created and has location assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         location = make_location()
         comp_resource = make_compute_resource({'location-ids': location['id']})
@@ -251,7 +251,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute resource is created and has multiple locations
             assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         locations_amount = random.randint(3, 5)
         locations = [make_location() for _ in range(locations_amount)]
@@ -277,7 +277,7 @@ class ComputeResourceTestCase(CLITestCase):
         :BZ: 1214312
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for console_password in (u'True', u'Yes', 1, u'False', u'No', 0):
             with self.subTest(console_password):
@@ -303,7 +303,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         :Assert: Compute resource not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in invalid_create_data():
             with self.subTest(options):
@@ -325,7 +325,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute resource not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_res = make_compute_resource()
         with self.assertRaises(CLIReturnCodeError):
@@ -347,7 +347,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute Resource successfully updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in valid_update_data():
             with self.subTest(options):
@@ -386,7 +386,7 @@ class ComputeResourceTestCase(CLITestCase):
         :Assert: Compute Resource not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in invalid_update_data():
             with self.subTest(options):
@@ -413,7 +413,7 @@ class ComputeResourceTestCase(CLITestCase):
         Targets BZ 1100344.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for set_console_password in ('true', 'false'):
             with self.subTest(set_console_password):
@@ -436,7 +436,7 @@ class ComputeResourceTestCase(CLITestCase):
         Targets BZ 1100344.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cr_name = gen_string('utf8')
         ComputeResource.create({

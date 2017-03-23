@@ -183,7 +183,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan is created and has random name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -198,7 +198,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan is created and has random description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -213,7 +213,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan is created and has selected interval
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for test_data in valid_name_interval_create_tests():
             with self.subTest(test_data):
@@ -235,7 +235,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan is created and has random name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -253,7 +253,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan is created and description is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_sync_plan = self._make_sync_plan()
         for new_desc in valid_data_list():
@@ -273,7 +273,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan interval is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for test_data in valid_name_interval_update_tests():
             with self.subTest(test_data):
@@ -297,7 +297,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan is created and sync plan is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Set the sync date to today/right now
         today = datetime.now()
@@ -343,7 +343,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan is created and then deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -360,7 +360,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :Assert: Sync plan Enabled state is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_sync_plan = self._make_sync_plan()
         result = SyncPlan.info({'id': new_sync_plan['id']})

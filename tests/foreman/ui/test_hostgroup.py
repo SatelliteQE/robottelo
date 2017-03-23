@@ -56,7 +56,7 @@ class HostgroupTestCase(UITestCase):
 
         :Assert: Hostgroup is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -73,7 +73,7 @@ class HostgroupTestCase(UITestCase):
 
         :Assert: Hostgroup is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -93,7 +93,7 @@ class HostgroupTestCase(UITestCase):
 
         :Assert: Hostgroup is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -114,7 +114,7 @@ class HostgroupTestCase(UITestCase):
 
         :Assert: Hostgroup is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -131,7 +131,7 @@ class HostgroupTestCase(UITestCase):
 
         :Assert: Hostgroup is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -152,7 +152,7 @@ class HostgroupTestCase(UITestCase):
 
         :Assert: Hostgroup is created with oscap capsule
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -175,7 +175,7 @@ class HostgroupTestCase(UITestCase):
 
         :Assert: Hostgroup is created with activation keys
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -209,7 +209,7 @@ class HostgroupTestCase(UITestCase):
 
         :BZ: 1321511
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Use setup entities as A and create another set for B.
         cv_b = entities.ContentView(organization=self.organization).create()

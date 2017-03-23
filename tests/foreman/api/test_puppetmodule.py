@@ -49,7 +49,7 @@ class RepositorySearchTestCase(APITestCase):
 
         :Assert: No puppet modules are returned.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         query = {'repository_id': self.repository.id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
@@ -62,7 +62,7 @@ class RepositorySearchTestCase(APITestCase):
 
         :Assert: Only the modules in that repository are returned.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             self.repository.upload_content(files={'content': handle})
@@ -103,7 +103,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         :Assert: No puppet modules are found.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.content_view.publish()
         self.content_view = self.content_view.read()
@@ -118,7 +118,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         :Assert: One puppet module is found.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Find the puppet module in `self.repository` and assign it to
         # `self.content_view`. Publish the content view.

@@ -41,7 +41,7 @@ class TemplateTestCase(CLITestCase):
 
         :Assert: Template is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         template = make_template({'name': name})
@@ -56,7 +56,7 @@ class TemplateTestCase(CLITestCase):
 
         :Assert: Template is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template = make_template()
         updated_name = gen_string('alpha')
@@ -76,7 +76,7 @@ class TemplateTestCase(CLITestCase):
 
         :Assert: Template is created and new Location has been assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_loc = make_location()
         new_template = make_template({'location-ids': new_loc['id']})
@@ -92,7 +92,7 @@ class TemplateTestCase(CLITestCase):
         :Assert: The locked template is created successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_template = make_template({
             'locked': 'true',
@@ -109,7 +109,7 @@ class TemplateTestCase(CLITestCase):
 
         :Assert: Template is created and new Organization has been assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_org = make_org()
         new_template = make_template({
@@ -179,7 +179,7 @@ class TemplateTestCase(CLITestCase):
 
         :Assert: Template is created with specific content
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content = gen_string('alpha')
         name = gen_string('alpha')
@@ -200,7 +200,7 @@ class TemplateTestCase(CLITestCase):
 
         :Assert: Template is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template = make_template()
         Template.delete({'id': template['id']})

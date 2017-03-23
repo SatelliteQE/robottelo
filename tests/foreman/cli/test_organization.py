@@ -87,7 +87,7 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: no duplicated lines in usage message
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # org list --help:
         result = Org.list({'help': True})
@@ -112,7 +112,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is created and has appropriate name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -127,7 +127,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is created, label matches name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for test_data in valid_labels_list():
             with self.subTest(test_data):
@@ -145,7 +145,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is created, label does not match name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -166,7 +166,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name, desc in zip(valid_org_names_list(), valid_data_list()):
             with self.subTest(name + desc):
@@ -185,7 +185,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -208,7 +208,7 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Org is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         result_list = Org.list({
@@ -1303,7 +1303,7 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Parameter is added to the org
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -1326,7 +1326,7 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Parameter is added to the org
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -1349,7 +1349,7 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Parameter is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         param_new_value = gen_string('alpha')
@@ -1381,7 +1381,7 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Parameter is removed from the org
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         org = make_org()
@@ -1409,7 +1409,7 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Parameter is removed from the org
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         org = make_org()
@@ -1439,7 +1439,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -1459,7 +1459,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for desc, name, label in zip(
                 valid_data_list(),
@@ -1489,7 +1489,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         Org.delete({'id': org['id']})
@@ -1505,7 +1505,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for label in valid_labels_list():
             with self.subTest(label):
@@ -1523,7 +1523,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -1541,7 +1541,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name in valid_org_names_list():
             with self.subTest(new_name):
@@ -1563,7 +1563,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization description is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
@@ -1586,7 +1586,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization name and description are updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name, new_desc in zip(
                 valid_org_names_list(), valid_data_list()):
@@ -1613,7 +1613,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name in invalid_values_list():
             with self.subTest(new_name):
@@ -1634,7 +1634,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is created and can be searched by name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -1651,7 +1651,7 @@ class OrganizationTestCase(CLITestCase):
 
         :assert: organization is created and can be searched by label
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -1669,7 +1669,7 @@ class OrganizationTestCase(CLITestCase):
         :Assert: Organization is created and info can be obtained by its label
             graciously
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         result = Org.info({'label': org['label']})
@@ -1684,7 +1684,7 @@ class OrganizationTestCase(CLITestCase):
         :Assert: Organization is created and info can be obtained by its name
             graciously
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         result = Org.info({'name': org['name']})

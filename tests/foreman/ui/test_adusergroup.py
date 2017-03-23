@@ -105,7 +105,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         :Assert: Whether a User belonging to User Group is able to access some
             of the pages.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.check_external_user()
         with Session(self.browser) as session:
@@ -253,7 +253,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         :Assert: Whether creation of External AD User Group is possible.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_usergroup(
@@ -282,7 +282,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         :Assert: Creation of User Group should not be possible with same
             External AD User Group name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_usergroup_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -318,7 +318,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         :Assert: Creation of External AD User Group should not be possible with
             random name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_usergroup(

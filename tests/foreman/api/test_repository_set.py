@@ -40,7 +40,7 @@ class RepositorySetTestCase(APITestCase):
 
         :Assert: Repository was enabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -72,7 +72,7 @@ class RepositorySetTestCase(APITestCase):
 
         :Assert: Repository was disabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:

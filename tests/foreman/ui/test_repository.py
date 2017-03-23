@@ -134,7 +134,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -238,7 +238,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is created with expected checksum type.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
@@ -266,7 +266,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
@@ -293,7 +293,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.session_org).create()
@@ -324,7 +324,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is updated with expected url value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -355,7 +355,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is updated with new gpg key
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         key_1_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -397,7 +397,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is updated with expected checksum type.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         checksum_default = CHECKSUM_TYPE['default']
@@ -430,7 +430,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Repository is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -710,7 +710,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Create custom ostree repository should be successful
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -737,7 +737,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Delete custom ostree repository should be successful
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -767,7 +767,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: ostree repo name should be updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -801,7 +801,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: ostree repo URL should be updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -837,7 +837,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Dropdown for download policy is displayed for yum repo
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
@@ -859,7 +859,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: YUM repository with a download policy is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -883,7 +883,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: YUM repository with a default download policy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         default_dl_policy = entities.Setting().search(
@@ -923,7 +923,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: immediate download policy is updated to on_demand
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -945,7 +945,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: immediate download policy is updated to background
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -967,7 +967,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: on_demand download policy is updated to immediate
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
@@ -989,7 +989,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: on_demand download policy is updated to background
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
@@ -1011,7 +1011,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: background download policy is updated to immediate
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
@@ -1033,7 +1033,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: background download policy is updated to on_demand
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
@@ -1055,7 +1055,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: YUM repository is not created with invalid download policy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1079,7 +1079,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: YUM repository is not updated to invalid download policy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -1102,7 +1102,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Dropdown for download policy is not displayed for non-yum repo
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_version = get_host_os_version()
         # ostree is not supported for rhel6 so the following check
@@ -1432,7 +1432,7 @@ class RepositoryTestCase(UITestCase):
         :Assert: Number of modules has no changed after a second repo was
             synced.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             # Create and sync first repo
@@ -1512,7 +1512,7 @@ class RepositoryTestCase(UITestCase):
 
         :BZ: 1394390, 1154384
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1547,7 +1547,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Error is raised during upload and file is not listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1574,7 +1574,7 @@ class RepositoryTestCase(UITestCase):
 
         :BZ: 1154384
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1611,7 +1611,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Error is raised during upload and file is not listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1638,7 +1638,7 @@ class RepositoryTestCase(UITestCase):
 
         :Assert: Content Counts shows zero rpm packages
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             repo = entities.Repository(

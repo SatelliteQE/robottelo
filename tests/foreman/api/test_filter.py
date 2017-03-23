@@ -44,7 +44,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The created filter has the assigned permissions.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Create a filter and assign all ProvisioningTemplate permissions to it
         filter_ = entities.Filter(permission=self.ct_perms).create()
@@ -61,7 +61,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The deleted filter cannot be fetched.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         filter_ = entities.Filter(permission=self.ct_perms).create()
         filter_.delete()
@@ -76,7 +76,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The filter cannot be fetched.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         role = entities.Role().create()
         filter_ = entities.Filter(permission=self.ct_perms, role=role).create()

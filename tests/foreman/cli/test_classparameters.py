@@ -363,7 +363,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Parameters listed for specific Puppet class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_params = SmartClassParameter.list(
             {'puppet-class': self.puppet_class['name']})
@@ -384,7 +384,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Parameters listed for specific Puppet class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_params = SmartClassParameter.list(
             {'puppet-class-id': self.puppet_class['id']})
@@ -408,7 +408,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         BZ: 1385351
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cv = publish_puppet_module(
             self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
@@ -443,7 +443,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Parameter Value overridden with new value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
@@ -473,7 +473,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Not overridden parameter value cannot be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         with self.assertRaises(CLIReturnCodeError):
@@ -497,7 +497,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Puppet Default Value applied on parameter.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -529,7 +529,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Parameter Updated with a new type successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         for data in valid_sc_parameters_data():
@@ -582,7 +582,7 @@ class SmartClassParametersTestCase(CLITestCase):
             1.  Parameter not updated with string type for invalid value.
             2.  Error raised for invalid default value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         for test_data in invalid_sc_parameters_data():
@@ -617,7 +617,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: No error raised for non-empty default value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -651,7 +651,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error not raised for matcher value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.add_override_value({
@@ -686,7 +686,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error raised for default value not matching with regex.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('alpha')
         sc_param_id = self.sc_params_ids_list.pop()
@@ -720,7 +720,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error not raised for default value matching with regex.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('numeric')
         sc_param_id = self.sc_params_ids_list.pop()
@@ -756,7 +756,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error raised for matcher value not matching with regex.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('numeric')
         sc_param_id = self.sc_params_ids_list.pop()
@@ -795,7 +795,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error not raised for matcher value matching with regex.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('numeric')
         sc_param_id = self.sc_params_ids_list.pop()
@@ -833,7 +833,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error raised for default value not in list.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('alphanumeric')
         sc_param_id = self.sc_params_ids_list.pop()
@@ -867,7 +867,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error not raised for default value in list.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -902,7 +902,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error raised for matcher value not in list.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.add_override_value({
@@ -940,7 +940,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error not raised for matcher value in list.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.add_override_value({
@@ -978,7 +978,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error raised for matcher value not of default type.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -1010,7 +1010,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error not raised for matcher value of default type.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -1052,7 +1052,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error raised for invalid default and matcher value both.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.add_override_value({
@@ -1083,7 +1083,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error raised for non existing attribute.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         with self.assertRaises(CLIReturnCodeError):
@@ -1109,7 +1109,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: The matcher has been created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
@@ -1144,7 +1144,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: Error is raised for attempt to add matcher with empty value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         with self.assertRaises(CLIReturnCodeError):
@@ -1172,7 +1172,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: The matcher has been created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -1217,7 +1217,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1247,7 +1247,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1280,7 +1280,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1314,7 +1314,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1350,7 +1350,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1384,7 +1384,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1419,7 +1419,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1453,7 +1453,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1487,7 +1487,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1520,7 +1520,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1537,7 +1537,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: The matcher removed from parameter.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
@@ -1576,7 +1576,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: The 'hidden value' set to true for that parameter.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -1607,7 +1607,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :assert: The 'hidden value' set to false for that parameter.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({
@@ -1650,7 +1650,7 @@ class SmartClassParametersTestCase(CLITestCase):
             1. The parameter default value is updated.
             2. The 'hidden value' displayed as true for that parameter.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         old_value = gen_string('alpha')
@@ -1696,7 +1696,7 @@ class SmartClassParametersTestCase(CLITestCase):
             1. The 'hidden value' set to true for that parameter.
             2. The default value is still empty on hide.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({

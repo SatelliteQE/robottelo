@@ -52,7 +52,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :Assert: Environment is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -106,7 +106,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :Assert: Environment is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -129,7 +129,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :Assert: Environment is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -181,7 +181,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :Assert: lifecycle environments table fits screen
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             env_names = [gen_string('alpha') for _ in range(11)]

@@ -160,7 +160,7 @@ class EntityTestCase(APITestCase):
 
         :Assert: HTTP 200 is returned with an ``application/json`` content-type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.ActivationKey,  # need organization_id or environment_id
@@ -195,7 +195,7 @@ class EntityTestCase(APITestCase):
 
         :Assert: HTTP 401 is returned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.ActivationKey,  # need organization_id or environment_id
@@ -220,7 +220,7 @@ class EntityTestCase(APITestCase):
 
         :Assert: HTTP 201 is returned with an ``application/json`` content-type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -254,7 +254,7 @@ class EntityTestCase(APITestCase):
 
         :Assert: HTTP 401 is returned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -282,7 +282,7 @@ class EntityIdTestCase(APITestCase):
 
         :Assert: HTTP 200 is returned with an ``application/json`` content-type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -310,7 +310,7 @@ class EntityIdTestCase(APITestCase):
 
         :Assert: HTTP 200 is returned with an ``application/json`` content-type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -351,7 +351,7 @@ class EntityIdTestCase(APITestCase):
         :Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
             content-type.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -401,7 +401,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :Assert: The entity is updated with the given attributes.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -444,7 +444,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :Assert: The entity is created with the given attributes.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -473,7 +473,7 @@ class DoubleCheckTestCase(APITestCase):
 
         :Assert: An HTTP 404 is returned when fetching the missing entity.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -509,7 +509,7 @@ class EntityReadTestCase(APITestCase):
 
         :Assert: The just-read entity is an instance of the correct class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         exclude_list = (
             entities.Architecture,  # see test_architecture_read
@@ -535,7 +535,7 @@ class EntityReadTestCase(APITestCase):
         :Assert: The call to ``Architecture.read`` succeeds, and the response
             contains the correct operating system ID.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_id = entities.OperatingSystem().create_json()['id']
         arch_id = entities.Architecture(
@@ -554,7 +554,7 @@ class EntityReadTestCase(APITestCase):
 
         :Assert: The just-read entity is an instance of the correct class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org_id = entities.Organization().create_json()['id']
         syncplan_id = entities.SyncPlan(
@@ -575,7 +575,7 @@ class EntityReadTestCase(APITestCase):
 
         :Assert: The just-read entity is an instance of the correct class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_id = entities.OperatingSystem().create_json()['id']
         osp_id = entities.OperatingSystemParameter(
@@ -600,7 +600,7 @@ class EntityReadTestCase(APITestCase):
         :Assert: The just-read entity is an instance of the correct class and
             name and resource_type fields are populated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         perm = entities.Permission().search(query={'per_page': 1})[0]
         self.assertGreater(len(perm.name), 0)
@@ -614,7 +614,7 @@ class EntityReadTestCase(APITestCase):
 
         :Assert: The media points at the correct operating system.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_id = entities.OperatingSystem().create_json()['id']
         media_id = entities.Media(operatingsystem=[os_id]).create_json()['id']

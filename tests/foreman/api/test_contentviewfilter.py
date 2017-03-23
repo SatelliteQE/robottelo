@@ -653,7 +653,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         :Assert: The search completes with no errors.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cv_filter = entities.ErratumContentViewFilter(
             content_view=self.content_view
@@ -668,7 +668,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         :Assert: The search completes with no errors.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cv_filter = entities.PackageGroupContentViewFilter(
             content_view=self.content_view
@@ -683,7 +683,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         :Assert: The search completes with no errors.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cv_filter = entities.RPMContentViewFilter(
             content_view=self.content_view

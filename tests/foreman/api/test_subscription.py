@@ -39,7 +39,7 @@ class SubscriptionsTestCase(APITestCase):
 
         :Assert: Manifest is uploaded successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -54,7 +54,7 @@ class SubscriptionsTestCase(APITestCase):
 
         :Assert: Manifest is refreshed successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
@@ -75,7 +75,7 @@ class SubscriptionsTestCase(APITestCase):
 
         :Assert: Manifest is Deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
@@ -94,7 +94,7 @@ class SubscriptionsTestCase(APITestCase):
 
         :Assert: The manifest is not uploaded to the second organization.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         orgs = [entities.Organization().create() for _ in range(2)]
         with manifests.clone() as manifest:

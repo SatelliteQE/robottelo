@@ -103,7 +103,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Assert: Current User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_firstname = gen_string('alphanumeric')
         self.update_user({'firstname': new_firstname})
@@ -119,7 +119,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Assert: Current User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_lastname = gen_string('alphanumeric')
         self.update_user({'lastname': new_lastname})
@@ -135,7 +135,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Assert: Current User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         email = u'{0}@example.com'.format(gen_string('alphanumeric'))
         self.update_user({'mail': email})
@@ -154,7 +154,7 @@ class MyAccountTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
         for locale in LOCALES:
@@ -171,7 +171,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'firstname': gen_string('alphanumeric', 300)})
@@ -184,7 +184,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'lastname': gen_string('alphanumeric', 300)})
@@ -197,7 +197,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -214,7 +214,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             self.update_user({'locale': 'invalid'})
@@ -253,7 +253,7 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_password = gen_string('alphanumeric')
         self.update_user({'password': new_password})

@@ -143,7 +143,7 @@ class DockerRepositoryTestCase(CLITestCase):
         :Assert: A repository is created with a Docker upstream repository.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -167,7 +167,7 @@ class DockerRepositoryTestCase(CLITestCase):
             upstream repository and they all belong to the same product.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = make_product_wait({'organization-id': self.org_id})
         repo_names = set()
@@ -196,7 +196,7 @@ class DockerRepositoryTestCase(CLITestCase):
             products.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for _ in range(randint(2, 5)):
             product = make_product_wait({'organization-id': self.org_id})
@@ -224,7 +224,7 @@ class DockerRepositoryTestCase(CLITestCase):
             synchronized.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -245,7 +245,7 @@ class DockerRepositoryTestCase(CLITestCase):
             that its name can be updated.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -270,7 +270,7 @@ class DockerRepositoryTestCase(CLITestCase):
             that its upstream name can be updated.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_upstream_name = 'fedora/ssh'
         repo = _make_docker_repo(
@@ -294,7 +294,7 @@ class DockerRepositoryTestCase(CLITestCase):
             that its URL can be updated.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_url = gen_url()
         repo = _make_docker_repo(
@@ -317,7 +317,7 @@ class DockerRepositoryTestCase(CLITestCase):
             deleted.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -337,7 +337,7 @@ class DockerRepositoryTestCase(CLITestCase):
             altering the other products.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         products = [
             make_product_wait({'organization-id': self.org_id})
@@ -410,7 +410,7 @@ class DockerContentViewTestCase(CLITestCase):
             product is added to a non-composite content view
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -439,7 +439,7 @@ class DockerContentViewTestCase(CLITestCase):
             the product is added to a non-composite content view.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         product = make_product_wait({'organization-id': self.org_id})
         repos = [
@@ -509,7 +509,7 @@ class DockerContentViewTestCase(CLITestCase):
 
         :BZ: 1359665
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -546,7 +546,7 @@ class DockerContentViewTestCase(CLITestCase):
 
         :BZ: 1359665
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cv_versions = []
         product = make_product_wait({'organization-id': self.org_id})
@@ -1095,7 +1095,7 @@ class DockerActivationKeyTestCase(CLITestCase):
 
         :BZ: 1359665
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_content_view = make_content_view({
             'composite': True,
@@ -1707,7 +1707,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1734,7 +1734,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry()
         try:
@@ -1759,7 +1759,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry()
         try:
@@ -1784,7 +1784,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new URL
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry()
         try:
@@ -1808,7 +1808,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new URL
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry()
         try:
@@ -1832,7 +1832,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry({'description': gen_string('alpha')})
         try:
@@ -1857,7 +1857,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry({'description': gen_string('alpha')})
         try:
@@ -1882,7 +1882,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new username
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry({'username': gen_string('alpha')})
         try:
@@ -1907,7 +1907,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is updated with the new username
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry({'username': gen_string('alpha')})
         try:
@@ -1931,7 +1931,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         registry = make_registry()
         Docker.registry.delete({'id': registry['id']})
@@ -1947,7 +1947,7 @@ class DockerRegistryTestCase(CLITestCase):
 
         :Assert: the external registry is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

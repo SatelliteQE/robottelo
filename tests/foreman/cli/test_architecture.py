@@ -39,7 +39,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :Assert: Architecture is created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -54,7 +54,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :Assert: Architecture is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -71,7 +71,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :Assert: Architecture is updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         architecture = make_architecture()
         for new_name in valid_data_list():
@@ -92,7 +92,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :assert: Architecture name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         architecture = make_architecture()
         for new_name in invalid_values_list():
@@ -117,7 +117,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :assert: Architecture is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -135,7 +135,7 @@ class ArchitectureTestCase(CLITestCase):
 
         :assert: Architecture is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

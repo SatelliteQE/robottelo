@@ -34,7 +34,7 @@ class ComputeProfileTestCase(APITestCase):
 
         :Assert: Compute Profile is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -50,7 +50,7 @@ class ComputeProfileTestCase(APITestCase):
 
         :Assert: Compute Profile is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -66,7 +66,7 @@ class ComputeProfileTestCase(APITestCase):
 
         :Assert: Compute Profile is updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         profile = entities.ComputeProfile().create()
         for new_name in valid_data_list():
@@ -84,7 +84,7 @@ class ComputeProfileTestCase(APITestCase):
 
         :Assert: Compute Profile is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         profile = entities.ComputeProfile().create()
         for new_name in invalid_values_list():
@@ -104,7 +104,7 @@ class ComputeProfileTestCase(APITestCase):
 
         :Assert: Compute Profile is deleted successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

@@ -72,7 +72,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is created successfully and has proper name
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_loc_data_list():
             with self.subTest(name):
@@ -89,7 +89,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has expected and correct
             description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         description = gen_string('utf8')
         loc = make_location({'description': description})
@@ -105,7 +105,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct user assigned to
             it with expected login name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = make_user()
         loc = make_location({'user-ids': user['id']})
@@ -121,7 +121,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct user assigned to
             it with expected login name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = make_user()
         loc = make_location({'users': user['login']})
@@ -137,7 +137,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct compute resource
             assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_resource = make_compute_resource()
         loc = make_location({'compute-resource-ids': comp_resource['id']})
@@ -153,7 +153,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct compute resource
             assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         comp_resource = make_compute_resource()
         loc = make_location({'compute-resources': comp_resource['name']})
@@ -169,7 +169,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and list of config templates
             assigned to that location should contain expected one
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template = make_template()
         loc = make_location({'config-template-ids': template['id']})
@@ -189,7 +189,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and list of config templates
             assigned to that location should contain expected one
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template = make_template()
         loc = make_location({'config-templates': template['name']})
@@ -209,7 +209,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct and expected
             domain assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain = make_domain()
         loc = make_location({'domain-ids': domain['id']})
@@ -225,7 +225,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct and expected
             domain assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain = make_domain()
         loc = make_location({'domains': domain['name']})
@@ -241,7 +241,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct subnet with
             expected network address assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         subnet = make_subnet()
         loc = make_location({'subnet-ids': subnet['id']})
@@ -258,7 +258,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct subnet with
             expected network address assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         subnet = make_subnet()
         loc = make_location({'subnets': subnet['name']})
@@ -275,7 +275,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct and expected
             environment assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         env = make_environment()
         loc = make_location({'environment-ids': env['id']})
@@ -291,7 +291,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct and expected
             environment assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         env = make_environment()
         loc = make_location({'environments': env['name']})
@@ -307,7 +307,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct and expected
             host group assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_group = make_hostgroup()
         loc = make_location({'hostgroup-ids': host_group['id']})
@@ -323,7 +323,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct and expected
             host group assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_group = make_hostgroup()
         loc = make_location({'hostgroups': host_group['name']})
@@ -339,7 +339,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct and expected
             media assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         medium = make_medium()
         loc = make_location({'medium-ids': medium['id']})
@@ -357,7 +357,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct environments
             assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         envs_amount = randint(3, 5)
         envs = [make_environment() for _ in range(envs_amount)]
@@ -377,7 +377,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location created successfully and has correct domains assigned
             to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domains_amount = randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
@@ -397,7 +397,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for invalid_name in invalid_values_list():
             with self.subTest(invalid_name):
@@ -413,7 +413,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Second location is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         loc = make_location({'name': name})
@@ -431,7 +431,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIFactoryError):
             make_location({'compute-resource-ids': gen_string('numeric', 6)})
@@ -446,7 +446,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIFactoryError):
             make_location({'users': gen_string('utf8', 80)})
@@ -460,7 +460,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is updated successfully and has proper and expected
             name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc = make_location()
         for new_name in valid_loc_data_list():
@@ -483,7 +483,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is updated successfully and has correct user assigned
             to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = [make_user() for _ in range(2)]
         loc = make_location({'user-ids': user[0]['id']})
@@ -506,7 +506,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is updated successfully and has correct subnet with
             expected network address assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         subnet = [make_subnet() for _ in range(2)]
         loc = make_location({'subnets': subnet[0]['name']})
@@ -532,7 +532,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location updated successfully and has correct compute resource
             assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         resources_amount = randint(3, 5)
         resources = [make_compute_resource() for _ in range(resources_amount)]
@@ -564,7 +564,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location updated successfully and has correct and expected
             host groups assigned to it
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_groups = [make_hostgroup() for _ in range(3)]
         loc = make_location({
@@ -592,7 +592,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for invalid_name in invalid_values_list():
             with self.subTest(invalid_name):
@@ -613,7 +613,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc = make_location()
         with self.assertRaises(CLIReturnCodeError):
@@ -632,7 +632,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc = make_location()
         with self.assertRaises(CLIReturnCodeError):
@@ -759,7 +759,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is deleted successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_loc_data_list():
             with self.subTest(name):
@@ -779,7 +779,7 @@ class LocationTestCase(CLITestCase):
         :Assert: Location is deleted successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc = make_location()
         Location.delete({'id': loc['id']})
@@ -794,7 +794,7 @@ class LocationTestCase(CLITestCase):
 
         :Assert: Parameter is added to the location
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -817,7 +817,7 @@ class LocationTestCase(CLITestCase):
 
         :Assert: Parameter is added to the location
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -840,7 +840,7 @@ class LocationTestCase(CLITestCase):
 
         :Assert: Parameter is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         param_new_value = gen_string('alpha')
@@ -871,7 +871,7 @@ class LocationTestCase(CLITestCase):
 
         :Assert: Parameter is removed from the location
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         location = make_location()
@@ -898,7 +898,7 @@ class LocationTestCase(CLITestCase):
 
         :Assert: Parameter is removed from the location
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha')
         location = make_location()

@@ -45,7 +45,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The host collection was successfully created and has
             appropriate name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -67,7 +67,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: Returned list of host collections for the system contains at
             least one collection
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         entities.HostCollection(organization=self.org).create()
         hc_list = entities.HostCollection().search()
@@ -83,7 +83,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The host collection was successfully created and present in
             the list of collections for specific organization
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         hc = entities.HostCollection(organization=org).create()
@@ -100,7 +100,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The host collection was successfully created and has
             appropriate description.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -119,7 +119,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The host collection was successfully created and has
             appropriate limit.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
@@ -139,7 +139,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The host collection was successfully created and has
             appropriate 'unlimited hosts' parameter value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for unlimited in (True, False):
             with self.subTest(unlimited):
@@ -161,7 +161,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The host collection can be read back, and it includes one
             host.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             host=[self.hosts[0]],
@@ -179,7 +179,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The host collection can be read back, and it references two
             hosts.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -233,7 +233,7 @@ class HostCollectionTestCase(APITestCase):
         :Assert: The ``host_ids`` field matches the host IDs passed in when
             creating the host collection.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -252,7 +252,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: Host collection name was successfully updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -269,7 +269,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: Host collection description was updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -287,7 +287,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: Host collection limit was updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             max_hosts=1,
@@ -308,7 +308,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: Host collection 'unlimited hosts' parameter was updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         random_unlimited = choice([True, False])
         host_collection = entities.HostCollection(
@@ -333,7 +333,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: The host collection was updated with a new host.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             host=[self.hosts[0]],
@@ -351,7 +351,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: The host collection was updated with new hosts.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -377,7 +377,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: Host collection was successfully deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -393,7 +393,7 @@ class HostCollectionTestCase(APITestCase):
 
         :Assert: The host collection was not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):

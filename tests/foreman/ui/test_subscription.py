@@ -40,7 +40,7 @@ class SubscriptionTestCase(UITestCase):
 
         :Assert: Manifest is uploaded and deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             session.nav.go_to_red_hat_subscriptions()

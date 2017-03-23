@@ -74,7 +74,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -98,7 +98,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -123,7 +123,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         kwargs = {
@@ -151,7 +151,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         kwargs = {
@@ -176,7 +176,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -195,7 +195,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_names_list():
@@ -223,7 +223,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_names_list():
@@ -252,7 +252,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -277,7 +277,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -303,7 +303,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -331,7 +331,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
@@ -358,7 +358,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -385,7 +385,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
@@ -413,7 +413,7 @@ class GPGKey(UITestCase):
 
         :assert: gpg key is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -593,7 +593,7 @@ class GPGKey(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
 

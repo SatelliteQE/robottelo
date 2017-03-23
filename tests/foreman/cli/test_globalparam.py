@@ -36,7 +36,7 @@ class GlobalParameterTestCase(CLITestCase):
         :Assert: Global Param is set
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
         value = 'val-%s %s' % (
@@ -56,7 +56,7 @@ class GlobalParameterTestCase(CLITestCase):
         :Assert: Global Param List is displayed
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
         value = 'val-%s %s' % (
@@ -79,7 +79,7 @@ class GlobalParameterTestCase(CLITestCase):
         :Assert: Global Param is deleted
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = 'opt-%s' % gen_string('alpha', 10)
         value = 'val-%s %s' % (

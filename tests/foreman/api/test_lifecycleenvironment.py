@@ -45,7 +45,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Assert: Lifecycle environment is created and has proper name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -64,7 +64,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Assert: Lifecycle environment is created and has proper description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         description = gen_string('utf8')
         lc_env = entities.LifecycleEnvironment(
@@ -83,7 +83,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Assert: Lifecycle environment is created with Library as prior
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         lc_env = entities.LifecycleEnvironment(
             organization=self.org,
@@ -99,7 +99,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Assert: Lifecycle environment is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -116,7 +116,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Assert: Lifecycle environment is created and updated properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         for new_name in valid_data_list():
@@ -156,7 +156,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :Assert: Lifecycle environment is not updated and corresponding error
             is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         lc_env = entities.LifecycleEnvironment(
@@ -179,7 +179,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Assert: Lifecycle environment is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         lc_env.delete()

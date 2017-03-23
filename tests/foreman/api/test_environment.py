@@ -50,7 +50,7 @@ class EnvironmentTestCase(APITestCase):
 
         :Assert: The environment created successfully and has expected name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -67,7 +67,7 @@ class EnvironmentTestCase(APITestCase):
         :Assert: The environment created successfully and has expected
             attributes.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         env = entities.Environment(
@@ -87,7 +87,7 @@ class EnvironmentTestCase(APITestCase):
         :Assert: The environment created successfully and has expected
             attributes.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         location = entities.Location().create()
         env = entities.Environment(
@@ -106,7 +106,7 @@ class EnvironmentTestCase(APITestCase):
 
         :Assert: The server returns an error.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -140,7 +140,7 @@ class EnvironmentTestCase(APITestCase):
 
         :Assert: Environment entity is created and updated properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         env = entities.Environment().create()
         for new_name in valid_data_list():
@@ -195,7 +195,7 @@ class EnvironmentTestCase(APITestCase):
 
         :Assert: Environment entity is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         env = entities.Environment().create()
         for new_name in invalid_names_list():
@@ -213,7 +213,7 @@ class EnvironmentTestCase(APITestCase):
 
         :Assert: Environment entity is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

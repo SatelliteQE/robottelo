@@ -41,7 +41,7 @@ class EnvironmentTestCase(UITestCase):
 
         :Assert: Environment is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_environments_list():
@@ -58,7 +58,7 @@ class EnvironmentTestCase(UITestCase):
 
         :Assert: Environment is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # TODO: This test can be removed by adding the value
         # gen_string('alphanumeric', 255) to valid_env_names().  But since
@@ -83,7 +83,7 @@ class EnvironmentTestCase(UITestCase):
 
         :Assert: Environment is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -103,7 +103,7 @@ class EnvironmentTestCase(UITestCase):
 
         :Assert: Environment is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -123,7 +123,7 @@ class EnvironmentTestCase(UITestCase):
 
         :Assert: Environment is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_environments_list():

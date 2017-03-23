@@ -45,7 +45,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -61,7 +61,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -79,7 +79,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = make_user()
         user_group = make_usergroup({'user-ids': user['id']})
@@ -95,7 +95,7 @@ class UserGroupTestCase(CLITestCase):
         :Assert: User group is created successfully and contains all expected
             users.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         users = [make_user()['login'] for _ in range(randint(3, 5))]
         user_group = make_usergroup({'users': users})
@@ -110,7 +110,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for role_name in valid_data_list():
             with self.subTest(role_name):
@@ -128,7 +128,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         role = make_role()
         user_group = make_usergroup({'role-ids': role['id']})
@@ -144,7 +144,7 @@ class UserGroupTestCase(CLITestCase):
         :Assert: User group is created successfully and contains all expected
             roles
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         roles = [make_role()['name'] for _ in range(randint(3, 5))]
         user_group = make_usergroup({'roles': roles})
@@ -159,7 +159,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -178,7 +178,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sub_user_group = make_usergroup()
         user_group = make_usergroup({
@@ -195,7 +195,7 @@ class UserGroupTestCase(CLITestCase):
         :Assert: User group is created successfully and contains all expected
             user groups
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sub_user_groups = [
             make_usergroup()['name'] for _ in range(randint(3, 5))]
@@ -211,7 +211,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -228,7 +228,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = make_usergroup()
         with self.assertRaises(CLIFactoryError):
@@ -243,7 +243,7 @@ class UserGroupTestCase(CLITestCase):
         :Assert: User group list command returns valid and expected data
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = make_usergroup()
         result_list = UserGroup.list({
@@ -261,7 +261,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is update successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = make_usergroup()
         for new_name in valid_data_list():
@@ -282,7 +282,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is update successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = make_usergroup()
         for new_name in valid_data_list():
@@ -303,7 +303,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = make_usergroup()
         for new_name in invalid_values_list():
@@ -325,7 +325,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = make_usergroup()
         for new_name in invalid_values_list():
@@ -346,7 +346,7 @@ class UserGroupTestCase(CLITestCase):
 
         :assert: User group is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -363,7 +363,7 @@ class UserGroupTestCase(CLITestCase):
 
         :assert: User group is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = make_usergroup()
         UserGroup.delete({'id': user_group['id']})
@@ -379,7 +379,7 @@ class UserGroupTestCase(CLITestCase):
 
         :Assert: User group is deleted successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = make_user()
         user_group = make_usergroup({'user-ids': user['id']})

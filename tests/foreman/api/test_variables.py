@@ -184,7 +184,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The smart Variable is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -206,7 +206,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The smart Variable is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name), self.assertRaises(HTTPError):
@@ -226,7 +226,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The smart Variable is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class
@@ -254,7 +254,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The variable is updated with new puppet class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -280,7 +280,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The variable is updated with new name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -306,7 +306,7 @@ class SmartVariablesTestCase(APITestCase):
         :assert: The variable with same name are not allowed to create from any
             class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         entities.SmartVariable(
@@ -367,7 +367,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: All variables listed for puppet class
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.assertGreater(len(self.puppet_class.list_smart_variables()), 0)
 
@@ -384,7 +384,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Variable created with all given types successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for data in valid_sc_variable_data():
             with self.subTest(data):
@@ -419,7 +419,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Variable is not created for invalid value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for data in invalid_sc_variable_data():
             with self.subTest(data):
@@ -445,7 +445,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is created with empty value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -474,7 +474,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is not created for empty value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -504,7 +504,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -534,7 +534,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Variable is not created for non matching value with regex
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
@@ -568,7 +568,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Variable is created for matching value with regex
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('numeric')
         smart_variable = entities.SmartVariable(
@@ -600,7 +600,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is not created for non matching value with regexp
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -633,7 +633,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is created for matching value with regex
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('numeric')
         smart_variable = entities.SmartVariable(
@@ -671,7 +671,7 @@ class SmartVariablesTestCase(APITestCase):
         :assert: Variable is not created for non matching value with list
             validator
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError) as context:
             entities.SmartVariable(
@@ -700,7 +700,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Variable is created for matching value with list
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Generate list of values
         values_list = [
@@ -738,7 +738,7 @@ class SmartVariablesTestCase(APITestCase):
         :assert: Matcher is not created for non matching value with list
             validator
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -773,7 +773,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is created for matching value with list validator
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -811,7 +811,7 @@ class SmartVariablesTestCase(APITestCase):
         :assert: Matcher is not created for non matching the type of default
             value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -844,7 +844,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is created for matching the type of default value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -873,7 +873,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: Matcher is not created for non existing attribute
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -902,7 +902,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The matcher has been created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
@@ -942,7 +942,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -969,7 +969,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1004,7 +1004,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1040,7 +1040,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1076,7 +1076,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1112,7 +1112,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1146,7 +1146,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1182,7 +1182,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1196,7 +1196,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The Merge Overrides, Merge Default flags are enabled to set
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1222,7 +1222,7 @@ class SmartVariablesTestCase(APITestCase):
         :assert: The Merge Overrides, Merge Default flags are not enabled to
             set
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1263,7 +1263,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The Avoid Duplicates is enabled to set to True
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1292,7 +1292,7 @@ class SmartVariablesTestCase(APITestCase):
             2. The Avoid duplicates flag not enabled to set for any type than
                array
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1333,7 +1333,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The matcher removed from variable
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
@@ -1424,7 +1424,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The 'hidden value' flag is set
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1447,7 +1447,7 @@ class SmartVariablesTestCase(APITestCase):
 
         :assert: The 'hidden value' flag set to false
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1475,7 +1475,7 @@ class SmartVariablesTestCase(APITestCase):
             1. The variable default value is updated
             2. The 'hidden value' flag set to True
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(

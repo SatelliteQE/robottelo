@@ -99,7 +99,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is created with chosen name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -114,7 +114,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is created with chosen description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -132,7 +132,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is created and associated to Library
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         lce = self.get_default_env()
         new_ak_env = self._make_activation_key({
@@ -150,7 +150,7 @@ class ActivationKeyTestCase(CLITestCase):
         :Assert: Activation key is created and associated to expected
             environment
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         env = make_lifecycle_environment({u'organization-id': self.org['id']})
         new_ak_env = self._make_activation_key({
@@ -167,7 +167,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :assert: Activation key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         lce = self.get_default_env()
         new_ak_env = self._make_activation_key({
@@ -207,7 +207,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         self.assertEqual(new_ak['host-limit'], u'Unlimited')
@@ -220,7 +220,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key({
             u'max-hosts': '10',
@@ -252,7 +252,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name), self.assertRaises(
@@ -272,7 +272,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.assert_negative_create_with_usage_limit(
             invalid_values_list() + [0.5],
@@ -287,7 +287,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.assert_negative_create_with_usage_limit(
             ('-1', '-500', 0),
@@ -303,7 +303,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -328,7 +328,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         ActivationKey.delete({
@@ -348,7 +348,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         ActivationKey.delete({
@@ -404,7 +404,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         activation_key = self._make_activation_key()
         for name in valid_data_list():
@@ -427,7 +427,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_name = gen_string('alpha')
         activation_key = self._make_activation_key()
@@ -448,7 +448,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         activation_key = self._make_activation_key()
         for description in valid_data_list():
@@ -522,7 +522,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         self.assertEqual(new_ak['host-limit'], u'Unlimited')
@@ -542,7 +542,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key({
             u'max-hosts': '10',
@@ -564,7 +564,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         for name in invalid_values_list():
@@ -589,7 +589,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as raise_ctx:
@@ -908,7 +908,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -928,7 +928,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         self._make_activation_key({u'content-view-id': cv['id']})
@@ -948,7 +948,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         activation_key = self._make_activation_key({'name': name})
@@ -1103,7 +1103,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is successfully copied
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         parent_ak = self._make_activation_key()
         for new_name in valid_data_list():
@@ -1123,7 +1123,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is successfully copied
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         parent_ak = self._make_activation_key()
         result = ActivationKey.copy({
@@ -1141,7 +1141,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is not successfully copied
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         parent_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as raise_ctx:
@@ -1220,7 +1220,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is successfully copied
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         attach_value = new_ak['auto-attach']
@@ -1242,7 +1242,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is successfully updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         for new_value in (u'1', u'0', u'true', u'false', u'yes', u'no'):
@@ -1268,7 +1268,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :Assert: Activation key is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as exe:

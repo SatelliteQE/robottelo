@@ -46,7 +46,7 @@ class PartitionTableTestCase(APITestCase):
 
         :BZ: 1229384
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(length=1):
             with self.subTest(name):
@@ -61,7 +61,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table created successfully and has correct name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(length=gen_integer(4, 30)):
             with self.subTest(name):
@@ -77,7 +77,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table created successfully and has correct layout
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for layout in valid_data_list():
             with self.subTest(layout):
@@ -93,7 +93,7 @@ class PartitionTableTestCase(APITestCase):
         :Assert: Partition table created successfully and has correct operating
             system
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_family = OPERATING_SYSTEMS[randint(0, 8)]
         ptable = entities.PartitionTable(os_family=os_family).create()
@@ -107,7 +107,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table was not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -122,7 +122,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table was not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for layout in ('', ' ', None):
             with self.subTest(layout):
@@ -137,7 +137,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table was deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable().create()
         ptable.delete()
@@ -152,7 +152,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table updated successfully and name was changed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable().create()
         for new_name in generate_strings_list(length=gen_integer(4, 30)):
@@ -168,7 +168,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table updated successfully and layout was changed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable().create()
         for new_layout in valid_data_list():
@@ -185,7 +185,7 @@ class PartitionTableTestCase(APITestCase):
         :Assert: Partition table updated successfully and operating system was
             changed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable(
             os_family=OPERATING_SYSTEMS[0],
@@ -202,7 +202,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table was not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable().create()
         for new_name in invalid_values_list():
@@ -219,7 +219,7 @@ class PartitionTableTestCase(APITestCase):
 
         :Assert: Partition table was not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = entities.PartitionTable().create()
         for new_layout in ('', ' ', None):

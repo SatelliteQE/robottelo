@@ -77,7 +77,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is created and has random name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -93,7 +93,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is created and address pool is set
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for pool in valid_addr_pools():
             with self.subTest(pool):
@@ -121,7 +121,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is created and has new domain assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain = make_domain()
         subnet = make_subnet({'domain-ids': domain['id']})
@@ -137,7 +137,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is created and has new domains assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domains_amount = random.randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
@@ -157,7 +157,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is created and has gateway assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         gateway = gen_ipaddr(ip3=True)
         subnet = make_subnet({'gateway': gateway})
@@ -172,7 +172,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is created and correct ipam type is assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for ipam_type in (SUBNET_IPAM_TYPES['dhcp'],
                           SUBNET_IPAM_TYPES['internal'],
@@ -190,7 +190,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
@@ -209,7 +209,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         mask = '255.255.255.0'
         network = gen_ipaddr()
@@ -235,7 +235,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Make a new subnet
         subnet = make_subnet()
@@ -252,7 +252,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_subnet = make_subnet()
         for new_name in valid_data_list():
@@ -270,7 +270,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet network and mask are updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         network = gen_ipaddr()
         mask = '255.255.255.0'
@@ -299,7 +299,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet address pool is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         subnet = make_subnet({u'mask': '255.255.255.0'})
         for pool in valid_addr_pools():
@@ -326,7 +326,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         subnet = make_subnet()
         for options in invalid_missing_attributes():
@@ -351,7 +351,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         subnet = make_subnet()
         for options in invalid_addr_pools():
@@ -379,7 +379,7 @@ class SubnetTestCase(CLITestCase):
 
         :Assert: Subnet is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

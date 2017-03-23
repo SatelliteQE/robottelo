@@ -49,7 +49,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Proxy is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Create a random proxy
         with self.assertRaises(HTTPError) as context:
@@ -67,7 +67,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Proxy is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -89,7 +89,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Proxy is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -108,7 +108,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Proxy has the name updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -131,7 +131,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Proxy has the url updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Create fake capsule
         port = get_available_capsule_port()
@@ -156,7 +156,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Proxy has the name updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         organizations = [
             entities.Organization().create() for _ in range(2)]
@@ -182,7 +182,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Proxy has the name updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         locations = [entities.Location().create() for _ in range(2)]
         new_port = get_available_capsule_port()
@@ -231,7 +231,7 @@ class CapsuleTestCase(APITestCase):
 
         :Assert: Puppet classes are imported from proxy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
@@ -281,7 +281,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         :BZ: 1262037
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         names = one_to_many_names('location')
         self.assertGreaterEqual(
@@ -301,7 +301,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         :BZ: 1262037
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         names = one_to_many_names('organization')
         self.assertGreaterEqual(
