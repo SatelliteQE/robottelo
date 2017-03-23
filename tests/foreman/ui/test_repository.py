@@ -133,6 +133,8 @@ class RepositoryTestCase(UITestCase):
         :id: 3713c811-ea80-43ce-a753-344d1dcb7486
 
         :Assert: Repository is created successfully
+
+        :CaseLevel: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -235,6 +237,8 @@ class RepositoryTestCase(UITestCase):
         :id: 06f37bb3-b0cf-4f1f-ae12-df13a6a7eaab
 
         :Assert: Repository is created with expected checksum type.
+
+        :CaseLevel: Critical
         """
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
@@ -261,6 +265,8 @@ class RepositoryTestCase(UITestCase):
         :id: 385d0222-6466-4bc0-9686-b215f41e4274
 
         :Assert: Repository is not created
+
+        :CaseLevel: Critical
         """
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
@@ -286,6 +292,8 @@ class RepositoryTestCase(UITestCase):
         :id: f9515a61-0c5e-4767-9fc9-b17d440418d8
 
         :Assert: Repository is not created
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.session_org).create()
@@ -315,6 +323,8 @@ class RepositoryTestCase(UITestCase):
         :id: cb864338-9d18-4e18-a2ee-37f22e7036b8
 
         :Assert: Repository is updated with expected url value
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -344,6 +354,8 @@ class RepositoryTestCase(UITestCase):
         :id: 51da6572-02d0-43d7-96cc-895b5bebfadb
 
         :Assert: Repository is updated with new gpg key
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         key_1_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -384,6 +396,8 @@ class RepositoryTestCase(UITestCase):
         :id: eed4e77d-baa2-42c2-9774-f1bed52efe39
 
         :Assert: Repository is updated with expected checksum type.
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         checksum_default = CHECKSUM_TYPE['default']
@@ -415,6 +429,8 @@ class RepositoryTestCase(UITestCase):
         :id: 9edc93b1-d4e5-453e-b4ee-0731df491397
 
         :Assert: Repository is deleted successfully
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -693,6 +709,8 @@ class RepositoryTestCase(UITestCase):
         :id: 852cccdc-7289-4d2f-b23a-7caad2dfa195
 
         :Assert: Create custom ostree repository should be successful
+
+        :CaseLevel: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
@@ -718,6 +736,8 @@ class RepositoryTestCase(UITestCase):
         :id: 87dcb236-4eb4-4897-9c2a-be1d0f4bc3e7
 
         :Assert: Delete custom ostree repository should be successful
+
+        :CaseLevel: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -746,6 +766,8 @@ class RepositoryTestCase(UITestCase):
         :Steps: Update repo name
 
         :Assert: ostree repo name should be updated successfully
+
+        :CaseLevel: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -778,6 +800,8 @@ class RepositoryTestCase(UITestCase):
         :Steps: Update ostree repo URL
 
         :Assert: ostree repo URL should be updated successfully
+
+        :CaseLevel: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
@@ -812,6 +836,8 @@ class RepositoryTestCase(UITestCase):
         :id: 8037a68b-66b8-4b42-a80b-fb08495f948d
 
         :Assert: Dropdown for download policy is displayed for yum repo
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
@@ -832,6 +858,8 @@ class RepositoryTestCase(UITestCase):
         :id: 8099fb98-963d-4370-bf51-6807f5efd6d3
 
         :Assert: YUM repository with a download policy is created
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -854,6 +882,8 @@ class RepositoryTestCase(UITestCase):
         :id: ee7637fe-3864-4b2f-a153-14312658d75a
 
         :Assert: YUM repository with a default download policy
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         default_dl_policy = entities.Setting().search(
@@ -892,6 +922,8 @@ class RepositoryTestCase(UITestCase):
         :id: 4aa4d914-74f3-4c2e-9e8a-6e1b7fdb34ea
 
         :Assert: immediate download policy is updated to on_demand
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -912,6 +944,8 @@ class RepositoryTestCase(UITestCase):
         :id: d61bf6b6-6485-4d3a-816a-b533e96deb69
 
         :Assert: immediate download policy is updated to background
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -932,6 +966,8 @@ class RepositoryTestCase(UITestCase):
         :id: 51cac66d-05a4-47da-adb5-d2909725457e
 
         :Assert: on_demand download policy is updated to immediate
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
@@ -952,6 +988,8 @@ class RepositoryTestCase(UITestCase):
         :id: 25b5ba4e-a1cf-41c2-8ca8-4fa3153570f8
 
         :Assert: on_demand download policy is updated to background
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
@@ -972,6 +1010,8 @@ class RepositoryTestCase(UITestCase):
         :id: 7a6efe70-8edb-4fa8-b2a4-93762d6e4bc5
 
         :Assert: background download policy is updated to immediate
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
@@ -992,6 +1032,8 @@ class RepositoryTestCase(UITestCase):
         :id: d36b96b1-6e09-455e-82e7-36a23f8c6c06
 
         :Assert: background download policy is updated to on_demand
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
@@ -1012,6 +1054,8 @@ class RepositoryTestCase(UITestCase):
         :id: dded6dda-3576-4485-8f3c-bb7c091e7ff2
 
         :Assert: YUM repository is not created with invalid download policy
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1034,6 +1078,8 @@ class RepositoryTestCase(UITestCase):
         :id: e6c725f2-172e-49f6-ae92-c56af8a1200b
 
         :Assert: YUM repository is not updated to invalid download policy
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
@@ -1055,6 +1101,8 @@ class RepositoryTestCase(UITestCase):
         :id: 47d55251-5f89-443d-b980-a441da34e205
 
         :Assert: Dropdown for download policy is not displayed for non-yum repo
+
+        :CaseLevel: Critical
         """
         os_version = get_host_os_version()
         # ostree is not supported for rhel6 so the following check
@@ -1376,14 +1424,15 @@ class RepositoryTestCase(UITestCase):
 
     @tier1
     def test_positive_list_puppet_modules_with_multiple_repos(self):
-        """
-        Verify that puppet modules list for specific repo is correct
-        and does not affected by other repositories.
+        """Verify that puppet modules list for specific repo is correct and
+        does not affected by other repositories.
 
         :id: 82ef2987-cb71-4164-aee5-4496b974d1bd
 
         :Assert: Number of modules has no changed after a second repo was
             synced.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             # Create and sync first repo
@@ -1462,6 +1511,8 @@ class RepositoryTestCase(UITestCase):
         :Assert: Upload is successful and package is listed
 
         :BZ: 1394390, 1154384
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1495,6 +1546,8 @@ class RepositoryTestCase(UITestCase):
         :id: 77a098c2-3f63-4e9f-88b9-f0657b721611
 
         :Assert: Error is raised during upload and file is not listed
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1520,6 +1573,8 @@ class RepositoryTestCase(UITestCase):
         :Assert: Upload is successful and module is listed
 
         :BZ: 1154384
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1555,6 +1610,8 @@ class RepositoryTestCase(UITestCase):
         :id: 79ebea29-2c5c-476d-8d1a-54e6b9d49e17
 
         :Assert: Error is raised during upload and file is not listed
+
+        :CaseLevel: Critical
         """
         repo_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1580,6 +1637,8 @@ class RepositoryTestCase(UITestCase):
         :id: 054763e5-b6a8-4f06-a9f7-6819fbc7aba8
 
         :Assert: Content Counts shows zero rpm packages
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             repo = entities.Repository(

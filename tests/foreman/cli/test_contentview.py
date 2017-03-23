@@ -170,6 +170,8 @@ class ContentViewTestCase(CLITestCase):
 
         :assert: content views are created
 
+
+        :CaseLevel: Critical
         """
         for name in generate_strings_list(exclude_types=['cjk']):
             with self.subTest(name):
@@ -190,6 +192,8 @@ class ContentViewTestCase(CLITestCase):
         :assert: content views are not created; proper error thrown and system
             handles it gracefully
 
+
+        :CaseLevel: Critical
         """
         org_id = make_org(cached=True)['id']
         for name in invalid_values_list():
@@ -211,6 +215,8 @@ class ContentViewTestCase(CLITestCase):
         :assert: content views are not created; proper error thrown and system
             handles it gracefully
 
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             ContentView.create({'organization-id': gen_string('alpha')})
@@ -261,6 +267,8 @@ class ContentViewTestCase(CLITestCase):
 
         :Assert: Content view is published and no file is present at
             /var/lib/pulp/published.
+
+        :CaseLevel: Critical
         """
         content_view = make_content_view({'organization-id': self.org['id']})
         ContentView.publish({u'id': content_view['id']})
@@ -286,6 +294,8 @@ class ContentViewTestCase(CLITestCase):
         :assert: Content view is updated with new name
 
         :BZ: 1359665
+
+        :CaseLevel: Critical
         """
         con_view = make_content_view({
             'name': gen_string('utf8'),
@@ -361,6 +371,8 @@ class ContentViewTestCase(CLITestCase):
 
         :assert: content view can be deleted
 
+
+        :CaseLevel: Critical
         """
         con_view = make_content_view({
             'organization-id': make_org(cached=True)['id'],
@@ -381,6 +393,8 @@ class ContentViewTestCase(CLITestCase):
             content view files anymore
 
         :BZ: 1317057, 1265703
+
+        :CaseLevel: Critical
         """
         # Create and sync a repository
         new_product = make_product({u'organization-id': self.org['id']})
@@ -465,6 +479,8 @@ class ContentViewTestCase(CLITestCase):
 
         :assert: Content view version deleted successfully
 
+
+        :CaseLevel: Critical
         """
         # Create new organization, product and repository
         new_org = make_org({u'name': gen_alphanumeric()})
@@ -533,6 +549,8 @@ class ContentViewTestCase(CLITestCase):
 
         :Assert: Content view removed from environment successfully
 
+
+        :CaseLevel: Critical
         """
         new_org = make_org({u'name': gen_alphanumeric()})
         new_cv = make_content_view({u'organization-id': new_org['id']})
@@ -677,6 +695,8 @@ class ContentViewTestCase(CLITestCase):
 
         :Assert: Content view version deleted successfully
 
+
+        :CaseLevel: Critical
         """
         new_org = make_org({u'name': gen_alphanumeric()})
         new_cv = make_content_view({u'organization-id': new_org['id']})
@@ -996,6 +1016,8 @@ class ContentViewTestCase(CLITestCase):
 
         :assert: whether repos are added to cv.
 
+
+        :CaseLevel: Critical
         """
         new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
@@ -3524,6 +3546,8 @@ class ContentViewTestCase(CLITestCase):
 
         :assert: User with no content view create/view permissions cannot
             create or view the content view
+
+        :CaseLevel: Critical
         """
         password = gen_alphanumeric()
         no_rights_user = make_user({'password': password})

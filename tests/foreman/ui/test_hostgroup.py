@@ -55,6 +55,8 @@ class HostgroupTestCase(UITestCase):
         :id: 8bcf45e5-9e7f-4050-9de6-a90350b70006
 
         :Assert: Hostgroup is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -70,6 +72,8 @@ class HostgroupTestCase(UITestCase):
         :id: a0232740-ae9f-44ce-9f3d-bafc8f1b05cb
 
         :Assert: Hostgroup is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -88,6 +92,8 @@ class HostgroupTestCase(UITestCase):
         :id: 237b684d-3b55-444a-be00-a9825952bb53
 
         :Assert: Hostgroup is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -107,6 +113,8 @@ class HostgroupTestCase(UITestCase):
         :id: f118532b-ca9b-4bf4-b53b-9573abcb347a
 
         :Assert: Hostgroup is deleted
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -122,6 +130,8 @@ class HostgroupTestCase(UITestCase):
         :id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
 
         :Assert: Hostgroup is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -141,6 +151,8 @@ class HostgroupTestCase(UITestCase):
         :id: c0ab1148-93ff-41d3-93c3-2ff139349884
 
         :Assert: Hostgroup is created with oscap capsule
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -162,6 +174,8 @@ class HostgroupTestCase(UITestCase):
         :id: cfda3c1b-37fd-42c1-a74c-841efb83b2f5
 
         :Assert: Hostgroup is created with activation keys
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -194,6 +208,8 @@ class HostgroupTestCase(UITestCase):
         :Assert: Only the activation key for view B is listed
 
         :BZ: 1321511
+
+        :CaseLevel: Critical
         """
         # Use setup entities as A and create another set for B.
         cv_b = entities.ContentView(organization=self.organization).create()

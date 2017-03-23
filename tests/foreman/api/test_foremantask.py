@@ -31,6 +31,8 @@ class ForemanTaskTestCase(APITestCase):
         :id: a2a81ca2-63c4-47f5-9314-5852f5e2617f
 
         :Assert: An HTTP 4XX or 5XX message is returned.
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.ForemanTask(id='abc123').read()
@@ -43,6 +45,8 @@ class ForemanTaskTestCase(APITestCase):
         :id: bdcab413-a25d-4fe1-9db4-b50b5c31ebce
 
         :Assert: A list of dicts is returned.
+
+        :CaseLevel: Critical
         """
         summary = entities.ForemanTask().summary()
         self.assertIsInstance(summary, list)

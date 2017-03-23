@@ -53,6 +53,8 @@ class FilterTestCase(APITestCase):
         :id: 6da6c5d3-2727-4eb7-aa15-9f7b6f91d3b2
 
         :Assert: The created filter has the assigned permissions.
+
+        :CaseLevel: Critical
         """
         # Assign filter to created role
         filter_ = make_filter({
@@ -72,6 +74,8 @@ class FilterTestCase(APITestCase):
         :id: f6308192-0e1f-427b-a296-b285f6684691
 
         :Assert: The created filter has the assigned permissions.
+
+        :CaseLevel: Critical
         """
         org = make_org()
         # Assign filter to created role
@@ -91,6 +95,8 @@ class FilterTestCase(APITestCase):
         :id: d7d1969a-cb30-4e97-a9a3-3a4aaf608795
 
         :Assert: The created filter has the assigned permissions.
+
+        :CaseLevel: Critical
         """
         loc = make_location()
         # Assign filter to created role
@@ -109,6 +115,8 @@ class FilterTestCase(APITestCase):
         :id: 97d1093c-0d49-454b-86f6-f5be87b32775
 
         :Assert: The deleted filter cannot be fetched.
+
+        :CaseLevel: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -125,6 +133,8 @@ class FilterTestCase(APITestCase):
         :id: e2adb6a4-e408-4912-a32d-2bf2c43187d9
 
         :Assert: The filter cannot be fetched.
+
+        :CaseLevel: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -146,6 +156,8 @@ class FilterTestCase(APITestCase):
         :id: 3d6a52d8-2f8f-4f97-a155-9b52888af16e
 
         :Assert: Permissions updated.
+
+        :CaseLevel: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -173,6 +185,8 @@ class FilterTestCase(APITestCase):
         :id: 2950b3a1-2bce-447f-9df2-869b1d10eaf5
 
         :Assert: Filter is created and assigned to new role.
+
+        :CaseLevel: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -195,6 +209,8 @@ class FilterTestCase(APITestCase):
          :id: 9bb59109-9701-4ef3-95c6-81f387d372da
 
          :Assert: Filter is created and assigned to new org and loc.
+
+         :CaseLevel: Critical
          """
         org = make_org()
         loc = make_location()

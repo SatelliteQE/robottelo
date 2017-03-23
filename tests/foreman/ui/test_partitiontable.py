@@ -50,6 +50,8 @@ class PartitionTableTestCase(UITestCase):
         :Assert: Partition table is created
 
         :BZ: 1229384
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=1):
@@ -70,6 +72,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
 
         :Assert: Partition table is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -90,6 +94,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 37bb748a-63d1-4d88-954f-71634168072a
 
         :Assert: Partition table is created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -110,6 +116,8 @@ class PartitionTableTestCase(UITestCase):
         :id: f17e16ff-b07f-44ec-a824-b9af460c35aa
 
         :Assert: Partition table is created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -259,6 +267,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 225f1bb9-d5b2-4863-b89b-416f7cf5a7be
 
         :Assert: Partition table is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -282,6 +292,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 3462ff33-1645-41c1-8fbd-513c7e4a18ed
 
         :Assert: Partition table is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('utf8')
         os_family = 'Red Hat'
@@ -310,6 +322,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 427bce9b-c38e-4d78-943f-3cc7f422ebcd
 
         :Assert: Partition table is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -327,6 +341,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 405ed98a-4207-4bf8-899e-dcea7791850e
 
         :Assert: Partition table is deleted
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -347,6 +363,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 63203508-7c73-4ce0-853e-64564167bec3
 
         :Assert: Partition table is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -376,6 +394,8 @@ class PartitionTableTestCase(UITestCase):
         :id: 704e8336-e14a-4d1a-b9db-2f81c8af6ecc
 
         :Assert: Partition table is not updated.  Appropriate error shown.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:

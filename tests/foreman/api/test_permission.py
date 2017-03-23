@@ -80,6 +80,8 @@ class PermissionTestCase(APITestCase):
 
         :assert: Only one permission is returned, and the permission returned
             is the one searched for.
+
+        :CaseLevel: Critical
         """
         failures = {}
         for permission_name in self.permission_names:
@@ -103,6 +105,8 @@ class PermissionTestCase(APITestCase):
 
         :assert: The permissions returned are equal to what is listed for that
             resource type in :data:`robottelo.constants.PERMISSIONS`.
+
+        :CaseLevel: Critical
         """
         failures = {}
         for resource_type in self.permission_resource_types:
@@ -133,6 +137,8 @@ class PermissionTestCase(APITestCase):
         :id: e58308df-19ec-415d-8fa1-63ebf3cd0ad6
 
         :assert: Search returns a list of all expected permissions
+
+        :CaseLevel: Critical
         """
         permissions = entities.Permission().search(query={'per_page': 1000})
         names = {perm.name for perm in permissions}
@@ -239,6 +245,8 @@ class UserRoleTestCase(APITestCase):
 
         :Assert: A user cannot create an entity when missing the "create_*"
             role, and they can create an entity when given the "create_*" role.
+
+        :CaseLevel: Critical
         """
         for entity_cls in (entities.Architecture, entities.Domain):
             with self.subTest(entity_cls):
@@ -259,6 +267,8 @@ class UserRoleTestCase(APITestCase):
         :Assert: A user cannot read an entity when missing the "view_*" role,
             and they can read an entity when given the "view_*" role.
 
+
+        :CaseLevel: Critical
         """
         for entity_cls in (entities.Architecture, entities.Domain):
             with self.subTest(entity_cls):
@@ -277,6 +287,8 @@ class UserRoleTestCase(APITestCase):
         :Assert: A user cannot read an entity with missing the "destroy_*"
             role, and they can read an entity when given the "destroy_*" role.
 
+
+        :CaseLevel: Critical
         """
         for entity_cls in (entities.Architecture, entities.Domain):
             with self.subTest(entity_cls):
@@ -301,6 +313,8 @@ class UserRoleTestCase(APITestCase):
 
         NOTE: This method will only work if ``entity`` has a name.
 
+
+        :CaseLevel: Critical
         """
         for entity_cls in (entities.Architecture, entities.Domain):
             with self.subTest(entity_cls):

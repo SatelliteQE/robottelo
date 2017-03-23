@@ -42,6 +42,8 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: No errors, Bookmark is listed, controller matches the
             controller the bookmark was created for
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -69,6 +71,8 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: No errors, Bookmark is listed, controller matches the
             controller the bookmark was created for
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -94,6 +98,8 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: No errors, Bookmark is listed, controller matches the entity
             the bookmark was created for and is displayed as public
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -118,6 +124,8 @@ class BookmarkTestCase(APITestCase):
             2. List the bookmarks
 
         :Assert: Error returned, Bookmark is not created (not listed)
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -146,6 +154,8 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: Error notification - search query cannot be empty, Bookmark is
             not created (not listed)
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -178,6 +188,8 @@ class BookmarkTestCase(APITestCase):
 
         :Assert: Error notification - name already taken, Bookmark is not
             created (not listed)
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -212,6 +224,8 @@ class BookmarkTestCase(APITestCase):
             created (not listed)
 
         :BZ: 1302725
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -238,6 +252,8 @@ class BookmarkTestCase(APITestCase):
         :Steps: Update the previously created bookmark with another random name
 
         :Assert: The new bookmark name is listed
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -264,6 +280,8 @@ class BookmarkTestCase(APITestCase):
             Bookmark
 
         :Assert: Error - name already taken, bookmark not updated
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -293,6 +311,8 @@ class BookmarkTestCase(APITestCase):
             invalid value
 
         :Assert: Error - bookmark not updated
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -319,6 +339,8 @@ class BookmarkTestCase(APITestCase):
         :Steps: Update the query of the previously created bookmark
 
         :Assert: The updated query submitted
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -343,6 +365,8 @@ class BookmarkTestCase(APITestCase):
             value
 
         :Assert: Error - search query cannot be empty, bookmark not updated
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
@@ -370,6 +394,8 @@ class BookmarkTestCase(APITestCase):
             2. List the bookmarks
 
         :Assert: Bookmark is updated with new public state
+
+        :CaseLevel: Critical
         """
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):

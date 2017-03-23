@@ -42,6 +42,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content are listed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -66,6 +68,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is not listed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -91,6 +95,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The info of the scap-content is listed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -116,6 +122,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The info of the scap-content is not listed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -141,6 +149,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The info of the scap-content is not listed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -166,6 +176,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is created successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -191,6 +203,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is not created.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -216,6 +230,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is not created.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -241,6 +257,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is not created.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -266,6 +284,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is created successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -290,6 +310,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is not created.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -314,6 +336,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is updated successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -338,6 +362,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is deleted successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -362,6 +388,8 @@ class OpenScapTestCase(CLITestCase):
         :Assert: The scap-content is deleted successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')

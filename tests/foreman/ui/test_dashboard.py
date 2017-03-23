@@ -61,6 +61,8 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Check that we have zero as a result of search and any error is
             not raised
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -80,6 +82,8 @@ class DashboardTestCase(UITestCase):
             2. Add a filter to search box (eg. environment)
 
         :Assert: Data displayed according to search box
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -101,6 +105,8 @@ class DashboardTestCase(UITestCase):
             4. On left side of the box click the Clear cross sign
 
         :Assert: Search box is cleared
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         entities.Host(organization=org).create()
@@ -127,6 +133,8 @@ class DashboardTestCase(UITestCase):
             2. Try to remove some widget
 
         :Assert: Widget is removed and is not present on Dashboard
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.dashboard.remove_widget('Latest Events')
@@ -148,6 +156,8 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Dashboard is saved successfully and the removed widgets does
             not appear.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.dashboard.remove_widget('Host Configuration Chart')
@@ -172,6 +182,8 @@ class DashboardTestCase(UITestCase):
             6. Click Reset to default
 
         :Assert: Widget positions successfully saved.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.dashboard.remove_widget('Task Status')
@@ -196,6 +208,8 @@ class DashboardTestCase(UITestCase):
         :Assert: User is able to add widgets.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_in_one_thread
@@ -215,6 +229,8 @@ class DashboardTestCase(UITestCase):
             5. Click to add the widget back
 
         :Assert: The widget is added back to the Dashboard
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             for widget in ['Discovered Hosts', 'Content View History']:
@@ -237,6 +253,8 @@ class DashboardTestCase(UITestCase):
             2. Try to minimize some widget
 
         :Assert: Widget is minimized and is not present on Dashboard
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             for widget in ['Sync Overview', 'Compliance Reports Breakdown']:
@@ -259,6 +277,8 @@ class DashboardTestCase(UITestCase):
             5. Click to add the widget back
 
         :Assert: The widget is added back to the Dashboard
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.dashboard.minimize_widget('Latest Errata')
@@ -277,6 +297,8 @@ class DashboardTestCase(UITestCase):
             2. Click Auto Refresh ON/OFF
 
         :Assert: The auto refresh functionality works as per the set value.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.dashboard.navigate_to_entity()
@@ -308,6 +330,8 @@ class DashboardTestCase(UITestCase):
         :Assert: User is able to list the Bookmark
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @tier2
@@ -578,6 +602,8 @@ class DashboardTestCase(UITestCase):
             4. Review the Sync Overview widget for the above sync details
 
         :Assert: Sync Overview widget is updated with all sync processes
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -670,6 +696,8 @@ class DashboardTestCase(UITestCase):
 
         :Assert: The widget displays all the active subscriptions and expired
             subscriptions details
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:

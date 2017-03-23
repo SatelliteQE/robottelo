@@ -89,6 +89,8 @@ class HostTestCase(APITestCase):
         :id: d63f87e5-66e6-4886-8b44-4129259493a6
 
         :Assert: HTTP 200 is returned, along with ``search`` term.
+
+        :CaseLevel: Critical
         """
         query = gen_string('utf8', gen_integer(1, 100))
         response = client.get(
@@ -108,6 +110,8 @@ class HostTestCase(APITestCase):
         :id: 9086f41c-b3b9-4af2-b6c4-46b80b4d1cfd
 
         :Assert: HTTP 200 is returned, along with per ``per_page`` value.
+
+        :CaseLevel: Critical
         """
         per_page = gen_integer(1, 1000)
         response = client.get(
@@ -128,6 +132,8 @@ class HostTestCase(APITestCase):
 
         :Assert: The host can be read back, and the ``owner_type`` attribute is
             correct.
+
+        :CaseLevel: Critical
         """
         for owner_type in ('User', 'Usergroup'):
             with self.subTest(owner_type):
@@ -144,6 +150,8 @@ class HostTestCase(APITestCase):
         :id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
 
         :Assert: The host's ``owner_type`` attribute is updated as requested.
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         for owner_type in ('User', 'Usergroup'):
@@ -162,6 +170,8 @@ class HostTestCase(APITestCase):
         :id: a7c0e8ec-3816-4092-88b1-0324cb271752
 
         :assert: A host is created with expected name
+
+        :CaseLevel: Critical
         """
         for name in valid_hosts_list():
             with self.subTest(name):
@@ -179,6 +189,8 @@ class HostTestCase(APITestCase):
         :id: 3f266906-c509-42ce-9b20-def448bf8d86
 
         :assert: A host is created with expected IP address
+
+        :CaseLevel: Critical
         """
         ip_addr = gen_ipaddr()
         host = entities.Host(ip=ip_addr).create()
@@ -249,6 +261,8 @@ class HostTestCase(APITestCase):
         :id: 9269d87b-abb9-48e0-b0d1-9b8e258e1ae3
 
         :assert: A host is created with expected puppet proxy assigned
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -264,6 +278,8 @@ class HostTestCase(APITestCase):
         :id: 1b73dd35-c2e8-44bd-b8f8-9e51428a6239
 
         :assert: A host is created with expected puppet CA proxy assigned
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -412,6 +428,8 @@ class HostTestCase(APITestCase):
         :id: de30cf62-5036-4247-a5f0-37dd2b4aae23
 
         :assert: A host is created with expected 'build' parameter value
+
+        :CaseLevel: Critical
         """
         host = entities.Host(build=True).create()
         self.assertEqual(host.build, True)
@@ -426,6 +444,8 @@ class HostTestCase(APITestCase):
         :id: bd8d33f9-37de-4b8d-863e-9f73cd8dcec1
 
         :assert: A host is created with expected 'enabled' parameter value
+
+        :CaseLevel: Critical
         """
         host = entities.Host(enabled=False).create()
         self.assertEqual(host.enabled, False)
@@ -440,6 +460,8 @@ class HostTestCase(APITestCase):
         :id: 00dcfaed-6f54-4b6a-a022-9c97fb992324
 
         :assert: A host is created with expected managed parameter value
+
+        :CaseLevel: Critical
         """
         host = entities.Host(managed=True).create()
         self.assertEqual(host.managed, True)
@@ -452,6 +474,8 @@ class HostTestCase(APITestCase):
         :id: 9b78663f-139c-4d0b-9115-180624b0d41b
 
         :assert: A host is created with expected comment
+
+        :CaseLevel: Critical
         """
         for comment in valid_data_list():
             with self.subTest(comment):
@@ -507,6 +531,8 @@ class HostTestCase(APITestCase):
         :id: e3af6718-4016-4756-bbb0-e3c24ac1e340
 
         :Assert: A host is created with expected host parameters
+
+        :CaseLevel: Critical
         """
         parameters = [{
             'name': gen_string('alpha'), 'value': gen_string('alpha')
@@ -551,6 +577,8 @@ class HostTestCase(APITestCase):
         :id: c2243c30-f70a-4063-a4a4-f67b598a892b
 
         :Assert: A host is created with expected provision method
+
+        :CaseLevel: Critical
         """
         for method in ['build', 'image']:
             with self.subTest(method):
@@ -571,6 +599,8 @@ class HostTestCase(APITestCase):
         :id: ec725359-a75e-498c-9da8-f5abd2343dd3
 
         :assert: Host is deleted
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         host.delete()
@@ -585,6 +615,8 @@ class HostTestCase(APITestCase):
         :id: a82b606c-d683-44ba-9086-684396ef1c10
 
         :assert: A host is updated with expected name
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         for new_name in valid_hosts_list():
@@ -604,6 +636,8 @@ class HostTestCase(APITestCase):
         :id: 72e3b020-7347-4500-8669-c6ddf6dfd0b6
 
         :assert: A host is updated with a new MAC address
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         new_mac = gen_mac()
@@ -725,6 +759,8 @@ class HostTestCase(APITestCase):
         :id: 4c009db9-d720-429e-8150-bebf246d3a43
 
         :assert: A host is updated with a new IP address
+
+        :CaseLevel: Critical
         """
         host = entities.Host(ip=gen_ipaddr()).create()
         new_ip = gen_ipaddr()
@@ -770,6 +806,8 @@ class HostTestCase(APITestCase):
         :id: 98c11e9b-54b0-4f1f-819c-4ff1863457ff
 
         :assert: A host is updated with a new puppet proxy
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         new_proxy = entities.SmartProxy().search(query={
@@ -787,6 +825,8 @@ class HostTestCase(APITestCase):
         :id: 82eacf60-cf89-4035-ad9a-3f78ceb41d39
 
         :assert: A host is updated with a new puppet CA proxy
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         new_proxy = entities.SmartProxy().search(query={
@@ -804,6 +844,8 @@ class HostTestCase(APITestCase):
         :id: 73f9efce-3807-4196-b4e3-a6bfbfe95c99
 
         :assert: A host is update with a new puppet classes
+
+        :CaseLevel: Critical
         """
         host = entities.Host(organization=self.org, location=self.loc).create()
         self.assertEqual(len(host.puppetclass), 0)
@@ -959,6 +1001,8 @@ class HostTestCase(APITestCase):
         :id: f176ebc9-0406-4a7e-8e20-5325808d33db
 
         :assert: A host is updated with a new 'build' parameter value
+
+        :CaseLevel: Critical
         """
         for build in (True, False):
             with self.subTest(build):
@@ -977,6 +1021,8 @@ class HostTestCase(APITestCase):
         :id: 8a84e842-3537-46d5-8275-1c593c2171b3
 
         :assert: A host is updated with a new 'enabled' parameter value
+
+        :CaseLevel: Critical
         """
         for enabled in (True, False):
             with self.subTest(enabled):
@@ -995,6 +1041,8 @@ class HostTestCase(APITestCase):
         :id: 623064aa-db84-4470-ac13-63f32d9f81b6
 
         :assert: A host is updated with a new 'managed' parameter value
+
+        :CaseLevel: Critical
         """
         for managed in (True, False):
             with self.subTest(managed):
@@ -1011,6 +1059,8 @@ class HostTestCase(APITestCase):
         :id: ceca20ce-5ecc-4f7f-b920-28b7bd74d351
 
         :assert: A host is updated with a new comment
+
+        :CaseLevel: Critical
         """
         for new_comment in valid_data_list():
             with self.subTest(new_comment):
@@ -1071,6 +1121,8 @@ class HostTestCase(APITestCase):
         :id: db0f5731-b0cc-4429-85fb-4032cb43ce4a
 
         :assert: A host is updated with a new host parameters
+
+        :CaseLevel: Critical
         """
         parameters = [{
             'name': gen_string('alpha'), 'value': gen_string('alpha')
@@ -1117,6 +1169,8 @@ class HostTestCase(APITestCase):
         :id: 1c46b44c-a2ea-43a6-b4d9-244101b081e8
 
         :assert: A host is not updated
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         for new_name in invalid_values_list():
@@ -1138,6 +1192,8 @@ class HostTestCase(APITestCase):
         :id: 1954ea4e-e0c2-475f-af67-557e91ebc1e2
 
         :assert: A host is not updated
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         for new_mac in invalid_values_list():
@@ -1373,6 +1429,8 @@ class HostTestCase(APITestCase):
         :Assert: Field 'puppet_proxy_name' is returned
 
         :BZ: 1371900
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1391,6 +1449,8 @@ class HostTestCase(APITestCase):
         :Assert: Field 'puppet_ca_proxy_name' is returned
 
         :BZ: 1371900
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1417,6 +1477,8 @@ class HostInterfaceTestCase(APITestCase):
         :id: a45ee576-bec6-47a6-a018-a00e555eb2ad
 
         :Assert: An interface is created with expected name
+
+        :CaseLevel: Critical
         """
         for name in valid_interfaces_list():
             with self.subTest(name):
@@ -1432,6 +1494,8 @@ class HostInterfaceTestCase(APITestCase):
         :id: 6fae26d8-8f62-41ba-a1cc-0185137ef70f
 
         :Assert: An interface is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_interfaces_list():
             with self.subTest(name):
@@ -1446,6 +1510,8 @@ class HostInterfaceTestCase(APITestCase):
         :id: c5034b04-097e-47a4-908b-ee78de1699a4
 
         :Assert: Interface name is successfully updated
+
+        :CaseLevel: Critical
         """
         interface = entities.Interface(host=self.host).create()
         for new_name in valid_interfaces_list():
@@ -1462,6 +1528,8 @@ class HostInterfaceTestCase(APITestCase):
         :id: 6a1fb718-adfb-47cb-b28c-fb3cd01f99b0
 
         :Assert: An interface is not updated
+
+        :CaseLevel: Critical
         """
         interface = entities.Interface(host=self.host).create()
         for new_name in invalid_interfaces_list():
@@ -1479,6 +1547,8 @@ class HostInterfaceTestCase(APITestCase):
         :id: 9bf83c3a-a4dc-420e-8d47-8572e5ae1dd6
 
         :Assert: An interface is successfully deleted
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         interface = entities.Interface(host=host).create()
@@ -1493,6 +1563,8 @@ class HostInterfaceTestCase(APITestCase):
         :id: 716a9dfd-0f31-45aa-a6d1-42add032a15c
 
         :Assert: An interface is not deleted
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         primary_interface = next(
@@ -1514,6 +1586,8 @@ class HostInterfaceTestCase(APITestCase):
         :id: 3b3e9b3f-cfb2-433f-bd1f-0a8e1d9f0b34
 
         :Assert: An interface was successfully deleted, host was not deleted
+
+        :CaseLevel: Critical
         """
         host = entities.Host().create()
         interface = entities.Interface(host=host, primary=False).create()

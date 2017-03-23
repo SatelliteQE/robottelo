@@ -35,6 +35,8 @@ class PingTestCase(CLITestCase):
                != 0
 
         :assert: hammer ping returns a right return code
+
+        :CaseLevel: Critical
         """
         result = ssh.command('hammer -u {0} -p {1} ping'.format(
             self.foreman_user,

@@ -652,6 +652,8 @@ class ContentViewFilterSearchTestCase(APITestCase):
         :id: 6a86060f-6b4f-4688-8ea9-c198e0aeb3f6
 
         :Assert: The search completes with no errors.
+
+        :CaseLevel: Critical
         """
         cv_filter = entities.ErratumContentViewFilter(
             content_view=self.content_view
@@ -665,6 +667,8 @@ class ContentViewFilterSearchTestCase(APITestCase):
         :id: 832c50cc-c2c8-48c9-9a23-80956baf5f3c
 
         :Assert: The search completes with no errors.
+
+        :CaseLevel: Critical
         """
         cv_filter = entities.PackageGroupContentViewFilter(
             content_view=self.content_view
@@ -678,6 +682,8 @@ class ContentViewFilterSearchTestCase(APITestCase):
         :id: 1c9058f1-35c4-46f2-9b21-155ef988564a
 
         :Assert: The search completes with no errors.
+
+        :CaseLevel: Critical
         """
         cv_filter = entities.RPMContentViewFilter(
             content_view=self.content_view

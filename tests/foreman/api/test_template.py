@@ -96,6 +96,8 @@ class ConfigTemplateTestCase(APITestCase):
         :id: 20ccd5c8-98c3-4f22-af50-9760940e5d39
 
         :Assert: Configuration Template is created and contains provided name.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -109,6 +111,8 @@ class ConfigTemplateTestCase(APITestCase):
         :id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
 
         :Assert: Configuration Template is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -123,6 +127,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :Assert: Provisioning Template is created and contains provided
             template kind.
+
+        :CaseLevel: Critical
         """
         template_kind = choice(entities.TemplateKind().search())
         template = entities.ProvisioningTemplate(
@@ -140,6 +146,8 @@ class ConfigTemplateTestCase(APITestCase):
         :Assert: Provisioning Template is created
 
         :BZ: 1379006
+
+        :CaseLevel: Critical
         """
         template_kind = choice(entities.TemplateKind().search())
         template = entities.ProvisioningTemplate(snippet=False)
@@ -159,6 +167,8 @@ class ConfigTemplateTestCase(APITestCase):
         :Assert: 404 error and expected message is returned
 
         :BZ: 1379006
+
+        :CaseLevel: Critical
         """
         template = entities.ProvisioningTemplate(snippet=False)
         template.create_missing()
@@ -181,6 +191,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :Assert: Configuration Template is created, and its name can be
             updated.
+
+        :CaseLevel: Critical
         """
         c_temp = entities.ConfigTemplate().create()
 
@@ -199,6 +211,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :Assert: Configuration Template is created, and its name is not
             updated.
+
+        :CaseLevel: Critical
         """
         c_temp = entities.ConfigTemplate().create()
         for new_name in invalid_names_list():
@@ -216,6 +230,8 @@ class ConfigTemplateTestCase(APITestCase):
         :id: 1471f17c-4412-4717-a6c4-b57a8d2f8cfd
 
         :Assert: Configuration Template is successfully deleted.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

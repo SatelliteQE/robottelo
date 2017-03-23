@@ -188,6 +188,8 @@ class HostGroupTestCase(APITestCase):
         :id: fd5d353c-fd0c-4752-8a83-8f399b4c3416
 
         :assert: A hostgroup is created with expected name
+
+        :CaseLevel: Critical
         """
         for name in valid_hostgroups_list():
             with self.subTest(name):
@@ -205,6 +207,8 @@ class HostGroupTestCase(APITestCase):
         :id: 44ac8b3b-9cb0-4a9e-ad9b-2c67b2411922
 
         :assert: A hostgroup is cloned with same parameters
+
+        :CaseLevel: Critical
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -377,6 +381,8 @@ class HostGroupTestCase(APITestCase):
         :id: 5c715ee8-2fd6-42c6-aece-037733f67454
 
         :assert: A hostgroup is created with expected puppet CA proxy assigned
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -463,6 +469,8 @@ class HostGroupTestCase(APITestCase):
         :id: 4f39f246-d12f-468c-a33b-66486c3806fe
 
         :assert: A hostgroup is created with expected puppet proxy assigned
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -481,6 +489,8 @@ class HostGroupTestCase(APITestCase):
         :id: 39a6273e-8301-449a-a9d3-e3b61cda1e81
 
         :assert: A hostgroup is created with expected content source assigned
+
+        :CaseLevel: Critical
         """
         content_source = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -588,6 +598,8 @@ class HostGroupTestCase(APITestCase):
         :id: 8abb151f-a058-4f47-a1c1-f60a32cd7572
 
         :assert: A hostgroup is updated with expected name
+
+        :CaseLevel: Critical
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -786,6 +798,8 @@ class HostGroupTestCase(APITestCase):
         :id: fd13ab0e-1a5b-48a0-a852-3fff8306271f
 
         :assert: A hostgroup is updated with expected puppet CA proxy
+
+        :CaseLevel: Critical
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -898,6 +912,8 @@ class HostGroupTestCase(APITestCase):
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
 
         :assert: A hostgroup is updated with expected puppet proxy
+
+        :CaseLevel: Critical
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -918,6 +934,8 @@ class HostGroupTestCase(APITestCase):
         :id: 02ef1340-a21e-41b7-8aa7-d6fdea196c16
 
         :assert: A hostgroup is updated with expected puppet proxy
+
+        :CaseLevel: Critical
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -1083,6 +1101,8 @@ class HostGroupTestCase(APITestCase):
         :id: bef6841b-5077-4b84-842e-a286bfbb92d2
 
         :assert: A hostgroup is deleted
+
+        :CaseLevel: Critical
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -1099,6 +1119,8 @@ class HostGroupTestCase(APITestCase):
         :id: 3f5aa17a-8db9-4fe9-b309-b8ec5e739da1
 
         :assert: A hostgroup is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -1116,6 +1138,8 @@ class HostGroupTestCase(APITestCase):
         :id: 6d8c4738-a0c4-472b-9a71-27c8a3832335
 
         :assert: A hostgroup is not updated
+
+        :CaseLevel: Critical
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -1154,6 +1178,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :Assert: The response contains both values for the ``content_source``
             field.
+
+        :CaseLevel: Critical
         """
         names = one_to_one_names('content_source')
         self.assertTrue(
@@ -1172,6 +1198,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :Assert: The response contains both values for the ``content_view``
             field.
+
+        :CaseLevel: Critical
         """
         names = one_to_one_names('content_view')
         self.assertTrue(
@@ -1190,6 +1218,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :Assert: The response contains both values for the
             ``lifecycle_environment`` field.
+
+        :CaseLevel: Critical
         """
         names = one_to_one_names('lifecycle_environment')
         self.assertTrue(
@@ -1210,6 +1240,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :Assert: Field 'puppet_proxy_name' is returned
 
         :BZ: 1371900
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1228,6 +1260,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
         :Assert: Field 'puppet_ca_proxy_name' is returned
 
         :BZ: 1371900
+
+        :CaseLevel: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)

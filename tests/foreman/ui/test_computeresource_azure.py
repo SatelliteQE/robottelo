@@ -46,6 +46,8 @@ class AzureComputeResourceTestCase(UITestCase):
         :Assert: An azure compute resource is created successfully.
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -74,6 +76,8 @@ class AzureComputeResourceTestCase(UITestCase):
         :Assert: An azure compute resource is created successfully
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -102,6 +106,8 @@ class AzureComputeResourceTestCase(UITestCase):
         :Assert: An azure compute resource is not created
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -131,6 +137,8 @@ class AzureComputeResourceTestCase(UITestCase):
         :Assert: The azure compute resource is updated
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -190,6 +198,8 @@ class AzureComputeResourceTestCase(UITestCase):
         :Assert: The compute resource is deleted
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')

@@ -86,6 +86,8 @@ class InterSatelliteSyncTestCase(UITestCase):
             2. The imported repo is enabled and sync.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -108,6 +110,8 @@ class InterSatelliteSyncTestCase(UITestCase):
             2. None of the repo is allowed to enable and sync.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')

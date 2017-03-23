@@ -38,6 +38,8 @@ class RoleTestCase(APITestCase):
         :Assert: An entity can be created without receiving any errors, the
             entity can be fetched, and the fetched entity has the specified
             name.
+
+        :CaseLevel: Critical
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -53,6 +55,8 @@ class RoleTestCase(APITestCase):
         :id: 6e1d9f9c-3cbb-460b-8ef8-4a156e6552a0
 
         :Assert: The role cannot be fetched after it is deleted.
+
+        :CaseLevel: Critical
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -72,6 +76,8 @@ class RoleTestCase(APITestCase):
         :id: 30cb4b42-24cd-48a0-a3c5-7ca44c060e2e
 
         :Assert: The role is updated with the given name.
+
+        :CaseLevel: Critical
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -98,6 +104,8 @@ class CannedRoleTestCases(APITestCase):
         :assert: New role is created with taxonomies
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -112,6 +120,8 @@ class CannedRoleTestCases(APITestCase):
         :assert: New role is created without taxonomies
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -133,6 +143,8 @@ class CannedRoleTestCases(APITestCase):
             3. Override check is not marked by default in filters table
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -151,6 +163,8 @@ class CannedRoleTestCases(APITestCase):
             3. Filter doesnt inherit taxonomies from role
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -167,6 +181,8 @@ class CannedRoleTestCases(APITestCase):
             that filter
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -189,6 +205,8 @@ class CannedRoleTestCases(APITestCase):
             3. Filter doesnt inherits taxonomies from role
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -203,6 +221,8 @@ class CannedRoleTestCases(APITestCase):
         :assert: The taxonomies are applied only to non-overrided role filters
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -219,6 +239,8 @@ class CannedRoleTestCases(APITestCase):
         :assert: The overridden role filters are not updated
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -237,6 +259,8 @@ class CannedRoleTestCases(APITestCase):
         :assert: The taxonomies of filters resets/synced to role taxonomies
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed

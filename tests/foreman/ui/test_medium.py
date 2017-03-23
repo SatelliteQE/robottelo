@@ -37,6 +37,8 @@ class MediumTestCase(UITestCase):
         :id: 17067a4d-a639-4187-a51b-1eae825e4f9c
 
         :Assert: Media is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -54,6 +56,8 @@ class MediumTestCase(UITestCase):
         :id: a15307a3-5a1f-4cca-8594-44e8f3295a51
 
         :Assert: Media is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 256)
         path = INSTALL_MEDIUM_URL % name
@@ -71,6 +75,8 @@ class MediumTestCase(UITestCase):
         :id: db7a58dd-8f4a-4443-be17-e5029e1c2b0e
 
         :Assert: Media is not created
+
+        :CaseLevel: Critical
         """
         path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         with Session(self.browser) as session:
@@ -91,6 +97,8 @@ class MediumTestCase(UITestCase):
         :id: 6379b9b4-a67e-4abf-b8b5-930e40b6c293
 
         :Assert: Media is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
@@ -110,6 +118,8 @@ class MediumTestCase(UITestCase):
         :id: 8ccdd659-3c11-4266-848f-919f3ac853be
 
         :Assert: Media is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 6)
         with Session(self.browser) as session:
@@ -126,6 +136,8 @@ class MediumTestCase(UITestCase):
         :id: ce3367ef-5ad3-4d81-8174-fe5ba4eecb00
 
         :Assert: Media is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 6)
         new_name = gen_string('alpha', 6)
@@ -147,6 +159,8 @@ class MediumTestCase(UITestCase):
         :id: 08c982ef-e8de-4d50-97f5-b8803d7eb9ca
 
         :Assert: Media is deleted
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
@@ -162,6 +176,8 @@ class MediumTestCase(UITestCase):
         :id: 6926eaec-fe74-4171-bc8e-76e28926456b
 
         :Assert: Media is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 6)
         newname = gen_string('alpha', 4)

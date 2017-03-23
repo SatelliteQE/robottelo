@@ -49,6 +49,8 @@ class ArchitectureTestCase(APITestCase):
         :id: acbadcda-3410-45cb-a3aa-932a0facadc1
 
         :Assert: Architecture is created and contains provided name.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -64,6 +66,8 @@ class ArchitectureTestCase(APITestCase):
         :id: c740b8c4-8ee3-4481-b041-4eff2faf9055
 
         :Assert: Architecture is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -78,6 +82,8 @@ class ArchitectureTestCase(APITestCase):
         :id: 8dbbf4f8-188e-406a-9099-a707f553d6bb
 
         :Assert: Architecture is created, and its name can be updated.
+
+        :CaseLevel: Critical
         """
         arch = entities.Architecture().create()
 
@@ -95,6 +101,8 @@ class ArchitectureTestCase(APITestCase):
         :id: 301b335e-9bc1-47d9-8bef-a8ca2e9ea18e
 
         :Assert: Architecture is created, and its name is not updated.
+
+        :CaseLevel: Critical
         """
         arch = entities.Architecture().create()
         for new_name in invalid_names_list():
@@ -112,6 +120,8 @@ class ArchitectureTestCase(APITestCase):
         :id: 114a2973-a889-4a5e-bfac-de4406826258
 
         :Assert: architecture is successfully deleted.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

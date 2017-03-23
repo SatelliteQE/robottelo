@@ -62,6 +62,8 @@ class SubscriptionTestCase(CLITestCase):
         :id: e5a0e4f8-fed9-4896-87a0-ac33f6baa227
 
         :Assert: Manifest are uploaded properly
+
+        :CaseLevel: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -76,6 +78,8 @@ class SubscriptionTestCase(CLITestCase):
         :id: 01539c07-00d5-47e2-95eb-c0fd4f39090f
 
         :Assert: Manifest are deleted properly
+
+        :CaseLevel: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -126,6 +130,8 @@ class SubscriptionTestCase(CLITestCase):
         :id: 000ab0a0-ec1b-497a-84ff-3969a965b52c
 
         :Assert: Manifest history is shown properly
+
+        :CaseLevel: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -147,6 +153,8 @@ class SubscriptionTestCase(CLITestCase):
         :id: 579bbbf7-11cf-4d78-a3b1-16d73bd4ca57
 
         :Assert: Manifests can be refreshed
+
+        :CaseLevel: Critical
         """
         self._upload_manifest(
             self.org['id'], manifests.original_manifest())
@@ -171,6 +179,8 @@ class SubscriptionTestCase(CLITestCase):
         :Assert: the refresh command returns a non-zero return code
 
         :BZ: 1226425
+
+        :CaseLevel: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(

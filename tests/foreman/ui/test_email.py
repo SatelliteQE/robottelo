@@ -43,6 +43,8 @@ class EmailTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()

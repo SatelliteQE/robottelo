@@ -65,6 +65,8 @@ class OpenScapContentTestCase(UITestCase):
             2. Provide all the appropriate parameters.
 
         :Assert: Whether creating  content for OpenScap is successful.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for content_name in valid_data_list():
@@ -93,6 +95,8 @@ class OpenScapContentTestCase(UITestCase):
         :Assert: Creating content for OpenScap is not successful.
 
         :BZ: 1289571
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for content_name in invalid_values_list(interface='ui'):
@@ -120,6 +124,8 @@ class OpenScapContentTestCase(UITestCase):
             2. Navigate to oscap Content page.
 
         :Assert: Whether oscap content exists by default.
+
+        :CaseLevel: Critical
         """
         # see BZ 1336374
         with Session(self.browser):
@@ -171,6 +177,8 @@ class OpenScapContentTestCase(UITestCase):
             3. Delete the openscap content.
 
         :Assert: Deleting content for OpenScap is successful.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for content_name in valid_data_list():

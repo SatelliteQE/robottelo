@@ -283,6 +283,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: 3b22f035-ee3a-489e-89c5-e54571584af1
 
         :Assert: Environment is created.
+
+        :CaseLevel: Critical
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -296,6 +298,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: 8a4141b0-3bb9-47e5-baca-f9f027086d4c
 
         :Assert: Environment is not created.
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -311,6 +315,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment is created and has new Location assigned
 
+
+        :CaseLevel: Critical
         """
         new_loc = make_location()
         new_environment = make_environment({
@@ -328,6 +334,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment is created and has new Organization assigned
 
+
+        :CaseLevel: Critical
         """
         new_org = make_org()
         new_environment = make_environment({
@@ -345,6 +353,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: e25af73a-d4ef-4287-83bf-625337d91392
 
         :assert: Environment is deleted
+
+        :CaseLevel: Critical
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -361,6 +371,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: fe77920c-62fd-4e0e-b960-a940a1370d10
 
         :assert: Environment is not deleted
+
+        :CaseLevel: Critical
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -375,6 +387,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: 48765173-6086-4b91-9da7-594135f68751
 
         :Assert: Environment is deleted.
+
+        :CaseLevel: Critical
         """
         environment = make_environment()
         Environment.delete({'name': environment['name']})
@@ -389,6 +403,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: 7b34ce64-24be-4b3b-8f7e-1de07daafdd9
 
         :Assert: Environment Update is displayed
+
+        :CaseLevel: Critical
         """
         environment = make_environment()
         for new_name in valid_environments_list():
@@ -408,6 +424,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: adc5ad73-0547-40f9-b4d4-649780cfb87a
 
         :Assert: Environment is not updated
+
+        :CaseLevel: Critical
         """
         environment = make_environment()
         for new_name in invalid_values_list():
@@ -429,6 +447,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment Update finished and new location is assigned
 
+
+        :CaseLevel: Critical
         """
         old_loc = make_location()
         new_loc = make_location()
@@ -451,6 +471,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment Update finished and new organization is assigned
 
+
+        :CaseLevel: Critical
         """
         old_org = make_org()
         new_org = make_org()
@@ -477,6 +499,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
 
         :Assert: The command runs without raising an error
+
+        :CaseLevel: Critical
         """
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -499,6 +523,8 @@ class EnvironmentTestCase(CLITestCase):
         :id: e2fdd262-9b09-4252-8a5a-4e578e3b8547
 
         :Assert: The command runs without raising an error
+
+        :CaseLevel: Critical
         """
         sc_params_list = SmartClassParameter.list({
             'environment': self.env['name'],

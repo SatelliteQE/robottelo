@@ -77,6 +77,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: 08cb212e-586f-4630-af1b-ad3e749e82e7
 
         :Assert: OS is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -99,6 +101,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: fcb41aff-c963-403b-a80f-5f9c467d0632
 
         :Assert: OS is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for test_data in valid_os_parameters():
@@ -124,6 +128,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: aa035ef6-a503-48c4-b95a-021a03a145c0
 
         :Assert: OS is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -148,6 +154,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: 7f395b9a-2d48-468a-937b-bba4e6576ba9
 
         :Assert: OS is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -173,6 +181,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: 89d061a8-cb4c-4460-a7fb-7cea73c323af
 
         :Assert: OS is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for major_version in gen_string('numeric', 6), '', '-6':
@@ -199,6 +209,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: 2828cd68-d57a-4e3e-bced-90937290251e
 
         :Assert: OS is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -259,6 +271,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: 252f1512-78a6-415d-a4fd-5f6d268cbb82
 
         :Assert: OS is deleted successfully
+
+        :CaseLevel: Critical
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
@@ -273,6 +287,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: d86aeac2-c2b6-4766-96a8-c2e427a9c8be
 
         :Assert: OS is updated
+
+        :CaseLevel: Critical
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
@@ -298,6 +314,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: 4fbcd341-5aff-465c-b251-7ecd97471e01
 
         :Assert: OS is updated
+
+        :CaseLevel: Critical
         """
         medium_name = gen_string('alpha')
         entities.Media(
@@ -320,6 +338,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: 08ddbc40-dcc1-4695-b209-ba72a6a458df
 
         :Assert: OS is updated
+
+        :CaseLevel: Critical
         """
         ptable = gen_string('alpha', 4)
         script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -345,6 +365,8 @@ class OperatingSystemTestCase(UITestCase):
         :id: df21419a-1fdd-414c-86fc-64cde10d3e05
 
         :Assert: OS is updated
+
+        :CaseLevel: Critical
         """
         os_name = gen_string('alpha')
         template_name = gen_string('alpha')

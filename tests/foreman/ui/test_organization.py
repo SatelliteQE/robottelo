@@ -89,6 +89,8 @@ class OrganizationTestCase(UITestCase):
         :id: f3c492ab-46fb-4b1d-b5d5-29a82385d681
 
         :assert: Auto search for created organization works as intended
+
+        :CaseLevel: Critical
         """
         org_name = gen_string('alpha')
         part_string = org_name[:3]
@@ -107,6 +109,8 @@ class OrganizationTestCase(UITestCase):
         :id: bb5c6400-e837-4e3b-add9-bab2c0b826c9
 
         :assert: Organization is created, label is auto-generated
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -121,6 +125,8 @@ class OrganizationTestCase(UITestCase):
         :id: 82954640-05c2-4d6c-a293-dc4aa3e5611b
 
         :assert: organization is created, label does not match name
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for label in valid_labels():
@@ -142,6 +148,8 @@ class OrganizationTestCase(UITestCase):
         :id: 73befc8c-bf96-48b7-8315-34f0cfef9382
 
         :assert: organization is created, label matches name
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for item in valid_labels():
@@ -165,6 +173,8 @@ class OrganizationTestCase(UITestCase):
         :assert: organization is created, label is auto-generated
 
         :BZ: 1079482
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -208,6 +218,8 @@ class OrganizationTestCase(UITestCase):
         :id: e69ab8c1-e53f-41fa-a84f-290c6c152484
 
         :assert: organization is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for org_name in invalid_values_list(interface='ui'):
@@ -225,6 +237,8 @@ class OrganizationTestCase(UITestCase):
         :id: d7fd91aa-1a0e-4403-8dea-cc03cbb93070
 
         :assert: organization is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -243,6 +257,8 @@ class OrganizationTestCase(UITestCase):
         :id: 6b69d505-56b1-4d7d-bf2a-8762d5184ca8
 
         :assert: Organization is deleted successfully
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             for org_name in generate_strings_list():
@@ -322,6 +338,8 @@ class OrganizationTestCase(UITestCase):
         :id: 776f5268-4f05-4cfc-a1e9-339a3e224677
 
         :assert: Organization name is updated successfully
+
+        :CaseLevel: Critical
         """
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -341,6 +359,8 @@ class OrganizationTestCase(UITestCase):
         :id: 1467a04e-ebd6-4106-94b1-841a4f0ddecb
 
         :assert: Organization name is not updated
+
+        :CaseLevel: Critical
         """
         org_name = gen_string('alpha')
         with Session(self.browser) as session:

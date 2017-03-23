@@ -107,6 +107,8 @@ class MyAccountTestCase(UITestCase):
         :Steps: Update current User with all variations of Firstname in [1]
 
         :Assert: Current User is updated
+
+        :CaseLevel: Critical
         """
         valid_strs = _valid_string_data()
         valid_strs.append('name with space')
@@ -121,6 +123,8 @@ class MyAccountTestCase(UITestCase):
         :Steps: Update current User with with Email
 
         :Assert: Current User is updated
+
+        :CaseLevel: Critical
         """
         email = u'{0}@example.com'.format(gen_string('alpha'))
         self.assert_text_field_update('users.email', email)
@@ -136,6 +140,8 @@ class MyAccountTestCase(UITestCase):
         :Assert: Current User is updated
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
         valid_strs = _valid_string_data()
         valid_strs.append('name with space')
@@ -150,6 +156,8 @@ class MyAccountTestCase(UITestCase):
         :Steps: Update current User with all different Language options
 
         :Assert: Current User is updated
+
+        :CaseLevel: Critical
         """
 
         for lang, locale in LANGUAGES.items():
@@ -183,6 +191,8 @@ class MyAccountTestCase(UITestCase):
         :Steps: Update Password/Verify fields with all variations in [1]
 
         :Assert: User is updated
+
+        :CaseLevel: Critical
         """
         for password in _valid_string_data(max_len=254):
             with self.subTest(password):
@@ -213,6 +223,8 @@ class MyAccountTestCase(UITestCase):
         :Assert: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -227,6 +239,8 @@ class MyAccountTestCase(UITestCase):
         :Assert: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -241,6 +255,8 @@ class MyAccountTestCase(UITestCase):
         :Assert: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -256,6 +272,8 @@ class MyAccountTestCase(UITestCase):
         :Assert: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -272,6 +290,8 @@ class MyAccountTestCase(UITestCase):
         :Assert: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -290,4 +310,6 @@ class MyAccountTestCase(UITestCase):
         :Assert: User is not updated.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """

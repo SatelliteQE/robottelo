@@ -48,6 +48,8 @@ class LDAPAuthSourceTestCase(UITestCase):
             2. Fill in all the fields appropriately for AD.
 
         :Assert: Whether creating LDAP Auth with AD is successful.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():
@@ -82,6 +84,8 @@ class LDAPAuthSourceTestCase(UITestCase):
             2. Delete LDAP Auth source with AD.
 
         :Assert: Whether deleting LDAP Auth with AD is successful.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():

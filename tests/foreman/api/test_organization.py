@@ -60,6 +60,8 @@ class OrganizationTestCase(APITestCase):
         :id: 6f67a3f0-0c1d-498c-9a35-28207b0faec2
 
         :Assert: HTTP 415 is returned.
+
+        :CaseLevel: Critical
         """
         organization = entities.Organization()
         organization.create_missing()
@@ -81,6 +83,8 @@ class OrganizationTestCase(APITestCase):
 
         :Assert: The organization has the provided attributes and an
             auto-generated label.
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         self.assertTrue(hasattr(org, 'label'))
@@ -93,6 +97,8 @@ class OrganizationTestCase(APITestCase):
         :id: f0deab6a-b09b-4110-8575-d4bea945a545
 
         :Assert: The organization has the provided attributes.
+
+        :CaseLevel: Critical
         """
         # A label has a more restrictive allowable charset than a name, so we
         # use it for populating both name and label.
@@ -110,6 +116,8 @@ class OrganizationTestCase(APITestCase):
         :id: 2bdd9aa8-a36a-4009-ac29-5c3d6416a2b7
 
         :Assert: The organization has the provided attributes.
+
+        :CaseLevel: Critical
         """
         org = entities.Organization()
         org.name = name = org.get_fields()['name'].gen_value()
@@ -126,6 +134,8 @@ class OrganizationTestCase(APITestCase):
 
         :Assert: The organization has the provided attributes and an
             auto-generated label.
+
+        :CaseLevel: Critical
         """
         for name in valid_org_data_list():
             with self.subTest(name):
@@ -148,6 +158,8 @@ class OrganizationTestCase(APITestCase):
         :id: f7d92392-751e-45de-91da-5ed2a47afc3f
 
         :Assert: The organization has the provided name, label and description.
+
+        :CaseLevel: Critical
         """
         org = entities.Organization()
         org.name = name = org.get_fields()['name'].gen_value()
@@ -165,6 +177,8 @@ class OrganizationTestCase(APITestCase):
         :id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
 
         :Assert: The organization cannot be created.
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -178,6 +192,8 @@ class OrganizationTestCase(APITestCase):
         :id: a0f5333c-cc83-403c-9bf7-08fb372909dc
 
         :Assert: The second organization cannot be created.
+
+        :CaseLevel: Critical
         """
         name = entities.Organization().create().name
         with self.assertRaises(HTTPError):
@@ -190,6 +206,8 @@ class OrganizationTestCase(APITestCase):
         :id: f6f1d839-21f2-4676-8683-9f899cbdec4c
 
         :Assert: Searching returns at least one result.
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         orgs = entities.Organization().search(
@@ -216,6 +234,8 @@ class OrganizationUpdateTestCase(APITestCase):
         :id: 68f2ba13-2538-407c-9f33-2447fca28cd5
 
         :Assert: The organization's name is updated.
+
+        :CaseLevel: Critical
         """
         for name in valid_org_data_list():
             with self.subTest(name):
@@ -230,6 +250,8 @@ class OrganizationUpdateTestCase(APITestCase):
         :id: bd223197-1021-467e-8714-c1a767ae89af
 
         :Assert: The organization's description is updated.
+
+        :CaseLevel: Critical
         """
         for desc in valid_org_data_list():
             with self.subTest(desc):
@@ -244,6 +266,8 @@ class OrganizationUpdateTestCase(APITestCase):
         :id: 30036e70-b8fc-4c24-9494-b201bbd1c28d
 
         :Assert: The organization's name and description are updated.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         desc = gen_string('alpha')
@@ -398,6 +422,8 @@ class OrganizationUpdateTestCase(APITestCase):
         :id: b7152d0b-5ab0-4d68-bfdf-f3eabcb5fbc6
 
         :Assert: The organization's attributes are not updated.
+
+        :CaseLevel: Critical
         """
         dataset = (
             {'name': gen_string(str_type='utf8', length=256)},

@@ -35,4 +35,6 @@ class EmailTestCase(APITestCase):
             accordingly.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """

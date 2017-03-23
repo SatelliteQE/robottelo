@@ -144,6 +144,8 @@ class SmartClassParametersTestCase(UITestCase):
         :assert: Parameter Updated with a new type successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -165,6 +167,8 @@ class SmartClassParametersTestCase(UITestCase):
         :assert: Parameter not updated with string type for invalid value.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -546,6 +550,8 @@ class SmartClassParametersTestCase(UITestCase):
         :assert: The matcher has been created successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -567,6 +573,8 @@ class SmartClassParametersTestCase(UITestCase):
         :assert: The matcher has been created successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -590,6 +598,8 @@ class SmartClassParametersTestCase(UITestCase):
         :assert: The YAML output has the value only for fqdn matcher.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -617,6 +627,8 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The YAML output doesn't have value for fqdn/host matcher.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -647,6 +659,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -678,6 +692,8 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -711,6 +727,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -742,6 +760,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -774,6 +794,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -805,6 +827,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -836,6 +860,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Duplicate values in YAML output are removed / not displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -866,6 +892,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  No value removed as duplicate value.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -992,6 +1020,8 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The host/hostgroup is saved with changes.
             2.  New matcher for fqdn/hostgroup created inside parameter.
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1012,6 +1042,8 @@ class SmartClassParametersTestCase(UITestCase):
             1.  Error thrown for invalid type value.
             2.  No matcher for fqdn/hostgroup is created inside parameter.
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1038,6 +1070,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  In matcher, 'Use Puppet Default' checkbox is checked.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1064,6 +1098,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  No matcher for fqdn/hostgroup created inside parameter.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1088,6 +1124,8 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Matcher value in parameter is updated from fqdn/hostgroup.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1113,6 +1151,8 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Matcher value in parameter is not updated from fqdn/hostgroup.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1138,6 +1178,8 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Changes submitted successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1271,6 +1313,8 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The parameter default value displayed as hidden.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1298,6 +1342,8 @@ class SmartClassParametersTestCase(UITestCase):
             4.  And the value shown hidden.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')

@@ -47,6 +47,8 @@ class MediumTestCase(CLITestCase):
 
         :Assert: Medium is created
 
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -62,6 +64,8 @@ class MediumTestCase(CLITestCase):
 
         :Assert: Medium is created and has new location assigned
 
+
+        :CaseLevel: Critical
         """
         location = make_location()
         medium = make_medium({'location-ids': location['id']})
@@ -76,6 +80,8 @@ class MediumTestCase(CLITestCase):
 
         :Assert: Medium is created and has new organization assigned
 
+
+        :CaseLevel: Critical
         """
         org = make_org()
         medium = make_medium({'organization-ids': org['id']})
@@ -90,6 +96,8 @@ class MediumTestCase(CLITestCase):
 
         :Assert: Medium is deleted
 
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -154,6 +162,8 @@ class MediumTestCase(CLITestCase):
 
         :Assert: Medium updated
 
+
+        :CaseLevel: Critical
         """
         new_name = gen_alphanumeric(6)
         medium = make_medium()

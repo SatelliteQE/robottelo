@@ -44,6 +44,8 @@ class ProductTestCase(UITestCase):
         :id: b73d9440-1f30-4fc5-ad7c-e1febe879cbc
 
         :Assert: Product is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for prd_name in generate_strings_list():
@@ -90,6 +92,8 @@ class ProductTestCase(UITestCase):
         :id: 11efd16c-6471-4191-934f-79c7278c66e8
 
         :Assert: Product is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -112,6 +116,8 @@ class ProductTestCase(UITestCase):
         :id: 90ceee6e-0ccc-4065-87ba-42d36484f032
 
         :Assert: Product is not created
+
+        :CaseLevel: Critical
         """
         prd_name = gen_string('alphanumeric')
         description = gen_string('alphanumeric')
@@ -136,6 +142,8 @@ class ProductTestCase(UITestCase):
         :id: 2c0539b4-84e1-46c6-aaca-12fe3865da3d
 
         :Assert: Product is updated
+
+        :CaseLevel: Critical
         """
         prd_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -188,6 +196,8 @@ class ProductTestCase(UITestCase):
         :id: c6938675-4a2a-4bec-9315-b1c951b628bb
 
         :Assert: Product is not updated
+
+        :CaseLevel: Critical
         """
         prd_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -211,6 +221,8 @@ class ProductTestCase(UITestCase):
         :id: cf80bafb-8581-483a-b5c1-3a162642c6c1
 
         :Assert: Product is deleted
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for prd_name in generate_strings_list():
