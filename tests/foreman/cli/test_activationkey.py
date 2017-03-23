@@ -679,7 +679,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: System
 
-        :BZ: 1360239
+        :BZ: 1426386
         """
         result = setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
@@ -711,7 +711,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: System
 
-        :BZ: 1360239
+        :BZ: 1426386
         """
         org = make_org()
         result = setup_org_for_a_rh_repo({
@@ -1222,7 +1222,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn(
             u"'--auto-attach': value must be one of", exe.exception.stderr)
 
-    @skip_if_bug_open('bugzilla', 1360239)
+    @skip_if_bug_open('bugzilla', 1435286)
     @tier3
     def test_positive_content_override(self):
         """Positive content override
@@ -1248,20 +1248,21 @@ class ActivationKeyTestCase(CLITestCase):
             u'id': result['activationkey-id'],
             u'organization-id': self.org['id'],
         })
-        for override_value in (u'1', u'0'):
+        for override_value in (True, False):
             with self.subTest(override_value):
                 ActivationKey.content_override({
                     u'content-label': content[0]['label'],
                     u'id': result['activationkey-id'],
                     u'organization-id': self.org['id'],
-                    u'value': override_value,
+                    u'value': int(override_value),
                 })
                 # Retrieve the product content enabled flag
                 content = ActivationKey.product_content({
                     u'id': result['activationkey-id'],
                     u'organization-id': self.org['id'],
                 })
-                self.assertEqual(content[0]['enabled?'], override_value)
+                self.assertEqual(
+                    content[0]['enabled?'], str(override_value).lower())
 
     @tier2
     def test_positive_remove_user(self):

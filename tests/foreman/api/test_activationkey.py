@@ -439,7 +439,7 @@ class ActivationKeyTestCase(APITestCase):
         :Assert: Both Red Hat and custom product subscriptions are assigned as
             Activation Key's product content
 
-        :BZ: 1360239
+        :BZ: 1426386
 
         :CaseLevel: Integration
         """
