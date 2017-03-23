@@ -90,7 +90,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: afdf7000-4bd0-41ec-9773-96ff68e27b8d
 
-        :Assert: Rule should be successfully created
+        :expectedresults: Rule should be successfully created
 
         :CaseImportance: Critical
         """
@@ -108,8 +108,8 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 973ff6e5-572e-401c-bc8c-d614a583e883
 
-        :Assert: Rule should be successfully created and has expected search
-            field value
+        :expectedresults: Rule should be successfully created and has expected
+            search field value
 
         :CaseImportance: Critical
         """
@@ -137,8 +137,8 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: e6742ca5-1d41-4ba3-8f2c-2169db92485b
 
-        :Assert: Rule should be successfully created and has expected hostname
-            field value
+        :expectedresults: Rule should be successfully created and has expected
+            hostname field value
 
         :CaseImportance: Critical
         """
@@ -166,8 +166,8 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 64b90586-c1a9-4be4-8c44-4fa19ca998f8
 
-        :Assert: Rule should be successfully created and has expected hosts
-            limit field value
+        :expectedresults: Rule should be successfully created and has expected
+            hosts limit field value
 
         :CaseImportance: Critical
         """
@@ -194,8 +194,8 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: de847288-257a-4f0e-9cb6-9a0dd0877d23
 
-        :Assert: Rule should be successfully created and has expected priority
-            field value
+        :expectedresults: Rule should be successfully created and has expected
+            priority field value
 
         :CaseImportance: Critical
         """
@@ -221,7 +221,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 0b98d467-aabf-4efe-890f-50d6edcd99ff
 
-        :Assert: Disabled rule should be successfully created
+        :expectedresults: Disabled rule should be successfully created
 
         :CaseImportance: Critical
         """
@@ -248,7 +248,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 79d950dc-4ca1-407e-84ca-9092d1cba978
 
-        :Assert: Error should be raised and rule should not be created
+        :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Critical
         """
@@ -270,7 +270,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: a322c8ce-4f05-401a-88cb-a3d30b4ac446
 
-        :Assert: Error should be raised and rule should not be created
+        :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Critical
         """
@@ -294,7 +294,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 743d29f4-a901-400c-ad98-a3b8942f02b5
 
-        :Assert: Error should be raised and rule should not be created
+        :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Critical
         """
@@ -322,8 +322,8 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 450b49d9-1058-4186-9b23-15cc615e5bd6
 
-        :Assert: Validation error should be raised and rule should not be
-            created
+        :expectedresults: Validation error should be raised and rule should not
+            be created
 
         :CaseImportance: Critical
         """
@@ -347,7 +347,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 5a914e76-de01-406d-9860-0e4e1521b074
 
-        :Assert: Error should be raised and rule should not be created
+        :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Critical
         """
@@ -369,7 +369,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: f8829cce-86c0-452c-b866-d5645174e9e1
 
-        :Assert: Error should be raised and rule should not be created
+        :expectedresults: Error should be raised and rule should not be created
 
         :CaseImportance: Critical
         """
@@ -393,7 +393,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: fc5b714c-e5bc-4b0f-bc94-88e080318704
 
-        :Assert: Rule should be successfully deleted
+        :expectedresults: Rule should be successfully deleted
 
         :CaseImportance: Critical
         """
@@ -412,7 +412,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 16a79449-7200-492e-9ddb-65fc034e510d
 
-        :Assert: Rule name is updated
+        :expectedresults: Rule name is updated
 
         :CaseImportance: Critical
         """
@@ -434,7 +434,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: bcf85a4c-0b27-47a5-8d5d-7ede0f6eea41
 
-        :Assert: Rule search field is updated
+        :expectedresults: Rule search field is updated
 
         :CaseImportance: Critical
         """
@@ -460,7 +460,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: e10274e9-bf1b-42cd-a809-f19e707e7f4c
 
-        :Assert: Rule host group is updated
+        :expectedresults: Rule host group is updated
 
         :CaseImportance: Critical
         """
@@ -490,7 +490,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 753ff15b-da73-4fb3-87cd-14d504d8e882
 
-        :Assert: Rule host name is updated
+        :expectedresults: Rule host name is updated
 
         :CaseImportance: Critical
         """
@@ -513,7 +513,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 69d59c34-407b-47d0-a2b8-46decb95ef47
 
-        :Assert: Rule host limit field is updated
+        :expectedresults: Rule host limit field is updated
 
         :CaseImportance: Critical
         """
@@ -536,7 +536,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: be4de7a9-df8e-44ae-9910-7397341f6d07
 
-        :Assert: Rule priority is updated
+        :expectedresults: Rule priority is updated
 
         :CaseImportance: Critical
         """
@@ -559,7 +559,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 60d619e4-a039-4f9e-a16c-b05f0598e8fa
 
-        :Assert: Rule enabled checkbox is updated
+        :expectedresults: Rule enabled checkbox is updated
 
         :CaseImportance: Critical
         """
@@ -587,7 +587,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 65f32628-796a-4d7e-bf2c-c84c6b06f309
 
-        :Assert: Rule name is not updated
+        :expectedresults: Rule name is not updated
 
         :CaseImportance: Critical
         """
@@ -612,7 +612,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 18713425-22fe-4eaa-a515-8e08aa07e116
 
-        :Assert: Rule host name is not updated
+        :expectedresults: Rule host name is not updated
 
         :CaseImportance: Critical
         """
@@ -643,7 +643,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 7e8b7218-3c8a-4b03-b0df-484e0d793ceb
 
-        :Assert: Rule host limit is not updated
+        :expectedresults: Rule host limit is not updated
 
         :CaseImportance: Critical
         """
@@ -677,7 +677,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: d44ad49c-5d95-442f-a1b3-cd82dd8ffabf
 
-        :Assert: Rule priority is not updated
+        :expectedresults: Rule priority is not updated
 
         :CaseImportance: Critical
         """
@@ -713,8 +713,8 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :id: 585c4bc2-6e34-4fdd-88fb-d788f9e0625b
 
-        :Assert: The ordering of rules should be based on priority as well as
-            create time.
+        :expectedresults: The ordering of rules should be based on priority as
+            well as create time.
 
         :caseautomation: notautomated
 
@@ -796,7 +796,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
 
         :id: 6a03983b-363d-4646-b277-34af5f5abc55
 
-        :Assert: Rule should be created successfully.
+        :expectedresults: Rule should be created successfully.
 
         :CaseLevel: Integration
         """
@@ -818,7 +818,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
 
         :id: 7fa56bab-82d7-46c9-a4fa-c44ef173c703
 
-        :Assert: Rule should be deleted successfully.
+        :expectedresults: Rule should be deleted successfully.
 
         :CaseLevel: Integration
         """
@@ -847,7 +847,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
             2. create a non-admin user and assign 'Discovery Reader' role
             3. Login with non-admin user
 
-        :Assert: Rule should be visible to non-admin user.
+        :expectedresults: Rule should be visible to non-admin user.
 
         :CaseLevel: Integration
         """
@@ -866,8 +866,8 @@ class DiscoveryRuleRoleTestCase(UITestCase):
 
         :id: 23a7627c-6a9b-493b-871f-698543adf1d2
 
-        :Assert: User should validation error and rule should not be deleted
-            successfully.
+        :expectedresults: User should validation error and rule should not be
+            deleted successfully.
 
         :CaseLevel: Integration
         """
@@ -903,8 +903,8 @@ class DiscoveryRuleRoleTestCase(UITestCase):
             2. Define a rule 'rule1' with search query cpu_count = 2
             3. Click on 'Discovered Hosts' from rule1
 
-        :Assert: All hosts based on rule's search query( w/ cpu_count = 2)
-            should be listed
+        :expectedresults: All hosts based on rule's search query( w/ cpu_count
+            = 2) should be listed
 
         :caseautomation: notautomated
 

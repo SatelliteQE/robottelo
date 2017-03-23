@@ -30,7 +30,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :id: 9427294f-42f7-4f7b-bdcc-88d0fc22b893
 
-        :assert: content is installed on client system
+        :expectedresults: content is installed on client system
 
         :caseautomation: notautomated
 
@@ -44,7 +44,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :id: 795605d6-01c2-4db1-8ca2-a966545c0db1
 
-        :assert: newly registered system can be found in Systems UI
+        :expectedresults: newly registered system can be found in Systems UI
 
         :caseautomation: notautomated
 
@@ -58,7 +58,8 @@ class SystemRegistrationTestCase(UITestCase):
 
         :id: ce1844c5-a853-49e2-8eaf-dbac24d6afde
 
-        :assert: after deleting, system no longer appears in system UI.
+        :expectedresults: after deleting, system no longer appears in system
+            UI.
 
         :caseautomation: notautomated
 
@@ -72,7 +73,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :id: 42adeb01-765d-4ee8-a326-4b799c1e91ab
 
-        :assert: compliance status is green in UI
+        :expectedresults: compliance status is green in UI
 
         :caseautomation: notautomated
 
@@ -86,7 +87,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :id: dce486cc-66fc-4959-8cce-e9dbb86eff26
 
-        :assert: compliance status is red in UI
+        :expectedresults: compliance status is red in UI
 
         :caseautomation: notautomated
 
@@ -101,7 +102,7 @@ class SystemRegistrationTestCase(UITestCase):
 
         :id: 788d0da4-f498-4ad2-9a2c-6897d2e699e4
 
-        :assert: compliance status is yellow in UI
+        :expectedresults: compliance status is yellow in UI
 
         :caseautomation: notautomated
 

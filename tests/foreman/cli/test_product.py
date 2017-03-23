@@ -59,7 +59,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 252a2073-5094-4996-b157-bf7ff81f40af
 
-        :Assert: Product is created and has random name
+        :expectedresults: Product is created and has random name
 
         :CaseImportance: Critical
         """
@@ -79,7 +79,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 07ff96b2-cc55-4d07-86a2-f20b77cc9b14
 
-        :Assert: Product is created and has random label
+        :expectedresults: Product is created and has random label
 
         :CaseImportance: Critical
         """
@@ -101,7 +101,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 4b64dc60-ac08-4276-b31a-d3851ae064ba
 
-        :Assert: Product is created and has random description
+        :expectedresults: Product is created and has random description
 
         :CaseImportance: Critical
         """
@@ -122,7 +122,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 64f02b3b-f8c1-42c5-abb2-bf963ac24670
 
-        :Assert: Product is created and has gpg key
+        :expectedresults: Product is created and has gpg key
 
         :CaseImportance: Critical
         """
@@ -143,7 +143,7 @@ class ProductTestCase(CLITestCase):
 
         :id: c54ff608-9f59-4fd6-a45c-bd70ce656023
 
-        :Assert: Product is created and has random sync plan
+        :expectedresults: Product is created and has random sync plan
 
         :CaseImportance: Critical
         """
@@ -166,7 +166,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 2da26ab2-8d79-47ea-b4d2-defcd98a0649
 
-        :Assert: Product is not created
+        :expectedresults: Product is not created
 
         :CaseImportance: Critical
         """
@@ -184,7 +184,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 7cf970aa-48dc-425b-ae37-1e15dfab0626
 
-        :Assert: Product is not created
+        :expectedresults: Product is not created
 
         :CaseImportance: Critical
         """
@@ -205,7 +205,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 4b3b4c5b-3eaa-4b9c-93c6-6ee9d62061eb
 
-        :Assert: Product description is updated
+        :expectedresults: Product description is updated
 
         :CaseImportance: Critical
         """
@@ -229,7 +229,7 @@ class ProductTestCase(CLITestCase):
 
         :id: e7febd14-ac8b-424e-9ddf-bf0f63ebe430
 
-        :Assert: Product gpg key is updated
+        :expectedresults: Product gpg key is updated
 
         :CaseImportance: Critical
         """
@@ -259,7 +259,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 78cbde49-b6c8-41ab-8991-fcb4b648e79b
 
-        :Assert: Product sync plan is updated
+        :expectedresults: Product sync plan is updated
 
         :CaseImportance: Critical
         """
@@ -289,7 +289,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 4dec056b-8084-4372-bf7a-ce1db0c47cc9
 
-        :Assert: Product Renamed to original
+        :expectedresults: Product Renamed to original
 
         :CaseImportance: Critical
         """
@@ -330,7 +330,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 21bb8373-96d1-402c-973c-cf70d4b8244e
 
-        :Assert: Product is deleted
+        :expectedresults: Product is deleted
 
         :CaseImportance: Critical
         """
@@ -355,7 +355,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 1517bc4b-5474-41c1-bc96-6e2130a2c2f4
 
-        :Assert: Product has sync plan
+        :expectedresults: Product has sync plan
 
         :CaseLevel: Integration
         """
@@ -377,7 +377,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 0df2005c-158a-48cb-8a16-9a63923699fc
 
-        :Assert: Product has sync plan
+        :expectedresults: Product has sync plan
 
         :CaseLevel: Integration
         """
@@ -405,7 +405,7 @@ class ProductTestCase(CLITestCase):
 
         :id: b0e436df-dd97-4fd2-a69f-3a2fb7a12c3c
 
-        :Assert: Product is synchronized
+        :expectedresults: Product is synchronized
 
         :CaseLevel: Integration
         """
@@ -428,7 +428,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 92058501-7786-4440-b612-6f7f79aa454e
 
-        :Assert: Product is synchronized
+        :expectedresults: Product is synchronized
 
         :CaseLevel: Integration
         """
@@ -451,7 +451,7 @@ class ProductTestCase(CLITestCase):
 
         :id: 2e4e75dd-45f4-4013-ac74-7d4b38b0faec
 
-        :Assert: Product is synchronized
+        :expectedresults: Product is synchronized
 
         :CaseLevel: Integration
         """

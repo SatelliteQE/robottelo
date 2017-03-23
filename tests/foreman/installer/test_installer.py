@@ -36,7 +36,7 @@ class SELinuxTestCase(TestCase):
 
         :id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
 
-        :Assert: Foreman RPM and SELinux module versions match
+        :expectedresults: Foreman RPM and SELinux module versions match
         """
         rpm_result = ssh.command('rpm -q foreman-selinux')
         self.assertEqual(rpm_result.return_code, 0)
@@ -65,7 +65,7 @@ class SELinuxTestCase(TestCase):
 
         :id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
-        :Assert: All services {'elasticsearch', 'foreman-proxy',
+        :expectedresults: All services {'elasticsearch', 'foreman-proxy',
             'foreman-tasks', 'httpd', 'mongod', 'postgresql',
             'pulp_celerybeat', 'pulp_resource_manager', 'pulp_workers',
             'qdrouterd', 'qpidd', 'tomcat'} are started
@@ -128,8 +128,8 @@ class SELinuxTestCase(TestCase):
 
         :Steps: search all relevant logfiles for ERROR/FATAL
 
-        :Assert: No ERROR/FATAL notifcations occur in {katello-jobs, tomcat6,
-            foreman, pulp, passenger-analytics, httpd, foreman_proxy,
+        :expectedresults: No ERROR/FATAL notifcations occur in {katello-jobs,
+            tomcat6, foreman, pulp, passenger-analytics, httpd, foreman_proxy,
             elasticsearch, postgresql, mongod} logfiles.
         """
         logfiles = (

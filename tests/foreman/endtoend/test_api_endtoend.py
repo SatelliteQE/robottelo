@@ -788,7 +788,8 @@ class AvailableURLsTestCase(TestCase):
 
         :id: 9d9c1afd-9158-419e-9a6e-91e9888f0c04
 
-        :Assert: HTTP 200 is returned with an ``application/json`` content-type
+        :expectedresults: HTTP 200 is returned with an ``application/json``
+            content-type
 
         """
         response = client.get(
@@ -804,7 +805,7 @@ class AvailableURLsTestCase(TestCase):
 
         :id: 7b2dd77a-a821-485b-94db-b583f93c9a89
 
-        :Assert: The paths returned are equal to ``API_PATHS``.
+        :expectedresults: The paths returned are equal to ``API_PATHS``.
 
         """
         # Did the server give us any paths at all?
@@ -870,7 +871,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         :id: c6e45b36-d8b6-4507-8dcd-0645668496b9
 
-        :Assert: 'Default Organization' is found
+        :expectedresults: 'Default Organization' is found
 
         """
         results = entities.Organization().search(
@@ -884,7 +885,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         :id: 1f40b3c6-488d-4037-a7ab-250a02bf919a
 
-        :Assert: 'Default Location' is found
+        :expectedresults: 'Default Location' is found
 
         """
         results = entities.Location().search(
@@ -898,7 +899,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         :id: 892fdfcd-18c0-42ef-988b-f13a04097f5c
 
-        :Assert: Admin User is found and has Admin role
+        :expectedresults: Admin User is found and has Admin role
 
         """
         results = entities.User().search(query={'search': 'login=admin'})
@@ -910,7 +911,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         :id: b8ecc7ba-8007-4067-bf99-21a82c833de7
 
-        :Assert: Overall and individual services status should be 'ok'.
+        :expectedresults: Overall and individual services status should be
+            'ok'.
 
         """
         response = entities.Ping().search_json()
@@ -960,8 +962,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         :id: b2f73740-d3ce-4e6e-abc7-b23e5562bac1
 
-        :Assert: All tests should succeed and Content should be successfully
-            fetched by client.
+        :expectedresults: All tests should succeed and Content should be
+            successfully fetched by client.
         """
         # step 1: Create a new user with admin permissions
         login = gen_string('alphanumeric')

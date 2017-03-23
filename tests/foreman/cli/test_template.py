@@ -39,7 +39,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: 77deaae8-447b-47cc-8af3-8b17476c905f
 
-        :Assert: Template is created
+        :expectedresults: Template is created
 
         :CaseImportance: Critical
         """
@@ -54,7 +54,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: 99bdab7b-1279-4349-a655-4294395ecbe1
 
-        :Assert: Template is updated
+        :expectedresults: Template is updated
 
         :CaseImportance: Critical
         """
@@ -74,7 +74,8 @@ class TemplateTestCase(CLITestCase):
 
         :id: 263aba0e-4f54-4227-af97-f4bc8f5c0788
 
-        :Assert: Template is created and new Location has been assigned
+        :expectedresults: Template is created and new Location has been
+            assigned
 
         :CaseImportance: Critical
         """
@@ -89,7 +90,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: ff10e369-85c6-45f3-9cda-7e1c17a6632d
 
-        :Assert: The locked template is created successfully
+        :expectedresults: The locked template is created successfully
 
 
         :CaseImportance: Critical
@@ -107,7 +108,8 @@ class TemplateTestCase(CLITestCase):
 
         :id: 5de5ca76-1a39-46ac-8dd4-5d41b4b49076
 
-        :Assert: Template is created and new Organization has been assigned
+        :expectedresults: Template is created and new Organization has been
+            assigned
 
         :CaseImportance: Critical
         """
@@ -125,7 +127,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: d9f481b3-9757-4208-b451-baf4792d4d70
 
-        :Assert: Operating system is added to the template
+        :expectedresults: Operating system is added to the template
 
         :CaseLevel: Integration
         """
@@ -148,7 +150,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: b5362565-6dce-4770-81e1-4fe3ec6f6cee
 
-        :Assert: Operating system is removed from template
+        :expectedresults: Operating system is removed from template
 
         :CaseLevel: Integration
         """
@@ -177,7 +179,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: 0fcfc46d-5e97-4451-936a-e8684acac275
 
-        :Assert: Template is created with specific content
+        :expectedresults: Template is created with specific content
 
         :CaseImportance: Critical
         """
@@ -198,7 +200,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: 8e5245ee-13dd-44d4-8111-d4382cacf005
 
-        :Assert: Template is deleted
+        :expectedresults: Template is deleted
 
         :CaseImportance: Critical
         """
@@ -214,7 +216,7 @@ class TemplateTestCase(CLITestCase):
 
         :id: 27d69c1e-0d83-4b99-8a3c-4f1bdec3d261
 
-        :Assert: The template is cloned successfully
+        :expectedresults: The template is cloned successfully
 
         :CaseLevel: Integration
         """

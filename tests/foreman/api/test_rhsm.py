@@ -34,8 +34,9 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
 
         :id: a8706cb7-549b-4426-9bd9-4beecc33c797
 
-        :Assert: Issuing an HTTP GET produces an HTTP 200 response with an
-            ``application/json`` content-type, and the response is a list.
+        :expectedresults: Issuing an HTTP GET produces an HTTP 200 response
+            with an ``application/json`` content-type, and the response is a
+            list.
 
         This test targets bugzilla bug 1112802.
 

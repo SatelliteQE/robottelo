@@ -36,7 +36,8 @@ class OpenstackComputeResourceTestCase(UITestCase):
             3. Provide a valid name to openstack compute resource.
             4. Test the connection using Load Tenants and submit.
 
-        :Assert: An openstack compute resource is created successfully.
+        :expectedresults: An openstack compute resource is created
+            successfully.
 
         :Caseautomation: notautomated
 
@@ -59,7 +60,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             3. Provide a valid description to openstack compute resource.
             4. Test the connection using Load Tenants and submit.
 
-        :Assert: An openstack compute resource is created successfully
+        :expectedresults: An openstack compute resource is created successfully
 
         :Caseautomation: notautomated
 
@@ -83,7 +84,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             3. Provide a invalid name to openstack compute resource.
             4. Test the connection using Load Tenants and submit.
 
-        :Assert: An openstack compute resource is not created
+        :expectedresults: An openstack compute resource is not created
 
         :Caseautomation: notautomated
 
@@ -108,7 +109,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             4. Test the connection using Load Tenants and submit.
             5. Update the name of the created CR with valid string.
 
-        :Assert: The openstack compute resource is updated
+        :expectedresults: The openstack compute resource is updated
 
         :Caseautomation: notautomated
 
@@ -134,7 +135,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             5. Create a new organization.
             6. Add the CR to new organization.
 
-        :Assert: The openstack compute resource is updated
+        :expectedresults: The openstack compute resource is updated
 
         :Caseautomation: notautomated
         """
@@ -157,7 +158,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             4. Test the connection using Load Tenants and submit.
             5. Delete the created compute resource.
 
-        :Assert: The compute resource is deleted
+        :expectedresults: The compute resource is deleted
 
         :Caseautomation: notautomated
 
@@ -182,7 +183,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             4. Select "New image" , provide it valid name and information.
             5. Select the desired template to create image and submit.
 
-        :Assert: The image is added to the CR successfully
+        :expectedresults: The image is added to the CR successfully
 
         :Caseautomation: notautomated
          """
@@ -205,7 +206,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             4. Select "New image" , provide it invalid name.
             5. Select the desired template to create the image from and submit.
 
-        :Assert: The image should not be added to the CR
+        :expectedresults: The image should not be added to the CR
 
         :Caseautomation: notautomated
         """
@@ -229,7 +230,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             4. Click Compute Profile tab.
             5. Select (3-Large) and submit.
 
-        :Assert: The compute resource created and opened successfully
+        :expectedresults: The compute resource created and opened successfully
 
         :Caseautomation: notautomated
         """
@@ -252,7 +253,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             4. Click Compute Profile tab.
             5. Edit (3-Large) with valid configurations and submit.
 
-        :Assert: The compute resource created and opened successfully
+        :expectedresults: The compute resource created and opened successfully
 
         :Caseautomation: notautomated
         """
@@ -272,7 +273,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             1. Select the created compute resource.
             2. Go to "Virtual Machines" tab.
 
-        :Assert: The Virtual machines should be displayed
+        :expectedresults: The Virtual machines should be displayed
 
         :Caseautomation: notautomated
         """
@@ -304,7 +305,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             9. Select the appropriate image .
             10. Associate the activation key and submit.
 
-        :Assert: The host should be provisioned successfully
+        :expectedresults: The host should be provisioned successfully
 
         :Caseautomation: notautomated
         """
@@ -327,7 +328,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             4. Select the "Compute profile" from the drop down.
             5. Provision the host using the compute profile.
 
-        :Assert: The host should be provisioned successfully
+        :expectedresults: The host should be provisioned successfully
 
         :Caseautomation: notautomated
         """
@@ -352,7 +353,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
                flavor.
             5. Provision the host using the compute profile.
 
-        :Assert: The host should be provisioned with custom settings
+        :expectedresults: The host should be provisioned with custom settings
 
         :Caseautomation: notautomated
         """
@@ -375,7 +376,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
             3. Select the Deploy on as openstack compute resource.
             4. Provision the host.
 
-        :Assert: The host should be provisioned with host group
+        :expectedresults: The host should be provisioned with host group
 
         :Caseautomation: notautomated
         """

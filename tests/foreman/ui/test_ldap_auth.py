@@ -48,8 +48,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Login to server with an IPA user.
 
-        :assert: Log in to foreman UI successfully but cannot access functional
-            areas of UI
+        :expectedresults: Log in to foreman UI successfully but cannot access
+            functional areas of UI
 
         :caseautomation: notautomated
 
@@ -68,8 +68,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Login to server with an IPA user.
 
-        :assert: Log in to foreman UI successfully and can access appropriate
-            functional areas in UI
+        :expectedresults: Log in to foreman UI successfully and can access
+            appropriate functional areas in UI
 
         :caseautomation: notautomated
 
@@ -89,8 +89,8 @@ class LDAPAuthTestCase(UITestCase):
             1. Login to the foreman UI.
             2. Delete or disable user on IPA server side.
 
-        :assert: This is handled gracefully (user is logged out perhaps?) and
-            no data corruption
+        :expectedresults: This is handled gracefully (user is logged out
+            perhaps?) and no data corruption
 
         :caseautomation: notautomated
 
@@ -109,8 +109,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Login to server with an AD user.
 
-        :assert: Log in to foreman UI successfully but cannot access functional
-            areas of UI
+        :expectedresults: Log in to foreman UI successfully but cannot access
+            functional areas of UI
 
         :caseautomation: notautomated
 
@@ -129,8 +129,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Login to server with an AD user.
 
-        :assert: Log in to foreman UI successfully and can access appropriate
-            functional areas in UI
+        :expectedresults: Log in to foreman UI successfully and can access
+            appropriate functional areas in UI
 
         :caseautomation: notautomated
 
@@ -150,8 +150,8 @@ class LDAPAuthTestCase(UITestCase):
             1. Login to the Sat6 UI.
             2. Delete or disable userid on AD server side.
 
-        :assert: This is handled gracefully (user is logged out perhaps?) and
-            no data corruption
+        :expectedresults: This is handled gracefully (user is logged out
+            perhaps?) and no data corruption
 
         :caseautomation: notautomated
 
@@ -170,8 +170,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Login to server with a RHDSLDAP user.
 
-        :assert: Log in to foreman UI successfully but has no access to
-            functional areas of UI.
+        :expectedresults: Log in to foreman UI successfully but has no access
+            to functional areas of UI.
 
         :caseautomation: notautomated
 
@@ -191,8 +191,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Login to server with a RHDS LDAP id.
 
-        :assert: Log in to foreman UI successfully and can access appropriate
-            functional areas in UI
+        :expectedresults: Log in to foreman UI successfully and can access
+            appropriate functional areas in UI
 
         :caseautomation: notautomated
 
@@ -212,8 +212,8 @@ class LDAPAuthTestCase(UITestCase):
             1. Login to the foreman UI.
             2. Delete or disable userid on RHDS LDAP server side.
 
-        :assert: This is handled gracefully (user is logged out perhaps?) and
-            no data corruption
+        :expectedresults: This is handled gracefully (user is logged out
+            perhaps?) and no data corruption
 
         :caseautomation: notautomated
 
@@ -235,8 +235,8 @@ class LDAPAuthTestCase(UITestCase):
             2. Logout and attempt to login with a user that exists on other
                 ldap server(s).
 
-        :assert: Log in to foreman UI successfully for users on both LDAP
-            servers.
+        :expectedresults: Log in to foreman UI successfully for users on both
+            LDAP servers.
 
         :caseautomation: notautomated
 
@@ -262,8 +262,8 @@ class LDAPAuthTestCase(UITestCase):
             2. Logout and attempt to login with a user that exists on other
                 ldap server(s).
 
-        :assert: Foreman should have some method for distinguishing/specifying
-            which server a user comes from.
+        :expectedresults: Foreman should have some method for
+            distinguishing/specifying which server a user comes from.
 
         :caseautomation: notautomated
 
@@ -285,8 +285,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Try to login with ldap user "admin".
 
-        :assert: Login from local db user "admin" overrides any ldap user
-            "admin"
+        :expectedresults: Login from local db user "admin" overrides any ldap
+            user "admin"
 
         :caseautomation: notautomated
 
@@ -304,8 +304,8 @@ class LDAPAuthTestCase(UITestCase):
 
         :steps: Try to login with ldap user when server is non-responsive.
 
-        :assert: UI does handles situation gracefully, perhaps informing user
-            that LDAP instance is not responding
+        :expectedresults: UI does handles situation gracefully, perhaps
+            informing user that LDAP instance is not responding
 
         :caseautomation: notautomated
 
@@ -326,8 +326,8 @@ class LDAPAuthTestCase(UITestCase):
             2. While logged in with ldap user, disconnect access to ldap
                 server.
 
-        :assert: Situation is handled gracefully and without serious data loss
-            on foreman server
+        :expectedresults: Situation is handled gracefully and without serious
+            data loss on foreman server
 
         :caseautomation: notautomated
 
@@ -347,8 +347,8 @@ class LDAPAuthTestCase(UITestCase):
         :steps: Login to sat6 with LDAP user that is part of aforementioned
             UserGroup.
 
-        :assert: User has access to all functional areas that are assigned to
-            aforementioned UserGroup.
+        :expectedresults: User has access to all functional areas that are
+            assigned to aforementioned UserGroup.
 
         :caseautomation: notautomated
 
@@ -368,8 +368,8 @@ class LDAPAuthTestCase(UITestCase):
         :steps: Login to sat6 with LDAP user that is part of aforementioned
             UserGroup.
 
-        :assert: User has access to all NEW functional areas that are assigned
-            to aforementioned UserGroup.
+        :expectedresults: User has access to all NEW functional areas that are
+            assigned to aforementioned UserGroup.
 
         :caseautomation: notautomated
 
@@ -389,8 +389,8 @@ class LDAPAuthTestCase(UITestCase):
         :steps: Login to sat6 with LDAP user that is part of aforementioned
             UserGroup.
 
-        :assert: User no longer has access to all deleted functional areas that
-            were assigned to aforementioned UserGroup.
+        :expectedresults: User no longer has access to all deleted functional
+            areas that were assigned to aforementioned UserGroup.
 
         :caseautomation: notautomated
 
@@ -413,9 +413,9 @@ class LDAPAuthTestCase(UITestCase):
         :steps: Login to sat6 with LDAP user and attempt to access areas
             assigned specifically to user.
 
-        :assert: User can access not only those feature areas in his UserGroup
-            but those additional feature areas / roles assigned specifically to
-            user
+        :expectedresults: User can access not only those feature areas in his
+            UserGroup but those additional feature areas / roles assigned
+            specifically to user
 
         :caseautomation: notautomated
 
@@ -437,8 +437,8 @@ class LDAPAuthTestCase(UITestCase):
             2. On LDAP server, assign user to aforementioned UserGroup.
             3. Attempt once more to sign in with user.
 
-        :assert: User can access feature areas as defined by roles in the
-            UserGroup of which he is a part.
+        :expectedresults: User can access feature areas as defined by roles in
+            the UserGroup of which he is a part.
 
         :caseautomation: notautomated
 

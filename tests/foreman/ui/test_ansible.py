@@ -33,9 +33,9 @@ class AnsibleTestCase(UITestCase):
             `satellite-installer` using `--enable-foreman-plugin-ansible`
             option
 
-        :assert: Ansible plugin is installed successfully. This can be verified
-            by editing any host and checking the presence of `Ansible Roles`
-            tab.
+        :expectedresults: Ansible plugin is installed successfully. This can be
+            verified by editing any host and checking the presence of `Ansible
+            Roles` tab.
 
         :caseautomation: notautomated
 
@@ -54,8 +54,8 @@ class AnsibleTestCase(UITestCase):
             https://theforeman.org/plugins/foreman_ansible/1.x/index.html
             #2.1Ansiblecallback
 
-        :assert: Ansible callback is setup successfully. This can be verified
-            by running Ansible setup module in any of the hosts.
+        :expectedresults: Ansible callback is setup successfully. This can be
+            verified by running Ansible setup module in any of the hosts.
 
         :caseautomation: notautomated
 
@@ -74,8 +74,8 @@ class AnsibleTestCase(UITestCase):
             #2.1Ansiblecallback
 
 
-        :assert: Ansible callback is setup successfully. This can be verified
-            by running Ansible setup module in any of the hosts.
+        :expectedresults: Ansible callback is setup successfully. This can be
+            verified by running Ansible setup module in any of the hosts.
 
         :caseautomation: notautomated
 
@@ -96,8 +96,8 @@ class AnsibleTestCase(UITestCase):
             2. Setup Ansible callback in the Tower
             3. Run Ansible setup module
 
-        :assert: Ansible Tower is integrated with Satellite and the Ansible run
-            reports are shown in Satellite.
+        :expectedresults: Ansible Tower is integrated with Satellite and the
+            Ansible run reports are shown in Satellite.
 
         :caseautomation: notautomated
 
@@ -117,8 +117,8 @@ class AnsibleTestCase(UITestCase):
             2. Setup Ansible callback in the Tower
             3. Run Ansible setup module
 
-        :assert: Ansible Tower is integrated with Satellite and the Ansible run
-            reports are shown in Satellite.
+        :expectedresults: Ansible Tower is integrated with Satellite and the
+            Ansible run reports are shown in Satellite.
 
         :caseautomation: notautomated
         """
@@ -137,7 +137,7 @@ class AnsibleTestCase(UITestCase):
             1. Register a host to Satellite
             2. Run Ansible on the host
 
-        :assert: Ansible report is created for the host
+        :expectedresults: Ansible report is created for the host
 
         :caseautomation: notautomated
         """
@@ -153,8 +153,8 @@ class AnsibleTestCase(UITestCase):
 
         :steps: Run Ansible on a host not registered to Satellite yet
 
-        :assert: The host is created in Satellite and the Ansible report is
-            created for the host
+        :expectedresults: The host is created in Satellite and the Ansible
+            report is created for the host
 
         :caseautomation: notautomated
         """
@@ -172,7 +172,7 @@ class AnsibleTestCase(UITestCase):
                 -> Select the required Ansible roles -> Click Submit.
             2. Run the associated Ansible roles in the hosts.
 
-        :assert:
+        :expectedresults:
 
             1. The Ansible roles are associated to the appropriate hosts
             2. The Ansible run reports generated
@@ -198,7 +198,7 @@ class AnsibleTestCase(UITestCase):
                 -> Select the new custom Ansible role -> Click Submit.
             3. Run the associated Ansible role in the host.
 
-        :assert:
+        :expectedresults:
 
             1. The custom role are available in Satellite.
             2. The Ansible roles are associated to the appropriate hosts.
@@ -224,7 +224,7 @@ class AnsibleTestCase(UITestCase):
                 Submit
             2. Provision a host with the Host group from above
 
-        :assert:
+        :expectedresults:
 
             1. The Ansible role is associated to the appropriate Host group
             2. The Ansible run reports generated
@@ -240,8 +240,8 @@ class AnsibleTestCase(UITestCase):
 
         :id: ab40f3ae-7dc3-47d1-b5e6-18ca1f1d5460
 
-        :assert: Ansibles roles ran successfully on the host and the reports
-            generated
+        :expectedresults: Ansibles roles ran successfully on the host and the
+            reports generated
 
         :caseautomation: notautomated
         """
@@ -257,7 +257,7 @@ class AnsibleTestCase(UITestCase):
         :steps: From Web UI -> Hosts -> Select multiple hosts -> Select Action
             -> Play Ansible Roles
 
-        :assert: Ansibles roles ran successfully on multiple hosts
+        :expectedresults: Ansibles roles ran successfully on multiple hosts
 
         :caseautomation: notautomated
         """
@@ -271,8 +271,8 @@ class AnsibleTestCase(UITestCase):
 
         :id: 60aa2d5a-571c-40af-bfaf-ca406b6a4672
 
-        :assert: An user with view_ansible_roles permission is able to view the
-            Ansible roles.
+        :expectedresults: An user with view_ansible_roles permission is able to
+            view the Ansible roles.
 
         :caseautomation: notautomated
 
@@ -290,8 +290,8 @@ class AnsibleTestCase(UITestCase):
 
         :id: f2cb633b-fa9a-4096-b2c9-54175a30da06
 
-        :assert: An user with import_ansible_roles permission is able to import
-            Ansible roles.
+        :expectedresults: An user with import_ansible_roles permission is able
+            to import Ansible roles.
 
         :caseautomation: notautomated
 
@@ -310,8 +310,8 @@ class AnsibleTestCase(UITestCase):
 
         :id: e9c3df3f-3a03-4665-a0f7-184212b73e74
 
-        :assert: An user with destroy_ansible_roles permission is able to
-            delete Ansible roles
+        :expectedresults: An user with destroy_ansible_roles permission is able
+            to delete Ansible roles
 
         :caseautomation: notautomated
 
@@ -330,8 +330,8 @@ class AnsibleTestCase(UITestCase):
 
         :id: 14948966-4ee0-44c6-9de0-6b98ef11dc62
 
-        :assert: The user with play_roles permission is able to run the Ansible
-            roles
+        :expectedresults: The user with play_roles permission is able to run
+            the Ansible roles
 
         :caseautomation: notautomated
         """
@@ -345,8 +345,8 @@ class AnsibleTestCase(UITestCase):
 
         :id: ba3119b8-024f-4624-94b3-96bdbeede4d3
 
-        :assert: The user with play_multiple_roles permission is able to run
-            multiple Ansible roles
+        :expectedresults: The user with play_multiple_roles permission is able
+            to run multiple Ansible roles
 
         :caseautomation: notautomated
         """
@@ -369,7 +369,7 @@ class AnsibleTestCase(UITestCase):
             * play_roles
             * play_multiple_roles
 
-        :assert: The user is not able to:
+        :expectedresults: The user is not able to:
 
             * View Ansible roles
             * Import Ansible roles
@@ -388,7 +388,7 @@ class AnsibleTestCase(UITestCase):
 
         :id: 79395d8d-599e-4330-9f9f-40ef6762510d
 
-        :assert: Ansible parameter added to the host successfully
+        :expectedresults: Ansible parameter added to the host successfully
 
         :caseautomation: notautomated
 
@@ -406,7 +406,7 @@ class AnsibleTestCase(UITestCase):
 
         :id: 37c826d5-ddb8-4739-8a03-18ffbce7915a
 
-        :assert: Ansible parameter added to the hostgroup successfully
+        :expectedresults: Ansible parameter added to the hostgroup successfully
 
         :caseautomation: notautomated
 

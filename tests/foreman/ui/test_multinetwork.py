@@ -37,8 +37,8 @@ class MultinetworkTestCase(UITestCase):
             1. Set 'DHCP' for IPAM and BootMode for provisioning subnet
             2. All other fields on subnet page should be filled
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -63,8 +63,8 @@ class MultinetworkTestCase(UITestCase):
             2. All other fields on subnet page should be filled except start
                 and end IP range
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -89,8 +89,8 @@ class MultinetworkTestCase(UITestCase):
             2. All other fields on subnet page should be filled including start
                 and end IP range
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -115,8 +115,8 @@ class MultinetworkTestCase(UITestCase):
             2. All other fields on subnet page should be filled including start
                 and end IP range
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -141,8 +141,8 @@ class MultinetworkTestCase(UITestCase):
             2. All other fields on subnet page should be filled except start
                 and end IP range
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -167,8 +167,8 @@ class MultinetworkTestCase(UITestCase):
             2. All other fields on subnet page should be filled including start
                 and end IP range
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -193,8 +193,8 @@ class MultinetworkTestCase(UITestCase):
             2. All other fields on subnet page should be filled except start
                 and end IP range
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -217,8 +217,8 @@ class MultinetworkTestCase(UITestCase):
                 subnet
             2. All other fields on subnet page should be filled
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -241,8 +241,8 @@ class MultinetworkTestCase(UITestCase):
                 subnet
             2. All other fields on subnet page should be filled
 
-        :Assert: Host should be provisioned with correct configuration under
-            /etc/sysconfig/network-scripts/ifcfg-<interface>
+        :expectedresults: Host should be provisioned with correct configuration
+            under /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         :caseautomation: notautomated
 
@@ -271,8 +271,8 @@ class MultinetworkTestCase(UITestCase):
             8. attached_to: identifier of primary interface(eth0)
             9. Fill all other details correctly in new host form and submit it
 
-        :Assert: Validation error should be raised as mac address of alias
-            interface should be same as of primary interface
+        :expectedresults: Validation error should be raised as mac address of
+            alias interface should be same as of primary interface
 
         :caseautomation: notautomated
 
@@ -298,8 +298,8 @@ class MultinetworkTestCase(UITestCase):
             6. Select 'Managed'
             7. Fill all other details correctly in new host form and submit it
 
-        :Assert: Validation error should be raised as two nics can not have
-            same mac
+        :expectedresults: Validation error should be raised as two nics can not
+            have same mac
 
         :caseautomation: notautomated
 
@@ -328,8 +328,8 @@ class MultinetworkTestCase(UITestCase):
             8. Do not specify anything under 'attached_to'
             9. Fill all other details correctly in new host form and submit it
 
-        :Assert: Validation error should be raised as attached_to is mandatory
-            option to create alias interface
+        :expectedresults: Validation error should be raised as attached_to is
+            mandatory option to create alias interface
 
         :caseautomation: notautomated
 
@@ -361,8 +361,8 @@ class MultinetworkTestCase(UITestCase):
             11. BootMode 'DHCP'
             12. Fill all other details correctly in new host form and submit it
 
-        :Assert: Validation error should be raised as you can't configure alias
-            interface in 'DHCP' mode.
+        :expectedresults: Validation error should be raised as you can't
+            configure alias interface in 'DHCP' mode.
 
         :caseautomation: notautomated
 
@@ -394,8 +394,8 @@ class MultinetworkTestCase(UITestCase):
             11. BootMode 'Static'
             12. Fill all other details correctly in new host form and submit it
 
-        :Assert: Interface should be configured successfully and correct
-            configuration should displayed on proviisoned host under
+        :expectedresults: Interface should be configured successfully and
+            correct configuration should displayed on proviisoned host under
             /etc/sysconfig/network-scripts/ifcfg-<interface_name>
 
         :caseautomation: notautomated
@@ -427,7 +427,7 @@ class MultinetworkTestCase(UITestCase):
             11. BootMode 'Static'
             12. Fill all other details correctly in new host form and submit it
 
-        :Assert: Validation error should be raised on UI
+        :expectedresults: Validation error should be raised on UI
 
         :caseautomation: notautomated
 
@@ -449,7 +449,7 @@ class MultinetworkTestCase(UITestCase):
             2. Edit the new host → Network → delete the selected interface
             3. submit form
 
-        :Assert: Interface should be deleted successfully
+        :expectedresults: Interface should be deleted successfully
 
         :caseautomation: notautomated
 
@@ -480,7 +480,8 @@ class MultinetworkTestCase(UITestCase):
             10. BootMode 'Static'
             11. Fill all other details correctly in new host form and submit it
 
-        :Assert: Interface should be configured successfully with name bond0
+        :expectedresults: Interface should be configured successfully with name
+            bond0
 
         :caseautomation: notautomated
 
@@ -512,8 +513,8 @@ class MultinetworkTestCase(UITestCase):
             11. BootMode 'Static'
             12. Fill all other details correctly in new host form and submit it
 
-        :Assert: UI should raise validation error as user shouldn't be allowed
-            create bond interface without mac
+        :expectedresults: UI should raise validation error as user shouldn't be
+            allowed create bond interface without mac
 
         :caseautomation: notautomated
 
@@ -544,8 +545,8 @@ class MultinetworkTestCase(UITestCase):
             11. BootMode 'Static'
             12. Fill all other details correctly in new host form and submit it
 
-        :Assert: Interface should be configured successfully without attaching
-            any device to it.
+        :expectedresults: Interface should be configured successfully without
+            attaching any device to it.
 
         :caseautomation: notautomated
 
@@ -577,8 +578,8 @@ class MultinetworkTestCase(UITestCase):
             12. BootMode 'Static'
             13. Fill all other details correctly in new host form and submit it
 
-        :Assert: Interface should be configured successfully with name bond0
-            attached to eth0 eth0:0
+        :expectedresults: Interface should be configured successfully with name
+            bond0 attached to eth0 eth0:0
 
         :caseautomation: notautomated
 
@@ -607,8 +608,8 @@ class MultinetworkTestCase(UITestCase):
             9. Provider: IPMI
             10. Fill all other details correctly in new host form and submit it
 
-        :Assert: Interface should be configured successfully and user should
-            get On/OFF button on host page
+        :expectedresults: Interface should be configured successfully and user
+            should get On/OFF button on host page
 
         :caseautomation: notautomated
 
@@ -637,7 +638,7 @@ class MultinetworkTestCase(UITestCase):
             9. Provider: IPMI
             10. Fill all other details correctly in new host form and submit it
 
-        :Assert: UI should raise validation error
+        :expectedresults: UI should raise validation error
 
         :caseautomation: notautomated
 

@@ -80,7 +80,7 @@ class NavigationTestCase(UITestCase):
 
         :id: da8b1242-364e-44ec-8a17-dd5d8047a386
 
-        :Assert: Page is opened without errors
+        :expectedresults: Page is opened without errors
 
         :CaseImportance: Critical
         """
@@ -103,8 +103,8 @@ class NavigationTestCase(UITestCase):
 
         :BZ: 1394974
 
-        :Assert: No error is raised after redirection and logo is still present
-            on the page
+        :expectedresults: No error is raised after redirection and logo is
+            still present on the page
 
         :CaseImportance: Critical
         """

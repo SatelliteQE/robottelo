@@ -101,7 +101,7 @@ class MyAccountTestCase(CLITestCase):
 
         :id: f8de3843-f2dc-4121-ab75-625c8f542627
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :CaseImportance: Critical
         """
@@ -117,7 +117,7 @@ class MyAccountTestCase(CLITestCase):
 
         :id: 40ad2e78-a2af-45ca-bbd8-e9ca5178dc41
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :CaseImportance: Critical
         """
@@ -133,7 +133,7 @@ class MyAccountTestCase(CLITestCase):
 
         :id: 70bab43b-0842-45a1-81fb-e47ff8646c8e
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :CaseImportance: Critical
         """
@@ -150,7 +150,7 @@ class MyAccountTestCase(CLITestCase):
 
         :Steps: Update current User with all different Language options
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :caseautomation: notautomated
 
@@ -169,7 +169,7 @@ class MyAccountTestCase(CLITestCase):
 
         :id: 1e0e1a94-4cef-4110-b65c-8cd35df254e0
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :CaseImportance: Critical
         """
@@ -182,7 +182,7 @@ class MyAccountTestCase(CLITestCase):
 
         :id: 4d31ba71-2dcc-47ee-94d2-adc168ba89d7
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :CaseImportance: Critical
         """
@@ -195,7 +195,7 @@ class MyAccountTestCase(CLITestCase):
 
         :id: 619f6285-8d50-47d4-b074-d8854c7567a6
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :CaseImportance: Critical
         """
@@ -212,7 +212,7 @@ class MyAccountTestCase(CLITestCase):
 
         :id: 6f63c9b4-80e6-11e6-8ea1-68f72889dc7f
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :CaseImportance: Critical
         """
@@ -251,7 +251,7 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
 
         :id: e7e9b212-f0aa-4f7e-8433-b4639da89495
 
-        :Assert: User is updated
+        :expectedresults: User is updated
 
         :CaseImportance: Critical
         """

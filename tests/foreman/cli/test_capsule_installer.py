@@ -36,7 +36,7 @@ class CapsuleInstallerTestCase(CLITestCase):
             2. attempt to perform a basic, functional install the capsule using
                `capsule-installer`.
 
-        :Assert: product is installed
+        :expectedresults: product is installed
 
         :caseautomation: notautomated
 
@@ -52,7 +52,8 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :Steps: Install capsule-installer with the '--qpid-router=true` flag
 
-        :Assert: Capsule installs correctly and qpid functionality is enabled.
+        :expectedresults: Capsule installs correctly and qpid functionality is
+            enabled.
 
         :caseautomation: notautomated
 
@@ -68,7 +69,8 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :Steps: Install using the '--reverse-proxy=true' flag
 
-        :Assert: Capsule installs correctly and functionality is enabled.
+        :expectedresults: Capsule installs correctly and functionality is
+            enabled.
 
         :caseautomation: notautomated
 
@@ -83,8 +85,8 @@ class CapsuleInstallerTestCase(CLITestCase):
         :Steps: attempt to provide a variety of invalid parameters to installer
             (strings, numerics, whitespace, etc.)
 
-        :Assert: user is told that such parameters are invalid and install
-            aborts.
+        :expectedresults: user is told that such parameters are invalid and
+            install aborts.
 
         :caseautomation: notautomated
 
@@ -102,7 +104,7 @@ class CapsuleInstallerTestCase(CLITestCase):
             --parent-reverse-proxy-port flag (strings, numerics, whitespace,
             etc.)
 
-        :Assert: user told parameters are invalid; install aborts.
+        :expectedresults: user told parameters are invalid; install aborts.
 
         :caseautomation: notautomated
 
@@ -119,7 +121,8 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :Steps: Attempt to provide a value of "true" to --parent-reverse-proxy
 
-        :Assert: Install commences/completes with proxy installed correctly.
+        :expectedresults: Install commences/completes with proxy installed
+            correctly.
 
         :caseautomation: notautomated
 
@@ -137,7 +140,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :Steps: Attempt to provide a valid proxy port # to flag
 
-        :Assert: Install commences and completes with proxy installed
+        :expectedresults: Install commences and completes with proxy installed
             correctly.
 
         :caseautomation: notautomated

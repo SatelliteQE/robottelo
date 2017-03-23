@@ -39,7 +39,7 @@ class OpenScapTestCase(CLITestCase):
             1. Login to shell from admin account.
             2. Execute the scap-content command with list as sub-command.
 
-        :Assert: The scap-content are listed.
+        :expectedresults: The scap-content are listed.
 
         :caseautomation: notautomated
 
@@ -65,7 +65,7 @@ class OpenScapTestCase(CLITestCase):
             1. Login to shell from user account.
             2. Execute the scap-content command with list as sub-Command.
 
-        :Assert: The scap-content is not listed.
+        :expectedresults: The scap-content is not listed.
 
         :caseautomation: notautomated
 
@@ -92,7 +92,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute the "scap-content" command with info as sub-command.
             3. Pass valid "ID" of scap-content as argument.
 
-        :Assert: The info of the scap-content is listed.
+        :expectedresults: The info of the scap-content is listed.
 
         :caseautomation: notautomated
 
@@ -119,7 +119,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute the "scap-content" command with info as sub-command.
             3. Pass valid parameters.
 
-        :Assert: The info of the scap-content is not listed.
+        :expectedresults: The info of the scap-content is not listed.
 
         :caseautomation: notautomated
 
@@ -146,7 +146,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute the "scap-content" command with info as sub-command.
             3. Pass invalid "ID" of scap-content as argument.
 
-        :Assert: The info of the scap-content is not listed.
+        :expectedresults: The info of the scap-content is not listed.
 
         :caseautomation: notautomated
 
@@ -173,7 +173,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "create" as sub-command.
             3. Pass valid parameters.
 
-        :Assert: The scap-content is created successfully.
+        :expectedresults: The scap-content is created successfully.
 
         :caseautomation: notautomated
 
@@ -200,7 +200,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "create" as sub-command.
             3. Pass valid parameters and invalid title.
 
-        :Assert: The scap-content is not created.
+        :expectedresults: The scap-content is not created.
 
         :caseautomation: notautomated
 
@@ -227,7 +227,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "create" as sub-command.
             3. Pass valid parameters.
 
-        :Assert: The scap-content is not created.
+        :expectedresults: The scap-content is not created.
 
         :caseautomation: notautomated
 
@@ -254,7 +254,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "create" as sub-command.
             3. Pass valid parameters and invalid title.
 
-        :Assert: The scap-content is not created.
+        :expectedresults: The scap-content is not created.
 
         :caseautomation: notautomated
 
@@ -281,7 +281,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "create" as sub-command.
             3. Pass valid parameters and valid scap ds file.
 
-        :Assert: The scap-content is created successfully.
+        :expectedresults: The scap-content is created successfully.
 
         :caseautomation: notautomated
 
@@ -307,7 +307,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "create" as sub-command.
             3. Don't pass the scap-file parameter.
 
-        :Assert: The scap-content is not created.
+        :expectedresults: The scap-content is not created.
 
         :caseautomation: notautomated
 
@@ -333,7 +333,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "update" as sub-command.
             3. Pass valid parameters and newtitle parameter.
 
-        :Assert: The scap-content is updated successfully.
+        :expectedresults: The scap-content is updated successfully.
 
         :caseautomation: notautomated
 
@@ -359,7 +359,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "delete" as sub-command.
             3. Pass ID as parameter.
 
-        :Assert: The scap-content is deleted successfully.
+        :expectedresults: The scap-content is deleted successfully.
 
         :caseautomation: notautomated
 
@@ -385,7 +385,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "delete" as sub-command.
             3. Pass name as parameter.
 
-        :Assert: The scap-content is deleted successfully.
+        :expectedresults: The scap-content is deleted successfully.
 
         :caseautomation: notautomated
 
@@ -411,7 +411,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "create" as sub-command.
             3. Pass valid parameters and valid name.
 
-        :Assert: The policy is created successfully.
+        :expectedresults: The policy is created successfully.
 
         :caseautomation: notautomated
         """
@@ -435,7 +435,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "create" as sub-command.
             3. Pass valid parameters and invalid name.
 
-        :Assert: The policy is not created.
+        :expectedresults: The policy is not created.
 
         :caseautomation: notautomated
         """
@@ -459,7 +459,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "create" as sub-command.
             3. Pass valid parameters without passing the scap-content-id.
 
-        :Assert: The policy is not created.
+        :expectedresults: The policy is not created.
 
         :caseautomation: notautomated
         """
@@ -485,7 +485,7 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid parameters.
             4. Associate multiple hostgroups with policy
 
-        :Assert: The policy is created and associated successfully.
+        :expectedresults: The policy is created and associated successfully.
 
         :caseautomation: notautomated
         """
@@ -511,7 +511,7 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid parameters.
             4. Associate multiple hostgroups with policy.
 
-        :Assert: The policy is created.
+        :expectedresults: The policy is created.
 
         :caseautomation: notautomated
         """
@@ -535,7 +535,7 @@ class OpenScapTestCase(CLITestCase):
             1. Login to hammer shell.
             2. Execute "policy" command with "list" as sub-command.
 
-        :Assert: The policies are listed successfully.
+        :expectedresults: The policies are listed successfully.
 
         :caseautomation: notautomated
         """
@@ -560,7 +560,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "info" as sub-command.
             3. Pass ID as the parameter.
 
-        :Assert: The information is displayed.
+        :expectedresults: The information is displayed.
 
         :caseautomation: notautomated
         """
@@ -585,7 +585,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "info" as sub-command.
             3. Pass name as the parameter.
 
-        :Assert: The information is displayed.
+        :expectedresults: The information is displayed.
 
         :caseautomation: notautomated
         """
@@ -610,7 +610,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "update" as sub-command.
             3. Pass hostgoups as the parameter.
 
-        :Assert: The scap policy is updated.
+        :expectedresults: The scap policy is updated.
 
         :caseautomation: notautomated
         """
@@ -636,7 +636,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "update" as sub-command.
             3. Pass period as parameter and weekday as parameter.
 
-        :Assert: The scap policy is updated.
+        :expectedresults: The scap policy is updated.
 
         :caseautomation: notautomated
         """
@@ -662,7 +662,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "update" as sub-command.
             3. Pass scap-content-id as parameter.
 
-        :Assert: The scap policy is updated.
+        :expectedresults: The scap policy is updated.
 
         :caseautomation: notautomated
         """
@@ -687,7 +687,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "delete" as sub-command.
             3. Pass id as parameter.
 
-        :Assert: The scap policy is deleted successfully.
+        :expectedresults: The scap policy is deleted successfully.
 
         :caseautomation: notautomated
         """
@@ -712,7 +712,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "delete" as sub-command.
             3. Pass name as parameter.
 
-        :Assert: The scap policy is deleted successfully.
+        :expectedresults: The scap policy is deleted successfully.
 
         :caseautomation: notautomated
         """
@@ -738,7 +738,7 @@ class OpenScapTestCase(CLITestCase):
             1. Login to hammer shell.
             2. Execute "policy" command with "list" as sub-command.
 
-        :Assert: The arf-reports are listed successfully.
+        :expectedresults: The arf-reports are listed successfully.
 
         :caseautomation: notautomated
         """
@@ -765,7 +765,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "info" as sub-command.
             3. Pass id as parameter.
 
-        :Assert: The information of arf-report is listed successfully.
+        :expectedresults: The information of arf-report is listed successfully.
 
         :caseautomation: notautomated
         """
@@ -792,7 +792,7 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "delete" as sub-command.
             3. Pass id as parameter.
 
-        :Assert: Arf-report is deleted successfully.
+        :expectedresults: Arf-report is deleted successfully.
 
         :caseautomation: notautomated
         """

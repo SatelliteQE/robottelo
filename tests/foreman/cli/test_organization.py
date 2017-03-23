@@ -85,7 +85,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 7938bcc4-7107-40b0-bb88-6288ebec0dcd
 
-        :Assert: no duplicated lines in usage message
+        :expectedresults: no duplicated lines in usage message
 
         :CaseImportance: Critical
         """
@@ -110,7 +110,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 35840da7-668e-4f78-990a-738aa688d586
 
-        :assert: organization is created and has appropriate name
+        :expectedresults: organization is created and has appropriate name
 
         :CaseImportance: Critical
         """
@@ -125,7 +125,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: aea551de-145b-4894-b4fb-65878ff1f101
 
-        :assert: organization is created, label matches name
+        :expectedresults: organization is created, label matches name
 
         :CaseImportance: Critical
         """
@@ -143,7 +143,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: a4730b09-1bd7-4b00-a7ee-76080a916ea8
 
-        :assert: organization is created, label does not match name
+        :expectedresults: organization is created, label does not match name
 
         :CaseImportance: Critical
         """
@@ -164,7 +164,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: b28c95ba-918e-47fe-8681-61e05b8fe2ea
 
-        :assert: organization is created
+        :expectedresults: organization is created
 
         :CaseImportance: Critical
         """
@@ -183,7 +183,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 9a1f70f6-fb5f-4b23-9f7e-b0973fbbba30
 
-        :assert: organization is created
+        :expectedresults: organization is created
 
         :CaseImportance: Critical
         """
@@ -206,7 +206,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: bdd26bb3-e3d2-4a5c-8be7-fb12c1114ccc
 
-        :Assert: Org is listed
+        :expectedresults: Org is listed
 
         :CaseImportance: Critical
         """
@@ -223,7 +223,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 1f464eba-d024-4f37-87c2-5cfff1ac1e23
 
-        :Assert: Subnet is added to the org
+        :expectedresults: Subnet is added to the org
 
         :CaseLevel: Integration
         """
@@ -245,7 +245,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: f65e4264-4aad-42f8-b74f-933741d9f7ab
 
-        :assert: Subnet is added to the org
+        :expectedresults: Subnet is added to the org
 
         :CaseLevel: Integration
         """
@@ -266,7 +266,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: adb5310b-76c5-4aca-8220-fdf0fe605cb0
 
-        :Assert: Subnet is removed from the org
+        :expectedresults: Subnet is removed from the org
 
         :CaseLevel: Integration
         """
@@ -294,7 +294,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 4868ef18-983a-48b4-940a-e1b55f01f0b6
 
-        :Assert: Subnet is removed from the org
+        :expectedresults: Subnet is removed from the org
 
         :CaseLevel: Integration
         """
@@ -320,7 +320,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: c35b2e88-a65f-4eea-ba55-89cef59f30be
 
-        :Assert: User is added to the org
+        :expectedresults: User is added to the org
 
         :CaseLevel: Integration
         """
@@ -339,7 +339,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 1cd4e912-dd59-4cf7-b1a3-87b130972f8d
 
-        :Assert: User is added to the org
+        :expectedresults: User is added to the org
 
         :CaseLevel: Integration
         """
@@ -359,7 +359,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 6e292d5f-3bce-48c5-88d7-2c94f7db51c1
 
-        :Assert: The user is removed from the organization
+        :expectedresults: The user is removed from the organization
 
         :CaseLevel: Integration
         """
@@ -383,7 +383,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 98cf1224-750a-449b-8807-638ef07a55e5
 
-        :assert: The user is removed from the organization
+        :expectedresults: The user is removed from the organization
 
         :CaseLevel: Integration
         """
@@ -407,7 +407,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 176f1d07-c24c-481d-912e-045ec9cbfa67
 
-        :assert: The user is added to the organization
+        :expectedresults: The user is added to the organization
 
         :CaseLevel: Integration
         """
@@ -428,7 +428,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 31e9ceeb-1ae2-4c95-8b60-c5774e570476
 
-        :assert: The user is added to the organization
+        :expectedresults: The user is added to the organization
 
         :CaseLevel: Integration
         """
@@ -450,7 +450,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 7ecfb7d0-35af-48ba-a460-70da81ade4bd
 
-        :assert: The admin user is removed from the organization
+        :expectedresults: The admin user is removed from the organization
 
         :CaseLevel: Integration
         """
@@ -476,7 +476,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 41f0d3e6-3b4b-4a3e-b3d1-3126a10ed433
 
-        :assert: The user is added then removed from the organization
+        :expectedresults: The user is added then removed from the organization
 
         :CaseLevel: Integration
         """
@@ -500,7 +500,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 4edbb371-fbb0-4918-b4ac-afa3ab30cee0
 
-        :Assert: Hostgroup is added to the org
+        :expectedresults: Hostgroup is added to the org
 
         :CaseLevel: Integration
         """
@@ -520,7 +520,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 9cb2ef26-a98a-43a4-977c-d97c82509508
 
-        :Assert: Hostgroup is added to the org
+        :expectedresults: Hostgroup is added to the org
 
         :CaseLevel: Integration
         """
@@ -541,7 +541,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 8b2804c9-cefe-4a8a-b3a4-12ea131cdef0
 
-        :Assert: Hostgroup is removed from the organization
+        :expectedresults: Hostgroup is removed from the organization
 
         :CaseLevel: Integration
         """
@@ -566,7 +566,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 34e2c7c8-dc20-4709-a5a9-83c0dee9d84d
 
-        :assert: Hostgroup is removed from the org
+        :expectedresults: Hostgroup is removed from the org
 
         :CaseLevel: Integration
         """
@@ -591,7 +591,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 4bc1f281-ef8e-450b-8ef6-f8d11da5324f
 
-        :Assert: Compute Resource is added to the org
+        :expectedresults: Compute Resource is added to the org
 
         :CaseLevel: Integration
         """
@@ -615,7 +615,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 355e20c5-ec04-49f7-a0ae-0864a3fe0f3f
 
-        :Assert: Compute Resource is added to the org
+        :expectedresults: Compute Resource is added to the org
 
         :CaseLevel: Integration
         """
@@ -630,7 +630,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 65846f05-583b-4914-ad0a-9251ca585af5
 
-        :Assert: All compute resources are added to the org
+        :expectedresults: All compute resources are added to the org
 
         :CaseLevel: Integration
         """
@@ -653,7 +653,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 415c14ab-f879-4ed8-9ba7-8af4ada2e277
 
-        :Assert: Compute resource is removed from the org
+        :expectedresults: Compute resource is removed from the org
 
         :CaseLevel: Integration
         """
@@ -684,7 +684,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 1b1313a8-8326-4b33-8113-17c5cf0d4ffb
 
-        :Assert: Compute resource is removed from the org
+        :expectedresults: Compute resource is removed from the org
 
         :CaseLevel: Integration
         """
@@ -713,7 +713,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: c2943a81-c8f7-44c4-926b-388055d7c290
 
-        :Assert: Medium is added to the org
+        :expectedresults: Medium is added to the org
 
         :CaseLevel: Integration
         """
@@ -733,7 +733,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: dcbaf2bb-ebb9-4430-8584-08b4cad00ad5
 
-        :Assert: Medium is added to the org
+        :expectedresults: Medium is added to the org
 
         :CaseLevel: Integration
         """
@@ -754,7 +754,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 703103d8-f4d4-4070-bd6b-1fd239a92fa5
 
-        :Assert: Medium is removed from the org
+        :expectedresults: Medium is removed from the org
 
         :CaseLevel: Integration
         """
@@ -779,7 +779,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: feb6c092-3459-496d-a403-69b540ba469a
 
-        :Assert: Medium is removed from the org
+        :expectedresults: Medium is removed from the org
 
         :CaseLevel: Integration
         """
@@ -803,7 +803,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: bd46a192-488f-4da0-bf47-1f370ae5f55c
 
-        :Assert: Template is added to the org
+        :expectedresults: Template is added to the org
 
         :CaseLevel: Integration
         """
@@ -830,7 +830,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 4dd119bf-e9e1-4c9a-9b6b-b2c1cc7bc015
 
-        :Assert: Template is added to the org
+        :expectedresults: Template is added to the org
 
         :CaseLevel: Integration
         """
@@ -852,7 +852,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 24cf7c8f-1e3b-4f37-b66d-24e6c125c752
 
-        :Assert: All provisioning templates are added to the org
+        :expectedresults: All provisioning templates are added to the org
 
         :CaseLevel: Integration
         """
@@ -876,7 +876,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 8f3e05c2-6c0d-48a6-a311-41ad032b7977
 
-        :Assert: Template is removed from the org
+        :expectedresults: Template is removed from the org
 
         :CaseLevel: Integration
         """
@@ -910,7 +910,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 6db69282-8a0a-40cb-b494-8f555772ca81
 
-        :Assert: Template is removed from the org
+        :expectedresults: Template is removed from the org
 
         :CaseLevel: Integration
         """
@@ -949,7 +949,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 97359ffe-4ce6-4e44-9e3f-583d3fdebbc8
 
-        :assert: Domain is added to organization
+        :expectedresults: Domain is added to organization
 
         :CaseLevel: Integration
         """
@@ -970,7 +970,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 33df2dc5-33ea-416d-bf13-f90aaf327e18
 
-        :assert: Domain is added to organization
+        :expectedresults: Domain is added to organization
 
         :CaseLevel: Integration
         """
@@ -992,7 +992,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 59ab55ab-782b-4ee2-b347-f1a1e37c55aa
 
-        :Assert: Domain is removed from the org
+        :expectedresults: Domain is removed from the org
 
         :CaseLevel: Integration
         """
@@ -1020,7 +1020,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 01ef8a26-e944-4cda-b60a-2b9d86a8051f
 
-        :assert: Domain is removed from the organization
+        :expectedresults: Domain is removed from the organization
 
         :CaseLevel: Integration
         """
@@ -1047,7 +1047,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 3620eeac-bf4e-4055-a6b4-4da10efbbfa2
 
-        :Assert: Lifecycle environment is added to the org
+        :expectedresults: Lifecycle environment is added to the org
 
         :CaseLevel: Integration
         """
@@ -1070,7 +1070,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: bfa9198e-6078-4f10-b79a-3d7f51b835fd
 
-        :Assert: Lifecycle environment is removed from the org
+        :expectedresults: Lifecycle environment is removed from the org
 
         :CaseLevel: Integration
         """
@@ -1099,7 +1099,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: dbf9dd74-3b9e-4124-9468-b0eb978897df
 
-        :Assert: Capsule is added to the org
+        :expectedresults: Capsule is added to the org
 
         :CaseLevel: Integration
         """
@@ -1123,7 +1123,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 0a64ebbe-d357-4ca8-b19e-86ea0963dc71
 
-        :assert: Capsule is added to the org
+        :expectedresults: Capsule is added to the org
 
         :CaseLevel: Integration
         """
@@ -1147,7 +1147,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 71af64ec-5cbb-4dd8-ba90-652e302305ec
 
-        :Assert: Capsule is removed from the org
+        :expectedresults: Capsule is removed from the org
 
         :CaseLevel: Integration
         """
@@ -1175,7 +1175,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: f56eaf46-fef5-4b52-819f-e30e61f0ec4a
 
-        :Assert: Capsule is removed from the org
+        :expectedresults: Capsule is removed from the org
 
         :CaseLevel: Integration
         """
@@ -1203,7 +1203,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 83848f18-2cca-457c-af57-e6249386c81c
 
-        :Assert: Location is added to the org
+        :expectedresults: Location is added to the org
 
         :CaseLevel: Integration
         """
@@ -1224,7 +1224,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: f39522e8-5280-429e-b954-79153c2c73c2
 
-        :Assert: Location is added to the org
+        :expectedresults: Location is added to the org
 
         :CaseLevel: Integration
         """
@@ -1246,7 +1246,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 37b63e5c-8fd5-439c-9540-972b597b590a
 
-        :Assert: Location is removed from the org
+        :expectedresults: Location is removed from the org
 
         :CaseLevel: Integration
         """
@@ -1274,7 +1274,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 35770afa-1623-448c-af4f-a702851063db
 
-        :Assert: Location is removed from the org
+        :expectedresults: Location is removed from the org
 
         :CaseLevel: Integration
         """
@@ -1301,7 +1301,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: b0b59650-5718-45e2-8724-151dc52b1486
 
-        :Assert: Parameter is added to the org
+        :expectedresults: Parameter is added to the org
 
         :CaseImportance: Critical
         """
@@ -1324,7 +1324,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: bb76f67e-5329-4777-b563-3fe4ebffc9ce
 
-        :Assert: Parameter is added to the org
+        :expectedresults: Parameter is added to the org
 
         :CaseImportance: Critical
         """
@@ -1347,7 +1347,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 4a7ed165-a0c5-4ba6-833a-5a1b3ee47ace
 
-        :Assert: Parameter is updated
+        :expectedresults: Parameter is updated
 
         :CaseImportance: Critical
         """
@@ -1379,7 +1379,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: e4099279-4e73-4c14-9e7c-912b3787b99f
 
-        :Assert: Parameter is removed from the org
+        :expectedresults: Parameter is removed from the org
 
         :CaseImportance: Critical
         """
@@ -1407,7 +1407,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 9b0e7c5c-32cd-4428-8798-3469599c9b05
 
-        :Assert: Parameter is removed from the org
+        :expectedresults: Parameter is removed from the org
 
         :CaseImportance: Critical
         """
@@ -1437,7 +1437,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: f0aecf1e-d093-4365-af85-b3650ed21318
 
-        :assert: organization is not created
+        :expectedresults: organization is not created
 
         :CaseImportance: Critical
         """
@@ -1457,7 +1457,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 07924e1f-1eff-4bae-b0db-e41b84966bc1
 
-        :assert: organization is not created
+        :expectedresults: organization is not created
 
         :CaseImportance: Critical
         """
@@ -1487,7 +1487,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: b1f5d246-2b12-4302-9824-00d3561f8699
 
-        :assert: organization is deleted
+        :expectedresults: organization is deleted
 
         :CaseImportance: Critical
         """
@@ -1503,7 +1503,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 5624f318-ce10-4eaa-815b-0d6ec1e6b438
 
-        :assert: organization is deleted
+        :expectedresults: organization is deleted
 
         :CaseImportance: Critical
         """
@@ -1521,7 +1521,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: c2787b85-fa87-4aaf-bee4-4695249dd5d8
 
-        :assert: organization is deleted
+        :expectedresults: organization is deleted
 
         :CaseImportance: Critical
         """
@@ -1539,7 +1539,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 66581003-f5d9-443c-8cd6-00f68087e8e9
 
-        :assert: organization name is updated
+        :expectedresults: organization name is updated
 
         :CaseImportance: Critical
         """
@@ -1561,7 +1561,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: c5cb0d68-10dd-48ee-8d56-83be8b33d729
 
-        :assert: organization description is updated
+        :expectedresults: organization description is updated
 
         :CaseImportance: Critical
         """
@@ -1584,7 +1584,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 42635526-fb10-4811-8fe7-1d4c218a056e
 
-        :assert: organization name and description are updated
+        :expectedresults: organization name and description are updated
 
         :CaseImportance: Critical
         """
@@ -1611,7 +1611,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 582d41b8-370d-45ed-9b7b-8096608e1324
 
-        :assert: organization name is not updated
+        :expectedresults: organization name is not updated
 
         :CaseImportance: Critical
         """
@@ -1632,7 +1632,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 4279972b-180d-40ce-944f-47a1940af25d
 
-        :assert: organization is created and can be searched by name
+        :expectedresults: organization is created and can be searched by name
 
         :CaseImportance: Critical
         """
@@ -1649,7 +1649,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 0e5a23fa-86d2-4114-be39-0e6228c76f19
 
-        :assert: organization is created and can be searched by label
+        :expectedresults: organization is created and can be searched by label
 
         :CaseImportance: Critical
         """
@@ -1666,8 +1666,8 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 02328b67-5d24-4873-b716-113eee3ff67b
 
-        :Assert: Organization is created and info can be obtained by its label
-            graciously
+        :expectedresults: Organization is created and info can be obtained by
+            its label graciously
 
         :CaseImportance: Critical
         """
@@ -1681,8 +1681,8 @@ class OrganizationTestCase(CLITestCase):
 
         :id: cf971026-26a4-428f-b560-bb14e5324207
 
-        :Assert: Organization is created and info can be obtained by its name
-            graciously
+        :expectedresults: Organization is created and info can be obtained by
+            its name graciously
 
         :CaseImportance: Critical
         """

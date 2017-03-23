@@ -38,8 +38,8 @@ class InterSatelliteSyncTestCase(UITestCase):
 
         :steps: Export a repo to a specified location in settings.
 
-        :assert: Repo/Product history should reflect the export history with
-            user and time.
+        :expectedresults: Repo/Product history should reflect the export
+            history with user and time.
 
         :caseautomation: notautomated
 
@@ -56,8 +56,8 @@ class InterSatelliteSyncTestCase(UITestCase):
 
         :steps: Export a CV to a specified location in settings.
 
-        :assert: CV history should reflect the export history with user,
-            version, action and time.
+        :expectedresults: CV history should reflect the export history with
+            user, version, action and time.
 
         :caseautomation: notautomated
 
@@ -80,7 +80,7 @@ class InterSatelliteSyncTestCase(UITestCase):
                Redhat contents.
             4. Enable and sync the imported repo from Redhat Repositories page.
 
-        :assert:
+        :expectedresults:
 
             1. The CDN URL is is updated successfully.
             2. The imported repo is enabled and sync.
@@ -104,7 +104,7 @@ class InterSatelliteSyncTestCase(UITestCase):
             2. Attempt to Enable and sync some repo from Redhat Repositories
                page.
 
-        :assert:
+        :expectedresults:
 
             1. The CDN URL is not allowed to update any non existing url.
             2. None of the repo is allowed to enable and sync.
@@ -130,7 +130,7 @@ class InterSatelliteSyncTestCase(UITestCase):
             3. Attempt to Import/Enable non exported repos from Redhat
                Repositories page.
 
-        :assert: The import of non exported repos is restricted.
+        :expectedresults: The import of non exported repos is restricted.
 
         :caseautomation: notautomated
 

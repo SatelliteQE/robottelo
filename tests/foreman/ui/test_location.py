@@ -88,7 +88,8 @@ class LocationTestCase(UITestCase):
 
         :id: 6aaf104b-481a-4dd9-8639-8ddb1e4d6828
 
-        :assert: Created location can be auto search by its partial name
+        :expectedresults: Created location can be auto search by its partial
+            name
 
         :CaseImportance: Critical
         """
@@ -114,7 +115,7 @@ class LocationTestCase(UITestCase):
 
         :id: 92b23082-09e4-49e1-92e1-d6d89d5180ac
 
-        :assert: Location is created, label is auto-generated
+        :expectedresults: Location is created, label is auto-generated
 
         :CaseImportance: Critical
         """
@@ -131,7 +132,7 @@ class LocationTestCase(UITestCase):
 
         :id: 85f05458-b86c-4d94-a412-ea03412c4588
 
-        :assert: location is not created
+        :expectedresults: location is not created
 
         :CaseImportance: Critical
         """
@@ -151,7 +152,7 @@ class LocationTestCase(UITestCase):
 
         :id: 33983f00-406b-4289-b9e2-ffe6901bf99d
 
-        :assert: location is not created
+        :expectedresults: location is not created
 
         :CaseImportance: Critical
         """
@@ -171,7 +172,7 @@ class LocationTestCase(UITestCase):
 
         :id: a1640ada-d4e9-447e-9e1b-40d17e1ede7e
 
-        :assert: Both organization and location are selected.
+        :expectedresults: Both organization and location are selected.
 
         :CaseLevel: Integration
         """
@@ -198,7 +199,7 @@ class LocationTestCase(UITestCase):
 
         :id: 79d8dbbb-9b7f-4482-a0f5-4fe72713d575
 
-        :assert: Location name is updated
+        :expectedresults: Location name is updated
 
         :CaseImportance: Critical
         """
@@ -222,7 +223,7 @@ class LocationTestCase(UITestCase):
 
         :id: 57fed455-47f0-4b7c-a58e-3d8f6d761da9
 
-        :assert: Location name is not updated
+        :expectedresults: Location name is not updated
 
         :CaseImportance: Critical
         """
@@ -243,7 +244,7 @@ class LocationTestCase(UITestCase):
 
         :id: b7664152-9398-499c-b165-3107f4350ba4
 
-        :assert: Location is deleted
+        :expectedresults: Location is deleted
 
         :CaseImportance: Critical
         """
@@ -261,7 +262,7 @@ class LocationTestCase(UITestCase):
 
         :id: fe70ffba-e594-48d5-b2c5-be93e827cc60
 
-        :assert: subnet is added
+        :expectedresults: subnet is added
 
         :CaseLevel: Integration
         """
@@ -292,7 +293,7 @@ class LocationTestCase(UITestCase):
 
         :id: 4f50f5cb-64eb-4790-b4c5-62d67669f48f
 
-        :assert: Domain is added to Location
+        :expectedresults: Domain is added to Location
 
         :CaseLevel: Integration
         """
@@ -319,7 +320,7 @@ class LocationTestCase(UITestCase):
 
         :id: bf9b3fc2-6193-4edc-aaec-cd7b87f0804c
 
-        :assert: User is added to location
+        :expectedresults: User is added to location
 
         :CaseLevel: Integration
         """
@@ -355,7 +356,7 @@ class LocationTestCase(UITestCase):
 
         :id: ca2f2522-ba34-4d20-87f4-7777ec9a1282
 
-        :assert: host group 'All values' checkbox is checked.
+        :expectedresults: host group 'All values' checkbox is checked.
 
         :CaseImportance: Critical
         """
@@ -379,7 +380,7 @@ class LocationTestCase(UITestCase):
 
         :id: e998d20c-e201-4675-b45f-8768f59584da
 
-        :assert: hostgroup is added to location
+        :expectedresults: hostgroup is added to location
 
         :CaseLevel: Integration
         """
@@ -405,7 +406,7 @@ class LocationTestCase(UITestCase):
 
         :id: 27d56d64-6866-46b6-962d-1ac2a11ae136
 
-        :assert: organization is added to location
+        :expectedresults: organization is added to location
 
         :CaseLevel: Integration
         """
@@ -434,7 +435,7 @@ class LocationTestCase(UITestCase):
 
         :id: bbca1af0-a31f-4096-bc6e-bb341ffed575
 
-        :assert: environment is added
+        :expectedresults: environment is added
 
         :CaseLevel: Integration
         """
@@ -463,7 +464,7 @@ class LocationTestCase(UITestCase):
 
         :id: 1d24414a-666d-490d-89b9-cd0704684cdd
 
-        :assert: compute resource is added successfully
+        :expectedresults: compute resource is added successfully
 
         :CaseLevel: Integration
         """
@@ -494,7 +495,7 @@ class LocationTestCase(UITestCase):
 
         :id: 738c5ff1-ef09-466f-aaac-64f194cac78d
 
-        :assert: medium is added
+        :expectedresults: medium is added
 
         :CaseLevel: Integration
         """
@@ -525,7 +526,7 @@ class LocationTestCase(UITestCase):
 
         :id: 358cf1c0-4187-4b5a-b900-5971e708b83f
 
-        :assert: configtemplate 'All values' checkbox is checked.
+        :expectedresults: configtemplate 'All values' checkbox is checked.
 
         :CaseImportance: Critical
         """
@@ -546,7 +547,7 @@ class LocationTestCase(UITestCase):
 
         :id: 8faf60d1-f4d6-4a58-a484-606a42957ce7
 
-        :assert: config template is added.
+        :expectedresults: config template is added.
 
         :CaseLevel: Integration
         """
@@ -578,7 +579,7 @@ class LocationTestCase(UITestCase):
 
         :id: eaf08f82-d76c-4bd5-bc9b-ac91ca409b81
 
-        :assert: environment is removed from Location
+        :expectedresults: environment is removed from Location
 
         :CaseLevel: Integration
         """
@@ -622,7 +623,7 @@ class LocationTestCase(UITestCase):
 
         :id: 53bc28a4-1fe1-4628-b7b9-18ea4b07dfc8
 
-        :assert: subnet is added then removed
+        :expectedresults: subnet is added then removed
 
         :CaseLevel: Integration
         """
@@ -668,7 +669,7 @@ class LocationTestCase(UITestCase):
 
         :id: 39374e24-2b38-47f4-b69b-c2b0ca0d754f
 
-        :assert: the domain is removed from the location
+        :expectedresults: the domain is removed from the location
 
         :CaseLevel: Integration
         """
@@ -713,7 +714,7 @@ class LocationTestCase(UITestCase):
 
         :id: c2dd189d-c928-4051-ae38-c08a15b95879
 
-        :assert: The user is added then removed from the location
+        :expectedresults: The user is added then removed from the location
 
         :CaseLevel: Integration
         """
@@ -763,7 +764,7 @@ class LocationTestCase(UITestCase):
 
         :id: dd8c58af-3037-44c0-a7f7-5e8337f110c9
 
-        :assert: hostgroup is added to location then removed
+        :expectedresults: hostgroup is added to location then removed
 
         :CaseLevel: Integration
         """
@@ -807,7 +808,7 @@ class LocationTestCase(UITestCase):
 
         :id: dae7c7ae-b162-4601-8727-f227d1544e09
 
-        :assert: compute resource is added then removed
+        :expectedresults: compute resource is added then removed
 
         :CaseLevel: Integration
         """
@@ -854,7 +855,7 @@ class LocationTestCase(UITestCase):
 
         :id: 61dece81-73bf-4f80-8894-ed7ca745120c
 
-        :assert: medium is added then removed
+        :expectedresults: medium is added then removed
 
         :CaseLevel: Integration
         """
@@ -900,7 +901,7 @@ class LocationTestCase(UITestCase):
 
         :id: f510eb04-6bbb-4153-bda0-a183d070b9f2
 
-        :assert: config template is added and then removed
+        :expectedresults: config template is added and then removed
 
         :CaseLevel: Integration
         """

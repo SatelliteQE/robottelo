@@ -122,7 +122,7 @@ class ErrataTestCase(UITestCase):
             1. Go to Content -> Errata.
             2. Sort by Errata Id, Title, Type, Affected Content Hosts, Updated.
 
-        :Assert: Errata is sorted by selected column.
+        :expectedresults: Errata is sorted by selected column.
 
         :caseautomation: notautomated
 
@@ -140,8 +140,8 @@ class ErrataTestCase(UITestCase):
         :Steps: Create two Orgs each having a product synced which contains
             errata.
 
-        :Assert: Check that the errata belonging to one Org is not showing in
-            the other.
+        :expectedresults: Check that the errata belonging to one Org is not
+            showing in the other.
 
         :CaseLevel: Integration
         """
@@ -185,8 +185,8 @@ class ErrataTestCase(UITestCase):
 
         :Steps: Go to Content -> Errata.
 
-        :Assert: Check that the new user is able to see errata for one product
-            only.
+        :expectedresults: Check that the new user is able to see errata for one
+            product only.
 
         :CaseLevel: Integration
         """
@@ -224,8 +224,8 @@ class ErrataTestCase(UITestCase):
             1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
             2. Select few Content Hosts and apply the erratum.
 
-        :Assert: Check that the erratum is applied in the selected content
-            hosts.
+        :expectedresults: Check that the erratum is applied in the selected
+            content hosts.
 
         :CaseLevel: System
         """
@@ -259,7 +259,8 @@ class ErrataTestCase(UITestCase):
             1. Go to Content -> Errata. Select an erratum -> Content Hosts tab.
             2. Select all Content Hosts and apply the erratum.
 
-        :Assert: Check that the erratum is applied in all the content hosts.
+        :expectedresults: Check that the erratum is applied in all the content
+            hosts.
 
         :CaseLevel: System
         """
@@ -297,8 +298,9 @@ class ErrataTestCase(UITestCase):
 
         :Steps: Go to Content -> Errata. Review the Errata page.
 
-        :Assert: The following fields: Errata Id, Title, Type, Affected Content
-            Hosts, Updated has expected values for errata table.
+        :expectedresults: The following fields: Errata Id, Title, Type,
+            Affected Content Hosts, Updated has expected values for errata
+            table.
 
         :CaseLevel: Integration
         """
@@ -319,8 +321,8 @@ class ErrataTestCase(UITestCase):
 
         :Steps: Go to Content -> Errata.  Select an Errata -> Details tab.
 
-        :Assert: The following fields are displayed: : Advisory, CVEs, Type,
-            Severity, Issued, Last Update on, Reboot Suggested, Topic,
+        :expectedresults: The following fields are displayed: : Advisory, CVEs,
+            Type, Severity, Issued, Last Update on, Reboot Suggested, Topic,
             Description, Solution, Affected Packages.
 
         :CaseLevel: Integration
@@ -342,7 +344,8 @@ class ErrataTestCase(UITestCase):
 
         :Steps: Go to Content -> Errata.  Select an Errata -> Repositories tab.
 
-        :Assert: The Repositories tab lists affected Products and Repositories.
+        :expectedresults: The Repositories tab lists affected Products and
+            Repositories.
 
         :CaseLevel: Integration
         """
@@ -370,7 +373,7 @@ class ErrataTestCase(UITestCase):
 
         :Steps: Go to Content -> Errata.  Select an Errata.
 
-        :Assert:
+        :expectedresults:
 
             1. Check if the CVE information is shown in Errata Details page.
             2. Check if 'N/A' is displayed if CVE information is not present.
@@ -415,7 +418,7 @@ class ErrataTestCase(UITestCase):
         :Steps: Go to Content -> Errata.  Select an Errata -> Content Hosts tab
             -> Filter content hosts by Environment.
 
-        :Assert: Content hosts can be filtered by Environment.
+        :expectedresults: Content hosts can be filtered by Environment.
 
         :CaseLevel: System
         """
@@ -494,7 +497,8 @@ class ErrataTestCase(UITestCase):
 
         :Steps: Go to Content -> Errata.
 
-        :Assert: Check if autocomplete works in search field of Errata page.
+        :expectedresults: Check if autocomplete works in search field of Errata
+            page.
 
         :CaseLevel: Integration
         """
@@ -526,8 +530,8 @@ class ErrataTestCase(UITestCase):
                 Content -> Filters -> Select a Filter -> Click on any of the
                 errata hyperlink.
 
-        :Assert: Check if all the above mentioned scenarios redirect to the new
-            errata page.
+        :expectedresults: Check if all the above mentioned scenarios redirect
+            to the new errata page.
 
         :caseautomation: notautomated
 
@@ -549,7 +553,7 @@ class ErrataTestCase(UITestCase):
         :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
             Select Previous environments.
 
-        :Assert: The errata from previous environments are displayed.
+        :expectedresults: The errata from previous environments are displayed.
 
         :CaseLevel: System
         """
@@ -610,7 +614,7 @@ class ErrataTestCase(UITestCase):
         :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
             Select 'Library'.
 
-        :Assert: The errata from Library are displayed.
+        :expectedresults: The errata from Library are displayed.
 
         :CaseLevel: System
         """
@@ -647,7 +651,7 @@ class ErrataTestCase(UITestCase):
 
         :Steps: Go to Hosts -> Content Hosts.
 
-        :Assert:
+        :expectedresults:
 
             1. The available errata count is displayed.
             2. Errata count is displayed with color icons.
@@ -753,7 +757,7 @@ class ErrataTestCase(UITestCase):
         :Steps: Go to Hosts -> Content Hosts -> Select Content Host -> Details
             page.
 
-        :Assert:
+        :expectedresults:
 
             1. The errata section should be displayed with Security, Bugfix,
                 Enhancement types.
@@ -866,7 +870,7 @@ class ErrataTestCase(UITestCase):
             and published with the new 1.1 ComponentA and pushed to the
             environment it was in.
 
-        :Assert: Composite content views updated with point releases.
+        :expectedresults: Composite content views updated with point releases.
 
         :caseautomation: notautomated
 
@@ -906,7 +910,8 @@ class FilteredErrataTestCase(UITestCase):
             6. Change 'errata status installable' flag in the settings and
                 check host properties once more
 
-        :Assert: Check that 'errata status installable' flag works as intended
+        :expectedresults: Check that 'errata status installable' flag works as
+            intended
 
         :BZ: 1368254
 

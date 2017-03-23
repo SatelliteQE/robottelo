@@ -45,7 +45,7 @@ class MediumTestCase(CLITestCase):
 
         :id: 4a1caaf8-4401-48cc-85ad-e7189944688d
 
-        :Assert: Medium is created
+        :expectedresults: Medium is created
 
 
         :CaseImportance: Critical
@@ -62,7 +62,7 @@ class MediumTestCase(CLITestCase):
 
         :id: cbc6c586-fae7-4bb9-aeb1-e30158f16a98
 
-        :Assert: Medium is created and has new location assigned
+        :expectedresults: Medium is created and has new location assigned
 
 
         :CaseImportance: Critical
@@ -78,7 +78,7 @@ class MediumTestCase(CLITestCase):
 
         :id: 631bb6ed-e42b-482a-83f0-f6ce0f20729a
 
-        :Assert: Medium is created and has new organization assigned
+        :expectedresults: Medium is created and has new organization assigned
 
 
         :CaseImportance: Critical
@@ -94,7 +94,7 @@ class MediumTestCase(CLITestCase):
 
         :id: dc62c9ad-d2dc-42df-80eb-02cf8d26cdee
 
-        :Assert: Medium is deleted
+        :expectedresults: Medium is deleted
 
 
         :CaseImportance: Critical
@@ -114,7 +114,7 @@ class MediumTestCase(CLITestCase):
 
         :id: 47d1e6f0-d8a6-4190-b2ac-41b09a559429
 
-        :Assert: Operating system added
+        :expectedresults: Operating system added
 
 
         :CaseLevel: Integration
@@ -133,7 +133,7 @@ class MediumTestCase(CLITestCase):
 
         :id: 23b5b55b-3624-440c-8001-75c7c5a5a004
 
-        :Assert: Operating system removed
+        :expectedresults: Operating system removed
 
 
         :CaseLevel: Integration
@@ -160,7 +160,7 @@ class MediumTestCase(CLITestCase):
 
         :id: 2111090a-21d3-47f7-bb81-5f19ab71a91d
 
-        :Assert: Medium updated
+        :expectedresults: Medium updated
 
 
         :CaseImportance: Critical

@@ -37,7 +37,7 @@ class HardwareModelTestCase(UITestCase):
 
         :id: e2ebac95-4d0b-404d-98c6-dcba40158c28
 
-        :assert: Hardware-Model is created
+        :expectedresults: Hardware-Model is created
 
         :CaseImportance: Critical
         """
@@ -54,7 +54,7 @@ class HardwareModelTestCase(UITestCase):
 
         :id: ccaeec78-28e9-432d-bb2e-6fb92280d996
 
-        :assert: Hardware-Model is not created
+        :expectedresults: Hardware-Model is not created
 
         :CaseImportance: Critical
         """
@@ -73,7 +73,7 @@ class HardwareModelTestCase(UITestCase):
 
         :id: 56ec6d62-1520-4de2-9231-b62e57578223
 
-        :assert: Hardware-Model is updated.
+        :expectedresults: Hardware-Model is updated.
 
         :CaseImportance: Critical
         """
@@ -94,7 +94,7 @@ class HardwareModelTestCase(UITestCase):
 
         :id: 160319bb-c67c-4086-8d48-fce88c110a2e
 
-        :assert: Hardware-Model is deleted
+        :expectedresults: Hardware-Model is deleted
 
         :CaseImportance: Critical
         """

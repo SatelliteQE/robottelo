@@ -106,7 +106,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update current User with all variations of Firstname in [1]
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :CaseImportance: Critical
         """
@@ -122,7 +122,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update current User with with Email
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :CaseImportance: Critical
         """
@@ -137,7 +137,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update current User with all variations of Surname in [1]
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :caseautomation: notautomated
 
@@ -155,7 +155,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update current User with all different Language options
 
-        :Assert: Current User is updated
+        :expectedresults: Current User is updated
 
         :CaseImportance: Critical
         """
@@ -190,7 +190,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update Password/Verify fields with all variations in [1]
 
-        :Assert: User is updated
+        :expectedresults: User is updated
 
         :CaseImportance: Critical
         """
@@ -220,7 +220,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update Current user with all variations of FirstName in [2]
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
 
@@ -236,7 +236,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update Current user with all variations of Surname in [2]
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
 
@@ -252,7 +252,7 @@ class MyAccountTestCase(UITestCase):
 
         :Steps: Update Current user with all variations of Email Address in [2]
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
 
@@ -269,7 +269,7 @@ class MyAccountTestCase(UITestCase):
         :Steps: Update Current user with all variations of Password/Verify
             fields in [2]
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
 
@@ -287,7 +287,7 @@ class MyAccountTestCase(UITestCase):
         :Steps: Update Current user with non-matching values in Password and
             verify fields
 
-        :Assert: User is not updated. Appropriate error shown.
+        :expectedresults: User is not updated. Appropriate error shown.
 
         :caseautomation: notautomated
 
@@ -307,7 +307,7 @@ class MyAccountTestCase(UITestCase):
                 Address, Language, Password/Verify fields
             2. Click Cancel
 
-        :Assert: User is not updated.
+        :expectedresults: User is not updated.
 
         :caseautomation: notautomated
 

@@ -52,8 +52,8 @@ class PuppetModuleTestCase(UITestCase):
 
         :id: 86af4bff-a404-453e-b05a-912ac8aeb52d
 
-        :Assert: Content search functionality works as intended and expected
-            puppet modules are present inside of repository
+        :expectedresults: Content search functionality works as intended and
+            expected puppet modules are present inside of repository
 
         :CaseImportance: Critical
         """
@@ -68,8 +68,8 @@ class PuppetModuleTestCase(UITestCase):
 
         :id: 15dc567c-1e9a-4008-a3bc-40c1dbd69ae1
 
-        :Assert: Puppet module is present inside of repository and has all
-            expected values in details section
+        :expectedresults: Puppet module is present inside of repository and has
+            all expected values in details section
 
         :CaseImportance: Critical
         """
@@ -102,8 +102,8 @@ class PuppetModuleTestCase(UITestCase):
 
         :id: 7de4325c-905a-4fde-8e30-01a6a40b9e31
 
-        :Assert: Puppet module is present inside of repository and has proper
-            repositories assigned to
+        :expectedresults: Puppet module is present inside of repository and has
+            proper repositories assigned to
 
         :CaseImportance: Critical
         """

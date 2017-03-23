@@ -183,7 +183,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :steps: Creates a smart variable with valid name
 
-        :assert: The smart variable is created successfully.
+        :expectedresults: The smart variable is created successfully.
 
         :CaseImportance: Critical
         """
@@ -206,7 +206,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :steps: Creates a smart variable with valid name and default value.
 
-        :assert:
+        :expectedresults:
 
             1. The smart Variable is created successfully.
             2. In YAML output of associated host, the variable with name and
@@ -249,7 +249,7 @@ class SmartVariablesTestCase(UITestCase):
         :steps: Creates a smart variable with invalid name and valid default
             value.
 
-        :assert:
+        :expectedresults:
 
             1. Error is displayed for invalid variable name.
             2. The smart Variable is not created.
@@ -280,7 +280,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :steps: Deletes a smart Variable from Configure - Smart Variables menu.
 
-        :assert:
+        :expectedresults:
 
             1. The smart Variable is deleted successfully.
             2. In YAML output of associated Host, the variable should be
@@ -321,7 +321,7 @@ class SmartVariablesTestCase(UITestCase):
             1. In Puppet Class, create a smart variable with valid name
             2. After successful creation, update the name of variable.
 
-        :assert: The variable is updated with new name.
+        :expectedresults: The variable is updated with new name.
 
         :CaseImportance: Critical
         """
@@ -352,7 +352,7 @@ class SmartVariablesTestCase(UITestCase):
                default value.
             2. After successful creation, update the puppet class of variable.
 
-        :assert: The variable is updated with new puppet class.
+        :expectedresults: The variable is updated with new puppet class.
 
         :CaseImportance: Critical
         """
@@ -384,7 +384,7 @@ class SmartVariablesTestCase(UITestCase):
             2. After successful creation, attempt to create a variable with
                same name from same/other class.
 
-        :assert:
+        :expectedresults:
 
             1. An error is displayed in front of Variable Key field as 'has
                already been taken'.
@@ -422,7 +422,8 @@ class SmartVariablesTestCase(UITestCase):
             2.  Enter a 'valid' default Value.
             3.  Submit the changes.
 
-        :assert: Variable is updated with a new type and value successfully.
+        :expectedresults: Variable is updated with a new type and value
+            successfully.
 
         :CaseImportance: Critical
         """
@@ -466,8 +467,8 @@ class SmartVariablesTestCase(UITestCase):
             2.  Enter an 'Invalid' default Value.
             3.  Submit the changes.
 
-        :assert: Variable is not updated with new type and invalid default
-            value.
+        :expectedresults: Variable is not updated with new type and invalid
+            default value.
 
         :CaseImportance: Critical
         """
@@ -511,7 +512,8 @@ class SmartVariablesTestCase(UITestCase):
                 validator rule
             3.  Submit the change.
 
-        :assert: Error is raised for default value not matching with regex.
+        :expectedresults: Error is raised for default value not matching with
+            regex.
 
         :CaseImportance: Critical
         """
@@ -543,7 +545,7 @@ class SmartVariablesTestCase(UITestCase):
                 rule
             3.  Submit the change.
 
-        :assert: Smart Variable is created successfully
+        :expectedresults: Smart Variable is created successfully
 
         :CaseImportance: Critical
         """
@@ -574,7 +576,8 @@ class SmartVariablesTestCase(UITestCase):
                 validator rule
             3.  Submit the change.
 
-        :assert: Error is raised for matcher value not matching with regex.
+        :expectedresults: Error is raised for matcher value not matching with
+            regex.
 
         :CaseImportance: Critical
         """
@@ -611,8 +614,8 @@ class SmartVariablesTestCase(UITestCase):
                 validator rule
             3.  Submit the change.
 
-        :assert: Smart Variable is created successfully and error is not raised
-            for matcher value matching with regex.
+        :expectedresults: Smart Variable is created successfully and error is
+            not raised for matcher value matching with regex.
 
         :CaseImportance: Critical
         """
@@ -651,8 +654,8 @@ class SmartVariablesTestCase(UITestCase):
                 rule
             3.  Submit the change.
 
-        :assert: Error is raised for default value which is not in the list
-            from validator rule.
+        :expectedresults: Error is raised for default value which is not in the
+            list from validator rule.
 
         :CaseImportance: Critical
         """
@@ -683,7 +686,7 @@ class SmartVariablesTestCase(UITestCase):
             2.  Provide default value that matches list from validator rule
             3.  Submit the change.
 
-        :assert: Smart Variable is created successfully
+        :expectedresults: Smart Variable is created successfully
 
         :CaseImportance: Critical
         """
@@ -714,8 +717,8 @@ class SmartVariablesTestCase(UITestCase):
                 validator rule
             3.  Submit the change.
 
-        :assert: Error is raised for matcher value that is not in list from
-            validator rule.
+        :expectedresults: Error is raised for matcher value that is not in list
+            from validator rule.
 
         :CaseImportance: Critical
         """
@@ -752,7 +755,7 @@ class SmartVariablesTestCase(UITestCase):
                 validator rule
             3.  Submit the change.
 
-        :assert: Smart Variable is created successfully
+        :expectedresults: Smart Variable is created successfully
 
         :CaseImportance: Critical
         """
@@ -787,7 +790,8 @@ class SmartVariablesTestCase(UITestCase):
                 type.
             3.  Submit the change.
 
-        :assert: Error is raised for matcher value which is not of default type
+        :expectedresults: Error is raised for matcher value which is not of
+            default type
 
         :CaseImportance: Critical
         """
@@ -822,7 +826,7 @@ class SmartVariablesTestCase(UITestCase):
             2.  Create a matcher with value that matches the default type.
             3.  Submit the change.
 
-        :assert: Smart Variable is created successfully
+        :expectedresults: Smart Variable is created successfully
 
         :CaseImportance: Critical
         """
@@ -857,7 +861,8 @@ class SmartVariablesTestCase(UITestCase):
                 type.
             3.  Submit the change.
 
-        :assert: Error is raised for invalid default and matcher value both.
+        :expectedresults: Error is raised for invalid default and matcher value
+            both.
 
         :CaseImportance: Critical
         """
@@ -895,7 +900,7 @@ class SmartVariablesTestCase(UITestCase):
             1.  Create a matcher with non existing attribute in org.
             2.  Attempt to submit the change.
 
-        :assert: Error is raised for non existing attribute.
+        :expectedresults: Error is raised for non existing attribute.
 
         :CaseImportance: Critical
         """
@@ -928,7 +933,7 @@ class SmartVariablesTestCase(UITestCase):
             1. Create a smart Variable with valid name and default value.
             2. Create a matcher for Host attribute with valid value.
 
-        :assert:
+        :expectedresults:
 
             1. The smart Variable with matcher is created successfully.
             2. In YAML output, the variable name with overrided value for host
@@ -981,7 +986,7 @@ class SmartVariablesTestCase(UITestCase):
             5.  Submit the change.
             6.  Go to YAML output of associated host.
 
-        :assert: The YAML output has the value only for fqdn matcher.
+        :expectedresults: The YAML output has the value only for fqdn matcher.
 
         :CaseLevel: Integration
         """
@@ -1032,7 +1037,7 @@ class SmartVariablesTestCase(UITestCase):
             5.  Submit the change.
             6.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the value only for step 4 matcher.
             2.  The YAML output doesn't have value for fqdn/host matcher.
@@ -1087,7 +1092,7 @@ class SmartVariablesTestCase(UITestCase):
             6.  Submit the change.
             7.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1144,7 +1149,7 @@ class SmartVariablesTestCase(UITestCase):
             6.  Submit the change.
             7.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values only for fqdn.
             2.  The YAML output doesn't have the values for attribute which are
@@ -1202,7 +1207,7 @@ class SmartVariablesTestCase(UITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1262,7 +1267,7 @@ class SmartVariablesTestCase(UITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1322,7 +1327,7 @@ class SmartVariablesTestCase(UITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1381,7 +1386,7 @@ class SmartVariablesTestCase(UITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all matchers.
             2.  The YAML output has the default value of variable.
@@ -1429,8 +1434,8 @@ class SmartVariablesTestCase(UITestCase):
 
         :steps: Set variable type other than array/hash.
 
-        :assert: The Merge Overrides, Merge Default checkboxes are disabled for
-            editing
+        :expectedresults: The Merge Overrides, Merge Default checkboxes are
+            disabled for editing
 
         :CaseImportance: Critical
         """
@@ -1458,8 +1463,8 @@ class SmartVariablesTestCase(UITestCase):
 
         :steps: Set variable type other than array.
 
-        :assert: The Merge Overrides, Avoid Duplicates checkboxes are disabled
-            for editing
+        :expectedresults: The Merge Overrides, Avoid Duplicates checkboxes are
+            disabled for editing
 
         :CaseImportance: Critical
         """
@@ -1491,7 +1496,7 @@ class SmartVariablesTestCase(UITestCase):
             2.  Delete the attribute.
             3.  Recreate the attribute with same name as earlier.
 
-        :assert:
+        :expectedresults:
 
             1.  The matcher for deleted attribute removed from variable.
             2.  On recreating attribute, the matcher should not reappear in
@@ -1543,7 +1548,7 @@ class SmartVariablesTestCase(UITestCase):
             3.  From host/hostgroup, override the variable value.
             4.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  The host/hostgroup is saved with changes.
             2.  New matcher for fqdn/hostgroup created inside variable.
@@ -1580,7 +1585,7 @@ class SmartVariablesTestCase(UITestCase):
             3.  From host/hostgroup, attempt to override the variable with some
                 other key type of value.
 
-        :assert:
+        :expectedresults:
 
             1.  Error thrown for invalid type value.
             2.  No matcher for fqdn/hostgroup is created inside variable.
@@ -1623,7 +1628,7 @@ class SmartVariablesTestCase(UITestCase):
             4.  From host/hostgroup, edit the variable value.
             5.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  The host/hostgroup is saved with changes.
             2.  Matcher value in variable is updated from fqdn/hostgroup.
@@ -1674,7 +1679,7 @@ class SmartVariablesTestCase(UITestCase):
             4.  From host/hostgroup, attempt to edit the variable with invalid
                 value.
 
-        :assert:
+        :expectedresults:
 
             1.  Error thrown for invalid value.
             2.  Matcher value in variable is not updated from fqdn/hostgroup.
@@ -1726,7 +1731,7 @@ class SmartVariablesTestCase(UITestCase):
             2.  Enter some valid default value.
             3.  Check 'Hidden Value' checkbox.
 
-        :assert: Created Smart Variable has hidden default value
+        :expectedresults: Created Smart Variable has hidden default value
 
         :CaseImportance: Critical
         """
@@ -1760,7 +1765,7 @@ class SmartVariablesTestCase(UITestCase):
             3.  Hide the value of variable.
             4.  After hiding, uncheck the 'Hidden Value' checkbox.
 
-        :assert: The default value shown in unhidden state.
+        :expectedresults: The default value shown in unhidden state.
 
         :CaseImportance: Critical
         """
@@ -1801,7 +1806,7 @@ class SmartVariablesTestCase(UITestCase):
             4.  Submit the changes.
             5.  Associate variable on host/hostgroup.
 
-        :assert:
+        :expectedresults:
 
             1.  In host/hostgroup, the variable value shown in hidden state.
             2.  The button for unhiding the value is displayed and accessible.
@@ -1852,7 +1857,7 @@ class SmartVariablesTestCase(UITestCase):
             5.  Associate variable on host/hostgroup.
             6.  In host/hostgroup, Click Unhide button icon.
 
-        :assert:
+        :expectedresults:
 
             1.  In host/hostgroup, the variable value shown in unhidden state.
             2.  The button for hiding the value is displayed and accessible.
@@ -1903,7 +1908,7 @@ class SmartVariablesTestCase(UITestCase):
             4.  Again update the default value.
             5.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  The variable default value is updated.
             2.  The variable default value displayed as hidden.
@@ -1951,7 +1956,7 @@ class SmartVariablesTestCase(UITestCase):
             5.  Associate variable on host/hostgroup.
             6.  In host/hostgroup, update the variable value.
 
-        :assert:
+        :expectedresults:
 
             1.  In host/hostgroup, the variable value is updated.
             2.  The variable Value displayed as hidden.
@@ -2012,7 +2017,7 @@ class SmartVariablesTestCase(UITestCase):
             3.  Check the 'Hidden Value' icon.
             4.  Create a matcher with some value.
 
-        :assert:
+        :expectedresults:
 
             1.  The 'Hidden Value' checkbox is enabled to check.
             2.  The default value shows empty on hide.

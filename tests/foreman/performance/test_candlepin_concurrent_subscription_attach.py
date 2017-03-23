@@ -64,7 +64,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
                number of iterations
             3. produce result of timing
 
-        :Assert: Restoring where there's no system registered
+        :expectedresults: Restoring where there's no system registered
         """
         self.kick_off_ak_test(self.num_threads[0], 5000)
 
@@ -80,7 +80,8 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
                limited number of times
             3. produce result of timing
 
-        :Assert: Restoring from database without any registered systems.
+        :expectedresults: Restoring from database without any registered
+            systems.
         """
         self.kick_off_att_test(self.num_threads[1], 5000)
 
@@ -89,7 +90,8 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
 
         :id: dfc7da77-6127-42ee-bbaa-4e3b48c86c9d
 
-        :Assert: Restoring from database without any registered systems.
+        :expectedresults: Restoring from database without any registered
+            systems.
         """
         self.kick_off_att_test(self.num_threads[2], 5000)
 
@@ -98,7 +100,8 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
 
         :id: 1a03261a-2756-4ea2-a718-86b5cfa9bd87
 
-        :Assert: Restoring from database without any registered systems.
+        :expectedresults: Restoring from database without any registered
+            systems.
         """
         self.kick_off_att_test(self.num_threads[3], 6000)
 
@@ -107,7 +110,8 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
 
         :id: fc5049b1-93ba-4cba-854f-bb763d137832
 
-        :Assert: Restoring from database without any registered systems.
+        :expectedresults: Restoring from database without any registered
+            systems.
         """
         self.kick_off_att_test(self.num_threads[4], 5000)
 
@@ -123,6 +127,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
                limited number of times
             3. produce result of timing
 
-        :Assert: Restoring from database without any registered systems.
+        :expectedresults: Restoring from database without any registered
+            systems.
         """
         self.kick_off_att_test(self.num_threads[5], 5000)

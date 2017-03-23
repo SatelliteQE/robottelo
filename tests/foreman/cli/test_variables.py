@@ -94,7 +94,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :id: ee0da54c-ab60-4dde-8e1f-d548b52bac73
 
-        :assert: Smart Variables listed for specific Host by hostname.
+        :expectedresults: Smart Variables listed for specific Host by hostname.
 
         :CaseLevel: Integration
         """
@@ -120,7 +120,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :id: ee2e994b-2a6d-4069-a2f7-e244a3134772
 
-        :assert: Smart Variables listed for specific Host by host id.
+        :expectedresults: Smart Variables listed for specific Host by host id.
 
         :CaseLevel: Integration
         """
@@ -144,8 +144,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :id: cb69abe0-2349-4114-91e9-ef93f261dc50
 
-        :assert: Smart Variables listed for specific HostGroup by hostgroup
-            name.
+        :expectedresults: Smart Variables listed for specific HostGroup by
+            hostgroup name.
 
         :CaseLevel: Integration
         """
@@ -170,7 +170,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :id: 0f167c4c-e4de-4b66-841f-d5a9e410391e
 
-        :assert: Smart Variables listed for specific HostGroup by hostgroup id.
+        :expectedresults: Smart Variables listed for specific HostGroup by
+            hostgroup id.
 
         :CaseLevel: Integration
         """
@@ -194,8 +195,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :id: 43b795c2-a64d-4a84-bb35-1e8fd0e1a0c9
 
-        :assert: Smart Variables listed for specific puppet class by puppet
-            class name.
+        :expectedresults: Smart Variables listed for specific puppet class by
+            puppet class name.
 
         :CaseImportance: Critical
         """
@@ -218,8 +219,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :id: 57d290e8-2ae2-4c09-ab1e-7c7914bc4ba8
 
-        :assert: Smart Variables listed for specific puppet class by puppet
-            class id.
+        :expectedresults: Smart Variables listed for specific puppet class by
+            puppet class id.
 
         :CaseImportance: Critical
         """
@@ -241,7 +242,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Create a smart Variable with Valid name.
 
-        :assert: The smart Variable is created successfully.
+        :expectedresults: The smart Variable is created successfully.
 
         :CaseImportance: Critical
         """
@@ -262,7 +263,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Create a smart Variable with Invalid name.
 
-        :assert: The smart Variable is not created.
+        :expectedresults: The smart Variable is not created.
 
         :CaseImportance: Critical
         """
@@ -283,7 +284,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Delete a smart Variable by id.
 
-        :assert: The smart Variable is deleted successfully.
+        :expectedresults: The smart Variable is deleted successfully.
 
         :CaseImportance: Critical
         """
@@ -302,7 +303,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Delete a smart Variable by name.
 
-        :assert: The smart Variable is deleted successfully.
+        :expectedresults: The smart Variable is deleted successfully.
 
         :CaseImportance: Critical
         """
@@ -325,7 +326,7 @@ class SmartVariablesTestCase(CLITestCase):
             2. Update the puppet class associated to the smart variable created
                in step1.
 
-        :assert: The variable is updated with new puppet class.
+        :expectedresults: The variable is updated with new puppet class.
 
         :CaseImportance: Critical
         """
@@ -356,7 +357,7 @@ class SmartVariablesTestCase(CLITestCase):
             1. Create a smart variable with valid name.
             2. Update smart variable name created in step1.
 
-        :assert: The variable is updated with new name.
+        :expectedresults: The variable is updated with new name.
 
         :CaseImportance: Critical
         """
@@ -385,8 +386,8 @@ class SmartVariablesTestCase(CLITestCase):
             2. Attempt to create a variable with same name from same/other
                class.
 
-        :assert: The variable with same name are not allowed to create from any
-            class.
+        :expectedresults: The variable with same name are not allowed to create
+            from any class.
 
         :CaseImportance: Critical
         """
@@ -407,7 +408,7 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a smart Variable with Valid name and valid default
             value.
 
-        :assert: The smart Variable is created successfully.
+        :expectedresults: The smart Variable is created successfully.
 
         :CaseImportance: Critical
         """
@@ -431,7 +432,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Create a variable with valid key type and default value.
 
-        :assert: Variable is created with a new type successfully.
+        :expectedresults: Variable is created with a new type successfully.
 
         :caseautomation: notautomated
 
@@ -451,7 +452,8 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a variable with valid key type and invalid default
             value.
 
-        :assert: Variable is not created with new type for invalid value.
+        :expectedresults: Variable is not created with new type for invalid
+            value.
 
         :caseautomation: notautomated
 
@@ -467,7 +469,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Create a matcher for variable with type string and empty value
 
-        :assert: Matcher is created with empty value
+        :expectedresults: Matcher is created with empty value
 
         :CaseImportance: Critical
         """
@@ -498,7 +500,7 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a matcher for variable with type other than string and
             empty value
 
-        :assert: Matcher is not created with empty value
+        :expectedresults: Matcher is not created with empty value
 
         :CaseImportance: Critical
         """
@@ -523,7 +525,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Create a matcher for variable with invalid match value
 
-        :assert: Matcher is not created
+        :expectedresults: Matcher is not created
 
         :CaseImportance: Critical
         """
@@ -550,7 +552,7 @@ class SmartVariablesTestCase(CLITestCase):
                 step 2
             2.  Validate this value with regex validator type and valid rule.
 
-        :assert: Variable is not created for unmatched validator rule.
+        :expectedresults: Variable is not created for unmatched validator rule.
 
         :CaseImportance: Critical
         """
@@ -582,7 +584,7 @@ class SmartVariablesTestCase(CLITestCase):
                 regex of step 2
             2.  Validate this value with regex validator type and rule.
 
-        :assert: Variable is created for matched validator rule.
+        :expectedresults: Variable is created for matched validator rule.
 
         :CaseImportance: Critical
         """
@@ -615,7 +617,7 @@ class SmartVariablesTestCase(CLITestCase):
                 step 2.
             2.  Validate this value with regex validator type and rule.
 
-        :assert: Matcher is not created for unmatched validator rule.
+        :expectedresults: Matcher is not created for unmatched validator rule.
 
         :CaseImportance: Critical
         """
@@ -644,7 +646,7 @@ class SmartVariablesTestCase(CLITestCase):
             1.  Create a matcher with value that matches the regex of step 2.
             2.  Validate this value with regex validator type and rule.
 
-        :assert: Matcher is created for matched validator rule.
+        :expectedresults: Matcher is created for matched validator rule.
 
         :CaseImportance: Critical
         """
@@ -680,7 +682,7 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Attempt to create variable with default value that doesn't
             match values from validator list
 
-        :assert: Variable is not created for unmatched validator rule.
+        :expectedresults: Variable is not created for unmatched validator rule.
 
         :CaseImportance: Critical
         """
@@ -702,7 +704,7 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a variable with default value that matches the values
             from validator list
 
-        :assert: Variable is created for matched validator rule.
+        :expectedresults: Variable is created for matched validator rule.
 
         :CaseImportance: Critical
         """
@@ -729,7 +731,7 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Attempt to associate a matcher with value that doesn't match
                 values from validator list
 
-        :assert: Matcher is not created for unmatched validator rule.
+        :expectedresults: Matcher is not created for unmatched validator rule.
 
         :CaseImportance: Critical
         """
@@ -759,7 +761,7 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Create a matcher with value that matches the values from
                 validator list
 
-        :assert: Matcher is created for matched validator rule.
+        :expectedresults: Matcher is created for matched validator rule.
 
         :CaseImportance: Critical
         """
@@ -797,7 +799,7 @@ class SmartVariablesTestCase(CLITestCase):
             1.  Create variable with valid default value.
             2.  Create matcher with value that doesn't match the default type.
 
-        :assert: Matcher is not created for unmatched type.
+        :expectedresults: Matcher is not created for unmatched type.
 
         :CaseImportance: Critical
         """
@@ -825,7 +827,7 @@ class SmartVariablesTestCase(CLITestCase):
             1.  Create variable default type with valid value.
             2.  Create a matcher with value that matches the default type.
 
-        :assert: Matcher is created for matched type.
+        :expectedresults: Matcher is created for matched type.
 
         :CaseImportance: Critical
         """
@@ -857,7 +859,7 @@ class SmartVariablesTestCase(CLITestCase):
 
         :steps: Attempt to create a matcher with non existing attribute.
 
-        :assert: Matcher is not created for non-existing attribute.
+        :expectedresults: Matcher is not created for non-existing attribute.
 
         :caseautomation: notautomated
 
@@ -876,7 +878,7 @@ class SmartVariablesTestCase(CLITestCase):
             1. Create a smart variable with valid name and default value.
             2. Create a matcher for Host with valid value.
 
-        :assert:
+        :expectedresults:
 
             1. The smart Variable with matcher is created successfully.
             2. The variable is associated with host with match.
@@ -913,7 +915,7 @@ class SmartVariablesTestCase(CLITestCase):
             2. Create a matcher for that variable.
             3. Remove just assigned matcher.
 
-        :assert:
+        :expectedresults:
 
             1. The smart Variable is created successfully.
             2. The matcher is associated with variable.
@@ -960,7 +962,7 @@ class SmartVariablesTestCase(CLITestCase):
                 Note - The fqdn/host should have this attribute.
             5.  Go to YAML output of associated host.
 
-        :assert: The YAML output has the value only for fqdn matcher.
+        :expectedresults: The YAML output has the value only for fqdn matcher.
 
         :caseautomation: notautomated
 
@@ -985,7 +987,7 @@ class SmartVariablesTestCase(CLITestCase):
                 details.
             5.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the value only for step 5 matcher.
             2.  The YAML output doesn't have value for fqdn/host matcher.
@@ -1014,7 +1016,7 @@ class SmartVariablesTestCase(CLITestCase):
             5.  Set --merge-overrides to true.
             6.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1066,7 +1068,7 @@ class SmartVariablesTestCase(CLITestCase):
             5.  Set --merge-overrides to true.
             6.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values only for fqdn.
             2.  The YAML output doesn't have the values for attribute which are
@@ -1099,7 +1101,7 @@ class SmartVariablesTestCase(CLITestCase):
             6. Set --merge-default to true.
             7. Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1. The YAML output has the values merged from all the associated
                matchers.
@@ -1131,7 +1133,7 @@ class SmartVariablesTestCase(CLITestCase):
             6. Set --merge-default to true.
             7. Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1164,7 +1166,7 @@ class SmartVariablesTestCase(CLITestCase):
             6.  Set --avoid -duplicates' to true.
             7.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1196,7 +1198,7 @@ class SmartVariablesTestCase(CLITestCase):
             6.  Set --avoid -duplicates' to true.
             7.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all matchers.
             2.  The YAML output has the default value of variable.
@@ -1220,8 +1222,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Update smart variable and set corresponding flags to True
                 state.
 
-        :assert: The Merge Overrides, Merge Default flags are allowed to set
-            True.
+        :expectedresults: The Merge Overrides, Merge Default flags are allowed
+            to set True.
 
         :CaseImportance: Critical
         """
@@ -1255,8 +1257,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Attempt to update smart variable and set corresponding flags to
                 True state.
 
-        :assert: The Merge Overrides, Merge Default flags are not allowed to
-            set to True.
+        :expectedresults: The Merge Overrides, Merge Default flags are not
+            allowed to set to True.
 
         :CaseImportance: Critical
         """
@@ -1289,7 +1291,7 @@ class SmartVariablesTestCase(CLITestCase):
             1. Create smart variable with array/hash type.
             2. Set '--merge-overrides' to true.
 
-        :assert: The '--avoid-duplicates' flag is allowed to set true.
+        :expectedresults: The '--avoid-duplicates' flag is allowed to set true.
 
         :CaseImportance: Critical
         """
@@ -1323,7 +1325,7 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Attempt to update smart variable and set corresponding flags to
                 True state.
 
-        :assert:
+        :expectedresults:
 
             1.  The '--merge-overrides' is only allowed to set to true for type
                 hash.
@@ -1361,7 +1363,7 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Delete the attribute.
             3.  Recreate the attribute with same name as earlier.
 
-        :assert:
+        :expectedresults:
 
             1.  The matcher for deleted attribute removed from variable.
             2.  On recreating attribute, the matcher should not reappear in
@@ -1417,8 +1419,8 @@ class SmartVariablesTestCase(CLITestCase):
             2. Enter some valid default value.
             3. Set '--hidden-value' to true.
 
-        :assert: The 'hidden value' set to true for that variable. Default
-            value is hidden
+        :expectedresults: The 'hidden value' set to true for that variable.
+            Default value is hidden
 
         :CaseImportance: Critical
         """
@@ -1443,7 +1445,7 @@ class SmartVariablesTestCase(CLITestCase):
             2. Set '--hidden-value' to true.
             3. After hiding, set '--hidden-value' to false.
 
-        :assert: The hidden value is set to false.
+        :expectedresults: The hidden value is set to false.
 
         :CaseImportance: Critical
         """
@@ -1474,7 +1476,7 @@ class SmartVariablesTestCase(CLITestCase):
             2. Set '--hidden-value' to true.
             3. Again update the default value.
 
-        :assert:
+        :expectedresults:
 
             1. The variable default value is updated.
             2. The variable '--hidden-value' is set true.
@@ -1508,7 +1510,7 @@ class SmartVariablesTestCase(CLITestCase):
             1.  Create a variable with empty value.
             2.  Set '--hidden-value' to true.
 
-        :assert:
+        :expectedresults:
 
             1.  The '--hidden-value' is set to true.
             2.  The default value is empty.

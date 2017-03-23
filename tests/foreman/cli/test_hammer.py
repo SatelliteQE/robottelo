@@ -151,7 +151,7 @@ class HammerCommandsTestCase(CLITestCase):
 
         :id: 1203ab9f-896d-4039-a166-9e2d36925b5b
 
-        :Assert: All expected options are present
+        :expectedresults: All expected options are present
 
         :CaseImportance: Critical
         """

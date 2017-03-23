@@ -65,7 +65,7 @@ class PuppetTestCase(APITestCase):
             15. Assert that the puppet modules get installed by provisioning
             16. Run facter on host and assert that was successful
 
-        :Assert: multiple asserts along the code
+        :expectedresults: multiple asserts along the code
 
         :caseautomation: notautomated
 
@@ -111,7 +111,7 @@ class PuppetCapsuleTestCase(APITestCase):
             15. Assert that the puppet modules get installed by provisioning
             16. Run facter on host and assert that was successful
 
-        :Assert: multiple asserts along the code
+        :expectedresults: multiple asserts along the code
 
         :caseautomation: notautomated
 

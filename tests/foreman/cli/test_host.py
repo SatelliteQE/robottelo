@@ -147,7 +147,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 2e8dd25d-47ed-4131-bba6-1ff024808d05
 
-        :assert: A host is created and the name matches
+        :expectedresults: A host is created and the name matches
 
         :CaseImportance: Critical
         """
@@ -182,7 +182,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: c08b0dac-9820-4261-bb0b-8a78f5c78a74
 
-        :Assert: Host is created using organization name
+        :expectedresults: Host is created using organization name
 
         :CaseImportance: Critical
         """
@@ -201,7 +201,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: bb69a70e-17f9-4639-802d-90e6a4520afa
 
-        :Assert: Host is created, default content view is associated
+        :expectedresults: Host is created, default content view is associated
 
         :CaseImportance: Critical
         """
@@ -223,7 +223,8 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 0093be1c-3664-448e-87f5-758bab34958a
 
-        :Assert: Host is created, default lifecycle environment is associated
+        :expectedresults: Host is created, default lifecycle environment is
+            associated
 
         :CaseImportance: Critical
         """
@@ -244,7 +245,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: e102b034-0011-471d-ba21-5ef8d129a61f
 
-        :Assert: Host is created using new lifecycle
+        :expectedresults: Host is created using new lifecycle
 
         :CaseImportance: Critical
         """
@@ -265,7 +266,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: f90873b9-fb3a-4c93-8647-4b1aea0a2c35
 
-        :Assert: Host is created using new published, promoted cv
+        :expectedresults: Host is created using new published, promoted cv
 
         :CaseImportance: Critical
         """
@@ -285,7 +286,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 6bb1bbdc-23fd-4493-9283-fbb70d72b2eb
 
-        :Assert: Host is created and has puppet class assigned
+        :expectedresults: Host is created and has puppet class assigned
 
         :CaseImportance: Critical
         """
@@ -305,7 +306,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: a65df36e-db4b-48d2-b0e1-5ccfbefd1e7a
 
-        :Assert: Host is created and has puppet class assigned
+        :expectedresults: Host is created and has puppet class assigned
 
         :CaseImportance: Critical
         """
@@ -325,7 +326,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: f92b6070-b2d1-4e3e-975c-39f1b1096697
 
-        :Assert: Host is not created
+        :expectedresults: Host is not created
 
         :CaseImportance: Critical
         """
@@ -346,7 +347,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 9997383d-3c27-4f14-94f9-4b8b51180eb6
 
-        :Assert: Host is not created using new unpublished cv
+        :expectedresults: Host is not created using new unpublished cv
 
         :CaseImportance: Critical
         """
@@ -365,7 +366,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
 
-        :Assert: Host successfully registered to appropriate org
+        :expectedresults: Host successfully registered to appropriate org
 
         :CaseLevel: System
         """
@@ -384,7 +385,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
 
-        :Assert: host cannot be registered twice
+        :expectedresults: host cannot be registered twice
 
         :CaseLevel: System
         """
@@ -417,7 +418,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 596322f6-9fdc-441a-a36d-ae2f22132b38
 
-        :Assert: Overridden sc-param from puppet class is listed
+        :expectedresults: Overridden sc-param from puppet class is listed
 
         :Caselevel: Integration
         """
@@ -444,7 +445,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 26e406ea-56f5-4813-bb93-e908c9015ee3
 
-        :Assert: Overridden sc-param from puppet class is listed
+        :expectedresults: Overridden sc-param from puppet class is listed
 
         :Caselevel: Integration
         """
@@ -471,7 +472,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 22d85dea-0fc0-47c2-8f38-c6f6712dad7e
 
-        :Assert: Smart variable from puppet class is listed
+        :expectedresults: Smart variable from puppet class is listed
 
         :Caselevel: Integration
         """
@@ -495,7 +496,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: a254d3a6-cf7f-4847-acb6-9813d23369d4
 
-        :Assert: Smart variable from puppet class is listed
+        :expectedresults: Smart variable from puppet class is listed
 
         :Caselevel: Integration
         """
@@ -518,7 +519,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
 
-        :Assert: Hosts are listed for the given org
+        :expectedresults: Hosts are listed for the given org
 
         :CaseLevel: System
         """
@@ -546,8 +547,9 @@ class HostCreateTestCase(CLITestCase):
 
         :id: c5ce988d-d0ea-4958-9956-5a4b039b285c
 
-        :Assert: Host is successfully unregistered. Unlike content host, host
-            has not disappeared from list of hosts after unregistering.
+        :expectedresults: Host is successfully unregistered. Unlike content
+            host, host has not disappeared from list of hosts after
+            unregistering.
 
         :CaseLevel: System
         """
@@ -583,7 +585,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: b003faa9-2810-4176-94d2-ea84bed248eb
 
-        :Assert: Host is created
+        :expectedresults: Host is created
 
         :CaseImportance: Critical
         """
@@ -619,8 +621,8 @@ class HostCreateTestCase(CLITestCase):
 
         :id: ba73b8c8-3ce1-4fa8-a33b-89ded9ffef47
 
-        :Assert: Host's lifecycle environment and content view match the ones
-            specified in hostgroup
+        :expectedresults: Host's lifecycle environment and content view match
+            the ones specified in hostgroup
 
         :CaseLevel: Integration
 
@@ -658,7 +660,7 @@ class HostCreateTestCase(CLITestCase):
         :steps: Create a new host using 'BareMetal' option and MAC address of
             the pre-created VM
 
-        :assert: Host is created
+        :expectedresults: Host is created
 
         :caseautomation: notautomated
 
@@ -679,7 +681,7 @@ class HostCreateTestCase(CLITestCase):
         :steps: Create a new host using 'BareMetal' option and MAC address of
             the pre-created VM
 
-        :assert: Host is created
+        :expectedresults: Host is created
 
         :caseautomation: notautomated
 
@@ -702,8 +704,8 @@ class HostCreateTestCase(CLITestCase):
                and PXE loader set to Grub UEFI
             3. Build the host
 
-        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
-            structure:
+        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
+            dir/file structure:
 
                 grub/bootia32.efi
                 grub/bootx64.efi
@@ -735,8 +737,8 @@ class HostCreateTestCase(CLITestCase):
                and PXE loader set to Grub UEFI SecureBoot
             3. Build the host
 
-        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
-            structure:
+        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
+            dir/file structure:
 
                 grub/bootia32.efi
                 grub/bootx64.efi
@@ -767,8 +769,8 @@ class HostCreateTestCase(CLITestCase):
                and PXE loader set to Grub2 UEFI
             3. Build the host
 
-        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
-            structure:
+        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
+            dir/file structure:
 
                 pxegrub2
                 grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
@@ -800,8 +802,8 @@ class HostCreateTestCase(CLITestCase):
                and PXE loader set to Grub2 UEFI SecureBoot
             3. Build the host
 
-        :assert: Verify [/var/lib/tftpboot/] contains the following dir/file
-            structure:
+        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
+            dir/file structure:
 
                 pxegrub2
                 grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
@@ -853,7 +855,7 @@ class HostDeleteTestCase(CLITestCase):
 
         :id: e687a685-ab8b-4c5f-97f9-e14d3ab52f29
 
-        :Assert: Host is deleted
+        :expectedresults: Host is deleted
 
         :CaseImportance: Critical
         """
@@ -867,7 +869,7 @@ class HostDeleteTestCase(CLITestCase):
 
         :id: 93f7504d-9a63-491f-8fdb-ed8017aefab9
 
-        :Assert: Host is deleted
+        :expectedresults: Host is deleted
 
         :CaseImportance: Critical
         """
@@ -914,7 +916,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 058dbcbf-d543-483d-b755-be0602588464
 
-        :assert: A host is updated and the name matches
+        :expectedresults: A host is updated and the name matches
 
         :CaseImportance: Critical
         """
@@ -939,7 +941,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: f95a5952-17bd-49da-b2a7-c79f0614f1c7
 
-        :assert: A host is updated and the name matches
+        :expectedresults: A host is updated and the name matches
 
         :CaseImportance: Critical
         """
@@ -965,7 +967,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 72ed9ae8-989a-46d1-8b7d-46f5db106e75
 
-        :assert: A host is updated and the MAC address matches
+        :expectedresults: A host is updated and the MAC address matches
 
         :CaseImportance: Critical
         """
@@ -984,7 +986,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: a422788d-5473-4846-a86b-90d8f236285a
 
-        :assert: A host is updated and the MAC address matches
+        :expectedresults: A host is updated and the MAC address matches
 
         :CaseImportance: Critical
         """
@@ -1003,7 +1005,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 3aac0896-d16a-46ee-afe9-2d3ecea6ca9b
 
-        :assert: A host is updated and the domain matches
+        :expectedresults: A host is updated and the domain matches
 
         :CaseLevel: Integration
         """
@@ -1025,7 +1027,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 9b4fb1b9-a226-4b8a-bfaf-1121de7df5bc
 
-        :assert: A host is updated and the domain matches
+        :expectedresults: A host is updated and the domain matches
 
         :CaseLevel: Integration
         """
@@ -1052,7 +1054,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 4e1d1e31-fa84-43e4-9e66-7fb953767ee5
 
-        :assert: A host is updated and the environment matches
+        :expectedresults: A host is updated and the environment matches
 
         :CaseLevel: Integration
         """
@@ -1074,7 +1076,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: f0ec469a-7550-4f05-b39c-e68b9267247d
 
-        :assert: A host is updated and the environment matches
+        :expectedresults: A host is updated and the environment matches
 
         :CaseLevel: Integration
         """
@@ -1096,7 +1098,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: a4546fd6-997a-44e4-853a-eac235ea87b0
 
-        :assert: A host is updated and the architecture matches
+        :expectedresults: A host is updated and the architecture matches
 
         :CaseLevel: Integration
         """
@@ -1123,7 +1125,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 92da3782-47db-4701-aaab-3ea974043d20
 
-        :assert: A host is updated and the architecture matches
+        :expectedresults: A host is updated and the architecture matches
 
         :CaseLevel: Integration
         """
@@ -1150,7 +1152,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 9ea88634-9c14-4519-be6e-fb163897efb7
 
-        :assert: A host is updated and the operating system matches
+        :expectedresults: A host is updated and the operating system matches
 
         :CaseLevel: Integration
         """
@@ -1177,7 +1179,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: bd48887f-3db3-47b0-8231-de58884efe57
 
-        :assert: A host is updated and the operating system matches
+        :expectedresults: A host is updated and the operating system matches
 
         :CaseLevel: Integration
         """
@@ -1205,7 +1207,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 899f1eef-07a9-4227-848a-92e377a8d55c
 
-        :assert: A host is updated and the medium matches
+        :expectedresults: A host is updated and the medium matches
 
         :CaseLevel: Integration
         """
@@ -1233,7 +1235,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: f47edb02-d649-4ca8-94b2-0637ebdac2e8
 
-        :assert: A host is updated and the medium matches
+        :expectedresults: A host is updated and the medium matches
 
         :CaseLevel: Integration
         """
@@ -1260,7 +1262,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: e8068d2a-6a51-4627-908b-60a516c67032
 
-        :assert: A host is not updated
+        :expectedresults: A host is not updated
 
         :CaseImportance: Critical
         """
@@ -1286,7 +1288,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: 2f03032d-789d-419f-9ff2-a6f3561444da
 
-        :assert: A host is not updated
+        :expectedresults: A host is not updated
 
         :CaseImportance: Critical
         """
@@ -1307,7 +1309,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: a86524da-8caf-472b-9a3d-17a4385c3a18
 
-        :assert: A host is not updated
+        :expectedresults: A host is not updated
 
         :CaseLevel: Integration
         """
@@ -1331,7 +1333,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :id: ff13d2af-e54a-4daf-a24d-7ec930b4fbbe
 
-        :assert: A host is not updated
+        :expectedresults: A host is not updated
 
         :CaseLevel: Integration
         """
@@ -1391,7 +1393,8 @@ class HostParameterTestCase(CLITestCase):
 
         :id: 67b1c496-8f33-4a34-aebb-7339bc33ce77
 
-        :Assert: Host parameter was successfully added with correct name.
+        :expectedresults: Host parameter was successfully added with correct
+            name.
 
 
         :CaseImportance: Critical
@@ -1413,7 +1416,7 @@ class HostParameterTestCase(CLITestCase):
 
         :id: 1932b61d-8be4-4f58-9760-dc588cbca1d7
 
-        :Assert: Host parameter was successfully added with value.
+        :expectedresults: Host parameter was successfully added with value.
 
 
         :CaseImportance: Critical
@@ -1436,8 +1439,8 @@ class HostParameterTestCase(CLITestCase):
 
         :id: 32b09b07-39de-4706-ac5e-75a54255df17
 
-        :Assert: Host parameter was successfully added with correct name and
-            value.
+        :expectedresults: Host parameter was successfully added with correct
+            name and value.
 
         :CaseImportance: Critical
         """
@@ -1458,7 +1461,8 @@ class HostParameterTestCase(CLITestCase):
 
         :id: 56c43ab4-7fb0-44f5-9d54-107d3c1011bf
 
-        :Assert: Host parameter was successfully updated with new value.
+        :expectedresults: Host parameter was successfully updated with new
+            value.
 
 
         :CaseImportance: Critical
@@ -1487,7 +1491,8 @@ class HostParameterTestCase(CLITestCase):
 
         :id: 24bcc8a4-7787-4fa8-9bf8-dfc5e697684f
 
-        :Assert: Host parameter was successfully updated with new value.
+        :expectedresults: Host parameter was successfully updated with new
+            value.
 
 
         :CaseImportance: Critical
@@ -1516,7 +1521,7 @@ class HostParameterTestCase(CLITestCase):
 
         :id: a52da845-0403-4b66-9e83-6065f7d4551d
 
-        :Assert: Host parameter was successfully deleted.
+        :expectedresults: Host parameter was successfully deleted.
 
 
         :CaseImportance: Critical
@@ -1542,7 +1547,7 @@ class HostParameterTestCase(CLITestCase):
 
         :id: d28cbbba-d296-49c7-91f5-8fb63a80d82c
 
-        :Assert: Host parameter was successfully deleted.
+        :expectedresults: Host parameter was successfully deleted.
 
 
         :CaseImportance: Critical
@@ -1568,7 +1573,7 @@ class HostParameterTestCase(CLITestCase):
 
         :id: 473f8c3f-b66e-4526-88af-e139cc3dabcb
 
-        :Assert: Host parameter was not added.
+        :expectedresults: Host parameter was not added.
 
 
         :CaseImportance: Critical
@@ -1671,7 +1676,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: afb5ab34-1703-49dc-8ddc-5e032c1b86d7
 
-        :Assert: Errata info was displayed
+        :expectedresults: Errata info was displayed
 
 
         :CaseLevel: System
@@ -1694,7 +1699,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
 
-        :Assert: Errata is scheduled for installation
+        :expectedresults: Errata is scheduled for installation
 
 
         :CaseLevel: System
@@ -1715,7 +1720,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
 
-        :Assert: Package was successfully installed
+        :expectedresults: Package was successfully installed
 
 
         :CaseLevel: System
@@ -1736,7 +1741,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: 573dec11-8f14-411f-9e41-84426b0f23b5
 
-        :Assert: Package was successfully removed
+        :expectedresults: Package was successfully removed
 
 
         :CaseLevel: System
@@ -1761,7 +1766,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: ad751c63-7175-40ae-8bc4-800462cd9c29
 
-        :Assert: Package was successfully upgraded
+        :expectedresults: Package was successfully upgraded
 
 
         :CaseLevel: System
@@ -1781,8 +1786,8 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: 003101c7-bb95-4e51-a598-57977b2858a9
 
-        :Assert: Packages (at least 1 with newer version available) were
-            successfully upgraded
+        :expectedresults: Packages (at least 1 with newer version available)
+            were successfully upgraded
 
         :CaseLevel: System
         """
@@ -1798,7 +1803,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: 8c28c188-2903-44d1-ab1e-b74f6d6affcf
 
-        :Assert: Package group was successfully installed
+        :expectedresults: Package group was successfully installed
 
 
         :CaseLevel: System
@@ -1818,7 +1823,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: c80dbeff-93b4-4cd4-8fae-6a4d1bfc94f0
 
-        :Assert: Package group was successfully removed
+        :expectedresults: Package group was successfully removed
 
 
         :CaseLevel: System
@@ -1840,7 +1845,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
 
-        :assert: Host can no longer retrieve content from satellite
+        :expectedresults: Host can no longer retrieve content from satellite
 
         :CaseLevel: System
         """
@@ -1860,7 +1865,7 @@ class HostErrataTestCase(CLITestCase):
 
         :id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
 
-        :assert: Satellite host errata list not failing
+        :expectedresults: Satellite host errata list not failing
 
         :BZ: 1351040
 

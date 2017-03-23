@@ -46,8 +46,8 @@ class TemplateTestCase(UITestCase):
 
         :id: 12767d13-2531-4a3c-9527-3191bc9a1149
 
-        :Assert: New template of type 'Provisioning template' should be created
-            successfully
+        :expectedresults: New template of type 'Provisioning template' should
+            be created successfully
 
         :CaseImportance: Critical
         """
@@ -70,7 +70,7 @@ class TemplateTestCase(UITestCase):
 
         :id: cfbc8e10-96b3-425c-ac21-f995a8b038e8
 
-        :Assert: Template is not created
+        :expectedresults: Template is not created
 
         :CaseImportance: Critical
         """
@@ -94,7 +94,7 @@ class TemplateTestCase(UITestCase):
 
         :id: 52382553-2708-47d0-97b2-fce6ddb366ad
 
-        :Assert: Template is not created
+        :expectedresults: Template is not created
 
         :CaseImportance: Critical
         """
@@ -125,7 +125,7 @@ class TemplateTestCase(UITestCase):
 
         :id: 370af6a5-0814-4474-b758-46ec25ccbc4a
 
-        :Assert: Template is not created
+        :expectedresults: Template is not created
 
         :CaseImportance: Critical
         """
@@ -151,7 +151,7 @@ class TemplateTestCase(UITestCase):
 
         :id: dd4bb3cb-a7a0-46fa-bc16-e2d117ce79d8
 
-        :Assert: Template is not created
+        :expectedresults: Template is not created
 
         :CaseImportance: Critical
         """
@@ -177,7 +177,7 @@ class TemplateTestCase(UITestCase):
 
         :id: 62b06765-f9d5-4e69-967f-76f2649f83ff
 
-        :Assert: Template is not created
+        :expectedresults: Template is not created
 
         :CaseImportance: Critical
         """
@@ -200,8 +200,8 @@ class TemplateTestCase(UITestCase):
 
         :id: 56f62153-6dd2-4120-9f23-386442f643c4
 
-        :Assert: New provisioning template of type 'snippet' should be created
-            successfully
+        :expectedresults: New provisioning template of type 'snippet' should be
+            created successfully
 
         :CaseImportance: Critical
         """
@@ -224,7 +224,7 @@ class TemplateTestCase(UITestCase):
 
         :id: e4a687e5-6581-4481-ad9b-8d2ac3f2c9d5
 
-        :Assert: Template is deleted successfully
+        :expectedresults: Template is deleted successfully
 
         :CaseImportance: Critical
         """
@@ -245,7 +245,8 @@ class TemplateTestCase(UITestCase):
 
         :id: f1a7d44d-5ac8-47e1-9084-ce8f166dbde5
 
-        :Assert: The template name and type should be updated successfully
+        :expectedresults: The template name and type should be updated
+            successfully
 
         :CaseImportance: Critical
         """
@@ -272,8 +273,8 @@ class TemplateTestCase(UITestCase):
 
         :id: 160d7906-dd60-4870-8ca0-dde61ccab67c
 
-        :Assert: The template should be updated with newly created OS's
-            successfully
+        :expectedresults: The template should be updated with newly created
+            OS's successfully
 
         :CaseImportance: Critical
         """
@@ -305,7 +306,7 @@ class TemplateTestCase(UITestCase):
             1.  Go to Provisioning template UI
             2.  Choose a template and attempt to clone it
 
-        :Assert: The template is cloned
+        :expectedresults: The template is cloned
 
         :CaseLevel: Integration
         """
@@ -342,7 +343,8 @@ class TemplateTestCase(UITestCase):
 
         :BZ: 1386334
 
-        :Assert: Template can be found successfully and no error is raised
+        :expectedresults: Template can be found successfully and no error is
+            raised
 
         :CaseImportance: Critical
         """
