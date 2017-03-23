@@ -79,7 +79,7 @@ class TemplateCombinationTestCase(APITestCase):
 
         :Setup: save a template combination
 
-        :Assert: TemplateCombination can be retrieved through API
+        :expectedresults: TemplateCombination can be retrieved through API
 
         :CaseImportance: Critical
         """
@@ -98,7 +98,7 @@ class TemplateCombinationTestCase(APITestCase):
 
         :Setup: save a template combination
 
-        :Assert: TemplateCombination can be deleted through API
+        :expectedresults: TemplateCombination can be deleted through API
 
         :CaseImportance: Critical
         """

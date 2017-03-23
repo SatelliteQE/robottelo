@@ -40,7 +40,7 @@ class BookmarkTestCase(APITestCase):
                controller
             2. List the bookmarks
 
-        :Assert: No errors, Bookmark is listed, controller matches the
+        :expectedresults: No errors, Bookmark is listed, controller matches the
             controller the bookmark was created for
 
         :CaseImportance: Critical
@@ -69,7 +69,7 @@ class BookmarkTestCase(APITestCase):
                controller
             2. List the bookmarks
 
-        :Assert: No errors, Bookmark is listed, controller matches the
+        :expectedresults: No errors, Bookmark is listed, controller matches the
             controller the bookmark was created for
 
         :CaseImportance: Critical
@@ -96,8 +96,8 @@ class BookmarkTestCase(APITestCase):
             1. Create a bookmark with a random name and public = true
             2. List the bookmarks
 
-        :Assert: No errors, Bookmark is listed, controller matches the entity
-            the bookmark was created for and is displayed as public
+        :expectedresults: No errors, Bookmark is listed, controller matches the
+            entity the bookmark was created for and is displayed as public
 
         :CaseImportance: Critical
         """
@@ -123,7 +123,7 @@ class BookmarkTestCase(APITestCase):
             1. Attempt to create a bookmark with providing an invalid name
             2. List the bookmarks
 
-        :Assert: Error returned, Bookmark is not created (not listed)
+        :expectedresults: Error returned, Bookmark is not created (not listed)
 
         :CaseImportance: Critical
         """
@@ -152,8 +152,8 @@ class BookmarkTestCase(APITestCase):
             1. Create a bookmark with providing an empty query
             2. List the bookmarks
 
-        :Assert: Error notification - search query cannot be empty, Bookmark is
-            not created (not listed)
+        :expectedresults: Error notification - search query cannot be empty,
+            Bookmark is not created (not listed)
 
         :CaseImportance: Critical
         """
@@ -186,8 +186,8 @@ class BookmarkTestCase(APITestCase):
             3. List the bookmarks. Assert that the Bookmark created is present
                and there's only one listed
 
-        :Assert: Error notification - name already taken, Bookmark is not
-            created (not listed)
+        :expectedresults: Error notification - name already taken, Bookmark is
+            not created (not listed)
 
         :CaseImportance: Critical
         """
@@ -220,8 +220,8 @@ class BookmarkTestCase(APITestCase):
                the 'public' parameter
             2. List the bookmarks
 
-        :Assert: Error notification - public is required, Bookmark is not
-            created (not listed)
+        :expectedresults: Error notification - public is required, Bookmark is
+            not created (not listed)
 
         :BZ: 1302725
 
@@ -251,7 +251,7 @@ class BookmarkTestCase(APITestCase):
 
         :Steps: Update the previously created bookmark with another random name
 
-        :Assert: The new bookmark name is listed
+        :expectedresults: The new bookmark name is listed
 
         :CaseImportance: Critical
         """
@@ -279,7 +279,7 @@ class BookmarkTestCase(APITestCase):
             created in the Setup with the name of the second (or first)
             Bookmark
 
-        :Assert: Error - name already taken, bookmark not updated
+        :expectedresults: Error - name already taken, bookmark not updated
 
         :CaseImportance: Critical
         """
@@ -310,7 +310,7 @@ class BookmarkTestCase(APITestCase):
         :Steps: Update the name of the previously created bookmarks to an
             invalid value
 
-        :Assert: Error - bookmark not updated
+        :expectedresults: Error - bookmark not updated
 
         :CaseImportance: Critical
         """
@@ -338,7 +338,7 @@ class BookmarkTestCase(APITestCase):
 
         :Steps: Update the query of the previously created bookmark
 
-        :Assert: The updated query submitted
+        :expectedresults: The updated query submitted
 
         :CaseImportance: Critical
         """
@@ -364,7 +364,8 @@ class BookmarkTestCase(APITestCase):
         :Steps: Update the query of the pre-created bookmark with an empty
             value
 
-        :Assert: Error - search query cannot be empty, bookmark not updated
+        :expectedresults: Error - search query cannot be empty, bookmark not
+            updated
 
         :CaseImportance: Critical
         """
@@ -393,7 +394,7 @@ class BookmarkTestCase(APITestCase):
             1. Update the bookmarks 'public' attribute
             2. List the bookmarks
 
-        :Assert: Bookmark is updated with new public state
+        :expectedresults: Bookmark is updated with new public state
 
         :CaseImportance: Critical
         """

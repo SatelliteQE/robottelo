@@ -60,7 +60,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
 
         :id: 627c84b3-e3f1-416c-a09b-5d2200d6429f
 
-        :Assert: Content View Version is created.
+        :expectedresults: Content View Version is created.
 
         :CaseLevel: Integration
         """
@@ -81,7 +81,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
 
         :id: 0afd49c6-f3a4-403e-9929-849f51ffa922
 
-        :Assert: Content View Version is not created
+        :expectedresults: Content View Version is not created
 
         :CaseLevel: Integration
         """
@@ -126,7 +126,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
         :id: f205ca06-8ab5-4546-83bd-deac4363d487
 
-        :Assert: Promotion succeeds.
+        :expectedresults: Promotion succeeds.
 
         :CaseLevel: Integration
         """
@@ -156,7 +156,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
         :id: e88405de-843d-4279-9d81-cedaab7c23cf
 
-        :Assert: The promotion succeeds.
+        :expectedresults: The promotion succeeds.
 
         :CaseLevel: Integration
         """
@@ -182,7 +182,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
         :id: cd4f3c3d-93c5-425f-bc3b-d1ac17696a4a
 
-        :Assert: The promotion fails.
+        :expectedresults: The promotion fails.
 
         :CaseLevel: Integration
         """
@@ -196,7 +196,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
         :id: 621d1bb6-92c6-4209-8369-6ea14a4c8a01
 
-        :Assert: The promotion fails.
+        :expectedresults: The promotion fails.
 
         :CaseLevel: Integration
         """
@@ -227,7 +227,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
         :id: 066dec47-c942-4c01-8956-359c8b23a6d4
 
-        :Assert: Content version deleted successfully
+        :expectedresults: Content version deleted successfully
 
         :CaseLevel: Integration
         """
@@ -275,7 +275,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
         :id: 95bb973c-ebec-4a72-a1b6-ad28b66bd11b
 
-        :Assert: Content view version deleted successfully
+        :expectedresults: Content view version deleted successfully
 
         :CaseLevel: Integration
         """
@@ -305,7 +305,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
         :id: 21c35aae-2f9c-4679-b3ba-7cd9182bd880
 
-        :Assert: Content view version is not deleted
+        :expectedresults: Content view version is not deleted
 
         :CaseLevel: Integration
         """
@@ -335,7 +335,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             4. Rename the content view
             5. remove the published version from Library environment
 
-        :Assert: content view version is removed from Library environment
+        :expectedresults: content view version is removed from Library
+            environment
 
         :CaseLevel: Integration
         """
@@ -390,7 +391,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                 Library -> DEV -> QE
             5. remove the content view version from Library environment
 
-        :Assert: Content view version exist only in DEV, QE and not in Library
+        :expectedresults: Content view version exist only in DEV, QE and not in
+            Library
 
         :CaseLevel: Integration
         """
@@ -453,8 +455,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                 Library -> DEV -> QE -> PROD
             5. remove the content view version from Library environment
 
-        :Assert: Content view version exist only in DEV, QE, PROD and not in
-            Library
+        :expectedresults: Content view version exist only in DEV, QE, PROD and
+            not in Library
 
         :CaseLevel: Integration
         """
@@ -544,7 +546,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                STAGE and not in PROD
             7. Promote again from STAGE -> PROD
 
-        :Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
+        :expectedresults: Content view version exist in Library, DEV, QE,
+            STAGE, PROD
 
         :CaseLevel: Integration
         """
@@ -635,7 +638,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                Library -> DEV -> QE -> STAGE -> PROD
             5. Remove content view version from QE, STAGE and PROD
 
-        :Assert: Content view version exists only in Library, DEV
+        :expectedresults: Content view version exists only in Library, DEV
 
         :CaseLevel: Integration
         """
@@ -723,7 +726,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             5. Delete the content view, this should delete the content with all
                it's published/promoted versions from all environments
 
-        :Assert: The content view doesn't exists
+        :expectedresults: The content view doesn't exists
 
         :CaseLevel: Integration
         """
@@ -815,7 +818,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                and content view cv1 for Content-host and for Activation key.
             8. Refresh content-host subscription
 
-        :Assert:
+        :expectedresults:
 
             1. Activation key exists
             2. Content-host exists
@@ -855,7 +858,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
                key.
             8. Refresh content-host subscription
 
-        :Assert:
+        :expectedresults:
 
             1. The content view cv1 doesn't exist
             2. Activation key exists
@@ -900,8 +903,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             10. Make sure the capsule is updated (content synchronization may
                 be applied)
 
-        :Assert: content view version in capsule is removed from Library and
-            DEV and exists only in QE and PROD
+        :expectedresults: content view version in capsule is removed from
+            Library and DEV and exists only in QE and PROD
 
         :caseautomation: notautomated
 
@@ -920,8 +923,8 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
 
         :id: 19b2fe3b-6c91-4713-9910-17517fba661f
 
-        :Assert: The incremental update succeeds with no errors, and the
-            content view is given an additional version.
+        :expectedresults: The incremental update succeeds with no errors, and
+            the content view is given an additional version.
 
         :CaseLevel: Integration
         """

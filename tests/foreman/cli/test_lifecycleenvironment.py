@@ -52,7 +52,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: cca249d0-fb77-422b-aae3-3361887269db
 
-        :Assert: There should not be an error returned
+        :expectedresults: There should not be an error returned
 
 
         :CaseImportance: Critical
@@ -77,7 +77,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: d15001ed-5bbf-43cf-bdd3-1e129dff14ec
 
-        :Assert: Can get info for lifecycle by its name
+        :expectedresults: Can get info for lifecycle by its name
 
 
         :CaseImportance: Critical
@@ -102,7 +102,8 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: fffe67e2-9a45-478d-a538-99f04a9c40ff
 
-        :Assert: Lifecycle environment is created with Library as prior
+        :expectedresults: Lifecycle environment is created with Library as
+            prior
 
 
         :CaseImportance: Critical
@@ -124,7 +125,8 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: 714c42f8-d09e-4e48-9f35-bbc25fe9e229
 
-        :Assert: Lifecycle environment is created with Library as prior
+        :expectedresults: Lifecycle environment is created with Library as
+            prior
 
 
         :CaseImportance: Critical
@@ -149,7 +151,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: 8d82932f-dedf-46f0-a6dc-280cfb228f44
 
-        :Assert: Lifecycle environment with label is created
+        :expectedresults: Lifecycle environment with label is created
 
 
         :CaseImportance: Critical
@@ -171,7 +173,8 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: e62ddb5a-7a38-4b7c-9346-b4dce31448c1
 
-        :Assert: Lifecycle environment is created for correct organization
+        :expectedresults: Lifecycle environment is created for correct
+            organization
 
 
         :CaseImportance: Critical
@@ -189,7 +192,8 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: eb5cfc71-c83d-45ca-ba34-9ef79197691d
 
-        :Assert: Lifecycle environment is created for correct organization
+        :expectedresults: Lifecycle environment is created for correct
+            organization
 
 
         :CaseImportance: Critical
@@ -208,7 +212,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: 76989039-5389-4136-9f7c-220eb38f157b
 
-        :Assert: Lifecycle environment is deleted
+        :expectedresults: Lifecycle environment is deleted
 
 
         :CaseImportance: Critical
@@ -233,7 +237,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: de67a44e-6c6a-430e-927b-4fa43c7c2771
 
-        :Assert: Lifecycle environment name is updated
+        :expectedresults: Lifecycle environment name is updated
 
 
         :CaseImportance: Critical
@@ -262,7 +266,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: 15b82949-3c3a-4942-b42b-db1de34cf5be
 
-        :Assert: Lifecycle environment description is updated
+        :expectedresults: Lifecycle environment description is updated
 
 
         :CaseImportance: Critical
@@ -291,7 +295,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :id: 71600d6b-1ef4-4b88-8e9b-eb2481ee1fe2
 
-        :Assert: Lifecycle environment paths listed
+        :expectedresults: Lifecycle environment paths listed
 
 
         :CaseImportance: Critical
@@ -321,7 +325,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
         :BZ: 1420503
 
-        :assert: all the Lifecycle environments are listed
+        :expectedresults: all the Lifecycle environments are listed
         """
         org = make_org()
         lifecycle_environments_count = 25

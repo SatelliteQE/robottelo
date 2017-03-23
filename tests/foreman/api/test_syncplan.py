@@ -78,7 +78,7 @@ class SyncPlanTestCase(APITestCase):
 
         :id: 9e40ea7f-71ea-4ced-94ba-cde03620c654
 
-        :Assert: The same response is returned.
+        :expectedresults: The same response is returned.
 
         Targets BZ 1132817.
 
@@ -124,7 +124,8 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: df5837e7-3d0f-464a-bd67-86b423c16eb4
 
-        :Assert: A sync plan is created, 'enabled' field has correct value.
+        :expectedresults: A sync plan is created, 'enabled' field has correct
+            value.
 
         :CaseImportance: Critical
         """
@@ -143,7 +144,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: c1263134-0d7c-425a-82fd-df5274e1f9ba
 
-        :Assert: A sync plan is created with the specified name.
+        :expectedresults: A sync plan is created with the specified name.
 
         :CaseImportance: Critical
         """
@@ -162,7 +163,8 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: 3e5745e8-838d-44a5-ad61-7e56829ad47c
 
-        :Assert: A sync plan is created with the specified description.
+        :expectedresults: A sync plan is created with the specified
+            description.
 
         :CaseImportance: Critical
         """
@@ -181,7 +183,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: d160ed1c-b698-42dc-be0b-67ac693c7840
 
-        :Assert: A sync plan is created with the specified interval.
+        :expectedresults: A sync plan is created with the specified interval.
 
         :CaseImportance: Critical
         """
@@ -200,7 +202,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: bdb6e0a9-0d3b-4811-83e2-2140b7bb62e3
 
-        :Assert: A sync plan can be created with a random sync date.
+        :expectedresults: A sync plan can be created with a random sync date.
 
         :CaseImportance: Critical
         """
@@ -222,7 +224,8 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: a3a0f844-2f81-4f87-9f68-c25506c29ce2
 
-        :Assert: A sync plan can not be created with the specified name.
+        :expectedresults: A sync plan can not be created with the specified
+            name.
 
         :CaseImportance: Critical
         """
@@ -241,7 +244,8 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: f5844526-9f58-4be3-8a96-3849a465fc02
 
-        :Assert: A sync plan can not be created with invalid interval specified
+        :expectedresults: A sync plan can not be created with invalid interval
+            specified
 
         :CaseImportance: Critical
         """
@@ -260,7 +264,8 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :id: b4686463-69c8-4538-b040-6fb5246a7b00
 
-        :Assert: A sync plan can not be created with no interval specified.
+        :expectedresults: A sync plan can not be created with no interval
+            specified.
 
         :CaseImportance: Critical
         """
@@ -287,7 +292,7 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :id: 325c0ef5-c0e8-4cb9-b85e-87eb7f42c2f8
 
-        :Assert: Sync plan is updated with different 'enabled' value.
+        :expectedresults: Sync plan is updated with different 'enabled' value.
 
         :CaseImportance: Critical
         """
@@ -310,8 +315,8 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :id: dbfadf4f-50af-4aa8-8d7d-43988dc4528f
 
-        :Assert: A sync plan is created and its name can be updated with the
-            specified name.
+        :expectedresults: A sync plan is created and its name can be updated
+            with the specified name.
 
         :CaseImportance: Critical
         """
@@ -328,8 +333,8 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :id: 4769fe9c-9eec-40c8-b015-1e3d7e570bec
 
-        :Assert: A sync plan is created and its description can be updated with
-            the specified description.
+        :expectedresults: A sync plan is created and its description can be
+            updated with the specified description.
 
         :CaseImportance: Critical
         """
@@ -352,8 +357,8 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :id: cf2eddf8-b4db-430e-a9b0-83c626b45068
 
-        :Assert: A sync plan is created and its interval can be updated with
-            the specified interval.
+        :expectedresults: A sync plan is created and its interval can be
+            updated with the specified interval.
 
         :CaseImportance: Critical
         """
@@ -379,7 +384,7 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :id: fad472c7-01b4-453b-ae33-0845c9e0dfd4
 
-        :Assert: Sync date is updated with the specified sync date.
+        :expectedresults: Sync date is updated with the specified sync date.
 
         :CaseImportance: Critical
         """
@@ -402,7 +407,8 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :id: ae502053-9d3c-4cad-aee4-821f846ceae5
 
-        :Assert: A sync plan can not be updated with the specified name.
+        :expectedresults: A sync plan can not be updated with the specified
+            name.
 
         :CaseImportance: Critical
         """
@@ -420,7 +426,8 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :id: 8c981174-6f55-49c0-8baa-40e5c3fc598c
 
-        :Assert: A sync plan can not be updated with empty interval specified.
+        :expectedresults: A sync plan can not be updated with empty interval
+            specified.
 
         :CaseImportance: Critical
         """
@@ -450,7 +457,8 @@ class SyncPlanProductTestCase(APITestCase):
 
         :id: 036dea02-f73d-4fc1-9c41-5515b6659c79
 
-        :Assert: A sync plan can be created and one product can be added to it.
+        :expectedresults: A sync plan can be created and one product can be
+            added to it.
 
         :CaseLevel: Integration
         """
@@ -468,8 +476,8 @@ class SyncPlanProductTestCase(APITestCase):
 
         :id: 2a80ecad-2245-46d8-bbc6-0b802e68d50c
 
-        :Assert: A sync plan can be created and two products can be added to
-            it.
+        :expectedresults: A sync plan can be created and two products can be
+            added to it.
 
         :CaseLevel: Integration
         """
@@ -496,8 +504,8 @@ class SyncPlanProductTestCase(APITestCase):
 
         :id: 987a0d94-ceb7-4115-9770-2297e60a63fa
 
-        :Assert: A sync plan can be created and one product can be removed from
-            it.
+        :expectedresults: A sync plan can be created and one product can be
+            removed from it.
 
         :CaseLevel: Integration
         """
@@ -522,8 +530,8 @@ class SyncPlanProductTestCase(APITestCase):
 
         :id: eed8c239-8ba3-4dbd-aa6b-c289cd4efd47
 
-        :Assert: A sync plan can be created and both products can be removed
-            from it.
+        :expectedresults: A sync plan can be created and both products can be
+            removed from it.
 
         :CaseLevel: Integration
         """
@@ -548,8 +556,8 @@ class SyncPlanProductTestCase(APITestCase):
 
         :id: b67536ba-3a36-4bb7-a405-0e12081d5a7e
 
-        :Assert: A task is returned which can be used to monitor the additions
-            and removals.
+        :expectedresults: A task is returned which can be used to monitor the
+            additions and removals.
 
         :CaseLevel: Integration
         """
@@ -611,7 +619,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :id: 263a6a79-8236-4757-bf9e-8d9091ba2a11
 
-        :Assert: Product was not synchronized
+        :expectedresults: Product was not synchronized
 
         :BZ: 1279539
 
@@ -646,7 +654,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :id: 0495cb39-2f15-4b6e-9828-1e9517c5c826
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :BZ: 1279539
 
@@ -681,7 +689,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :id: b70a0c50-7335-4285-b24c-edfc1187f034
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
         """
@@ -716,7 +724,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :id: e646196e-3951-4297-8c3c-1494d9895347
 
-        :Assert: Products are synchronized successfully.
+        :expectedresults: Products are synchronized successfully.
 
         :CaseLevel: System
         """
@@ -771,7 +779,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :id: 080c316d-4a06-4ee9-b5f6-1b210d8d0593
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :BZ: 1279539
 
@@ -824,7 +832,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :id: 6697a00f-2181-4c2b-88eb-2333268d780b
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
         """
@@ -887,8 +895,8 @@ class SyncPlanDeleteTestCase(APITestCase):
 
         :id: e565c464-33e2-4bca-8eca-15d5a7d4b155
 
-        :Assert: A sync plan is created with one product and sync plan can be
-            deleted.
+        :expectedresults: A sync plan is created with one product and sync plan
+            can be deleted.
 
         :CaseLevel: Integration
         """
@@ -906,8 +914,8 @@ class SyncPlanDeleteTestCase(APITestCase):
 
         :id: f21bd57f-369e-4acd-a492-5532349a3804
 
-        :Assert: A sync plan is created with one product and sync plan can be
-            deleted.
+        :expectedresults: A sync plan is created with one product and sync plan
+            can be deleted.
 
         :CaseLevel: Integration
         """
@@ -929,8 +937,8 @@ class SyncPlanDeleteTestCase(APITestCase):
 
         :id: 195d8fec-1fa0-42ab-84a5-32dd81a285ca
 
-        :Assert: A sync plan is created with one synced product and sync plan
-            can be deleted.
+        :expectedresults: A sync plan is created with one synced product and
+            sync plan can be deleted.
 
         :CaseLevel: Integration
         """

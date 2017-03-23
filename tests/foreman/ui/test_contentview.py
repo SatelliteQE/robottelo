@@ -148,7 +148,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 804e51d7-f025-4ec2-a247-834afd351e89
 
-        :assert: Content views are created
+        :expectedresults: Content views are created
 
         :CaseImportance: Critical
         """
@@ -170,8 +170,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 974f2adc-b7da-4a8c-a8b5-d231b6bda1ce
 
-        :assert: content views are not created; proper error thrown and system
-            handles it gracefully
+        :expectedresults: content views are not created; proper error thrown
+            and system handles it gracefully
 
         :CaseImportance: Critical
         """
@@ -203,8 +203,8 @@ class ContentViewTestCase(UITestCase):
             3. Publish and promote it to 'Library'
             4. Promote it to next environment
 
-        :assert: content view is created, updated with repo publish and
-            promoted to next selected env
+        :expectedresults: content view is created, updated with repo publish
+            and promoted to next selected env
 
         :CaseLevel: Integration
         """
@@ -245,7 +245,7 @@ class ContentViewTestCase(UITestCase):
             1. Create Product/puppet repo and Sync it
             2. Create CV and add puppet modules from created repo
 
-        :assert: content view is created, updated with puppet module
+        :expectedresults: content view is created, updated with puppet module
 
         :CaseLevel: Integration
         """
@@ -280,7 +280,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 6c6deae7-13f1-4638-a960-d3565d93fd64
 
-        :assert: content views filter removed successfully
+        :expectedresults: content views filter removed successfully
 
         :CaseLevel: Integration
         """
@@ -307,8 +307,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 1cc8d921-92e5-4b51-8050-a7e775095f97
 
-        :assert: content views filter created and selected packages can be
-            added for inclusion/exclusion
+        :expectedresults: content views filter created and selected packages
+            can be added for inclusion/exclusion
 
         :CaseLevel: Integration
         """
@@ -344,7 +344,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 58c32cb5-1392-478e-807a-9c023d5ca0ea
 
-        :assert: Package is included in content view version
+        :expectedresults: Package is included in content view version
 
         :CaseLevel: Integration
         """
@@ -403,7 +403,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 304dfb76-a222-48ab-b6de-578a2c81210c
 
-        :assert: Package is excluded from content view version
+        :expectedresults: Package is excluded from content view version
 
         :CaseLevel: Integration
         """
@@ -462,8 +462,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 2f0adc16-2305-4adf-8582-82e6110fa385
 
-        :assert: Package was successfully removed from content view filter and
-            is present in next published content view version
+        :expectedresults: Package was successfully removed from content view
+            filter and is present in next published content view version
 
         :CaseLevel: Integration
         """
@@ -532,8 +532,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 8d6801de-ab82-49d6-bdeb-0f6e5c95b906
 
-        :assert: Version was updated, next content view version contains
-            package with updated version
+        :expectedresults: Version was updated, next content view version
+            contains package with updated version
 
         :CaseLevel: Integration
         """
@@ -619,8 +619,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: a8aa8864-190a-46c3-aeed-4953c8f3f601
 
-        :assert: Version was updated, next content view version contains
-            package with updated version
+        :expectedresults: Version was updated, next content view version
+            contains package with updated version
 
         :CaseLevel: Integration
         """
@@ -706,8 +706,9 @@ class ContentViewTestCase(UITestCase):
 
         :id: 8f095b11-fd63-4a23-9586-a85d6191314f
 
-        :assert: Affected repos were updated, after new content view version
-            publishing only updated repos are affected by content view filter
+        :expectedresults: Affected repos were updated, after new content view
+            version publishing only updated repos are affected by content view
+            filter
 
         :CaseLevel: Integration
         """
@@ -784,7 +785,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 5a97de5a-679e-4150-adf7-b4a28290b834
 
-        :assert: Same package filter can not be added again
+        :expectedresults: Same package filter can not be added again
 
         :CaseLevel: Integration
         """
@@ -834,8 +835,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 8c02a432-8b2a-4ba3-9613-7070b2dc2bcb
 
-        :assert: content views filter created and selected package groups can
-            be added for inclusion/exclusion
+        :expectedresults: content views filter created and selected package
+            groups can be added for inclusion/exclusion
 
         :CaseLevel: Integration
         """
@@ -869,8 +870,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: bb9eef30-62c4-435c-9573-9f31210b8d7d
 
-        :assert: content views filter created and selected errata-id can be
-            added for inclusion/exclusion
+        :expectedresults: content views filter created and selected errata-id
+            can be added for inclusion/exclusion
 
         :CaseLevel: Integration
         """
@@ -901,7 +902,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 7d8eb36a-536e-49dc-9eb4-a5885ec77819
 
-        :assert: Content view is updated successfully and has proper name
+        :expectedresults: Content view is updated successfully and has proper
+            name
 
         :CaseImportance: Critical
         """
@@ -927,7 +929,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 211c319f-802a-4407-9c16-205a82d4afca
 
-        :assert: Content View is not updated. Appropriate error shown.
+        :expectedresults: Content View is not updated. Appropriate error shown.
 
         :CaseImportance: Critical
         """
@@ -952,7 +954,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: f5e46a3b-c317-4575-9c66-ef1da1926f66
 
-        :assert: Content view is updated successfully and has proper
+        :expectedresults: Content view is updated successfully and has proper
             description
 
         :CaseImportance: Critical
@@ -988,7 +990,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 05639074-ef6d-4c6b-8ff6-53033821e686
 
-        :assert: edited content view save is successful and info is updated
+        :expectedresults: edited content view save is successful and info is
+            updated
 
         :CaseLevel: System
         """
@@ -1041,7 +1044,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: bcea6ef0-bc25-4cc7-9c0c-3591bb8810e5
 
-        :assert: Content view can be deleted and no longer appears in UI
+        :expectedresults: Content view can be deleted and no longer appears in
+            UI
 
         :CaseImportance: Critical
         """
@@ -1072,7 +1076,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: sync multiple content source/types (RH, custom, etc.)
 
-        :assert: Composite content views are created
+        :expectedresults: Composite content views are created
 
         :CaseLevel: System
         """
@@ -1134,7 +1138,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Sync RH content
 
-        :assert: RH Content can be seen in a view
+        :expectedresults: RH Content can be seen in a view
 
         :CaseLevel: Integration
         """
@@ -1175,7 +1179,8 @@ class ContentViewTestCase(UITestCase):
 
         :steps: Assure filter(s) applied to associated content
 
-        :assert: Filtered RH content only is available/can be seen in a view
+        :expectedresults: Filtered RH content only is available/can be seen in
+            a view
 
         :CaseLevel: Integration
         """
@@ -1234,7 +1239,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Sync custom content
 
-        :assert: Custom content can be seen in a view
+        :expectedresults: Custom content can be seen in a view
 
         :CaseLevel: Integration
         """
@@ -1258,8 +1263,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 283fa7da-ca40-4ce2-b3c5-da58ae01b8e7
 
-        :assert: User cannot create a composite content view that contains
-            direct puppet repos.
+        :expectedresults: User cannot create a composite content view that
+            contains direct puppet repos.
 
         :CaseLevel: Integration
         """
@@ -1288,7 +1293,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: fa3e6aea-7ee3-46a6-a5ba-248de3c20a8f
 
-        :assert: User cannot add components to the view
+        :expectedresults: User cannot add components to the view
 
         :CaseLevel: Integration
         """
@@ -1322,8 +1327,8 @@ class ContentViewTestCase(UITestCase):
             1. Create an empty non-composite content view. Do not publish it.
             2. Create a new composite content view
 
-        :assert: Non-composite content view is not listed as available to be
-            added to composite content view.
+        :expectedresults: Non-composite content view is not listed as available
+            to be added to composite content view.
 
         :CaseLevel: Integration
 
@@ -1366,7 +1371,7 @@ class ContentViewTestCase(UITestCase):
             4. Add the published non-composite content view to the composite
                 content view.
 
-        :assert:
+        :expectedresults:
 
             1. Unpublished non-composite content view is not listed as
                 available to be added to composite content view.
@@ -1422,7 +1427,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 24b98075-fca6-4d80-a778-066193c71e7f
 
-        :assert: User cannot add repos multiple times to the view
+        :expectedresults: User cannot add repos multiple times to the view
 
         :CaseLevel: Integration
         """
@@ -1452,7 +1457,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: ee33a306-9f91-439d-ac7c-d30f7e1a14cc
 
-        :assert: User cannot add modules multiple times to the view
+        :expectedresults: User cannot add modules multiple times to the view
 
         :CaseLevel: Integration
         """
@@ -1502,7 +1507,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Multiple environments for an org; RH content synced
 
-        :assert: Content view can be promoted
+        :expectedresults: Content view can be promoted
 
         :CaseLevel: System
         """
@@ -1548,7 +1553,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Multiple environments for an org; RH content synced
 
-        :assert: Content view can be promoted
+        :expectedresults: Content view can be promoted
 
         :CaseLevel: System
         """
@@ -1612,7 +1617,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Multiple environments for an org; custom content synced
 
-        :assert: Content view can be promoted
+        :expectedresults: Content view can be promoted
 
         :CaseLevel: Integration
         """
@@ -1658,7 +1663,7 @@ class ContentViewTestCase(UITestCase):
 
         :steps: create a composite view containing multiple content types
 
-        :assert: Composite content view can be promoted
+        :expectedresults: Composite content view can be promoted
 
         :CaseLevel: Integration
         """
@@ -1767,7 +1772,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: RH content synced
 
-        :assert: Content view can be published
+        :expectedresults: Content view can be published
 
         :CaseLevel: System
         """
@@ -1805,7 +1810,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Multiple environments for an org; RH content synced
 
-        :assert: Content view can be published
+        :expectedresults: Content view can be published
 
         :CaseLevel: System
         """
@@ -1869,7 +1874,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Multiple environments for an org; custom content synced
 
-        :assert: Content view can be published
+        :expectedresults: Content view can be published
 
         :CaseLevel: Integration
         """
@@ -1908,7 +1913,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: Multiple environments for an org; custom content synced
 
-        :assert: Composite content view can be published
+        :expectedresults: Composite content view can be published
 
         :CaseLevel: Integration
         """
@@ -2025,7 +2030,8 @@ class ContentViewTestCase(UITestCase):
             1. publish a view to an environment noting the CV version
             2. edit and republish a new version of a CV
 
-        :assert: Content view version is updated in target environment.
+        :expectedresults: Content view version is updated in target
+            environment.
 
         :CaseLevel: Integration
         """
@@ -2097,7 +2103,8 @@ class ContentViewTestCase(UITestCase):
             1. publish a view to an environment
             2. edit and republish a new version of a CV
 
-        :assert: Content view version is updated in source environment.
+        :expectedresults: Content view version is updated in source
+            environment.
 
         :CaseLevel: Integration
         """
@@ -2171,7 +2178,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 862c385b-d98c-4c29-8345-fd7a5900483a
 
-        :assert: Content view can be cloned
+        :expectedresults: Content view can be cloned
 
         :CaseLevel: Integration
         """
@@ -2211,7 +2218,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 09b9307f-91de-4d3d-a6af-31c526ea816f
 
-        :assert: Content view can be published
+        :expectedresults: Content view can be published
 
         :CaseLevel: Integration
         """
@@ -2283,7 +2290,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: content view with rh repo and custom spin
 
-        :assert: Systems can be subscribed to content view(s)
+        :expectedresults: Systems can be subscribed to content view(s)
 
         :CaseLevel: Integration
         """
@@ -2379,7 +2386,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: content view with custom yum repo
 
-        :assert: Systems can be subscribed to content view(s)
+        :expectedresults: Systems can be subscribed to content view(s)
 
         :CaseLevel: Integration
         """
@@ -2442,7 +2449,7 @@ class ContentViewTestCase(UITestCase):
 
         :setup: content view with puppet module
 
-        :assert: Systems can be subscribed to content view(s)
+        :expectedresults: Systems can be subscribed to content view(s)
 
         :CaseLevel: Integration
         """
@@ -2516,7 +2523,7 @@ class ContentViewTestCase(UITestCase):
                 yet.
             2. Via Dynflow, restart promotion
 
-        :assert: Promotion is restarted.
+        :expectedresults: Promotion is restarted.
 
         :caseautomation: notautomated
 
@@ -2537,7 +2544,7 @@ class ContentViewTestCase(UITestCase):
                 yet.
             2. Via Dynflow, restart publish
 
-        :assert: Publish is restarted.
+        :expectedresults: Publish is restarted.
 
         :caseautomation: notautomated
 
@@ -2563,8 +2570,8 @@ class ContentViewTestCase(UITestCase):
 
         :setup: create a user with all content views permissions
 
-        :assert: The user can Read, Modify, Delete, Publish, Promote the
-            content views
+        :expectedresults: The user can Read, Modify, Delete, Publish, Promote
+            the content views
 
         :CaseLevel: Integration
         """
@@ -2775,8 +2782,8 @@ class ContentViewTestCase(UITestCase):
             2. create content view
             3. add a custom repository to content view
 
-        :assert: User with read-only role for content view can view the
-            repository in the content view
+        :expectedresults: User with read-only role for content view can view
+            the repository in the content view
 
         :CaseLevel: Integration
         """
@@ -2902,9 +2909,9 @@ class ContentViewTestCase(UITestCase):
             2. Create a content view
             3. Add custom yum and docker repositories to content view
 
-        :Assert: User with read-only role for content view can not see 'Add'/
-            'Remove' repositories tabs as well as 'Add repository' and 'Remove
-            repository' buttons
+        :expectedresults: User with read-only role for content view can not see
+            'Add'/ 'Remove' repositories tabs as well as 'Add repository' and
+            'Remove repository' buttons
 
         :CaseLevel: Integration
 
@@ -3000,8 +3007,8 @@ class ContentViewTestCase(UITestCase):
             2. create content view
             3. add a custom repository to content view
 
-        :assert: User with read only role for content view cannot Modify,
-            Delete, Publish, Promote the content views
+        :expectedresults: User with read only role for content view cannot
+            Modify, Delete, Publish, Promote the content views
 
         :CaseLevel: Integration
         """
@@ -3124,7 +3131,7 @@ class ContentViewTestCase(UITestCase):
         :setup: create a user with the Content View without the content views
             read role
 
-        :assert: the user cannot access content views web resources
+        :expectedresults: the user cannot access content views web resources
 
         :CaseLevel: Integration
         """
@@ -3217,7 +3224,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 6000a3f5-a8c2-49a4-ba30-d73a18d39e0a
 
-        :Assert: Deletion was performed successfully
+        :expectedresults: Deletion was performed successfully
 
         :CaseLevel: Integration
         """
@@ -3264,7 +3271,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 1c1beb36-e06b-419f-96db-43b4d85c5e25
 
-        :Assert: Deletion was performed successfully
+        :expectedresults: Deletion was performed successfully
 
         :CaseLevel: Integration
         """
@@ -3295,7 +3302,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 0da50b26-f82b-4663-9372-4c39270d4323
 
-        :Assert: Deletion was performed successfully
+        :expectedresults: Deletion was performed successfully
 
         :CaseLevel: Integration
         """
@@ -3337,7 +3344,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 66626fcd-9d2b-4ff5-a596-b7754b044dbe
 
-        :Assert: CV should be created successfully with custom ostree contents
+        :expectedresults: CV should be created successfully with custom ostree
+            contents
 
         :CaseLevel: Integration
         """
@@ -3373,7 +3381,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 2c6ee15f-a058-4569-a324-aec4bba1bd17
 
-        :Assert: CV should be created successfully with RH ostree contents
+        :expectedresults: CV should be created successfully with RH ostree
+            contents
 
         :CaseLevel: Integration
         """
@@ -3412,7 +3421,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 0e312f20-846b-440e-9c3a-392e889c9cdd
 
-        :Assert: Content should be removed and CV should be updated
+        :expectedresults: Content should be removed and CV should be updated
             successfully
 
         :CaseLevel: Integration
@@ -3460,7 +3469,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 852ce474-82a7-4199-9f12-5b9ad352e036
 
-        :Assert: Content should be removed and CV should be updated
+        :expectedresults: Content should be removed and CV should be updated
             successfully
 
         :CaseLevel: Integration
@@ -3510,7 +3519,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: b139eb12-d960-4a45-9e22-3a22184c5415
 
-        :Assert: CV should be created successfully with all custom contents
+        :expectedresults: CV should be created successfully with all custom
+            contents
 
         :CaseLevel: Integration
         """
@@ -3586,7 +3596,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 4398f5cc-62de-4a11-996b-24a7ad30ad3a
 
-        :Assert: CV should be created successfully with all custom contents
+        :expectedresults: CV should be created successfully with all custom
+            contents
 
         :CaseLevel: Integration
         """
@@ -3658,7 +3669,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: c5e8d2ba-8cb2-47d8-b352-60972cf291e9
 
-        :Assert: CV should be published with OStree contents
+        :expectedresults: CV should be published with OStree contents
 
         :CaseLevel: Integration
         """
@@ -3698,8 +3709,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 949d6ee7-330a-4423-b219-550693522c7f
 
-        :Assert: Published version with OStree contents should be removed
-            successfully.
+        :expectedresults: Published version with OStree contents should be
+            removed successfully.
 
         :CaseLevel: Integration
         """
@@ -3739,7 +3750,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 05f4ddc8-a3ad-4caf-b417-3b437b48fa47
 
-        :Assert: CV should be promoted with custom OStree contents
+        :expectedresults: CV should be promoted with custom OStree contents
 
         :CaseLevel: Integration
         """
@@ -3786,7 +3797,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: a66c8a9e-953e-41a5-aaac-9d9473a3d9fc
 
-        :Assert: Promoted custom OStree contents should be removed successfully
+        :expectedresults: Promoted custom OStree contents should be removed
+            successfully
 
         :CaseLevel: Integration
         """
@@ -3829,8 +3841,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: cf86f9bc-e32a-4048-b793-fe6e9447f7e4
 
-        :Assert: CV should be published and promoted with custom OStree and all
-            other contents
+        :expectedresults: CV should be published and promoted with custom
+            OStree and all other contents
 
         :CaseLevel: Integration
         """
@@ -3900,8 +3912,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: b4d69aff-b667-43df-ac1f-28c58c73d846
 
-        :Assert: Published version with mixed(ostree, yum, puppet, docker)
-            contents should be removed successfully.
+        :expectedresults: Published version with mixed(ostree, yum, puppet,
+            docker) contents should be removed successfully.
 
         :CaseLevel: Integration
         """
@@ -3972,7 +3984,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 4b5f487d-9de9-4645-8d73-7272f564eb75
 
-        :Assert: CV should be published with RH OStree contents
+        :expectedresults: CV should be published with RH OStree contents
 
         :CaseLevel: Integration
         """
@@ -4010,8 +4022,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: a5767568-df3a-43c0-beb7-474c82a445d4
 
-        :Assert: Published version with RH OStree contents should be removed
-            successfully.
+        :expectedresults: Published version with RH OStree contents should be
+            removed successfully.
 
         :CaseLevel: Integration
         """
@@ -4048,7 +4060,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: 19b7a33f-d13e-454b-bfee-295296e78967
 
-        :Assert: CV should be promoted with RH OStree contents
+        :expectedresults: CV should be promoted with RH OStree contents
 
         :caseautomation: notautomated
 
@@ -4089,7 +4101,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 9e49e470-8b30-4941-9868-23d9718aaad9
 
-        :Assert: Promoted rh OStree contents should be removed successfully
+        :expectedresults: Promoted rh OStree contents should be removed
+            successfully
 
         :CaseLevel: Integration
         """
@@ -4128,8 +4141,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: f1849f6a-6ad6-432f-a70c-7d61079f482a
 
-        :Assert: CV should be published and promoted with rh ostree and all
-            other contents
+        :expectedresults: CV should be published and promoted with rh ostree
+            and all other contents
 
         :CaseLevel: Integration
         """
@@ -4204,7 +4217,7 @@ class ContentViewTestCase(UITestCase):
 
         :id: a07fe3df-8645-4a0c-8c56-3f8314ae4878
 
-        :Assert: CV should be published and promoted successfully
+        :expectedresults: CV should be published and promoted successfully
 
         :CaseLevel: Integration
         """
@@ -4254,7 +4267,8 @@ class ContentViewTestCase(UITestCase):
             3. Publish content view
             4. remove the published version from Library environment
 
-        :Assert: content view version is removed from Library environment
+        :expectedresults: content view version is removed from Library
+            environment
 
         :CaseLevel: Integration
         """
@@ -4305,7 +4319,8 @@ class ContentViewTestCase(UITestCase):
             4. Rename the content view
             5. remove the published version from Library environment
 
-        :Assert: content view version is removed from Library environment
+        :expectedresults: content view version is removed from Library
+            environment
 
         :CaseLevel: Integration
         """
@@ -4365,7 +4380,7 @@ class ContentViewTestCase(UITestCase):
             4. Promote the content view version from Library -> DEV
             5. remove the content view version from Library environment
 
-        :Assert:
+        :expectedresults:
 
             1. Content view version exist only in DEV and not in Library
             2. The puppet module(s) exists in content view version
@@ -4448,7 +4463,8 @@ class ContentViewTestCase(UITestCase):
                 Library -> DEV -> QE
             5. remove the content view version from Library environment
 
-        :Assert: Content view version exist only in DEV, QE and not in Library
+        :expectedresults: Content view version exist only in DEV, QE and not in
+            Library
 
         :CaseLevel: Integration
         """
@@ -4521,8 +4537,8 @@ class ContentViewTestCase(UITestCase):
                 Library -> DEV -> QE -> PROD
             5. remove the content view version from Library environment
 
-        :Assert: Content view version exist only in DEV, QE, PROD and not in
-            Library
+        :expectedresults: Content view version exist only in DEV, QE, PROD and
+            not in Library
 
         :CaseLevel: Integration
         """
@@ -4629,7 +4645,8 @@ class ContentViewTestCase(UITestCase):
                 STAGE and not in PROD
             7. Promote again from STAGE -> PROD
 
-        :Assert: Content view version exist in Library, DEV, QE, STAGE, PROD
+        :expectedresults: Content view version exist in Library, DEV, QE,
+            STAGE, PROD
 
         :CaseLevel: Integration
         """
@@ -4734,7 +4751,7 @@ class ContentViewTestCase(UITestCase):
                 Library -> DEV -> QE -> STAGE -> PROD
             5. Remove content view version from QE, STAGE and PROD
 
-        :Assert: Content view version exists only in Library, DEV
+        :expectedresults: Content view version exists only in Library, DEV
 
         :CaseLevel: Integration
         """
@@ -4835,7 +4852,7 @@ class ContentViewTestCase(UITestCase):
             5. Delete the content view, this should delete the content with all
                 it's published/promoted versions from all environments
 
-        :Assert: The content view doesn't exists
+        :expectedresults: The content view doesn't exists
 
         :CaseLevel: Integration
         """
@@ -4941,7 +4958,7 @@ class ContentViewTestCase(UITestCase):
                 a replacement for Content-host and for Activation key.
             8. Refresh content-host subscription
 
-        :Assert:
+        :expectedresults:
 
             1. Activation key exists
             2. Content-host exists
@@ -4982,7 +4999,7 @@ class ContentViewTestCase(UITestCase):
                 for Content-host and for Activation key.
             8. Refresh content-host subscription
 
-        :Assert:
+        :expectedresults:
 
             1. The content view cv1 doesn't exist
             2. Activation key exists
@@ -5027,8 +5044,8 @@ class ContentViewTestCase(UITestCase):
             10. Make sure the capsule is updated (content synchronization may
                 be applied)
 
-        :Assert: content view version in capsule is removed from Library and
-            DEV and exists only in QE and PROD
+        :expectedresults: content view version in capsule is removed from
+            Library and DEV and exists only in QE and PROD
 
         :caseautomation: notautomated
 

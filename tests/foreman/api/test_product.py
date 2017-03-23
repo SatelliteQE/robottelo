@@ -49,7 +49,7 @@ class ProductTestCase(APITestCase):
 
         :id: 3d873b73-6919-4fda-84df-0e26bdf0c1dc
 
-        :Assert: A product is created with expected name.
+        :expectedresults: A product is created with expected name.
 
         :CaseImportance: Critical
         """
@@ -66,7 +66,7 @@ class ProductTestCase(APITestCase):
 
         :id: 95cf8e05-fd09-422e-bf6f-8b1dde762976
 
-        :Assert: A product is created with expected label.
+        :expectedresults: A product is created with expected label.
 
         :CaseImportance: Critical
         """
@@ -82,7 +82,7 @@ class ProductTestCase(APITestCase):
 
         :id: f3e2df77-6711-440b-800a-9cebbbec36c5
 
-        :Assert: A product is created with expected description.
+        :expectedresults: A product is created with expected description.
 
         :CaseImportance: Critical
         """
@@ -99,7 +99,7 @@ class ProductTestCase(APITestCase):
 
         :id: 57331c1f-15dd-4c9f-b8fc-3010847b2975
 
-        :Assert: A product is created with the specified GPG key.
+        :expectedresults: A product is created with the specified GPG key.
 
         :CaseLevel: Integration
         """
@@ -122,7 +122,7 @@ class ProductTestCase(APITestCase):
 
         :id: 76531f53-09ff-4ee9-89b9-09a697526fb1
 
-        :Assert: A product is not created
+        :expectedresults: A product is not created
 
         :CaseImportance: Critical
         """
@@ -138,7 +138,7 @@ class ProductTestCase(APITestCase):
 
         :id: 039269c5-607a-4b70-91dd-b8fed8e50cc6
 
-        :Assert: A product is not created
+        :expectedresults: A product is not created
 
         :CaseImportance: Critical
         """
@@ -154,7 +154,7 @@ class ProductTestCase(APITestCase):
 
         :id: 30b1a737-07f1-4786-b68a-734e57c33a62
 
-        :Assert: A product is not created
+        :expectedresults: A product is not created
 
         :CaseImportance: Critical
         """
@@ -168,7 +168,7 @@ class ProductTestCase(APITestCase):
 
         :id: 1a9f6e0d-43fb-42e2-9dbd-e880f03b0297
 
-        :Assert: Product name can be updated.
+        :expectedresults: Product name can be updated.
 
         :CaseImportance: Critical
         """
@@ -186,7 +186,7 @@ class ProductTestCase(APITestCase):
 
         :id: c960c326-2e9f-4ee7-bdec-35a705305067
 
-        :Assert: Product description can be updated.
+        :expectedresults: Product description can be updated.
 
         :CaseImportance: Critical
         """
@@ -204,7 +204,7 @@ class ProductTestCase(APITestCase):
 
         :id: 3075f17f-4475-4b64-9fbd-1e41ced9142d
 
-        :Assert: Product Renamed to original
+        :expectedresults: Product Renamed to original
 
         :CaseImportance: Critical
         """
@@ -231,7 +231,7 @@ class ProductTestCase(APITestCase):
 
         :id: 3b08f155-a0d6-4987-b281-dc02e8d5a03e
 
-        :Assert: The updated product points to a new GPG key.
+        :expectedresults: The updated product points to a new GPG key.
 
         :CaseLevel: Integration
         """
@@ -260,7 +260,7 @@ class ProductTestCase(APITestCase):
 
         :id: b298957a-2cdb-4f17-a934-098612f3b659
 
-        :Assert: The updated product points to a new organization
+        :expectedresults: The updated product points to a new organization
 
         :CaseLevel: Integration
         """
@@ -278,7 +278,7 @@ class ProductTestCase(APITestCase):
 
         :id: 3eb61fa8-3524-4872-8f1b-4e88004f66f5
 
-        :Assert: Product is not updated
+        :expectedresults: Product is not updated
 
         :CaseImportance: Critical
         """
@@ -298,7 +298,7 @@ class ProductTestCase(APITestCase):
 
         :id: 065cd673-8d10-46c7-800c-b731b06a5359
 
-        :Assert: Product is not updated and error is raised
+        :expectedresults: Product is not updated and error is raised
 
         :CaseImportance: Critical
         """
@@ -314,7 +314,7 @@ class ProductTestCase(APITestCase):
 
         :id: 30df95f5-0a4e-41ee-a99f-b418c5c5f2f3
 
-        :Assert: Product is successfully deleted.
+        :expectedresults: Product is successfully deleted.
 
         :CaseImportance: Critical
         """
@@ -331,7 +331,7 @@ class ProductTestCase(APITestCase):
 
         :id: 860e00a1-c370-4bd0-8987-449338071d56
 
-        :Assert: Repository within a product is successfully synced.
+        :expectedresults: Repository within a product is successfully synced.
 
         :CaseImportance: Critical
         """
@@ -351,7 +351,8 @@ class ProductTestCase(APITestCase):
 
         :id: 07918442-b72f-4db5-96b6-975564f3663a
 
-        :Assert: All repositories within a product are successfully synced.
+        :expectedresults: All repositories within a product are successfully
+            synced.
 
         :CaseLevel: Integration
 

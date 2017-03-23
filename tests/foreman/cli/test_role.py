@@ -34,7 +34,7 @@ class RoleTestCase(CLITestCase):
 
         :id: 6883177c-6926-428c-92ab-9effbe1372ae
 
-        :Assert: Role is created and has correct name
+        :expectedresults: Role is created and has correct name
 
         :BZ: 1138553
 
@@ -51,7 +51,7 @@ class RoleTestCase(CLITestCase):
 
         :id: 6c99ee25-4e58-496c-af42-f8ad2da6cf07
 
-        :assert: Role is created and correct filter is assigned
+        :expectedresults: Role is created and correct filter is assigned
 
         :CaseImportance: Critical
         """
@@ -75,7 +75,7 @@ class RoleTestCase(CLITestCase):
 
         :id: 7cb2b2e2-ad4d-41e9-b6b2-c0366eb09b9a
 
-        :assert: Role is created and has correct set of permissions
+        :expectedresults: Role is created and has correct set of permissions
 
         :CaseImportance: Critical
         """
@@ -102,7 +102,7 @@ class RoleTestCase(CLITestCase):
 
         :id: 351780b4-697c-4f87-b989-dd9a9a2ad012
 
-        :Assert: Role is created and then deleted by its ID
+        :expectedresults: Role is created and then deleted by its ID
 
         :CaseImportance: Critical
         """
@@ -120,7 +120,7 @@ class RoleTestCase(CLITestCase):
 
         :id: 3ce1b337-fd52-4460-b8a8-df49c94ffed1
 
-        :Assert: Role is created and its name is updated
+        :expectedresults: Role is created and its name is updated
 
         :CaseImportance: Critical
         """
@@ -147,7 +147,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :steps: Create new role with taxonomies
 
-        :assert: New role is created with taxonomies
+        :expectedresults: New role is created with taxonomies
 
         :caseautomation: notautomated
 
@@ -163,7 +163,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :steps: Create new role without any taxonomies
 
-        :assert: New role is created without taxonomies
+        :expectedresults: New role is created without taxonomies
 
         :caseautomation: notautomated
 
@@ -182,7 +182,7 @@ class CannedRoleTestCases(CLITestCase):
             1. Create a role with taxonomies assigned
             2. Create filter in role without overriding it
 
-        :assert:
+        :expectedresults:
 
             1. Filter w/o override is created in role
             2. The taxonomies of role are inherited to filter
@@ -205,7 +205,7 @@ class CannedRoleTestCases(CLITestCase):
             1. Create a filter to which taxonomies cannot be associated.
             e.g Architecture filter
 
-        :assert:
+        :expectedresults:
 
             1. Filter is created without taxonomies
             2. Filter doesnt inherit taxonomies from role
@@ -225,8 +225,8 @@ class CannedRoleTestCases(CLITestCase):
         :steps: Attempt to override a filter to which taxonomies cannot be
             associated.  e.g Architecture filter
 
-        :assert: Filter is not overrided as taxonomies cannot be applied to
-            that filter
+        :expectedresults: Filter is not overrided as taxonomies cannot be
+            applied to that filter
 
         :caseautomation: notautomated
 
@@ -246,7 +246,7 @@ class CannedRoleTestCases(CLITestCase):
             e.g Domain filter
             2. Override a filter with some taxonomies
 
-        :assert:
+        :expectedresults:
 
             1. Filter is created with taxonomies
             2. Override check is set to true
@@ -266,7 +266,8 @@ class CannedRoleTestCases(CLITestCase):
 
         :steps: Update existing role with different taxonomies
 
-        :assert: The taxonomies are applied only to non-overrided role filters
+        :expectedresults: The taxonomies are applied only to non-overrided role
+            filters
 
         :caseautomation: notautomated
 
@@ -282,7 +283,7 @@ class CannedRoleTestCases(CLITestCase):
 
         :steps: Update existing role with different taxonomies
 
-        :assert: The overridden role filters are not updated
+        :expectedresults: The overridden role filters are not updated
 
         :caseautomation: notautomated
 
@@ -302,7 +303,8 @@ class CannedRoleTestCases(CLITestCase):
                than its role.
             2. Unset the override flag in above role filter
 
-        :assert: The taxonomies of filters resets/synced to role taxonomies
+        :expectedresults: The taxonomies of filters resets/synced to role
+            taxonomies
 
         :caseautomation: notautomated
 
@@ -323,8 +325,8 @@ class CannedRoleTestCases(CLITestCase):
             3. Create user with taxonomies same as role taxonomies
             4. Assign step 1 role to user
 
-        :assert: User should be able to access the resource(s) of the assigned
-            role
+        :expectedresults: User should be able to access the resource(s) of the
+            assigned role
 
         :caseautomation: notautomated
 
@@ -346,8 +348,8 @@ class CannedRoleTestCases(CLITestCase):
             3. Create user with taxonomies not matching role taxonomies
             4. Assign step 1 role to user
 
-        :assert: User should not be able to access the resource(s) that are not
-            associated to assigned role
+        :expectedresults: User should not be able to access the resource(s)
+            that are not associated to assigned role
 
         :caseautomation: notautomated
 

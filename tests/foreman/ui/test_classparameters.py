@@ -42,7 +42,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Set the new valid Default Value.
             3.  Submit the changes.
 
-        :assert: Parameter Value overridden with new value.
+        :expectedresults: Parameter Value overridden with new value.
 
         :caseautomation: notautomated
 
@@ -62,7 +62,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Set the new valid Default Value.
             3.  Attempt to submit the changes.
 
-        :assert: Parameter value not allowed/disabled to override.
+        :expectedresults: Parameter value not allowed/disabled to override.
 
         :caseautomation: notautomated
 
@@ -79,8 +79,8 @@ class SmartClassParametersTestCase(UITestCase):
 
         :steps: Check the Override checkbox.
 
-        :assert: Puppet Default, Hiding, Validation, Merging and Matcher
-            section enabled.
+        :expectedresults: Puppet Default, Hiding, Validation, Merging and
+            Matcher section enabled.
 
         :caseautomation: notautomated
 
@@ -97,8 +97,8 @@ class SmartClassParametersTestCase(UITestCase):
 
         :steps: Dont't Check the Override checkbox.
 
-        :assert: Puppet Default, Hiding, Validation, Merging and Matcher
-            section is disabled.
+        :expectedresults: Puppet Default, Hiding, Validation, Merging and
+            Matcher section is disabled.
 
         :caseautomation: notautomated
 
@@ -118,7 +118,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Check 'Use Puppet Default' checkbox.
             3.  Submit the changes.
 
-        :assert: Puppet Default Value applied on parameter.
+        :expectedresults: Puppet Default Value applied on parameter.
 
         :caseautomation: notautomated
 
@@ -141,7 +141,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Enter a 'valid' default Value.
             4.  Submit the changes.
 
-        :assert: Parameter Updated with a new type successfully.
+        :expectedresults: Parameter Updated with a new type successfully.
 
         :caseautomation: notautomated
 
@@ -164,7 +164,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Enter an 'Invalid' default Value.
             4.  Submit the changes.
 
-        :assert: Parameter not updated with string type for invalid value.
+        :expectedresults: Parameter not updated with string type for invalid
+            value.
 
         :caseautomation: notautomated
 
@@ -184,7 +185,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Check 'Use Puppet Default' value.
             3.  Validate this value under section 'Optional Input Validator'.
 
-        :assert: Validation shouldn't work with puppet default value.
+        :expectedresults: Validation shouldn't work with puppet default value.
 
         :caseautomation: notautomated
 
@@ -205,7 +206,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Check Required checkbox in 'Optional Input Validator'.
             4.  Submit the change.
 
-        :assert: Error raised for blank default value by 'Required' checkbox.
+        :expectedresults: Error raised for blank default value by 'Required'
+            checkbox.
 
         :caseautomation: notautomated
 
@@ -226,7 +228,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Check Required checkbox in 'Optional Input Validator'.
             4.  Submit the change.
 
-        :assert: Error not raised default value by 'Required' checkbox.
+        :expectedresults: Error not raised default value by 'Required'
+            checkbox.
 
         :caseautomation: notautomated
 
@@ -248,7 +251,8 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Check Required checkbox in 'Optional Input Validator'.
             5.  Submit the change.
 
-        :assert: Error raised for blank matcher value by 'Required' checkbox.
+        :expectedresults: Error raised for blank matcher value by 'Required'
+            checkbox.
 
         :caseautomation: notautomated
 
@@ -270,7 +274,8 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Check Required checkbox in 'Optional Input Validator'.
             5.  Submit the change.
 
-        :assert: Error not raised for matcher value by 'Required' checkbox.
+        :expectedresults: Error not raised for matcher value by 'Required'
+            checkbox.
 
         :caseautomation: notautomated
 
@@ -291,7 +296,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for default value not matching with regex.
+        :expectedresults: Error raised for default value not matching with
+            regex.
 
         :caseautomation: notautomated
 
@@ -312,7 +318,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for default value matching with regex.
+        :expectedresults: Error not raised for default value matching with
+            regex.
 
         :caseautomation: notautomated
 
@@ -334,7 +341,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for matcher value not matching with regex.
+        :expectedresults: Error raised for matcher value not matching with
+            regex.
 
         :caseautomation: notautomated
 
@@ -355,7 +363,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for matcher value matching with regex.
+        :expectedresults: Error not raised for matcher value matching with
+            regex.
 
         :caseautomation: notautomated
 
@@ -376,7 +385,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for default value not in list.
+        :expectedresults: Error raised for default value not in list.
 
         :caseautomation: notautomated
 
@@ -397,7 +406,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for default value in list.
+        :expectedresults: Error not raised for default value in list.
 
         :caseautomation: notautomated
 
@@ -419,7 +428,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for matcher value not in list.
+        :expectedresults: Error raised for matcher value not in list.
 
         :caseautomation: notautomated
 
@@ -440,7 +449,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for matcher value in list.
+        :expectedresults: Error not raised for matcher value in list.
 
         :caseautomation: notautomated
 
@@ -462,7 +471,7 @@ class SmartClassParametersTestCase(UITestCase):
                 type.
             4.  Submit the change.
 
-        :assert: Error raised for matcher value not of default type.
+        :expectedresults: Error raised for matcher value not of default type.
 
         :caseautomation: notautomated
 
@@ -483,7 +492,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Create a matcher with value that matches the default type.
             4.  Submit the change.
 
-        :assert: Error not raised for matcher value of default type.
+        :expectedresults: Error not raised for matcher value of default type.
 
         :caseautomation: notautomated
 
@@ -505,7 +514,8 @@ class SmartClassParametersTestCase(UITestCase):
                 type.
             4.  Submit the change.
 
-        :assert: Error raised for invalid default and matcher value both.
+        :expectedresults: Error raised for invalid default and matcher value
+            both.
 
         :caseautomation: notautomated
 
@@ -525,7 +535,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Create a matcher with non existing attribute in org.
             3.  Attempt to submit the change.
 
-        :assert: Error raised for non existing attribute.
+        :expectedresults: Error raised for non existing attribute.
 
         :caseautomation: notautomated
 
@@ -547,7 +557,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Choose valid attribute type, name and value.
             5.  Submit the change.
 
-        :assert: The matcher has been created successfully.
+        :expectedresults: The matcher has been created successfully.
 
         :caseautomation: notautomated
 
@@ -570,7 +580,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Choose valid attribute type, name and puppet default value.
             5.  Submit the change.
 
-        :assert: The matcher has been created successfully.
+        :expectedresults: The matcher has been created successfully.
 
         :caseautomation: notautomated
 
@@ -595,7 +605,7 @@ class SmartClassParametersTestCase(UITestCase):
             6.  Submit the change.
             7.  Go to YAML output of associated host.
 
-        :assert: The YAML output has the value only for fqdn matcher.
+        :expectedresults: The YAML output has the value only for fqdn matcher.
 
         :caseautomation: notautomated
 
@@ -621,7 +631,7 @@ class SmartClassParametersTestCase(UITestCase):
             6.  Submit the change.
             7.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the value only for step 5 matcher.
             2.  The YAML output doesn't have value for fqdn/host matcher.
@@ -651,7 +661,7 @@ class SmartClassParametersTestCase(UITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -683,7 +693,7 @@ class SmartClassParametersTestCase(UITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values only for fqdn.
             2.  The YAML output doesn't have the values for attribute
@@ -719,7 +729,7 @@ class SmartClassParametersTestCase(UITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the value only for fqdn.
             2.  The YAML output doesn't have the puppet default values of
@@ -752,7 +762,7 @@ class SmartClassParametersTestCase(UITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all
                 the associated matchers.
@@ -785,7 +795,7 @@ class SmartClassParametersTestCase(UITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all
                 the associated matchers.
@@ -819,7 +829,7 @@ class SmartClassParametersTestCase(UITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -852,7 +862,7 @@ class SmartClassParametersTestCase(UITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -885,7 +895,7 @@ class SmartClassParametersTestCase(UITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all matchers.
             2.  The YAML output has the default value of parameter.
@@ -908,8 +918,8 @@ class SmartClassParametersTestCase(UITestCase):
             1.  Check the Override checkbox.
             2.  Set parameter type to array/hash.
 
-        :assert: The Merge Overrides, Merge Default checkbox are enabled to
-            check.
+        :expectedresults: The Merge Overrides, Merge Default checkbox are
+            enabled to check.
 
         :caseautomation: notautomated
 
@@ -928,8 +938,8 @@ class SmartClassParametersTestCase(UITestCase):
             1.  Check the Override checkbox.
             2.  Set parameter type other than array/hash.
 
-        :assert: The Merge Overrides, Merge Default checkboxes are not enabled
-            to check.
+        :expectedresults: The Merge Overrides, Merge Default checkboxes are not
+            enabled to check.
 
         :caseautomation: notautomated
 
@@ -949,7 +959,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Set parameter type to array.
             3.  Check Merge Overrides checkbox.
 
-        :assert: The Avoid Duplicates checkbox is enabled to check.
+        :expectedresults: The Avoid Duplicates checkbox is enabled to check.
 
         :caseautomation: notautomated
 
@@ -968,11 +978,9 @@ class SmartClassParametersTestCase(UITestCase):
             1.  Check the Override checkbox.
             2.  Set parameter type other than array.
 
-        :assert:
-            1.  The Merge Overrides checkbox is only enabled to check for type
-                hash.
-            2.  The Avoid duplicates checkbox not enabled to check for any type
-                than array.
+        :expectedresults: 1.  The Merge Overrides checkbox is only enabled to
+            check for type hash. 2.  The Avoid duplicates checkbox not enabled
+            to check for any type than array.
 
         :caseautomation: notautomated
 
@@ -992,10 +1000,9 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Delete the attribute.
             3.  Recreate the attribute with same name as earlier.
 
-        :assert:
-            1.  The matcher for deleted attribute removed from parameter.
-            2.  On recreating attribute, the matcher should not reappear in
-                parameter.
+        :expectedresults: 1.  The matcher for deleted attribute removed from
+            parameter. 2.  On recreating attribute, the matcher should not
+            reappear in parameter.
 
         :caseautomation: notautomated
 
@@ -1016,10 +1023,9 @@ class SmartClassParametersTestCase(UITestCase):
             3.  From host/hostgroup, override the parameter value.
             4.  Submit the changes.
 
-        :assert:
-            1.  The host/hostgroup is saved with changes.
-            2.  New matcher for fqdn/hostgroup created inside parameter.
-        :caseautomation: notautomated
+        :expectedresults: 1.  The host/hostgroup is saved with changes. 2.  New
+            matcher for fqdn/hostgroup created inside parameter.
+            :caseautomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1038,10 +1044,9 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Associate parameter with fqdn/hostgroup.
             3.  From host/hostgroup, Attempt to override the parameter with
                 some other key type of value.
-        :assert:
-            1.  Error thrown for invalid type value.
-            2.  No matcher for fqdn/hostgroup is created inside parameter.
-        :caseautomation: notautomated
+        :expectedresults: 1.  Error thrown for invalid type value. 2.  No
+            matcher for fqdn/hostgroup is created inside parameter.
+            :caseautomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1063,7 +1068,7 @@ class SmartClassParametersTestCase(UITestCase):
                 default value.
             4.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  The host/hostgroup is saved with changes.
             2.  New matcher for fqdn/hostgroup created inside parameter.
@@ -1091,7 +1096,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  From host/hostgroup, Attempt to override the parameter with
                 empty value.
 
-        :assert:
+        :expectedresults:
 
             1.  Error thrown for empty value as the value is required to pass.
             2.  The info icon changed to warning icon for that parameter.
@@ -1118,7 +1123,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  From host/hostgroup, edit the parameter value.
             5.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  The host/hostgroup is saved with changes.
             2.  Matcher value in parameter is updated from fqdn/hostgroup.
@@ -1145,7 +1150,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  From host/hostgroup, attempt to edit the parameter with invalid
                 value.
 
-        :assert:
+        :expectedresults:
 
             1.  Error thrown for invalid value.
             2.  Matcher value in parameter is not updated from fqdn/hostgroup.
@@ -1172,7 +1177,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  And Update the value of parameter from nested hostgroup.
             5.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  The parameter value updated in nested hostgroup.
             2.  Changes submitted successfully.
@@ -1196,7 +1201,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Enter some valid default value.
             3.  Check 'Hidden Value' checkbox.
 
-        :assert:
+        :expectedresults:
 
             1.  The default value shown in hidden state.
             2.  Changes submitted successfully.
@@ -1222,7 +1227,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Hide the value of parameter.
             4.  After hiding, uncheck the 'Hidden Value' checkbox.
 
-        :assert:
+        :expectedresults:
 
             1.  The default value shown in unhidden state.
             2.  Changes submitted successfully.
@@ -1249,7 +1254,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Submit the changes.
             5.  Associate parameter on host/hostgroup.
 
-        :assert:
+        :expectedresults:
 
             1.  In host/hostgroup, the parameter value shown in hidden state.
             2.  The button for unhiding the value is displayed and accessible.
@@ -1278,7 +1283,7 @@ class SmartClassParametersTestCase(UITestCase):
             5.  Associate parameter on host/hostgroup.
             6.  In host/hostgroup, Click Unhide button icon.
 
-        :assert:
+        :expectedresults:
 
             1.  In host/hostgroup, the parameter value shown in unhidden state.
             2.  The button for hiding the value is displayed and accessible.
@@ -1307,7 +1312,7 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Again update the default value.
             5.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  The parameter default value is updated.
             2.  The parameter default value displayed as hidden.
@@ -1334,7 +1339,7 @@ class SmartClassParametersTestCase(UITestCase):
             5.  Associate parameter on host/hostgroup.
             6.  In host/hostgroup, update the parameter value.
 
-        :assert:
+        :expectedresults:
 
             1.  In host/hostgroup, the parameter value is updated.
             2.  The parameter Value displayed as hidden.
@@ -1361,7 +1366,7 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Check the 'Hidden Value' icon.
             4.  Create a matcher with some value.
 
-        :assert:
+        :expectedresults:
 
             1.  The 'Hidden Value' checkbox is enabled to check.
             2.  The default value shows empty on hide.

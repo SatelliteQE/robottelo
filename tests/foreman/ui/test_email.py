@@ -38,8 +38,8 @@ class EmailTestCase(UITestCase):
                 Advisory, Katello Promote Errata, Puppet Error state, Puppet
                 Summary.
 
-        :Assert: Enabling and disabling email notification preferences saved
-            accordingly.
+        :expectedresults: Enabling and disabling email notification preferences
+            saved accordingly.
 
         :caseautomation: notautomated
 
@@ -60,7 +60,7 @@ class EmailTestCase(UITestCase):
             2. Enable notification for 'Katello Sync Errata'.
             3. Perform a sync operation on a product.
 
-        :Assert: Email notification received after sync operation.
+        :expectedresults: Email notification received after sync operation.
 
         :caseautomation: notautomated
 
@@ -81,7 +81,7 @@ class EmailTestCase(UITestCase):
             2. Disable notification by 'Katello Sync Errata' → 'No Emails'.
             3. Perform a sync operation on a product.
 
-        :Assert: No email notification received after sync operation.
+        :expectedresults: No email notification received after sync operation.
 
         :caseautomation: notautomated
 
@@ -101,7 +101,7 @@ class EmailTestCase(UITestCase):
             2. Enable notification for 'Katello Promote Errata'.
             3. Perform a promote operation in a content view.
 
-        :Assert: Email notification received after Promote operation.
+        :expectedresults: Email notification received after Promote operation.
 
         :caseautomation: notautomated
 
@@ -121,7 +121,8 @@ class EmailTestCase(UITestCase):
             2. Disable notification by 'Katello Promote Errata' → 'No Emails'.
             3. Perform a promote operation in a content view.
 
-        :Assert: No email notification received after Promote operation.
+        :expectedresults: No email notification received after Promote
+            operation.
 
         :caseautomation: notautomated
 
@@ -140,8 +141,8 @@ class EmailTestCase(UITestCase):
             1. Navigate to User → My Account → Mail Preferences.
             2. Enable notification for 'Katello Host Advisory' → Daily.
 
-        :Assert: Email notification received daily with Katello Host Advisory
-            information.
+        :expectedresults: Email notification received daily with Katello Host
+            Advisory information.
 
         :caseautomation: notautomated
 
@@ -160,8 +161,8 @@ class EmailTestCase(UITestCase):
             1. Navigate to User → My Account → Mail Preferences.
             2. Enable notification for 'Katello Host Advisory' → Weekly.
 
-        :Assert: Email notification received Weekly with Katello Host Advisory
-            information.
+        :expectedresults: Email notification received Weekly with Katello Host
+            Advisory information.
 
         :caseautomation: notautomated
 
@@ -180,8 +181,8 @@ class EmailTestCase(UITestCase):
             1. Navigate to User → My Account → Mail Preferences.
             2. Enable notification for 'Katello Host Advisory' → Monthly.
 
-        :Assert: Email notification received monthly with Katello Host Advisory
-            information.
+        :expectedresults: Email notification received monthly with Katello Host
+            Advisory information.
 
         :caseautomation: notautomated
 
@@ -200,8 +201,8 @@ class EmailTestCase(UITestCase):
             1. Navigate to User → My Account → Mail Preferences.
             2. Disable notification by 'Katello Host Advisory' → 'No emails'.
 
-        :Assert: No email notification received with Katello Host Advisory
-            information.
+        :expectedresults: No email notification received with Katello Host
+            Advisory information.
 
         :caseautomation: notautomated
 
@@ -221,7 +222,7 @@ class EmailTestCase(UITestCase):
             2. Enable notification for 'Puppet Error State'.
             3. Simulate a Puppet error.
 
-        :Assert: Email notification received with Puppet error.
+        :expectedresults: Email notification received with Puppet error.
 
         :caseautomation: notautomated
 
@@ -241,7 +242,7 @@ class EmailTestCase(UITestCase):
             2. Disable notification by 'Puppet Error State' → 'No Emails'.
             3. Simulate a Puppet error.
 
-        :Assert: No email notification received after Puppet error.
+        :expectedresults: No email notification received after Puppet error.
 
         :caseautomation: notautomated
 
@@ -269,7 +270,7 @@ class EmailTestCase(UITestCase):
             3. Login as admin and perform sync on a product for which the test
                 user does not have view access.
 
-        :Assert: Test user does not receive email notification.
+        :expectedresults: Test user does not receive email notification.
 
         :caseautomation: notautomated
 
@@ -298,7 +299,7 @@ class EmailTestCase(UITestCase):
             3. Login as admin and perform sync on a product for which the test
                 user does not have view access.
 
-        :Assert: Test user does not receive email notification.
+        :expectedresults: Test user does not receive email notification.
 
         :caseautomation: notautomated
 
@@ -325,8 +326,9 @@ class EmailTestCase(UITestCase):
             2. Enable notification for the test user for 'Katello Host
                 Advisory'.
 
-        :Assert: Test user receives email notification with the host info for
-            the repositories and content views that the user has access to.
+        :expectedresults: Test user receives email notification with the host
+            info for the repositories and content views that the user has
+            access to.
 
         :caseautomation: notautomated
 
@@ -352,8 +354,9 @@ class EmailTestCase(UITestCase):
             1. Navigate to User → My Account → Mail Preferences.
             2. Enable notification for test user for 'Katello Host Advisory'.
 
-        :Assert: Test user receives email notification which does not list the
-            content hosts for which the user does not have view access.
+        :expectedresults: Test user receives email notification which does not
+            list the content hosts for which the user does not have view
+            access.
 
         :caseautomation: notautomated
 

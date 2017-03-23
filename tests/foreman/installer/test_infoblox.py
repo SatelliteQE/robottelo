@@ -35,7 +35,7 @@ class InfobloxTestCase(TestCase):
             --foreman-proxy-plugin-dns-infoblox-username=<username>
             --foreman-proxy-plugin-dns-infoblox-password=<password>
 
-        :Assert: Check inflobox is set as DNS provider
+        :expectedresults: Check inflobox is set as DNS provider
 
         :CaseLevel: System
 
@@ -57,7 +57,7 @@ class InfobloxTestCase(TestCase):
             --foreman-proxy-plugin-dhcp-infoblox-username=<username>
             --foreman-proxy-plugin-dhcp-infoblox-password=<password>
 
-        :Assert: Check inflobox is set as DHCP provider
+        :expectedresults: Check inflobox is set as DHCP provider
 
         :CaseLevel: System
 
@@ -75,7 +75,7 @@ class InfobloxTestCase(TestCase):
             --foreman-proxy-plugin-dns-infoblox-username=<username>
             --foreman-proxy-plugin-dns-infoblox-password=<password>
 
-        :Assert: config/dns_infoblox.yml should be updated with
+        :expectedresults: config/dns_infoblox.yml should be updated with
             infoblox_hostname, username & password
 
         :CaseLevel: System
@@ -95,7 +95,7 @@ class InfobloxTestCase(TestCase):
 
         :CaseLevel: System
 
-        :Assert: Check DNS plugin is enabled on host
+        :expectedresults: Check DNS plugin is enabled on host
 
         :caseautomation: notautomated
         """
@@ -109,7 +109,7 @@ class InfobloxTestCase(TestCase):
 
         :Steps: Disable Infoblox plugin via installer
 
-        :Assert: Check DNS plugin is disabled on host
+        :expectedresults: Check DNS plugin is disabled on host
 
         :CaseLevel: System
 
@@ -126,7 +126,7 @@ class InfobloxTestCase(TestCase):
         :Steps: Enable Infoblox plugin via installer option
             --enable-foreman-proxy-plugin-dhcp-infoblox
 
-        :Assert: Check DHCP plugin is enabled on host
+        :expectedresults: Check DHCP plugin is enabled on host
 
         :CaseLevel: System
 
@@ -142,7 +142,7 @@ class InfobloxTestCase(TestCase):
 
         :Steps: Disable Infoblox plugin via installer
 
-        :Assert: Check DHCP plugin is disabled on host
+        :expectedresults: Check DHCP plugin is disabled on host
 
         :CaseLevel: System
 
@@ -158,8 +158,8 @@ class InfobloxTestCase(TestCase):
 
         :Steps: Provision a host with infoblox as dhcp provider
 
-        :Assert: Check host ip is on infoblox range configured by option
-            --foreman-proxy-plugin-dhcp-infoblox-use-ranges=true
+        :expectedresults: Check host ip is on infoblox range configured by
+            option --foreman-proxy-plugin-dhcp-infoblox-use-ranges=true
 
         :CaseLevel: System
 
@@ -178,7 +178,7 @@ class InfobloxTestCase(TestCase):
             1. Provision a host with infoblox as dns provider
             2. Update a DNS record on infoblox
 
-        :Assert: Check host dns is updated accordingly to infoblox
+        :expectedresults: Check host dns is updated accordingly to infoblox
 
         :CaseLevel: System
 

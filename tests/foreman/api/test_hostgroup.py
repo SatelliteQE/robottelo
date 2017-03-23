@@ -53,8 +53,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 7b840f3d-413c-40bb-9a7d-cd9dad3c0737
 
-        :Assert: Host inherited 'all_puppetclasses' details from HostGroup that
-            was used for such Host create procedure
+        :expectedresults: Host inherited 'all_puppetclasses' details from
+            HostGroup that was used for such Host create procedure
 
         :CaseLevel: System
         """
@@ -187,7 +187,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: fd5d353c-fd0c-4752-8a83-8f399b4c3416
 
-        :assert: A hostgroup is created with expected name
+        :expectedresults: A hostgroup is created with expected name
 
         :CaseImportance: Critical
         """
@@ -206,7 +206,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 44ac8b3b-9cb0-4a9e-ad9b-2c67b2411922
 
-        :assert: A hostgroup is cloned with same parameters
+        :expectedresults: A hostgroup is cloned with same parameters
 
         :CaseImportance: Critical
         """
@@ -239,7 +239,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 308d6921-0bf1-4fae-8bcf-7b312208e27c
 
-        :assert: A hostgroup is created with expected parent hostgroup assigned
+        :expectedresults: A hostgroup is created with expected parent hostgroup
+            assigned
 
         :CaseLevel: Integration
         """
@@ -260,7 +261,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 528afd01-356a-4082-9e88-a5b2a715a792
 
-        :assert: A hostgroup is created with expected environment assigned
+        :expectedresults: A hostgroup is created with expected environment
+            assigned
 
         :CaseLevel: Integration
         """
@@ -281,7 +283,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: ca443d3f-2b99-4f0e-b92e-37c3e9fcc460
 
-        :assert: A hostgroup is created with expected operating system assigned
+        :expectedresults: A hostgroup is created with expected operating system
+            assigned
 
         :CaseLevel: Integration
         """
@@ -306,7 +309,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: c2f50b94-fa80-49c9-8279-76cfe458bc74
 
-        :assert: A hostgroup is created with expected architecture assigned
+        :expectedresults: A hostgroup is created with expected architecture
+            assigned
 
         :CaseLevel: Integration
         """
@@ -324,7 +328,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: b0b93207-a8bc-4af7-8ccd-d0bbf46dc0b0
 
-        :assert: A hostgroup is created with expected media assigned
+        :expectedresults: A hostgroup is created with expected media assigned
 
         :CaseLevel: Integration
         """
@@ -355,7 +359,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: f161fd59-fa38-4c4e-a641-489f754d5977
 
-        :assert: A hostgroup is created with expected partition table assigned
+        :expectedresults: A hostgroup is created with expected partition table
+            assigned
 
         :CaseLevel: Integration
         """
@@ -380,7 +385,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 5c715ee8-2fd6-42c6-aece-037733f67454
 
-        :assert: A hostgroup is created with expected puppet CA proxy assigned
+        :expectedresults: A hostgroup is created with expected puppet CA proxy
+            assigned
 
         :CaseImportance: Critical
         """
@@ -400,7 +406,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: affcaa2e-e22f-4601-97b2-4ca516f6ad2b
 
-        :assert: A hostgroup is created with expected subnet assigned
+        :expectedresults: A hostgroup is created with expected subnet assigned
 
         :CaseLevel: Integration
         """
@@ -421,7 +427,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 4f4aee5d-1f43-45e6-ac60-0573083dbcee
 
-        :assert: A hostgroup is created with expected domain assigned
+        :expectedresults: A hostgroup is created with expected domain assigned
 
         :CaseLevel: Integration
         """
@@ -443,7 +449,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 4f07ff8d-746f-4ab5-ae0b-03d629f6296c
 
-        :assert: A hostgroup is created with expected realm assigned
+        :expectedresults: A hostgroup is created with expected realm assigned
 
         :CaseLevel: Integration
         """
@@ -468,7 +474,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 4f39f246-d12f-468c-a33b-66486c3806fe
 
-        :assert: A hostgroup is created with expected puppet proxy assigned
+        :expectedresults: A hostgroup is created with expected puppet proxy
+            assigned
 
         :CaseImportance: Critical
         """
@@ -488,7 +495,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 39a6273e-8301-449a-a9d3-e3b61cda1e81
 
-        :assert: A hostgroup is created with expected content source assigned
+        :expectedresults: A hostgroup is created with expected content source
+            assigned
 
         :CaseImportance: Critical
         """
@@ -509,7 +517,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 43dfd2e9-68fe-4682-9cac-61c622c11126
 
-        :assert: A hostgroup is created with expected content view assigned
+        :expectedresults: A hostgroup is created with expected content view
+            assigned
 
         :CaseLevel: Integration
         """
@@ -532,8 +541,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 92215990-0754-429a-8fa2-c47806ece8a6
 
-        :assert: A hostgroup is created with expected lifecycle environment
-            assigned
+        :expectedresults: A hostgroup is created with expected lifecycle
+            environment assigned
 
         :CaseLevel: Integration
         """
@@ -551,8 +560,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 0c2ee2ff-9e7a-4931-8cea-f4eecbd8c4c0
 
-        :assert: A hostgroup is created with expected multiple locations
-            assigned
+        :expectedresults: A hostgroup is created with expected multiple
+            locations assigned
 
         :CaseLevel: Integration
         """
@@ -575,8 +584,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: 09642238-cf0d-469a-a0b5-c167b1b8edf5
 
-        :assert: A hostgroup is created with expected multiple organizations
-            assigned
+        :expectedresults: A hostgroup is created with expected multiple
+            organizations assigned
 
         :CaseLevel: Integration
         """
@@ -597,7 +606,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 8abb151f-a058-4f47-a1c1-f60a32cd7572
 
-        :assert: A hostgroup is updated with expected name
+        :expectedresults: A hostgroup is updated with expected name
 
         :CaseImportance: Critical
         """
@@ -618,7 +627,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 6766d2e6-2305-49db-8db5-8417cf00b0a8
 
-        :assert: A hostgroup is updated with expected parent hostgroup
+        :expectedresults: A hostgroup is updated with expected parent hostgroup
 
         :CaseLevel: Integration
         """
@@ -646,7 +655,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 24f3852d-a94a-4d85-ab7b-afe845832d94
 
-        :assert: A hostgroup is updated with expected environment
+        :expectedresults: A hostgroup is updated with expected environment
 
         :CaseLevel: Integration
         """
@@ -674,7 +683,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: c52cdc4f-499b-4a5e-ab7b-a172db42b038
 
-        :assert: A hostgroup is updated with expected operating system
+        :expectedresults: A hostgroup is updated with expected operating system
 
         :CaseLevel: Integration
         """
@@ -706,7 +715,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 57890ca6-dec7-43fe-ae4b-336cc2268d01
 
-        :assert: A hostgroup is updated with expected architecture
+        :expectedresults: A hostgroup is updated with expected architecture
 
         :CaseLevel: Integration
         """
@@ -727,7 +736,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 9b6ffbb8-0518-4900-95fd-49fc1d90a4be
 
-        :assert: A hostgroup is updated with expected media
+        :expectedresults: A hostgroup is updated with expected media
 
         :CaseLevel: Integration
         """
@@ -766,7 +775,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 95fccc76-33c6-45a3-842e-61917cce40fc
 
-        :assert: A hostgroup is updated with expected partition table
+        :expectedresults: A hostgroup is updated with expected partition table
 
         :CaseLevel: Integration
         """
@@ -797,7 +806,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: fd13ab0e-1a5b-48a0-a852-3fff8306271f
 
-        :assert: A hostgroup is updated with expected puppet CA proxy
+        :expectedresults: A hostgroup is updated with expected puppet CA proxy
 
         :CaseImportance: Critical
         """
@@ -819,7 +828,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 2b539fd9-5fcf-4d74-9cd8-3b3997bac992
 
-        :assert: A hostgroup is updated with expected subnet
+        :expectedresults: A hostgroup is updated with expected subnet
 
         :CaseLevel: Integration
         """
@@ -847,7 +856,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: db7b79e9-a833-4d93-96e2-d9adc9f35c21
 
-        :assert: A hostgroup is updated with expected domain
+        :expectedresults: A hostgroup is updated with expected domain
 
         :CaseLevel: Integration
         """
@@ -875,7 +884,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: fd9d141f-7a71-4439-92c7-1dbc1eea4772
 
-        :assert: A hostgroup is updated with expected realm
+        :expectedresults: A hostgroup is updated with expected realm
 
         :CaseLevel: Integration
         """
@@ -911,7 +920,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
 
-        :assert: A hostgroup is updated with expected puppet proxy
+        :expectedresults: A hostgroup is updated with expected puppet proxy
 
         :CaseImportance: Critical
         """
@@ -933,7 +942,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 02ef1340-a21e-41b7-8aa7-d6fdea196c16
 
-        :assert: A hostgroup is updated with expected puppet proxy
+        :expectedresults: A hostgroup is updated with expected puppet proxy
 
         :CaseImportance: Critical
         """
@@ -956,7 +965,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 5fa39bc9-c780-49c5-b580-b973e2d25226
 
-        :assert: A hostgroup is updated with expected content view
+        :expectedresults: A hostgroup is updated with expected content view
 
         :CaseLevel: Integration
         """
@@ -986,7 +995,8 @@ class HostGroupTestCase(APITestCase):
 
         :id: df89d8e3-bd36-4ad9-bde8-1872ae3dd918
 
-        :assert: A hostgroup is updated with expected lifecycle environment
+        :expectedresults: A hostgroup is updated with expected lifecycle
+            environment
 
         :CaseLevel: Integration
         """
@@ -1009,7 +1019,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 62d88bb0-34d1-447f-ae69-b2122d8142b4
 
-        :assert: A hostgroup is updated with expected location
+        :expectedresults: A hostgroup is updated with expected location
 
         :CaseLevel: Integration
         """
@@ -1029,7 +1039,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 8f83983b-398f-40e4-8917-47b3205137d7
 
-        :assert: A hostgroup is updated with expected organization
+        :expectedresults: A hostgroup is updated with expected organization
 
         :CaseLevel: Integration
         """
@@ -1049,7 +1059,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: b045f7e8-d7c0-428b-a29c-8d54e53742e2
 
-        :assert: A hostgroup is updated with expected locations
+        :expectedresults: A hostgroup is updated with expected locations
 
         :CaseLevel: Integration
         """
@@ -1075,7 +1085,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 5f6bd4f9-4bd6-4d7e-9a91-de824299020e
 
-        :assert: A hostgroup is updated with expected organizations
+        :expectedresults: A hostgroup is updated with expected organizations
 
         :CaseLevel: Integration
         """
@@ -1100,7 +1110,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: bef6841b-5077-4b84-842e-a286bfbb92d2
 
-        :assert: A hostgroup is deleted
+        :expectedresults: A hostgroup is deleted
 
         :CaseImportance: Critical
         """
@@ -1118,7 +1128,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 3f5aa17a-8db9-4fe9-b309-b8ec5e739da1
 
-        :assert: A hostgroup is not created
+        :expectedresults: A hostgroup is not created
 
         :CaseImportance: Critical
         """
@@ -1137,7 +1147,7 @@ class HostGroupTestCase(APITestCase):
 
         :id: 6d8c4738-a0c4-472b-9a71-27c8a3832335
 
-        :assert: A hostgroup is not updated
+        :expectedresults: A hostgroup is not updated
 
         :CaseImportance: Critical
         """
@@ -1176,8 +1186,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :id: 9d42f47a-2f08-45ad-97d0-de94f0f1de2f
 
-        :Assert: The response contains both values for the ``content_source``
-            field.
+        :expectedresults: The response contains both values for the
+            ``content_source`` field.
 
         :CaseImportance: Critical
         """
@@ -1196,8 +1206,8 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :id: 7d36f33e-f161-4d2a-9ee4-8eb949ed4cbf
 
-        :Assert: The response contains both values for the ``content_view``
-            field.
+        :expectedresults: The response contains both values for the
+            ``content_view`` field.
 
         :CaseImportance: Critical
         """
@@ -1216,7 +1226,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :id: efa17f59-47f9-40c6-821d-c348c4d852ff
 
-        :Assert: The response contains both values for the
+        :expectedresults: The response contains both values for the
             ``lifecycle_environment`` field.
 
         :CaseImportance: Critical
@@ -1237,7 +1247,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :id: f93d0866-0073-4577-8777-6d645b63264f
 
-        :Assert: Field 'puppet_proxy_name' is returned
+        :expectedresults: Field 'puppet_proxy_name' is returned
 
         :BZ: 1371900
 
@@ -1257,7 +1267,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         :id: ab151e09-8e64-4377-95e8-584629750659
 
-        :Assert: Field 'puppet_ca_proxy_name' is returned
+        :expectedresults: Field 'puppet_ca_proxy_name' is returned
 
         :BZ: 1371900
 

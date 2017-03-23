@@ -85,7 +85,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: f5f2056f-d090-4e0d-8fb9-d29255a47908
 
-        :Assert: HostGroup is created.
+        :expectedresults: HostGroup is created.
 
         :CaseImportance: Critical
         """
@@ -100,7 +100,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 853a6d43-129a-497b-94f0-08dc622862f8
 
-        :Assert: HostGroup is not created.
+        :expectedresults: HostGroup is not created.
 
         :CaseImportance: Critical
         """
@@ -116,7 +116,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: f1bfb333-90cf-4a9f-b183-cf77c1773247
 
-        :Assert: Hostgroup is created and has new environment assigned
+        :expectedresults: Hostgroup is created and has new environment assigned
 
 
         :CaseImportance: Critical
@@ -132,7 +132,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 84ae02a4-ea7e-43ce-87bd-7bbde3766b14
 
-        :Assert: Hostgroup is created and has new location assigned
+        :expectedresults: Hostgroup is created and has new location assigned
 
 
         :CaseImportance: Critical
@@ -148,7 +148,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: d12c5939-1aac-44f5-8aa3-a04a824f4e83
 
-        :Assert: Hostgroup is created and has operating system assigned
+        :expectedresults: Hostgroup is created and has operating system
+            assigned
 
 
         :CaseImportance: Critical
@@ -164,7 +165,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 780d4b93-f35a-4c5b-a645-4053aed4c37b
 
-        :Assert: Hostgroup is created and has new organization assigned
+        :expectedresults: Hostgroup is created and has new organization
+            assigned
 
 
         :CaseImportance: Critical
@@ -179,7 +181,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 32be4630-0032-4f5f-89d4-44f8d05fe585
 
-        :Assert: Hostgroup is created and has both new organizations assigned
+        :expectedresults: Hostgroup is created and has both new organizations
+            assigned
 
         :CaseImportance: Critical
         """
@@ -199,7 +202,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: f7ea1c94-8a0e-4500-98b3-0ecd63b3ce3c
 
-        :Assert: Hostgroup is created and has puppet CA proxy server assigned
+        :expectedresults: Hostgroup is created and has puppet CA proxy server
+            assigned
 
 
         :CaseImportance: Critical
@@ -217,7 +221,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 3a922d9f-7466-4565-b279-c1481f63a4ce
 
-        :Assert: Hostgroup is created and has puppet proxy server assigned
+        :expectedresults: Hostgroup is created and has puppet proxy server
+            assigned
 
         :CaseImportance: Critical
         """
@@ -236,7 +241,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 0a07856d-4432-4b72-a636-460ec12f1b65
 
-        :Assert: Hostgroup is created and has puppet class assigned
+        :expectedresults: Hostgroup is created and has puppet class assigned
 
         :CaseImportance: Critical
         """
@@ -255,7 +260,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 78545a14-742f-4db6-abce-49fbeccd836e
 
-        :Assert: Hostgroup is created and has puppet class assigned
+        :expectedresults: Hostgroup is created and has puppet class assigned
 
         :CaseImportance: Critical
         """
@@ -276,7 +281,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 21c619f4-7339-4fb0-9e29-e12dae65f943
 
-        :Assert: Hostgroup should be created and has architecture assigned
+        :expectedresults: Hostgroup should be created and has architecture
+            assigned
 
         :BZ: 1354544
 
@@ -293,7 +299,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: c468fcac-9e42-4ee6-a431-abe29b6848ce
 
-        :Assert: Hostgroup should be created and has domain assigned
+        :expectedresults: Hostgroup should be created and has domain assigned
 
         :CaseImportance: Critical
         """
@@ -309,7 +315,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 24bc3010-4e61-47d8-b8ae-0d66e1055aea
 
-        :Assert: Hostgroup should be created and has lifecycle env assigned
+        :expectedresults: Hostgroup should be created and has lifecycle env
+            assigned
 
         :BZ: 1359694
 
@@ -333,8 +340,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: ca110a74-401d-48f9-9700-6c57f1c10f11
 
-        :Assert: Hostgroup is created, has both new organizations assigned and
-            has lifecycle env assigned
+        :expectedresults: Hostgroup is created, has both new organizations
+            assigned and has lifecycle env assigned
 
         :CaseImportance: Critical
         """
@@ -356,8 +363,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: a3ef4f0e-971d-4307-8d0a-35103dff6586
 
-        :Assert: Hostgroup should be created and has all defined entities
-            assigned
+        :expectedresults: Hostgroup should be created and has all defined
+            entities assigned
 
         :CaseLevel: Integration
         """
@@ -461,7 +468,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: c352d7ea-4fc6-4b78-863d-d3ee4c0ad439
 
-        :Assert: Proper error should be raised
+        :expectedresults: Proper error should be raised
 
         :BZ: 1354568
 
@@ -486,7 +493,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: b36c83d6-b27c-4f1a-ac45-6c4999005bf7
 
-        :Assert: Proper error should be raised
+        :expectedresults: Proper error should be raised
 
         :BZ: 1354568
 
@@ -511,7 +518,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 7b7de0fa-aee9-4163-adc2-354c1e720d90
 
-        :Assert: Proper error should be raised
+        :expectedresults: Proper error should be raised
 
         :BZ: 1354568
 
@@ -534,7 +541,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: a36e3cbe-83d9-44ce-b8f7-5fab2a2cadf9
 
-        :Assert: HostGroup is updated.
+        :expectedresults: HostGroup is updated.
 
         :CaseImportance: Critical
         """
@@ -555,7 +562,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 42d208a4-f518-4ff2-9b7a-311adb460abd
 
-        :assert: HostGroup name is not updated
+        :expectedresults: HostGroup name is not updated
 
         :CaseImportance: Critical
         """
@@ -576,7 +583,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 4b044719-431d-4d72-8974-330cc62fd020
 
-        :Assert: Puppet class is associated with hostgroup
+        :expectedresults: Puppet class is associated with hostgroup
 
         :CaseImportance: Critical
         """
@@ -600,7 +607,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 4c37354f-ef2d-4d54-98ac-906bc611d292
 
-        :Assert: Puppet class is associated with hostgroup
+        :expectedresults: Puppet class is associated with hostgroup
 
         :CaseImportance: Critical
         """
@@ -624,7 +631,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 2e977aed-c0d4-478e-9c84-f07deac912cd
 
-        :Assert: All puppet classes are associated with hostgroup
+        :expectedresults: All puppet classes are associated with hostgroup
 
         :BZ: 1264163
 
@@ -650,7 +657,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: fe7dedd4-d7c3-4c70-b70d-c2deff357b76
 
-        :assert: HostGroup is deleted
+        :expectedresults: HostGroup is deleted
 
         :CaseImportance: Critical
         """
@@ -668,7 +675,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 047c9f1a-4dd6-4fdc-b7ed-37cc725c68d3
 
-        :assert: HostGroup is not deleted
+        :expectedresults: HostGroup is not deleted
 
         :CaseImportance: Critical
         """
@@ -683,7 +690,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 42a24060-2ed7-427e-8396-86d73bbe5f69
 
-        :Assert: Overridden sc-param from puppet class is listed
+        :expectedresults: Overridden sc-param from puppet class is listed
 
         :Caselevel: Integration
         """
@@ -711,7 +718,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 8e4fc561-2446-4a89-989b-e6814973aa56
 
-        :Assert: Overridden sc-param from puppet class is listed
+        :expectedresults: Overridden sc-param from puppet class is listed
 
         :Caselevel: Integration
         """
@@ -739,7 +746,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 1d614441-7ef9-4fdb-a8e7-2f1c1054bf2f
 
-        :Assert: Smart variable from puppet class is listed
+        :expectedresults: Smart variable from puppet class is listed
 
         :Caselevel: Integration
         """
@@ -764,7 +771,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 2b0da695-57fa-4f91-b164-e1ff60076c26
 
-        :Assert: Smart variable from puppet class is listed
+        :expectedresults: Smart variable from puppet class is listed
 
         :Caselevel: Integration
         """

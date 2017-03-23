@@ -47,8 +47,8 @@ class GPGKeyTestCase(APITestCase):
             2. Create a GPG key belonging to the organization.
             3. Search for GPG keys in the organization.
 
-        :Assert: Only one GPG key is in the search results: the created GPG
-            key.
+        :expectedresults: Only one GPG key is in the search results: the
+            created GPG key.
 
         :CaseImportance: Critical
         """
@@ -65,7 +65,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: 741d969b-28ef-481f-bcf7-ed4cd920b030
 
-        :Assert: A GPG key is created with the given name.
+        :expectedresults: A GPG key is created with the given name.
 
         :CaseImportance: Critical
         """
@@ -82,7 +82,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: cfa6690e-fed7-49cf-94f9-fd2deed941c0
 
-        :Assert: A GPG key is created with the expected content.
+        :expectedresults: A GPG key is created with the expected content.
 
         :CaseImportance: Critical
         """
@@ -97,7 +97,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: 904a3ed0-7d50-495e-a700-b4f1ae913599
 
-        :Assert: A GPG key is not created and error is raised.
+        :expectedresults: A GPG key is not created and error is raised.
 
         :CaseImportance: Critical
         """
@@ -114,7 +114,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: 78299f13-5977-4409-9bc7-844e54349926
 
-        :Assert: A GPG key is not created and error is raised.
+        :expectedresults: A GPG key is not created and error is raised.
 
         :CaseImportance: Critical
         """
@@ -130,7 +130,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: fc79c840-6bcb-4d97-9145-c0008d5b028d
 
-        :Assert: A GPG key is not created and error is raised.
+        :expectedresults: A GPG key is not created and error is raised.
 
         :CaseImportance: Critical
         """
@@ -144,7 +144,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: 9868025d-5346-42c9-b850-916ce37a9541
 
-        :Assert: The GPG key name can be updated.
+        :expectedresults: The GPG key name can be updated.
 
         :CaseImportance: Critical
         """
@@ -162,7 +162,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: 62fdaf55-c931-4be6-9857-68cc816046ad
 
-        :Assert: The GPG key content text can be updated.
+        :expectedresults: The GPG key content text can be updated.
 
         :CaseImportance: Critical
         """
@@ -181,7 +181,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: 1a43f610-8969-4f08-967f-fb6af0fca31b
 
-        :Assert: GPG key is not updated
+        :expectedresults: GPG key is not updated
 
         :CaseImportance: Critical
         """
@@ -200,7 +200,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: e294e3b2-1125-4ad9-969a-eb3f1966419e
 
-        :Assert: GPG key is not updated
+        :expectedresults: GPG key is not updated
 
         :CaseImportance: Critical
         """
@@ -218,7 +218,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: fee30ef8-370a-4fdd-9e45-e7ab95dade8b
 
-        :Assert: GPG key is not updated
+        :expectedresults: GPG key is not updated
 
         :CaseImportance: Critical
         """
@@ -236,7 +236,7 @@ class GPGKeyTestCase(APITestCase):
 
         :id: b06d211f-2827-40f7-b627-8b1fbaee2eb4
 
-        :Assert: The GPG key deleted successfully.
+        :expectedresults: The GPG key deleted successfully.
 
         :CaseImportance: Critical
         """

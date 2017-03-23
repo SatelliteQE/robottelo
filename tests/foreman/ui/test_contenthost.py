@@ -112,7 +112,7 @@ class ContentHostTestCase(UITestCase):
 
         :id: 13b9422d-4b7a-4068-9a57-a94602cd6410
 
-        :assert: Package was successfully installed
+        :expectedresults: Package was successfully installed
 
         :CaseLevel: System
         """
@@ -132,7 +132,7 @@ class ContentHostTestCase(UITestCase):
 
         :id: 86d8896b-06d9-4c99-937e-f3aa07b4eb69
 
-        :Assert: Package was successfully removed
+        :expectedresults: Package was successfully removed
 
         :CaseLevel: System
         """
@@ -156,7 +156,7 @@ class ContentHostTestCase(UITestCase):
 
         :id: 1969db93-e7af-4f5f-973d-23c222224db6
 
-        :Assert: Package was successfully upgraded
+        :expectedresults: Package was successfully upgraded
 
         :CaseLevel: System
         """
@@ -177,7 +177,7 @@ class ContentHostTestCase(UITestCase):
 
         :id: a43fb21b-5f6a-4f14-8cd6-114ec287540c
 
-        :Assert: Package group was successfully installed
+        :expectedresults: Package group was successfully installed
 
         :CaseLevel: System
         """
@@ -198,7 +198,7 @@ class ContentHostTestCase(UITestCase):
 
         :id: dbeea1f2-adf4-4ad8-a989-efad8ce21b98
 
-        :Assert: Package group was successfully removed
+        :expectedresults: Package group was successfully removed
 
         :CaseLevel: System
         """
@@ -225,7 +225,7 @@ class ContentHostTestCase(UITestCase):
 
         :id: b69b9797-3c0c-42cd-94ed-3f751bb9b24c
 
-        :assert: Errata was successfully installed
+        :expectedresults: Errata was successfully installed
 
         :CaseLevel: System
         """
@@ -246,7 +246,7 @@ class ContentHostTestCase(UITestCase):
 
         :id: 5c6dbb5d-bd26-4439-ab04-536a6ad012b9
 
-        :assert: 'Registered By' field on content host page points to
+        :expectedresults: 'Registered By' field on content host page points to
             activation key which was used to register the host
 
         :BZ: 1380117
@@ -270,9 +270,9 @@ class ContentHostTestCase(UITestCase):
 
         :id: 28f5fb0e-007b-4ee6-876e-9693fb7f5841
 
-        :assert: The Provisioning host details name link at
-            content_hosts/provisioning point to host detail page
-            eg: hosts/hostname
+        :expectedresults: The Provisioning host details name link at
+            content_hosts/provisioning point to host detail page eg:
+            hosts/hostname
 
         :BZ: 1387892
 

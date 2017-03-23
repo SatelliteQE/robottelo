@@ -171,7 +171,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: 9fcfbe32-d388-435d-a629-6969a50a4243
 
-        :assert: Parameters listed for specific Environment.
+        :expectedresults: Parameters listed for specific Environment.
 
         :CaseLevel: Integration
         """
@@ -195,7 +195,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: b3202175-c040-41dc-a66c-c07573534dec
 
-        :assert: Parameters listed for specific Environment.
+        :expectedresults: Parameters listed for specific Environment.
 
         :CaseLevel: Integration
         """
@@ -219,7 +219,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: a8165746-3480-4875-8931-b20ebec241dc
 
-        :assert: Parameters listed for specific Host.
+        :expectedresults: Parameters listed for specific Host.
 
         :CaseLevel: Integration
         """
@@ -255,7 +255,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: 79050de6-b894-4a88-b155-32bf488b692c
 
-        :assert: Parameters listed for specific Host.
+        :expectedresults: Parameters listed for specific Host.
 
         :CaseLevel: Integration
         """
@@ -291,7 +291,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: a2a01ca7-4dd2-4db6-a654-a632864998d9
 
-        :assert: Parameters listed for specific HostGroup.
+        :expectedresults: Parameters listed for specific HostGroup.
 
         :CaseLevel: Integration
         """
@@ -326,7 +326,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: 80c1058d-b87d-4c09-957f-7d3daacdedf4
 
-        :assert: Parameters listed for specific HostGroup.
+        :expectedresults: Parameters listed for specific HostGroup.
 
         :CaseLevel: Integration
         """
@@ -361,7 +361,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: 6d62968f-dc5b-4d7f-ac21-c1335a827960
 
-        :assert: Parameters listed for specific Puppet class.
+        :expectedresults: Parameters listed for specific Puppet class.
 
         :CaseImportance: Critical
         """
@@ -382,7 +382,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: a7a8af1a-514b-4910-9e19-75306f634041
 
-        :assert: Parameters listed for specific Puppet class.
+        :expectedresults: Parameters listed for specific Puppet class.
 
         :CaseImportance: Critical
         """
@@ -404,7 +404,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         :id: 79a33641-54af-4e04-89ff-3b7f9a4e3ec2
 
-        :assert: Parameters listed for specific Puppet class.
+        :expectedresults: Parameters listed for specific Puppet class.
 
         BZ: 1385351
 
@@ -441,7 +441,7 @@ class SmartClassParametersTestCase(CLITestCase):
             2.  Set the new valid Default Value.
             3.  Submit the changes.
 
-        :assert: Parameter Value overridden with new value.
+        :expectedresults: Parameter Value overridden with new value.
 
         :CaseImportance: Critical
         """
@@ -471,7 +471,7 @@ class SmartClassParametersTestCase(CLITestCase):
             2.  Set the new valid Default Value.
             3.  Attempt to submit the changes.
 
-        :assert: Not overridden parameter value cannot be updated.
+        :expectedresults: Not overridden parameter value cannot be updated.
 
         :CaseImportance: Critical
         """
@@ -495,7 +495,7 @@ class SmartClassParametersTestCase(CLITestCase):
             2.  Set puppet default value to 'Use Puppet Default'.
             3.  Submit the changes.
 
-        :assert: Puppet Default Value applied on parameter.
+        :expectedresults: Puppet Default Value applied on parameter.
 
         :CaseImportance: Critical
         """
@@ -527,7 +527,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Provide a 'valid' default Value.
             4.  Submit the changes.
 
-        :assert: Parameter Updated with a new type successfully.
+        :expectedresults: Parameter Updated with a new type successfully.
 
         :CaseImportance: Critical
         """
@@ -577,7 +577,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Enter an 'Invalid' default Value.
             4.  Submit the changes.
 
-        :assert:
+        :expectedresults:
 
             1.  Parameter not updated with string type for invalid value.
             2.  Error raised for invalid default value.
@@ -615,7 +615,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Set '--required' check.
             4.  Submit the change.
 
-        :assert: No error raised for non-empty default value
+        :expectedresults: No error raised for non-empty default value
 
         :CaseImportance: Critical
         """
@@ -649,7 +649,7 @@ class SmartClassParametersTestCase(CLITestCase):
             4.  Set '--required' check.
             5.  Submit the change.
 
-        :assert: Error not raised for matcher value.
+        :expectedresults: Error not raised for matcher value.
 
         :CaseImportance: Critical
         """
@@ -684,7 +684,8 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for default value not matching with regex.
+        :expectedresults: Error raised for default value not matching with
+            regex.
 
         :CaseImportance: Critical
         """
@@ -718,7 +719,8 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for default value matching with regex.
+        :expectedresults: Error not raised for default value matching with
+            regex.
 
         :CaseImportance: Critical
         """
@@ -754,7 +756,8 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for matcher value not matching with regex.
+        :expectedresults: Error raised for matcher value not matching with
+            regex.
 
         :CaseImportance: Critical
         """
@@ -793,7 +796,8 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for matcher value matching with regex.
+        :expectedresults: Error not raised for matcher value matching with
+            regex.
 
         :CaseImportance: Critical
         """
@@ -831,7 +835,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for default value not in list.
+        :expectedresults: Error raised for default value not in list.
 
         :CaseImportance: Critical
         """
@@ -865,7 +869,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for default value in list.
+        :expectedresults: Error not raised for default value in list.
 
         :CaseImportance: Critical
         """
@@ -900,7 +904,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error raised for matcher value not in list.
+        :expectedresults: Error raised for matcher value not in list.
 
         :CaseImportance: Critical
         """
@@ -938,7 +942,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Validate this value with list validator type and rule.
             4.  Submit the change.
 
-        :assert: Error not raised for matcher value in list.
+        :expectedresults: Error not raised for matcher value in list.
 
         :CaseImportance: Critical
         """
@@ -976,7 +980,7 @@ class SmartClassParametersTestCase(CLITestCase):
                 type.
             4.  Submit the change.
 
-        :assert: Error raised for matcher value not of default type.
+        :expectedresults: Error raised for matcher value not of default type.
 
         :CaseImportance: Critical
         """
@@ -1008,7 +1012,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Create a matcher with value that matches the default type.
             4.  Submit the change.
 
-        :assert: Error not raised for matcher value of default type.
+        :expectedresults: Error not raised for matcher value of default type.
 
         :CaseImportance: Critical
         """
@@ -1050,7 +1054,8 @@ class SmartClassParametersTestCase(CLITestCase):
                 type.
             4.  Attempt to submit the change.
 
-        :assert: Error raised for invalid default and matcher value both.
+        :expectedresults: Error raised for invalid default and matcher value
+            both.
 
         :CaseImportance: Critical
         """
@@ -1081,7 +1086,7 @@ class SmartClassParametersTestCase(CLITestCase):
             2.  Create a matcher with non existing attribute in org.
             3.  Attempt to submit the change.
 
-        :assert: Error raised for non existing attribute.
+        :expectedresults: Error raised for non existing attribute.
 
         :CaseImportance: Critical
         """
@@ -1107,7 +1112,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3.  Create a matcher with all valid values.
             4.  Submit the change.
 
-        :assert: The matcher has been created successfully.
+        :expectedresults: The matcher has been created successfully.
 
         :CaseImportance: Critical
         """
@@ -1142,7 +1147,8 @@ class SmartClassParametersTestCase(CLITestCase):
             2.  Create a matcher with empty value.
             3.  Attempt to submit the change.
 
-        :assert: Error is raised for attempt to add matcher with empty value
+        :expectedresults: Error is raised for attempt to add matcher with empty
+            value
 
         :CaseImportance: Critical
         """
@@ -1170,7 +1176,7 @@ class SmartClassParametersTestCase(CLITestCase):
                 default value.
             4.  Submit the change.
 
-        :assert: The matcher has been created successfully.
+        :expectedresults: The matcher has been created successfully.
 
         :CaseImportance: Critical
         """
@@ -1213,7 +1219,7 @@ class SmartClassParametersTestCase(CLITestCase):
             6.  Submit the change.
             7.  Go to YAML output of associated host.
 
-        :assert: The YAML output has the value only for fqdn matcher.
+        :expectedresults: The YAML output has the value only for fqdn matcher.
 
         :caseautomation: notautomated
 
@@ -1240,7 +1246,7 @@ class SmartClassParametersTestCase(CLITestCase):
             6.  Submit the change.
             7.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the value only for step 5 matcher.
             2.  The YAML output doesn't have value for fqdn/host matcher.
@@ -1271,7 +1277,7 @@ class SmartClassParametersTestCase(CLITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1304,7 +1310,7 @@ class SmartClassParametersTestCase(CLITestCase):
             7.  Submit the change.
             8.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values only for fqdn.
             2.  The YAML output doesn't have the values for attribute which are
@@ -1341,7 +1347,7 @@ class SmartClassParametersTestCase(CLITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the value only for fqdn.
             2.  The YAML output doesn't have the puppet default values of
@@ -1375,7 +1381,7 @@ class SmartClassParametersTestCase(CLITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1409,7 +1415,7 @@ class SmartClassParametersTestCase(CLITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1444,7 +1450,7 @@ class SmartClassParametersTestCase(CLITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1478,7 +1484,7 @@ class SmartClassParametersTestCase(CLITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all the associated
                 matchers.
@@ -1512,7 +1518,7 @@ class SmartClassParametersTestCase(CLITestCase):
             8.  Submit the change.
             9.  Go to YAML output of associated host.
 
-        :assert:
+        :expectedresults:
 
             1.  The YAML output has the values merged from all matchers.
             2.  The YAML output has the default value of parameter.
@@ -1535,7 +1541,7 @@ class SmartClassParametersTestCase(CLITestCase):
             1. Override the parameter and create a matcher for some attribute.
             2. Remove the matcher created in step 1.
 
-        :assert: The matcher removed from parameter.
+        :expectedresults: The matcher removed from parameter.
 
         :CaseImportance: Critical
         """
@@ -1574,7 +1580,7 @@ class SmartClassParametersTestCase(CLITestCase):
             2. Set some valid default value.
             3. Set 'Hidden Value' to true.
 
-        :assert: The 'hidden value' set to true for that parameter.
+        :expectedresults: The 'hidden value' set to true for that parameter.
 
         :CaseImportance: Critical
         """
@@ -1605,7 +1611,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3. Set 'Hidden Value' to true and submit.
             4. After hiding, set the 'Hidden Value' to false.
 
-        :assert: The 'hidden value' set to false for that parameter.
+        :expectedresults: The 'hidden value' set to false for that parameter.
 
         :CaseImportance: Critical
         """
@@ -1645,7 +1651,7 @@ class SmartClassParametersTestCase(CLITestCase):
             3. Set 'Hidden Value' to true and submit.
             4. Now in hidden state, update the default value.
 
-        :assert:
+        :expectedresults:
 
             1. The parameter default value is updated.
             2. The 'hidden value' displayed as true for that parameter.
@@ -1691,7 +1697,7 @@ class SmartClassParametersTestCase(CLITestCase):
             2. Don't set any default value/Set empty value.
             3. Set 'Hidden Value' to true and submit.
 
-        :assert:
+        :expectedresults:
 
             1. The 'hidden value' set to true for that parameter.
             2. The default value is still empty on hide.

@@ -66,8 +66,8 @@ class PackagesTestCase(UITestCase):
 
         :id: e182a89f-74e4-4b29-8152-1ea3bd014fd3
 
-        :Assert: Content search functionality works as intended and expected
-            packages are present inside of repository
+        :expectedresults: Content search functionality works as intended and
+            expected packages are present inside of repository
 
         :CaseLevel: Integration
         """
@@ -85,8 +85,8 @@ class PackagesTestCase(UITestCase):
 
         :id: 249ac04b-8e31-42e9-ac37-08608bf867a1
 
-        :Assert: Content search functionality works as intended and expected
-            packages are present inside of repositories
+        :expectedresults: Content search functionality works as intended and
+            expected packages are present inside of repositories
 
         :CaseLevel: Integration
         """
@@ -109,8 +109,8 @@ class PackagesTestCase(UITestCase):
 
         :id: 57625386-4a9e-4bea-b2d5-d97326043150
 
-        :Assert: Package is present inside of repository and has all expected
-            values in details section
+        :expectedresults: Package is present inside of repository and has all
+            expected values in details section
 
         :CaseLevel: Integration
         """
@@ -144,8 +144,8 @@ class PackagesTestCase(UITestCase):
 
         :id: 679622a7-003e-4887-8622-b95b9468da7d
 
-        :Assert: Package is present inside of repository and it possible to
-            view its details
+        :expectedresults: Package is present inside of repository and it
+            possible to view its details
 
         :CaseLevel: Integration
 
@@ -192,8 +192,8 @@ class RHPackagesTestCase(UITestCase):
 
         :id: 8eae9cc1-6902-49ed-a474-ef175fe5ab5f
 
-        :Assert: Content search functionality works as intended and expected
-            packages are present inside of repository
+        :expectedresults: Content search functionality works as intended and
+            expected packages are present inside of repository
 
         :CaseLevel: System
         """
@@ -211,8 +211,8 @@ class RHPackagesTestCase(UITestCase):
 
         :id: 01c9dccb-2b2b-4b90-b277-047e772e56e7
 
-        :Assert: Content search functionality works as intended and package
-            contains expected list of files
+        :expectedresults: Content search functionality works as intended and
+            package contains expected list of files
 
         :CaseLevel: System
         """

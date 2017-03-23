@@ -116,8 +116,8 @@ class RepositoryExportTestCase(CLITestCase):
 
         :id: 9c855866-b9b1-4e32-b3eb-7342fdaa7116
 
-        :Assert: Repository was successfully exported, rpm files are present on
-            satellite machine
+        :expectedresults: Repository was successfully exported, rpm files are
+            present on satellite machine
 
         :CaseLevel: System
         """
@@ -161,8 +161,8 @@ class RepositoryExportTestCase(CLITestCase):
 
         :id: e17898db-ca92-4121-a723-0d4b3cf120eb
 
-        :Assert: Repository was successfully exported, rpm files are present on
-            satellite machine
+        :expectedresults: Repository was successfully exported, rpm files are
+            present on satellite machine
 
         :CaseLevel: System
         """
@@ -240,7 +240,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Copy exported contents to /var/www/html/pub/export directory.
             3. Import these copied contents from some other org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. Whole CV version contents has been exported to directory
                specified in settings.
@@ -268,7 +268,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Attempt to import these not copied contents from some other
                org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. Whole CV version contents has been exported to directory
                specified in settings.
@@ -292,8 +292,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Attempt to Export whole CV version contents to a directory
             which has less memory available than contents size.
 
-        :assert: The export CV version contents has been aborted due to
-            insufficient memory.
+        :expectedresults: The export CV version contents has been aborted due
+            to insufficient memory.
 
         :caseautomation: notautomated
 
@@ -315,7 +315,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Copy exported ISO to /var/www/html/pub/export directory.
             3. Import these copied ISO from some other org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. CV version has been exported to directory as ISO in specified in
                settings.
@@ -342,7 +342,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Attempt to import this not copied ISO from some other
                org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. The exported iso is not imported due to non availability.
             2. Error is thrown for non availability of CV version ISO to
@@ -365,7 +365,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Attempt to Export whole CV version as iso to a directory which
             has less memory available than contents size.
 
-        :assert: The export CV version to iso has been aborted due to
+        :expectedresults: The export CV version to iso has been aborted due to
             insufficient memory.
 
         :caseautomation: notautomated
@@ -385,8 +385,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Attempt to Export whole CV version as iso with mb size less
             than required.
 
-        :assert: The export CV version to iso has been aborted due to maximum
-            size is not enough to contain the CV version contents.
+        :expectedresults: The export CV version to iso has been aborted due to
+            maximum size is not enough to contain the CV version contents.
 
         :caseautomation: notautomated
 
@@ -404,7 +404,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Attempt to Export whole CV version as iso with mb size more
             than required.
 
-        :assert: CV version has been exported to iso successfully.
+        :expectedresults: CV version has been exported to iso successfully.
 
         :caseautomation: notautomated
 
@@ -429,7 +429,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             4. Export the CV incrementally from the last date time.
             5. In downstream, Import the CV incrementally.
 
-        :assert:
+        :expectedresults:
 
             1. On incremental export, only the new packages are exported.
             2. New directory of incremental export with new packages is
@@ -459,7 +459,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             4. Export the CV incrementally from the last date time.
             5. In downstream, Import the CV incrementally.
 
-        :assert:
+        :expectedresults:
 
             1. An Empty packages directory created on incremental export.
             2. On incremental import, no new packages are imported.
@@ -483,7 +483,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Mount the iso.
             3. Verify iso directory structure.
 
-        :assert: Exported CV in iso should follow the cdn directory structure.
+        :expectedresults: Exported CV in iso should follow the cdn directory
+            structure.
 
         :caseautomation: notautomated
 
@@ -505,7 +506,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                directory.
             3. Import these copied repo contents from some other org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. The repo has been exported to directory specified in settings.
             2. The exported repo has been imported in org/satellite.
@@ -530,7 +531,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Attempt to import this not copied repo from some other
                org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. The repo has been exported to directory specified in settings.
             2. The exported repo are not imported due to non availability.
@@ -552,7 +553,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Attempt to Export repo to a directory which has less memory
             available than contents size.
 
-        :assert: The export repo has been aborted due to insufficient memory.
+        :expectedresults: The export repo has been aborted due to insufficient
+            memory.
 
         :caseautomation: notautomated
 
@@ -569,8 +571,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps: Attempt to Export repo with 'on_demand' download policy.
 
-        :assert: An Error is raised for updating the repo download policy to
-            'immediate' to be exported.
+        :expectedresults: An Error is raised for updating the repo download
+            policy to 'immediate' to be exported.
 
         :caseautomation: notautomated
 
@@ -592,7 +594,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Re-export the full repo.
             4. In downstream, reimport the repo re-exported.
 
-        :assert: Deleted packages from upstream are removed from downstream.
+        :expectedresults: Deleted packages from upstream are removed from
+            downstream.
 
         :caseautomation: notautomated
 
@@ -613,7 +616,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Copy exported ISO to /var/www/html/pub/export directory.
             3. Import this copied ISO from some other org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. repo has been exported to directory as ISO in specified in
                settings.
@@ -639,7 +642,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Attempt to import this not copied ISO from some other
                org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. The exported iso is not imported due to non availability.
             2. Error is thrown for non availability of repo ISO to import.
@@ -660,8 +663,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Attempt to Export repo as iso to a directory which has less
             memory available than contents size.
 
-        :assert: The export repo to iso has been aborted due to insufficient
-            memory.
+        :expectedresults: The export repo to iso has been aborted due to
+            insufficient memory.
 
         :caseautomation: notautomated
 
@@ -678,8 +681,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps: Attempt to Export repo as iso with mb size less than required.
 
-        :assert: The export repo to iso has been aborted due to maximum size is
-            not enough to contain the repo  contents.
+        :expectedresults: The export repo to iso has been aborted due to
+            maximum size is not enough to contain the repo  contents.
 
         :caseautomation: notautomated
 
@@ -696,7 +699,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps: Attempt to Export repo as iso with mb size more than required.
 
-        :assert: Repo has been exported to iso successfully.
+        :expectedresults: Repo has been exported to iso successfully.
 
         :caseautomation: notautomated
 
@@ -713,7 +716,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps: Export the repo incrementally from the future date time.
 
-        :assert: Error is raised for attempting to export from future datetime.
+        :expectedresults: Error is raised for attempting to export from future
+            datetime.
 
         :caseautomation: notautomated
 
@@ -736,7 +740,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             4. Export the repo incrementally from the last date time.
             5. In downstream, Import the repo incrementally.
 
-        :assert:
+        :expectedresults:
 
             1. On incremental export, only the new packages are exported.
             2. New directory of incremental export with new packages is
@@ -764,7 +768,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             4. Export the repo incrementally from the last date time.
             5. In downstream, Import the repo incrementally.
 
-        :assert:
+        :expectedresults:
 
             1. An Empty packages directory created on incremental export.
             2. On incremental import, no new packages are imported.
@@ -788,7 +792,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Mount the iso.
             3. Verify iso directory structure.
 
-        :assert: Exported repo in iso should follow the cdn directory
+        :expectedresults: Exported repo in iso should follow the cdn directory
             structure.
 
         :caseautomation: notautomated
@@ -811,7 +815,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                /var/www/html/pub/export.
             3. Import above exported kickstart tree from other org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. Whole kickstart tree contents has been exported to directory
                specified in settings.
@@ -839,7 +843,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Attempt to import these not copied contents from some other
                 org/satellite.
 
-        :assert:
+        :expectedresults:
 
             1. Whole kickstart tree has been exported to directory specified in
                 settings.
@@ -864,8 +868,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Attempt to Export whole kickstart tree contents to a directory
             which has less memory available than contents size.
 
-        :assert: The export kickstart tree has been aborted due to insufficient
-            memory.
+        :expectedresults: The export kickstart tree has been aborted due to
+            insufficient memory.
 
         :caseautomation: notautomated
 
@@ -884,8 +888,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps: Export whole Red Hat YUM repo to some path.
 
-        :assert: Whole YUM repo contents has been exported to directory
-            specified in settings.
+        :expectedresults: Whole YUM repo contents has been exported to
+            directory specified in settings.
 
         :caseautomation: notautomated
 
@@ -907,7 +911,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Import the repository by defining the CDN URL the same as the
                exported HTTP URL.
 
-        :assert: All the exported YUM repo contents are imported successfully.
+        :expectedresults: All the exported YUM repo contents are imported
+            successfully.
 
         :caseautomation: notautomated
 
@@ -928,8 +933,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Add some packages to the earlier exported yum repo.
             3. Incrementally export the yum repo from last exported date.
 
-        :assert: Red Hat YUM repo contents have been exported incrementally in
-            separate directory.
+        :expectedresults: Red Hat YUM repo contents have been exported
+            incrementally in separate directory.
 
         :caseautomation: notautomated
 
@@ -952,7 +957,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
                date.
             4. Import the exported YUM repo contents incrementally.
 
-        :assert: YUM repo contents have been imported incrementally.
+        :expectedresults: YUM repo contents have been imported incrementally.
 
         :caseautomation: notautomated
 
@@ -969,8 +974,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps: Export whole Red Hat YUM repo as ISO.
 
-        :assert: Whole repo contents has been exported as ISO in separate
-            directory.
+        :expectedresults: Whole repo contents has been exported as ISO in
+            separate directory.
 
         :caseautomation: notautomated
 
@@ -992,8 +997,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Import the repository by defining the CDN URL the same as the
                exported HTTP URL.
 
-        :assert: All The exported repo contents in ISO has been imported
-            successfully.
+        :expectedresults: All The exported repo contents in ISO has been
+            imported successfully.
 
         :caseautomation: notautomated
 
@@ -1015,8 +1020,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Incrementally export the yum repo as ISO from last exported
                 date.
 
-        :assert: Repo contents have been exported as ISO incrementally in
-            separate directory.
+        :expectedresults: Repo contents have been exported as ISO incrementally
+            in separate directory.
 
         :caseautomation: notautomated
 
@@ -1040,7 +1045,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             4. Mount incrementally exported contents ISO.
             5. Import the repo contents incrementally.
 
-        :assert: Repo contents have been exported as ISO and imported
+        :expectedresults: Repo contents have been exported as ISO and imported
             incrementally.
 
         :caseautomation: notautomated
@@ -1059,8 +1064,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps: Export whole CV version having Red Hat contents to a directory
             specified in settings.
 
-        :assert: Whole CV version contents has been exported to directory
-            specified in settings.
+        :expectedresults: Whole CV version contents has been exported to
+            directory specified in settings.
 
         :caseautomation: notautomated
 
@@ -1083,8 +1088,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             2. Import the repository by defining the CDN URL from the exported
                HTTP URL.
 
-        :assert: The repo from an exported CV contents has been imported
-            successfully.
+        :expectedresults: The repo from an exported CV contents has been
+            imported successfully.
 
         :caseautomation: notautomated
 
@@ -1109,7 +1114,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Import custom repo by creating new repo and setting yum repo url
                to exported HTTP url.
 
-        :assert: Both custom and Red Hat repos are imported successfully.
+        :expectedresults: Both custom and Red Hat repos are imported
+            successfully.
 
         :caseautomation: notautomated
 
@@ -1126,7 +1132,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         :steps: Export whole CV version having Red Hat contents as ISO.
 
-        :assert: Whole CV version contents has been exported as ISO.
+        :expectedresults: Whole CV version contents has been exported as ISO.
 
         :caseautomation: notautomated
 
@@ -1149,8 +1155,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             3. Import the Red Hat repository by defining the CDN URL from the
                exported HTTP URL.
 
-        :assert: The repo is imported successfully from exported CV ISO
-            contents.
+        :expectedresults: The repo is imported successfully from exported CV
+            ISO contents.
 
         :caseautomation: notautomated
 
@@ -1175,8 +1181,8 @@ class InterSatelliteSyncTestCase(CLITestCase):
             5. Attempt to install a package on a client from imported repo of
                downstream.
 
-        :assert: The package is installed on client from imported repo of
-            downstream satellite.
+        :expectedresults: The package is installed on client from imported repo
+            of downstream satellite.
 
         :caseautomation: notautomated
 

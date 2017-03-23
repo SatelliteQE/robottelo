@@ -43,7 +43,7 @@ class ProductTestCase(UITestCase):
 
         :id: b73d9440-1f30-4fc5-ad7c-e1febe879cbc
 
-        :Assert: Product is created
+        :expectedresults: Product is created
 
         :CaseImportance: Critical
         """
@@ -66,7 +66,8 @@ class ProductTestCase(UITestCase):
 
         :id: 469fc036-a48a-4c0a-9da9-33e73f903479
 
-        :Assert: Product is created successfully in both organizations.
+        :expectedresults: Product is created successfully in both
+            organizations.
 
         :CaseLevel: Integration
         """
@@ -91,7 +92,7 @@ class ProductTestCase(UITestCase):
 
         :id: 11efd16c-6471-4191-934f-79c7278c66e8
 
-        :Assert: Product is not created
+        :expectedresults: Product is not created
 
         :CaseImportance: Critical
         """
@@ -115,7 +116,7 @@ class ProductTestCase(UITestCase):
 
         :id: 90ceee6e-0ccc-4065-87ba-42d36484f032
 
-        :Assert: Product is not created
+        :expectedresults: Product is not created
 
         :CaseImportance: Critical
         """
@@ -141,7 +142,7 @@ class ProductTestCase(UITestCase):
 
         :id: 2c0539b4-84e1-46c6-aaca-12fe3865da3d
 
-        :Assert: Product is updated
+        :expectedresults: Product is updated
 
         :CaseImportance: Critical
         """
@@ -168,7 +169,7 @@ class ProductTestCase(UITestCase):
 
         :id: 6632effe-06ba-4690-b81d-4f5eae20b7b9
 
-        :Assert: Product renamed to previous value.
+        :expectedresults: Product renamed to previous value.
 
         :CaseLevel: Integration
         """
@@ -195,7 +196,7 @@ class ProductTestCase(UITestCase):
 
         :id: c6938675-4a2a-4bec-9315-b1c951b628bb
 
-        :Assert: Product is not updated
+        :expectedresults: Product is not updated
 
         :CaseImportance: Critical
         """
@@ -220,7 +221,7 @@ class ProductTestCase(UITestCase):
 
         :id: cf80bafb-8581-483a-b5c1-3a162642c6c1
 
-        :Assert: Product is deleted
+        :expectedresults: Product is deleted
 
         :CaseImportance: Critical
         """

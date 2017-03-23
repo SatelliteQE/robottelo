@@ -246,8 +246,8 @@ class IncrementalUpdateTestCase(TestCase):
                 self.rhva_6_repo = Repository(id=164).read()
                 self.qe_lce = LifecycleEnvironment(id=46).read()
 
-        :Assert: Incremental update completed with no errors and Content view
-            has a newer version
+        :expectedresults: Incremental update completed with no errors and
+            Content view has a newer version
 
         :CaseLevel: System
         """
@@ -286,8 +286,8 @@ class IncrementalUpdateTestCase(TestCase):
 
         :id: f25b0919-74cb-4e2c-829e-482558990b3c
 
-        :Assert: Incremental update completed with no errors and Content view
-            has a newer version
+        :expectedresults: Incremental update completed with no errors and
+            Content view has a newer version
 
         :CaseLevel: System
         """

@@ -228,7 +228,7 @@ class StandardPrepTestCase(TestCase):
             4. enable repositories
             5. take db snapshot backup
 
-        :Assert: Restoring from database where its status is clean
+        :expectedresults: Restoring from database where its status is clean
         """
         self._download_manifest()
         self._upload_manifest()

@@ -43,7 +43,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: ec1d985a-6a39-4de6-b635-c803ecedd832
 
-        :Assert: Lifecycle environment is created and has proper name
+        :expectedresults: Lifecycle environment is created and has proper name
 
         :CaseImportance: Critical
         """
@@ -62,7 +62,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: 0bc05510-afc7-4087-ab75-1065ab5ba1d3
 
-        :Assert: Lifecycle environment is created and has proper description
+        :expectedresults: Lifecycle environment is created and has proper
+            description
 
         :CaseImportance: Critical
         """
@@ -81,7 +82,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: 66d34781-8210-4282-8b5e-4be811d5c756
 
-        :Assert: Lifecycle environment is created with Library as prior
+        :expectedresults: Lifecycle environment is created with Library as
+            prior
 
         :CaseImportance: Critical
         """
@@ -97,7 +99,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: 7e8ea2e6-5927-4e86-8ea8-04c3feb524a6
 
-        :Assert: Lifecycle environment is not created
+        :expectedresults: Lifecycle environment is not created
 
         :CaseImportance: Critical
         """
@@ -114,7 +116,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: b6715e02-f15e-4ab8-8b13-18a3619fee9e
 
-        :Assert: Lifecycle environment is created and updated properly
+        :expectedresults: Lifecycle environment is created and updated properly
 
         :CaseImportance: Critical
         """
@@ -133,7 +135,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: e946b1fc-f79f-4e57-9d4a-3181a276222b
 
-        :Assert: Lifecycle environment is created and updated properly
+        :expectedresults: Lifecycle environment is created and updated properly
 
         :CaseLevel: Integration
         """
@@ -153,8 +155,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: 55723382-9d98-43c8-85fb-df4702ca7478
 
-        :Assert: Lifecycle environment is not updated and corresponding error
-            is raised
+        :expectedresults: Lifecycle environment is not updated and
+            corresponding error is raised
 
         :CaseImportance: Critical
         """
@@ -177,7 +179,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :id: cd5a97ca-c1e8-41c7-8d6b-f908916b24e1
 
-        :Assert: Lifecycle environment is deleted successfully
+        :expectedresults: Lifecycle environment is deleted successfully
 
         :CaseImportance: Critical
         """
@@ -199,8 +201,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
             2. Create a lifecycle environment belonging to the organization.
             3. Search for lifecycle environments in the organization.
 
-        :Assert: Only "Library" and the lifecycle environment just created are
-            in the search results.
+        :expectedresults: Only "Library" and the lifecycle environment just
+            created are in the search results.
 
         :CaseLevel: Integration
         """
@@ -230,7 +232,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Steps: Create a new environment.
 
-        :Assert: The environment is created without any errors.
+        :expectedresults: The environment is created without any errors.
 
         :CaseLevel: Integration
 

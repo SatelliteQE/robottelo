@@ -61,7 +61,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :id: e5a0e4f8-fed9-4896-87a0-ac33f6baa227
 
-        :Assert: Manifest are uploaded properly
+        :expectedresults: Manifest are uploaded properly
 
         :CaseImportance: Critical
         """
@@ -77,7 +77,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :id: 01539c07-00d5-47e2-95eb-c0fd4f39090f
 
-        :Assert: Manifest are deleted properly
+        :expectedresults: Manifest are deleted properly
 
         :CaseImportance: Critical
         """
@@ -100,8 +100,8 @@ class SubscriptionTestCase(CLITestCase):
 
         :id: cc0f8f40-5ea6-4fa7-8154-acdc2cb56b45
 
-        :Assert: you are able to enable and synchronize repository contained in
-            a manifest
+        :expectedresults: you are able to enable and synchronize repository
+            contained in a manifest
 
         :CaseLevel: Integration
         """
@@ -129,7 +129,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :id: 000ab0a0-ec1b-497a-84ff-3969a965b52c
 
-        :Assert: Manifest history is shown properly
+        :expectedresults: Manifest history is shown properly
 
         :CaseImportance: Critical
         """
@@ -152,7 +152,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :id: 579bbbf7-11cf-4d78-a3b1-16d73bd4ca57
 
-        :Assert: Manifests can be refreshed
+        :expectedresults: Manifests can be refreshed
 
         :CaseImportance: Critical
         """
@@ -176,7 +176,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :id: 7f40795f-7841-4063-8a43-de0325c92b1f
 
-        :Assert: the refresh command returns a non-zero return code
+        :expectedresults: the refresh command returns a non-zero return code
 
         :BZ: 1226425
 

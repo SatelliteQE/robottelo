@@ -181,7 +181,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: dc0a86f7-4219-427e-92fd-29352dbdbfce
 
-        :Assert: Sync plan is created and has random name
+        :expectedresults: Sync plan is created and has random name
 
         :CaseImportance: Critical
         """
@@ -196,7 +196,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: a1bbe81b-60f5-4a19-b400-a02a23fa1dfa
 
-        :Assert: Sync plan is created and has random description
+        :expectedresults: Sync plan is created and has random description
 
         :CaseImportance: Critical
         """
@@ -211,7 +211,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 32eb0c1d-0c9a-4fb5-a185-68d0d705fbce
 
-        :Assert: Sync plan is created and has selected interval
+        :expectedresults: Sync plan is created and has selected interval
 
         :CaseImportance: Critical
         """
@@ -233,7 +233,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 4c1aee35-271e-4ed8-9369-d2abfea8cfd9
 
-        :Assert: Sync plan is created and has random name
+        :expectedresults: Sync plan is created and has random name
 
         :CaseImportance: Critical
         """
@@ -251,7 +251,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 00a279cd-1f49-4ebb-a59a-6f0b4e4cb83c
 
-        :Assert: Sync plan is created and description is updated
+        :expectedresults: Sync plan is created and description is updated
 
         :CaseImportance: Critical
         """
@@ -271,7 +271,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: d676d7f3-9f7c-4375-bb8b-277d71af94b4
 
-        :Assert: Sync plan interval is updated
+        :expectedresults: Sync plan interval is updated
 
         :CaseImportance: Critical
         """
@@ -295,7 +295,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: f0c17d7d-3e86-4b64-9747-6cba6809815e
 
-        :Assert: Sync plan is created and sync plan is updated
+        :expectedresults: Sync plan is created and sync plan is updated
 
         :CaseImportance: Critical
         """
@@ -341,7 +341,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: b5d97c6b-aead-422b-8d9f-4a192bbe4a3b
 
-        :Assert: Sync plan is created and then deleted
+        :expectedresults: Sync plan is created and then deleted
 
         :CaseImportance: Critical
         """
@@ -358,7 +358,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 54e3a4ea-315c-4026-8101-c4605ca6b874
 
-        :Assert: Sync plan Enabled state is displayed
+        :expectedresults: Sync plan Enabled state is displayed
 
         :CaseImportance: Critical
         """
@@ -375,7 +375,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: c80f5c0c-3863-47da-8d7b-7d65c73664b0
 
-        :Assert: Repository was not synchronized
+        :expectedresults: Repository was not synchronized
 
         :BZ: 1279539
 
@@ -410,7 +410,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 21efdd08-698c-443c-a681-edce19a4c83a
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :BZ: 1279539
 
@@ -448,7 +448,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 635bffe2-df98-4971-8950-40edc89e479e
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
         """
@@ -487,7 +487,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: dd262cf3-b836-422c-baca-b3adbc532478
 
-        :Assert: Products are synchronized successfully.
+        :expectedresults: Products are synchronized successfully.
 
         :CaseLevel: System
         """
@@ -541,7 +541,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 47280ef4-3936-4dbc-8ed0-1076aa8d40df
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :BZ: 1279539
 
@@ -600,7 +600,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 6ce2f777-f230-4bb8-9822-2cf3580c21aa
 
-        :Assert: Product is synchronized successfully.
+        :expectedresults: Product is synchronized successfully.
 
         :CaseLevel: System
         """

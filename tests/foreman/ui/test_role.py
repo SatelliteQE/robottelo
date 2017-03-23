@@ -37,7 +37,7 @@ class RoleTestCase(UITestCase):
 
         :id: 8170598b-cf3b-4ff7-9baa-bee73f90d255
 
-        :Assert: Role is created successfully
+        :expectedresults: Role is created successfully
 
         :CaseImportance: Critical
         """
@@ -53,7 +53,7 @@ class RoleTestCase(UITestCase):
 
         :id: 4159a2ad-0952-4196-9e3b-56c721d24355
 
-        :Assert: Role is not created
+        :expectedresults: Role is not created
 
         :CaseImportance: Critical
         """
@@ -70,7 +70,7 @@ class RoleTestCase(UITestCase):
 
         :id: c8bd515a-e556-4b98-a993-ec37f541ffc3
 
-        :Assert: Role is deleted successfully
+        :expectedresults: Role is deleted successfully
 
         :CaseImportance: Critical
         """
@@ -86,7 +86,7 @@ class RoleTestCase(UITestCase):
 
         :id: c3ad9eed-6896-470d-9043-3fda37bbe489
 
-        :Assert: Role is updated
+        :expectedresults: Role is updated
 
         :CaseImportance: Critical
         """
@@ -106,7 +106,7 @@ class RoleTestCase(UITestCase):
 
         :id: d57abcf2-a42f-40db-a61c-61b56bcc55b9
 
-        :Assert: Role is updated
+        :expectedresults: Role is updated
 
         :CaseImportance: Critical
         """
@@ -135,7 +135,7 @@ class RoleTestCase(UITestCase):
 
         :id: e3e6af90-fb31-4de9-8f36-f50550d7f00e
 
-        :Assert: New role is created.
+        :expectedresults: New role is created.
 
         :CaseImportance: Critical
         """
@@ -170,7 +170,7 @@ class RoleTestCase(UITestCase):
 
         :id: a4367968-eae5-4b8a-9b5c-61824b261320
 
-        :Assert: New role is created and contains all permissions
+        :expectedresults: New role is created and contains all permissions
 
         :CaseImportance: Critical
         """
@@ -208,7 +208,7 @@ class RoleTestCase(UITestCase):
 
         :id: cbb17f37-9039-4875-981b-1f427b095ed1
 
-        :Assert: User is created successfully
+        :expectedresults: User is created successfully
 
         :BZ: 1353788
 
@@ -234,7 +234,7 @@ class RoleTestCase(UITestCase):
 
         :id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
 
-        :Assert: Role is deleted
+        :expectedresults: Role is deleted
 
         :BZ: 1353788
 
@@ -269,7 +269,7 @@ class CannedRoleTestCases(UITestCase):
 
         :steps: Create new role with taxonomies (location and organization)
 
-        :assert: New role is created with taxonomies
+        :expectedresults: New role is created with taxonomies
 
         :CaseImportance: Critical
         """
@@ -297,7 +297,7 @@ class CannedRoleTestCases(UITestCase):
             3. Create user and assign new role to it
             4. Re-login into application using new user with a role
 
-        :assert:
+        :expectedresults:
 
             1. Filter w/o override is created in role
             2. The taxonomies of role are inherited to filter
@@ -358,7 +358,7 @@ class CannedRoleTestCases(UITestCase):
                 role to it
             3. Login as new user and attempt to acess the resources
 
-        :assert:
+        :expectedresults:
 
             1. Filter is created without taxonomies
             2. Override checkbox is not available to check
@@ -421,7 +421,7 @@ class CannedRoleTestCases(UITestCase):
                 assign role to it
             5. Login with user and attempt to access the resources
 
-        :assert:
+        :expectedresults:
 
             1. Filter is created with taxonomies
             2. Override checkmark is displayed in filters table for that filter
@@ -492,7 +492,7 @@ class CannedRoleTestCases(UITestCase):
             3. Update existing role with different taxonomies
             4. Login with new user and attempt to access the resources
 
-        :assert:
+        :expectedresults:
 
             1. The role is updated successfully
             2. User should have access to non-overrided resources of role in
@@ -519,7 +519,7 @@ class CannedRoleTestCases(UITestCase):
             4. Uncheck the override checkbox in role filter
             5. Login with user and attempt to access resources
 
-        :assert:
+        :expectedresults:
 
             1. On unchecking override, the override mark is not displayed for
                 that filter in filters table
@@ -548,7 +548,7 @@ class CannedRoleTestCases(UITestCase):
                 table
             5. Login with user and attempt to access resources
 
-        :assert:
+        :expectedresults:
 
             1. On unchecking override, the override mark is not displayed for
                 that filter in filters table
@@ -576,7 +576,7 @@ class CannedRoleTestCases(UITestCase):
                 table in role
             4. Login with user and attempt to access resources
 
-        :assert:
+        :expectedresults:
 
             1. On disable, the overridden mark is disabled for all the
                 overridden filters in role
@@ -606,7 +606,7 @@ class CannedRoleTestCases(UITestCase):
             4. Create user and assign org admin role
             5. Login with user and attempt to access resources
 
-        :assert:
+        :expectedresults:
 
             1. Successfully created Org Admin by cloning manager role
             2. Successfully assigned taxonomiess to role
@@ -632,7 +632,7 @@ class CannedRoleTestCases(UITestCase):
             1. Attempt to clone any existing role(e.g Manager Role)
             2. Set new taxonomies (locations and organizations) to cloned role
 
-        :assert:
+        :expectedresults:
 
             1. While cloning, role has no taxonomies selected by default
             2. While cloning, role allows to set taxonomies
@@ -655,7 +655,8 @@ class CannedRoleTestCases(UITestCase):
             1. Clone any existing role(e.g Manager Role)
             2. Attempt to override the filter in cloned role
 
-        :assert: Filter in cloned role should be successfully overriding
+        :expectedresults: Filter in cloned role should be successfully
+            overriding
 
         :caseautomation: notautomated
 
@@ -672,7 +673,7 @@ class CannedRoleTestCases(UITestCase):
         :steps: Clone a role having overridden filter(s), where filters should
             have some taxonomies (locations and organizations) assigned
 
-        :assert:
+        :expectedresults:
 
             1. On cloning, taxonomies of the overridden filters in cloned role
                 are set to None
@@ -697,8 +698,8 @@ class CannedRoleTestCases(UITestCase):
                 organizations) to these filters as taxonomies in filters will
                 be blank after cloning
 
-        :assert: In cloned role, The taxonomies should be able to assign to
-            overridden filters
+        :expectedresults: In cloned role, The taxonomies should be able to
+            assign to overridden filters
 
         :caseautomation: notautomated
 

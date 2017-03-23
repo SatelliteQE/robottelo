@@ -55,7 +55,8 @@ class PuppetUpgradeTestCase(CLITestCase):
             7. register another client (p4)
             8. apply puppet module to the client
 
-        :Assert: multiple asserts along the code that motd module was applied
+        :expectedresults: multiple asserts along the code that motd module was
+            applied
 
         :caseautomation: notautomated
 
@@ -81,7 +82,8 @@ class PuppetUpgradeTestCase(CLITestCase):
             7. register another client (p4)
             8. apply puppet module to the client
 
-        :Assert: multiple asserts along the code that motd module was applied
+        :expectedresults: multiple asserts along the code that motd module was
+            applied
 
         :caseautomation: notautomated
 

@@ -41,7 +41,7 @@ class TrendTest(UITestCase):
 
         :id: d0c040cf-8132-43cd-9569-26148b80a44b
 
-        :Assert: Trend is created successfully
+        :expectedresults: Trend is created successfully
 
         :CaseImportance: Critical
         """
@@ -56,7 +56,7 @@ class TrendTest(UITestCase):
 
         :id: 329af7a7-e7c1-4c09-9849-d9ec12ddcee9
 
-        :Assert: Trend entity is updated successfully
+        :expectedresults: Trend entity is updated successfully
 
         :CaseImportance: Critical
         """
@@ -82,7 +82,7 @@ class TrendTest(UITestCase):
 
         :id: 0b5376f0-c8ae-434a-a5da-10b16ac3b932
 
-        :Assert: Trend is deleted
+        :expectedresults: Trend is deleted
 
         :CaseImportance: Critical
         """

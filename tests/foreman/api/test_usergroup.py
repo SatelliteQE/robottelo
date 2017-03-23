@@ -40,7 +40,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 3a2255d9-f48d-4f22-a4b9-132361bd9224
 
-        :Assert: User group is created successfully.
+        :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
@@ -55,7 +55,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: ab127e09-31d2-4c5b-ae6c-726e4b11a21e
 
-        :Assert: User group is created successfully.
+        :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
@@ -72,8 +72,8 @@ class UserGroupTestCase(APITestCase):
 
         :id: b8dbbacd-b5cb-49b1-985d-96df21440652
 
-        :Assert: User group is created successfully and contains all expected
-            users.
+        :expectedresults: User group is created successfully and contains all
+            expected users.
 
         :CaseImportance: Critical
         """
@@ -90,7 +90,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: c4fac71a-9dda-4e5f-a5df-be362d3cbd52
 
-        :Assert: User group is created successfully.
+        :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
@@ -107,8 +107,8 @@ class UserGroupTestCase(APITestCase):
 
         :id: 5838fcfd-e256-49cf-aef8-b2bf215b3586
 
-        :Assert: User group is created successfully and contains all expected
-            roles
+        :expectedresults: User group is created successfully and contains all
+            expected roles
 
         :CaseImportance: Critical
         """
@@ -126,7 +126,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 2a3f7b1a-7411-4c12-abaf-9a3ca1dfae31
 
-        :Assert: User group is created successfully.
+        :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
@@ -146,8 +146,8 @@ class UserGroupTestCase(APITestCase):
 
         :id: 9ba71288-af8b-4957-8413-442a47057634
 
-        :Assert: User group is created successfully and contains all expected
-            user groups
+        :expectedresults: User group is created successfully and contains all
+            expected user groups
 
         :CaseLevel: Integration
         """
@@ -166,7 +166,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 1a3384dc-5d52-442c-87c8-e38048a61dfa
 
-        :Assert: User group is not created.
+        :expectedresults: User group is not created.
 
         :CaseImportance: Critical
         """
@@ -181,7 +181,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: aba0925a-d5ec-4e90-86c6-404b9b6f0179
 
-        :Assert: User group is not created.
+        :expectedresults: User group is not created.
 
         :CaseImportance: Critical
         """
@@ -195,7 +195,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: b4f0a19b-9059-4e8b-b245-5a30ec06f9f3
 
-        :Assert: User group is updated successfully.
+        :expectedresults: User group is updated successfully.
 
         :CaseImportance: Critical
         """
@@ -212,7 +212,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: e11b57c3-5f86-4963-9cc6-e10e2f02468b
 
-        :Assert: User is added to user group successfully.
+        :expectedresults: User is added to user group successfully.
 
         :CaseImportance: Critical
         """
@@ -228,7 +228,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 71b78f64-867d-4bf5-9b1e-02698a17fb38
 
-        :Assert: User group is updated successfully.
+        :expectedresults: User group is updated successfully.
 
         :CaseLevel: Integration
         """
@@ -244,7 +244,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 8e0872c1-ae88-4971-a6fc-cd60127d6663
 
-        :Assert: Role is added to user group successfully.
+        :expectedresults: Role is added to user group successfully.
 
         :CaseImportance: Critical
         """
@@ -260,7 +260,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 3cb29d07-5789-4f94-9fd9-a7e494b3c110
 
-        :Assert: User group is added to existing group successfully.
+        :expectedresults: User group is added to existing group successfully.
 
         :CaseImportance: Critical
         """
@@ -277,7 +277,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 03772bd0-0d52-498d-8259-5c8a87e08344
 
-        :Assert: User group is not updated.
+        :expectedresults: User group is not updated.
 
         :CaseImportance: Critical
         """
@@ -295,7 +295,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: 14888998-9282-4d81-9e99-234d19706783
 
-        :Assert: User group is not updated.
+        :expectedresults: User group is not updated.
 
         :CaseImportance: Critical
         """
@@ -313,7 +313,7 @@ class UserGroupTestCase(APITestCase):
 
         :id: c5cfcc4a-9177-47bb-8f19-7a8930eb7ca3
 
-        :assert: User group is deleted successfully
+        :expectedresults: User group is deleted successfully
 
         :CaseImportance: Critical
         """

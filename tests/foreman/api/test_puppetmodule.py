@@ -47,7 +47,7 @@ class RepositorySearchTestCase(APITestCase):
 
         :id: eafc7a71-d550-4983-9941-b87aa57b83e9
 
-        :Assert: No puppet modules are returned.
+        :expectedresults: No puppet modules are returned.
 
         :CaseImportance: Critical
         """
@@ -60,7 +60,7 @@ class RepositorySearchTestCase(APITestCase):
 
         :id: 5337b2be-e207-4580-8407-19b88cb40403
 
-        :Assert: Only the modules in that repository are returned.
+        :expectedresults: Only the modules in that repository are returned.
 
         :CaseImportance: Critical
         """
@@ -101,7 +101,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         :id: 3a59e2fc-5c95-405e-bf4a-f1fe78e73300
 
-        :Assert: No puppet modules are found.
+        :expectedresults: No puppet modules are found.
 
         :CaseImportance: Critical
         """
@@ -116,7 +116,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         :id: cc358a91-8640-48e3-851d-383e55ba42c3
 
-        :Assert: One puppet module is found.
+        :expectedresults: One puppet module is found.
 
         :CaseImportance: Critical
         """

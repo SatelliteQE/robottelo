@@ -69,7 +69,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 8a81f853-929c-4eaa-8ae0-4c92ebf1f250
 
-        :Assert: Environment list is displayed
+        :expectedresults: Environment list is displayed
 
         :CaseLevel: Integration
         """
@@ -89,7 +89,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 643f7cb5-0817-4b0a-ba5e-434df2033a40
 
-        :Assert: Results that match both organization and location are returned
+        :expectedresults: Results that match both organization and location are
+            returned
 
         :CaseLevel: Integration
 
@@ -124,7 +125,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 962c6750-f203-4478-8827-651db208ff92
 
-        :Assert: Results that match both organization and location are returned
+        :expectedresults: Results that match both organization and location are
+            returned
 
         :CaseLevel: Integration
 
@@ -159,8 +161,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: b1659c48-302b-4fe3-a38b-cd34c0fd4878
 
-        :Assert: Server returns empty result as there is no environment
-            associated with location or organization
+        :expectedresults: Server returns empty result as there is no
+            environment associated with location or organization
 
         :CaseLevel: Integration
 
@@ -187,8 +189,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: b8382ebb-ffa3-4637-b3b4-444af6c2fe9b
 
-        :Assert: Server returns empty result as there is no environment
-            associated with location or organization
+        :expectedresults: Server returns empty result as there is no
+            environment associated with location or organization
 
         :CaseLevel: Integration
 
@@ -215,8 +217,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 97872953-e1aa-44bd-9ce0-a04bccbc9e94
 
-        :Assert: Server returns empty result as there is no environment
-            associated with location
+        :expectedresults: Server returns empty result as there is no
+            environment associated with location
 
         :CaseLevel: Integration
 
@@ -249,8 +251,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 38cb48e3-a836-47d0-b8a8-9acd33a30546
 
-        :Assert: Server returns empty result as there is no environment
-            associated with location
+        :expectedresults: Server returns empty result as there is no
+            environment associated with location
 
         :CaseLevel: Integration
 
@@ -282,7 +284,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 3b22f035-ee3a-489e-89c5-e54571584af1
 
-        :Assert: Environment is created.
+        :expectedresults: Environment is created.
 
         :CaseImportance: Critical
         """
@@ -297,7 +299,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 8a4141b0-3bb9-47e5-baca-f9f027086d4c
 
-        :Assert: Environment is not created.
+        :expectedresults: Environment is not created.
 
         :CaseImportance: Critical
         """
@@ -313,7 +315,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: d2187971-86b2-40c9-a93c-66f37691ae2b
 
-        :Assert: Environment is created and has new Location assigned
+        :expectedresults: Environment is created and has new Location assigned
 
 
         :CaseImportance: Critical
@@ -332,7 +334,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 9fd9d2d5-db46-40a7-b341-41cdbde4356a
 
-        :Assert: Environment is created and has new Organization assigned
+        :expectedresults: Environment is created and has new Organization
+            assigned
 
 
         :CaseImportance: Critical
@@ -352,7 +355,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: e25af73a-d4ef-4287-83bf-625337d91392
 
-        :assert: Environment is deleted
+        :expectedresults: Environment is deleted
 
         :CaseImportance: Critical
         """
@@ -370,7 +373,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: fe77920c-62fd-4e0e-b960-a940a1370d10
 
-        :assert: Environment is not deleted
+        :expectedresults: Environment is not deleted
 
         :CaseImportance: Critical
         """
@@ -386,7 +389,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 48765173-6086-4b91-9da7-594135f68751
 
-        :Assert: Environment is deleted.
+        :expectedresults: Environment is deleted.
 
         :CaseImportance: Critical
         """
@@ -402,7 +405,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 7b34ce64-24be-4b3b-8f7e-1de07daafdd9
 
-        :Assert: Environment Update is displayed
+        :expectedresults: Environment Update is displayed
 
         :CaseImportance: Critical
         """
@@ -423,7 +426,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: adc5ad73-0547-40f9-b4d4-649780cfb87a
 
-        :Assert: Environment is not updated
+        :expectedresults: Environment is not updated
 
         :CaseImportance: Critical
         """
@@ -445,7 +448,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: d58d6dc5-a820-4c61-bd69-0c631c2d3f2e
 
-        :Assert: Environment Update finished and new location is assigned
+        :expectedresults: Environment Update finished and new location is
+            assigned
 
 
         :CaseImportance: Critical
@@ -469,7 +473,8 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 2c40caf9-95a0-4b87-bd97-0a4448746052
 
-        :Assert: Environment Update finished and new organization is assigned
+        :expectedresults: Environment Update finished and new organization is
+            assigned
 
 
         :CaseImportance: Critical
@@ -498,7 +503,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
 
-        :Assert: The command runs without raising an error
+        :expectedresults: The command runs without raising an error
 
         :CaseImportance: Critical
         """
@@ -522,7 +527,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :id: e2fdd262-9b09-4252-8a5a-4e578e3b8547
 
-        :Assert: The command runs without raising an error
+        :expectedresults: The command runs without raising an error
 
         :CaseImportance: Critical
         """

@@ -44,7 +44,7 @@ class LoginTestCase(UITestCase):
 
         :id: 7ec027ec-4c51-460a-81f9-643e5bb2c5f5
 
-        :Assert: Successfully logged in as an admin user
+        :expectedresults: Successfully logged in as an admin user
 
         :CaseImportance: Critical
         """
@@ -58,7 +58,7 @@ class LoginTestCase(UITestCase):
 
         :id: 23090dce-b918-4a8e-8481-188ea76c376d
 
-        :Assert: Fails to login
+        :expectedresults: Fails to login
 
         :CaseImportance: Critical
         """

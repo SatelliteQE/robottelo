@@ -36,7 +36,7 @@ class CapsuleTestCase(UITestCase):
         :Steps: Attempt to install errata via Sat UI against client on an
             isolated capsule - this is a satellite-initiated action.
 
-        :Assert: Errata can be installed.
+        :expectedresults: Errata can be installed.
 
         :caseautomation: notautomated
 
@@ -56,7 +56,7 @@ class CapsuleTestCase(UITestCase):
         :Steps: attempt to push an RPM install onto client connected to
             isolated capsule - this is a satellite-initiated action.
 
-        :Assert: Package is installed
+        :expectedresults: Package is installed
 
         :caseautomation: notautomated
 
@@ -76,7 +76,7 @@ class CapsuleTestCase(UITestCase):
         :Steps: attempt to push a puppet module install initiated from
             Satellite
 
-        :Assert: module is installed
+        :expectedresults: module is installed
 
         :caseautomation: notautomated
 
@@ -98,9 +98,9 @@ class CapsuleTestCase(UITestCase):
             1. Go to Hosts > Content Hosts > Register Content Host
             2. Observe the section labeled 'Consuming Content From A Capsule'
 
-        :Assert: capsule(s) appear in dropdown and the instructions for using
-            subscription-manager update accordingly when choosing said
-            capsule(s).
+        :expectedresults: capsule(s) appear in dropdown and the instructions
+            for using subscription-manager update accordingly when choosing
+            said capsule(s).
 
         :caseautomation: notautomated
 
@@ -119,7 +119,7 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the About Page
             2. Check the versions column of the Capsules.
 
-        :Assert: The version of the Capsules exists in the about page.
+        :expectedresults: The version of the Capsules exists in the about page.
 
         :caseautomation: notautomated
 
@@ -138,7 +138,7 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the Capsules Index Page
             2. Check the status of the Proxy.
 
-        :Assert: The status of the Capsules is up and running.
+        :expectedresults: The status of the Capsules is up and running.
 
         :caseautomation: notautomated
 
@@ -157,8 +157,8 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the Capsules Index Page
             2. Check the capsule's columns in the Index Page.
 
-        :Assert: The Capsules Organization and Location info is visible on the
-            index page.
+        :expectedresults: The Capsules Organization and Location info is
+            visible on the index page.
 
         :caseautomation: notautomated
 
@@ -177,8 +177,8 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the Capsules Index Page
             2. Check the capsule's columns in the Index Page.
 
-        :Assert: The Capsules no longer have the 'Foreman URL' on the index
-            page.
+        :expectedresults: The Capsules no longer have the 'Foreman URL' on the
+            index page.
 
         :caseautomation: notautomated
 
@@ -198,8 +198,8 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the Capsules Show Page
             2. Check the capsule's overview tab in the show Page.
 
-        :Assert: The 'Pulp Storage' used and free info is visible for the
-            default capsule in the Overview Tab.
+        :expectedresults: The 'Pulp Storage' used and free info is visible for
+            the default capsule in the Overview Tab.
 
         :caseautomation: notautomated
 
@@ -219,8 +219,8 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the Capsules Show Page
             2. Check the capsule's overview tab in the show Page.
 
-        :Assert: The 'Content Sync' button is visible and sync works for the
-            isolated capsule.
+        :expectedresults: The 'Content Sync' button is visible and sync works
+            for the isolated capsule.
 
         :caseautomation: notautomated
 
@@ -240,8 +240,8 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the Capsules Show Page
             2. Check the capsule's overview tab in the show Page.
 
-        :Assert: The 'Cancel Sync" button is visible and sync cancels for the
-            isolated capsule.
+        :expectedresults: The 'Cancel Sync" button is visible and sync cancels
+            for the isolated capsule.
 
         :caseautomation: notautomated
 
@@ -260,7 +260,7 @@ class CapsuleTestCase(UITestCase):
             1. Navigate to the Capsules Show Page
             2. Check the capsule's overview tab in the show Page.
 
-        :Assert: The Overview tab displays these information 'Status',
+        :expectedresults: The Overview tab displays these information 'Status',
             'Verison', 'Uptime', 'Registration Date', 'Packages', 'Location',
             'Puppet', 'Storage' info is displayed.
 
@@ -284,9 +284,9 @@ class CapsuleTestCase(UITestCase):
             4. Check the capsule's Puppet tab in the show Page.
             5. Now check the Enviroments Tab.
 
-        :Assert: The puppet environment which got created after adding the
-            puppet-module to CV, exists in the Environment column of the Puppet
-            Tab.
+        :expectedresults: The puppet environment which got created after adding
+            the puppet-module to CV, exists in the Environment column of the
+            Puppet Tab.
 
         :caseautomation: notautomated
 
@@ -308,8 +308,8 @@ class CapsuleTestCase(UITestCase):
             4. Check the capsule's Puppet tab in the show Page.
             5. Now check the Enviroments Tab.
 
-        :Assert: The puppet-classes count is visible in the 'Number of classes'
-            column.
+        :expectedresults: The puppet-classes count is visible in the 'Number of
+            classes' column.
 
         :caseautomation: notautomated
 
@@ -331,8 +331,8 @@ class CapsuleTestCase(UITestCase):
             4. Check the capsule's Puppet tab in the show Page.
             5. Now check the General Tab.
 
-        :Assert: The Puppet Hosts managed count is visible in the 'Number of
-            classes' column.
+        :expectedresults: The Puppet Hosts managed count is visible in the
+            'Number of classes' column.
 
         :caseautomation: notautomated
 
@@ -355,7 +355,7 @@ class CapsuleTestCase(UITestCase):
             4. Check the capsule's Puppet-ca tab in the show Page.
             5. Now check the General Tab.
 
-        :Assert: The Puppet 'Hosts managed' count properly is visible.
+        :expectedresults: The Puppet 'Hosts managed' count properly is visible.
 
         :caseautomation: notautomated
 
@@ -376,7 +376,8 @@ class CapsuleTestCase(UITestCase):
             3. Check the capsule's Puppet-ca tab in the show Page.
             4. Now check the General Tab.
 
-        :Assert: The Hosts certificate-name is visible in the Puppet-ca Tab.
+        :expectedresults: The Hosts certificate-name is visible in the Puppet-
+            ca Tab.
 
         :caseautomation: notautomated
 
@@ -399,8 +400,8 @@ class CapsuleTestCase(UITestCase):
             5. Click the revoke button of the corresponding host.
             6. Puppet runs should now not be possible on the hosts.
 
-        :Assert: The puppet runs on hosts are possible after the certs are
-            revoked for the host.
+        :expectedresults: The puppet runs on hosts are possible after the certs
+            are revoked for the host.
 
         :caseautomation: notautomated
 
@@ -425,8 +426,8 @@ class CapsuleTestCase(UITestCase):
             6. Puppet run should now be possible on the host, without having to
                manually sign the certificate.
 
-        :Assert: The puppet run on host is possible without having to sign the
-            certs manually for the host.
+        :expectedresults: The puppet run on host is possible without having to
+            sign the certs manually for the host.
 
         :caseautomation: notautomated
 
@@ -442,7 +443,7 @@ class CapsuleTestCase(UITestCase):
 
         :Steps: Enable DHCP and DNS infoblox plugins on capsule
 
-        :Assert: DNS and DHCP must be included on capsule features
+        :expectedresults: DNS and DHCP must be included on capsule features
 
         :caseautomation: notautomated
 

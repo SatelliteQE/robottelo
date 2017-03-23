@@ -31,7 +31,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: da2821d0-1ea2-423d-8172-7372c98d8858
 
-        :assert: Organization by id exists post Upgrade
+        :expectedresults: Organization by id exists post Upgrade
 
         :CaseImportance: Critical
         """
@@ -47,7 +47,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 639c3fec-ed5d-4c05-a301-801e3b47efb8
 
-        :assert: Organization by name exists post Upgrade
+        :expectedresults: Organization by name exists post Upgrade
 
         :CaseImportance: Critical
         """
@@ -63,7 +63,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 9986ec9d-b37c-482c-9bb1-7c25f6bfd34c
 
-        :assert: Smart Proxy is associated with Organization
+        :expectedresults: Smart Proxy is associated with Organization
 
         :CaseImportance: Critical
         """
@@ -79,7 +79,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 2c8a6362-f95f-4aec-bc63-57242a639167
 
-        :assert: Template is associated with Organization
+        :expectedresults: Template is associated with Organization
 
         :CaseImportance: Critical
         """
@@ -95,7 +95,7 @@ class OrganizationTestCase(CLITestCase):
 
         :id: 12c6d711-c6d6-4bcb-9e24-01cadb205f7b
 
-        :assert: Puppet Environment is associated with Organization
+        :expectedresults: Puppet Environment is associated with Organization
 
         :CaseImportance: Critical
         """

@@ -76,7 +76,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 08cb212e-586f-4630-af1b-ad3e749e82e7
 
-        :Assert: OS is created
+        :expectedresults: OS is created
 
         :CaseImportance: Critical
         """
@@ -100,7 +100,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: fcb41aff-c963-403b-a80f-5f9c467d0632
 
-        :Assert: OS is created
+        :expectedresults: OS is created
 
         :CaseImportance: Critical
         """
@@ -127,7 +127,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: aa035ef6-a503-48c4-b95a-021a03a145c0
 
-        :Assert: OS is not created
+        :expectedresults: OS is not created
 
         :CaseImportance: Critical
         """
@@ -153,7 +153,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 7f395b9a-2d48-468a-937b-bba4e6576ba9
 
-        :Assert: OS is not created
+        :expectedresults: OS is not created
 
         :CaseImportance: Critical
         """
@@ -180,7 +180,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 89d061a8-cb4c-4460-a7fb-7cea73c323af
 
-        :Assert: OS is not created
+        :expectedresults: OS is not created
 
         :CaseImportance: Critical
         """
@@ -208,7 +208,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 2828cd68-d57a-4e3e-bced-90937290251e
 
-        :Assert: OS is not created
+        :expectedresults: OS is not created
 
         :CaseImportance: Critical
         """
@@ -235,7 +235,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: f1865efe-bdc0-4065-90b8-b48c9fad80bb
 
-        :Assert: OS is not created
+        :expectedresults: OS is not created
 
         :CaseLevel: Integration
         """
@@ -270,7 +270,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 252f1512-78a6-415d-a4fd-5f6d268cbb82
 
-        :Assert: OS is deleted successfully
+        :expectedresults: OS is deleted successfully
 
         :CaseImportance: Critical
         """
@@ -286,7 +286,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: d86aeac2-c2b6-4766-96a8-c2e427a9c8be
 
-        :Assert: OS is updated
+        :expectedresults: OS is updated
 
         :CaseImportance: Critical
         """
@@ -313,7 +313,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 4fbcd341-5aff-465c-b251-7ecd97471e01
 
-        :Assert: OS is updated
+        :expectedresults: OS is updated
 
         :CaseImportance: Critical
         """
@@ -337,7 +337,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 08ddbc40-dcc1-4695-b209-ba72a6a458df
 
-        :Assert: OS is updated
+        :expectedresults: OS is updated
 
         :CaseImportance: Critical
         """
@@ -364,7 +364,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: df21419a-1fdd-414c-86fc-64cde10d3e05
 
-        :Assert: OS is updated
+        :expectedresults: OS is updated
 
         :CaseImportance: Critical
         """
@@ -389,7 +389,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 05b504d8-2518-4359-a53a-f577339f1ebe
 
-        :Assert: OS is updated with new parameter
+        :expectedresults: OS is updated with new parameter
 
         :CaseLevel: Integration
         """
@@ -410,7 +410,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 38ef9293-0f83-4c9d-8314-0c72fdf7e2a6
 
-        :Assert: Parameter is created with blank value
+        :expectedresults: Parameter is created with blank value
 
         :CaseLevel: Integration
         """
@@ -431,7 +431,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 14aa3459-9941-43ba-8c17-d7f32e9db43b
 
-        :Assert: Expected OS parameter is removed
+        :expectedresults: Expected OS parameter is removed
 
         :CaseLevel: Integration
         """
@@ -452,7 +452,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 4211c9c6-d61f-4254-ac45-6791f7577142
 
-        :Assert: Proper error should be raised - Name is already taken
+        :expectedresults: Proper error should be raised - Name is already taken
 
         :CaseLevel: Integration
         """
@@ -477,7 +477,8 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: 635c354f-3360-403c-9bcb-78f2da9ed893
 
-        :Assert: Proper error should be raised - Name can't contain whitespaces
+        :expectedresults: Proper error should be raised - Name can't contain
+            whitespaces
 
         :CaseLevel: Integration
         """
@@ -498,7 +499,8 @@ class OperatingSystemTestCase(UITestCase):
 
         :id: e961ce00-f86b-476e-afad-468491cb2a12
 
-        :Assert: Proper error should be raised, Name should contain a value
+        :expectedresults: Proper error should be raised, Name should contain a
+            value
 
         :CaseLevel: Integration
         """

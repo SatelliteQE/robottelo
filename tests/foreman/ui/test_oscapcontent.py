@@ -64,7 +64,7 @@ class OpenScapContentTestCase(UITestCase):
             1. Create an openscap content.
             2. Provide all the appropriate parameters.
 
-        :Assert: Whether creating  content for OpenScap is successful.
+        :expectedresults: Whether creating  content for OpenScap is successful.
 
         :CaseImportance: Critical
         """
@@ -92,7 +92,7 @@ class OpenScapContentTestCase(UITestCase):
             1. Create an openscap content.
             2. Provide all the appropriate parameters.
 
-        :Assert: Creating content for OpenScap is not successful.
+        :expectedresults: Creating content for OpenScap is not successful.
 
         :BZ: 1289571
 
@@ -123,7 +123,7 @@ class OpenScapContentTestCase(UITestCase):
             1. Set Org as Any Org.
             2. Navigate to oscap Content page.
 
-        :Assert: Whether oscap content exists by default.
+        :expectedresults: Whether oscap content exists by default.
 
         :CaseImportance: Critical
         """
@@ -146,7 +146,7 @@ class OpenScapContentTestCase(UITestCase):
             2. Provide all the appropriate parameters.
             3. Update the openscap content, here the Org.
 
-        :Assert: Whether creating  content for OpenScap is successful.
+        :expectedresults: Whether creating  content for OpenScap is successful.
 
         :CaseLevel: Integration
         """
@@ -176,7 +176,7 @@ class OpenScapContentTestCase(UITestCase):
             2. Provide all the appropriate parameters.
             3. Delete the openscap content.
 
-        :Assert: Deleting content for OpenScap is successful.
+        :expectedresults: Deleting content for OpenScap is successful.
 
         :CaseImportance: Critical
         """

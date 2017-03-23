@@ -131,7 +131,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 018740bf-1551-4162-b88e-4d4905af097b
 
-        :Assert: Domain successfully created
+        :expectedresults: Domain successfully created
 
 
         :CaseImportance: Critical
@@ -150,7 +150,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 033cc37d-0189-4b88-94cf-97a96839197a
 
-        :Assert: Domain is created and has new location assigned
+        :expectedresults: Domain is created and has new location assigned
 
 
         :CaseImportance: Critical
@@ -166,7 +166,7 @@ class DomainTestCase(CLITestCase):
 
         :id: f4dfef1b-9b2a-49b8-ade5-031da29e7f6a
 
-        :Assert: Domain is created and has new organization assigned
+        :expectedresults: Domain is created and has new organization assigned
 
 
         :CaseImportance: Critical
@@ -182,7 +182,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 6d3aec19-75dc-41ca-89af-fef0ca37082d
 
-        :Assert: Domain is not created
+        :expectedresults: Domain is not created
 
 
         :CaseImportance: Critical
@@ -199,7 +199,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 9da3cc96-c146-4f82-bb25-b237a367ba91
 
-        :Assert: Domain is updated
+        :expectedresults: Domain is updated
 
 
         :CaseImportance: Critical
@@ -223,7 +223,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 9fc708dc-20f9-4d7c-af53-863826462981
 
-        :Assert: Domain is not updated
+        :expectedresults: Domain is not updated
 
 
         :CaseImportance: Critical
@@ -245,7 +245,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 62fea9f7-95e2-47f7-bf4b-415ea6fd72f8
 
-        :Assert: Domain parameter is set
+        :expectedresults: Domain parameter is set
 
 
         :CaseImportance: Critical
@@ -269,7 +269,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 991fb849-83be-48f4-a12b-81eabb2bd8d3
 
-        :Assert: Domain parameter is not set
+        :expectedresults: Domain parameter is not set
 
 
         :CaseImportance: Critical
@@ -293,7 +293,7 @@ class DomainTestCase(CLITestCase):
 
         :id: b50a5daa-67f8-4ecd-8e03-2a3c492d3c25
 
-        :assert: Domain is deleted
+        :expectedresults: Domain is deleted
 
         :CaseImportance: Critical
         """
@@ -311,7 +311,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 0e4ef107-f006-4433-abc3-f872613e0b91
 
-        :assert: Domain is not deleted
+        :expectedresults: Domain is not deleted
 
         :CaseImportance: Critical
         """
@@ -327,7 +327,7 @@ class DomainTestCase(CLITestCase):
 
         :id: 481afe1c-0b9e-435f-a581-159d9619291c
 
-        :Assert: Domain parameter is removed
+        :expectedresults: Domain parameter is removed
 
 
         :CaseImportance: Critical

@@ -59,8 +59,8 @@ class DashboardTestCase(UITestCase):
 
         :BZ: 1391365
 
-        :Assert: Check that we have zero as a result of search and any error is
-            not raised
+        :expectedresults: Check that we have zero as a result of search and any
+            error is not raised
 
         :CaseImportance: Critical
         """
@@ -81,7 +81,7 @@ class DashboardTestCase(UITestCase):
             1. Navigate to Monitor -> Dashboard
             2. Add a filter to search box (eg. environment)
 
-        :Assert: Data displayed according to search box
+        :expectedresults: Data displayed according to search box
 
         :CaseImportance: Critical
         """
@@ -104,7 +104,7 @@ class DashboardTestCase(UITestCase):
             3. Data displayed according to search box
             4. On left side of the box click the Clear cross sign
 
-        :Assert: Search box is cleared
+        :expectedresults: Search box is cleared
 
         :CaseImportance: Critical
         """
@@ -132,7 +132,7 @@ class DashboardTestCase(UITestCase):
             1. Navigate to Monitor -> Dashboard
             2. Try to remove some widget
 
-        :Assert: Widget is removed and is not present on Dashboard
+        :expectedresults: Widget is removed and is not present on Dashboard
 
         :CaseImportance: Critical
         """
@@ -154,8 +154,8 @@ class DashboardTestCase(UITestCase):
             3. Select the Manage Dropdown box
             4. Save the Dashboard
 
-        :Assert: Dashboard is saved successfully and the removed widgets does
-            not appear.
+        :expectedresults: Dashboard is saved successfully and the removed
+            widgets does not appear.
 
         :CaseImportance: Critical
         """
@@ -181,7 +181,7 @@ class DashboardTestCase(UITestCase):
             5. Dashboard Widgets are saved successfully
             6. Click Reset to default
 
-        :Assert: Widget positions successfully saved.
+        :expectedresults: Widget positions successfully saved.
 
         :CaseImportance: Critical
         """
@@ -205,7 +205,7 @@ class DashboardTestCase(UITestCase):
             2. Select Manage Dropdown box
             3. Add Widgets
 
-        :Assert: User is able to add widgets.
+        :expectedresults: User is able to add widgets.
 
         :caseautomation: notautomated
 
@@ -228,7 +228,7 @@ class DashboardTestCase(UITestCase):
             4. The widget is listed under Manage -> Add Widget
             5. Click to add the widget back
 
-        :Assert: The widget is added back to the Dashboard
+        :expectedresults: The widget is added back to the Dashboard
 
         :CaseImportance: Critical
         """
@@ -252,7 +252,7 @@ class DashboardTestCase(UITestCase):
             1. Navigate to Monitor -> Dashboard
             2. Try to minimize some widget
 
-        :Assert: Widget is minimized and is not present on Dashboard
+        :expectedresults: Widget is minimized and is not present on Dashboard
 
         :CaseImportance: Critical
         """
@@ -276,7 +276,7 @@ class DashboardTestCase(UITestCase):
             4. The widget is listed under Manage -> Restore Widget
             5. Click to add the widget back
 
-        :Assert: The widget is added back to the Dashboard
+        :expectedresults: The widget is added back to the Dashboard
 
         :CaseImportance: Critical
         """
@@ -296,7 +296,8 @@ class DashboardTestCase(UITestCase):
             1. Navigate to Monitor -> Dashboard
             2. Click Auto Refresh ON/OFF
 
-        :Assert: The auto refresh functionality works as per the set value.
+        :expectedresults: The auto refresh functionality works as per the set
+            value.
 
         :CaseImportance: Critical
         """
@@ -327,7 +328,7 @@ class DashboardTestCase(UITestCase):
             2. Add a filter to search box (eg. environment)
             3. Bookmark the search filter
 
-        :Assert: User is able to list the Bookmark
+        :expectedresults: User is able to list the Bookmark
 
         :caseautomation: notautomated
 
@@ -347,7 +348,7 @@ class DashboardTestCase(UITestCase):
             3. Navigate to each of the links which has search string associated
                with it.
 
-        :Assert: Each link shows the right info
+        :expectedresults: Each link shows the right info
 
         :CaseLevel: Integration
         """
@@ -405,7 +406,7 @@ class DashboardTestCase(UITestCase):
             2. Review the Host Configuration Chart widget
             3. Check that chart contains correct percentage value
 
-        :Assert: Chart showing correct data
+        :expectedresults: Chart showing correct data
 
         :CaseLevel: Integration
         """
@@ -431,7 +432,7 @@ class DashboardTestCase(UITestCase):
             2. Review the Task Status widget
             3. Click each link
 
-        :Assert: Each link shows the right info
+        :expectedresults: Each link shows the right info
 
         :CaseLevel: Integration
         """
@@ -463,7 +464,7 @@ class DashboardTestCase(UITestCase):
             1. Navigate to Monitor -> Dashboard
             2. Review the Latest Warning/Error Tasks widget.
 
-        :Assert: The links to all failed/warnings tasks are working
+        :expectedresults: The links to all failed/warnings tasks are working
 
         :CaseLevel: Integration
         """
@@ -489,7 +490,7 @@ class DashboardTestCase(UITestCase):
             1. Navigate to Monitor -> Dashboard
             2. Review the Content View History widget
 
-        :Assert: Each Content View link shows its current status (the
+        :expectedresults: Each Content View link shows its current status (the
             environment to which it is published)
 
         :CaseLevel: Integration
@@ -526,8 +527,8 @@ class DashboardTestCase(UITestCase):
             3. Remove the environment.
             4. Visit the dashboard page and verify that it loads successfully.
 
-        :Assert: Dashboard search box and necessary widgets are rendered before
-            and after necessary environment is removed
+        :expectedresults: Dashboard search box and necessary widgets are
+            rendered before and after necessary environment is removed
 
         :BZ: 1361793
 
@@ -562,7 +563,7 @@ class DashboardTestCase(UITestCase):
             2. Review the Discovered Hosts widget
             3. Click on the list of Discovered Hosts
 
-        :Assert: It takes you to discovered hosts
+        :expectedresults: It takes you to discovered hosts
 
         :caseautomation: notautomated
 
@@ -581,7 +582,7 @@ class DashboardTestCase(UITestCase):
             1. Navigate to Monitor -> Dashboard
             2. Review the Latest Events widget
 
-        :Assert: The Widget is updated with all the latest events
+        :expectedresults: The Widget is updated with all the latest events
 
         :caseautomation: notautomated
 
@@ -601,7 +602,8 @@ class DashboardTestCase(UITestCase):
             3. Navigate to Monitor -> Dashboard
             4. Review the Sync Overview widget for the above sync details
 
-        :Assert: Sync Overview widget is updated with all sync processes
+        :expectedresults: Sync Overview widget is updated with all sync
+            processes
 
         :CaseImportance: Critical
         """
@@ -640,8 +642,8 @@ class DashboardTestCase(UITestCase):
                 b. Partial Subscriptions
                 c. Valid Subscriptions
 
-        :Assert: The widget is updated with all details for Valid, Invalid
-            and Partial Subscriptions
+        :expectedresults: The widget is updated with all details for Valid,
+            Invalid and Partial Subscriptions
 
         :CaseLevel: Integration
         """
@@ -694,8 +696,8 @@ class DashboardTestCase(UITestCase):
             2. Navigate to Monitor -> Dashboard
             3. Review the Current Subscription Total widget
 
-        :Assert: The widget displays all the active subscriptions and expired
-            subscriptions details
+        :expectedresults: The widget displays all the active subscriptions and
+            expired subscriptions details
 
         :CaseImportance: Critical
         """
@@ -724,8 +726,8 @@ class DashboardTestCase(UITestCase):
             2. Navigate Monitor -> Dashboard
             3. Review the Host Collections Widget
 
-        :Assert: The list of host collections along with content host is
-            displayed in the widget
+        :expectedresults: The list of host collections along with content host
+            is displayed in the widget
 
         :CaseLevel: Integration
         """
@@ -757,7 +759,7 @@ class DashboardTestCase(UITestCase):
             3. Login into application using this new user
             4. Check dashboard and widgets on it
 
-        :Assert: Dashboard and Errata Widget rendered without errors
+        :expectedresults: Dashboard and Errata Widget rendered without errors
 
         :BZ: 1417114
 
@@ -814,7 +816,7 @@ class DashboardTestCase(UITestCase):
             1. Navigate Monitor -> Dashboard
             2. Review the Run Distribution in the last 30 minutes widget
 
-        :Assert: The widget shows appropriate data
+        :expectedresults: The widget shows appropriate data
 
         :caseautomation: notautomated
 
@@ -834,7 +836,7 @@ class DashboardTestCase(UITestCase):
             2. Navigate Monitor -> Dashboard
             3. Review the Latest Errata widget
 
-        :Assert: The widget is updated with all errata related details
+        :expectedresults: The widget is updated with all errata related details
 
         :caseautomation: notautomated
 

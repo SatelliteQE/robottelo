@@ -59,8 +59,8 @@ class LocationTestCase(APITestCase):
 
         :id: 90bb90a3-120f-4ea6-89a9-62757be42486
 
-        :Assert: Location created successfully and has expected and correct
-            name
+        :expectedresults: Location created successfully and has expected and
+            correct name
 
         :CaseImportance: Critical
         """
@@ -75,8 +75,8 @@ class LocationTestCase(APITestCase):
 
         :id: 8d82fe06-895d-4c99-87c0-354124e013fd
 
-        :Assert: Location created successfully and has expected and correct
-            description
+        :expectedresults: Location created successfully and has expected and
+            correct description
 
         :CaseImportance: Critical
         """
@@ -90,8 +90,8 @@ class LocationTestCase(APITestCase):
 
         :id: d3798742-c05d-4864-8eca-44872b4afdbf
 
-        :Assert: Location created successfully and has correct user assigned to
-            it with expected login name
+        :expectedresults: Location created successfully and has correct user
+            assigned to it with expected login name
 
         :CaseLevel: Integration
         """
@@ -107,8 +107,8 @@ class LocationTestCase(APITestCase):
 
         :id: 292033fd-9a13-4537-ad10-095ba621d66b
 
-        :Assert: Location created successfully and has correct Libvirt compute
-            resource assigned to it
+        :expectedresults: Location created successfully and has correct Libvirt
+            compute resource assigned to it
 
         :CaseLevel: Integration
         """
@@ -125,8 +125,8 @@ class LocationTestCase(APITestCase):
 
         :id: 0c55292b-d6ff-45e3-a065-d6a2c8ba2469
 
-        :Assert: Location created successfully and has correct Docker compute
-            resource assigned to it
+        :expectedresults: Location created successfully and has correct Docker
+            compute resource assigned to it
 
         :CaseLevel: Integration
         """
@@ -142,8 +142,8 @@ class LocationTestCase(APITestCase):
 
         :id: bf2daa6b-6478-472d-89f1-bfa74a75c349
 
-        :Assert: Location created successfully and list of config templates
-            assigned to that location should contain expected one
+        :expectedresults: Location created successfully and list of config
+            templates assigned to that location should contain expected one
 
         :CaseLevel: Integration
         """
@@ -161,8 +161,8 @@ class LocationTestCase(APITestCase):
 
         :id: 3f79a584-e195-4f1d-a978-777bae200251
 
-        :Assert: Location created successfully and has correct and expected
-            domain assigned to it
+        :expectedresults: Location created successfully and has correct and
+            expected domain assigned to it
 
         :CaseLevel: Integration
         """
@@ -176,8 +176,8 @@ class LocationTestCase(APITestCase):
 
         :id: d6104c39-02d8-4051-a35b-334d9f260a33
 
-        :Assert: Location created successfully and has correct subnet with
-            expected network address assigned to it
+        :expectedresults: Location created successfully and has correct subnet
+            with expected network address assigned to it
 
         :CaseLevel: Integration
         """
@@ -192,8 +192,8 @@ class LocationTestCase(APITestCase):
 
         :id: ac9cd08d-2033-4758-b4d1-c59a41198e92
 
-        :Assert: Location created successfully and has correct and expected
-            environment assigned to it
+        :expectedresults: Location created successfully and has correct and
+            expected environment assigned to it
 
         :CaseLevel: Integration
         """
@@ -207,8 +207,8 @@ class LocationTestCase(APITestCase):
 
         :id: 154d55f8-41d7-411d-9a35-a2e8c639f144
 
-        :Assert: Location created successfully and has correct and expected
-            host group assigned to it
+        :expectedresults: Location created successfully and has correct and
+            expected host group assigned to it
 
         :CaseLevel: Integration
         """
@@ -222,8 +222,8 @@ class LocationTestCase(APITestCase):
 
         :id: 5032a93f-4b37-4c19-b6d3-26e3a868d0f1
 
-        :Assert: Location created successfully and has correct organization
-            assigned to it with expected title
+        :expectedresults: Location created successfully and has correct
+            organization assigned to it with expected title
 
         :CaseLevel: Integration
         """
@@ -240,8 +240,8 @@ class LocationTestCase(APITestCase):
 
         :id: f55ab63f-9c10-4f43-be69-d1f90e26fd51
 
-        :Assert: Location created successfully and has correct organizations
-            assigned to it
+        :expectedresults: Location created successfully and has correct
+            organizations assigned to it
 
         :CaseLevel: Integration
         """
@@ -260,8 +260,8 @@ class LocationTestCase(APITestCase):
 
         :id: 73f07e4b-b180-4906-8189-e9c0345abc5c
 
-        :Assert: Location created successfully and has correct capsule assigned
-            to it
+        :expectedresults: Location created successfully and has correct capsule
+            assigned to it
 
         :CaseLevel: Integration
         """
@@ -283,7 +283,7 @@ class LocationTestCase(APITestCase):
 
         :id: 63691139-45de-4e15-9abb-66c90808cbbb
 
-        :Assert: Location was deleted
+        :expectedresults: Location was deleted
 
         :CaseImportance: Critical
         """
@@ -298,7 +298,7 @@ class LocationTestCase(APITestCase):
 
         :id: 320e6bca-5645-423b-b86a-2b6f35c8dae3
 
-        :Assert: Location is not created and expected error is raised
+        :expectedresults: Location is not created and expected error is raised
 
         :CaseImportance: Critical
         """
@@ -313,7 +313,7 @@ class LocationTestCase(APITestCase):
 
         :id: bc09acb3-9ecf-4d23-b3ef-94f24e16e6db
 
-        :Assert: Location is not created and expected error is raised
+        :expectedresults: Location is not created and expected error is raised
 
         :CaseImportance: Critical
         """
@@ -329,7 +329,7 @@ class LocationTestCase(APITestCase):
 
         :id: 5449532d-7959-4547-ba05-9e194eea495d
 
-        :Assert: Location is not created and expected error is raised
+        :expectedresults: Location is not created and expected error is raised
 
         :CaseImportance: Critical
         """
@@ -342,7 +342,7 @@ class LocationTestCase(APITestCase):
 
         :id: 73ff6dab-e12a-4f7d-9c1f-6984fc076329
 
-        :Assert: Location updated successfully and name was changed
+        :expectedresults: Location updated successfully and name was changed
 
         :CaseImportance: Critical
         """
@@ -358,7 +358,8 @@ class LocationTestCase(APITestCase):
 
         :id: 1340811a-43db-4aab-93b4-c36e438281a6
 
-        :Assert: Location updated successfully and description was changed
+        :expectedresults: Location updated successfully and description was
+            changed
 
         :CaseImportance: Critical
         """
@@ -377,7 +378,8 @@ class LocationTestCase(APITestCase):
 
         :id: 83ddb92d-f25d-44c0-87e7-631bdfc1f792
 
-        :Assert: Location updated successfully and has correct user assigned
+        :expectedresults: Location updated successfully and has correct user
+            assigned
 
         :CaseLevel: Integration
         """
@@ -392,8 +394,8 @@ class LocationTestCase(APITestCase):
 
         :id: 9d0aef06-25dd-4352-8045-00b24b79b514
 
-        :Assert: Location updated successfully and has correct Libvirt compute
-            resource assigned
+        :expectedresults: Location updated successfully and has correct Libvirt
+            compute resource assigned
 
         :CaseLevel: Integration
         """
@@ -415,8 +417,8 @@ class LocationTestCase(APITestCase):
 
         :id: 01ee537e-1629-44ab-b8f1-bb9a304050d6
 
-        :Assert: Location updated successfully and has correct Docker compute
-            resource assigned
+        :expectedresults: Location updated successfully and has correct Docker
+            compute resource assigned
 
         :CaseLevel: Integration
         """
@@ -438,8 +440,8 @@ class LocationTestCase(APITestCase):
 
         :id: 9c8a1306-b0c7-4f72-8a31-4ff441bf5c75
 
-        :Assert: Location updated successfully and has correct config template
-            assigned
+        :expectedresults: Location updated successfully and has correct config
+            template assigned
 
         :CaseLevel: Integration
         """
@@ -462,7 +464,8 @@ class LocationTestCase(APITestCase):
 
         :id: 1016dfb9-8103-45f1-8738-0579fa9754c1
 
-        :Assert: Location updated successfully and has correct domain assigned
+        :expectedresults: Location updated successfully and has correct domain
+            assigned
 
         :CaseLevel: Integration
         """
@@ -479,7 +482,8 @@ class LocationTestCase(APITestCase):
 
         :id: 67e5516a-26e2-4d44-9c62-5bb35486cfa7
 
-        :Assert: Location updated successfully and has correct subnet assigned
+        :expectedresults: Location updated successfully and has correct subnet
+            assigned
 
         :CaseLevel: Integration
         """
@@ -496,8 +500,8 @@ class LocationTestCase(APITestCase):
 
         :id: 900a2441-4897-4e44-b8e4-bf7a956292ac
 
-        :Assert: Location updated successfully and has correct environment
-            assigned
+        :expectedresults: Location updated successfully and has correct
+            environment assigned
 
         :CaseLevel: Integration
         """
@@ -517,8 +521,8 @@ class LocationTestCase(APITestCase):
 
         :id: 8f3f4569-8f96-46e2-bd01-7712bb9fa4f6
 
-        :Assert: Location updated successfully and has correct host group
-            assigned
+        :expectedresults: Location updated successfully and has correct host
+            group assigned
 
         :CaseLevel: Integration
         """
@@ -538,8 +542,8 @@ class LocationTestCase(APITestCase):
 
         :id: 4791027f-f236-4152-ba20-b8f9624316c5
 
-        :Assert: Location updated successfully and has correct organization
-            assigned
+        :expectedresults: Location updated successfully and has correct
+            organization assigned
 
         :CaseLevel: Integration
         """
@@ -559,8 +563,8 @@ class LocationTestCase(APITestCase):
 
         :id: e53a0a93-5c7b-4e5b-99cb-decc123deeb6
 
-        :Assert: Location created successfully and has correct organizations
-            assigned
+        :expectedresults: Location created successfully and has correct
+            organizations assigned
 
         :CaseLevel: Integration
         """
@@ -581,7 +585,8 @@ class LocationTestCase(APITestCase):
 
         :id: 2786146f-f466-4ed8-918a-5f46806558e2
 
-        :Assert: Location updated successfully and has correct capsule assigned
+        :expectedresults: Location updated successfully and has correct capsule
+            assigned
 
         :CaseLevel: Integration
         """
@@ -608,7 +613,7 @@ class LocationTestCase(APITestCase):
 
         :id: dd1e2bf5-44a8-4d15-ac4d-ae1dcc84b7fc
 
-        :Assert: Location is not updated
+        :expectedresults: Location is not updated
 
         :CaseImportance: Critical
         """
@@ -629,7 +634,7 @@ class LocationTestCase(APITestCase):
 
         :id: e26c92f2-42cb-4706-9e03-3e00a134cb9f
 
-        :Assert: Location is not updated
+        :expectedresults: Location is not updated
 
         :CaseLevel: Integration
         """
@@ -650,7 +655,7 @@ class LocationTestCase(APITestCase):
 
         :id: 43221ef8-054b-4311-8be0-e02f32e30d98
 
-        :Assert: Capsule was removed successfully
+        :expectedresults: Capsule was removed successfully
 
         :CaseLevel: Integration
         """

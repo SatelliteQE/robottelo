@@ -57,7 +57,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: ff9f667c-97ca-49cd-902b-a9b18b5aa021
 
-        :assert: Operating System is created and listed
+        :expectedresults: Operating System is created and listed
 
         :CaseImportance: Critical
         """
@@ -76,7 +76,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: a555e848-f1f2-4326-aac6-9de8ff45abee
 
-        :assert: Operating System is created and listed
+        :expectedresults: Operating System is created and listed
 
         :CaseImportance: Critical
         """
@@ -95,7 +95,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: fca309c5-edff-4296-a800-55470669935a
 
-        :assert: Operating System is created and listed
+        :expectedresults: Operating System is created and listed
 
         :CaseImportance: Critical
         """
@@ -115,7 +115,8 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: b8f23b53-439a-4726-9757-164d99d5ed05
 
-        :assert: Operating System is created and can be looked up by its ID
+        :expectedresults: Operating System is created and can be looked up by
+            its ID
 
         :CaseImportance: Critical
         """
@@ -135,7 +136,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: d36eba9b-ccf6-4c9d-a07f-c74eebada89b
 
-        :assert: Operating System is created and can be found
+        :expectedresults: Operating System is created and can be found
 
         :CaseImportance: Critical
         """
@@ -151,7 +152,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: 05bdb2c6-0d2e-4141-9e07-3ada3933b577
 
-        :assert: An operating system is created.
+        :expectedresults: An operating system is created.
 
         :CaseImportance: Critical
         """
@@ -181,7 +182,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: 848a20ce-292a-47d8-beea-da5916c43f11
 
-        :assert: Operating System is not created
+        :expectedresults: Operating System is not created
 
         :CaseImportance: Critical
         """
@@ -197,7 +198,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: 49b655f7-ba9b-4bb9-b09d-0f7140969a40
 
-        :assert: Operating System name is updated
+        :expectedresults: Operating System name is updated
 
         :CaseImportance: Critical
         """
@@ -219,7 +220,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: 38a89dbe-6d1c-4602-a4c1-664425668de8
 
-        :assert: Operating System major version is updated
+        :expectedresults: Operating System major version is updated
 
         :CaseImportance: Critical
         """
@@ -242,7 +243,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: 4b18ff6d-7728-4245-a1ce-38e62c05f454
 
-        :assert: Operating System name is not updated
+        :expectedresults: Operating System name is not updated
 
         :CaseImportance: Critical
         """
@@ -264,7 +265,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: a67a7b01-081b-42f8-a9ab-1f41166d649e
 
-        :assert: Operating System is deleted
+        :expectedresults: Operating System is deleted
 
         :CaseImportance: Critical
         """
@@ -282,7 +283,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: d29a9c95-1fe3-4a7a-9f7b-127be065856d
 
-        :assert: Operating System is not deleted
+        :expectedresults: Operating System is not deleted
 
         :CaseImportance: Critical
         """
@@ -304,7 +305,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: 99add22d-d936-4232-9441-beff85867040
 
-        :assert: Architecture is added to Operating System
+        :expectedresults: Architecture is added to Operating System
 
         :CaseLevel: Integration
         """
@@ -325,7 +326,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: 0ea9eb88-2d27-423d-a9d3-fdd788b4e28a
 
-        :assert: Provisioning template is added to Operating System
+        :expectedresults: Provisioning template is added to Operating System
 
         :CaseLevel: Integration
         """
@@ -347,7 +348,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :id: beba676f-b4e4-48e1-bb0c-18ad91847566
 
-        :assert: Partition table is added to Operating System
+        :expectedresults: Partition table is added to Operating System
 
         :CaseLevel: Integration
         """

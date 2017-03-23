@@ -59,7 +59,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: 6f67a3f0-0c1d-498c-9a35-28207b0faec2
 
-        :Assert: HTTP 415 is returned.
+        :expectedresults: HTTP 415 is returned.
 
         :CaseImportance: Critical
         """
@@ -81,7 +81,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: c9f69ee5-c6dd-4821-bb05-0d93ffa22460
 
-        :Assert: The organization has the provided attributes and an
+        :expectedresults: The organization has the provided attributes and an
             auto-generated label.
 
         :CaseImportance: Critical
@@ -96,7 +96,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: f0deab6a-b09b-4110-8575-d4bea945a545
 
-        :Assert: The organization has the provided attributes.
+        :expectedresults: The organization has the provided attributes.
 
         :CaseImportance: Critical
         """
@@ -115,7 +115,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: 2bdd9aa8-a36a-4009-ac29-5c3d6416a2b7
 
-        :Assert: The organization has the provided attributes.
+        :expectedresults: The organization has the provided attributes.
 
         :CaseImportance: Critical
         """
@@ -132,7 +132,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: afeea84b-61ca-40bf-bb16-476432919115
 
-        :Assert: The organization has the provided attributes and an
+        :expectedresults: The organization has the provided attributes and an
             auto-generated label.
 
         :CaseImportance: Critical
@@ -157,7 +157,8 @@ class OrganizationTestCase(APITestCase):
 
         :id: f7d92392-751e-45de-91da-5ed2a47afc3f
 
-        :Assert: The organization has the provided name, label and description.
+        :expectedresults: The organization has the provided name, label and
+            description.
 
         :CaseImportance: Critical
         """
@@ -176,7 +177,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
 
-        :Assert: The organization cannot be created.
+        :expectedresults: The organization cannot be created.
 
         :CaseImportance: Critical
         """
@@ -191,7 +192,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: a0f5333c-cc83-403c-9bf7-08fb372909dc
 
-        :Assert: The second organization cannot be created.
+        :expectedresults: The second organization cannot be created.
 
         :CaseImportance: Critical
         """
@@ -205,7 +206,7 @@ class OrganizationTestCase(APITestCase):
 
         :id: f6f1d839-21f2-4676-8683-9f899cbdec4c
 
-        :Assert: Searching returns at least one result.
+        :expectedresults: Searching returns at least one result.
 
         :CaseImportance: Critical
         """
@@ -233,7 +234,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 68f2ba13-2538-407c-9f33-2447fca28cd5
 
-        :Assert: The organization's name is updated.
+        :expectedresults: The organization's name is updated.
 
         :CaseImportance: Critical
         """
@@ -249,7 +250,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: bd223197-1021-467e-8714-c1a767ae89af
 
-        :Assert: The organization's description is updated.
+        :expectedresults: The organization's description is updated.
 
         :CaseImportance: Critical
         """
@@ -265,7 +266,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 30036e70-b8fc-4c24-9494-b201bbd1c28d
 
-        :Assert: The organization's name and description are updated.
+        :expectedresults: The organization's name and description are updated.
 
         :CaseImportance: Critical
         """
@@ -283,7 +284,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 2c0c0061-5b4e-4007-9f54-b61d6e65ef58
 
-        :Assert: User is associated with organization.
+        :expectedresults: User is associated with organization.
 
         :CaseLevel: Integration
         """
@@ -299,7 +300,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 3aa0b9cb-37f7-4e7e-a6ec-c1b407225e54
 
-        :Assert: Subnet is associated with organization.
+        :expectedresults: Subnet is associated with organization.
 
         :CaseLevel: Integration
         """
@@ -316,7 +317,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 83f085d9-94c0-4462-9780-d29ea4cb5aac
 
-        :Assert: An organization is associated with a media.
+        :expectedresults: An organization is associated with a media.
 
         :CaseLevel: Integration
         """
@@ -332,7 +333,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: e8c2ccfd-9ae8-4a39-b459-bc5818f54e63
 
-        :Assert: Hostgroup is added to organization
+        :expectedresults: Hostgroup is added to organization
 
         :CaseLevel: Integration
         """
@@ -350,7 +351,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 7eb1aca7-fd7b-404f-ab18-21be5052a11f
 
-        :Assert: Hostgroup is added to organization and then removed
+        :expectedresults: Hostgroup is added to organization and then removed
 
         :CaseLevel: Integration
         """
@@ -370,7 +371,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: e21de720-3fa2-429b-bd8e-b6a48a13146d
 
-        :Assert: Smart proxy is successfully added to organization
+        :expectedresults: Smart proxy is successfully added to organization
 
         :CaseLevel: Integration
         """
@@ -402,7 +403,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: 8045910e-d85c-47ee-9aed-ac0a6bbb646b
 
-        :Assert: Smart proxy is removed from organization
+        :expectedresults: Smart proxy is removed from organization
 
         :CaseLevel: Integration
         """
@@ -421,7 +422,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
         :id: b7152d0b-5ab0-4d68-bfdf-f3eabcb5fbc6
 
-        :Assert: The organization's attributes are not updated.
+        :expectedresults: The organization's attributes are not updated.
 
         :CaseImportance: Critical
         """
@@ -459,7 +460,7 @@ class OrganizationUpdateTestCase(APITestCase):
                Verify that both compute resources are pointing at / belong to
                the organization.
 
-        :Assert: Organization contains both compute resources
+        :expectedresults: Organization contains both compute resources
 
         :CaseLevel: Integration
         """

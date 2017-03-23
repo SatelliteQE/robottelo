@@ -42,7 +42,7 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 71601d96-8ce8-4ecb-b053-af6f26a246ea
 
-        :Assert: Partition table was created
+        :expectedresults: Partition table was created
 
         :BZ: 1229384
 
@@ -59,7 +59,8 @@ class PartitionTableTestCase(APITestCase):
 
         :id: f774051a-8ad4-48dc-b652-0e3c382b6043
 
-        :Assert: Partition table created successfully and has correct name
+        :expectedresults: Partition table created successfully and has correct
+            name
 
         :CaseImportance: Critical
         """
@@ -75,7 +76,8 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 12e9d821-415e-4e8b-b4c6-9921c74c1fc5
 
-        :Assert: Partition table created successfully and has correct layout
+        :expectedresults: Partition table created successfully and has correct
+            layout
 
         :CaseImportance: Critical
         """
@@ -90,8 +92,8 @@ class PartitionTableTestCase(APITestCase):
 
         :id: ebd55ed6-5fb2-4f17-ac73-b56661ee5254
 
-        :Assert: Partition table created successfully and has correct operating
-            system
+        :expectedresults: Partition table created successfully and has correct
+            operating system
 
         :CaseImportance: Critical
         """
@@ -105,7 +107,7 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 02631917-2f7a-4cf7-bb2a-783349a04758
 
-        :Assert: Partition table was not created
+        :expectedresults: Partition table was not created
 
         :CaseImportance: Critical
         """
@@ -120,7 +122,7 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 03cb7a35-e4c3-4874-841b-0760c3b8d6af
 
-        :Assert: Partition table was not created
+        :expectedresults: Partition table was not created
 
         :CaseImportance: Critical
         """
@@ -135,7 +137,7 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 36133202-8849-432e-838b-3d13d088ef28
 
-        :Assert: Partition table was deleted
+        :expectedresults: Partition table was deleted
 
         :CaseImportance: Critical
         """
@@ -150,7 +152,8 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 8bde5a54-21a8-420e-b6cb-1d81c381d0b2
 
-        :Assert: Partition table updated successfully and name was changed
+        :expectedresults: Partition table updated successfully and name was
+            changed
 
         :CaseImportance: Critical
         """
@@ -166,7 +169,8 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 329eea6e-3474-4cc1-87d4-15e765e0a255
 
-        :Assert: Partition table updated successfully and layout was changed
+        :expectedresults: Partition table updated successfully and layout was
+            changed
 
         :CaseImportance: Critical
         """
@@ -182,8 +186,8 @@ class PartitionTableTestCase(APITestCase):
 
         :id: bf03d80c-3527-4b0a-b6c7-4629a8eaefb2
 
-        :Assert: Partition table updated successfully and operating system was
-            changed
+        :expectedresults: Partition table updated successfully and operating
+            system was changed
 
         :CaseImportance: Critical
         """
@@ -200,7 +204,7 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 7e9face8-2c20-450e-890c-6def6de570ca
 
-        :Assert: Partition table was not updated
+        :expectedresults: Partition table was not updated
 
         :CaseImportance: Critical
         """
@@ -217,7 +221,7 @@ class PartitionTableTestCase(APITestCase):
 
         :id: 35c84c8f-b802-4076-89f2-4ec04cf43a31
 
-        :Assert: Partition table was not updated
+        :expectedresults: Partition table was not updated
 
         :CaseImportance: Critical
         """

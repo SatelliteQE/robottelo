@@ -55,8 +55,8 @@ class HotBackupTestCase(TestCase):
             1. Create a directory (ie /tmp/xyz)
             2. Run ``katello-backup /tmp/xyz``
 
-        :Assert: The backup is successfully created in existing folder and
-            contains all the default files needed to restore.
+        :expectedresults: The backup is successfully created in existing folder
+            and contains all the default files needed to restore.
         """
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
@@ -86,7 +86,7 @@ class HotBackupTestCase(TestCase):
             1. Ensure the directory /tmp/xyz does not exist.
             2. Run ``katello /tmp/xyz``
 
-        :Assert: ``/tmp/xyz`` is created and the backup is saved to it
+        :expectedresults: ``/tmp/xyz`` is created and the backup is saved to it
             containing all the default files needed to restore.
         """
         with get_connection() as connection:
@@ -117,8 +117,8 @@ class HotBackupTestCase(TestCase):
             1. Run backup with --skip-pulp option to /tmp/bck-no-pulp
             2. List contents of the destination
 
-        :Assert: ``/tmp/bck-no-pulp`` is created and pulp related files are not
-            present.
+        :expectedresults: ``/tmp/bck-no-pulp`` is created and pulp related
+            files are not present.
         """
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
@@ -148,7 +148,7 @@ class HotBackupTestCase(TestCase):
             4. Restore base backup, verify c1 config doesnt not exist
             5. restore ib1, verify c1 config does exist
 
-        :Assert: Backup "ib1" is backed up.
+        :expectedresults: Backup "ib1" is backed up.
 
         """
         with get_connection() as connection:
@@ -211,7 +211,7 @@ class HotBackupTestCase(TestCase):
             5. Restore online incremental backup
             6. Restore offline incremental backup
 
-        :Assert: Each backup is fully restored.
+        :expectedresults: Each backup is fully restored.
 
         :CaseAutomation: notautomated
 
@@ -233,7 +233,7 @@ class HotBackupTestCase(TestCase):
             3. Restore online incremental backup
             4. Restore offline incremental backup
 
-        :Assert: Each backup is fully restored.
+        :expectedresults: Each backup is fully restored.
 
         :CaseAutomation: notautomated
 
@@ -252,8 +252,8 @@ class HotBackupTestCase(TestCase):
             2. Run a backup while the Satellite is under load
             3. Restore the backup
 
-        :Assert: The backup is successful and the restored configuration is
-            correct.
+        :expectedresults: The backup is successful and the restored
+            configuration is correct.
 
         :CaseAutomation: notautomated
 
@@ -271,7 +271,7 @@ class HotBackupTestCase(TestCase):
             1. Run a backup.
             2. Run a restore.
 
-        :Assert: The restore is successful.
+        :expectedresults: The restore is successful.
 
         :CaseAutomation: notautomated
 
@@ -289,7 +289,8 @@ class HotBackupTestCase(TestCase):
             1. Start a backup
             2. While backing up, have a host pull content from the satellite.
 
-        :Assert: The backup succeeds  and the host gets the requested content.
+        :expectedresults: The backup succeeds  and the host gets the requested
+            content.
 
         :CaseAutomation: notautomated
 

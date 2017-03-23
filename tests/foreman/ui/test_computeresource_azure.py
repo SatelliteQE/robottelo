@@ -43,7 +43,7 @@ class AzureComputeResourceTestCase(UITestCase):
             3. Provide a valid name to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
 
-        :Assert: An azure compute resource is created successfully.
+        :expectedresults: An azure compute resource is created successfully.
 
         :Caseautomation: notautomated
 
@@ -73,7 +73,7 @@ class AzureComputeResourceTestCase(UITestCase):
             3. Provide a valid description to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
 
-        :Assert: An azure compute resource is created successfully
+        :expectedresults: An azure compute resource is created successfully
 
         :Caseautomation: notautomated
 
@@ -103,7 +103,7 @@ class AzureComputeResourceTestCase(UITestCase):
             3. Provide a invalid name to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
 
-        :Assert: An azure compute resource is not created
+        :expectedresults: An azure compute resource is not created
 
         :Caseautomation: notautomated
 
@@ -134,7 +134,7 @@ class AzureComputeResourceTestCase(UITestCase):
             4. Test the connection using "Test Connection" and submit.
             5. Update the name of the created CR with valid string.
 
-        :Assert: The azure compute resource is updated
+        :expectedresults: The azure compute resource is updated
 
         :Caseautomation: notautomated
 
@@ -166,7 +166,7 @@ class AzureComputeResourceTestCase(UITestCase):
             5. Create a new organization.
             6. Add the CR to new organization.
 
-        :Assert: The azure compute resource is updated
+        :expectedresults: The azure compute resource is updated
 
         :Caseautomation: notautomated
         """
@@ -195,7 +195,7 @@ class AzureComputeResourceTestCase(UITestCase):
             4. Test the connection using "Test Connection" and submit.
             5. Delete the created compute resource.
 
-        :Assert: The compute resource is deleted
+        :expectedresults: The compute resource is deleted
 
         :Caseautomation: notautomated
 
@@ -227,7 +227,7 @@ class AzureComputeResourceTestCase(UITestCase):
             4. Select "New image" , provide it valid name and information.
             5. Select the desired template to create image and submit.
 
-        :Assert: The image is added to the CR successfully
+        :expectedresults: The image is added to the CR successfully
 
         :Caseautomation: notautomated
         """
@@ -257,7 +257,7 @@ class AzureComputeResourceTestCase(UITestCase):
             4. Select "New image" , provide it invalid name.
             5. Select the desired template to create the image from and submit.
 
-        :Assert: The image should not be added to the CR
+        :expectedresults: The image should not be added to the CR
 
         :Caseautomation: notautomated
         """
@@ -282,7 +282,7 @@ class AzureComputeResourceTestCase(UITestCase):
             1. Select the created compute resource.
             2. Go to "Virtual Machines" tab.
 
-        :Assert: The Virtual machines should be displayed
+        :expectedresults: The Virtual machines should be displayed
 
         :Caseautomation: notautomated
         """
@@ -310,7 +310,7 @@ class AzureComputeResourceTestCase(UITestCase):
             3. Select the Deploy on as azure compute resource.
             4. Provision the host.
 
-        :Assert: The host should be provisioned with host group
+        :expectedresults: The host should be provisioned with host group
 
         :Caseautomation: notautomated
         """

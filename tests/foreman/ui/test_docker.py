@@ -110,7 +110,7 @@ class DockerTagTestCase(UITestCase):
 
         :id: 28640396-c44d-4487-9d6d-3d5f2ed599d7
 
-        :Assert: The docker tag can be searched and found
+        :expectedresults: The docker tag can be searched and found
 
         :CaseLevel: Integration
         """
@@ -148,7 +148,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: 233f39b5-ec75-4035-a45f-0f37a40bbdfe
 
-        :Assert: A repository is created with a Docker upstream repository.
+        :expectedresults: A repository is created with a Docker upstream
+            repository.
 
         :CaseImportance: Critical
         """
@@ -173,8 +174,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: f6e7d9fe-7dec-42ef-8cbd-071871e4b8ac
 
-        :Assert: Multiple docker repositories are created with a Docker
-            upstream repository and they all belong to the same product.
+        :expectedresults: Multiple docker repositories are created with a
+            Docker upstream repository and they all belong to the same product.
 
         :CaseImportance: Critical
         """
@@ -198,8 +199,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: da76f1e8-236e-455d-b300-676e00e3df8e
 
-        :Assert: Multiple docker repositories are created with a Docker
-            upstream repository and they all belong to their respective
+        :expectedresults: Multiple docker repositories are created with a
+            Docker upstream repository and they all belong to their respective
             products.
 
         :CaseImportance: Critical
@@ -225,8 +226,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
 
-        :Assert: A repository is created with a Docker repository and it is
-            synchronized.
+        :expectedresults: A repository is created with a Docker repository and
+            it is synchronized.
 
         :CaseLevel: Integration
         """
@@ -252,8 +253,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: 64878d14-39ed-44fd-9a71-5923edaa6e3d
 
-        :Assert: A repository is created with a Docker upstream repository and
-            that its name can be updated.
+        :expectedresults: A repository is created with a Docker upstream
+            repository and that its name can be updated.
 
         :CaseImportance: Critical
         """
@@ -282,8 +283,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: b7e17891-e248-4044-ac88-8f8a9d0e95f2
 
-        :Assert: A repository is created with a Docker upstream repository and
-            that its upstream name can be updated.
+        :expectedresults: A repository is created with a Docker upstream
+            repository and that its upstream name can be updated.
 
         :CaseImportance: Critical
         """
@@ -315,8 +316,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: d85892a2-a887-413d-81c6-97a2a518f365
 
-        :Assert: A repository is created with a Docker upstream repository and
-            that its URL can be updated.
+        :expectedresults: A repository is created with a Docker upstream
+            repository and that its URL can be updated.
 
         :CaseImportance: Critical
         """
@@ -347,8 +348,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: 725a0f6b-67c5-4a59-a7b9-2308333a42bd
 
-        :Assert: A repository is created with a Docker upstream repository and
-            then deleted.
+        :expectedresults: A repository is created with a Docker upstream
+            repository and then deleted.
 
         :CaseImportance: Critical
         """
@@ -376,8 +377,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         :id: a3dce435-c46e-41d7-a2f8-29421f7427f5
 
-        :Assert: Random repository can be deleted from random product without
-            altering the other products.
+        :expectedresults: Random repository can be deleted from random product
+            without altering the other products.
 
         :CaseLevel: Integration
         """
@@ -435,8 +436,8 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 2868cfd5-d27e-4db9-b4a3-2827e31d1601
 
-        :Assert: A repository is created with a Docker repository and the
-            product is added to a non-composite content view
+        :expectedresults: A repository is created with a Docker repository and
+            the product is added to a non-composite content view
 
         :CaseLevel: Integration
         """
@@ -464,8 +465,9 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 60d0ea23-fe8c-49f3-bed9-cc062ab1118d
 
-        :Assert: Repositories are created with Docker upstream repositories and
-            the product is added to a non-composite content view.
+        :expectedresults: Repositories are created with Docker upstream
+            repositories and the product is added to a non-composite content
+            view.
 
         :CaseLevel: Integration
         """
@@ -495,8 +497,8 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 338a7ed4-9e10-4bc0-8666-5c8cd0ff0504
 
-        :Assert: A repository is created with a Docker repository and it is
-            synchronized.
+        :expectedresults: A repository is created with a Docker repository and
+            it is synchronized.
 
         :CaseLevel: Integration
         """
@@ -527,8 +529,8 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 76b68407-b429-4ad7-b8b5-bfde327a0404
 
-        :Assert: A repository is created with a Docker repository and the
-            product is added to a content view which is then added to a
+        :expectedresults: A repository is created with a Docker repository and
+            the product is added to a content view which is then added to a
             composite content view.
 
         :CaseLevel: Integration
@@ -563,9 +565,9 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 30187102-7106-45de-a68b-e32fbaecedb9
 
-        :Assert: One repository is created with a Docker upstream repository
-            and the product is added to a random number of content views which
-            are then added to a composite content view.
+        :expectedresults: One repository is created with a Docker upstream
+            repository and the product is added to a random number of content
+            views which are then added to a composite content view.
 
         :CaseLevel: Integration
         """
@@ -602,9 +604,9 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 2004b2d4-177b-47de-9e61-bcfb58f05f88
 
-        :Assert: One repository is created with a Docker upstream repository
-            and the product is added to a content view which is then published
-            only once.
+        :expectedresults: One repository is created with a Docker upstream
+            repository and the product is added to a content view which is then
+            published only once.
 
         :CaseLevel: Integration
         """
@@ -636,10 +638,10 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 7aad525a-a9d3-4100-9611-ca02c6a95a22
 
-        :Assert: One repository is created with a Docker upstream repository
-            and the product is added to a content view which is then published
-            only once and then added to a composite content view which is also
-            published only once.
+        :expectedresults: One repository is created with a Docker upstream
+            repository and the product is added to a content view which is then
+            published only once and then added to a composite content view
+            which is also published only once.
 
         :CaseLevel: Integration
         """
@@ -677,9 +679,9 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: acc703b7-6e99-48d7-96ce-ea0985409ef9
 
-        :Assert: One repository is created with a Docker upstream repository
-            and the product is added to a content view which is then published
-            multiple times.
+        :expectedresults: One repository is created with a Docker upstream
+            repository and the product is added to a content view which is then
+            published multiple times.
 
         :CaseLevel: Integration
         """
@@ -711,9 +713,10 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 07755bff-9071-45e5-b861-77a5c2fed3d9
 
-        :Assert: One repository is created with a Docker upstream repository
-            and the product is added to a content view which is then added to a
-            composite content view which is then published multiple times.
+        :expectedresults: One repository is created with a Docker upstream
+            repository and the product is added to a content view which is then
+            added to a composite content view which is then published multiple
+            times.
 
 
         :CaseLevel: Integration
@@ -752,8 +755,8 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: c7e8c4a2-9676-429b-a452-f50d7bdd78b3
 
-        :Assert: Docker-type repository is promoted to content view found in
-            the specific lifecycle-environment.
+        :expectedresults: Docker-type repository is promoted to content view
+            found in the specific lifecycle-environment.
 
         :CaseLevel: Integration
         """
@@ -790,8 +793,8 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: c23d582e-502c-49ac-83f7-dcf0f192cbc6
 
-        :Assert: Docker-type repository is promoted to content view found in
-            the specific lifecycle-environments.
+        :expectedresults: Docker-type repository is promoted to content view
+            found in the specific lifecycle-environments.
 
         :CaseLevel: Integration
         """
@@ -830,8 +833,8 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: 1c7817c7-60b5-4383-bc6f-2878c2b27fa5
 
-        :Assert: Docker-type repository is promoted to content view found in
-            the specific lifecycle-environment.
+        :expectedresults: Docker-type repository is promoted to content view
+            found in the specific lifecycle-environment.
 
 
         :CaseLevel: Integration
@@ -875,8 +878,8 @@ class DockerContentViewTestCase(UITestCase):
 
         :id: b735b1fa-3d60-4fc0-92d2-4af0ab003097
 
-        :Assert: Docker-type repository is promoted to content view found in
-            the specific lifecycle-environments.
+        :expectedresults: Docker-type repository is promoted to content view
+            found in the specific lifecycle-environments.
 
         :CaseLevel: Integration
         """
@@ -948,7 +951,8 @@ class DockerActivationKeyTestCase(UITestCase):
 
         :id: e4935729-c5bc-46be-a23a-93ebde6b3506
 
-        :Assert: Docker-based content view can be added to activation key
+        :expectedresults: Docker-based content view can be added to activation
+            key
 
         :CaseLevel: Integration
         """
@@ -974,8 +978,8 @@ class DockerActivationKeyTestCase(UITestCase):
 
         :id: 4336093e-141b-47e0-9a39-3952cfaaf377
 
-        :Assert: Docker-based content view can be added and then removed from
-            the activation key.
+        :expectedresults: Docker-based content view can be added and then
+            removed from the activation key.
 
         :caseautomation: notautomated
 
@@ -992,7 +996,8 @@ class DockerActivationKeyTestCase(UITestCase):
 
         :id: 0d412f54-6333-413e-8040-4e51ae5c069c
 
-        :Assert: Docker-based content view can be added to activation key
+        :expectedresults: Docker-based content view can be added to activation
+            key
 
         :CaseLevel: Integration
         """
@@ -1031,8 +1036,8 @@ class DockerActivationKeyTestCase(UITestCase):
 
         :id: 0bf0360f-555a-4d79-9a14-71360f56633f
 
-        :Assert: Docker-based composite content view can be added and then
-            removed from the activation key.
+        :expectedresults: Docker-based composite content view can be added and
+            then removed from the activation key.
 
         :caseautomation: notautomated
 
@@ -1058,7 +1063,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :id: 78a65ed3-0dbf-413f-91cf-3a02f7ee12d1
 
-        :Assert: Compute Resource can be created and listed.
+        :expectedresults: Compute Resource can be created and listed.
 
         :CaseImportance: Critical
         """
@@ -1086,8 +1091,8 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :id: 6a22e770-6a9a-48ab-94b6-e991e484812d
 
-        :Assert: Compute Resource can be created, listed and its attributes can
-            be updated.
+        :expectedresults: Compute Resource can be created, listed and its
+            attributes can be updated.
 
         :CaseImportance: Critical
         """
@@ -1117,8 +1122,8 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :id: ebac82ed-5a29-4a06-8aae-bd5b08f60fba
 
-        :Assert: Compute Resource can be created, listed and existing running
-            instances can be listed.
+        :expectedresults: Compute Resource can be created, listed and existing
+            running instances can be listed.
 
         :CaseLevel: Integration
         """
@@ -1154,7 +1159,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :id: 73ca3ee1-4353-4399-90ba-56560407246e
 
-        :Assert: Compute Resource can be created and listed.
+        :expectedresults: Compute Resource can be created and listed.
 
         :CaseImportance: Critical
         """
@@ -1182,8 +1187,8 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :id: 13d6c7ee-0c90-46cd-8661-73fa1a3c4ef3
 
-        :Assert: Compute Resource can be created, listed and its attributes can
-            be updated.
+        :expectedresults: Compute Resource can be created, listed and its
+            attributes can be updated.
 
         :CaseImportance: Critical
         """
@@ -1214,7 +1219,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :id: 151d5c08-4f66-461d-9535-f904cd26ce49
 
-        :Assert: Compute Resource can be created, listed and deleted.
+        :expectedresults: Compute Resource can be created, listed and deleted.
 
         :CaseImportance: Critical
         """
@@ -1299,7 +1304,8 @@ class DockerContainerTestCase(UITestCase):
 
         :id: 4916c72f-e921-450c-8023-2ee516deaf25
 
-        :Assert: The docker container is created for each compute resource
+        :expectedresults: The docker container is created for each compute
+            resource
 
         :CaseLevel: Integration
         """
@@ -1322,8 +1328,8 @@ class DockerContainerTestCase(UITestCase):
 
         :id: cc27bb6f-7fa4-4c87-bf7e-339f2f888717
 
-        :Assert: The docker container is created for each compute resource and
-            the power status is showing properly
+        :expectedresults: The docker container is created for each compute
+            resource and the power status is showing properly
 
         :CaseLevel: Integration
         """
@@ -1351,8 +1357,8 @@ class DockerContainerTestCase(UITestCase):
 
         :id: e609b411-7533-4f65-917a-bed3672ae03c
 
-        :Assert: The docker container is created and the image is pulled from
-            the external registry
+        :expectedresults: The docker container is created and the image is
+            pulled from the external registry
 
         :CaseLevel: Integration
         """
@@ -1394,8 +1400,8 @@ class DockerContainerTestCase(UITestCase):
 
         :id: e69808e7-6a0c-4310-b57a-2271ac61d11a
 
-        :Assert: The docker containers are deleted in local and external
-            compute resources
+        :expectedresults: The docker containers are deleted in local and
+            external compute resources
 
         :CaseLevel: Integration
         """
@@ -1422,8 +1428,8 @@ class DockerContainerTestCase(UITestCase):
 
         :id: 047e2ef9-66b6-41e2-9c29-b7c2da2b64f8
 
-        :Assert: The docker containers are deleted successfully and are not
-            present on UI
+        :expectedresults: The docker containers are deleted successfully and
+            are not present on UI
 
         :CaseLevel: Integration
         """
@@ -1466,7 +1472,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :id: 7d2a2271-801e-454b-af0e-fedf1d96a7d5
 
-        :Assert: the external registry is created
+        :expectedresults: the external registry is created
 
         :CaseImportance: Critical
         """
@@ -1492,7 +1498,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :id: 2b59f929-4a47-4216-b8b3-7f923d8e7de9
 
-        :Assert: the external registry is updated with the new name
+        :expectedresults: the external registry is updated with the new name
 
         :CaseImportance: Critical
         """
@@ -1523,7 +1529,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :id: cf477436-085d-4517-ad86-23e3d254ad70
 
-        :Assert: the external registry is updated with the new URL
+        :expectedresults: the external registry is updated with the new URL
 
         :CaseImportance: Critical
         """
@@ -1553,7 +1559,8 @@ class DockerRegistryTestCase(UITestCase):
 
         :id: 0ca5e992-b28e-452e-a2be-fca57b4b5195
 
-        :Assert: the external registry is updated with the new description
+        :expectedresults: the external registry is updated with the new
+            description
 
         :CaseImportance: Critical
         """
@@ -1584,7 +1591,8 @@ class DockerRegistryTestCase(UITestCase):
 
         :id: 9cb24a5a-e383-446e-9b1a-3bf02e0ef439
 
-        :Assert: the external registry is updated with the new username
+        :expectedresults: the external registry is updated with the new
+            username
 
         :CaseImportance: Critical
         """
@@ -1615,7 +1623,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :id: a85d82f5-88b1-4235-8763-1d2f05c8913a
 
-        :Assert: The external registry is deleted successfully
+        :expectedresults: The external registry is deleted successfully
 
         :CaseImportance: Critical
         """

@@ -88,7 +88,8 @@ class OrganizationTestCase(UITestCase):
 
         :id: f3c492ab-46fb-4b1d-b5d5-29a82385d681
 
-        :assert: Auto search for created organization works as intended
+        :expectedresults: Auto search for created organization works as
+            intended
 
         :CaseImportance: Critical
         """
@@ -108,7 +109,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: bb5c6400-e837-4e3b-add9-bab2c0b826c9
 
-        :assert: Organization is created, label is auto-generated
+        :expectedresults: Organization is created, label is auto-generated
 
         :CaseImportance: Critical
         """
@@ -124,7 +125,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 82954640-05c2-4d6c-a293-dc4aa3e5611b
 
-        :assert: organization is created, label does not match name
+        :expectedresults: organization is created, label does not match name
 
         :CaseImportance: Critical
         """
@@ -147,7 +148,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 73befc8c-bf96-48b7-8315-34f0cfef9382
 
-        :assert: organization is created, label matches name
+        :expectedresults: organization is created, label matches name
 
         :CaseImportance: Critical
         """
@@ -170,7 +171,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 29793945-c553-4a6e-881f-cdcde373aa62
 
-        :assert: organization is created, label is auto-generated
+        :expectedresults: organization is created, label is auto-generated
 
         :BZ: 1079482
 
@@ -193,7 +194,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 7387a8cd-6ebb-4143-b77e-cfc72cb89ca9
 
-        :assert: Both organization and location are selected.
+        :expectedresults: Both organization and location are selected.
 
         :CaseLevel: Integration
         """
@@ -217,7 +218,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: e69ab8c1-e53f-41fa-a84f-290c6c152484
 
-        :assert: organization is not created
+        :expectedresults: organization is not created
 
         :CaseImportance: Critical
         """
@@ -236,7 +237,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: d7fd91aa-1a0e-4403-8dea-cc03cbb93070
 
-        :assert: organization is not created
+        :expectedresults: organization is not created
 
         :CaseImportance: Critical
         """
@@ -256,7 +257,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 6b69d505-56b1-4d7d-bf2a-8762d5184ca8
 
-        :assert: Organization is deleted successfully
+        :expectedresults: Organization is deleted successfully
 
         :CaseImportance: Critical
         """
@@ -276,7 +277,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 851c8557-a406-4a70-9c8b-94bcf0482f8d
 
-        :assert: Organization is deleted successfully.
+        :expectedresults: Organization is deleted successfully.
 
         :CaseLevel: Integration
         """
@@ -309,7 +310,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 1fcd7cd1-8ba1-434f-b9fb-c4e920046eb4
 
-        :assert: Scenario passed successfully
+        :expectedresults: Scenario passed successfully
 
         :CaseLevel: Integration
         """
@@ -337,7 +338,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 776f5268-4f05-4cfc-a1e9-339a3e224677
 
-        :assert: Organization name is updated successfully
+        :expectedresults: Organization name is updated successfully
 
         :CaseImportance: Critical
         """
@@ -358,7 +359,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 1467a04e-ebd6-4106-94b1-841a4f0ddecb
 
-        :assert: Organization name is not updated
+        :expectedresults: Organization name is not updated
 
         :CaseImportance: Critical
         """
@@ -381,7 +382,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: a49e86c7-f859-4120-b59e-3f89e99a9054
 
-        :assert: the domain is removed from the organization
+        :expectedresults: the domain is removed from the organization
 
         :CaseLevel: Integration
         """
@@ -415,7 +416,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 01a221f7-d0fe-4b46-ab5c-b4e861677126
 
-        :assert: The user is added then removed from the organization
+        :expectedresults: The user is added then removed from the organization
 
         :CaseLevel: Integration
         """
@@ -457,7 +458,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 12e2fc40-d721-4e71-af7c-3db67b9e718e
 
-        :assert: hostgroup is added to organization then removed.
+        :expectedresults: hostgroup is added to organization then removed.
 
         :CaseLevel: Integration
         """
@@ -498,7 +499,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 7ad6f610-91ca-4f1f-b9c4-8ce82f50ea9e
 
-        :assert: smartproxy is added
+        :expectedresults: smartproxy is added
 
         :caseautomation: notautomated
 
@@ -512,7 +513,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 6736cd82-a2b0-4fc0-a2bc-99c9f13464d7
 
-        :assert: subnet is added.
+        :expectedresults: subnet is added.
 
         :CaseLevel: Integration
         """
@@ -543,7 +544,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: f5739862-ac2e-49ef-8f95-1823287f4978
 
-        :assert: Domain is added to organization.
+        :expectedresults: Domain is added to organization.
 
         :CaseLevel: Integration
         """
@@ -569,7 +570,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 5f2ec06b-952d-445d-b8a1-c32d74d33584
 
-        :assert: User is added to organization.
+        :expectedresults: User is added to organization.
 
         :CaseLevel: Integration
         """
@@ -601,7 +602,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: ce1b5334-5601-42ae-aa04-3e766daa3984
 
-        :assert: hostgroup is added to organization
+        :expectedresults: hostgroup is added to organization
 
         :CaseLevel: Integration
         """
@@ -629,7 +630,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 65ee568b-c0c5-4849-969d-02d7a804292c
 
-        :assert: location is added to organization.
+        :expectedresults: location is added to organization.
 
         :CaseLevel: Integration
         """
@@ -657,7 +658,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: db119bb1-8f79-415b-a056-70a19ffceeea
 
-        :assert: compute resource is added then removed.
+        :expectedresults: compute resource is added then removed.
 
         :CaseLevel: Integration
         """
@@ -702,7 +703,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: bcf3aaf4-cad9-4a22-a087-60b213eb87cf
 
-        :assert: medium is added then removed.
+        :expectedresults: medium is added then removed.
 
         :CaseLevel: Integration
         """
@@ -742,7 +743,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 67bec745-5f10-494c-92a7-173ee63e8297
 
-        :assert: Config Template is added and then removed.
+        :expectedresults: Config Template is added and then removed.
 
         :CaseLevel: Integration
         """
@@ -777,7 +778,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 75662a83-0921-45fd-a4b5-012c48bb003a
 
-        :assert: Partition table is added and then removed.
+        :expectedresults: Partition table is added and then removed.
 
         :CaseLevel: Integration
         """
@@ -812,7 +813,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 95b96642-0424-4df1-83ef-d548ceb6e10b
 
-        :assert: Environment is added.
+        :expectedresults: Environment is added.
 
         :CaseLevel: Integration
         """
@@ -840,7 +841,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 25bc6334-de59-462c-824a-51d615d9fdd0
 
-        :assert: smartproxy is added then removed
+        :expectedresults: smartproxy is added then removed
 
         :caseautomation: notautomated
 
@@ -856,7 +857,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: de9f755a-cf06-4ee0-a2f7-f1bfb1015b36
 
-        :assert: compute resource is added.
+        :expectedresults: compute resource is added.
 
         :CaseLevel: Integration
         """
@@ -888,7 +889,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: e9b1004d-55f0-448f-8013-543d8b9ec248
 
-        :assert: medium is added.
+        :expectedresults: medium is added.
 
         :CaseLevel: Integration
         """
@@ -920,7 +921,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 2af534d4-2f92-4b25-81d9-d0129f9cf866
 
-        :assert: config template is added
+        :expectedresults: config template is added
 
         :CaseLevel: Integration
         """
@@ -946,7 +947,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: 270de90d-062e-4893-89c9-f6d0665ab967
 
-        :assert: environment is removed from Organization.
+        :expectedresults: environment is removed from Organization.
 
         :CaseLevel: Integration
         """
@@ -981,7 +982,7 @@ class OrganizationTestCase(UITestCase):
 
         :id: bc59bdeb-b538-4473-a096-e4de2454497d
 
-        :assert: subnet is added then removed.
+        :expectedresults: subnet is added then removed.
 
         :CaseLevel: Integration
         """

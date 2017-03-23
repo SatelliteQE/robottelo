@@ -132,7 +132,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 3713c811-ea80-43ce-a753-344d1dcb7486
 
-        :Assert: Repository is created successfully
+        :expectedresults: Repository is created successfully
 
         :CaseImportance: Critical
         """
@@ -156,7 +156,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 019c2242-8802-4bae-82c5-accf8f793dbc
 
-        :Assert: Repository is created successfully for both organizations
+        :expectedresults: Repository is created successfully for both
+            organizations
 
         :CaseLevel: Integration
         """
@@ -190,8 +191,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: f4cb00ed-6faf-4c79-9f66-76cd333299cb
 
-        :Assert: Repositories are created and puppet modules are visible from
-            different organizations.
+        :expectedresults: Repositories are created and puppet modules are
+            visible from different organizations.
 
         :CaseLevel: Integration
         """
@@ -236,7 +237,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 06f37bb3-b0cf-4f1f-ae12-df13a6a7eaab
 
-        :Assert: Repository is created with expected checksum type.
+        :expectedresults: Repository is created with expected checksum type.
 
         :CaseImportance: Critical
         """
@@ -264,7 +265,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 385d0222-6466-4bc0-9686-b215f41e4274
 
-        :Assert: Repository is not created
+        :expectedresults: Repository is not created
 
         :CaseImportance: Critical
         """
@@ -291,7 +292,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: f9515a61-0c5e-4767-9fc9-b17d440418d8
 
-        :Assert: Repository is not created
+        :expectedresults: Repository is not created
 
         :CaseImportance: Critical
         """
@@ -322,7 +323,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: cb864338-9d18-4e18-a2ee-37f22e7036b8
 
-        :Assert: Repository is updated with expected url value
+        :expectedresults: Repository is updated with expected url value
 
         :CaseImportance: Critical
         """
@@ -353,7 +354,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 51da6572-02d0-43d7-96cc-895b5bebfadb
 
-        :Assert: Repository is updated with new gpg key
+        :expectedresults: Repository is updated with new gpg key
 
         :CaseImportance: Critical
         """
@@ -395,7 +396,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: eed4e77d-baa2-42c2-9774-f1bed52efe39
 
-        :Assert: Repository is updated with expected checksum type.
+        :expectedresults: Repository is updated with expected checksum type.
 
         :CaseImportance: Critical
         """
@@ -428,7 +429,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 9edc93b1-d4e5-453e-b4ee-0731df491397
 
-        :Assert: Repository is deleted successfully
+        :expectedresults: Repository is deleted successfully
 
         :CaseImportance: Critical
         """
@@ -467,8 +468,8 @@ class RepositoryTestCase(UITestCase):
                 module from Step 3
             8. Go back to same CV puppet module details page
 
-        :Assert: Proper error message saying that the puppet module version is
-            not found
+        :expectedresults: Proper error message saying that the puppet module
+            version is not found
 
         :caseautomation: notautomated
 
@@ -482,7 +483,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 9181950c-a756-456f-a46a-059e7a2add3c
 
-        :Assert: Repository is discovered and created
+        :expectedresults: Repository is discovered and created
 
         :CaseLevel: Integration
         """
@@ -504,7 +505,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: dc5281f8-1a8a-4a17-b746-728f344a1504
 
-        :Assert: Repository is discovered and created
+        :expectedresults: Repository is discovered and created
 
         :CaseLevel: Integration
         """
@@ -529,7 +530,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: afa218f4-e97a-4240-a82a-e69538d837a1
 
-        :Assert: Sync procedure for specific yum repository is successful
+        :expectedresults: Sync procedure for specific yum repository is
+            successful
 
         :CaseLevel: Integration
         """
@@ -558,7 +560,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 135176cc-7664-41ee-8c41-b77e193f2f22
 
-        :Assert: Sync procedure for specific puppet repository is successful
+        :expectedresults: Sync procedure for specific puppet repository is
+            successful
 
         :CaseLevel: Integration
         """
@@ -589,7 +592,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 942e0b4f-3524-4f00-812d-bdad306f81de
 
-        :Assert: Sync procedure for specific docker repository is successful
+        :expectedresults: Sync procedure for specific docker repository is
+            successful
 
         :CaseLevel: Integration
         """
@@ -619,7 +623,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
 
-        :Assert: Repository has updated non-zero package count
+        :expectedresults: Repository has updated non-zero package count
 
         :CaseLevel: Integration
 
@@ -663,7 +667,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: c82dfe9d-aa1c-4922-ab3f-5d66ba8375c5
 
-        :Assert: Repository has updated non-zero package count
+        :expectedresults: Repository has updated non-zero package count
 
         :CaseLevel: Integration
 
@@ -708,7 +712,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 852cccdc-7289-4d2f-b23a-7caad2dfa195
 
-        :Assert: Create custom ostree repository should be successful
+        :expectedresults: Create custom ostree repository should be successful
 
         :CaseImportance: Critical
         """
@@ -735,7 +739,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 87dcb236-4eb4-4897-9c2a-be1d0f4bc3e7
 
-        :Assert: Delete custom ostree repository should be successful
+        :expectedresults: Delete custom ostree repository should be successful
 
         :CaseImportance: Critical
         """
@@ -765,7 +769,7 @@ class RepositoryTestCase(UITestCase):
 
         :Steps: Update repo name
 
-        :Assert: ostree repo name should be updated successfully
+        :expectedresults: ostree repo name should be updated successfully
 
         :CaseImportance: Critical
         """
@@ -799,7 +803,7 @@ class RepositoryTestCase(UITestCase):
 
         :Steps: Update ostree repo URL
 
-        :Assert: ostree repo URL should be updated successfully
+        :expectedresults: ostree repo URL should be updated successfully
 
         :CaseImportance: Critical
         """
@@ -835,7 +839,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 8037a68b-66b8-4b42-a80b-fb08495f948d
 
-        :Assert: Dropdown for download policy is displayed for yum repo
+        :expectedresults: Dropdown for download policy is displayed for yum
+            repo
 
         :CaseImportance: Critical
         """
@@ -857,7 +862,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 8099fb98-963d-4370-bf51-6807f5efd6d3
 
-        :Assert: YUM repository with a download policy is created
+        :expectedresults: YUM repository with a download policy is created
 
         :CaseImportance: Critical
         """
@@ -881,7 +886,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: ee7637fe-3864-4b2f-a153-14312658d75a
 
-        :Assert: YUM repository with a default download policy
+        :expectedresults: YUM repository with a default download policy
 
         :CaseImportance: Critical
         """
@@ -921,7 +926,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 4aa4d914-74f3-4c2e-9e8a-6e1b7fdb34ea
 
-        :Assert: immediate download policy is updated to on_demand
+        :expectedresults: immediate download policy is updated to on_demand
 
         :CaseImportance: Critical
         """
@@ -943,7 +948,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: d61bf6b6-6485-4d3a-816a-b533e96deb69
 
-        :Assert: immediate download policy is updated to background
+        :expectedresults: immediate download policy is updated to background
 
         :CaseImportance: Critical
         """
@@ -965,7 +970,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 51cac66d-05a4-47da-adb5-d2909725457e
 
-        :Assert: on_demand download policy is updated to immediate
+        :expectedresults: on_demand download policy is updated to immediate
 
         :CaseImportance: Critical
         """
@@ -987,7 +992,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 25b5ba4e-a1cf-41c2-8ca8-4fa3153570f8
 
-        :Assert: on_demand download policy is updated to background
+        :expectedresults: on_demand download policy is updated to background
 
         :CaseImportance: Critical
         """
@@ -1009,7 +1014,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 7a6efe70-8edb-4fa8-b2a4-93762d6e4bc5
 
-        :Assert: background download policy is updated to immediate
+        :expectedresults: background download policy is updated to immediate
 
         :CaseImportance: Critical
         """
@@ -1031,7 +1036,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: d36b96b1-6e09-455e-82e7-36a23f8c6c06
 
-        :Assert: background download policy is updated to on_demand
+        :expectedresults: background download policy is updated to on_demand
 
         :CaseImportance: Critical
         """
@@ -1053,7 +1058,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: dded6dda-3576-4485-8f3c-bb7c091e7ff2
 
-        :Assert: YUM repository is not created with invalid download policy
+        :expectedresults: YUM repository is not created with invalid download
+            policy
 
         :CaseImportance: Critical
         """
@@ -1077,7 +1083,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: e6c725f2-172e-49f6-ae92-c56af8a1200b
 
-        :Assert: YUM repository is not updated to invalid download policy
+        :expectedresults: YUM repository is not updated to invalid download
+            policy
 
         :CaseImportance: Critical
         """
@@ -1100,7 +1107,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 47d55251-5f89-443d-b980-a441da34e205
 
-        :Assert: Dropdown for download policy is not displayed for non-yum repo
+        :expectedresults: Dropdown for download policy is not displayed for
+            non-yum repo
 
         :CaseImportance: Critical
         """
@@ -1138,7 +1146,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 1967a540-a265-4046-b87b-627524b63688
 
-        :Assert: srpms can be listed in repository
+        :expectedresults: srpms can be listed in repository
 
         :CaseLevel: Integration
         """
@@ -1177,7 +1185,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 2a57cbde-c616-440d-8bcb-6e18bd2d5c5f
 
-        :Assert: srpms can be listed in content view
+        :expectedresults: srpms can be listed in content view
 
         :CaseLevel: Integration
         """
@@ -1227,8 +1235,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 4563d1c1-cdce-4838-a67f-c0a5d4e996a6
 
-        :Assert: srpms can be listed in content view in proper lifecycle
-            environment
+        :expectedresults: srpms can be listed in content view in proper
+            lifecycle environment
 
         :CaseLevel: Integration
         """
@@ -1283,7 +1291,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 5e703d9a-ea26-4062-9d5c-d31bfbe87417
 
-        :Assert: drpms can be listed in repository
+        :expectedresults: drpms can be listed in repository
 
         :CaseLevel: Integration
         """
@@ -1322,7 +1330,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: cffa862c-f972-4aa4-96b2-5a4513cb3eef
 
-        :Assert: drpms can be listed in content view
+        :expectedresults: drpms can be listed in content view
 
         :CaseLevel: Integration
         """
@@ -1372,8 +1380,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: e33ee07c-4677-4be8-bd53-73689edfda34
 
-        :Assert: drpms can be listed in content view in proper lifecycle
-            environment
+        :expectedresults: drpms can be listed in content view in proper
+            lifecycle environment
 
         :CaseLevel: Integration
         """
@@ -1429,8 +1437,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 82ef2987-cb71-4164-aee5-4496b974d1bd
 
-        :Assert: Number of modules has no changed after a second repo was
-            synced.
+        :expectedresults: Number of modules has no changed after a second repo
+            was synced.
 
         :CaseImportance: Critical
         """
@@ -1475,7 +1483,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: de596c56-1327-49e8-86d5-a1ab907f26aa
 
-        :Assert: RH repo was disabled
+        :expectedresults: RH repo was disabled
 
         :CaseLevel: Integration
         """
@@ -1508,7 +1516,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 201d5742-cb1a-4534-ac02-91b5a4669d22
 
-        :Assert: Upload is successful and package is listed
+        :expectedresults: Upload is successful and package is listed
 
         :BZ: 1394390, 1154384
 
@@ -1545,7 +1553,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 77a098c2-3f63-4e9f-88b9-f0657b721611
 
-        :Assert: Error is raised during upload and file is not listed
+        :expectedresults: Error is raised during upload and file is not listed
 
         :CaseImportance: Critical
         """
@@ -1570,7 +1578,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 2da4ddeb-3d6a-4b77-b44a-190a0c20a4f6
 
-        :Assert: Upload is successful and module is listed
+        :expectedresults: Upload is successful and module is listed
 
         :BZ: 1154384
 
@@ -1609,7 +1617,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 79ebea29-2c5c-476d-8d1a-54e6b9d49e17
 
-        :Assert: Error is raised during upload and file is not listed
+        :expectedresults: Error is raised during upload and file is not listed
 
         :CaseImportance: Critical
         """
@@ -1636,7 +1644,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: 054763e5-b6a8-4f06-a9f7-6819fbc7aba8
 
-        :Assert: Content Counts shows zero rpm packages
+        :expectedresults: Content Counts shows zero rpm packages
 
         :CaseImportance: Critical
         """
@@ -1669,7 +1677,7 @@ class RepositoryTestCase(UITestCase):
 
         :id: be178e21-5d64-46d4-8a41-c3f0f62dabe0
 
-        :Assert: Content Counts shows zero puppet modules
+        :expectedresults: Content Counts shows zero puppet modules
         """
         with Session(self.browser) as session:
             repo = entities.Repository(
@@ -1719,8 +1727,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Create link to local puppet mirror
 
-        :Assert: Content source containing local GIT puppet mirror content is
-            created
+        :expectedresults: Content source containing local GIT puppet mirror
+            content is created
 
         :CaseAutomation: notautomated
         """
@@ -1738,8 +1746,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Modify details for existing puppet repo (name, etc.)
 
-        :Assert: Content source containing local GIT puppet mirror content is
-            modified
+        :expectedresults: Content source containing local GIT puppet mirror
+            content is modified
 
         :CaseAutomation: notautomated
         """
@@ -1757,8 +1765,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Delete link to local puppet mirror
 
-        :Assert: Content source containing local GIT puppet mirror content no
-            longer exists/is available.
+        :expectedresults: Content source containing local GIT puppet mirror
+            content no longer exists/is available.
 
         :CaseAutomation: notautomated
         """
@@ -1776,8 +1784,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Create link to local puppet mirror
 
-        :Assert: Content source containing remote GIT puppet mirror content is
-            created
+        :expectedresults: Content source containing remote GIT puppet mirror
+            content is created
 
         :CaseAutomation: notautomated
         """
@@ -1795,8 +1803,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: modify details for existing puppet repo (name, etc.)
 
-        :Assert: Content source containing remote GIT puppet mirror content is
-            modified
+        :expectedresults: Content source containing remote GIT puppet mirror
+            content is modified
 
         :CaseAutomation: notautomated
         """
@@ -1814,8 +1822,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Delete link to remote puppet mirror
 
-        :Assert: Content source containing remote GIT puppet mirror content no
-            longer exists/is available.
+        :expectedresults: Content source containing remote GIT puppet mirror
+            content no longer exists/is available.
 
         :CaseAutomation: notautomated
         """
@@ -1833,7 +1841,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Attempt to sync content from mirror
 
-        :Assert:
+        :expectedresults:
 
             1. Content is pulled down without error
             2. Confirmation that various resources actually exist in local
@@ -1865,8 +1873,8 @@ class GitPuppetMirrorTestCase(UITestCase):
                 satellite
             4.  View contents/details of same puppet module
 
-        :Assert: Puppet module has been updated in our content, even though the
-            module's version number has not changed.
+        :expectedresults: Puppet module has been updated in our content, even
+            though the module's version number has not changed.
 
         :CaseAutomation: notautomated
         """
@@ -1884,7 +1892,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Attempt to create a scheduled sync content from mirror
 
-        :Assert: Content is pulled down without error  on expected schedule
+        :expectedresults: Content is pulled down without error  on expected
+            schedule
 
         :CaseAutomation: notautomated
         """
@@ -1902,8 +1911,8 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :Steps: Attempt to list contents of repo
 
-        :Assert: Spot-checked items (filenames, dates, perhaps checksums?) are
-            correct.
+        :expectedresults: Spot-checked items (filenames, dates, perhaps
+            checksums?) are correct.
 
         :CaseAutomation: notautomated
         """

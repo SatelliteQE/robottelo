@@ -59,8 +59,8 @@ class SingleSignOnTestCase(UITestCase):
             2. Login to the Web-UI should be automatic without the need to fill
                 in the form.
 
-        :assert: Log in to sat6 UI successfully but cannot access anything
-            useful in UI
+        :expectedresults: Log in to sat6 UI successfully but cannot access
+            anything useful in UI
 
         :caseautomation: notautomated
 
@@ -82,8 +82,8 @@ class SingleSignOnTestCase(UITestCase):
             2. Login to the Web-UI should be automatic without the need to fill
                 in the form.
 
-        :assert: Log in to sat6 UI successfully and can access functional areas
-            in UI
+        :expectedresults: Log in to sat6 UI successfully and can access
+            functional areas in UI
 
         :caseautomation: notautomated
 
@@ -102,8 +102,8 @@ class SingleSignOnTestCase(UITestCase):
             1. Login to the foreman UI
             2. Delete or disable userid on IdM server or AD side.
 
-        :assert: This is handled gracefully (user is logged out perhaps?) and
-            no data corruption
+        :expectedresults: This is handled gracefully (user is logged out
+            perhaps?) and no data corruption
 
         :caseautomation: notautomated
 

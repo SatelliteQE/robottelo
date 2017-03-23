@@ -70,7 +70,8 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: A rhev CR is created successfully with proper connection.
+        :expectedresults: A rhev CR is created successfully with proper
+            connection.
 
         :CaseImportance: Critical
         """
@@ -109,7 +110,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: A rhev Compute Resource is created successfully
+        :expectedresults: A rhev Compute Resource is created successfully
 
         :CaseImportance: Critical
         """
@@ -150,7 +151,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: A rhev Compute Resource is not created
+        :expectedresults: A rhev Compute Resource is not created
 
         :CaseImportance: Critical
         """
@@ -194,7 +195,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: The rhev Compute Resource is updated
+        :expectedresults: The rhev Compute Resource is updated
 
         :CaseImportance: Critical
         """
@@ -238,7 +239,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: The rhev Compute Resource is updated
+        :expectedresults: The rhev Compute Resource is updated
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -282,7 +283,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: The Compute Resource is deleted
+        :expectedresults: The Compute Resource is deleted
 
         :CaseImportance: Critical
         """
@@ -323,7 +324,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: The image is added to the CR successfully
+        :expectedresults: The image is added to the CR successfully
          """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -374,7 +375,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: The image should not be added to the CR
+        :expectedresults: The image should not be added to the CR
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -425,7 +426,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: The Compute Resource created and opened successfully
+        :expectedresults: The Compute Resource created and opened successfully
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -462,7 +463,7 @@ class RhevComputeResourceTestCase(UITestCase):
             4. Click Compute Profile tab.
             5. Edit (3-Large) with valid configurations and submit.
 
-        :Assert: The Compute Resource created and opened successfully
+        :expectedresults: The Compute Resource created and opened successfully
 
         :Caseautomation: notautomated
         """
@@ -483,7 +484,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :CaseAutomation: Automated
 
-        :Assert: The Virtual machines should be displayed
+        :expectedresults: The Virtual machines should be displayed
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -529,7 +530,7 @@ class RhevComputeResourceTestCase(UITestCase):
             7. Select the appropriate image .
             8. Associate the activation key and submit.
 
-        :Assert: The host should be provisioned successfully
+        :expectedresults: The host should be provisioned successfully
 
         :Caseautomation: notautomated
         """
@@ -553,7 +554,7 @@ class RhevComputeResourceTestCase(UITestCase):
             4. Select the "Compute profile" from the drop down.
             5. Provision the host using the compute profile.
 
-        :Assert: The host should be provisioned successfully
+        :expectedresults: The host should be provisioned successfully
 
         :Caseautomation: notautomated
         """
@@ -578,7 +579,7 @@ class RhevComputeResourceTestCase(UITestCase):
                count and memory.
             5. Provision the host using the compute profile.
 
-        :Assert: The host should be provisioned with custom settings
+        :expectedresults: The host should be provisioned with custom settings
 
         :Caseautomation: notautomated
         """
@@ -601,7 +602,7 @@ class RhevComputeResourceTestCase(UITestCase):
             3. Select the Deploy on as rhev Compute Resource.
             4. Provision the host.
 
-        :Assert: The host should be provisioned with host group
+        :expectedresults: The host should be provisioned with host group
 
         :Caseautomation: notautomated
         """
@@ -613,7 +614,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :id: fb42e739-c35b-4c6f-a727-b99a4d695191
 
-        :Assert: The virtual machine is switched on
+        :expectedresults: The virtual machine is switched on
 
         :CaseAutomation: Automated
         """
@@ -641,7 +642,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :id: e2996210-7f49-4de4-a298-4a142506ed48
 
-        :Assert: The virtual machine is switched Off
+        :expectedresults: The virtual machine is switched Off
 
         :CaseAutomation: Automated
         """

@@ -60,7 +60,7 @@ class JobsTemplateTestCase(UITestCase):
             5. Enter a job name
             6. Click submit
 
-        :Assert: The job template was successfully created
+        :expectedresults: The job template was successfully created
 
         :CaseImportance: Critical
         """
@@ -90,7 +90,8 @@ class JobsTemplateTestCase(UITestCase):
             3. Click the upload button to upload a template from the file
             4. Select the file with the desired template
 
-        :Assert: Verify the template correctly imported the file's contents
+        :expectedresults: Verify the template correctly imported the file's
+            contents
 
         :CaseImportance: Critical
         """
@@ -123,7 +124,8 @@ class JobsTemplateTestCase(UITestCase):
             8. Populate the template code and reference the newly created input
             9. Click submit
 
-        :Assert: The job template was successfully saved with new input added
+        :expectedresults: The job template was successfully saved with new
+            input added
 
         :CaseImportance: Critical
         """
@@ -156,8 +158,8 @@ class JobsTemplateTestCase(UITestCase):
             2. Enter an invalid name
             3. Click submit
 
-        :Assert: Job Template with invalid name cannot be created and error is
-            raised
+        :expectedresults: Job Template with invalid name cannot be created and
+            error is raised
 
         :CaseImportance: Critical
         """
@@ -185,7 +187,7 @@ class JobsTemplateTestCase(UITestCase):
             2. Enter a name that has already been used
             3. Click submit
 
-        :Assert: The name duplication is caught and error is raised
+        :expectedresults: The name duplication is caught and error is raised
 
         :CaseImportance: Critical
         """
@@ -221,7 +223,7 @@ class JobsTemplateTestCase(UITestCase):
             2. Select Delete from the list
             3. Confirm the deletion
 
-        :Assert: The Job Template has been deleted
+        :expectedresults: The Job Template has been deleted
 
         :CaseImportance: Critical
         """
@@ -250,7 +252,8 @@ class JobsTemplateTestCase(UITestCase):
             3. Change the name
             4. Click submit
 
-        :Assert: Verify all job template contents were successfully copied
+        :expectedresults: Verify all job template contents were successfully
+            copied
 
         :CaseImportance: Critical
         """
@@ -281,7 +284,8 @@ class JobsTemplateTestCase(UITestCase):
             2. Modify the template's code
             3. Click the Diff button
 
-        :Assert: Verify that the new changes are displayed in the window
+        :expectedresults: Verify that the new changes are displayed in the
+            window
 
         :CaseImportance: Critical
         """
@@ -317,7 +321,7 @@ class JobsTemplateTestCase(UITestCase):
             3. Reference those input controls in the template text
             4. Select "preview" within the template viewer
 
-        :Assert: Verify no errors are thrown
+        :expectedresults: Verify no errors are thrown
 
         :CaseImportance: Critical
         """
@@ -360,7 +364,7 @@ class JobsTemplateTestCase(UITestCase):
                text
             5. Select "preview" within the template viewer
 
-        :Assert: Verify appropriate errors are thrown
+        :expectedresults: Verify appropriate errors are thrown
 
         :CaseImportance: Critical
         """
@@ -409,7 +413,7 @@ class RemoteExecutionTestCase(UITestCase):
             2. Select the job and appropriate template
             3. Run the job
 
-        :Assert: Verify the job was successfully ran against the host
+        :expectedresults: Verify the job was successfully ran against the host
 
         :CaseLevel: Integration
         """
@@ -441,7 +445,7 @@ class RemoteExecutionTestCase(UITestCase):
             2. Select the job and appropriate template
             3. Run the job
 
-        :Assert: Verify the job was successfully ran against the host
+        :expectedresults: Verify the job was successfully ran against the host
 
         :CaseLevel: System
         """
@@ -486,7 +490,7 @@ class RemoteExecutionTestCase(UITestCase):
             3. Select the job and appropriate template
             4. Run the job
 
-        :Assert: Verify the job was successfully ran against the hosts
+        :expectedresults: Verify the job was successfully ran against the hosts
 
         :CaseLevel: System
         """
@@ -525,7 +529,7 @@ class RemoteExecutionTestCase(UITestCase):
             4. Enter a desired time for the job to run
             5. Click submit
 
-        :Assert:
+        :expectedresults:
 
             1. Verify the job was not immediately ran
             2. Verify the job was successfully ran after the designated time
@@ -575,7 +579,8 @@ class RemoteExecutionTestCase(UITestCase):
             2. Select the created job and appropriate template
             3. Click submit
 
-        :Assert: Verify the job was successfully ran on the provisioned host
+        :expectedresults: Verify the job was successfully ran on the
+            provisioned host
 
         :caseautomation: notautomated
 
@@ -600,7 +605,8 @@ class RemoteExecutionTestCase(UITestCase):
             2. Select the created job and appropriate template
             3. Click submit
 
-        :Assert: Verify the job was successfully ran on the provisioned host
+        :expectedresults: Verify the job was successfully ran on the
+            provisioned host
 
         :caseautomation: notautomated
 
@@ -626,7 +632,8 @@ class RemoteExecutionTestCase(UITestCase):
             3. Select the created job and appropriate template
             4. Click submit
 
-        :Assert: Verify the job was successfully ran on the provisioned hosts
+        :expectedresults: Verify the job was successfully ran on the
+            provisioned hosts
 
         :caseautomation: notautomated
 

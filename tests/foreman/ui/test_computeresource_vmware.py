@@ -36,7 +36,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             3. Provide a valid name to vmware compute resource.
             4. Test the connection using Load Datacenters and submit.
 
-        :Assert: A vmware compute resource is created successfully.
+        :expectedresults: A vmware compute resource is created successfully.
 
         :Caseautomation: notautomated
 
@@ -59,7 +59,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             3. Provide a valid description to vmware compute resource.
             4. Test the connection using Load Datacenters and submit.
 
-        :Assert: A vmware compute resource is created successfully
+        :expectedresults: A vmware compute resource is created successfully
 
         :Caseautomation: notautomated
 
@@ -82,7 +82,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             3. Provide invalid name to vmware compute resource.
             4. Test the connection using Load Datacenters and submit.
 
-        :Assert: A vmware compute resource is not created
+        :expectedresults: A vmware compute resource is not created
 
         :Caseautomation: notautomated
 
@@ -106,7 +106,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             4. Test the connection using Load Datacenters and submit.
             5. Update the name of the created CR with valid string.
 
-        :Assert: The vmware compute resource is updated
+        :expectedresults: The vmware compute resource is updated
 
         :Caseautomation: notautomated
 
@@ -131,7 +131,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             5. Create a new organization.
             6. Add the CR to new organization.
 
-        :Assert: The vmware compute resource is updated
+        :expectedresults: The vmware compute resource is updated
 
         :Caseautomation: notautomated
 
@@ -155,7 +155,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             4. Test the connection using Load Datacenters and submit.
             5. Delete the created compute resource.
 
-        :Assert: The compute resource is deleted
+        :expectedresults: The compute resource is deleted
 
         :Caseautomation: notautomated
 
@@ -182,7 +182,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             4. Select "New image", provide valid name and information.
             5. Select the desired template to create image and submit.
 
-        :Assert: The image is added to the CR successfully
+        :expectedresults: The image is added to the CR successfully
 
         :Caseautomation: notautomated
 
@@ -210,7 +210,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             4. Select "New image" , provide invalid name and valid information.
             5. Select the desired template to create the image from and submit.
 
-        :Assert: The image should not be added to the CR
+        :expectedresults: The image should not be added to the CR
 
         :Caseautomation: notautomated
 
@@ -235,7 +235,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             4. Click Compute Profile tab.
             5. Select (3-Large) and submit.
 
-        :Assert: The Compute Resource created and opened successfully
+        :expectedresults: The Compute Resource created and opened successfully
 
         :Caseautomation: notautomated
 
@@ -260,7 +260,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             4. Click Compute Profile tab.
             5. Edit (3-Large) with valid configurations and submit.
 
-        :Assert: The Compute Resource created and opened successfully
+        :expectedresults: The Compute Resource created and opened successfully
 
         :Caseautomation: notautomated
 
@@ -282,7 +282,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             1. Select the created compute resource.
             2. Go to "Virtual Machines" tab.
 
-        :Assert: The Virtual machines should be displayed
+        :expectedresults: The Virtual machines should be displayed
 
         :Caseautomation: notautomated
 
@@ -315,7 +315,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             7. Select the appropriate image .
             8. Associate the activation key and submit.
 
-        :Assert: The host should be provisioned successfully
+        :expectedresults: The host should be provisioned successfully
 
         :Caseautomation: notautomated
 
@@ -344,7 +344,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             4. Select the "Compute profile" from the drop down.
             5. Provision the host using the compute profile.
 
-        :Assert: The host should be provisioned successfully
+        :expectedresults: The host should be provisioned successfully
 
         :Caseautomation: notautomated
 
@@ -375,7 +375,7 @@ class VmwareComputeResourceTestCase(UITestCase):
                count and memory.
             5. Provision the host using the compute profile.
 
-        :Assert: The host should be provisioned with custom settings
+        :expectedresults: The host should be provisioned with custom settings
 
         :Caseautomation: notautomated
 
@@ -404,7 +404,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             3. Select the Deploy on as vmware Compute Resource.
             4. Provision the host.
 
-        :Assert: The host should be provisioned with host group
+        :expectedresults: The host should be provisioned with host group
 
         :Caseautomation: notautomated
 
@@ -430,7 +430,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             2. Go to "Virtual Machines" tab.
             3. Click "Poweroff" button associated with the vm.
 
-        :Assert: The Virtual machine should be switched off
+        :expectedresults: The Virtual machine should be switched off
 
         :Caseautomation: notautomated
 
@@ -456,7 +456,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             2. Go to "Virtual Machines" tab.
             3. Click "Power on" button associated with the vm.
 
-        :Assert: The Virtual machine should be switched on
+        :expectedresults: The Virtual machine should be switched on
 
         :Caseautomation: notautomated
 

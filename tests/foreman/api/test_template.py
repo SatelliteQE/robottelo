@@ -40,7 +40,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: ca19d9da-1049-4b39-823b-933fc1a0cebd
 
-        :Assert: The response is a JSON payload.
+        :expectedresults: The response is a JSON payload.
 
         :CaseLevel: Integration
         """
@@ -59,7 +59,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: b60907c3-47b9-4bc7-99d6-08615ebe9d68
 
-        :Assert: Config template is associated with organization
+        :expectedresults: Config template is associated with organization
 
         :CaseLevel: Integration
         """
@@ -95,7 +95,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: 20ccd5c8-98c3-4f22-af50-9760940e5d39
 
-        :Assert: Configuration Template is created and contains provided name.
+        :expectedresults: Configuration Template is created and contains
+            provided name.
 
         :CaseImportance: Critical
         """
@@ -110,7 +111,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
 
-        :Assert: Configuration Template is not created
+        :expectedresults: Configuration Template is not created
 
         :CaseImportance: Critical
         """
@@ -125,8 +126,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: d7309be8-b5c9-4f77-8c4e-e9f2b8982076
 
-        :Assert: Provisioning Template is created and contains provided
-            template kind.
+        :expectedresults: Provisioning Template is created and contains
+            provided template kind.
 
         :CaseImportance: Critical
         """
@@ -143,7 +144,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: 4a1410e4-aa3c-4d27-b062-089e34722bd9
 
-        :Assert: Provisioning Template is created
+        :expectedresults: Provisioning Template is created
 
         :BZ: 1379006
 
@@ -164,7 +165,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: e6de9ceb-fe4b-43ce-b7e3-5453ca4bd164
 
-        :Assert: 404 error and expected message is returned
+        :expectedresults: 404 error and expected message is returned
 
         :BZ: 1379006
 
@@ -189,8 +190,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: 58ccc4ee-5faa-4fb2-bfd0-e19412e230dd
 
-        :Assert: Configuration Template is created, and its name can be
-            updated.
+        :expectedresults: Configuration Template is created, and its name can
+            be updated.
 
         :CaseImportance: Critical
         """
@@ -209,8 +210,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: f6167dc5-26ba-46d7-b61f-14c290d6a8fa
 
-        :Assert: Configuration Template is created, and its name is not
-            updated.
+        :expectedresults: Configuration Template is created, and its name is
+            not updated.
 
         :CaseImportance: Critical
         """
@@ -229,7 +230,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: 1471f17c-4412-4717-a6c4-b57a8d2f8cfd
 
-        :Assert: Configuration Template is successfully deleted.
+        :expectedresults: Configuration Template is successfully deleted.
 
         :CaseImportance: Critical
         """
@@ -246,7 +247,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         :id: 8dfbb234-7a52-4873-be72-4de086472669
 
-        :Assert: The template is cloned successfully with all values
+        :expectedresults: The template is cloned successfully with all values
 
         :CaseLevel: Integration
         """

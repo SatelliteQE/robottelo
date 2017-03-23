@@ -30,8 +30,8 @@ class ArchitectureTestCase(APITestCase):
 
         :id: 9943063d-34f3-4dbc-a341-474ec781e4d9
 
-        :Assert: The architecture can be created, and the association can be
-            read back from the server.
+        :expectedresults: The architecture can be created, and the association
+            can be read back from the server.
 
         :CaseLevel: Integration
         """
@@ -48,7 +48,7 @@ class ArchitectureTestCase(APITestCase):
 
         :id: acbadcda-3410-45cb-a3aa-932a0facadc1
 
-        :Assert: Architecture is created and contains provided name.
+        :expectedresults: Architecture is created and contains provided name.
 
         :CaseImportance: Critical
         """
@@ -65,7 +65,7 @@ class ArchitectureTestCase(APITestCase):
 
         :id: c740b8c4-8ee3-4481-b041-4eff2faf9055
 
-        :Assert: Architecture is not created
+        :expectedresults: Architecture is not created
 
         :CaseImportance: Critical
         """
@@ -81,7 +81,7 @@ class ArchitectureTestCase(APITestCase):
 
         :id: 8dbbf4f8-188e-406a-9099-a707f553d6bb
 
-        :Assert: Architecture is created, and its name can be updated.
+        :expectedresults: Architecture is created, and its name can be updated.
 
         :CaseImportance: Critical
         """
@@ -100,7 +100,7 @@ class ArchitectureTestCase(APITestCase):
 
         :id: 301b335e-9bc1-47d9-8bef-a8ca2e9ea18e
 
-        :Assert: Architecture is created, and its name is not updated.
+        :expectedresults: Architecture is created, and its name is not updated.
 
         :CaseImportance: Critical
         """
@@ -119,7 +119,7 @@ class ArchitectureTestCase(APITestCase):
 
         :id: 114a2973-a889-4a5e-bfac-de4406826258
 
-        :Assert: architecture is successfully deleted.
+        :expectedresults: architecture is successfully deleted.
 
         :CaseImportance: Critical
         """

@@ -65,7 +65,8 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
             4. run by only one thread as deleting sequentially
             5. produce result of timing
 
-        :Assert: Restoring from database would have 5k registered systems.
+        :expectedresults: Restoring from database would have 5k registered
+            systems.
         """
         self.kick_off_del_test(self.num_threads[0])
 
@@ -83,7 +84,8 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
                sublist of uuids
             5. produce result of timing
 
-        :Assert: Restoring from database would have 5k registered systems.
+        :expectedresults: Restoring from database would have 5k registered
+            systems.
         """
         self.kick_off_del_test(self.num_threads[1])
 
@@ -92,7 +94,8 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
 
         :id: 7c68ab12-503d-4aa6-b9fe-0ac44c9a72f2
 
-        :Assert: Restoring from database would have 5k registered systems.
+        :expectedresults: Restoring from database would have 5k registered
+            systems.
         """
         self.kick_off_del_test(self.num_threads[2])
 
@@ -101,7 +104,8 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
 
         :id: 7a9dddf3-cc0f-4f27-8f8e-329af6eb85a0
 
-        :Assert: Restoring from database would have 5k registered systems.
+        :expectedresults: Restoring from database would have 5k registered
+            systems.
         """
         self.kick_off_del_test(self.num_threads[3])
 
@@ -110,7 +114,8 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
 
         :id: 7ce2c9d3-2eda-4f71-b360-d5f7219d524f
 
-        :Assert: Restoring from database would have 5k registered systems.
+        :expectedresults: Restoring from database would have 5k registered
+            systems.
         """
         self.kick_off_del_test(self.num_threads[4])
 
@@ -128,6 +133,7 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
                sublist of uuids
             5. produce result of timing
 
-        :Assert: Restoring from database would have 5k registered systems.
+        :expectedresults: Restoring from database would have 5k registered
+            systems.
         """
         self.kick_off_del_test(self.num_threads[5])
