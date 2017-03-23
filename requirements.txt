@@ -9,7 +9,7 @@ mock==2.0.0
 paramiko==2.0.2
 pygal==2.2.3
 pylint==1.6.4
-pytest==2.9.2
+pytest==3.0.7
 pytest_services==1.1.14
 requests==2.10.0
 sauceclient==0.2.1
