@@ -62,7 +62,7 @@ class DashboardTestCase(UITestCase):
         :Assert: Check that we have zero as a result of search and any error is
             not raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -83,7 +83,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Data displayed according to search box
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -106,7 +106,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Search box is cleared
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         entities.Host(organization=org).create()
@@ -134,7 +134,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Widget is removed and is not present on Dashboard
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             self.dashboard.remove_widget('Latest Events')
@@ -157,7 +157,7 @@ class DashboardTestCase(UITestCase):
         :Assert: Dashboard is saved successfully and the removed widgets does
             not appear.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             self.dashboard.remove_widget('Host Configuration Chart')
@@ -183,7 +183,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Widget positions successfully saved.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             self.dashboard.remove_widget('Task Status')
@@ -209,7 +209,7 @@ class DashboardTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_in_one_thread
@@ -230,7 +230,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: The widget is added back to the Dashboard
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             for widget in ['Discovered Hosts', 'Content View History']:
@@ -254,7 +254,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Widget is minimized and is not present on Dashboard
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             for widget in ['Sync Overview', 'Compliance Reports Breakdown']:
@@ -278,7 +278,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: The widget is added back to the Dashboard
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             self.dashboard.minimize_widget('Latest Errata')
@@ -298,7 +298,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: The auto refresh functionality works as per the set value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             self.dashboard.navigate_to_entity()
@@ -331,7 +331,7 @@ class DashboardTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @tier2
@@ -603,7 +603,7 @@ class DashboardTestCase(UITestCase):
 
         :Assert: Sync Overview widget is updated with all sync processes
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         product = entities.Product(organization=org).create()
@@ -697,7 +697,7 @@ class DashboardTestCase(UITestCase):
         :Assert: The widget displays all the active subscriptions and expired
             subscriptions details
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:

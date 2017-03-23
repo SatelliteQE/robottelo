@@ -48,7 +48,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -70,7 +70,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet is created with 255 chars
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -130,7 +130,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -153,7 +153,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_subnet(
@@ -185,7 +185,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -208,7 +208,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -229,7 +229,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -255,7 +255,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet network is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_network = gen_ipaddr(ip3=True)
@@ -279,7 +279,7 @@ class SubnetTestCase(UITestCase):
 
         :Assert: Subnet mask is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_mask = gen_netmask(16, 31)

@@ -90,7 +90,7 @@ class HostTestCase(APITestCase):
 
         :Assert: HTTP 200 is returned, along with ``search`` term.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         query = gen_string('utf8', gen_integer(1, 100))
         response = client.get(
@@ -111,7 +111,7 @@ class HostTestCase(APITestCase):
 
         :Assert: HTTP 200 is returned, along with per ``per_page`` value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         per_page = gen_integer(1, 1000)
         response = client.get(
@@ -133,7 +133,7 @@ class HostTestCase(APITestCase):
         :Assert: The host can be read back, and the ``owner_type`` attribute is
             correct.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for owner_type in ('User', 'Usergroup'):
             with self.subTest(owner_type):
@@ -151,7 +151,7 @@ class HostTestCase(APITestCase):
 
         :Assert: The host's ``owner_type`` attribute is updated as requested.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         for owner_type in ('User', 'Usergroup'):
@@ -171,7 +171,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_hosts_list():
             with self.subTest(name):
@@ -190,7 +190,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected IP address
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ip_addr = gen_ipaddr()
         host = entities.Host(ip=ip_addr).create()
@@ -262,7 +262,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected puppet proxy assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -279,7 +279,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected puppet CA proxy assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -429,7 +429,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected 'build' parameter value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host(build=True).create()
         self.assertEqual(host.build, True)
@@ -445,7 +445,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected 'enabled' parameter value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host(enabled=False).create()
         self.assertEqual(host.enabled, False)
@@ -461,7 +461,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected managed parameter value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host(managed=True).create()
         self.assertEqual(host.managed, True)
@@ -475,7 +475,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is created with expected comment
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for comment in valid_data_list():
             with self.subTest(comment):
@@ -532,7 +532,7 @@ class HostTestCase(APITestCase):
 
         :Assert: A host is created with expected host parameters
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         parameters = [{
             'name': gen_string('alpha'), 'value': gen_string('alpha')
@@ -578,7 +578,7 @@ class HostTestCase(APITestCase):
 
         :Assert: A host is created with expected provision method
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for method in ['build', 'image']:
             with self.subTest(method):
@@ -600,7 +600,7 @@ class HostTestCase(APITestCase):
 
         :assert: Host is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         host.delete()
@@ -616,7 +616,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with expected name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         for new_name in valid_hosts_list():
@@ -637,7 +637,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new MAC address
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         new_mac = gen_mac()
@@ -760,7 +760,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new IP address
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host(ip=gen_ipaddr()).create()
         new_ip = gen_ipaddr()
@@ -807,7 +807,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new puppet proxy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         new_proxy = entities.SmartProxy().search(query={
@@ -826,7 +826,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new puppet CA proxy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         new_proxy = entities.SmartProxy().search(query={
@@ -845,7 +845,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is update with a new puppet classes
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host(organization=self.org, location=self.loc).create()
         self.assertEqual(len(host.puppetclass), 0)
@@ -1002,7 +1002,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new 'build' parameter value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for build in (True, False):
             with self.subTest(build):
@@ -1022,7 +1022,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new 'enabled' parameter value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for enabled in (True, False):
             with self.subTest(enabled):
@@ -1042,7 +1042,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new 'managed' parameter value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for managed in (True, False):
             with self.subTest(managed):
@@ -1060,7 +1060,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new comment
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_comment in valid_data_list():
             with self.subTest(new_comment):
@@ -1122,7 +1122,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is updated with a new host parameters
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         parameters = [{
             'name': gen_string('alpha'), 'value': gen_string('alpha')
@@ -1170,7 +1170,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         for new_name in invalid_values_list():
@@ -1193,7 +1193,7 @@ class HostTestCase(APITestCase):
 
         :assert: A host is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         for new_mac in invalid_values_list():
@@ -1430,7 +1430,7 @@ class HostTestCase(APITestCase):
 
         :BZ: 1371900
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1450,7 +1450,7 @@ class HostTestCase(APITestCase):
 
         :BZ: 1371900
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         proxy = entities.SmartProxy().search(query={
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -1478,7 +1478,7 @@ class HostInterfaceTestCase(APITestCase):
 
         :Assert: An interface is created with expected name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_interfaces_list():
             with self.subTest(name):
@@ -1495,7 +1495,7 @@ class HostInterfaceTestCase(APITestCase):
 
         :Assert: An interface is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_interfaces_list():
             with self.subTest(name):
@@ -1511,7 +1511,7 @@ class HostInterfaceTestCase(APITestCase):
 
         :Assert: Interface name is successfully updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         interface = entities.Interface(host=self.host).create()
         for new_name in valid_interfaces_list():
@@ -1529,7 +1529,7 @@ class HostInterfaceTestCase(APITestCase):
 
         :Assert: An interface is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         interface = entities.Interface(host=self.host).create()
         for new_name in invalid_interfaces_list():
@@ -1548,7 +1548,7 @@ class HostInterfaceTestCase(APITestCase):
 
         :Assert: An interface is successfully deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         interface = entities.Interface(host=host).create()
@@ -1564,7 +1564,7 @@ class HostInterfaceTestCase(APITestCase):
 
         :Assert: An interface is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         primary_interface = next(
@@ -1587,7 +1587,7 @@ class HostInterfaceTestCase(APITestCase):
 
         :Assert: An interface was successfully deleted, host was not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = entities.Host().create()
         interface = entities.Interface(host=host, primary=False).create()

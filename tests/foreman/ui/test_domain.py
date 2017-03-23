@@ -74,7 +74,7 @@ class DomainTestCase(UITestCase):
 
         :Assert: Domain is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -93,7 +93,7 @@ class DomainTestCase(UITestCase):
 
         :Assert: Domain is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_long_domain_names():
@@ -113,7 +113,7 @@ class DomainTestCase(UITestCase):
 
         :Assert: Domain is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -129,7 +129,7 @@ class DomainTestCase(UITestCase):
 
         :Assert: Domain is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -156,7 +156,7 @@ class DomainTestCase(UITestCase):
 
         :Assert: Domain is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):

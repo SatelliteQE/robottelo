@@ -54,7 +54,7 @@ class OpenScapPolicy(UITestCase):
 
         :Assert: Whether creating  Policy for OpenScap is successful.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -93,7 +93,7 @@ class OpenScapPolicy(UITestCase):
 
         :Assert: Whether deleting  Policy for OpenScap is successful.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -135,7 +135,7 @@ class OpenScapPolicy(UITestCase):
 
         :BZ: 1293296
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -173,7 +173,7 @@ class OpenScapPolicy(UITestCase):
 
         :Assert: Updating Policy for OpenScap is successful.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
         policy_name = gen_string('alpha')
@@ -227,7 +227,7 @@ class OpenScapPolicy(UITestCase):
 
         :BZ: 1292622
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:

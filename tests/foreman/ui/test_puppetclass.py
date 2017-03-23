@@ -36,7 +36,7 @@ class PuppetClassTestCase(UITestCase):
 
         :Assert: Puppet-Classes is updated successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         class_name = 'foreman_scap_client'
         param_name = 'ca_file'
@@ -65,7 +65,7 @@ class PuppetClassTestCase(UITestCase):
 
         :Assert: Puppet-Class is deleted successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             for name in valid_data_list():

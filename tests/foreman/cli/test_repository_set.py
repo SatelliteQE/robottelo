@@ -38,7 +38,7 @@ class RepositorySetTestCase(CLITestCase):
         :Assert: List of available repositories is displayed, with valid amount
             of enabled repositories
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         rhel_product_name = PRDS['rhel']
         rhel_repo_set = REPOSET['rhva6']
@@ -151,7 +151,7 @@ class RepositorySetTestCase(CLITestCase):
 
         :Assert: Repository was enabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -189,7 +189,7 @@ class RepositorySetTestCase(CLITestCase):
 
         :Assert: Repository was enabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -226,7 +226,7 @@ class RepositorySetTestCase(CLITestCase):
 
         :Assert: Repository was enabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -273,7 +273,7 @@ class RepositorySetTestCase(CLITestCase):
 
         :Assert: Repository was disabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -318,7 +318,7 @@ class RepositorySetTestCase(CLITestCase):
 
         :Assert: Repository was disabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         with manifests.clone() as manifest:
@@ -362,7 +362,7 @@ class RepositorySetTestCase(CLITestCase):
 
         :Assert: Repository was disabled
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         with manifests.clone() as manifest:

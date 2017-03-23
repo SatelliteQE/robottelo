@@ -46,7 +46,7 @@ class LoginTestCase(UITestCase):
 
         :Assert: Successfully logged in as an admin user
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.login.login(self.foreman_user,
                          self.foreman_password)
@@ -60,7 +60,7 @@ class LoginTestCase(UITestCase):
 
         :Assert: Fails to login
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for test_data in invalid_credentials():
             with self.subTest(test_data):

@@ -185,7 +185,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: The smart variable is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -254,7 +254,7 @@ class SmartVariablesTestCase(UITestCase):
             1. Error is displayed for invalid variable name.
             2. The smart Variable is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_names_list():
@@ -323,7 +323,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: The variable is updated with new name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         old_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -354,7 +354,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: The variable is updated with new puppet class.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -391,7 +391,7 @@ class SmartVariablesTestCase(UITestCase):
             2. The variable with same name are not allowed to create from any
                class
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -424,7 +424,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Variable is updated with a new type and value successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -469,7 +469,7 @@ class SmartVariablesTestCase(UITestCase):
         :assert: Variable is not updated with new type and invalid default
             value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         initial_value = gen_string('alpha')
@@ -513,7 +513,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Error is raised for default value not matching with regex.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_smart_variable(
@@ -545,7 +545,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Smart Variable is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -576,7 +576,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Error is raised for matcher value not matching with regex.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_smart_variable(
@@ -614,7 +614,7 @@ class SmartVariablesTestCase(UITestCase):
         :assert: Smart Variable is created successfully and error is not raised
             for matcher value matching with regex.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -654,7 +654,7 @@ class SmartVariablesTestCase(UITestCase):
         :assert: Error is raised for default value which is not in the list
             from validator rule.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_smart_variable(
@@ -685,7 +685,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Smart Variable is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -717,7 +717,7 @@ class SmartVariablesTestCase(UITestCase):
         :assert: Error is raised for matcher value that is not in list from
             validator rule.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_smart_variable(
@@ -754,7 +754,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Smart Variable is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -789,7 +789,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Error is raised for matcher value which is not of default type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_smart_variable(
@@ -824,7 +824,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Smart Variable is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -859,7 +859,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Error is raised for invalid default and matcher value both.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_smart_variable(
@@ -897,7 +897,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Error is raised for non existing attribute.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_smart_variable(
@@ -1432,7 +1432,7 @@ class SmartVariablesTestCase(UITestCase):
         :assert: The Merge Overrides, Merge Default checkboxes are disabled for
             editing
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1461,7 +1461,7 @@ class SmartVariablesTestCase(UITestCase):
         :assert: The Merge Overrides, Avoid Duplicates checkboxes are disabled
             for editing
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1728,7 +1728,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: Created Smart Variable has hidden default value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         value = gen_string('alphanumeric')
@@ -1762,7 +1762,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :assert: The default value shown in unhidden state.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         value = gen_string('alphanumeric')
@@ -1908,7 +1908,7 @@ class SmartVariablesTestCase(UITestCase):
             1.  The variable default value is updated.
             2.  The variable default value displayed as hidden.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         value = gen_string('alphanumeric')
@@ -2018,7 +2018,7 @@ class SmartVariablesTestCase(UITestCase):
             2.  The default value shows empty on hide.
             3.  Matcher Value shown as hidden.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         override_value = gen_string('alpha')

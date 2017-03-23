@@ -38,7 +38,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         :BZ: 1229384
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(length=1):
             with self.subTest(name):
@@ -54,7 +54,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         :Assert: Partition Table is created and has correct name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(length=randint(4, 30)):
             with self.subTest(name):
@@ -69,7 +69,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         :Assert: Partition Table is created and has correct content
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         content = 'Fake ptable'
         ptable = make_partition_table({'content': content})
@@ -85,7 +85,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         :Assert: Partition Table is created and its name can be updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = make_partition_table()
         for new_name in generate_strings_list(length=randint(4, 30)):
@@ -105,7 +105,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         :Assert: Partition Table is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = make_partition_table()
         PartitionTable.delete({'id': ptable['id']})
@@ -120,7 +120,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         :Assert: Partition Table is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         ptable = make_partition_table()
         PartitionTable.delete({'name': ptable['name']})

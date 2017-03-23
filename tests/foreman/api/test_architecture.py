@@ -50,7 +50,7 @@ class ArchitectureTestCase(APITestCase):
 
         :Assert: Architecture is created and contains provided name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -67,7 +67,7 @@ class ArchitectureTestCase(APITestCase):
 
         :Assert: Architecture is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -83,7 +83,7 @@ class ArchitectureTestCase(APITestCase):
 
         :Assert: Architecture is created, and its name can be updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         arch = entities.Architecture().create()
 
@@ -102,7 +102,7 @@ class ArchitectureTestCase(APITestCase):
 
         :Assert: Architecture is created, and its name is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         arch = entities.Architecture().create()
         for new_name in invalid_names_list():
@@ -121,7 +121,7 @@ class ArchitectureTestCase(APITestCase):
 
         :Assert: architecture is successfully deleted.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

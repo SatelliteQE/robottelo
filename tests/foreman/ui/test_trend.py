@@ -43,7 +43,7 @@ class TrendTest(UITestCase):
 
         :Assert: Trend is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['model'])
@@ -58,7 +58,7 @@ class TrendTest(UITestCase):
 
         :Assert: Trend entity is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         new_name = gen_string('alphanumeric')
@@ -84,7 +84,7 @@ class TrendTest(UITestCase):
 
         :Assert: Trend is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['environment'])

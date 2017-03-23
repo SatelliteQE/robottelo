@@ -90,7 +90,7 @@ class LocationTestCase(UITestCase):
 
         :assert: Created location can be auto search by its partial name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -116,7 +116,7 @@ class LocationTestCase(UITestCase):
 
         :assert: Location is created, label is auto-generated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for loc_name in generate_strings_list():
@@ -133,7 +133,7 @@ class LocationTestCase(UITestCase):
 
         :assert: location is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for loc_name in invalid_values_list(interface='ui'):
@@ -153,7 +153,7 @@ class LocationTestCase(UITestCase):
 
         :assert: location is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -200,7 +200,7 @@ class LocationTestCase(UITestCase):
 
         :assert: Location name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -224,7 +224,7 @@ class LocationTestCase(UITestCase):
 
         :assert: Location name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -245,7 +245,7 @@ class LocationTestCase(UITestCase):
 
         :assert: Location is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for loc_name in generate_strings_list():
@@ -357,7 +357,7 @@ class LocationTestCase(UITestCase):
 
         :assert: host group 'All values' checkbox is checked.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -527,7 +527,7 @@ class LocationTestCase(UITestCase):
 
         :assert: configtemplate 'All values' checkbox is checked.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:

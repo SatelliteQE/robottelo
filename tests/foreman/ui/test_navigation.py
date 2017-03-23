@@ -82,7 +82,7 @@ class NavigationTestCase(UITestCase):
 
         :Assert: Page is opened without errors
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for page in self.page_objects().values():
@@ -106,7 +106,7 @@ class NavigationTestCase(UITestCase):
         :Assert: No error is raised after redirection and logo is still present
             on the page
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             pages = self.page_objects()

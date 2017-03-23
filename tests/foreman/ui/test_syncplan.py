@@ -125,7 +125,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -147,7 +147,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for desc in generate_strings_list():
@@ -170,7 +170,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for interval in valid_sync_intervals():
@@ -254,7 +254,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -276,7 +276,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan cannot be created with existing name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -299,7 +299,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan's name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         plan_name = gen_string('alpha')
         entities.SyncPlan(
@@ -323,7 +323,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan's interval is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         entities.SyncPlan(
@@ -417,7 +417,7 @@ class SyncPlanTestCase(UITestCase):
 
         :Assert: Sync Plan is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for plan_name in generate_strings_list():

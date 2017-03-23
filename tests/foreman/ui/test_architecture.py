@@ -53,7 +53,7 @@ class ArchitectureTestCase(UITestCase):
 
         :Assert: Architecture is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for test_data in valid_arch_os_names():
@@ -77,7 +77,7 @@ class ArchitectureTestCase(UITestCase):
 
         :Assert: Architecture is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -95,7 +95,7 @@ class ArchitectureTestCase(UITestCase):
 
         :Assert: Architecture is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for invalid_name in invalid_values_list(interface='ui'):
@@ -113,7 +113,7 @@ class ArchitectureTestCase(UITestCase):
 
         :Assert: Architecture is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -133,7 +133,7 @@ class ArchitectureTestCase(UITestCase):
 
         :Assert: Architecture is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem(name=gen_string('alpha')).create()
         with Session(self.browser):
@@ -152,7 +152,7 @@ class ArchitectureTestCase(UITestCase):
 
         :Assert: Architecture is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         old_name = gen_string('alpha')
         os_name = gen_string('alpha')

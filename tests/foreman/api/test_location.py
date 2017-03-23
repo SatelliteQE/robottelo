@@ -62,7 +62,7 @@ class LocationTestCase(APITestCase):
         :Assert: Location created successfully and has expected and correct
             name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_loc_data_list():
             with self.subTest(name):
@@ -78,7 +78,7 @@ class LocationTestCase(APITestCase):
         :Assert: Location created successfully and has expected and correct
             description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         description = gen_string('utf8')
         location = entities.Location(description=description).create()
@@ -285,7 +285,7 @@ class LocationTestCase(APITestCase):
 
         :Assert: Location was deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         location = entities.Location().create()
         location.delete()
@@ -300,7 +300,7 @@ class LocationTestCase(APITestCase):
 
         :Assert: Location is not created and expected error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -315,7 +315,7 @@ class LocationTestCase(APITestCase):
 
         :Assert: Location is not created and expected error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         location = entities.Location(name=name).create()
@@ -331,7 +331,7 @@ class LocationTestCase(APITestCase):
 
         :Assert: Location is not created and expected error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Location(domain=[gen_integer(10000, 99999)]).create()
@@ -344,7 +344,7 @@ class LocationTestCase(APITestCase):
 
         :Assert: Location updated successfully and name was changed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name in valid_loc_data_list():
             with self.subTest(new_name):
@@ -360,7 +360,7 @@ class LocationTestCase(APITestCase):
 
         :Assert: Location updated successfully and description was changed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_description in valid_loc_data_list():
             with self.subTest(new_description):
@@ -610,7 +610,7 @@ class LocationTestCase(APITestCase):
 
         :Assert: Location is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name in invalid_values_list():
             with self.subTest(new_name):

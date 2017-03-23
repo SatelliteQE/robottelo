@@ -39,7 +39,7 @@ class ModelTestCase(CLITestCase):
 
         :Assert: Model is created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -55,7 +55,7 @@ class ModelTestCase(CLITestCase):
 
         :Assert: Model is created with specific vendor class
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         vendor_class = gen_string('utf8')
         model = make_model({'vendor-class': vendor_class})
@@ -69,7 +69,7 @@ class ModelTestCase(CLITestCase):
 
         :Assert: Model is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -84,7 +84,7 @@ class ModelTestCase(CLITestCase):
 
         :Assert: Model is updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         model = make_model()
         for new_name in valid_data_list():
@@ -105,7 +105,7 @@ class ModelTestCase(CLITestCase):
 
         :assert: Model name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         model = make_model()
         for new_name in invalid_values_list():
@@ -128,7 +128,7 @@ class ModelTestCase(CLITestCase):
 
         :assert: Model is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -146,7 +146,7 @@ class ModelTestCase(CLITestCase):
 
         :assert: Model is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

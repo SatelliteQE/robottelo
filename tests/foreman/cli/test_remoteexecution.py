@@ -77,7 +77,7 @@ class JobTemplateTestCase(CLITestCase):
 
         :Assert: The job template was successfully created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -98,7 +98,7 @@ class JobTemplateTestCase(CLITestCase):
         :Assert: Job Template with invalid name cannot be created and error is
             raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -121,7 +121,7 @@ class JobTemplateTestCase(CLITestCase):
 
         :Assert: The name duplication is caught and error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -147,7 +147,7 @@ class JobTemplateTestCase(CLITestCase):
 
         :Assert: The empty file is detected and error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
         with self.assertRaisesRegex(
@@ -168,7 +168,7 @@ class JobTemplateTestCase(CLITestCase):
 
         :Assert: The Job Template has been deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -188,7 +188,7 @@ class JobTemplateTestCase(CLITestCase):
 
         :Assert: Verify no errors are thrown
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         template_name = gen_string('alpha', 7)
         make_job_template({

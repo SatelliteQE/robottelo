@@ -39,7 +39,7 @@ class ComputeProfileTestCase(UITestCase):
 
         :Assert: Compute Profile is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -55,7 +55,7 @@ class ComputeProfileTestCase(UITestCase):
 
         :Assert: Compute Profile is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -72,7 +72,7 @@ class ComputeProfileTestCase(UITestCase):
 
         :Assert: Compute Profile is updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -92,7 +92,7 @@ class ComputeProfileTestCase(UITestCase):
 
         :Assert: Compute Profile is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -112,7 +112,7 @@ class ComputeProfileTestCase(UITestCase):
 
         :Assert: Compute Profile is deleted successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=7):

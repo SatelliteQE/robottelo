@@ -82,7 +82,7 @@ class SyncPlanTestCase(APITestCase):
 
         Targets BZ 1132817.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         entities.SyncPlan(organization=org).create()
@@ -126,7 +126,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan is created, 'enabled' field has correct value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for enabled in (False, True):
             with self.subTest(enabled):
@@ -145,7 +145,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan is created with the specified name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -164,7 +164,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan is created with the specified description.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -183,7 +183,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan is created with the specified interval.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for interval in valid_sync_interval():
             with self.subTest(interval):
@@ -202,7 +202,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan can be created with a random sync date.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for syncdate in valid_sync_dates():
             with self.subTest(syncdate):
@@ -224,7 +224,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan can not be created with the specified name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -243,7 +243,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan can not be created with invalid interval specified
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for interval in invalid_values_list():
             with self.subTest(interval):
@@ -262,7 +262,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
         :Assert: A sync plan can not be created with no interval specified.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sync_plan = entities.SyncPlan(organization=self.org)
         sync_plan.create_missing()
@@ -289,7 +289,7 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :Assert: Sync plan is updated with different 'enabled' value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for enabled in (False, True):
             with self.subTest(enabled):
@@ -313,7 +313,7 @@ class SyncPlanUpdateTestCase(APITestCase):
         :Assert: A sync plan is created and its name can be updated with the
             specified name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         for name in valid_data_list():
@@ -331,7 +331,7 @@ class SyncPlanUpdateTestCase(APITestCase):
         :Assert: A sync plan is created and its description can be updated with
             the specified description.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sync_plan = entities.SyncPlan(
             description=gen_string('alpha'),
@@ -355,7 +355,7 @@ class SyncPlanUpdateTestCase(APITestCase):
         :Assert: A sync plan is created and its interval can be updated with
             the specified interval.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for interval in valid_sync_interval():
             with self.subTest(interval):
@@ -381,7 +381,7 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :Assert: Sync date is updated with the specified sync date.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sync_plan = entities.SyncPlan(
             organization=self.org,
@@ -404,7 +404,7 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :Assert: A sync plan can not be updated with the specified name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         for name in invalid_values_list():
@@ -422,7 +422,7 @@ class SyncPlanUpdateTestCase(APITestCase):
 
         :Assert: A sync plan can not be updated with empty interval specified.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         for interval in invalid_values_list():

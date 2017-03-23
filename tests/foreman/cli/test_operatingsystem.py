@@ -59,7 +59,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is created and listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_list_before = OperatingSys.list()
         os = make_os()
@@ -78,7 +78,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is created and listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_list_before = OperatingSys.list()
         os = make_os()
@@ -97,7 +97,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is created and listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os_list_before = OperatingSys.list()
         name = gen_string('alpha')
@@ -117,7 +117,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is created and can be looked up by its ID
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = make_os()
         os_info = OperatingSys.info({'id': os['id']})
@@ -137,7 +137,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is created and can be found
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -153,7 +153,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: An operating system is created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         architecture = make_architecture()
         medium = make_medium()
@@ -183,7 +183,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -199,7 +199,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = make_os({'name': gen_alphanumeric()})
         for new_name in valid_data_list():
@@ -221,7 +221,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System major version is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = make_os()
         # New value for major
@@ -244,7 +244,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = make_os({'name': gen_alphanumeric()})
         for new_name in invalid_values_list():
@@ -266,7 +266,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -284,7 +284,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         :assert: Operating System is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for test_data in negative_delete_data():
             with self.subTest(test_data):

@@ -41,7 +41,7 @@ class UserGroupTestCase(UITestCase):
 
         :Assert: Usergroup is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         # Create a new user
@@ -69,7 +69,7 @@ class UserGroupTestCase(UITestCase):
 
         :Assert: Usergroup is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for group_name in invalid_names_list():
@@ -88,7 +88,7 @@ class UserGroupTestCase(UITestCase):
 
         :Assert: Usergroup cannot be created with existing name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         group_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -108,7 +108,7 @@ class UserGroupTestCase(UITestCase):
 
         :Assert: Usergroup is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for group_name in generate_strings_list():
@@ -154,7 +154,7 @@ class UserGroupTestCase(UITestCase):
 
         :Assert: Usergroup is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -174,7 +174,7 @@ class UserGroupTestCase(UITestCase):
 
         :Assert: Usergroup is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         user_name = gen_string('alpha')

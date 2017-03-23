@@ -108,7 +108,7 @@ class MyAccountTestCase(UITestCase):
 
         :Assert: Current User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         valid_strs = _valid_string_data()
         valid_strs.append('name with space')
@@ -124,7 +124,7 @@ class MyAccountTestCase(UITestCase):
 
         :Assert: Current User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         email = u'{0}@example.com'.format(gen_string('alpha'))
         self.assert_text_field_update('users.email', email)
@@ -141,7 +141,7 @@ class MyAccountTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         valid_strs = _valid_string_data()
         valid_strs.append('name with space')
@@ -157,7 +157,7 @@ class MyAccountTestCase(UITestCase):
 
         :Assert: Current User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
         for lang, locale in LANGUAGES.items():
@@ -192,7 +192,7 @@ class MyAccountTestCase(UITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for password in _valid_string_data(max_len=254):
             with self.subTest(password):
@@ -224,7 +224,7 @@ class MyAccountTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -240,7 +240,7 @@ class MyAccountTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -256,7 +256,7 @@ class MyAccountTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -273,7 +273,7 @@ class MyAccountTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -291,7 +291,7 @@ class MyAccountTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed()
@@ -311,5 +311,5 @@ class MyAccountTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """

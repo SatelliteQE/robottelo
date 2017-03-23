@@ -63,7 +63,7 @@ class OstreeBranchTestCase(CLITestCase):
 
         :Assert: Ostree Branch List is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = OstreeBranch.list()
         self.assertGreater(len(result), 0)
@@ -77,7 +77,7 @@ class OstreeBranchTestCase(CLITestCase):
 
         :Assert: Ostree Branch List is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = OstreeBranch.list({'repository-id': self.ostree_repo['id']})
         self.assertGreater(len(result), 0)
@@ -91,7 +91,7 @@ class OstreeBranchTestCase(CLITestCase):
 
         :Assert: Ostree Branch List is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = OstreeBranch.list({'product-id': self.product['id']})
         self.assertGreater(len(result), 0)
@@ -105,7 +105,7 @@ class OstreeBranchTestCase(CLITestCase):
 
         :Assert: Ostree Branch List is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = OstreeBranch.list({'organization-id': self.org['id']})
         self.assertGreater(len(result), 0)
@@ -119,7 +119,7 @@ class OstreeBranchTestCase(CLITestCase):
 
         :Assert: Ostree Branch List is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = OstreeBranch.list({'content-view-id': self.cv['id']})
         self.assertGreater(len(result), 0)
@@ -133,7 +133,7 @@ class OstreeBranchTestCase(CLITestCase):
 
         :Assert: Ostree Branch Info is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = OstreeBranch.list()
         self.assertGreater(len(result), 0)

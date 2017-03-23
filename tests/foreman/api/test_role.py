@@ -39,7 +39,7 @@ class RoleTestCase(APITestCase):
             entity can be fetched, and the fetched entity has the specified
             name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -56,7 +56,7 @@ class RoleTestCase(APITestCase):
 
         :Assert: The role cannot be fetched after it is deleted.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -77,7 +77,7 @@ class RoleTestCase(APITestCase):
 
         :Assert: The role is updated with the given name.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -105,7 +105,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -121,7 +121,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -144,7 +144,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -164,7 +164,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -182,7 +182,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -206,7 +206,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -222,7 +222,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -240,7 +240,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -260,7 +260,7 @@ class CannedRoleTestCases(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed

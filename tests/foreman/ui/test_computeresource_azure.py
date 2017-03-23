@@ -47,7 +47,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -77,7 +77,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -107,7 +107,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -138,7 +138,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -199,7 +199,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')

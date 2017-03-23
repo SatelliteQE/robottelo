@@ -38,7 +38,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -57,7 +57,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 256)
         path = INSTALL_MEDIUM_URL % name
@@ -76,7 +76,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         with Session(self.browser) as session:
@@ -98,7 +98,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
@@ -119,7 +119,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 6)
         with Session(self.browser) as session:
@@ -137,7 +137,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 6)
         new_name = gen_string('alpha', 6)
@@ -160,7 +160,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
@@ -177,7 +177,7 @@ class MediumTestCase(UITestCase):
 
         :Assert: Media is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 6)
         newname = gen_string('alpha', 4)

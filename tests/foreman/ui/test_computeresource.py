@@ -48,7 +48,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: A libvirt Compute Resource is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -72,7 +72,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: A libvirt Compute Resource is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for description in valid_data_list():
@@ -98,7 +98,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: A libvirt Compute Resource is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for display_type in 'VNC', 'SPICE':
@@ -125,7 +125,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: A libvirt Compute Resource is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for console_password in True, False:
@@ -152,7 +152,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: A libvirt Compute Resource is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         include_list = [' ']
         with Session(self.browser) as session:
@@ -181,7 +181,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: The libvirt Compute Resource is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for newname in valid_data_list():
@@ -208,7 +208,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: The libvirt Compute Resource is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -237,7 +237,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: The Compute Resource is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -263,7 +263,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :Assert: The Compute Resource created and opened successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:

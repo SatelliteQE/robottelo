@@ -49,7 +49,7 @@ class TemplateTestCase(UITestCase):
         :Assert: New template of type 'Provisioning template' should be created
             successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -72,7 +72,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: Template is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -96,7 +96,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: Template is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -127,7 +127,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: Template is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -153,7 +153,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: Template is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -179,7 +179,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: Template is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             make_templates(
@@ -203,7 +203,7 @@ class TemplateTestCase(UITestCase):
         :Assert: New provisioning template of type 'snippet' should be created
             successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -226,7 +226,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: Template is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -247,7 +247,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: The template name and type should be updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -275,7 +275,7 @@ class TemplateTestCase(UITestCase):
         :Assert: The template should be updated with newly created OS's
             successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -344,7 +344,7 @@ class TemplateTestCase(UITestCase):
 
         :Assert: Template can be found successfully and no error is raised
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         loc = entities.Location().create()

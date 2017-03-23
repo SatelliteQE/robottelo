@@ -49,7 +49,7 @@ class LDAPAuthSourceTestCase(UITestCase):
 
         :Assert: Whether creating LDAP Auth with AD is successful.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():
@@ -85,7 +85,7 @@ class LDAPAuthSourceTestCase(UITestCase):
 
         :Assert: Whether deleting LDAP Auth with AD is successful.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():

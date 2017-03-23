@@ -90,7 +90,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: Auto search for created organization works as intended
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org_name = gen_string('alpha')
         part_string = org_name[:3]
@@ -110,7 +110,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: Organization is created, label is auto-generated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -126,7 +126,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: organization is created, label does not match name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for label in valid_labels():
@@ -149,7 +149,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: organization is created, label matches name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for item in valid_labels():
@@ -174,7 +174,7 @@ class OrganizationTestCase(UITestCase):
 
         :BZ: 1079482
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -219,7 +219,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: organization is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for org_name in invalid_values_list(interface='ui'):
@@ -238,7 +238,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: organization is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -258,7 +258,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: Organization is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser):
             for org_name in generate_strings_list():
@@ -339,7 +339,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: Organization name is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -360,7 +360,7 @@ class OrganizationTestCase(UITestCase):
 
         :assert: Organization name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org_name = gen_string('alpha')
         with Session(self.browser) as session:

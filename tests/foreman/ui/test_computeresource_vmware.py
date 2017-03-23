@@ -40,7 +40,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -63,7 +63,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -86,7 +86,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -110,7 +110,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -159,7 +159,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')

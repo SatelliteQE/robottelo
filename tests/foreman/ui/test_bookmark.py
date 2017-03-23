@@ -122,7 +122,7 @@ class BookmarkTestCase(UITestCase):
         :Assert: No errors, Bookmark is displayed, controller matches the
             entity the bookmark was created for
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -158,7 +158,7 @@ class BookmarkTestCase(UITestCase):
         :Assert: No errors, Bookmark is displayed, controller matches the
             entity the bookmark was created for
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -245,7 +245,7 @@ class BookmarkTestCase(UITestCase):
         :Assert: Error notification - name cannot be empty, Bookmark is not
             created (not listed)
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -283,7 +283,7 @@ class BookmarkTestCase(UITestCase):
         :Assert: Error notification - search query cannot be empty, Bookmark is
             not created (not listed)
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -318,7 +318,7 @@ class BookmarkTestCase(UITestCase):
         :Assert: Error notification - name already taken, Bookmark is not
             created (not listed)
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -357,7 +357,7 @@ class BookmarkTestCase(UITestCase):
 
         :Assert: The new bookmark name is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -393,7 +393,7 @@ class BookmarkTestCase(UITestCase):
 
         :Assert: Error - name already taken, bookmark not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -437,7 +437,7 @@ class BookmarkTestCase(UITestCase):
 
         :Assert: Error - name cannot be empty, bookmark not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -477,7 +477,7 @@ class BookmarkTestCase(UITestCase):
 
         :Assert: The updated query is populated and submitted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -517,7 +517,7 @@ class BookmarkTestCase(UITestCase):
 
         :Assert: Error - search query cannot be empty, bookmark not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -630,7 +630,7 @@ class BookmarkTestCase(UITestCase):
 
         :Assert: The bookmark is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity in self.entities:
             with self.subTest(entity):

@@ -81,7 +81,7 @@ class TemplateCombinationTestCase(APITestCase):
 
         :Assert: TemplateCombination can be retrieved through API
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)
@@ -100,7 +100,7 @@ class TemplateCombinationTestCase(APITestCase):
 
         :Assert: TemplateCombination can be deleted through API
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)

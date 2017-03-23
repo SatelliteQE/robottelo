@@ -145,7 +145,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -168,7 +168,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -551,7 +551,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -574,7 +574,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -599,7 +599,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -628,7 +628,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -660,7 +660,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -693,7 +693,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -728,7 +728,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -761,7 +761,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -795,7 +795,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -828,7 +828,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -861,7 +861,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -893,7 +893,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1021,7 +1021,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  New matcher for fqdn/hostgroup created inside parameter.
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1043,7 +1043,7 @@ class SmartClassParametersTestCase(UITestCase):
             2.  No matcher for fqdn/hostgroup is created inside parameter.
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1071,7 +1071,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1099,7 +1099,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1125,7 +1125,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1152,7 +1152,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1179,7 +1179,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1314,7 +1314,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -1343,7 +1343,7 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')

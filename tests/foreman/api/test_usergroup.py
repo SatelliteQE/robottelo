@@ -42,7 +42,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -57,7 +57,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -75,7 +75,7 @@ class UserGroupTestCase(APITestCase):
         :Assert: User group is created successfully and contains all expected
             users.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         users = [entities.User().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(user=users).create()
@@ -92,7 +92,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for role_name in valid_data_list():
             with self.subTest(role_name):
@@ -110,7 +110,7 @@ class UserGroupTestCase(APITestCase):
         :Assert: User group is created successfully and contains all expected
             roles
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         roles = [entities.Role().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(role=roles).create()
@@ -128,7 +128,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is created successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -168,7 +168,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -183,7 +183,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = entities.UserGroup().create()
         with self.assertRaises(HTTPError):
@@ -197,7 +197,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is updated successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = entities.UserGroup().create()
         for new_name in valid_data_list():
@@ -214,7 +214,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User is added to user group successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = entities.User().create()
         user_group = entities.UserGroup().create()
@@ -246,7 +246,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: Role is added to user group successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_role = entities.Role().create()
         user_group = entities.UserGroup().create()
@@ -262,7 +262,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is added to existing group successfully.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_usergroup = entities.UserGroup().create()
         user_group = entities.UserGroup().create()
@@ -279,7 +279,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = entities.UserGroup().create()
         for new_name in invalid_values_list():
@@ -297,7 +297,7 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is not updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         entities.UserGroup(name=name).create()
@@ -315,7 +315,7 @@ class UserGroupTestCase(APITestCase):
 
         :assert: User group is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_group = entities.UserGroup().create()
         user_group.delete()

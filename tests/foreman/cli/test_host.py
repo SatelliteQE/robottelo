@@ -149,7 +149,7 @@ class HostCreateTestCase(CLITestCase):
 
         :assert: A host is created and the name matches
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_hosts_list():
             with self.subTest(name):
@@ -184,7 +184,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created using organization name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
@@ -203,7 +203,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created, default content view is associated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
@@ -225,7 +225,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created, default lifecycle environment is associated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_host = make_fake_host({
             'content-view-id': self.DEFAULT_CV['id'],
@@ -246,7 +246,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created using new lifecycle
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_host = make_fake_host({
             'content-view-id': self.promoted_cv['id'],
@@ -267,7 +267,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created using new published, promoted cv
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_host = make_fake_host({
             'content-view-id': self.promoted_cv['id'],
@@ -287,7 +287,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created and has puppet class assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = make_fake_host({
             'puppet-class-ids': self.puppet_class['id'],
@@ -307,7 +307,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created and has puppet class assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         host = make_fake_host({
             'puppet-classes': self.puppet_class['name'],
@@ -327,7 +327,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -348,7 +348,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is not created using new unpublished cv
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cv = make_content_view({'organization-id': self.new_org['id']})
         env = self.new_lce['id']
@@ -585,7 +585,7 @@ class HostCreateTestCase(CLITestCase):
 
         :Assert: Host is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         compute_resource = entities.LibvirtComputeResource(
             url='qemu+ssh://root@{0}/system'.format(
@@ -855,7 +855,7 @@ class HostDeleteTestCase(CLITestCase):
 
         :Assert: Host is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         Host.delete({'id': self.host['id']})
         with self.assertRaises(CLIReturnCodeError):
@@ -869,7 +869,7 @@ class HostDeleteTestCase(CLITestCase):
 
         :Assert: Host is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         Host.delete({'name': self.host['name']})
         with self.assertRaises(CLIReturnCodeError):
@@ -916,7 +916,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :assert: A host is updated and the name matches
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name in valid_hosts_list():
             with self.subTest(new_name):
@@ -941,7 +941,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :assert: A host is updated and the name matches
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name in valid_hosts_list():
             with self.subTest(new_name):
@@ -967,7 +967,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :assert: A host is updated and the MAC address matches
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_mac = gen_mac()
         Host.update({
@@ -986,7 +986,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :assert: A host is updated and the MAC address matches
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_mac = gen_mac()
         Host.update({
@@ -1262,7 +1262,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :assert: A host is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_name in invalid_values_list():
             with self.subTest(new_name):
@@ -1288,7 +1288,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :assert: A host is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for new_mac in invalid_values_list():
             with self.subTest(new_mac):
@@ -1394,7 +1394,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was successfully added with correct name.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1416,7 +1416,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was successfully added with value.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for value in valid_data_list():
             with self.subTest(value):
@@ -1439,7 +1439,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was successfully added with correct name and
             value.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric').lower()
         value = gen_string('alphanumeric')
@@ -1461,7 +1461,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was successfully updated with new value.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric').lower()
         old_value = gen_string('alphanumeric')
@@ -1490,7 +1490,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was successfully updated with new value.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric').lower()
         old_value = gen_string('alphanumeric')
@@ -1519,7 +1519,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was successfully deleted.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1545,7 +1545,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was successfully deleted.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1571,7 +1571,7 @@ class HostParameterTestCase(CLITestCase):
         :Assert: Host parameter was not added.
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -1864,7 +1864,7 @@ class HostErrataTestCase(CLITestCase):
 
         :BZ: 1351040
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hostname = ssh.command('hostname').stdout[0]
         host = Host.info({'name': hostname})

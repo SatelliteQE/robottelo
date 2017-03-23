@@ -51,7 +51,7 @@ class PartitionTableTestCase(UITestCase):
 
         :BZ: 1229384
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=1):
@@ -73,7 +73,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -95,7 +95,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -117,7 +117,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -268,7 +268,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -293,7 +293,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         os_family = 'Red Hat'
@@ -323,7 +323,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -342,7 +342,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -364,7 +364,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -395,7 +395,7 @@ class PartitionTableTestCase(UITestCase):
 
         :Assert: Partition table is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:

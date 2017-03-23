@@ -284,7 +284,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment is created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -299,7 +299,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -316,7 +316,7 @@ class EnvironmentTestCase(CLITestCase):
         :Assert: Environment is created and has new Location assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_loc = make_location()
         new_environment = make_environment({
@@ -335,7 +335,7 @@ class EnvironmentTestCase(CLITestCase):
         :Assert: Environment is created and has new Organization assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_org = make_org()
         new_environment = make_environment({
@@ -354,7 +354,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :assert: Environment is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -372,7 +372,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :assert: Environment is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -388,7 +388,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment is deleted.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         environment = make_environment()
         Environment.delete({'name': environment['name']})
@@ -404,7 +404,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment Update is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         environment = make_environment()
         for new_name in valid_environments_list():
@@ -425,7 +425,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: Environment is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         environment = make_environment()
         for new_name in invalid_values_list():
@@ -448,7 +448,7 @@ class EnvironmentTestCase(CLITestCase):
         :Assert: Environment Update finished and new location is assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         old_loc = make_location()
         new_loc = make_location()
@@ -472,7 +472,7 @@ class EnvironmentTestCase(CLITestCase):
         :Assert: Environment Update finished and new organization is assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         old_org = make_org()
         new_org = make_org()
@@ -500,7 +500,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: The command runs without raising an error
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -524,7 +524,7 @@ class EnvironmentTestCase(CLITestCase):
 
         :Assert: The command runs without raising an error
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         sc_params_list = SmartClassParameter.list({
             'environment': self.env['name'],

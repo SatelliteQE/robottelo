@@ -39,7 +39,7 @@ class HardwareModelTestCase(UITestCase):
 
         :assert: Hardware-Model is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -56,7 +56,7 @@ class HardwareModelTestCase(UITestCase):
 
         :assert: Hardware-Model is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -75,7 +75,7 @@ class HardwareModelTestCase(UITestCase):
 
         :assert: Hardware-Model is updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -96,7 +96,7 @@ class HardwareModelTestCase(UITestCase):
 
         :assert: Hardware-Model is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

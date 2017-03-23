@@ -150,7 +150,7 @@ class ContentViewTestCase(UITestCase):
 
         :assert: Content views are created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -173,7 +173,7 @@ class ContentViewTestCase(UITestCase):
         :assert: content views are not created; proper error thrown and system
             handles it gracefully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             # invalid_names_list is used instead of invalid_values_list
@@ -903,7 +903,7 @@ class ContentViewTestCase(UITestCase):
 
         :assert: Content view is updated successfully and has proper name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -929,7 +929,7 @@ class ContentViewTestCase(UITestCase):
 
         :assert: Content View is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -955,7 +955,7 @@ class ContentViewTestCase(UITestCase):
         :assert: Content view is updated successfully and has proper
             description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha', 8)
         desc = gen_string('alpha', 15)
@@ -1043,7 +1043,7 @@ class ContentViewTestCase(UITestCase):
 
         :assert: Content view can be deleted and no longer appears in UI
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

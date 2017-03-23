@@ -51,7 +51,7 @@ class CapsuleTestCase(CLITestCase):
 
         :Assert: Proxy is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Create a random proxy
         with self.assertRaisesRegex(
@@ -74,7 +74,7 @@ class CapsuleTestCase(CLITestCase):
 
         :Assert: Proxy is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -94,7 +94,7 @@ class CapsuleTestCase(CLITestCase):
 
         :Assert: Proxy is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -113,7 +113,7 @@ class CapsuleTestCase(CLITestCase):
 
         :Assert: Proxy has the name updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         proxy = make_proxy({u'name': gen_alphanumeric()})
         for new_name in valid_data_list():
@@ -190,7 +190,7 @@ class CapsuleTestCase(CLITestCase):
 
         :Assert: Puppet classes are imported from proxy
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port):

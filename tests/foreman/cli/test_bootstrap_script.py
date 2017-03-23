@@ -43,7 +43,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -63,7 +63,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -83,7 +83,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -102,7 +102,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -122,7 +122,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -141,7 +141,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @tier1
@@ -161,5 +161,5 @@ class BootstrapScriptTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """

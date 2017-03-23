@@ -40,7 +40,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -63,7 +63,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -87,7 +87,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -112,7 +112,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -161,7 +161,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
 
         :Caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @run_only_on('sat')

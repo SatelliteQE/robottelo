@@ -54,7 +54,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The created filter has the assigned permissions.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Assign filter to created role
         filter_ = make_filter({
@@ -75,7 +75,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The created filter has the assigned permissions.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         # Assign filter to created role
@@ -96,7 +96,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The created filter has the assigned permissions.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         loc = make_location()
         # Assign filter to created role
@@ -116,7 +116,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The deleted filter cannot be fetched.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -134,7 +134,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: The filter cannot be fetched.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -157,7 +157,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: Permissions updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -186,7 +186,7 @@ class FilterTestCase(APITestCase):
 
         :Assert: Filter is created and assigned to new role.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         filter_ = make_filter({
             'role-id': self.role['id'],
@@ -210,7 +210,7 @@ class FilterTestCase(APITestCase):
 
          :Assert: Filter is created and assigned to new org and loc.
 
-         :CaseLevel: Critical
+         :CaseImportance: Critical
          """
         org = make_org()
         loc = make_location()

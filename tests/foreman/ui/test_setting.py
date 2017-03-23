@@ -174,7 +174,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation'
@@ -201,7 +201,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'administrator'
@@ -229,7 +229,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation_api'
@@ -257,7 +257,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'entries_per_page'
@@ -286,7 +286,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         param_value = str(randint(30, 1000))
         self.tab_locator = tab_locators['settings.tab_general']
@@ -312,7 +312,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'email_reply_address'
@@ -339,7 +339,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'fix_db_cache'
@@ -366,7 +366,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'use_gravatar'
@@ -394,7 +394,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
@@ -423,7 +423,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
@@ -451,7 +451,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
@@ -480,7 +480,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
@@ -507,7 +507,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
@@ -534,7 +534,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
@@ -564,7 +564,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_foremantasks']
         self.param_name = 'dynflow_enable_console'
@@ -592,7 +592,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = ('authorize_login_delegation_auth_source_user'
@@ -621,7 +621,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'login_delegation_logout_url'
@@ -649,7 +649,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is not editable
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         with Session(self.browser) as session:
@@ -674,7 +674,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'require_ssl_smart_proxies'
@@ -702,7 +702,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'restrict_registered_smart_proxies'
@@ -731,7 +731,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
@@ -758,7 +758,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
@@ -788,7 +788,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'ignore_puppet_facts_for_provisioning'
@@ -816,7 +816,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'manage_puppetca'
@@ -845,7 +845,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'query_local_nameservers'
@@ -873,7 +873,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'safemode_render'
@@ -902,7 +902,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'
@@ -932,7 +932,7 @@ class SettingTestCase(UITestCase):
 
         :Assert: Parameter is updated successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'

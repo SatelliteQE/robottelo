@@ -49,7 +49,7 @@ class ReportTestCase(CLITestCase):
 
         :Assert: Puppert Report List is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         Report.list()
 
@@ -62,7 +62,7 @@ class ReportTestCase(CLITestCase):
 
         :Assert: Puppet Report Info is displayed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = Report.list()
         self.assertGreater(len(result), 0)
@@ -80,7 +80,7 @@ class ReportTestCase(CLITestCase):
 
         :Assert: Puppet Report is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         result = Report.list()
         self.assertGreater(len(result), 0)

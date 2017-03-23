@@ -55,7 +55,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: There should not be an error returned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
         # List available lifecycle environments using default Table
@@ -80,7 +80,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Can get info for lifecycle by its name
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         test_data = {
             'name': gen_string('utf8', 15),
@@ -105,7 +105,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment is created with Library as prior
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -127,7 +127,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment is created with Library as prior
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for desc in valid_data_list():
             name = gen_alphanumeric()
@@ -152,7 +152,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment with label is created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for label in (gen_string("alpha", 15), gen_string("alphanumeric", 15),
                       gen_string("numeric", 15)):
@@ -174,7 +174,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment is created for correct organization
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_lce = make_lifecycle_environment({
             'name': gen_string('alpha'),
@@ -192,7 +192,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment is created for correct organization
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_lce = make_lifecycle_environment({
             'name': gen_string('alpha'),
@@ -211,7 +211,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment is deleted
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -236,7 +236,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment name is updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_lce = make_lifecycle_environment({
             'organization-id': self.org['id'],
@@ -265,7 +265,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment description is updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_lce = make_lifecycle_environment({
             'organization-id': self.org['id'],
@@ -294,7 +294,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :Assert: Lifecycle environment paths listed
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         lc_env = make_lifecycle_environment({

@@ -87,7 +87,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: HostGroup is created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_hostgroups_list():
             with self.subTest(name):
@@ -102,7 +102,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: HostGroup is not created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -119,7 +119,7 @@ class HostGroupTestCase(CLITestCase):
         :Assert: Hostgroup is created and has new environment assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         environment = make_environment()
         hostgroup = make_hostgroup({'environment-id': environment['id']})
@@ -135,7 +135,7 @@ class HostGroupTestCase(CLITestCase):
         :Assert: Hostgroup is created and has new location assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         location = make_location()
         hostgroup = make_hostgroup({'location-ids': location['id']})
@@ -151,7 +151,7 @@ class HostGroupTestCase(CLITestCase):
         :Assert: Hostgroup is created and has operating system assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = make_os()
         hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
@@ -167,7 +167,7 @@ class HostGroupTestCase(CLITestCase):
         :Assert: Hostgroup is created and has new organization assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         hostgroup = make_hostgroup({'organization-ids': org['id']})
@@ -181,7 +181,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: Hostgroup is created and has both new organizations assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         orgs = [make_org() for _ in range(2)]
         hostgroup = make_hostgroup({
@@ -202,7 +202,7 @@ class HostGroupTestCase(CLITestCase):
         :Assert: Hostgroup is created and has puppet CA proxy server assigned
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         puppet_proxy = Proxy.list({
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -219,7 +219,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: Hostgroup is created and has puppet proxy server assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         puppet_proxy = Proxy.list({
             'search': 'url = https://{0}:9090'.format(settings.server.hostname)
@@ -238,7 +238,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: Hostgroup is created and has puppet class assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hostgroup = make_hostgroup({
             'puppet-class-ids': self.puppet_classes[0]['id'],
@@ -257,7 +257,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: Hostgroup is created and has puppet class assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hostgroup = make_hostgroup({
             'puppet-classes': self.puppet_classes[0]['name'],
@@ -280,7 +280,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354544
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         arch = 'x86_64'
         hostgroup = make_hostgroup({'architecture': arch})
@@ -295,7 +295,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: Hostgroup should be created and has domain assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain = make_domain()
         hostgroup = make_hostgroup({'domain-id': domain['id']})
@@ -313,7 +313,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1359694
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         lc_env = make_lifecycle_environment({'organization-id': org['id']})
@@ -336,7 +336,7 @@ class HostGroupTestCase(CLITestCase):
         :Assert: Hostgroup is created, has both new organizations assigned and
             has lifecycle env assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         orgs = [make_org() for _ in range(2)]
         lce = make_lifecycle_environment({'organization-id': orgs[0]['id']})
@@ -465,7 +465,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354568
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         subnet_id = gen_string('numeric', 4)
         with self.assertRaises(CLIReturnCodeError) as exception:
@@ -490,7 +490,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354568
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         domain_id = gen_string('numeric', 4)
         with self.assertRaises(CLIReturnCodeError) as exception:
@@ -515,7 +515,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1354568
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         arch_id = gen_string('numeric', 4)
         with self.assertRaises(CLIReturnCodeError) as exception:
@@ -536,7 +536,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: HostGroup is updated.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hostgroup = make_hostgroup()
         for new_name in valid_hostgroups_list():
@@ -557,7 +557,7 @@ class HostGroupTestCase(CLITestCase):
 
         :assert: HostGroup name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hostgroup = make_hostgroup()
         for new_name in invalid_values_list():
@@ -578,7 +578,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: Puppet class is associated with hostgroup
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
@@ -602,7 +602,7 @@ class HostGroupTestCase(CLITestCase):
 
         :Assert: Puppet class is associated with hostgroup
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
@@ -628,7 +628,7 @@ class HostGroupTestCase(CLITestCase):
 
         :BZ: 1264163
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         puppet_classes = [puppet['name'] for puppet in self.puppet_classes]
         hostgroup = make_hostgroup({
@@ -652,7 +652,7 @@ class HostGroupTestCase(CLITestCase):
 
         :assert: HostGroup is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_hostgroups_list():
             with self.subTest(name):
@@ -670,7 +670,7 @@ class HostGroupTestCase(CLITestCase):
 
         :assert: HostGroup is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

@@ -36,5 +36,5 @@ class EmailTestCase(APITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """

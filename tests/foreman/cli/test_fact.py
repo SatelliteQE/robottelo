@@ -34,7 +34,7 @@ class FactTestCase(CLITestCase):
         :Assert: Fact List is displayed
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for fact in (
                 u'uptime',
@@ -57,7 +57,7 @@ class FactTestCase(CLITestCase):
         :Assert: Fact List is not displayed
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         fact = gen_string('alpha')
         args = {'search': "fact={0}".format(fact)}

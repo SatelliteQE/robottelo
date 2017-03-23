@@ -92,7 +92,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule should be successfully created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -111,7 +111,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :Assert: Rule should be successfully created and has expected search
             field value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for query in valid_search_queries():
@@ -140,7 +140,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :Assert: Rule should be successfully created and has expected hostname
             field value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         hostname = gen_string('alpha')
@@ -169,7 +169,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :Assert: Rule should be successfully created and has expected hosts
             limit field value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         limit = str(gen_integer(1, 100))
@@ -197,7 +197,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :Assert: Rule should be successfully created and has expected priority
             field value
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         priority = str(gen_integer(1, 100))
@@ -223,7 +223,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Disabled rule should be successfully created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -250,7 +250,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -272,7 +272,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -296,7 +296,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -325,7 +325,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :Assert: Validation error should be raised and rule should not be
             created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -349,7 +349,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -371,7 +371,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Error should be raised and rule should not be created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -395,7 +395,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule should be successfully deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -414,7 +414,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -436,7 +436,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule search field is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -462,7 +462,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule host group is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_hostgroup_name = entities.HostGroup(
@@ -492,7 +492,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule host name is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         hostname = gen_string('alpha')
@@ -515,7 +515,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule host limit field is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         limit = str(gen_integer(1, 100))
@@ -538,7 +538,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule priority is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         priority = str(gen_integer(1, 100))
@@ -561,7 +561,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule enabled checkbox is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -589,7 +589,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -614,7 +614,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule host name is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         hostname = gen_string('alpha')
@@ -645,7 +645,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule host limit is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         limit = str(gen_integer(1, 100))
@@ -679,7 +679,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :Assert: Rule priority is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         priority = str(gen_integer(1, 100))
@@ -718,7 +718,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
 

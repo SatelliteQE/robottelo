@@ -65,7 +65,7 @@ class ContentViewFilterTestCase(CLITestCase):
             expected parameters
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -98,7 +98,7 @@ class ContentViewFilterTestCase(CLITestCase):
             expected parameters
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for filter_content_type in ('rpm', 'package_group', 'erratum'):
             with self.subTest(filter_content_type):
@@ -126,7 +126,7 @@ class ContentViewFilterTestCase(CLITestCase):
             expected parameters
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for inclusion in ('true', 'false'):
             with self.subTest(inclusion):
@@ -155,7 +155,7 @@ class ContentViewFilterTestCase(CLITestCase):
             description
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         description = gen_string('utf8')
         cvf_name = gen_string('utf8')
@@ -184,7 +184,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :BZ: 1356906
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -209,7 +209,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter created successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -234,7 +234,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter created successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -260,7 +260,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter created successfully and has proper
             repository affected
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -292,7 +292,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :BZ: 1228890
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -323,7 +323,7 @@ class ContentViewFilterTestCase(CLITestCase):
             repository affected
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -353,7 +353,7 @@ class ContentViewFilterTestCase(CLITestCase):
             repositories affected (yum and docker)
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         docker_repository = make_repository({
             u'content-type': u'docker',
@@ -392,7 +392,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -413,7 +413,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Second content view filter is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -440,7 +440,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             ContentView.filter.create({
@@ -459,7 +459,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             ContentView.filter.create({
@@ -476,7 +476,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not created
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             ContentView.filter.create({
@@ -668,7 +668,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         :BZ: 1328943
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         content_view_filter = ContentView.filter.create({
@@ -709,7 +709,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -742,7 +742,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -773,7 +773,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -799,7 +799,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter is not updated
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -827,7 +827,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter deleted successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -861,7 +861,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter deleted successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -893,7 +893,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: Content view filter deleted successfully
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         cvf_name = gen_string('utf8')
         ContentView.filter.create({
@@ -926,7 +926,7 @@ class ContentViewFilterTestCase(CLITestCase):
         :Assert: System returned error
 
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             ContentView.filter.delete({

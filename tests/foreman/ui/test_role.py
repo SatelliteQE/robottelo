@@ -39,7 +39,7 @@ class RoleTestCase(UITestCase):
 
         :Assert: Role is created successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -55,7 +55,7 @@ class RoleTestCase(UITestCase):
 
         :Assert: Role is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -72,7 +72,7 @@ class RoleTestCase(UITestCase):
 
         :Assert: Role is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -88,7 +88,7 @@ class RoleTestCase(UITestCase):
 
         :Assert: Role is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -108,7 +108,7 @@ class RoleTestCase(UITestCase):
 
         :Assert: Role is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         resource_type = 'Architecture'
@@ -137,7 +137,7 @@ class RoleTestCase(UITestCase):
 
         :Assert: New role is created.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         builtin_name = choice(ROLES)
         new_name = gen_string('alpha')
@@ -172,7 +172,7 @@ class RoleTestCase(UITestCase):
 
         :Assert: New role is created and contains all permissions
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -212,7 +212,7 @@ class RoleTestCase(UITestCase):
 
         :BZ: 1353788
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
         role_name = gen_string('alpha')
@@ -238,7 +238,7 @@ class RoleTestCase(UITestCase):
 
         :BZ: 1353788
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         new_name = gen_string('alpha')
         with Session(self.browser):
@@ -271,7 +271,7 @@ class CannedRoleTestCases(UITestCase):
 
         :assert: New role is created with taxonomies
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -640,7 +640,7 @@ class CannedRoleTestCases(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -659,7 +659,7 @@ class CannedRoleTestCases(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -680,7 +680,7 @@ class CannedRoleTestCases(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
 
     @stubbed
@@ -702,5 +702,5 @@ class CannedRoleTestCases(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """

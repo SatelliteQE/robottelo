@@ -43,7 +43,7 @@ class OperatingSystemParameterTestCase(APITestCase):
 
         :Assert: A parameter is created and can be read afterwards.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         # Check whether OS 1 exists.
         os1 = entities.OperatingSystem(id=1).read_raw()
@@ -86,7 +86,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is created and has proper name
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -103,7 +103,7 @@ class OperatingSystemTestCase(APITestCase):
         :Assert: Operating system entity is created and has proper OS family
             assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
@@ -120,7 +120,7 @@ class OperatingSystemTestCase(APITestCase):
         :Assert: Operating system entity is created and has proper minor
             version
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         minor_version = gen_string('numeric')
         os = entities.OperatingSystem(minor=minor_version).create()
@@ -136,7 +136,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: The minor version can be read back as a string.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         minor = int(gen_string('numeric', random.randint(1, 16)))
         operating_sys = entities.OperatingSystem(minor=minor).create()
@@ -151,7 +151,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is created and has proper description
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         name = gen_string('utf8')
         for desc in valid_data_list():
@@ -171,7 +171,7 @@ class OperatingSystemTestCase(APITestCase):
         :Assert: Operating system entity is created and has proper password
             hash type
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for pass_hash in ['MD5', 'SHA256', 'SHA512']:
             with self.subTest(pass_hash):
@@ -300,7 +300,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -317,7 +317,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(family='NON_EXISTENT_OS').create()
@@ -335,7 +335,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :BZ: 1328935
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(
@@ -352,7 +352,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for major_version in gen_string('numeric', 6), '', '-6':
             with self.subTest(major_version):
@@ -369,7 +369,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for minor_version in gen_string('numeric', 17), '-5':
             with self.subTest(minor_version):
@@ -386,7 +386,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(password_hash='INVALID_HASH').create()
@@ -402,7 +402,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Second operating system entity is not created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
         with self.assertRaises(HTTPError):
@@ -418,7 +418,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is created and updated properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
         for new_name in valid_data_list():
@@ -437,7 +437,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is created and updated properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem(description=gen_string('utf8')).create()
         for new_desc in valid_data_list():
@@ -456,7 +456,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is created and updated properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
         new_major_version = gen_string('numeric', 5)
@@ -474,7 +474,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is created and updated properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
         new_minor_version = gen_string('numeric')
@@ -492,7 +492,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is created and updated properly
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
         new_os_family = OPERATING_SYSTEMS[
@@ -630,7 +630,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
         for new_name in invalid_values_list():
@@ -649,7 +649,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem().create()
         with self.assertRaises(HTTPError):
@@ -665,7 +665,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
         with self.assertRaises(HTTPError):
@@ -682,7 +682,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating system entity is not updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
         with self.assertRaises(HTTPError):
@@ -698,7 +698,7 @@ class OperatingSystemTestCase(APITestCase):
 
         :Assert: Operating System entity is deleted successfully
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

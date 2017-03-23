@@ -52,7 +52,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         include_list = [gen_string("alphanumeric", 100)]
         for login in valid_usernames_list() + include_list:
@@ -68,7 +68,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         include_list = [gen_string("alphanumeric", 50)]
         for firstname in valid_usernames_list() + include_list:
@@ -84,7 +84,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         include_list = [gen_string("alphanumeric", 50)]
         for lastname in valid_usernames_list() + include_list:
@@ -100,7 +100,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for email in valid_emails_list():
             with self.subTest(email):
@@ -118,7 +118,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         include_list = [gen_string("alphanumeric", 3000)]
         for password in valid_usernames_list() + include_list:
@@ -134,7 +134,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: Admin User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = make_user({'admin': '1'})
         self.assertEqual(user['admin'], 'yes')
@@ -147,7 +147,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created and has new default location assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         location = make_location()
         user = make_user({
@@ -165,7 +165,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created and has new default organization assigned
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         user = make_user({
@@ -183,7 +183,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is created
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         org = make_org()
         user = make_user({'organization-ids': org['id']})
@@ -231,7 +231,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         invalid_names = (
             '', 'space {0}'.format(gen_string('alpha')),
@@ -261,7 +261,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         invalid_first_names = (gen_string("alpha", 51), gen_string("html"))
         for invalid_first_name in invalid_first_names:
@@ -287,7 +287,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         invalid_lastnames = (gen_string("alpha", 51), gen_string("html"))
         for invalid_lastname in invalid_lastnames:
@@ -313,7 +313,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -342,7 +342,7 @@ class UserTestCase(CLITestCase):
 
         :BZ: 1204686
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -365,7 +365,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -387,7 +387,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is not created. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -408,7 +408,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = make_user({'admin': '1'})
         self.assertEqual(user['admin'], 'yes')
@@ -427,7 +427,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for login in valid_usernames_list():
             with self.subTest(login), self.assertRaises(CLIReturnCodeError):
@@ -445,7 +445,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = make_user()
         User.exists(search=('login', user['login']))
@@ -461,7 +461,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for login in valid_usernames_list():
             with self.subTest(login), self.assertRaises(CLIReturnCodeError):
@@ -478,7 +478,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is not deleted
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         with self.assertRaisesRegex(
             CLIReturnCodeError,
@@ -495,7 +495,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -520,7 +520,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for firstname in valid_usernames_list():
             with self.subTest(firstname):
@@ -544,7 +544,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for lastname in valid_usernames_list():
             with self.subTest(lastname):
@@ -568,7 +568,7 @@ class UserTestCase(CLITestCase):
 
         :Assert: User is listed
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         valid_emails = (
             gen_string("alpha") + "@somemail.com",
@@ -601,7 +601,7 @@ class UserTestCase(CLITestCase):
 
         :BZ: 1204667
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         valid_mails = (
             gen_string("latin1") + "@somemail.com",
@@ -734,7 +734,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for new_firstname in valid_usernames_list():
@@ -755,7 +755,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         include_list = [gen_string("alphanumeric", 100)]
@@ -776,7 +776,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for new_lastname in valid_usernames_list():
@@ -797,7 +797,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for email in valid_emails_list():
@@ -818,7 +818,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for password in valid_usernames_list():
@@ -838,7 +838,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         self.assertEqual(user['admin'], 'no')
@@ -857,7 +857,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is updated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         org = make_org()
@@ -899,7 +899,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for new_user_name in invalid_names_list():
@@ -919,7 +919,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for invalid_firstname in invalid_names_list():
@@ -943,7 +943,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is not updated. Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for invalid_lastname in (gen_string('alpha', 51), gen_string('html')):
@@ -965,7 +965,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :Assert: User is not updated.  Appropriate error shown.
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         user = self.user
         for email in invalid_emails_list():
@@ -1079,7 +1079,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: Critical
+        :CaseImportance: Critical
         """
         for role_id, role in self.stubbed_roles.items():
             self.assert_user_roles({role_id: role})
