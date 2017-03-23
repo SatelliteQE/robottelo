@@ -54,6 +54,8 @@ class PuppetModuleTestCase(UITestCase):
 
         :Assert: Content search functionality works as intended and expected
             puppet modules are present inside of repository
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.assertIsNotNone(self.puppetmodule.search('ntp'))
@@ -68,6 +70,8 @@ class PuppetModuleTestCase(UITestCase):
 
         :Assert: Puppet module is present inside of repository and has all
             expected values in details section
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.puppetmodule.check_puppet_details(
@@ -100,6 +104,8 @@ class PuppetModuleTestCase(UITestCase):
 
         :Assert: Puppet module is present inside of repository and has proper
             repositories assigned to
+
+        :CaseLevel: Critical
         """
         with Session(self.browser):
             self.puppetmodule.check_repo('ntp', [self.repo.name])

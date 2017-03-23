@@ -38,6 +38,8 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
             ``application/json`` content-type, and the response is a list.
 
         This test targets bugzilla bug 1112802.
+
+        :CaseLevel: Critical
         """
         path = '{0}/rhsm'.format(settings.server.get_url())
         response = client.get(

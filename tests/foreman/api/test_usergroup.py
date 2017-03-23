@@ -41,6 +41,8 @@ class UserGroupTestCase(APITestCase):
         :id: 3a2255d9-f48d-4f22-a4b9-132361bd9224
 
         :Assert: User group is created successfully.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -54,6 +56,8 @@ class UserGroupTestCase(APITestCase):
         :id: ab127e09-31d2-4c5b-ae6c-726e4b11a21e
 
         :Assert: User group is created successfully.
+
+        :CaseLevel: Critical
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -70,6 +74,8 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is created successfully and contains all expected
             users.
+
+        :CaseLevel: Critical
         """
         users = [entities.User().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(user=users).create()
@@ -85,6 +91,8 @@ class UserGroupTestCase(APITestCase):
         :id: c4fac71a-9dda-4e5f-a5df-be362d3cbd52
 
         :Assert: User group is created successfully.
+
+        :CaseLevel: Critical
         """
         for role_name in valid_data_list():
             with self.subTest(role_name):
@@ -101,6 +109,8 @@ class UserGroupTestCase(APITestCase):
 
         :Assert: User group is created successfully and contains all expected
             roles
+
+        :CaseLevel: Critical
         """
         roles = [entities.Role().create() for _ in range(randint(3, 5))]
         user_group = entities.UserGroup(role=roles).create()
@@ -117,6 +127,8 @@ class UserGroupTestCase(APITestCase):
         :id: 2a3f7b1a-7411-4c12-abaf-9a3ca1dfae31
 
         :Assert: User group is created successfully.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -155,6 +167,8 @@ class UserGroupTestCase(APITestCase):
         :id: 1a3384dc-5d52-442c-87c8-e38048a61dfa
 
         :Assert: User group is not created.
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -168,6 +182,8 @@ class UserGroupTestCase(APITestCase):
         :id: aba0925a-d5ec-4e90-86c6-404b9b6f0179
 
         :Assert: User group is not created.
+
+        :CaseLevel: Critical
         """
         user_group = entities.UserGroup().create()
         with self.assertRaises(HTTPError):
@@ -180,6 +196,8 @@ class UserGroupTestCase(APITestCase):
         :id: b4f0a19b-9059-4e8b-b245-5a30ec06f9f3
 
         :Assert: User group is updated successfully.
+
+        :CaseLevel: Critical
         """
         user_group = entities.UserGroup().create()
         for new_name in valid_data_list():
@@ -195,6 +213,8 @@ class UserGroupTestCase(APITestCase):
         :id: e11b57c3-5f86-4963-9cc6-e10e2f02468b
 
         :Assert: User is added to user group successfully.
+
+        :CaseLevel: Critical
         """
         user = entities.User().create()
         user_group = entities.UserGroup().create()
@@ -225,6 +245,8 @@ class UserGroupTestCase(APITestCase):
         :id: 8e0872c1-ae88-4971-a6fc-cd60127d6663
 
         :Assert: Role is added to user group successfully.
+
+        :CaseLevel: Critical
         """
         new_role = entities.Role().create()
         user_group = entities.UserGroup().create()
@@ -239,6 +261,8 @@ class UserGroupTestCase(APITestCase):
         :id: 3cb29d07-5789-4f94-9fd9-a7e494b3c110
 
         :Assert: User group is added to existing group successfully.
+
+        :CaseLevel: Critical
         """
         new_usergroup = entities.UserGroup().create()
         user_group = entities.UserGroup().create()
@@ -254,6 +278,8 @@ class UserGroupTestCase(APITestCase):
         :id: 03772bd0-0d52-498d-8259-5c8a87e08344
 
         :Assert: User group is not updated.
+
+        :CaseLevel: Critical
         """
         user_group = entities.UserGroup().create()
         for new_name in invalid_values_list():
@@ -270,6 +296,8 @@ class UserGroupTestCase(APITestCase):
         :id: 14888998-9282-4d81-9e99-234d19706783
 
         :Assert: User group is not updated.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alphanumeric')
         entities.UserGroup(name=name).create()
@@ -286,6 +314,8 @@ class UserGroupTestCase(APITestCase):
         :id: c5cfcc4a-9177-47bb-8f19-7a8930eb7ca3
 
         :assert: User group is deleted successfully
+
+        :CaseLevel: Critical
         """
         user_group = entities.UserGroup().create()
         user_group.delete()

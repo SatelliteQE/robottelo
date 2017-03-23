@@ -66,6 +66,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: b8ae7a80-b9a8-4924-808c-482a2b4102c4
 
         :Assert: Rule should be created with given name and query
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -85,6 +87,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 121e0a30-8a24-47d7-974d-998886ed1ea7
 
         :Assert: Rule was created and with given org & location.
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         loc = entities.Location().create()
@@ -106,6 +110,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 9fdba953-dcc7-4532-9204-17a45b0d9e05
 
         :Assert: Rule should be deleted successfully
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -122,6 +128,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 415379b7-0134-40b9-adb1-2fe0adb1ac36
 
         :Assert: Validation error should be raised
+
+        :CaseLevel: Critical
         """
         for name in (
                 gen_string(str_type, 256)
@@ -138,6 +146,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 84503d8d-86f6-49bf-ab97-eff418d3e3d0
 
         :Assert: Validation error should be raised
+
+        :CaseLevel: Critical
         """
         self.discovery_rule.max_count = gen_string('alpha')
         with self.assertRaises(HTTPError):
@@ -150,6 +160,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 4ec7d76a-22ba-4c3e-952c-667a6f0a5728
 
         :Assert: Validation error should be raised
+
+        :CaseLevel: Critical
         """
         self.discovery_rule.priority = gen_string('alpha')
         with self.assertRaises(HTTPError):
@@ -163,6 +175,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 769c0739-538b-4451-af7b-deb2ecd3dc0d
 
         :Assert: User should be able to update the rule
+
+        :CaseLevel: Critical
         """
         discovery_rule = self.discovery_rule.create()
         for name in valid_data_list():
@@ -179,6 +193,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 0f8ec302-f9de-4713-87b7-0f1aca515149
 
         :Assert: Rule was updated and with given org & location.
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         loc = entities.Location().create()
@@ -202,6 +218,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 2c5ecb7e-87bc-4980-9620-7ae00e3f360e
 
         :Assert: User should be able to update the rule
+
+        :CaseLevel: Critical
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.search_ = 'Location = Default_Location'
@@ -217,6 +235,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 33084060-2866-46b9-bfab-23d91aea73d8
 
         :Assert: User should be able to update the rule
+
+        :CaseLevel: Critical
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.max_count = gen_integer(1, 100)
@@ -232,6 +252,8 @@ class DiscoveryRuleTestCase(APITestCase):
         :id: 330aa943-167b-46dd-b434-1a6e5fe8f283
 
         :Assert: User should be able to update the rule
+
+        :CaseLevel: Critical
         """
         discovery_rule = self.discovery_rule.create()
         self.assertEqual(discovery_rule.enabled, True)

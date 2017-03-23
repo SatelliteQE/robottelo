@@ -76,6 +76,8 @@ class SubnetTestCase(CLITestCase):
         :id: 99cda3eb-3912-461b-83bd-f906b78eeca0
 
         :Assert: Subnet is created and has random name
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -90,6 +92,8 @@ class SubnetTestCase(CLITestCase):
         :id: d74a52a7-df56-44ef-89a3-081c14e81e43
 
         :Assert: Subnet is created and address pool is set
+
+        :CaseLevel: Critical
         """
         for pool in valid_addr_pools():
             with self.subTest(pool):
@@ -116,6 +120,8 @@ class SubnetTestCase(CLITestCase):
         :id: 7ce7b139-d2b7-44f4-9c1a-1bd591f95334
 
         :Assert: Subnet is created and has new domain assigned
+
+        :CaseLevel: Critical
         """
         domain = make_domain()
         subnet = make_subnet({'domain-ids': domain['id']})
@@ -130,6 +136,8 @@ class SubnetTestCase(CLITestCase):
         :id: e81ddec5-38b0-4c42-b89b-5cf2af580d39
 
         :Assert: Subnet is created and has new domains assigned
+
+        :CaseLevel: Critical
         """
         domains_amount = random.randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
@@ -148,6 +156,8 @@ class SubnetTestCase(CLITestCase):
         :id: 483c0d1d-c542-4be5-8c56-27b2a09db54a
 
         :Assert: Subnet is created and has gateway assigned
+
+        :CaseLevel: Critical
         """
         gateway = gen_ipaddr(ip3=True)
         subnet = make_subnet({'gateway': gateway})
@@ -161,6 +171,8 @@ class SubnetTestCase(CLITestCase):
         :id: ba4c66fd-50e6-441d-acc2-6ab39d8439d2
 
         :Assert: Subnet is created and correct ipam type is assigned
+
+        :CaseLevel: Critical
         """
         for ipam_type in (SUBNET_IPAM_TYPES['dhcp'],
                           SUBNET_IPAM_TYPES['internal'],
@@ -177,6 +189,8 @@ class SubnetTestCase(CLITestCase):
         :id: de468dd3-7ba8-463e-881a-fd1cb3cfc7b6
 
         :Assert: Subnet is not created
+
+        :CaseLevel: Critical
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
@@ -194,6 +208,8 @@ class SubnetTestCase(CLITestCase):
         :id: c7824327-b5ef-4f95-bd4b-ba4eff73551c
 
         :Assert: Subnet is not created
+
+        :CaseLevel: Critical
         """
         mask = '255.255.255.0'
         network = gen_ipaddr()
@@ -218,6 +234,8 @@ class SubnetTestCase(CLITestCase):
         :id: 2ee376f7-9dd9-4b46-b414-801197d5455c
 
         :Assert: Subnet is listed
+
+        :CaseLevel: Critical
         """
         # Make a new subnet
         subnet = make_subnet()
@@ -233,6 +251,8 @@ class SubnetTestCase(CLITestCase):
         :id: 34533e6c-7081-4b13-99bd-bd57533e05c0
 
         :Assert: Subnet name is updated
+
+        :CaseLevel: Critical
         """
         new_subnet = make_subnet()
         for new_name in valid_data_list():
@@ -249,6 +269,8 @@ class SubnetTestCase(CLITestCase):
         :id: 6a8d7750-71f1-4cd8-bf90-f2eac457c3b4
 
         :Assert: Subnet network and mask are updated
+
+        :CaseLevel: Critical
         """
         network = gen_ipaddr()
         mask = '255.255.255.0'
@@ -276,6 +298,8 @@ class SubnetTestCase(CLITestCase):
         :id: 18ced88f-d62e-4e15-8b7b-0a08c4ef239b
 
         :Assert: Subnet address pool is updated
+
+        :CaseLevel: Critical
         """
         subnet = make_subnet({u'mask': '255.255.255.0'})
         for pool in valid_addr_pools():
@@ -301,6 +325,8 @@ class SubnetTestCase(CLITestCase):
         :id: ab60372e-cef7-4495-bd66-68e7dbece475
 
         :Assert: Subnet is not updated
+
+        :CaseLevel: Critical
         """
         subnet = make_subnet()
         for options in invalid_missing_attributes():
@@ -324,6 +350,8 @@ class SubnetTestCase(CLITestCase):
         :id: d0a857b4-be10-4b5d-86d4-43cf99c11619
 
         :Assert: Subnet is not updated
+
+        :CaseLevel: Critical
         """
         subnet = make_subnet()
         for options in invalid_addr_pools():
@@ -350,6 +378,8 @@ class SubnetTestCase(CLITestCase):
         :id: ad269df8-4bb2-46a5-9c82-010a80087408
 
         :Assert: Subnet is deleted
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

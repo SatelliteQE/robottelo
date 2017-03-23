@@ -41,6 +41,8 @@ class MediaTestCase(APITestCase):
         :id: 892b44d5-0f11-4e9d-8ee9-fd5abe0b0a9b
 
         :Assert: Media entity is created and has proper name
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -58,6 +60,8 @@ class MediaTestCase(APITestCase):
         :id: 7885e205-6189-4e71-a6ee-e5ddb077ecee
 
         :Assert: Media entity is created and has proper OS family assigned
+
+        :CaseLevel: Critical
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
@@ -111,6 +115,8 @@ class MediaTestCase(APITestCase):
         :id: 0934f4dc-f674-40fe-a639-035761139c83
 
         :Assert: Media entity is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -125,6 +131,8 @@ class MediaTestCase(APITestCase):
         :id: ae00b6bb-37ed-459e-b9f7-acc92ed0b262
 
         :Assert: Media entity is not created
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Media(path_='NON_EXISTENT_URL').create()
@@ -137,6 +145,8 @@ class MediaTestCase(APITestCase):
         :id: 368b7eac-8c52-4071-89c0-1946d7101291
 
         :Assert: Media entity is not created
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Media(os_family='NON_EXISTENT_OS').create()
@@ -150,6 +160,8 @@ class MediaTestCase(APITestCase):
         :id: a99c3c27-ad0a-474f-ad80-cb61022618a9
 
         :Assert: Media entity is created and updated properly
+
+        :CaseLevel: Critical
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in valid_data_list():
@@ -184,6 +196,8 @@ class MediaTestCase(APITestCase):
         :id: 4daca3f4-39c9-43ec-92f2-a1e506147d71
 
         :Assert: Media entity is created and updated properly
+
+        :CaseLevel: Critical
         """
         media = entities.Media(
             organization=[self.org],
@@ -203,6 +217,8 @@ class MediaTestCase(APITestCase):
         :id: 1c7d3af1-8cef-454e-80b6-a8e95b5dfa8b
 
         :Assert: Media entity is not updated
+
+        :CaseLevel: Critical
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in invalid_values_list():
@@ -218,6 +234,8 @@ class MediaTestCase(APITestCase):
         :id: 6832f178-4adc-4bb1-957d-0d8d4fd8d9cd
 
         :Assert: Media entity is not updated
+
+        :CaseLevel: Critical
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
@@ -232,6 +250,8 @@ class MediaTestCase(APITestCase):
         :id: f4c5438d-5f98-40b1-9bc7-c0741e81303a
 
         :Assert: Media entity is not updated
+
+        :CaseLevel: Critical
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
@@ -246,6 +266,8 @@ class MediaTestCase(APITestCase):
         :id: 178c8ee2-2f69-41df-a604-e8a9e6c396ab
 
         :Assert: Media entity is deleted successfully
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

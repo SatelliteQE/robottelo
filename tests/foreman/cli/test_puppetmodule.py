@@ -52,6 +52,8 @@ class PuppetModuleTestCase(CLITestCase):
         :id: 77635e70-19e7-424d-9c89-ec5dbe91de75
 
         :Assert: Puppet-modules are retrieved for the given org
+
+        :CaseLevel: Critical
         """
         result = PuppetModule.list({'organization-id': self.org['id']})
         # There are 4 puppet modules in the test puppet-module url
@@ -66,6 +68,8 @@ class PuppetModuleTestCase(CLITestCase):
         :id: 8aaa9243-5e20-49d6-95ce-620cc1ba18dc
 
         :Assert: The puppet-module info is retrieved
+
+        :CaseLevel: Critical
         """
         return_value = PuppetModule.list({
             'organization-id': self.org['id'],
@@ -87,6 +91,8 @@ class PuppetModuleTestCase(CLITestCase):
 
         :Assert: Number of modules has no changed after a second repo was
             synced.
+
+        :CaseLevel: Critical
         """
         # Verify that number of synced modules is correct
         repo1 = Repository.info({'id': self.repo['id']})

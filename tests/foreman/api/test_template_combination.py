@@ -80,6 +80,8 @@ class TemplateCombinationTestCase(APITestCase):
         :Setup: save a template combination
 
         :Assert: TemplateCombination can be retrieved through API
+
+        :CaseLevel: Critical
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)
@@ -97,6 +99,8 @@ class TemplateCombinationTestCase(APITestCase):
         :Setup: save a template combination
 
         :Assert: TemplateCombination can be deleted through API
+
+        :CaseLevel: Critical
         """
         combination = self.template_combination.read()
         self.assertIsInstance(combination, entities.TemplateCombination)

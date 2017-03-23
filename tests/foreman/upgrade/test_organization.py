@@ -32,6 +32,8 @@ class OrganizationTestCase(CLITestCase):
         :id: da2821d0-1ea2-423d-8172-7372c98d8858
 
         :assert: Organization by id exists post Upgrade
+
+        :CaseLevel: Critical
         """
         for org, org_id in get_valid_preupgrade_data(
                 'organization-tests', 'id'):
@@ -46,6 +48,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 639c3fec-ed5d-4c05-a301-801e3b47efb8
 
         :assert: Organization by name exists post Upgrade
+
+        :CaseLevel: Critical
         """
         for org, org_name in get_valid_preupgrade_data(
                 'organization-tests', 'name'):
@@ -60,6 +64,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 9986ec9d-b37c-482c-9bb1-7c25f6bfd34c
 
         :assert: Smart Proxy is associated with Organization
+
+        :CaseLevel: Critical
         """
         for org, sp in get_valid_preupgrade_data(
                 'organization-tests', 'smart-proxy'):
@@ -74,6 +80,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 2c8a6362-f95f-4aec-bc63-57242a639167
 
         :assert: Template is associated with Organization
+
+        :CaseLevel: Critical
         """
         for org, template in get_valid_preupgrade_data(
                 'organization-tests', 'template'):
@@ -88,6 +96,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 12c6d711-c6d6-4bcb-9e24-01cadb205f7b
 
         :assert: Puppet Environment is associated with Organization
+
+        :CaseLevel: Critical
         """
         for org, penv in get_valid_preupgrade_data(
                 'organization-tests', 'Puppet-Environments'):

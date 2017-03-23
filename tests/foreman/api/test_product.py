@@ -50,6 +50,8 @@ class ProductTestCase(APITestCase):
         :id: 3d873b73-6919-4fda-84df-0e26bdf0c1dc
 
         :Assert: A product is created with expected name.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -65,6 +67,8 @@ class ProductTestCase(APITestCase):
         :id: 95cf8e05-fd09-422e-bf6f-8b1dde762976
 
         :Assert: A product is created with expected label.
+
+        :CaseLevel: Critical
         """
         label = gen_string('alphanumeric')
         product = entities.Product(label=label, organization=self.org).create()
@@ -79,6 +83,8 @@ class ProductTestCase(APITestCase):
         :id: f3e2df77-6711-440b-800a-9cebbbec36c5
 
         :Assert: A product is created with expected description.
+
+        :CaseLevel: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -117,6 +123,8 @@ class ProductTestCase(APITestCase):
         :id: 76531f53-09ff-4ee9-89b9-09a697526fb1
 
         :Assert: A product is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -131,6 +139,8 @@ class ProductTestCase(APITestCase):
         :id: 039269c5-607a-4b70-91dd-b8fed8e50cc6
 
         :Assert: A product is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alphanumeric')
         entities.Product(name=name, organization=self.org).create()
@@ -145,6 +155,8 @@ class ProductTestCase(APITestCase):
         :id: 30b1a737-07f1-4786-b68a-734e57c33a62
 
         :Assert: A product is not created
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Product(label=gen_string('utf8')).create()
@@ -157,6 +169,8 @@ class ProductTestCase(APITestCase):
         :id: 1a9f6e0d-43fb-42e2-9dbd-e880f03b0297
 
         :Assert: Product name can be updated.
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.org).create()
         for new_name in valid_data_list():
@@ -173,6 +187,8 @@ class ProductTestCase(APITestCase):
         :id: c960c326-2e9f-4ee7-bdec-35a705305067
 
         :Assert: Product description can be updated.
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.org).create()
         for new_desc in valid_data_list():
@@ -189,6 +205,8 @@ class ProductTestCase(APITestCase):
         :id: 3075f17f-4475-4b64-9fbd-1e41ced9142d
 
         :Assert: Product Renamed to original
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.org).create()
         new_name = gen_string('alpha')
@@ -261,6 +279,8 @@ class ProductTestCase(APITestCase):
         :id: 3eb61fa8-3524-4872-8f1b-4e88004f66f5
 
         :Assert: Product is not updated
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.org).create()
         for new_name in invalid_values_list():
@@ -279,6 +299,8 @@ class ProductTestCase(APITestCase):
         :id: 065cd673-8d10-46c7-800c-b731b06a5359
 
         :Assert: Product is not updated and error is raised
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.org).create()
         product.label = gen_string('alpha')
@@ -293,6 +315,8 @@ class ProductTestCase(APITestCase):
         :id: 30df95f5-0a4e-41ee-a99f-b418c5c5f2f3
 
         :Assert: Product is successfully deleted.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -308,6 +332,8 @@ class ProductTestCase(APITestCase):
         :id: 860e00a1-c370-4bd0-8987-449338071d56
 
         :Assert: Repository within a product is successfully synced.
+
+        :CaseLevel: Critical
         """
         product = entities.Product().create()
         rpm_repo = entities.Repository(

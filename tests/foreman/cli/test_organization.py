@@ -86,6 +86,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 7938bcc4-7107-40b0-bb88-6288ebec0dcd
 
         :Assert: no duplicated lines in usage message
+
+        :CaseLevel: Critical
         """
         # org list --help:
         result = Org.list({'help': True})
@@ -109,6 +111,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 35840da7-668e-4f78-990a-738aa688d586
 
         :assert: organization is created and has appropriate name
+
+        :CaseLevel: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -122,6 +126,8 @@ class OrganizationTestCase(CLITestCase):
         :id: aea551de-145b-4894-b4fb-65878ff1f101
 
         :assert: organization is created, label matches name
+
+        :CaseLevel: Critical
         """
         for test_data in valid_labels_list():
             with self.subTest(test_data):
@@ -138,6 +144,8 @@ class OrganizationTestCase(CLITestCase):
         :id: a4730b09-1bd7-4b00-a7ee-76080a916ea8
 
         :assert: organization is created, label does not match name
+
+        :CaseLevel: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -157,6 +165,8 @@ class OrganizationTestCase(CLITestCase):
         :id: b28c95ba-918e-47fe-8681-61e05b8fe2ea
 
         :assert: organization is created
+
+        :CaseLevel: Critical
         """
         for name, desc in zip(valid_org_names_list(), valid_data_list()):
             with self.subTest(name + desc):
@@ -174,6 +184,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 9a1f70f6-fb5f-4b23-9f7e-b0973fbbba30
 
         :assert: organization is created
+
+        :CaseLevel: Critical
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -195,6 +207,8 @@ class OrganizationTestCase(CLITestCase):
         :id: bdd26bb3-e3d2-4a5c-8be7-fb12c1114ccc
 
         :Assert: Org is listed
+
+        :CaseLevel: Critical
         """
         org = make_org()
         result_list = Org.list({
@@ -1288,6 +1302,8 @@ class OrganizationTestCase(CLITestCase):
         :id: b0b59650-5718-45e2-8724-151dc52b1486
 
         :Assert: Parameter is added to the org
+
+        :CaseLevel: Critical
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -1309,6 +1325,8 @@ class OrganizationTestCase(CLITestCase):
         :id: bb76f67e-5329-4777-b563-3fe4ebffc9ce
 
         :Assert: Parameter is added to the org
+
+        :CaseLevel: Critical
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -1330,6 +1348,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 4a7ed165-a0c5-4ba6-833a-5a1b3ee47ace
 
         :Assert: Parameter is updated
+
+        :CaseLevel: Critical
         """
         param_name = gen_string('alpha')
         param_new_value = gen_string('alpha')
@@ -1360,6 +1380,8 @@ class OrganizationTestCase(CLITestCase):
         :id: e4099279-4e73-4c14-9e7c-912b3787b99f
 
         :Assert: Parameter is removed from the org
+
+        :CaseLevel: Critical
         """
         param_name = gen_string('alpha')
         org = make_org()
@@ -1386,6 +1408,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 9b0e7c5c-32cd-4428-8798-3469599c9b05
 
         :Assert: Parameter is removed from the org
+
+        :CaseLevel: Critical
         """
         param_name = gen_string('alpha')
         org = make_org()
@@ -1414,6 +1438,8 @@ class OrganizationTestCase(CLITestCase):
         :id: f0aecf1e-d093-4365-af85-b3650ed21318
 
         :assert: organization is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -1432,6 +1458,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 07924e1f-1eff-4bae-b0db-e41b84966bc1
 
         :assert: organization is not created
+
+        :CaseLevel: Critical
         """
         for desc, name, label in zip(
                 valid_data_list(),
@@ -1460,6 +1488,8 @@ class OrganizationTestCase(CLITestCase):
         :id: b1f5d246-2b12-4302-9824-00d3561f8699
 
         :assert: organization is deleted
+
+        :CaseLevel: Critical
         """
         org = make_org()
         Org.delete({'id': org['id']})
@@ -1474,6 +1504,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 5624f318-ce10-4eaa-815b-0d6ec1e6b438
 
         :assert: organization is deleted
+
+        :CaseLevel: Critical
         """
         for label in valid_labels_list():
             with self.subTest(label):
@@ -1490,6 +1522,8 @@ class OrganizationTestCase(CLITestCase):
         :id: c2787b85-fa87-4aaf-bee4-4695249dd5d8
 
         :assert: organization is deleted
+
+        :CaseLevel: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -1506,6 +1540,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 66581003-f5d9-443c-8cd6-00f68087e8e9
 
         :assert: organization name is updated
+
+        :CaseLevel: Critical
         """
         for new_name in valid_org_names_list():
             with self.subTest(new_name):
@@ -1526,6 +1562,8 @@ class OrganizationTestCase(CLITestCase):
         :id: c5cb0d68-10dd-48ee-8d56-83be8b33d729
 
         :assert: organization description is updated
+
+        :CaseLevel: Critical
         """
         for new_desc in valid_data_list():
             with self.subTest(new_desc):
@@ -1547,6 +1585,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 42635526-fb10-4811-8fe7-1d4c218a056e
 
         :assert: organization name and description are updated
+
+        :CaseLevel: Critical
         """
         for new_name, new_desc in zip(
                 valid_org_names_list(), valid_data_list()):
@@ -1572,6 +1612,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 582d41b8-370d-45ed-9b7b-8096608e1324
 
         :assert: organization name is not updated
+
+        :CaseLevel: Critical
         """
         for new_name in invalid_values_list():
             with self.subTest(new_name):
@@ -1591,6 +1633,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 4279972b-180d-40ce-944f-47a1940af25d
 
         :assert: organization is created and can be searched by name
+
+        :CaseLevel: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -1606,6 +1650,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 0e5a23fa-86d2-4114-be39-0e6228c76f19
 
         :assert: organization is created and can be searched by label
+
+        :CaseLevel: Critical
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -1622,6 +1668,8 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Organization is created and info can be obtained by its label
             graciously
+
+        :CaseLevel: Critical
         """
         org = make_org()
         result = Org.info({'label': org['label']})
@@ -1635,6 +1683,8 @@ class OrganizationTestCase(CLITestCase):
 
         :Assert: Organization is created and info can be obtained by its name
             graciously
+
+        :CaseLevel: Critical
         """
         org = make_org()
         result = Org.info({'name': org['name']})

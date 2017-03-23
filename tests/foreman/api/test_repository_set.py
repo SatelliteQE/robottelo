@@ -39,6 +39,8 @@ class RepositorySetTestCase(APITestCase):
         :id: dedcecf7-613a-4e85-a3af-92fb57e2b0a1
 
         :Assert: Repository was enabled
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -69,6 +71,8 @@ class RepositorySetTestCase(APITestCase):
         :id: 60a102df-099e-4325-8924-2a31e5f738ba
 
         :Assert: Repository was disabled
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:

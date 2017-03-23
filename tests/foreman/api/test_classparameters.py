@@ -215,6 +215,8 @@ class SmartClassParametersTestCase(APITestCase):
         :id: c0378f1e-c215-4f85-892c-d21a8b5a7060
 
         :assert: Parameters listed for specific Puppet class.
+
+        :CaseLevel: Critical
         """
         result = self.puppet_class.list_scparams()['results']
         self.assertGreater(len(result), 0)
@@ -232,6 +234,8 @@ class SmartClassParametersTestCase(APITestCase):
         :assert: Parameters listed for specific Puppet class.
 
         BZ: 1385351
+
+        :CaseLevel: Critical
         """
         cv = publish_puppet_module(
             self.puppet_modules, CUSTOM_PUPPET_REPO, self.org)
@@ -281,6 +285,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. Set the new valid Default Value.
 
         :assert: Parameter Value overridden with new value.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -304,6 +310,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. Set the new valid Default Value.
 
         :assert: Parameter value not allowed/disabled to override.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         self.assertEqual(sc_param.read().override, False)
@@ -328,6 +336,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. Set 'Use Puppet Default' to True.
 
         :assert: Puppet Default Value applied on parameter.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -351,6 +361,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Set a 'valid' default Value.
 
         :assert: Parameter Updated with a new type successfully.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         for data in valid_sc_parameters_data():
@@ -399,6 +411,8 @@ class SmartClassParametersTestCase(APITestCase):
 
             1. Parameter not updated with string type for invalid value.
             2. Error raised for invalid default value.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         for test_data in invalid_sc_parameters_data():
@@ -431,6 +445,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Set Validator Type and Rule to validate this value.
 
         :assert: Validation shouldn't work with puppet default value.
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -447,6 +463,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Set 'required' to true.
 
         :assert: No error raised for non-empty default value
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.parameter_type = 'boolean'
@@ -474,6 +492,8 @@ class SmartClassParametersTestCase(APITestCase):
             4. Set 'required' to true.
 
         :assert: Error raised for blank matcher value.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -505,6 +525,8 @@ class SmartClassParametersTestCase(APITestCase):
             4. Set 'required' to true.
 
         :assert: Error not raised for matcher value.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -534,6 +556,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with regex validator type and rule.
 
         :assert: Error raised for default value not matching with regex.
+
+        :CaseLevel: Critical
         """
         value = gen_string('alpha')
         sc_param = self.sc_params_list.pop()
@@ -566,6 +590,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with regex validator type and rule.
 
         :assert: Error not raised for default value matching with regex.
+
+        :CaseLevel: Critical
         """
         value = gen_string('numeric')
         sc_param = self.sc_params_list.pop()
@@ -596,6 +622,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with regex validator type and rule.
 
         :assert: Error raised for matcher value not matching with regex.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('numeric')
@@ -635,6 +663,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with regex validator type and rule.
 
         :assert: Error not raised for matcher value matching with regex.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('numeric')
@@ -666,6 +696,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with list validator type and rule.
 
         :assert: Error is raised for default value that is not in list.
+
+        :CaseLevel: Critical
         """
         value = gen_string('alphanumeric')
         sc_param = self.sc_params_list.pop()
@@ -700,6 +732,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with list validator type and rule.
 
         :assert: Error not raised for default value in list.
+
+        :CaseLevel: Critical
         """
         # Generate list of values
         values_list = [
@@ -742,6 +776,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with list validator type and rule.
 
         :assert: Error raised for matcher value not in list.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -780,6 +816,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Validate this value with list validator type and rule.
 
         :assert: Error not raised for matcher value in list.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -811,6 +849,8 @@ class SmartClassParametersTestCase(APITestCase):
                type.
 
         :assert: Error raised for matcher value not of default type.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -842,6 +882,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Create a matcher with value that matches the default type.
 
         :assert: Error not raised for matcher value of default type.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -873,6 +915,8 @@ class SmartClassParametersTestCase(APITestCase):
                type.
 
         :assert: Error raised for invalid default and matcher value both.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -903,6 +947,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. Create a matcher with non existing attribute in org.
 
         :assert: Error raised for non existing attribute.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         with self.assertRaises(HTTPError) as context:
@@ -931,6 +977,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Create a matcher with all valid values.
 
         :assert: The matcher has been created successfully.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -960,6 +1008,8 @@ class SmartClassParametersTestCase(APITestCase):
                default value.
 
         :assert: The matcher has been created successfully.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -1000,6 +1050,8 @@ class SmartClassParametersTestCase(APITestCase):
         :assert: The YAML output has the value only for fqdn matcher.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1028,6 +1080,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. The YAML output doesn't have value for fqdn/host matcher.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1059,6 +1113,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1091,6 +1147,8 @@ class SmartClassParametersTestCase(APITestCase):
             4. Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1125,6 +1183,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1157,6 +1217,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1190,6 +1252,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1222,6 +1286,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Duplicate values in YAML output if any are displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1254,6 +1320,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Duplicate values in YAML output are removed / not displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1285,6 +1353,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. No value removed as duplicate value.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -1298,6 +1368,8 @@ class SmartClassParametersTestCase(APITestCase):
 
         :assert: The Merge Overrides, Merge Default checks are enabled to
             check.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1328,6 +1400,8 @@ class SmartClassParametersTestCase(APITestCase):
 
         :assert: The Merge Overrides, Merge Default checks are not enabled to
             check.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1376,6 +1450,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. Set 'merge overrides' to True.
 
         :assert: The Avoid Duplicates is enabled to set to True.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1408,6 +1484,8 @@ class SmartClassParametersTestCase(APITestCase):
                hash other than array.
             2. The Avoid duplicates checkbox not enabled to check for any type
                than array.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1441,6 +1519,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. Remove the matcher created in step 1.
 
         :assert: The matcher removed from parameter.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -1473,6 +1553,8 @@ class SmartClassParametersTestCase(APITestCase):
             1. The matcher for deleted attribute removed from parameter.
             2. On recreating attribute, the matcher should not reappear in
                parameter.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         hostgroup_name = gen_string('alpha')
@@ -1516,6 +1598,8 @@ class SmartClassParametersTestCase(APITestCase):
             3. Set 'Hidden Value' to true.
 
         :assert: The 'hidden value' set to True for that parameter.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1541,6 +1625,8 @@ class SmartClassParametersTestCase(APITestCase):
             4. After hiding, set the 'Hidden Value' to False.
 
         :assert: The 'hidden value' set to false for that parameter.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1572,6 +1658,8 @@ class SmartClassParametersTestCase(APITestCase):
 
             1. The parameter default value is updated.
             2. The 'hidden value' set/displayed as True for that parameter.
+
+        :CaseLevel: Critical
         """
         old_value = gen_string('alpha')
         new_value = gen_string('alpha')
@@ -1606,6 +1694,8 @@ class SmartClassParametersTestCase(APITestCase):
 
             1. The 'hidden value' set to True for that parameter.
             2. The default value is empty even after hide.
+
+        :CaseLevel: Critical
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True

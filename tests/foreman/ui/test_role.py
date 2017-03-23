@@ -38,6 +38,8 @@ class RoleTestCase(UITestCase):
         :id: 8170598b-cf3b-4ff7-9baa-bee73f90d255
 
         :Assert: Role is created successfully
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -52,6 +54,8 @@ class RoleTestCase(UITestCase):
         :id: 4159a2ad-0952-4196-9e3b-56c721d24355
 
         :Assert: Role is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -67,6 +71,8 @@ class RoleTestCase(UITestCase):
         :id: c8bd515a-e556-4b98-a993-ec37f541ffc3
 
         :Assert: Role is deleted successfully
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -81,6 +87,8 @@ class RoleTestCase(UITestCase):
         :id: c3ad9eed-6896-470d-9043-3fda37bbe489
 
         :Assert: Role is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -99,6 +107,8 @@ class RoleTestCase(UITestCase):
         :id: d57abcf2-a42f-40db-a61c-61b56bcc55b9
 
         :Assert: Role is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         resource_type = 'Architecture'
@@ -126,6 +136,8 @@ class RoleTestCase(UITestCase):
         :id: e3e6af90-fb31-4de9-8f36-f50550d7f00e
 
         :Assert: New role is created.
+
+        :CaseLevel: Critical
         """
         builtin_name = choice(ROLES)
         new_name = gen_string('alpha')
@@ -159,6 +171,8 @@ class RoleTestCase(UITestCase):
         :id: a4367968-eae5-4b8a-9b5c-61824b261320
 
         :Assert: New role is created and contains all permissions
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -197,6 +211,8 @@ class RoleTestCase(UITestCase):
         :Assert: User is created successfully
 
         :BZ: 1353788
+
+        :CaseLevel: Critical
         """
         user_name = gen_string('alpha')
         role_name = gen_string('alpha')
@@ -221,6 +237,8 @@ class RoleTestCase(UITestCase):
         :Assert: Role is deleted
 
         :BZ: 1353788
+
+        :CaseLevel: Critical
         """
         new_name = gen_string('alpha')
         with Session(self.browser):
@@ -252,6 +270,8 @@ class CannedRoleTestCases(UITestCase):
         :steps: Create new role with taxonomies (location and organization)
 
         :assert: New role is created with taxonomies
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -619,6 +639,8 @@ class CannedRoleTestCases(UITestCase):
             3. New taxonomies should be applied to cloned role
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -636,6 +658,8 @@ class CannedRoleTestCases(UITestCase):
         :assert: Filter in cloned role should be successfully overriding
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -655,6 +679,8 @@ class CannedRoleTestCases(UITestCase):
             2. Override mark is filters table is marked
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed
@@ -675,4 +701,6 @@ class CannedRoleTestCases(UITestCase):
             overridden filters
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """

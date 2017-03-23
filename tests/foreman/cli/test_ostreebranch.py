@@ -62,6 +62,8 @@ class OstreeBranchTestCase(CLITestCase):
         :id: 0f5e7e63-c0e3-43fc-8238-caf19a478a46
 
         :Assert: Ostree Branch List is displayed
+
+        :CaseLevel: Critical
         """
         result = OstreeBranch.list()
         self.assertGreater(len(result), 0)
@@ -74,6 +76,8 @@ class OstreeBranchTestCase(CLITestCase):
         :id: 8cf1a973-031c-4c02-af14-0faba22ab60b
 
         :Assert: Ostree Branch List is displayed
+
+        :CaseLevel: Critical
         """
         result = OstreeBranch.list({'repository-id': self.ostree_repo['id']})
         self.assertGreater(len(result), 0)
@@ -86,6 +90,8 @@ class OstreeBranchTestCase(CLITestCase):
         :id: e7b9d04d-cace-4271-b166-214017200c53
 
         :Assert: Ostree Branch List is displayed
+
+        :CaseLevel: Critical
         """
         result = OstreeBranch.list({'product-id': self.product['id']})
         self.assertGreater(len(result), 0)
@@ -98,6 +104,8 @@ class OstreeBranchTestCase(CLITestCase):
         :id: 5b169619-305f-4934-b363-068193330701
 
         :Assert: Ostree Branch List is displayed
+
+        :CaseLevel: Critical
         """
         result = OstreeBranch.list({'organization-id': self.org['id']})
         self.assertGreater(len(result), 0)
@@ -110,6 +118,8 @@ class OstreeBranchTestCase(CLITestCase):
         :id: 3654f107-44ee-4af2-a9e4-f9fd8c68491e
 
         :Assert: Ostree Branch List is displayed
+
+        :CaseLevel: Critical
         """
         result = OstreeBranch.list({'content-view-id': self.cv['id']})
         self.assertGreater(len(result), 0)
@@ -122,6 +132,8 @@ class OstreeBranchTestCase(CLITestCase):
         :id: 7838c9a8-56da-44de-883c-28571ecfa75c
 
         :Assert: Ostree Branch Info is displayed
+
+        :CaseLevel: Critical
         """
         result = OstreeBranch.list()
         self.assertGreater(len(result), 0)

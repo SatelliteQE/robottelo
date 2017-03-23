@@ -534,6 +534,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Organizations are created
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_org_data():
             with self.subTest(test_data):
@@ -589,6 +591,8 @@ class TestImport(CLITestCase):
 
         :assert: 2nd Import will result in No Action Taken
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_org_data():
             with self.subTest(test_data):
@@ -611,6 +615,8 @@ class TestImport(CLITestCase):
         :assert: 2nd Import will result in No Action Taken, 3rd one will rename
             the new organizations, and the 4th one will map them
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_org_data():
             with self.subTest(test_data):
@@ -661,6 +667,8 @@ class TestImport(CLITestCase):
         :assert: 3 Organizations Mapped and their Users created in a single
             Organization
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_user_data():
             with self.subTest(test_data):
@@ -698,6 +706,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Users created
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_user_data():
             with self.subTest(test_data):
@@ -728,6 +738,8 @@ class TestImport(CLITestCase):
 
         :assert: 2nd Import will result in No Action Taken
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_user_data():
             with self.subTest(test_data):
@@ -759,6 +771,8 @@ class TestImport(CLITestCase):
         :assert: Users imported in 2nd import are being mapped to the existing
             ones with the same name
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_user_data():
             with self.subTest(test_data):
@@ -798,6 +812,8 @@ class TestImport(CLITestCase):
         :assert: 2nd Import will rename new users, 3rd one will result in No
             Action Taken and 4th import will map them
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_user_data():
             with self.subTest(test_data):
@@ -859,6 +875,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Host Collections created
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_hostcol_data():
             with self.subTest(test_data):
@@ -895,6 +913,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Host Collections created, no action taken on 2nd Import
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_hostcol_data():
             with self.subTest(test_data):
@@ -929,6 +949,8 @@ class TestImport(CLITestCase):
         :assert: 2nd Import will rename the new collections, 3nd import will
             result in No Action Taken and the 4th one will map them
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_hostcol_data():
             with self.subTest(test_data):
@@ -991,6 +1013,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Repositories imported and enabled
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_repo_data():
             with self.subTest(test_data):
@@ -1031,6 +1055,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Repositories imported and enabled, second run should trigger
             no action.
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_repo_data():
             with self.subTest(test_data):
@@ -1081,6 +1107,8 @@ class TestImport(CLITestCase):
 
         :assert: 2nd Import will rename the new repos, 3rd import will map them
             and the 4th one will result in No Action Taken
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_repo_data():
             with self.subTest(test_data):
@@ -1143,6 +1171,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Content Views imported and enabled
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_cv_data():
             with self.subTest(test_data):
@@ -1188,6 +1218,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 Content Views imported and enabled, 2nd run should trigger
             no action.
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_cv_data():
             with self.subTest(test_data):
@@ -1242,6 +1274,8 @@ class TestImport(CLITestCase):
 
         :assert: 2nd Import will rename the new Content Views, 3rd import will
             map them and the 4th one will result in No Action Taken
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_cv_data():
             with self.subTest(test_data):
@@ -1316,6 +1350,8 @@ class TestImport(CLITestCase):
 
         :assert: Generated .erb file contains correctly formatted puppet facts
 
+
+        :CaseLevel: Critical
         """
         # This bug was originally created to verify BZ 1160847
         # prepare data (craft csv)
@@ -1528,6 +1564,8 @@ class TestImport(CLITestCase):
 
         :assert: Profiles for all Hosts created
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_chost_data():
             with self.subTest(test_data):
@@ -1558,6 +1596,8 @@ class TestImport(CLITestCase):
 
         :assert: Profiles for all Hosts created only once
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_chost_data():
             with self.subTest(test_data):
@@ -1599,6 +1639,8 @@ class TestImport(CLITestCase):
 
         :assert: No such option exists, error is shown
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_chost_data():
             with self.subTest(test_data):
@@ -1631,6 +1673,8 @@ class TestImport(CLITestCase):
 
         :assert: All Snippets imported
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_snippet_data():
             with self.subTest(test_data):
@@ -1670,6 +1714,8 @@ class TestImport(CLITestCase):
 
         :assert: All Config Files are imported
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_config_files_data():
             with self.subTest(test_data):
@@ -1710,6 +1756,8 @@ class TestImport(CLITestCase):
 
         :assert: All Config Files are imported only once
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_config_files_data():
             with self.subTest(test_data):
@@ -1766,6 +1814,8 @@ class TestImport(CLITestCase):
 
         :assert: 3 AKs imported
 
+
+        :CaseLevel: Critical
         """
         for test_data in gen_import_ak_data():
             with self.subTest(test_data):

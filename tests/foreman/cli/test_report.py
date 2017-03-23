@@ -48,6 +48,8 @@ class ReportTestCase(CLITestCase):
         :id: 8325e18f-58a4-49b8-a5f3-eebbe1d568b5
 
         :Assert: Puppert Report List is displayed
+
+        :CaseLevel: Critical
         """
         Report.list()
 
@@ -59,6 +61,8 @@ class ReportTestCase(CLITestCase):
         :id: 32646d4b-7101-421a-85e0-777d3c6b71ec
 
         :Assert: Puppet Report Info is displayed
+
+        :CaseLevel: Critical
         """
         result = Report.list()
         self.assertGreater(len(result), 0)
@@ -75,6 +79,8 @@ class ReportTestCase(CLITestCase):
         :id: bf918ec9-e2d4-45d0-b913-ab939b5d5e6a
 
         :Assert: Puppet Report is deleted
+
+        :CaseLevel: Critical
         """
         result = Report.list()
         self.assertGreater(len(result), 0)

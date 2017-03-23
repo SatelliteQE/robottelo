@@ -122,6 +122,8 @@ class CapsuleTestCase(UITestCase):
         :Assert: The version of the Capsules exists in the about page.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -139,6 +141,8 @@ class CapsuleTestCase(UITestCase):
         :Assert: The status of the Capsules is up and running.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -157,6 +161,8 @@ class CapsuleTestCase(UITestCase):
             index page.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -175,6 +181,8 @@ class CapsuleTestCase(UITestCase):
             page.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -194,6 +202,8 @@ class CapsuleTestCase(UITestCase):
             default capsule in the Overview Tab.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -255,6 +265,8 @@ class CapsuleTestCase(UITestCase):
             'Puppet', 'Storage' info is displayed.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -277,6 +289,8 @@ class CapsuleTestCase(UITestCase):
             Tab.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -298,6 +312,8 @@ class CapsuleTestCase(UITestCase):
             column.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')

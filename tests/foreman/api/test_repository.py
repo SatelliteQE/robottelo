@@ -83,6 +83,8 @@ class RepositoryTestCase(APITestCase):
         :id: 159f7296-55d2-4360-948f-c24e7d75b962
 
         :Assert: A repository is created with the given name.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -98,6 +100,8 @@ class RepositoryTestCase(APITestCase):
         :id: 3be1b3fa-0e17-416f-97f0-858709e6b1da
 
         :Assert: A repository is created with expected label.
+
+        :CaseLevel: Critical
         """
         for label in valid_labels_list():
             with self.subTest(label):
@@ -114,6 +118,8 @@ class RepositoryTestCase(APITestCase):
         :id: 7bac7f45-0fb3-4443-bb3b-cee72248ca5d
 
         :Assert: A repository is created and has yum type.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -131,6 +137,8 @@ class RepositoryTestCase(APITestCase):
         :id: daa10ded-6de3-44b3-9707-9f0ac983d2ea
 
         :Assert: A repository is created and has puppet type.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -147,6 +155,8 @@ class RepositoryTestCase(APITestCase):
         :id: 1b17fe37-cdbf-4a79-9b0d-6813ea502754
 
         :Assert: yum repository is created
+
+        :CaseLevel: Critical
         """
         url = FAKE_5_YUM_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -167,6 +177,8 @@ class RepositoryTestCase(APITestCase):
         :id: 5e5479c4-904d-4892-bc43-6f81fa3813f8
 
         :Assert: YUM repository with a download policy is created
+
+        :CaseLevel: Critical
         """
         for policy in DOWNLOAD_POLICIES:
             with self.subTest(policy):
@@ -185,6 +197,8 @@ class RepositoryTestCase(APITestCase):
         :id: 54108f30-d73e-46d3-ae56-cda28678e7e9
 
         :Assert: YUM repository with a default download policy
+
+        :CaseLevel: Critical
         """
 
         default_dl_policy = entities.Setting().search(
@@ -205,6 +219,8 @@ class RepositoryTestCase(APITestCase):
         :id: 8a70de9b-4663-4251-b91e-d3618ee7ef84
 
         :Assert: immediate download policy is updated to on_demand
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -223,6 +239,8 @@ class RepositoryTestCase(APITestCase):
         :id: 9aaf53be-1127-4559-9faf-899888a52846
 
         :Assert: immediate download policy is updated to background
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -241,6 +259,8 @@ class RepositoryTestCase(APITestCase):
         :id: 589ff7bb-4251-4218-bb90-4e63c9baf702
 
         :Assert: on_demand download policy is updated to immediate
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -259,6 +279,8 @@ class RepositoryTestCase(APITestCase):
         :id: 1d9888a0-c5b5-41a7-815d-47e936022a60
 
         :Assert: on_demand download policy is updated to background
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -277,6 +299,8 @@ class RepositoryTestCase(APITestCase):
         :id: 169530a7-c5ce-4ca5-8cdd-15398e13e2af
 
         :Assert: background download policy is updated to immediate
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -295,6 +319,8 @@ class RepositoryTestCase(APITestCase):
         :id: 40a3e963-61ff-41c4-aa6c-d9a4a638af4a
 
         :Assert: background download policy is updated to on_demand
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -313,6 +339,8 @@ class RepositoryTestCase(APITestCase):
         :id: af9e4f0f-d128-43d2-a680-0a62c7dab266
 
         :Assert: Puppet repository is created
+
+        :CaseLevel: Critical
         """
         url = FAKE_7_PUPPET_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -334,6 +362,8 @@ class RepositoryTestCase(APITestCase):
         :id: c3678878-758a-4501-a038-a59503fee453
 
         :Assert: A repository is created and has expected checksum type.
+
+        :CaseLevel: Critical
         """
         for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
@@ -350,6 +380,8 @@ class RepositoryTestCase(APITestCase):
 
         :Assert: A repository is created and has expected unprotected flag
             state.
+
+        :CaseLevel: Critical
         """
         for unprotected in True, False:
             repo = entities.Repository(
@@ -426,6 +458,8 @@ class RepositoryTestCase(APITestCase):
         :id: 24947c92-3415-43df-add6-d6eb38afd8a3
 
         :Assert: A repository is not created and error is raised.
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -441,6 +475,8 @@ class RepositoryTestCase(APITestCase):
         :id: 0493dfc4-0043-4682-b339-ce61da7d48ae
 
         :Assert: Second repository is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alphanumeric')
         entities.Repository(product=self.product, name=name).create()
@@ -455,6 +491,8 @@ class RepositoryTestCase(APITestCase):
         :id: f646ae84-2660-41bd-9883-331285fa1c9a
 
         :Assert: A repository is not created and error is raised.
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Repository(label=gen_string('utf8')).create()
@@ -467,6 +505,8 @@ class RepositoryTestCase(APITestCase):
         :id: 0bb9fc3f-d442-4437-b5d8-83024bc7ceab
 
         :Assert: A repository is not created and error is raised.
+
+        :CaseLevel: Critical
         """
         for url in invalid_names_list():
             with self.subTest(url):
@@ -481,6 +521,8 @@ class RepositoryTestCase(APITestCase):
         :id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
 
         :Assert: A repository is not created and error is raised.
+
+        :CaseLevel: Critical
         """
         # get a list of valid credentials without quoting them
         for cred in [creds for creds in valid_http_credentials()
@@ -498,6 +540,8 @@ class RepositoryTestCase(APITestCase):
         :id: 5aad4e9f-f7e1-497c-8e1f-55e07e38ee80
 
         :Assert: A repository is not created and error is raised.
+
+        :CaseLevel: Critical
         """
         for cred in invalid_http_credentials():
             with self.subTest(cred):
@@ -513,6 +557,8 @@ class RepositoryTestCase(APITestCase):
         :id: 3b143bf8-7056-4c94-910d-69a451071f26
 
         :Assert: YUM repository is not created with invalid download policy
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Repository(
@@ -529,6 +575,8 @@ class RepositoryTestCase(APITestCase):
         :id: 5bd6a2e4-7ff0-42ac-825a-6b2a2f687c89
 
         :Assert: YUM repository is not updated to invalid download policy
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             repo = entities.Repository(
@@ -546,6 +594,8 @@ class RepositoryTestCase(APITestCase):
         :id: 71388973-50ea-4a20-9406-0aca142014ca
 
         :Assert: Non-YUM repository is not created with a download policy
+
+        :CaseLevel: Critical
         """
         non_yum_repo_types = [
             repo_type for repo_type in REPO_TYPE.keys()
@@ -568,6 +618,8 @@ class RepositoryTestCase(APITestCase):
         :id: c49a3c49-110d-4b74-ae14-5c9494a4541c
 
         :Assert: A repository is not created and error is raised.
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.Repository(checksum_type=gen_string('alpha')).create()
@@ -580,6 +632,8 @@ class RepositoryTestCase(APITestCase):
         :id: 1b428129-7cf9-449b-9e3b-74360c5f9eca
 
         :Assert: The repository name can be updated.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(product=self.product).create()
         for new_name in valid_data_list():
@@ -596,6 +650,8 @@ class RepositoryTestCase(APITestCase):
         :id: 205e6e59-33c6-4a58-9245-1cac3a4f550a
 
         :Assert: The repository checksum type can be updated.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product, checksum_type='sha1').create()
@@ -611,6 +667,8 @@ class RepositoryTestCase(APITestCase):
         :id: 8fbc11f0-a5c5-498e-a314-87958dcd7832
 
         :Assert: The repository url can be updated.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(product=self.product).create()
         repo.url = FAKE_2_YUM_REPO
@@ -625,6 +683,8 @@ class RepositoryTestCase(APITestCase):
         :id: c55d169a-8f11-4bf8-9913-b3d39fee75f0
 
         :Assert: The repository unprotected flag can be updated.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product, unprotected=False).create()
@@ -689,6 +749,8 @@ class RepositoryTestCase(APITestCase):
         :id: e091a725-048f-44ca-90cc-c016c450ced9
 
         :Assert: The repository's contents include one SRPM.
+
+        :CaseLevel: Critical
         """
         # Create a repository and upload source RPM content.
         repo = entities.Repository(product=self.product).create()
@@ -706,6 +768,8 @@ class RepositoryTestCase(APITestCase):
 
         :Assert: The repository's content is removed and content count shows
             zero packages
+
+        :CaseLevel: Critical
         """
         # Create repository and synchronize it
         repo = entities.Repository(
@@ -729,6 +793,8 @@ class RepositoryTestCase(APITestCase):
         :id: 6f2f41a4-d871-4b91-87b1-a5a401c4aa69
 
         :Assert: Repository is not updated
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(product=self.product).create()
         for new_name in invalid_values_list():
@@ -746,6 +812,8 @@ class RepositoryTestCase(APITestCase):
         :id: 828d85df-3c25-4a69-b6a2-401c6b82e4f3
 
         :Assert: Repository is not updated and error is raised
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(product=self.product).create()
         repo.label = gen_string('alpha')
@@ -761,6 +829,8 @@ class RepositoryTestCase(APITestCase):
         :id: 47530b1c-e964-402a-a633-c81583fb5b98
 
         :Assert: Repository url not updated
+
+        :CaseLevel: Critical
         """
         new_repo = entities.Repository(product=self.product).create()
         # get auth repos with credentials containing unquoted special chars
@@ -784,6 +854,8 @@ class RepositoryTestCase(APITestCase):
         :id: cc00fbf4-d284-4404-88d9-ea0c0f03abe1
 
         :Assert: Repository url not updated
+
+        :CaseLevel: Critical
         """
         new_repo = entities.Repository(product=self.product).create()
         # get auth repos with credentials containing unquoted special chars
@@ -970,6 +1042,8 @@ class RepositoryTestCase(APITestCase):
         :id: 29c2571a-b7fb-4ec7-b433-a1840758bcb0
 
         :Assert: The repository deleted successfully.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1037,6 +1111,8 @@ class RepositoryTestCase(APITestCase):
 
         :Assert: Number of modules has no changed after a second repo was
             synced.
+
+        :CaseLevel: Critical
         """
         # Create and sync first repo
         repo1 = entities.Repository(
@@ -1107,6 +1183,8 @@ class DockerRepositoryTestCase(APITestCase):
         :id: 2ce5b52d-8470-4c33-aeeb-9aee1af1cd74
 
         :Assert: A repository is created with a Docker repository.
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.org).create()
         for name in valid_data_list():
@@ -1155,6 +1233,8 @@ class DockerRepositoryTestCase(APITestCase):
         :id: 6dff0c90-170f-40b9-9347-8ec97d89f2fd
 
         :Assert: The repository's name is updated.
+
+        :CaseLevel: Critical
         """
         repository = entities.Repository(
             content_type='docker'
@@ -1185,6 +1265,8 @@ class OstreeRepositoryTestCase(APITestCase):
         :id: f3332dd3-1e6d-44e2-8f24-fae6fba2de8d
 
         :Assert: A repository is created and has ostree type.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -1201,6 +1283,8 @@ class OstreeRepositoryTestCase(APITestCase):
         :id: 4d9f1418-cc08-4c3c-a5dd-1d20fb9052a2
 
         :Assert: The repository name is updated.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -1220,6 +1304,8 @@ class OstreeRepositoryTestCase(APITestCase):
         :id: 6ba45475-a060-42a7-bc9e-ea2824a5476b
 
         :Assert: The repository url is updated.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,
@@ -1239,6 +1325,8 @@ class OstreeRepositoryTestCase(APITestCase):
         :id: 05db79ed-28c7-47fc-85f5-194a805d71ca
 
         :Assert: The ostree repository deleted successfully.
+
+        :CaseLevel: Critical
         """
         repo = entities.Repository(
             product=self.product,

@@ -62,6 +62,8 @@ class ActivationKeyTestCase(APITestCase):
 
         :Assert: Check that activation key is created and its "unlimited_hosts"
             attribute defaults to true.
+
+        :CaseLevel: Critical
         """
         self.assertTrue(
             entities.ActivationKey().create().unlimited_hosts
@@ -75,6 +77,8 @@ class ActivationKeyTestCase(APITestCase):
 
         :Assert: Check that activation key is created and that hosts number is
             limited
+
+        :CaseLevel: Critical
         """
         for max_host in _good_max_hosts():
             with self.subTest(max_host):
@@ -90,6 +94,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: 749e0d28-640e-41e5-89d6-b92411ce73a3
 
         :Assert: Activation key is created and contains provided name.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -103,6 +109,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: 64d93726-6f96-4a2e-ab29-eb5bfa2ff8ff
 
         :Assert: Created entity contains the provided description.
+
+        :CaseLevel: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -116,6 +124,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: a9e756e1-886d-4f0d-b685-36ce4247517d
 
         :Assert: Activation key is not created
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.ActivationKey(unlimited_hosts=False).create()
@@ -127,6 +137,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: c018b177-2074-4f1a-a7e0-9f38d6c9a1a6
 
         :Assert: Activation key is not created
+
+        :CaseLevel: Critical
         """
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
@@ -143,6 +155,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: 71b9b000-b978-4a95-b6f8-83c09ed39c01
 
         :Assert: Activation key is not created
+
+        :CaseLevel: Critical
         """
         for max_host in _bad_max_hosts():
             with self.subTest(max_host):
@@ -157,6 +171,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: 5f7051be-0320-4d37-9085-6904025ad909
 
         :Assert: Activation key is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -170,6 +186,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: 34ca8303-8135-4694-9cf7-b20f8b4b0a1e
 
         :Assert: Activation key is created, updated to limited host
+
+        :CaseLevel: Critical
         """
         # unlimited_hosts defaults to True.
         act_key = entities.ActivationKey().create()
@@ -190,6 +208,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: f219f2dc-8759-43ab-a277-fbabede6795e
 
         :Assert: Activation key is created, and its name can be updated.
+
+        :CaseLevel: Critical
         """
         act_key = entities.ActivationKey().create()
         for new_name in valid_data_list():
@@ -209,6 +229,8 @@ class ActivationKeyTestCase(APITestCase):
             1. Activation key is created
             2. Update fails
             3. Record is not changed
+
+        :CaseLevel: Critical
         """
         act_key = entities.ActivationKey().create()
         want = {
@@ -232,6 +254,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: da85a32c-942b-4ab8-a133-36b028208c4d
 
         :Assert: Activation key is created, and its name is not updated.
+
+        :CaseLevel: Critical
         """
         act_key = entities.ActivationKey().create()
         for new_name in invalid_names_list():
@@ -251,6 +275,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: 3bcff792-105a-4577-b7c2-5b0de4f79c77
 
         :Assert: The update fails with an HTTP 422 return code.
+
+        :CaseLevel: Critical
         """
         act_key = entities.ActivationKey(max_hosts=1).create()
         with self.assertRaises(HTTPError):
@@ -379,6 +405,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: ec225dad-2d27-4b37-989d-1ba2c7f74ac4
 
         :Assert: The value is changed.
+
+        :CaseLevel: Critical
         """
         act_key = entities.ActivationKey().create()
         act_key_2 = entities.ActivationKey(
@@ -394,6 +422,8 @@ class ActivationKeyTestCase(APITestCase):
         :id: aa28d8fb-e07d-45fa-b43a-fc90c706d633
 
         :Assert: Activation key is successfully deleted.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -502,6 +532,8 @@ class ActivationKeySearchTestCase(APITestCase):
         :id: aedba598-2e47-44a8-826c-4dc304ba00be
 
         :Assert: Only activation keys in the organization are returned.
+
+        :CaseLevel: Critical
         """
         act_keys = entities.ActivationKey(organization=self.org).search()
         self.assertEqual(len(act_keys), 1)

@@ -76,6 +76,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 267bd784-1ef7-4270-a264-6f8659e239fd
 
         :Assert: Host Collection is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -91,6 +93,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 830ff39e-0d4c-4368-bc47-12b060a09410
 
         :Assert: Host Collection is created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -109,6 +113,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 9983b61d-f820-4b60-ae5e-a45925f2dcf0
 
         :Assert: Host Collection is created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -124,6 +130,8 @@ class HostCollectionTestCase(UITestCase):
 
         :Assert: Host Collection is not created and appropriate error message
             thrown
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -144,6 +152,8 @@ class HostCollectionTestCase(UITestCase):
         :id: c15b3540-809e-4339-ad5f-1ab488244299
 
         :Assert: Host Collection is not created. Appropriate error shown.
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for limit in invalid_names_list():
@@ -166,6 +176,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 9df33661-7a9c-40d9-8f2c-52e5ed21c156
 
         :Assert: Host Collection is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -185,6 +197,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 5ef92657-489f-46a2-9b3a-e40322ca86d8
 
         :Assert: Host Collection is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -212,6 +226,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 6f5015c4-06c9-4873-806e-5f9d39c9d8a8
 
         :Assert: Host Collection is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -231,6 +247,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 823acd9e-1259-47b6-8236-7547ef3fff98
 
         :Assert: Host Collection is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -250,6 +268,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 7af999e8-5189-45c0-a92d-8c05b03f556a
 
         :Assert: Host Collection is not updated.  Appropriate error shown.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -271,6 +291,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 3f3749f9-cf52-4897-993f-804def785510
 
         :Assert: Host Collection is not updated.  Appropriate error shown.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -289,6 +311,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 978a985c-29f4-4b1f-8c68-8cd412af21e6
 
         :Assert: Host Collection is deleted
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -305,6 +329,8 @@ class HostCollectionTestCase(UITestCase):
         :id: af8d968c-8241-40dc-b92c-81965f470191
 
         :Assert: Host Collection copy exists
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -324,6 +350,8 @@ class HostCollectionTestCase(UITestCase):
         :id: 99d47520-c09a-4fbc-8e53-a4e889af0187
 
         :Assert: Host Collection copy does not exist
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:

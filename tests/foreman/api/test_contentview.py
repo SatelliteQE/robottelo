@@ -325,6 +325,8 @@ class ContentViewCreateTestCase(APITestCase):
 
         :Assert: Creation succeeds and content-view is composite or
             non-composite, respectively.
+
+        :CaseLevel: Critical
         """
         for composite in (True, False):
             with self.subTest(composite):
@@ -342,6 +344,8 @@ class ContentViewCreateTestCase(APITestCase):
         :id: 80d36498-2e71-4aa9-b696-f0a45e86267f
 
         :Assert: Content-view is created and had random name.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -357,6 +361,8 @@ class ContentViewCreateTestCase(APITestCase):
         :id: 068e3e7c-34ac-47cb-a1bb-904d12c74cc7
 
         :Assert: Content-view is created and has random description.
+
+        :CaseLevel: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -374,6 +380,8 @@ class ContentViewCreateTestCase(APITestCase):
         :id: ee03dc63-e2b0-4a89-a828-2910405279ff
 
         :assert: A content view is cloned with relevant parameters
+
+        :CaseLevel: Critical
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -398,6 +406,8 @@ class ContentViewCreateTestCase(APITestCase):
         :id: 261376ca-7d12-41b6-9c36-5f284865243e
 
         :Assert: Content View is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -991,6 +1001,8 @@ class ContentViewUpdateTestCase(APITestCase):
         :id: 3f1457f2-586b-472c-8053-99017c4a4909
 
         :Assert: The update succeeds.
+
+        :CaseLevel: Critical
         """
         attrs = {'description': gen_utf8(), 'name': gen_utf8()}
         for key, value in attrs.items():
@@ -1007,6 +1019,8 @@ class ContentViewUpdateTestCase(APITestCase):
         :id: 15e6fa3a-1a65-4e7d-8d32-3a81227ac1c8
 
         :Assert: Content View is created, and its name can be updated.
+
+        :CaseLevel: Critical
         """
         for new_name in valid_data_list():
             with self.subTest(new_name):
@@ -1022,6 +1036,8 @@ class ContentViewUpdateTestCase(APITestCase):
         :id: 69a2ce8d-19b2-49a3-97db-a1fdebbb16be
 
         :Assert: Content View is created, and its name is not updated.
+
+        :CaseLevel: Critical
         """
         for new_name in invalid_names_list():
             with self.subTest(new_name):
@@ -1040,6 +1056,8 @@ class ContentViewUpdateTestCase(APITestCase):
         :id: 77883887-800f-412f-91a3-b2f7ed999c70
 
         :Assert: The content view label is immutable and cannot be modified
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(HTTPError):
             entities.ContentView(
@@ -1057,6 +1075,8 @@ class ContentViewDeleteTestCase(APITestCase):
         :id: d582f1b3-8118-4e78-a639-237c6f9d27c6
 
         :Assert: Content View is successfully deleted.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

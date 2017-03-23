@@ -143,6 +143,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 091f1034-9850-4004-a0ca-d398d1626a5e
 
         :Assert: Activation key is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -162,6 +164,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 4c8f4dca-723f-4dae-a8df-4e00a7fc7d95
 
         :Assert: Activation key is created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -376,6 +380,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: cd45363e-8a79-4aa4-be97-885aea9434c9
 
         :Assert: Activation key is created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -445,6 +451,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 113e4c1e-cf4d-4c6a-88c9-766db8271933
 
         :Assert: Activation key is deleted
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -568,6 +576,8 @@ class ActivationKeyTestCase(UITestCase):
             3. Click Cancel in the confirmation dialog box
 
         :Assert: Activation key is not deleted
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -587,6 +597,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 81d74424-893d-46c4-a20c-c20c85d4e898
 
         :Assert: Activation key is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -611,6 +623,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 24988466-af1d-4dcd-80b7-9c7d317fb805
 
         :Assert: Activation key is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         description = gen_string('alpha')
@@ -788,6 +802,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: e6ef8dbe-dfb6-4226-8253-ff2e24cabe12
 
         :Assert: Activation key is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -809,6 +825,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 2585ac91-baf0-43de-ba6e-862415402e62
 
         :Assert: Activation key is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -831,6 +849,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 6eb0f747-cd4d-421d-b11e-b8917bb0cec6
 
         :Assert: Activation key is not updated.  Appropriate error shown.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -855,6 +875,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: d42d8b6a-d3f4-4baa-be20-127f52f2313e
 
         :Assert: Activation key is not updated.  Appropriate error shown.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -1260,6 +1282,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: f43d9ecf-f8ec-49cc-bd12-be7cdb3bf07c
 
         :Assert: Activation Key copy exists
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for new_name in valid_data_list():
@@ -1279,6 +1303,8 @@ class ActivationKeyTestCase(UITestCase):
         :id: 117af9a8-e669-46cb-8a54-071087d0d082
 
         :Assert: Activation Key copy does not exist
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for new_name in invalid_names_list():

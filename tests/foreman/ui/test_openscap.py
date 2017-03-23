@@ -36,6 +36,8 @@ class OpenScapTestCase(UITestCase):
         :Assert: Whether creating policies for OpenScap is successful.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -48,6 +50,8 @@ class OpenScapTestCase(UITestCase):
         :Assert: Creating policies for OpenScap is unsuccessful.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -66,6 +70,8 @@ class OpenScapTestCase(UITestCase):
         :Assert: Whether deleting policies for OpenScap is successful.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -83,6 +89,8 @@ class OpenScapTestCase(UITestCase):
         :Assert: Whether creating  content for OpenScap is successful
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -95,6 +103,8 @@ class OpenScapTestCase(UITestCase):
         :Assert: Creating content for OpenScap is unsuccessful
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -113,6 +123,8 @@ class OpenScapTestCase(UITestCase):
         :Assert: Deleting content for OpenScap is successful
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -125,6 +137,8 @@ class OpenScapTestCase(UITestCase):
         :Assert: Whether separate Compliance Reporting page exists.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @stubbed()

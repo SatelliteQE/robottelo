@@ -71,6 +71,8 @@ class RhevComputeResourceTestCase(UITestCase):
         :CaseAutomation: Automated
 
         :Assert: A rhev CR is created successfully with proper connection.
+
+        :CaseLevel: Critical
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -108,6 +110,8 @@ class RhevComputeResourceTestCase(UITestCase):
         :CaseAutomation: Automated
 
         :Assert: A rhev Compute Resource is created successfully
+
+        :CaseLevel: Critical
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -147,6 +151,8 @@ class RhevComputeResourceTestCase(UITestCase):
         :CaseAutomation: Automated
 
         :Assert: A rhev Compute Resource is not created
+
+        :CaseLevel: Critical
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -189,6 +195,8 @@ class RhevComputeResourceTestCase(UITestCase):
         :CaseAutomation: Automated
 
         :Assert: The rhev Compute Resource is updated
+
+        :CaseLevel: Critical
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -275,6 +283,8 @@ class RhevComputeResourceTestCase(UITestCase):
         :CaseAutomation: Automated
 
         :Assert: The Compute Resource is deleted
+
+        :CaseLevel: Critical
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],

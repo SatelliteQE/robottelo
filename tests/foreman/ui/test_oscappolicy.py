@@ -53,6 +53,8 @@ class OpenScapPolicy(UITestCase):
             3. Provide all the appropriate parameters.
 
         :Assert: Whether creating  Policy for OpenScap is successful.
+
+        :CaseLevel: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -90,6 +92,8 @@ class OpenScapPolicy(UITestCase):
             4. Delete the openscap Policy.
 
         :Assert: Whether deleting  Policy for OpenScap is successful.
+
+        :CaseLevel: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -130,6 +134,8 @@ class OpenScapPolicy(UITestCase):
         :Assert: Creating  Policy for OpenScap is not successful.
 
         :BZ: 1293296
+
+        :CaseLevel: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -166,6 +172,8 @@ class OpenScapPolicy(UITestCase):
             4. Update openscap policy with valid values.
 
         :Assert: Updating Policy for OpenScap is successful.
+
+        :CaseLevel: Critical
         """
         content_name = gen_string('alpha')
         policy_name = gen_string('alpha')
@@ -218,6 +226,8 @@ class OpenScapPolicy(UITestCase):
         :Assert: Creation of Policy with a space in its name is successful.
 
         :BZ: 1292622
+
+        :CaseLevel: Critical
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:

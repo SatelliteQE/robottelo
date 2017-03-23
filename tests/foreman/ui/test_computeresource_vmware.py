@@ -39,6 +39,8 @@ class VmwareComputeResourceTestCase(UITestCase):
         :Assert: A vmware compute resource is created successfully.
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -60,6 +62,8 @@ class VmwareComputeResourceTestCase(UITestCase):
         :Assert: A vmware compute resource is created successfully
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -81,6 +85,8 @@ class VmwareComputeResourceTestCase(UITestCase):
         :Assert: A vmware compute resource is not created
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -103,6 +109,8 @@ class VmwareComputeResourceTestCase(UITestCase):
         :Assert: The vmware compute resource is updated
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -150,6 +158,8 @@ class VmwareComputeResourceTestCase(UITestCase):
         :Assert: The compute resource is deleted
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')

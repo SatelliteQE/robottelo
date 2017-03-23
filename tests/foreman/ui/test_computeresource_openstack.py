@@ -39,6 +39,8 @@ class OpenstackComputeResourceTestCase(UITestCase):
         :Assert: An openstack compute resource is created successfully.
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -60,6 +62,8 @@ class OpenstackComputeResourceTestCase(UITestCase):
         :Assert: An openstack compute resource is created successfully
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -82,6 +86,8 @@ class OpenstackComputeResourceTestCase(UITestCase):
         :Assert: An openstack compute resource is not created
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -105,6 +111,8 @@ class OpenstackComputeResourceTestCase(UITestCase):
         :Assert: The openstack compute resource is updated
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -152,6 +160,8 @@ class OpenstackComputeResourceTestCase(UITestCase):
         :Assert: The compute resource is deleted
 
         :Caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')

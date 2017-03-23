@@ -110,6 +110,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :Assert: Host collection is created and has random name
 
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -125,6 +127,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :Assert: Host collection is created and has random description
 
+
+        :CaseLevel: Critical
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -139,6 +143,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :Assert: Host collection is created and has random limits
 
+
+        :CaseLevel: Critical
         """
         for limit in ('1', '3', '5', '10', '20'):
             with self.subTest(limit):
@@ -155,6 +161,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :Assert: Host Collection is created and unlimited-hosts parameter is
             set
+
+        :CaseLevel: Critical
         """
         for unlimited in ('True', 'Yes', 1, 'False', 'No', 0):
             with self.subTest(unlimited):
@@ -181,6 +189,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :Assert: Host collection is created and has random name
 
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -197,6 +207,8 @@ class HostCollectionTestCase(CLITestCase):
         :Assert: Host collection is created and name is updated
 
         :BZ: 1328925
+
+        :CaseLevel: Critical
         """
         new_host_col = self._new_host_collection()
         for new_name in valid_data_list():
@@ -219,6 +231,8 @@ class HostCollectionTestCase(CLITestCase):
         :Assert: Host collection is created and description is updated
 
         :BZ: 1328925
+
+        :CaseLevel: Critical
         """
         new_host_col = self._new_host_collection()
         for desc in valid_data_list():
@@ -242,6 +256,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :BZ: 1245334
 
+
+        :CaseLevel: Critical
         """
         new_host_col = self._new_host_collection()
         for limit in ('3', '6', '9', '12', '15', '17', '19'):
@@ -264,6 +280,8 @@ class HostCollectionTestCase(CLITestCase):
         :Assert: Host collection is created and then deleted
 
         :BZ: 1328925
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

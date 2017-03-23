@@ -37,6 +37,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :Assert: Partition table was created
 
         :BZ: 1229384
+
+        :CaseLevel: Critical
         """
         for name in generate_strings_list(length=1):
             with self.subTest(name):
@@ -51,6 +53,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :id: e7d8a444-c69a-4863-a715-83d2dcb3b6ec
 
         :Assert: Partition Table is created and has correct name
+
+        :CaseLevel: Critical
         """
         for name in generate_strings_list(length=randint(4, 30)):
             with self.subTest(name):
@@ -64,6 +68,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :id: 28bfbd8b-2ada-44d0-89f3-63885cfb3495
 
         :Assert: Partition Table is created and has correct content
+
+        :CaseLevel: Critical
         """
         content = 'Fake ptable'
         ptable = make_partition_table({'content': content})
@@ -78,6 +84,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :id: 6242c915-0f15-4d5f-9f7a-73cb58fac81e
 
         :Assert: Partition Table is created and its name can be updated
+
+        :CaseLevel: Critical
         """
         ptable = make_partition_table()
         for new_name in generate_strings_list(length=randint(4, 30)):
@@ -96,6 +104,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :id: 4d2369eb-4dc1-4ab5-96d4-c872c39f4ff5
 
         :Assert: Partition Table is deleted
+
+        :CaseLevel: Critical
         """
         ptable = make_partition_table()
         PartitionTable.delete({'id': ptable['id']})
@@ -109,6 +119,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         :id: 27bd427c-7601-4f3b-998f-b7baaaad0fb0
 
         :Assert: Partition Table is deleted
+
+        :CaseLevel: Critical
         """
         ptable = make_partition_table()
         PartitionTable.delete({'name': ptable['name']})

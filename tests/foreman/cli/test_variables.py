@@ -196,6 +196,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :assert: Smart Variables listed for specific puppet class by puppet
             class name.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable(
             {'puppet-class': self.puppet_class['name']})
@@ -218,6 +220,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :assert: Smart Variables listed for specific puppet class by puppet
             class id.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable(
             {'puppet-class-id': self.puppet_class['id']})
@@ -238,6 +242,8 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a smart Variable with Valid name.
 
         :assert: The smart Variable is created successfully.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -257,6 +263,8 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a smart Variable with Invalid name.
 
         :assert: The smart Variable is not created.
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -276,6 +284,8 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Delete a smart Variable by id.
 
         :assert: The smart Variable is deleted successfully.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -293,6 +303,8 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Delete a smart Variable by name.
 
         :assert: The smart Variable is deleted successfully.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -314,6 +326,8 @@ class SmartVariablesTestCase(CLITestCase):
                in step1.
 
         :assert: The variable is updated with new puppet class.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -343,6 +357,8 @@ class SmartVariablesTestCase(CLITestCase):
             2. Update smart variable name created in step1.
 
         :assert: The variable is updated with new name.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -371,6 +387,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :assert: The variable with same name are not allowed to create from any
             class.
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         make_smart_variable(
@@ -390,6 +408,8 @@ class SmartVariablesTestCase(CLITestCase):
             value.
 
         :assert: The smart Variable is created successfully.
+
+        :CaseLevel: Critical
         """
         for value in valid_data_list():
             with self.subTest(value):
@@ -414,6 +434,8 @@ class SmartVariablesTestCase(CLITestCase):
         :assert: Variable is created with a new type successfully.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -432,6 +454,8 @@ class SmartVariablesTestCase(CLITestCase):
         :assert: Variable is not created with new type for invalid value.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -444,6 +468,8 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a matcher for variable with type string and empty value
 
         :assert: Matcher is created with empty value
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -473,6 +499,8 @@ class SmartVariablesTestCase(CLITestCase):
             empty value
 
         :assert: Matcher is not created with empty value
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -496,6 +524,8 @@ class SmartVariablesTestCase(CLITestCase):
         :steps: Create a matcher for variable with invalid match value
 
         :assert: Matcher is not created
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -521,6 +551,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Validate this value with regex validator type and valid rule.
 
         :assert: Variable is not created for unmatched validator rule.
+
+        :CaseLevel: Critical
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -551,6 +583,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Validate this value with regex validator type and rule.
 
         :assert: Variable is created for matched validator rule.
+
+        :CaseLevel: Critical
         """
         value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
@@ -582,6 +616,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Validate this value with regex validator type and rule.
 
         :assert: Matcher is not created for unmatched validator rule.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -609,6 +645,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Validate this value with regex validator type and rule.
 
         :assert: Matcher is created for matched validator rule.
+
+        :CaseLevel: Critical
         """
         value = gen_string('numeric').lstrip('0')
         smart_variable = make_smart_variable({
@@ -643,6 +681,8 @@ class SmartVariablesTestCase(CLITestCase):
             match values from validator list
 
         :assert: Variable is not created for unmatched validator rule.
+
+        :CaseLevel: Critical
         """
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.create({
@@ -663,6 +703,8 @@ class SmartVariablesTestCase(CLITestCase):
             from validator list
 
         :assert: Variable is created for matched validator rule.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -688,6 +730,8 @@ class SmartVariablesTestCase(CLITestCase):
                 values from validator list
 
         :assert: Matcher is not created for unmatched validator rule.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -716,6 +760,8 @@ class SmartVariablesTestCase(CLITestCase):
                 validator list
 
         :assert: Matcher is created for matched validator rule.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -752,6 +798,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Create matcher with value that doesn't match the default type.
 
         :assert: Matcher is not created for unmatched type.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -778,6 +826,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  Create a matcher with value that matches the default type.
 
         :assert: Matcher is created for matched type.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -810,6 +860,8 @@ class SmartVariablesTestCase(CLITestCase):
         :assert: Matcher is not created for non-existing attribute.
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @run_only_on('sat')
@@ -828,6 +880,8 @@ class SmartVariablesTestCase(CLITestCase):
 
             1. The smart Variable with matcher is created successfully.
             2. The variable is associated with host with match.
+
+        :CaseLevel: Critical
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -864,6 +918,8 @@ class SmartVariablesTestCase(CLITestCase):
             1. The smart Variable is created successfully.
             2. The matcher is associated with variable.
             3. Matcher removed successfully
+
+        :CaseLevel: Critical
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -1166,6 +1222,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :assert: The Merge Overrides, Merge Default flags are allowed to set
             True.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1199,6 +1257,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :assert: The Merge Overrides, Merge Default flags are not allowed to
             set to True.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1230,6 +1290,8 @@ class SmartVariablesTestCase(CLITestCase):
             2. Set '--merge-overrides' to true.
 
         :assert: The '--avoid-duplicates' flag is allowed to set true.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1267,6 +1329,8 @@ class SmartVariablesTestCase(CLITestCase):
                 hash.
             2.  The '--avoid-duplicates' is not allowed to set to true for type
                 other than array.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1355,6 +1419,8 @@ class SmartVariablesTestCase(CLITestCase):
 
         :assert: The 'hidden value' set to true for that variable. Default
             value is hidden
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1378,6 +1444,8 @@ class SmartVariablesTestCase(CLITestCase):
             3. After hiding, set '--hidden-value' to false.
 
         :assert: The hidden value is set to false.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
@@ -1410,6 +1478,8 @@ class SmartVariablesTestCase(CLITestCase):
 
             1. The variable default value is updated.
             2. The variable '--hidden-value' is set true.
+
+        :CaseLevel: Critical
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
@@ -1442,6 +1512,8 @@ class SmartVariablesTestCase(CLITestCase):
 
             1.  The '--hidden-value' is set to true.
             2.  The default value is empty.
+
+        :CaseLevel: Critical
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],

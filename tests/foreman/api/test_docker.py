@@ -155,6 +155,8 @@ class DockerRepositoryTestCase(APITestCase):
         :id: 3360aab2-74f3-4f6e-a083-46498ceacad2
 
         :Assert: A repository is created with a Docker upstream repository.
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -175,6 +177,8 @@ class DockerRepositoryTestCase(APITestCase):
         :id: 742a2118-0ab2-4e63-b978-88fe9f52c034
 
         :Assert: A repository is created with the specified upstream name.
+
+        :CaseLevel: Critical
         """
         for upstream_name in _valid_names():
             with self.subTest(upstream_name):
@@ -194,6 +198,8 @@ class DockerRepositoryTestCase(APITestCase):
         :id: 2c5abb4a-e50b-427a-81d2-57eaf8f57a0f
 
         :Assert: A repository is not created and a proper error is raised.
+
+        :CaseLevel: Critical
         """
         product = entities.Product(organization=self.org).create()
         for upstream_name in _invalid_names():
@@ -270,6 +276,8 @@ class DockerRepositoryTestCase(APITestCase):
 
         :Assert: A repository is created with a Docker upstream repository and
             that its name can be updated.
+
+        :CaseLevel: Critical
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -290,6 +298,8 @@ class DockerRepositoryTestCase(APITestCase):
 
         :Assert: A repository is created with a Docker upstream repository and
             that its upstream name can be updated.
+
+        :CaseLevel: Critical
         """
         new_upstream_name = u'fedora/ssh'
         repo = _create_repository(
@@ -333,6 +343,8 @@ class DockerRepositoryTestCase(APITestCase):
 
         :Assert: A repository is created with a Docker upstream repository and
             then deleted.
+
+        :CaseLevel: Critical
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
@@ -1163,6 +1175,8 @@ class DockerComputeResourceTestCase(APITestCase):
         :id: f1f23c1e-6481-46b5-9485-787ae18d9ed5
 
         :Assert: Compute Resource can be created, listed and deleted.
+
+        :CaseLevel: Critical
         """
         for url in (settings.docker.external_url,
                     settings.docker.get_unix_socket_url()):
@@ -1370,6 +1384,8 @@ class DockerContainerTestCase(APITestCase):
 
         :Assert: The docker containers are deleted in local and external
             compute resources
+
+        :CaseLevel: Critical
         """
         for compute_resource in (self.cr_internal, self.cr_external):
             with self.subTest(compute_resource.url):
@@ -1406,6 +1422,8 @@ class DockerRegistryTestCase(APITestCase):
         :id: 8212ab15-8298-4a46-88ba-eaf71069e068
 
         :Assert: External registry is created successfully
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1430,6 +1448,8 @@ class DockerRegistryTestCase(APITestCase):
         :id: fdd9c76b-43a7-4ece-8975-3b08241134c8
 
         :Assert: the external registry is updated with the new name
+
+        :CaseLevel: Critical
         """
         registry = entities.Registry(
             name=gen_string('alpha'), url=self.url).create()
@@ -1518,6 +1538,8 @@ class DockerRegistryTestCase(APITestCase):
         :id: 1a215237-91b5-4fcc-8c18-a9944068ac88
 
         :Assert: The external registry is deleted successfully
+
+        :CaseLevel: Critical
         """
         registry = entities.Registry(url=self.url).create()
         registry.delete()

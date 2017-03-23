@@ -90,6 +90,8 @@ class TestGPGKey(CLITestCase):
         :id: 2c6176ca-34dd-4d52-930d-6e79da6b0c15
 
         :Assert: gpg info should display key content
+
+        :CaseLevel: Critical
         """
         # Setup a new key file
         content = gen_alphanumeric()
@@ -110,6 +112,8 @@ class TestGPGKey(CLITestCase):
         :id: be418cf8-8a90-46db-9e8c-8ff349c98401
 
         :Assert: specific information for GPG key matches the creation name
+
+        :CaseLevel: Critical
         """
         name = gen_string('utf8')
         gpg_key = make_gpg_key({
@@ -134,6 +138,8 @@ class TestGPGKey(CLITestCase):
         :id: c64d4959-e53e-44c0-82da-dc4dd4c89733
 
         :assert: gpg key is created
+
+        :CaseLevel: Critical
         """
         org = Org.info({'name': DEFAULT_ORG})
         for name in valid_data_list():
@@ -162,6 +168,8 @@ class TestGPGKey(CLITestCase):
         :id: f1bcf748-0890-4b54-8f30-2df4924c80b3
 
         :assert: gpg key is created
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -191,6 +199,8 @@ class TestGPGKey(CLITestCase):
         :id: 3f1423da-bcc1-4320-8b9b-260784eb123c
 
         :assert: gpg key is not created
+
+        :CaseLevel: Critical
         """
         name = gen_string('alphanumeric')
         gpg_key = make_gpg_key({
@@ -218,6 +228,8 @@ class TestGPGKey(CLITestCase):
         :id: 9440a1a0-eb0d-445e-88d3-3139c2b1d17a
 
         :assert: gpg key is not created
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -236,6 +248,8 @@ class TestGPGKey(CLITestCase):
         :id: 93160f88-b653-42a9-b44f-9b2ba56f38d9
 
         :assert: gpg key is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -256,6 +270,8 @@ class TestGPGKey(CLITestCase):
         :id: 5bf72e5c-767a-4321-8781-a5cea9474421
 
         :assert: gpg key is deleted
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -292,6 +308,8 @@ class TestGPGKey(CLITestCase):
         :id: e18d7cd8-2757-4134-9ed9-7eb68f2872e2
 
         :assert: gpg key is updated
+
+        :CaseLevel: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for new_name in valid_data_list():
@@ -315,6 +333,8 @@ class TestGPGKey(CLITestCase):
         :id: 58a8ed14-adfc-4046-af63-59a7008ff4d7
 
         :assert: gpg key is updated
+
+        :CaseLevel: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         content = gen_alphanumeric(gen_integer(20, 50))
@@ -344,6 +364,8 @@ class TestGPGKey(CLITestCase):
         :id: 938d2925-c82c-43b6-8dfc-29c42eca7424
 
         :assert: gpg key is not updated
+
+        :CaseLevel: Critical
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for new_name in invalid_values_list():
@@ -1196,6 +1218,8 @@ class TestGPGKey(CLITestCase):
         :id: 5da535b3-1728-4edf-bd33-3822c4427ef3
 
         :assert: gpg key is displayed/listed
+
+        :CaseLevel: Critical
         """
         gpg_key = make_gpg_key({
             'key': VALID_GPG_KEY_FILE_PATH,
@@ -1212,6 +1236,8 @@ class TestGPGKey(CLITestCase):
         :id: 9ef15add-b067-4134-b930-aaeda18bddfa
 
         :assert: gpg key can be found
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):

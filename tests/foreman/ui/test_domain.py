@@ -73,6 +73,8 @@ class DomainTestCase(UITestCase):
         :id: 142f90e3-a2a3-4f99-8f9b-11189f230bc5
 
         :Assert: Domain is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -90,6 +92,8 @@ class DomainTestCase(UITestCase):
         :id: 0b856ad7-97a6-4632-8b84-1d8ee45bedc8
 
         :Assert: Domain is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in valid_long_domain_names():
@@ -108,6 +112,8 @@ class DomainTestCase(UITestCase):
         :id: 07c1cc34-4569-4f04-9c4a-2842821a6977
 
         :Assert: Domain is deleted
+
+        :CaseLevel: Critical
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -122,6 +128,8 @@ class DomainTestCase(UITestCase):
         :id: 25ff4a1d-3ca1-4153-be45-4fe1e63f3f16
 
         :Assert: Domain is updated
+
+        :CaseLevel: Critical
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -147,6 +155,8 @@ class DomainTestCase(UITestCase):
         :id: 5a8ba1a8-2da8-48e1-8b2a-96d91161bf94
 
         :Assert: Domain is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):

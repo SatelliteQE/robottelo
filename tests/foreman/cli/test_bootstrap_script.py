@@ -42,6 +42,8 @@ class BootstrapScriptTestCase(CLITestCase):
         :Assert: system is registered, host is created
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @tier1
@@ -60,6 +62,8 @@ class BootstrapScriptTestCase(CLITestCase):
         :Assert: system is newly registered, host is created
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @tier1
@@ -78,6 +82,8 @@ class BootstrapScriptTestCase(CLITestCase):
         :Assert: system is migrated, ie. registered
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @tier1
@@ -95,6 +101,8 @@ class BootstrapScriptTestCase(CLITestCase):
         :Assert: ends gracefully, reason displayed to user
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @tier1
@@ -113,6 +121,8 @@ class BootstrapScriptTestCase(CLITestCase):
         :Assert: ends gracefully, reason displayed to user
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @tier1
@@ -130,6 +140,8 @@ class BootstrapScriptTestCase(CLITestCase):
         :Assert: system is registered, pre-created host profile is used
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """
 
     @tier1
@@ -148,4 +160,6 @@ class BootstrapScriptTestCase(CLITestCase):
         :Assert: ends gracefully, reason displayed to user
 
         :caseautomation: notautomated
+
+        :CaseLevel: Critical
         """

@@ -38,6 +38,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -57,6 +59,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -77,6 +81,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -96,6 +102,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -116,6 +124,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -137,6 +147,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -159,6 +171,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -181,6 +195,8 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """
 
     @stubbed()
@@ -204,4 +220,6 @@ class ISODownloadTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+
+        :CaseLevel: Critical
         """

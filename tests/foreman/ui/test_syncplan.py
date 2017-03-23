@@ -124,6 +124,8 @@ class SyncPlanTestCase(UITestCase):
         :id: ceb125a4-449a-4a86-a94f-2a28884e3a41
 
         :Assert: Sync Plan is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -144,6 +146,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 6ccd2229-dcc3-4090-9ec9-84fea837c50c
 
         :Assert: Sync Plan is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for desc in generate_strings_list():
@@ -165,6 +169,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 8916285a-c8d2-415a-b694-c32727e93ac0
 
         :Assert: Sync Plan is created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for interval in valid_sync_intervals():
@@ -247,6 +253,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 64724669-0289-4e8a-a44d-eb47e094ef18
 
         :Assert: Sync Plan is not created
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -267,6 +275,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 6d042f9b-82f2-4795-aa48-4603c1698aaa
 
         :Assert: Sync Plan cannot be created with existing name
+
+        :CaseLevel: Critical
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -288,6 +298,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 6b22468f-6abc-4a63-b283-28c7816a5e86
 
         :Assert: Sync Plan's name is updated
+
+        :CaseLevel: Critical
         """
         plan_name = gen_string('alpha')
         entities.SyncPlan(
@@ -310,6 +322,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 35820efd-099e-45dd-8298-77d5f35c26db
 
         :Assert: Sync Plan's interval is updated
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         entities.SyncPlan(
@@ -402,6 +416,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 81beec05-e38c-48bc-8f01-10cb1e10a3f6
 
         :Assert: Sync Plan is deleted successfully
+
+        :CaseLevel: Critical
         """
         with Session(self.browser) as session:
             for plan_name in generate_strings_list():

@@ -44,6 +44,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :id: ec1d985a-6a39-4de6-b635-c803ecedd832
 
         :Assert: Lifecycle environment is created and has proper name
+
+        :CaseLevel: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -61,6 +63,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :id: 0bc05510-afc7-4087-ab75-1065ab5ba1d3
 
         :Assert: Lifecycle environment is created and has proper description
+
+        :CaseLevel: Critical
         """
         description = gen_string('utf8')
         lc_env = entities.LifecycleEnvironment(
@@ -78,6 +82,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :id: 66d34781-8210-4282-8b5e-4be811d5c756
 
         :Assert: Lifecycle environment is created with Library as prior
+
+        :CaseLevel: Critical
         """
         lc_env = entities.LifecycleEnvironment(
             organization=self.org,
@@ -92,6 +98,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :id: 7e8ea2e6-5927-4e86-8ea8-04c3feb524a6
 
         :Assert: Lifecycle environment is not created
+
+        :CaseLevel: Critical
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -107,6 +115,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :id: b6715e02-f15e-4ab8-8b13-18a3619fee9e
 
         :Assert: Lifecycle environment is created and updated properly
+
+        :CaseLevel: Critical
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         for new_name in valid_data_list():
@@ -145,6 +155,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         :Assert: Lifecycle environment is not updated and corresponding error
             is raised
+
+        :CaseLevel: Critical
         """
         name = gen_string('alpha')
         lc_env = entities.LifecycleEnvironment(
@@ -166,6 +178,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
         :id: cd5a97ca-c1e8-41c7-8d6b-f908916b24e1
 
         :Assert: Lifecycle environment is deleted successfully
+
+        :CaseLevel: Critical
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         lc_env.delete()
