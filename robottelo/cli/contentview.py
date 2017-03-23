@@ -164,6 +164,7 @@ class ContentView(Base):
         return cls.execute(
             cls._construct_command(options), output_format='csv')
 
+    @classmethod
     def filter_info(cls, options):
         """Provides filter info related to content-view's version."""
 
