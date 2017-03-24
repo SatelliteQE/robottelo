@@ -102,8 +102,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         2. Assign admin role to UserGroup.
         3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to access some
-        of the pages.
+        @expectedresults: Whether a User belonging to User Group is able to
+        access some of the pages.
         """
         self.check_external_user()
         with Session(self.browser) as session:
@@ -144,8 +144,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         2. Assign some foreman roles to UserGroup.
         3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to access
-        foreman entities as per roles.
+        @expectedresults: Whether a User belonging to User Group is able to
+        access foreman entities as per roles.
 
         @CaseLevel: Integration
         """
@@ -200,8 +200,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         2. Assign some foreman roles to UserGroup.
         3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to access
-        katello entities as per roles.
+        @expectedresults: Whether a User belonging to User Group is able to
+        access katello entities as per roles.
 
         @CaseLevel: Integration
         """
@@ -251,7 +251,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         2. Assign some roles to UserGroup.
         3. Create an External AD UserGroup as per the UserGroup name in AD
 
-        @Assert: Whether creation of External AD User Group is possible.
+        @expectedresults: Whether creation of External AD User Group is
+        possible.
         """
         with Session(self.browser) as session:
             make_usergroup(
@@ -276,8 +277,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         2. Assign External AD UserGroup as per the UserGroup name in AD.
         3. Repeat steps 1) and 2), but provide the same external UserGroup name
 
-        @Assert: Creation of User Group should not be possible with same
-        External AD User Group name.
+        @expectedresults: Creation of User Group should not be possible with
+        same External AD User Group name.
         """
         new_usergroup_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -310,8 +311,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         2. Assign some roles to UserGroup.
         3. Create an External AD UserGroup with any random name.
 
-        @Assert: Creation of External AD User Group should not be possible with
-        random name.
+        @expectedresults: Creation of External AD User Group should not be
+        possible with random name.
         """
         with Session(self.browser) as session:
             make_usergroup(
@@ -342,9 +343,9 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         Note:- Deletion as of sat6.1 is possible only via CLI and not via UI.
 
-        @Assert: Deletion of External AD User Group should be possible and the
-        user should not be able to perform the roles that were assigned to it
-        at the UserGroup level.
+        @expectedresults: Deletion of External AD User Group should be possible
+        and the user should not be able to perform the roles that were assigned
+        to it at the UserGroup level.
 
         @caseautomation: notautomated
 
@@ -369,8 +370,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         6. Login to sat6 with LDAP user that is part of aforementioned
         UserGroup.
 
-        @assert: User has access to all NEW functional areas that are assigned
-        to aforementioned UserGroup.
+        @expectedresults: User has access to all NEW functional areas that are
+        assigned to aforementioned UserGroup.
 
         @CaseLevel: Integration
         """
@@ -451,8 +452,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         6. Login to sat6 with LDAP user that is part of aforementioned
         UserGroup.
 
-        @assert: User no longer has access to all deleted functional areas
-        that were assigned to aforementioned UserGroup.
+        @expectedresults: User no longer has access to all deleted functional
+        areas that were assigned to aforementioned UserGroup.
 
         @CaseLevel: Integration
         """
@@ -522,7 +523,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         5. Login to sat6 with the above AD user and attempt to access areas
         assigned specifically to user.
 
-        @assert: User can access not only those feature areas in his
+        @expectedresults: User can access not only those feature areas in his
         UserGroup but those additional feature areas / roles assigned
         specifically to user
 
@@ -602,8 +603,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         5. Login to sat6 with the above new AD user and attempt to access the
         functional areas assigned to the user.
 
-        @assert: User can access feature areas as defined by roles in the
-        UserGroup of which he is a part.
+        @expectedresults: User can access feature areas as defined by roles in
+        the UserGroup of which he is a part.
 
         @caseautomation: notautomated
 

@@ -51,7 +51,7 @@ class ArchitectureTestCase(UITestCase):
 
         @id: 6c386230-2285-4f41-a3a5-6a17ae844f80
 
-        @Assert: Architecture is created
+        @expectedresults: Architecture is created
         """
         with Session(self.browser) as session:
             for test_data in valid_arch_os_names():
@@ -70,7 +70,7 @@ class ArchitectureTestCase(UITestCase):
 
         @id: 0ac5f63b-b296-425b-8bb2-e0fe32d394c5
 
-        @Assert: Architecture is created
+        @expectedresults: Architecture is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -86,7 +86,7 @@ class ArchitectureTestCase(UITestCase):
 
         @id: f4b8ed72-f20b-4f5d-bf0a-3475a6124f3a
 
-        @Assert: Architecture is not created
+        @expectedresults: Architecture is not created
         """
         with Session(self.browser) as session:
             for invalid_name in invalid_values_list(interface='ui'):
@@ -102,7 +102,7 @@ class ArchitectureTestCase(UITestCase):
 
         @id: 4000674e-7b39-4958-8992-1363b25b2cd6
 
-        @Assert: Architecture is not created
+        @expectedresults: Architecture is not created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -120,7 +120,7 @@ class ArchitectureTestCase(UITestCase):
 
         @id: f58af0ba-45c8-456c-abe3-8aaf48055c23
 
-        @Assert: Architecture is deleted
+        @expectedresults: Architecture is deleted
         """
         os = entities.OperatingSystem(name=gen_string('alpha')).create()
         with Session(self.browser) as session:
@@ -138,7 +138,7 @@ class ArchitectureTestCase(UITestCase):
 
         @id: cbb2e8fc-1dde-42c4-aab0-479bd16fb5ec
 
-        @Assert: Architecture is updated
+        @expectedresults: Architecture is updated
         """
         old_name = gen_string('alpha')
         with Session(self.browser) as session:

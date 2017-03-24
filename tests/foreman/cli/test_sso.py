@@ -41,7 +41,7 @@ class SingleSignOnTestCase(CLITestCase):
 
         @setup: kerberos configured against foreman.
 
-        @assert: Log in to hammer cli successfully
+        @expectedresults: Log in to hammer cli successfully
 
         @caseautomation: notautomated
         """
@@ -54,7 +54,7 @@ class SingleSignOnTestCase(CLITestCase):
 
         @setup: IPA configured against foreman.
 
-        @assert: Log in to hammer cli successfully
+        @expectedresults: Log in to hammer cli successfully
 
         @caseautomation: notautomated
         """
@@ -67,7 +67,7 @@ class SingleSignOnTestCase(CLITestCase):
 
         @setup: OpenLDAP configured against foreman.
 
-        @assert: Log in to hammer cli successfully
+        @expectedresults: Log in to hammer cli successfully
 
         @caseautomation: notautomated
         """

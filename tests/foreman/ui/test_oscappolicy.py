@@ -52,7 +52,7 @@ class OpenScapPolicy(UITestCase):
         2. Create an openscap Policy.
         3. Provide all the appropriate parameters.
 
-        @Assert: Whether creating  Policy for OpenScap is successful.
+        @expectedresults: Whether creating  Policy for OpenScap is successful.
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -89,7 +89,7 @@ class OpenScapPolicy(UITestCase):
         3. Provide all the appropriate parameters.
         4. Delete the openscap Policy.
 
-        @Assert: Whether deleting  Policy for OpenScap is successful.
+        @expectedresults: Whether deleting  Policy for OpenScap is successful.
         """
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -127,7 +127,7 @@ class OpenScapPolicy(UITestCase):
         2. Create an openscap Policy.
         3. Provide all the appropriate parameters.
 
-        @Assert: Creating  Policy for OpenScap is not successful.
+        @expectedresults: Creating  Policy for OpenScap is not successful.
 
         @BZ: 1293296
         """
@@ -165,7 +165,7 @@ class OpenScapPolicy(UITestCase):
         3. Provide all the appropriate parameters.
         4. Update openscap policy with valid values.
 
-        @Assert: Updating Policy for OpenScap is successful.
+        @expectedresults: Updating Policy for OpenScap is successful.
         """
         content_name = gen_string('alpha')
         policy_name = gen_string('alpha')

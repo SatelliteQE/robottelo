@@ -42,7 +42,7 @@ class FilterTestCase(APITestCase):
 
         @id: b8631d0a-a71a-41aa-9f9a-d12d62adc496
 
-        @Assert: The created filter has the assigned permissions.
+        @expectedresults: The created filter has the assigned permissions.
         """
         # Create a filter and assign all ProvisioningTemplate permissions to it
         filter_ = entities.Filter(permission=self.ct_perms).create()
@@ -57,7 +57,7 @@ class FilterTestCase(APITestCase):
 
         @id: f0c56fd8-c91d-48c3-ad21-f538313b17eb
 
-        @Assert: The deleted filter cannot be fetched.
+        @expectedresults: The deleted filter cannot be fetched.
         """
         filter_ = entities.Filter(permission=self.ct_perms).create()
         filter_.delete()
@@ -70,7 +70,7 @@ class FilterTestCase(APITestCase):
 
         @id: b129642d-926d-486a-84d9-5952b44ac446
 
-        @Assert: The filter cannot be fetched.
+        @expectedresults: The filter cannot be fetched.
         """
         role = entities.Role().create()
         filter_ = entities.Filter(permission=self.ct_perms, role=role).create()

@@ -33,7 +33,7 @@ class OpenScapTestCase(UITestCase):
         1. Create an openscap policies.
         2. Provide all the appropriate parameters.
 
-        @Assert: Whether creating policies for OpenScap is successful.
+        @expectedresults: Whether creating policies for OpenScap is successful.
 
         @caseautomation: notautomated
         """
@@ -45,7 +45,7 @@ class OpenScapTestCase(UITestCase):
 
         @id: e832d9f4-fee1-4502-937e-375c08d5f042
 
-        @Assert: Creating policies for OpenScap is unsuccessful.
+        @expectedresults: Creating policies for OpenScap is unsuccessful.
 
         @caseautomation: notautomated
         """
@@ -63,7 +63,7 @@ class OpenScapTestCase(UITestCase):
         2. Provide all the appropriate parameters.
         3. Delete the policy.
 
-        @Assert: Whether deleting policies for OpenScap is successful.
+        @expectedresults: Whether deleting policies for OpenScap is successful.
 
         @caseautomation: notautomated
         """
@@ -80,7 +80,7 @@ class OpenScapTestCase(UITestCase):
         1. Create an openscap content.
         2. Provide all the appropriate parameters.
 
-        @Assert: Whether creating  content for OpenScap is successful
+        @expectedresults: Whether creating  content for OpenScap is successful
 
         @caseautomation: notautomated
         """
@@ -92,7 +92,7 @@ class OpenScapTestCase(UITestCase):
 
         @id: 3410fe9b-55ba-4b87-bc7a-ec9138fc035a
 
-        @Assert: Creating content for OpenScap is unsuccessful
+        @expectedresults: Creating content for OpenScap is unsuccessful
 
         @caseautomation: notautomated
         """
@@ -110,7 +110,7 @@ class OpenScapTestCase(UITestCase):
         2. Provide all the appropriate parameters.
         3. Delete the openscap content.
 
-        @Assert: Deleting content for OpenScap is successful
+        @expectedresults: Deleting content for OpenScap is successful
 
         @caseautomation: notautomated
         """
@@ -122,7 +122,7 @@ class OpenScapTestCase(UITestCase):
 
         @id: b1decf7e-f4e8-45aa-941b-c9b9c5b9efb0
 
-        @Assert: Whether separate Compliance Reporting page exists.
+        @expectedresults: Whether separate Compliance Reporting page exists.
 
         @caseautomation: notautomated
         """
@@ -147,8 +147,8 @@ class OpenScapTestCase(UITestCase):
         8. Make sure the appropriate crontab entries are added as per the
            period selected.
 
-        @Assert: Whether OpenScap Audit scans can be periodically set as per
-        intervals.
+        @expectedresults: Whether OpenScap Audit scans can be periodically set
+        as per intervals.
 
         @caseautomation: notautomated
 
@@ -174,8 +174,8 @@ class OpenScapTestCase(UITestCase):
         8. Make sure the appropriate crontab entries are added as per the
            period selected.
 
-        @Assert: Whether OpenScap Audit scans can be periodically set as per
-        custom intervals.
+        @expectedresults: Whether OpenScap Audit scans can be periodically set
+        as per custom intervals.
 
         @caseautomation: notautomated
 
@@ -200,7 +200,7 @@ class OpenScapTestCase(UITestCase):
         7. Make sure the scan reports are generated under OSCAP reports.
         8. Search for the audit reports is possible.
 
-        @Assert: Whether searching audit results is possible.
+        @expectedresults: Whether searching audit results is possible.
 
         @caseautomation: notautomated
 
@@ -225,8 +225,8 @@ class OpenScapTestCase(UITestCase):
         6. Run 'puppet agent' on the host to configure/schedule OSCAP scan.
         7. Make sure the scan reports are generated under OSCAP reports.
 
-        @Assert: Whether audit reports of Foreman managed Infrastructure
-        (Hosts from default Capsule) are generated.
+        @expectedresults: Whether audit reports of Foreman managed
+        Infrastructure (Hosts from default Capsule) are generated.
 
         @caseautomation: notautomated
 
@@ -251,7 +251,7 @@ class OpenScapTestCase(UITestCase):
         6. Run 'puppet agent' on the host to configure/schedule OSCAP scan.
         7. Make sure the scan reports are generated under OSCAP reports.
 
-        @Assert: Whether audit of Foreman managed Infrastructure
+        @expectedresults: Whether audit of Foreman managed Infrastructure
         (Hosts from Non-Default Capsule) is possible.
 
         @caseautomation: notautomated
@@ -272,7 +272,7 @@ class OpenScapTestCase(UITestCase):
         2. Provide valid data-stream.xml file available from
            scap-security-guide. (ssg-rhel6-ds.xml)
 
-        @Assert: Whether searching OpenScap content is possible.
+        @expectedresults: Whether searching OpenScap content is possible.
 
         @caseautomation: notautomated
 
@@ -291,7 +291,7 @@ class OpenScapTestCase(UITestCase):
         1. Create an openscap content.
         2. Provide all the appropriate parameters
 
-        @Assert: Whether searching OpenScap policies is possible.
+        @expectedresults: Whether searching OpenScap policies is possible.
 
         @caseautomation: notautomated
 
@@ -316,7 +316,8 @@ class OpenScapTestCase(UITestCase):
         7. Make sure the scan reports are generated under OSCAP reports.
         8. Search for the non audited hosts.
 
-        @Assert: Whether searching Non-Audited Hosts/Systems is possible.
+        @expectedresults: Whether searching Non-Audited Hosts/Systems is
+        possible.
 
         @caseautomation: notautomated
 
@@ -341,7 +342,7 @@ class OpenScapTestCase(UITestCase):
         7. Make sure the scan reports are generated under OSCAP reports.
         8. Search for the audit reports for non-compliant hosts.
 
-        @Assert: Whether searching Non-Compliant systems is possible.
+        @expectedresults: Whether searching Non-Compliant systems is possible.
 
         @caseautomation: notautomated
 
@@ -367,8 +368,8 @@ class OpenScapTestCase(UITestCase):
         7. Make sure the scan reports are generated under OSCAP reports.
         8. Compare audit reports.
 
-        @Assert: Whether Comparing multiple audit results of Hosts/Systems
-        is possible.
+        @expectedresults: Whether Comparing multiple audit results of
+        Hosts/Systems is possible.
 
         @caseautomation: notautomated
 
@@ -390,7 +391,8 @@ class OpenScapTestCase(UITestCase):
         4. Register the host as puppet client to default sat6 capsule.
         5. Create oscap policy and associate it to multiple hosts.
 
-        @Assert: Whether assigning policies to multiple hosts is possible.
+        @expectedresults: Whether assigning policies to multiple hosts is
+        possible.
 
         @caseautomation: notautomated
 
@@ -405,7 +407,7 @@ class OpenScapTestCase(UITestCase):
 
         @id: 41bc8692-0830-4b17-b5be-7a798a13cc4c
 
-        @Assert: Expected Dashboard views are visible.
+        @expectedresults: Expected Dashboard views are visible.
 
         @caseautomation: notautomated
 

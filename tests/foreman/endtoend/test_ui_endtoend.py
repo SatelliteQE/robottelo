@@ -77,7 +77,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         @id: 90646b0a-ce56-43cf-8cd7-2b4586478acc
 
-        @Assert: 'Default Organization' is found
+        @expectedresults: 'Default Organization' is found
         """
         with Session(self.browser) as session:
             self.assertEqual(
@@ -90,7 +90,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         @id: 4b7cc80b-7368-4ee4-8aaf-c946968e49a4
 
-        @Assert: 'Default Location' is found
+        @expectedresults: 'Default Location' is found
         """
         with Session(self.browser) as session:
             self.assertEqual(
@@ -103,7 +103,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         @id: 9cab1b65-70af-4245-98cb-7da90a98d347
 
-        @Assert: Admin User is found and has Admin role
+        @expectedresults: Admin User is found and has Admin role
         """
         with Session(self.browser):
             self.assertTrue(self.user.user_admin_role_toggle('admin'))
@@ -137,8 +137,8 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         @id: 6b7c6187-3cc2-4bd3-89f2-fa7a5f570986
 
-        @Assert: All tests should succeed and Content should be successfully
-        fetched by client.
+        @expectedresults: All tests should succeed and Content should be
+        successfully fetched by client.
         """
         activation_key_name = gen_string('alpha')
         compute_resource_name = gen_string('alpha')
@@ -331,7 +331,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         @id: 30b0f872-d035-431a-988f-2b3fde620c78
 
-        @Assert: Client should get configured by puppet-module.
+        @expectedresults: Client should get configured by puppet-module.
         """
         activation_key_name = gen_string('alpha')
         cv_name = gen_string('alpha')

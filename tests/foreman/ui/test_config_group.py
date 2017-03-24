@@ -38,7 +38,7 @@ class ConfigGroupTestCase(UITestCase):
 
         @id: b9e170a3-29b1-49e6-bfc6-c48fb0021ecb
 
-        @Assert: Config-Groups is created
+        @expectedresults: Config-Groups is created
 
         """
         with Session(self.browser) as session:
@@ -55,7 +55,7 @@ class ConfigGroupTestCase(UITestCase):
 
         @id: 1c8d098c-60c2-4dc4-af24-1c8a4cfff5e2
 
-        @Assert: Config-Groups is not created
+        @expectedresults: Config-Groups is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -72,7 +72,7 @@ class ConfigGroupTestCase(UITestCase):
 
         @id: c8589969-1fdb-4977-b973-3795a36704be
 
-        @Assert: Config-Groups is updated.
+        @expectedresults: Config-Groups is updated.
 
         """
         name = gen_string('alpha')
@@ -91,7 +91,7 @@ class ConfigGroupTestCase(UITestCase):
 
         @id: 50879d3c-7c38-4294-aae4-0f3f146c9613
 
-        @Assert: Config-Groups is deleted
+        @expectedresults: Config-Groups is deleted
 
         """
         with Session(self.browser) as session:

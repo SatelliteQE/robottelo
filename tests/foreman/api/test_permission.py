@@ -78,8 +78,8 @@ class PermissionTestCase(APITestCase):
 
         @id: 1b6117f6-599d-4b2d-80a8-1e0764bdc04d
 
-        @assert: Only one permission is returned, and the permission returned
-        is the one searched for.
+        @expectedresults: Only one permission is returned, and the permission
+        returned is the one searched for.
         """
         failures = {}
         for permission_name in self.permission_names:
@@ -101,8 +101,8 @@ class PermissionTestCase(APITestCase):
 
         @id: 29d9362b-1bf3-4722-b40f-a5e8b4d0d9ba
 
-        @assert: The permissions returned are equal to what is listed for that
-        resource type in :data:`robottelo.constants.PERMISSIONS`.
+        @expectedresults: The permissions returned are equal to what is listed
+        for that resource type in :data:`robottelo.constants.PERMISSIONS`.
         """
         failures = {}
         for resource_type in self.permission_resource_types:
@@ -132,7 +132,7 @@ class PermissionTestCase(APITestCase):
 
         @id: e58308df-19ec-415d-8fa1-63ebf3cd0ad6
 
-        @assert: Search returns a list of all expected permissions
+        @expectedresults: Search returns a list of all expected permissions
         """
         permissions = entities.Permission().search(query={'per_page': 1000})
         names = {perm.name for perm in permissions}
@@ -237,8 +237,9 @@ class UserRoleTestCase(APITestCase):
 
         @id: e4c92365-58b7-4538-9d1b-93f3cf51fbef
 
-        @Assert: A user cannot create an entity when missing the "create_*"
-        role, and they can create an entity when given the "create_*" role.
+        @expectedresults: A user cannot create an entity when missing the
+        "create_*" role, and they can create an entity when given the
+        "create_*" role.
         """
         for entity_cls in (entities.Architecture, entities.Domain):
             with self.subTest(entity_cls):
@@ -256,8 +257,9 @@ class UserRoleTestCase(APITestCase):
 
         @id: 55689121-2646-414f-beb1-dbba5973c523
 
-        @Assert: A user cannot read an entity when missing the "view_*" role,
-        and they can read an entity when given the "view_*" role.
+        @expectedresults: A user cannot read an entity when missing the
+        "view_*" role, and they can read an entity when given the "view_*"
+        role.
 
         """
         for entity_cls in (entities.Architecture, entities.Domain):
@@ -274,8 +276,9 @@ class UserRoleTestCase(APITestCase):
 
         @id: 71365147-51ef-4602-948f-78a5e78e32b4
 
-        @Assert: A user cannot read an entity with missing the "destroy_*"
-        role, and they can read an entity when given the "destroy_*" role.
+        @expectedresults: A user cannot read an entity with missing the
+        "destroy_*" role, and they can read an entity when given the
+        "destroy_*" role.
 
         """
         for entity_cls in (entities.Architecture, entities.Domain):
@@ -296,8 +299,9 @@ class UserRoleTestCase(APITestCase):
 
         @id: b5de2115-b031-413e-8e5b-eac8cb714174
 
-        @Assert: A user cannot update an entity when missing the "edit_*" role,
-        and they can update an entity when given the "edit_*" role.
+        @expectedresults: A user cannot update an entity when missing the
+        "edit_*" role, and they can update an entity when given the "edit_*"
+        role.
 
         NOTE: This method will only work if ``entity`` has a name.
 

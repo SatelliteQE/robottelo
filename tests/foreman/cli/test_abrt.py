@@ -34,7 +34,7 @@ class AbrtTestCase(CLITestCase):
         1. start a sleep process in background, kill it send the report using
         smart-proxy-abrt-send
 
-        @Assert: A abrt report with ccpp.* extension  created under
+        @expectedresults: A abrt report with ccpp.* extension  created under
         /var/tmp/abrt
 
         @caseautomation: notautomated
@@ -54,7 +54,7 @@ class AbrtTestCase(CLITestCase):
         1. Create multiple reports of abrt
         2. Keep track of counts
 
-        @Assert: Count is updated in proper manner
+        @expectedresults: Count is updated in proper manner
 
         @caseautomation: notautomated
 
@@ -72,7 +72,7 @@ class AbrtTestCase(CLITestCase):
 
         1. edit the timer for /etc/cron.d/rubygem-smart_proxy_abrt
 
-        @Assert: the timer file is edited
+        @expectedresults: the timer file is edited
 
         @caseautomation: notautomated
 
@@ -90,7 +90,7 @@ class AbrtTestCase(CLITestCase):
 
         1. UI => Settings => Abrt tab => edit hostnames
 
-        @Assert: Assertion of hostnames is possible
+        @expectedresults: Assertion of hostnames is possible
 
         @caseautomation: notautomated
 
@@ -108,7 +108,7 @@ class AbrtTestCase(CLITestCase):
 
         1. access /var/tmp/abrt/ccpp-* files
 
-        @Assert: Assertion of parameters
+        @expectedresults: Assertion of parameters
 
         @caseautomation: notautomated
 

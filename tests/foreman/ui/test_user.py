@@ -87,7 +87,7 @@ class UserTestCase(UITestCase):
 
         @id: 2acc8c7d-cb14-4eda-98f9-fb379950f2f5
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         with Session(self.browser) as session:
             for user_name in valid_strings():
@@ -101,7 +101,7 @@ class UserTestCase(UITestCase):
 
         @id: dd398cd6-821e-4b0e-a111-22d5a6eeafd8
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         with Session(self.browser) as session:
             for first_name in valid_strings():
@@ -116,7 +116,7 @@ class UserTestCase(UITestCase):
 
         @id: 0a2dc093-0cd1-41eb-99cd-79935c74563f
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         with Session(self.browser) as session:
             for last_name in valid_strings(50):
@@ -131,7 +131,7 @@ class UserTestCase(UITestCase):
 
         @id: 1c6c0f50-401c-4b7d-9795-97a1be3806f8
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         with Session(self.browser) as session:
             for email in valid_emails_list():
@@ -146,7 +146,7 @@ class UserTestCase(UITestCase):
 
         @id: 1c5581a8-79ae-40a6-8052-f47be2d4c5eb
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         with Session(self.browser) as session:
             for language in LANGUAGES:
@@ -161,7 +161,7 @@ class UserTestCase(UITestCase):
 
         @id: 83d6efe0-7526-465c-9c97-5673c7736fc4
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         test_data = valid_strings()
         extra_passwords = (
@@ -187,7 +187,7 @@ class UserTestCase(UITestCase):
 
         @id: 9bf56045-1026-435c-bf4c-623e160582d5
 
-        @Assert: Admin User is created successfully
+        @expectedresults: Admin User is created successfully
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -200,7 +200,7 @@ class UserTestCase(UITestCase):
 
         @id: 6d6c795e-8b46-4f0f-84e1-f7e22add6173
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -219,7 +219,7 @@ class UserTestCase(UITestCase):
 
         @id: d3cc4434-25ca-4465-8878-42495390c17b
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
 
         @CaseLevel: Integration
         """
@@ -244,7 +244,7 @@ class UserTestCase(UITestCase):
 
         @id: 814593ca-1566-45ea-9eff-e880183b1ee3
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
 
         @CaseLevel: Integration
         """
@@ -265,9 +265,9 @@ class UserTestCase(UITestCase):
 
         @id: b1d96e56-42e0-4f4b-8f38-98fb72be5c64
 
-        @Assert: User is created successfully and can be used to login into
-        application without raising any errors. Also user can review his own
-        profile data.
+        @expectedresults: User is created successfully and can be used to login
+        into application without raising any errors. Also user can review his
+        own profile data.
 
         @BZ: 1392513
 
@@ -310,7 +310,7 @@ class UserTestCase(UITestCase):
 
         @id: 830bc5fc-e773-466c-9b38-4f33a2c1d05e
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -331,7 +331,7 @@ class UserTestCase(UITestCase):
 
         @id: d74c0284-3995-4a4a-8746-00858282bf5d
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
 
         @CaseLevel: Integration
         """
@@ -362,7 +362,7 @@ class UserTestCase(UITestCase):
 
         @id: 3d51dead-9053-427d-8292-c42e87ed6289
 
-        @Assert: User is created with default Org selected.
+        @expectedresults: User is created with default Org selected.
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -386,7 +386,7 @@ class UserTestCase(UITestCase):
 
         @id: 952a0be5-d393-49a2-8fd9-f6dfcc31f762
 
-        @Assert: User is created with default Location selected.
+        @expectedresults: User is created with default Location selected.
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -410,7 +410,7 @@ class UserTestCase(UITestCase):
 
         @id: 2774be2f-303e-498f-8072-80462f33c52e
 
-        @Assert: User is not created
+        @expectedresults: User is not created
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -430,7 +430,7 @@ class UserTestCase(UITestCase):
 
         @id: 31bbe350-0275-4aaf-99ec-3f77bfd4ba00
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             for user_name in invalid_values_list(interface='ui'):
@@ -445,7 +445,7 @@ class UserTestCase(UITestCase):
 
         @id: 21525bf2-4de9-43f0-8c92-b2fad1fdc944
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             # invalid_values_list is not used here because first name is an
@@ -466,7 +466,7 @@ class UserTestCase(UITestCase):
 
         @id: 47d9e8be-3b29-4a56-85d7-898145b5b034
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             # invalid_values_list is not used here because sur name is an
@@ -487,7 +487,7 @@ class UserTestCase(UITestCase):
 
         @id: 36511b82-e070-41ea-81fa-6e29faa9da1c
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             for email in invalid_emails_list():
@@ -503,7 +503,7 @@ class UserTestCase(UITestCase):
 
         @id: 68f670ed-ac6e-4052-889c-6671d659e510
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             make_user(session, username=gen_string('alpha'), authorized_by='')
@@ -516,7 +516,7 @@ class UserTestCase(UITestCase):
 
         @id: f818e5fc-b378-4bc7-afa8-18b23ee05053
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with Session(self.browser) as session:
             make_user(
@@ -534,7 +534,7 @@ class UserTestCase(UITestCase):
 
         @id: 4ecb2816-9bef-4089-86a0-02d7d065cdb1
 
-        @Assert: User is updated successfully
+        @expectedresults: User is updated successfully
         """
         name = gen_string('alpha')
         password = gen_string('alpha')
@@ -565,7 +565,7 @@ class UserTestCase(UITestCase):
 
         @id: 03ef8a7f-2bf1-4314-b0cd-a7a6acfc17ea
 
-        @Assert: User is updated successful
+        @expectedresults: User is updated successful
         """
         first_name = gen_string('alpha')
         new_first_name = gen_string('alpha')
@@ -581,7 +581,7 @@ class UserTestCase(UITestCase):
 
         @id: 0326d221-28b0-4a6b-934e-b67ee6c9f696
 
-        @Assert: User is updated successful
+        @expectedresults: User is updated successful
         """
         last_name = gen_string('alpha')
         new_last_name = gen_string('alpha')
@@ -597,7 +597,7 @@ class UserTestCase(UITestCase):
 
         @id: e48314b7-2a49-48ec-896d-af7bf427b1c4
 
-        @Assert: User is updated successfully
+        @expectedresults: User is updated successfully
         """
         email = u'{0}@example.com'.format(gen_string('alpha'))
         new_email = u'{0}@myexample.com'.format(gen_string('alpha'))
@@ -613,7 +613,7 @@ class UserTestCase(UITestCase):
 
         @id: 64b6a90e-0d4c-4a55-a4bd-7347010e39f2
 
-        @Assert: User is updated successfully
+        @expectedresults: User is updated successfully
         """
         locale = random.choice(LANGUAGES)
         username = gen_string('alpha')
@@ -628,7 +628,7 @@ class UserTestCase(UITestCase):
 
         @id: db57c3bc-4fae-4ee7-bf6d-8e0bcc7fd55c
 
-        @Assert: User password is updated successfully
+        @expectedresults: User password is updated successfully
 
         """
         user_name = gen_string('alpha')
@@ -651,7 +651,7 @@ class UserTestCase(UITestCase):
 
         @id: b41cbcf8-d819-4daa-b217-a4812541dca3
 
-        @Assert: User is updated and has proper admin role value
+        @expectedresults: User is updated and has proper admin role value
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -666,7 +666,7 @@ class UserTestCase(UITestCase):
 
         @id: d3cdda62-1384-4b49-97a3-0c66764583bb
 
-        @Assert: User is updated and has proper admin role value
+        @expectedresults: User is updated and has proper admin role value
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -680,7 +680,7 @@ class UserTestCase(UITestCase):
 
         @id: 2a13529c-3863-403b-a319-9569ca1287cb
 
-        @Assert: User role is updated
+        @expectedresults: User role is updated
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -703,7 +703,7 @@ class UserTestCase(UITestCase):
 
         @id: 127fb368-09fd-4f10-8319-566a1bcb5cd2
 
-        @Assert: User is updated successfully
+        @expectedresults: User is updated successfully
 
         @CaseLevel: Integration
         """
@@ -728,7 +728,7 @@ class UserTestCase(UITestCase):
 
         @id: cd7a9cfb-a700-45f2-a11d-bba6be3c810d
 
-        @Assert: User is updated successfully
+        @expectedresults: User is updated successfully
 
         @CaseLevel: Integration
         """
@@ -749,7 +749,7 @@ class UserTestCase(UITestCase):
 
         @id: d891e54b-76bf-4537-8eb9-c3f8832e4c2c
 
-        @Assert: User is updated successfully
+        @expectedresults: User is updated successfully
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -770,7 +770,7 @@ class UserTestCase(UITestCase):
 
         @id: a207188d-1ad1-4ff1-9906-bae1d91104fd
 
-        @Assert: User is updated
+        @expectedresults: User is updated
 
         @CaseLevel: Integration
         """
@@ -795,7 +795,7 @@ class UserTestCase(UITestCase):
 
         @id: 7019461e-13c6-4761-b3e9-4df81abcd0f9
 
-        @Assert: User is not updated. Appropriate error shown.
+        @expectedresults: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -812,7 +812,7 @@ class UserTestCase(UITestCase):
 
         @id: 1e3945d1-5b47-45ca-aff9-3ddd44688e6b
 
-        @Assert: User is not updated. Appropriate error shown.
+        @expectedresults: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -829,7 +829,7 @@ class UserTestCase(UITestCase):
 
         @id: 14033c1f-4c7e-4ee5-8ffc-76c4dd672cc1
 
-        @Assert: User is not updated. Appropriate error shown.
+        @expectedresults: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -846,7 +846,7 @@ class UserTestCase(UITestCase):
 
         @id: 6aec3816-16ca-487a-b0f1-a5c1fbc3e0a3
 
-        @Assert: User is not updated. Appropriate error shown.
+        @expectedresults: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -868,7 +868,7 @@ class UserTestCase(UITestCase):
         2. Update the password by entering different values in Password and
         verify fields
 
-        @Assert: User is not updated.  Appropriate error shown.
+        @expectedresults: User is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -891,7 +891,7 @@ class UserTestCase(UITestCase):
         1. Create User
         2. Update the password by entering value only in Password field
 
-        @Assert: User is not updated.  Appropriate error shown.
+        @expectedresults: User is not updated.  Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -910,7 +910,7 @@ class UserTestCase(UITestCase):
 
         @id: 56c8ea13-4add-4a51-8428-9d9f9ddde33e
 
-        @Assert: User is not updated.
+        @expectedresults: User is not updated.
         """
         new_first_name = gen_string('alpha')
         new_last_name = gen_string('alpha')
@@ -934,7 +934,7 @@ class UserTestCase(UITestCase):
 
         @id: 49534eda-f8ea-404e-9714-a8d0d2210979
 
-        @Assert: User is deleted successfully
+        @expectedresults: User is deleted successfully
         """
         with Session(self.browser) as session:
             for user_name in valid_strings():
@@ -948,7 +948,7 @@ class UserTestCase(UITestCase):
 
         @id: afda171a-b464-461f-93ce-96d770935200
 
-        @Assert: User is deleted
+        @expectedresults: User is deleted
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -962,7 +962,7 @@ class UserTestCase(UITestCase):
 
         @id: 43aed0c0-a3c3-4044-addc-910dc29e4f37
 
-        @Assert: User is not deleted
+        @expectedresults: User is not deleted
         """
         user_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -986,7 +986,7 @@ class UserTestCase(UITestCase):
         6. Add/Remove Orgs
         7. Delete the User
 
-        @Assert: All actions passed
+        @expectedresults: All actions passed
 
         @caseautomation: notautomated
 
@@ -1009,7 +1009,8 @@ class UserTestCase(UITestCase):
         5. Attempt to Add/Remove Users
         6. Attempt to Add/Remove Orgs
 
-        @Assert: All actions failed since the User is not assigned to any Org
+        @expectedresults: All actions failed since the User is not assigned to
+        any Org
 
         @caseautomation: notautomated
 
@@ -1029,7 +1030,7 @@ class UserTestCase(UITestCase):
         3.Select the Timezone Dropdown list
         4.Try to apply some timezone
 
-        @Assert: User should be able to change timezone
+        @expectedresults: User should be able to change timezone
         """
         with Session(self.browser) as session:
             for timezone in TIMEZONES:
@@ -1052,7 +1053,8 @@ class UserTestCase(UITestCase):
         2.Navigate to Monitor -> Dashboard
         3.The left corner displays time according to the new timezone set
 
-        @Assert: Dashboard UI displays new time based on the new timezone
+        @expectedresults: Dashboard UI displays new time based on the new
+        timezone
 
         @caseautomation: notautomated
         """
@@ -1072,7 +1074,7 @@ class UserTestCase(UITestCase):
         so that the changes are reflected in log file
         3.Check if log file shows the new timezone set
 
-        @Assert: Logfiles display time according to changed timezone
+        @expectedresults: Logfiles display time according to changed timezone
 
         @caseautomation: notautomated
 
@@ -1094,7 +1096,7 @@ class UserTestCase(UITestCase):
         3.Make sure under Email Preferences -> Mail Enabled
         4.Send daily/weekly/monthly mails
 
-        @Assert: Emails are sent according to new timezone set
+        @expectedresults: Emails are sent according to new timezone set
 
         @caseautomation: notautomated
 
@@ -1126,7 +1128,8 @@ class UserTestCase(UITestCase):
         10.Choose Default Organization
         11.Assert "Parameters" tab is present
 
-        @Assert: Parameters tab visible to users with edit_params permission
+        @expectedresults: Parameters tab visible to users with edit_params
+        permission
 
         @caseautomation: notautomated
         """
@@ -1154,8 +1157,8 @@ class UserTestCase(UITestCase):
         10.Choose Default Organization
         11.Assert "Parameters" tab is not present
 
-        @Assert: Parameters tab not visible to users with no edit_params
-        permission
+        @expectedresults: Parameters tab not visible to users with no
+        edit_params permission
 
         @caseautomation: notautomated
         """
@@ -1199,7 +1202,7 @@ class ActiveDirectoryUserTestCase(UITestCase):
 
         @id: 0668b2ca-831e-4568-94fb-80e45dd7d001
 
-        @Assert: User is created without specifying the password
+        @expectedresults: User is created without specifying the password
 
         @CaseLevel: Integration
         """

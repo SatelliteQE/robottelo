@@ -75,7 +75,7 @@ class DomainTestCase(UITestCase):
 
         @id: 142f90e3-a2a3-4f99-8f9b-11189f230bc5
 
-        @Assert: Domain is created
+        @expectedresults: Domain is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -93,7 +93,7 @@ class DomainTestCase(UITestCase):
 
         @id: 0b856ad7-97a6-4632-8b84-1d8ee45bedc8
 
-        @Assert: Domain is created
+        @expectedresults: Domain is created
         """
         with Session(self.browser) as session:
             for name in valid_long_domain_names():
@@ -111,7 +111,7 @@ class DomainTestCase(UITestCase):
 
         @id: 07c1cc34-4569-4f04-9c4a-2842821a6977
 
-        @Assert: Domain is deleted
+        @expectedresults: Domain is deleted
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -125,7 +125,7 @@ class DomainTestCase(UITestCase):
 
         @id: 25ff4a1d-3ca1-4153-be45-4fe1e63f3f16
 
-        @Assert: Domain is updated
+        @expectedresults: Domain is updated
         """
         domain_name = description = DOMAIN % gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -150,7 +150,7 @@ class DomainTestCase(UITestCase):
 
         @id: 5a8ba1a8-2da8-48e1-8b2a-96d91161bf94
 
-        @Assert: Domain is not created
+        @expectedresults: Domain is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -167,7 +167,7 @@ class DomainTestCase(UITestCase):
 
         @id: a05615de-c9e5-4784-995c-b2fe2a1dfd3e
 
-        @Assert: Domain is updated
+        @expectedresults: Domain is updated
 
         @CaseLevel: Integration
         """
@@ -193,7 +193,7 @@ class DomainTestCase(UITestCase):
 
         @id: b346ae66-1720-46af-b0da-460c52ce9476
 
-        @Assert: Domain parameter is created.
+        @expectedresults: Domain parameter is created.
 
         @CaseLevel: Integration
         """
@@ -218,7 +218,7 @@ class DomainTestCase(UITestCase):
 
         @id: b5a67709-57ad-4043-8e72-190ec31b8217
 
-        @Assert: Domain parameter is created with blank value.
+        @expectedresults: Domain parameter is created with blank value.
 
         @CaseLevel: Integration
         """
@@ -243,7 +243,7 @@ class DomainTestCase(UITestCase):
 
         @id: 1c647d66-6a3f-4d88-8e6b-60f2fc7fd603
 
-        @Assert: Domain parameter is not updated.
+        @expectedresults: Domain parameter is not updated.
 
         @CaseLevel: Integration
         """
@@ -271,7 +271,7 @@ class DomainTestCase(UITestCase):
 
         @id: 6266f12e-cf94-4564-ba26-b467ced2737f
 
-        @Assert: Domain parameter is not updated.
+        @expectedresults: Domain parameter is not updated.
 
         @BZ: 1123360
 
@@ -302,7 +302,7 @@ class DomainTestCase(UITestCase):
 
         @id: 8f7f8501-cf39-418f-a412-1a4b53698bc3
 
-        @Assert: Domain parameter is removed
+        @expectedresults: Domain parameter is removed
 
         @CaseLevel: Integration
         """

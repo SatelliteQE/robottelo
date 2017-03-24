@@ -131,7 +131,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 018740bf-1551-4162-b88e-4d4905af097b
 
-        @Assert: Domain successfully created
+        @expectedresults: Domain successfully created
 
         """
         for options in valid_create_params():
@@ -148,7 +148,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 033cc37d-0189-4b88-94cf-97a96839197a
 
-        @Assert: Domain is created and has new location assigned
+        @expectedresults: Domain is created and has new location assigned
 
         """
         location = make_location()
@@ -162,7 +162,7 @@ class DomainTestCase(CLITestCase):
 
         @id: f4dfef1b-9b2a-49b8-ade5-031da29e7f6a
 
-        @Assert: Domain is created and has new organization assigned
+        @expectedresults: Domain is created and has new organization assigned
 
         """
         org = make_org()
@@ -176,7 +176,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 6d3aec19-75dc-41ca-89af-fef0ca37082d
 
-        @Assert: Domain is not created
+        @expectedresults: Domain is not created
 
         """
         for options in invalid_create_params():
@@ -191,7 +191,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 9da3cc96-c146-4f82-bb25-b237a367ba91
 
-        @Assert: Domain is updated
+        @expectedresults: Domain is updated
 
         """
         domain = make_domain({
@@ -213,7 +213,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 9fc708dc-20f9-4d7c-af53-863826462981
 
-        @Assert: Domain is not updated
+        @expectedresults: Domain is not updated
 
         """
         domain = make_domain()
@@ -233,7 +233,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 62fea9f7-95e2-47f7-bf4b-415ea6fd72f8
 
-        @Assert: Domain parameter is set
+        @expectedresults: Domain parameter is set
 
         """
         for options in valid_set_params():
@@ -255,7 +255,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 991fb849-83be-48f4-a12b-81eabb2bd8d3
 
-        @Assert: Domain parameter is not set
+        @expectedresults: Domain parameter is not set
 
         """
         domain = make_domain()
@@ -277,7 +277,7 @@ class DomainTestCase(CLITestCase):
 
         @id: b50a5daa-67f8-4ecd-8e03-2a3c492d3c25
 
-        @assert: Domain is deleted
+        @expectedresults: Domain is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -293,7 +293,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 0e4ef107-f006-4433-abc3-f872613e0b91
 
-        @assert: Domain is not deleted
+        @expectedresults: Domain is not deleted
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -307,7 +307,7 @@ class DomainTestCase(CLITestCase):
 
         @id: 481afe1c-0b9e-435f-a581-159d9619291c
 
-        @Assert: Domain parameter is removed
+        @expectedresults: Domain parameter is removed
 
         """
         for options in valid_delete_params():

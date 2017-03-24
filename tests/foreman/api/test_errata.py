@@ -37,7 +37,7 @@ class ErrataTestCase(APITestCase):
 
         1. PUT /katello/api/hosts/bulk/update_content
 
-        @Assert: errata is installed in the host-collection.
+        @expectedresults: errata is installed in the host-collection.
 
         @caseautomation: notautomated
 
@@ -56,8 +56,8 @@ class ErrataTestCase(APITestCase):
         @Steps: Create two Orgs each having a product synced and contains
         errata.
 
-        @Assert: Check that the errata belonging to one Org is not showing in
-        the other.
+        @expectedresults: Check that the errata belonging to one Org is not
+        showing in the other.
 
         @caseautomation: notautomated
 
@@ -77,7 +77,7 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/errata
 
-        @Assert: Errata is filtered by Org and sorted by Updated date.
+        @expectedresults: Errata is filtered by Org and sorted by Updated date.
 
         @caseautomation: notautomated
 
@@ -97,7 +97,7 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/errata
 
-        @Assert: Errata is filtered by CVE.
+        @expectedresults: Errata is filtered by CVE.
 
         @caseautomation: notautomated
 
@@ -117,8 +117,8 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/hosts
 
-        @Assert: List of affected content hosts for the given erratum is
-        retrieved.
+        @expectedresults: List of affected content hosts for the given erratum
+        is retrieved.
 
         @caseautomation: notautomated
 
@@ -138,7 +138,7 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/errata
 
-        @Assert: Errata is filtered based on affected content hosts.
+        @expectedresults: Errata is filtered based on affected content hosts.
 
         @caseautomation: notautomated
 
@@ -158,7 +158,7 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/errata
 
-        @Assert: Errata is sorted by issued date.
+        @expectedresults: Errata is sorted by issued date.
 
         @caseautomation: notautomated
 
@@ -182,8 +182,8 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/errata
 
-        @Assert: The errata for the content host is filtered by current and
-        Library environments.
+        @expectedresults: The errata for the content host is filtered by
+        current and Library environments.
 
         @caseautomation: notautomated
 
@@ -206,7 +206,7 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/hosts
 
-        @Assert: The available errata count is retrieved.
+        @expectedresults: The available errata count is retrieved.
 
         @caseautomation: notautomated
 
@@ -230,8 +230,8 @@ class ErrataTestCase(APITestCase):
 
         1. GET /katello/api/compare
 
-        @Assert: Difference in errata between a set of environments for a
-        content view is retrieved.
+        @expectedresults: Difference in errata between a set of environments
+        for a content view is retrieved.
 
         @caseautomation: notautomated
 
@@ -255,8 +255,8 @@ class ErrataTestCase(APITestCase):
 
         1. POST /katello/api/hosts/bulk/available_incremental_updates
 
-        @Assert: Selected errata are applied to multiple content views in
-        multiple environments.
+        @expectedresults: Selected errata are applied to multiple content views
+        in multiple environments.
 
         @caseautomation: notautomated
 
@@ -280,7 +280,7 @@ class ErrataTestCase(APITestCase):
 
         1. POST /katello/api/content_view_versions/incremental_update
 
-        @Assert: Subset of environments/content views retrieved.
+        @expectedresults: Subset of environments/content views retrieved.
 
         @caseautomation: notautomated
 
@@ -304,7 +304,8 @@ class ErrataTestCase(APITestCase):
 
         1. POST /katello/api/content_view_versions/incremental_update
 
-        @Assert: Packages are applied to multiple environments/content views.
+        @expectedresults: Packages are applied to multiple environments/content
+        views.
 
         @caseautomation: notautomated
 

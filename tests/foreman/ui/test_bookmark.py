@@ -119,8 +119,8 @@ class BookmarkTestCase(UITestCase):
         7. Verify that bookmark's name appears in the search dropdown
         8. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: No errors, Bookmark is displayed, controller matches the
-        entity the bookmark was created for
+        @expectedresults: No errors, Bookmark is displayed, controller matches
+        the entity the bookmark was created for
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -153,8 +153,8 @@ class BookmarkTestCase(UITestCase):
         6. Verify that bookmark's name appears in the search dropdown
         7. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: No errors, Bookmark is displayed, controller matches the
-        entity the bookmark was created for
+        @expectedresults: No errors, Bookmark is displayed, controller matches
+        the entity the bookmark was created for
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -200,8 +200,8 @@ class BookmarkTestCase(UITestCase):
         15. Click the dropdown
         16. Verify that the non-public bookmark is not listed
 
-        @Assert: No errors, Bookmark is displayed, controller matches the
-        entity the bookmark was created for
+        @expectedresults: No errors, Bookmark is displayed, controller matches
+        the entity the bookmark was created for
 
         @CaseLevel: Integration
         """
@@ -240,8 +240,8 @@ class BookmarkTestCase(UITestCase):
         5. Click the create button
         6. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: Error notification - name cannot be empty, Bookmark is not
-        created (not listed)
+        @expectedresults: Error notification - name cannot be empty, Bookmark
+        is not created (not listed)
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -276,8 +276,8 @@ class BookmarkTestCase(UITestCase):
         5. Click the create button
         6. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: Error notification - search query cannot be empty, Bookmark is
-        not created (not listed)
+        @expectedresults: Error notification - search query cannot be empty,
+        Bookmark is not created (not listed)
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -311,8 +311,8 @@ class BookmarkTestCase(UITestCase):
         5. Click the create button
         6. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: Error notification - name already taken, Bookmark is not
-        created (not listed)
+        @expectedresults: Error notification - name already taken, Bookmark is
+        not created (not listed)
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -351,7 +351,7 @@ class BookmarkTestCase(UITestCase):
         5. Navigate to the entity page
         6. Click the search dropdown
 
-        @Assert: The new bookmark name is listed
+        @expectedresults: The new bookmark name is listed
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -387,7 +387,7 @@ class BookmarkTestCase(UITestCase):
         3. Edit the name to one of the other pre-created bookmarks
         4. Submit
 
-        @Assert: Error - name already taken, bookmark not updated
+        @expectedresults: Error - name already taken, bookmark not updated
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -431,7 +431,7 @@ class BookmarkTestCase(UITestCase):
         5. Navigate to the entity page
         6. Click the search dropdown
 
-        @Assert: Error - name cannot be empty, bookmark not updated
+        @expectedresults: Error - name cannot be empty, bookmark not updated
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -471,7 +471,7 @@ class BookmarkTestCase(UITestCase):
         5. Navigate to the entity page
         6. Select the updated bookmark from the query
 
-        @Assert: The updated query is populated and submitted
+        @expectedresults: The updated query is populated and submitted
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -511,7 +511,8 @@ class BookmarkTestCase(UITestCase):
         5. Navigate to the entity page
         6. Click the search dropdown
 
-        @Assert: Error - search query cannot be empty, bookmark not updated
+        @expectedresults: Error - search query cannot be empty, bookmark not
+        updated
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -568,8 +569,8 @@ class BookmarkTestCase(UITestCase):
         16. Navigate to the entity
         17. List the bookmarks by clicking the drop down menu
 
-        @Assert: New public bookmark is listed, and the private
-        one is hidden
+        @expectedresults: New public bookmark is listed, and the private one is
+        hidden
 
         @CaseLevel: Integration
         """
@@ -625,7 +626,7 @@ class BookmarkTestCase(UITestCase):
         2. Click Delete next to a pre-created bookmark
         3. Verify the bookmark is no longer listed
 
-        @Assert: The bookmark is deleted
+        @expectedresults: The bookmark is deleted
         """
         for entity in self.entities:
             with self.subTest(entity):
@@ -658,7 +659,7 @@ class BookmarkTestCase(UITestCase):
         user
         2. List the bookmarks (Navigate to Administer -> Bookmarks)
 
-        @Assert: The delete buttons are not displayed
+        @expectedresults: The delete buttons are not displayed
 
         @CaseLevel: Integration
         """

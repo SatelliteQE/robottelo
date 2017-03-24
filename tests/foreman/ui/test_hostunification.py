@@ -71,8 +71,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content hosts
         3.  View host under 'All Hosts'
 
-        @assert: Hosts registered via rhsm appears under 'All hosts' as well
-        as under content-hosts.
+        @expectedresults: Hosts registered via rhsm appears under 'All hosts'
+        as well as under content-hosts.
 
         @CaseLevel: System
         """
@@ -98,8 +98,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content hosts
         3.  View host under 'All Hosts'
 
-        @assert: Hosts registered via activation key appears under 'All hosts'
-        as well as under content-hosts
+        @expectedresults: Hosts registered via activation key appears under
+        'All hosts' as well as under content-hosts
 
         @CaseLevel: System
         """
@@ -141,8 +141,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content hosts
         3.  View host under 'All Hosts'
 
-        @assert: Hosts provisioned via foreman should appear under 'All hosts'
-        as well as under content-hosts.
+        @expectedresults: Hosts provisioned via foreman should appear under
+        'All hosts' as well as under content-hosts.
 
         @CaseLevel: System
         """
@@ -194,7 +194,7 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content-hosts page
         3.  View host under 'All Hosts'
 
-        @assert: Host appears in both places despite being renamed
+        @expectedresults: Host appears in both places despite being renamed
 
         @CaseLevel: System
         """
@@ -234,7 +234,7 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content-hosts
         3.  View host under 'All Hosts'
 
-        @assert: Host appears in both places despite being renamed
+        @expectedresults: Host appears in both places despite being renamed
 
         @CaseLevel: System
         """
@@ -266,7 +266,7 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under 'Content-hosts'
         3.  View host under 'All hosts'
 
-        @assert: Host should be removed from 'All hosts' as well as
+        @expectedresults: Host should be removed from 'All hosts' as well as
         content-hosts
 
         @CaseLevel: System
@@ -293,8 +293,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content hosts
         3.  View host under 'All hosts'
 
-        @assert: Hosts un-registered from content-host should appear in both
-        sides of UI
+        @expectedresults: Hosts un-registered from content-host should appear
+        in both sides of UI
 
         @CaseLevel: System
         """
@@ -339,8 +339,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content hosts
         3.  View host under 'All hosts'
 
-        @assert: Hosts un-registered from content-host should disappear from
-        both sides of UI
+        @expectedresults: Hosts un-registered from content-host should
+        disappear from both sides of UI
 
         @CaseLevel: System
         """
@@ -382,8 +382,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         2.  View host under content hosts
         3.  View host under 'All hosts'
 
-        @assert: A single entry of host should appear at both places on
-        re-registering
+        @expectedresults: A single entry of host should appear at both places
+        on re-registering
 
         @CaseLevel: System
         """
@@ -431,8 +431,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         1.  Provision a host via foreman which is not registered via rhsm
         2.  Try to add subscription from content-hosts page
 
-        @assert: User get a warning:
-        This Host is not currently registered with subscription-manager.
+        @expectedresults: User get a warning: This Host is not currently
+        registered with subscription-manager.
 
         @CaseLevel: System
         """
@@ -486,8 +486,8 @@ class HostContentHostUnificationTestCase(UITestCase):
         1.  Provision a host via foreman which is not registered via rhsm
         2.  Try to add package from content-hosts page
 
-        @assert: User get a warning:
-        This Host is not currently registered with subscription-manager.
+        @expectedresults: User get a warning: This Host is not currently
+        registered with subscription-manager.
 
         @CaseLevel: System
         """

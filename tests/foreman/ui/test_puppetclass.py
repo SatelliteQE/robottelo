@@ -34,7 +34,7 @@ class PuppetClassTestCase(UITestCase):
 
         @id: 711fe4de-b62f-48b5-9845-2d8725eb3548
 
-        @Assert: Puppet-Classes is updated successfully.
+        @expectedresults: Puppet-Classes is updated successfully.
         """
         class_name = 'foreman_scap_client'
         param_name = 'ca file'
@@ -61,7 +61,7 @@ class PuppetClassTestCase(UITestCase):
 
         @id: 0d6e579e-8a7a-46a1-9932-5f345905671d
 
-        @Assert: Puppet-Class is deleted successfully.
+        @expectedresults: Puppet-Class is deleted successfully.
         """
         with Session(self.browser):
             for name in valid_data_list():

@@ -72,7 +72,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         @id: 95ffeb7a-134e-4273-bccc-fe8a3a336b2a
 
-        @Assert: 'Default Organization' is found
+        @expectedresults: 'Default Organization' is found
         """
         result = Org.info({u'name': DEFAULT_ORG})
         self.assertEqual(result['name'], DEFAULT_ORG)
@@ -82,7 +82,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         @id: 11cf0d06-78ff-47e8-9d50-407a2ea31988
 
-        @Assert: 'Default Location' is found
+        @expectedresults: 'Default Location' is found
         """
         result = Location.info({u'name': DEFAULT_LOC})
         self.assertEqual(result['name'], DEFAULT_LOC)
@@ -92,7 +92,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         @id: f6755189-05a6-4d2f-a3b8-98be0cfacaee
 
-        @Assert: Admin User is found and has Admin role
+        @expectedresults: Admin User is found and has Admin role
         """
         result = User.info({u'login': u'admin'})
         self.assertEqual(result['login'], 'admin')
@@ -127,8 +127,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         @id: 8c8b3ffa-0d54-436b-8eeb-1a3542e100a8
 
-        @Assert: All tests should succeed and Content should be successfully
-        fetched by client.
+        @expectedresults: All tests should succeed and Content should be
+        successfully fetched by client.
         """
         # step 1: Create a new user with admin permissions
         password = gen_alphanumeric()

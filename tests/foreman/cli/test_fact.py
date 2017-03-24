@@ -31,7 +31,7 @@ class FactTestCase(CLITestCase):
 
         @id: 83794d97-d21b-4482-9522-9b41053e595f
 
-        @Assert: Fact List is displayed
+        @expectedresults: Fact List is displayed
 
         """
         for fact in (
@@ -52,7 +52,7 @@ class FactTestCase(CLITestCase):
 
         @id: bd56d27e-59c0-4f35-bd53-2999af7c6946
 
-        @Assert: Fact List is not displayed
+        @expectedresults: Fact List is not displayed
 
         """
         fact = gen_string('alpha')

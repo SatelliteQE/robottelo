@@ -197,7 +197,7 @@ class SettingTestCase(UITestCase):
 
         @id: 0b752f6a-5987-483a-9cef-2d02fa42fe73
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation'
@@ -225,7 +225,7 @@ class SettingTestCase(UITestCase):
 
         @id: ecab6d51-ad29-4904-bc04-e62673ab1028
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
 
         @BZ: 1125181
         """
@@ -254,7 +254,7 @@ class SettingTestCase(UITestCase):
 
         @id: 1dc39d96-a0e3-4d2e-aeb8-14aedab2ebe3
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation_api'
@@ -282,7 +282,7 @@ class SettingTestCase(UITestCase):
 
         @id: b6bb39e2-797e-43e4-9629-d319c62992a4
 
-        @Assert: Parameter is not updated
+        @expectedresults: Parameter is not updated
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'entries_per_page'
@@ -314,7 +314,7 @@ class SettingTestCase(UITestCase):
 
         @id: e41933c8-d835-4126-a356-a186c8e9013f
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         param_value = str(randint(30, 1000))
         self.tab_locator = tab_locators['settings.tab_general']
@@ -341,7 +341,7 @@ class SettingTestCase(UITestCase):
 
         @id: 274eaa6d-a6ba-4dbe-a843-c3717fbd70ae
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
 
         @BZ: 1125181
         """
@@ -371,7 +371,7 @@ class SettingTestCase(UITestCase):
 
         @id: b7f8df0e-9ac8-4075-8955-c895267e424c
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
 
         @BZ: 1156195
         """
@@ -400,7 +400,7 @@ class SettingTestCase(UITestCase):
 
         @id: 6ea676c1-acb9-495f-9ee7-0a2c14f34ea1
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'use_gravatar'
@@ -428,7 +428,7 @@ class SettingTestCase(UITestCase):
 
         @id: bcc2848d-734a-4b13-80fa-9fd34545cbe7
 
-        @Assert: Parameter is not updated
+        @expectedresults: Parameter is not updated
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
@@ -460,7 +460,7 @@ class SettingTestCase(UITestCase):
 
         @id: 6e08bb3b-de48-45b4-b982-7180dbb65ed2
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
@@ -488,7 +488,7 @@ class SettingTestCase(UITestCase):
 
         @id: 0c46ec21-7402-4241-8b22-5f8afa1f5316
 
-        @Assert: Parameter is not updated
+        @expectedresults: Parameter is not updated
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
@@ -520,7 +520,7 @@ class SettingTestCase(UITestCase):
 
         @id: fd5b2fe0-7124-444b-9f00-fca2b38c52f4
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
@@ -547,7 +547,7 @@ class SettingTestCase(UITestCase):
 
         @id: e09e95e9-510a-48b6-a59f-5adc0a383ddc
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
@@ -574,7 +574,7 @@ class SettingTestCase(UITestCase):
 
         @id: ee450e0a-d02e-40c4-a67e-5508a29dc9c8
 
-        @Assert: Parameter is not updated
+        @expectedresults: Parameter is not updated
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
@@ -607,7 +607,7 @@ class SettingTestCase(UITestCase):
 
         @id: 11a710f1-d5fc-48c7-9f31-a92dbbaebc40
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_foremantasks']
         self.param_name = 'dynflow_enable_console'
@@ -635,7 +635,7 @@ class SettingTestCase(UITestCase):
 
         @id: 82137c0c-1cf5-445d-87fe-1ff80a12df3c
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = ('authorize_login_delegation_auth_source_user'
@@ -664,7 +664,7 @@ class SettingTestCase(UITestCase):
 
         @id: 67b32c5f-7e8e-4ba7-ab29-9af2ac3660a9
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'login_delegation_logout_url'
@@ -692,7 +692,7 @@ class SettingTestCase(UITestCase):
 
         @id: e69d791a-e5c4-4f42-b5dd-c9d3bca49673
 
-        @Assert: Parameter is not editable
+        @expectedresults: Parameter is not editable
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         with Session(self.browser) as session:
@@ -715,7 +715,7 @@ class SettingTestCase(UITestCase):
 
         @id: 79d5bb5f-6bec-4c1c-b68e-6727aeb04614
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'require_ssl_smart_proxies'
@@ -743,7 +743,7 @@ class SettingTestCase(UITestCase):
 
         @id: 7dbcf471-3cee-4718-a316-18da6c4c1ef0
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'restrict_registered_smart_proxies'
@@ -772,7 +772,7 @@ class SettingTestCase(UITestCase):
 
         @id: 18596dbc-7e2a-426c-bd1a-338a31ba6e97
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
@@ -799,7 +799,7 @@ class SettingTestCase(UITestCase):
 
         @id: 23af2612-1291-41a1-8002-87263e39bdbe
 
-        @Assert: Parameter is not updated
+        @expectedresults: Parameter is not updated
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
@@ -832,7 +832,7 @@ class SettingTestCase(UITestCase):
 
         @id: 71cb4779-7982-43b6-ab65-7198ec193941
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'ignore_puppet_facts_for_provisioning'
@@ -860,7 +860,7 @@ class SettingTestCase(UITestCase):
 
         @id: 2f652441-6beb-40c0-9fb3-f0b835d06ca7
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'manage_puppetca'
@@ -889,7 +889,7 @@ class SettingTestCase(UITestCase):
 
         @id: 643960f4-121c-44f3-a5e8-00b9cf66ff99
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'query_local_nameservers'
@@ -917,7 +917,7 @@ class SettingTestCase(UITestCase):
 
         @id: 4762a89a-2ebe-4834-b44f-f74888e609bb
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'safemode_render'
@@ -946,7 +946,7 @@ class SettingTestCase(UITestCase):
 
         @id: a1d18ba3-a14f-47ab-82fb-1249abc7b076
 
-        @Assert: Parameter is not updated
+        @expectedresults: Parameter is not updated
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'
@@ -979,7 +979,7 @@ class SettingTestCase(UITestCase):
 
         @id: a200b578-4463-444b-bed1-82e540a77529
 
-        @Assert: Parameter is updated successfully
+        @expectedresults: Parameter is updated successfully
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'

@@ -77,7 +77,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. GET /api/v2/discovered_hosts
 
-        @Assert: List of all discovered hosts are retrieved
+        @expectedresults: List of all discovered hosts are retrieved
 
         @caseautomation: notautomated
 
@@ -98,7 +98,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. GET /api/v2/discovered_hosts/:id
 
-        @Assert: Selected host is retrieved
+        @expectedresults: Selected host is retrieved
 
         @caseautomation: notautomated
 
@@ -119,7 +119,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. POST /api/v2/discovered_hosts
 
-        @Assert: Host should be created successfully
+        @expectedresults: Host should be created successfully
 
         @caseautomation: notautomated
 
@@ -138,7 +138,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. POST /api/v2/discovered_hosts/facts
 
-        @Assert: Host should be created successfully
+        @expectedresults: Host should be created successfully
 
         @CaseLevel: Integration
         """
@@ -166,7 +166,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. PUT /api/v2/discovered_hosts/:id
 
-        @Assert: Host should be provisioned successfully
+        @expectedresults: Host should be provisioned successfully
 
         @caseautomation: notautomated
 
@@ -186,7 +186,7 @@ class DiscoveryTestCase(APITestCase):
         @Steps:
         1. PUT /api/v2/discovered_hosts/:id
 
-        @Assert: Host should be provisioned successfully
+        @expectedresults: Host should be provisioned successfully
 
         @caseautomation: notautomated
 
@@ -207,7 +207,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. DELETE /api/v2/discovered_hosts/:id
 
-        @Assert: Discovered Host should be deleted successfully
+        @expectedresults: Discovered Host should be deleted successfully
 
         @caseautomation: notautomated
 
@@ -227,7 +227,7 @@ class DiscoveryTestCase(APITestCase):
         @Steps:
         1. DELETE /api/v2/discovered_hosts/:id
 
-        @Assert: Discovered Host should be deleted successfully
+        @expectedresults: Discovered Host should be deleted successfully
 
         @caseautomation: notautomated
 
@@ -248,7 +248,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. POST /api/v2/discovered_hosts/:id/auto_provision
 
-        @Assert: Selected Host should be auto-provisioned successfully
+        @expectedresults: Selected Host should be auto-provisioned successfully
 
         @caseautomation: notautomated
 
@@ -268,7 +268,7 @@ class DiscoveryTestCase(APITestCase):
         @Steps:
         1. POST /api/v2/discovered_hosts/:id/auto_provision
 
-        @Assert: Selected Host should be auto-provisioned successfully
+        @expectedresults: Selected Host should be auto-provisioned successfully
 
         @caseautomation: notautomated
 
@@ -289,7 +289,8 @@ class DiscoveryTestCase(APITestCase):
 
         1. POST /api/v2/discovered_hosts/auto_provision_all
 
-        @Assert: All discovered hosts should be auto-provisioned successfully
+        @expectedresults: All discovered hosts should be auto-provisioned
+        successfully
 
         @caseautomation: notautomated
 
@@ -314,7 +315,8 @@ class DiscoveryTestCase(APITestCase):
 
         1. PUT /api/v2/discovered_hosts/:id/refresh_facts
 
-        @Assert: Added Fact should be displayed on refreshing the facts
+        @expectedresults: Added Fact should be displayed on refreshing the
+        facts
 
         @caseautomation: notautomated
 
@@ -337,7 +339,8 @@ class DiscoveryTestCase(APITestCase):
         @Steps:
         1. PUT /api/v2/discovered_hosts/:id/refresh_facts
 
-        @Assert: Added Fact should be displayed on refreshing the facts
+        @expectedresults: Added Fact should be displayed on refreshing the
+        facts
 
         @caseautomation: notautomated
 
@@ -358,7 +361,7 @@ class DiscoveryTestCase(APITestCase):
 
         1. PUT /api/v2/discovered_hosts/:id/reboot
 
-        @Assert: Selected host should be rebooted successfully
+        @expectedresults: Selected host should be rebooted successfully
 
         @caseautomation: notautomated
 
@@ -378,7 +381,7 @@ class DiscoveryTestCase(APITestCase):
         @Steps:
         1. PUT /api/v2/discovered_hosts/:id/reboot
 
-        @Assert: Selected host should be rebooted successfully
+        @expectedresults: Selected host should be rebooted successfully
 
         @caseautomation: notautomated
 
@@ -396,7 +399,7 @@ class DiscoveryTestCase(APITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should reboot and provision
+        @expectedresults: Host should reboot and provision
 
         @caseautomation: notautomated
 
@@ -414,7 +417,7 @@ class DiscoveryTestCase(APITestCase):
 
         @Setup: Multiple hosts should already be discovered in same subnet
 
-        @Assert: All Hosts of same subnet should reboot and provision
+        @expectedresults: All Hosts of same subnet should reboot and provision
 
         @caseautomation: notautomated
 
@@ -431,8 +434,8 @@ class DiscoveryTestCase(APITestCase):
 
         @Setup: Multiple hosts should already be discovered
 
-        @Assert: Host with lower count have higher priority
-        and that rule should be executed first
+        @expectedresults: Host with lower count have higher priority and that
+        rule should be executed first
 
         @caseautomation: notautomated
 
@@ -449,8 +452,8 @@ class DiscoveryTestCase(APITestCase):
 
         @Setup: Host with two CPUs should already be discovered
 
-        @Assert: Rule should only be applied to one discovered host and for
-        other rule should already be skipped.
+        @expectedresults: Rule should only be applied to one discovered host
+        and for other rule should already be skipped.
 
         @caseautomation: notautomated
 
@@ -466,8 +469,8 @@ class DiscoveryTestCase(APITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: User should be able to update the rule and it should be
-        applied on discovered host
+        @expectedresults: User should be able to update the rule and it should
+        be applied on discovered host
 
         @caseautomation: notautomated
 
@@ -484,7 +487,8 @@ class DiscoveryTestCase(APITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: The host name should be updated and host should be provisioned
+        @expectedresults: The host name should be updated and host should be
+        provisioned
 
         @caseautomation: notautomated
 

@@ -168,7 +168,7 @@ class OpenScapTestCase(UITestCase):
 
         @id: 17a0978d-64f9-44ad-8303-1f54ada08602
 
-        @Assert: Oscap reports from rhel6 and rhel7 clients should be
+        @expectedresults: Oscap reports from rhel6 and rhel7 clients should be
         uploaded to satellite6 and be searchable.
 
         @CaseLevel: System
@@ -297,7 +297,7 @@ class OpenScapTestCase(UITestCase):
            is visible in the UI.
         2. Click on the host name to access the oscap report.
 
-        @Assert: Oscap ARF reports should have summary page.
+        @expectedresults: Oscap ARF reports should have summary page.
 
         @caseautomation: notautomated
 
@@ -317,7 +317,7 @@ class OpenScapTestCase(UITestCase):
            is visible in the UI.
         2. Click on the host name to access the oscap report.
 
-        @Assert: Should have 'view full report' button to view the
+        @expectedresults: Should have 'view full report' button to view the
         actual HTML report.
 
         @caseautomation: notautomated
@@ -339,7 +339,7 @@ class OpenScapTestCase(UITestCase):
            is visible in the UI.
         2. Click on the host name to access the oscap report.
 
-        @Assert: Should have 'Download xml in bzip' button to download
+        @expectedresults: Should have 'Download xml in bzip' button to download
         the xml report.
 
         @caseautomation: notautomated
@@ -360,7 +360,7 @@ class OpenScapTestCase(UITestCase):
         1.Choose the Oscap Proxy/capsule appropriately for the host
           or host-groups.
 
-        @Assert: Should have an Oscap-Proxy select box while filling
+        @expectedresults: Should have an Oscap-Proxy select box while filling
         hosts and host-groups form.
 
         @caseautomation: notautomated
@@ -383,7 +383,7 @@ class OpenScapTestCase(UITestCase):
         3. Now select multiple reports from the checkbox and delete the
            reports.
 
-        @Assert: Multiple Oscap ARF reports can be deleted.
+        @expectedresults: Multiple Oscap ARF reports can be deleted.
 
         @caseautomation: notautomated
 
@@ -398,7 +398,7 @@ class OpenScapTestCase(UITestCase):
 
         @id: 003d4d28-f694-4e54-a149-247f58298ecc
 
-        @Assert: Whether email reporting of oscap reports is possible.
+        @expectedresults: Whether email reporting of oscap reports is possible.
 
         @caseautomation: notautomated
 

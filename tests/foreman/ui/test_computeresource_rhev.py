@@ -37,7 +37,8 @@ class RhevComputeResourceTestCase(UITestCase):
         3. Provide a valid name to rhev Compute Resource.
         4. Test the connection using Load Datacenter and submit.
 
-        @Assert: A rhev CR is created successfully with proper connection.
+        @expectedresults: A rhev CR is created successfully with proper
+        connection.
 
         @caseautomation: notautomated
         """
@@ -58,7 +59,7 @@ class RhevComputeResourceTestCase(UITestCase):
         3. Provide it with some valid description to rhev Compute Resource.
         4. Test the connection using Load Datacenter and submit.
 
-        @Assert: A rhev Compute Resource is created successfully
+        @expectedresults: A rhev Compute Resource is created successfully
 
         @caseautomation: notautomated
         """
@@ -80,7 +81,7 @@ class RhevComputeResourceTestCase(UITestCase):
         3. Provide a invalid name to rhev Compute Resource.
         4. Test the connection using Load Datacenter and submit.
 
-        @Assert: A rhev Compute Resource is not created
+        @expectedresults: A rhev Compute Resource is not created
 
         @caseautomation: notautomated
         """
@@ -102,7 +103,7 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Test the connection using Load Datacenter and submit.
         5. Update the name of the created CR with valid string.
 
-        @Assert: The rhev Compute Resource is updated
+        @expectedresults: The rhev Compute Resource is updated
 
         @caseautomation: notautomated
         """
@@ -125,7 +126,7 @@ class RhevComputeResourceTestCase(UITestCase):
         5. Create a new organization.
         6. Add the new CR to organization that is created.
 
-        @Assert: The rhev Compute Resource is updated
+        @expectedresults: The rhev Compute Resource is updated
 
         @caseautomation: notautomated
         """
@@ -147,7 +148,7 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Test the connection using Load Datacenter and submit.
         5. Delete the created compute resource.
 
-        @Assert: The Compute Resource is deleted
+        @expectedresults: The Compute Resource is deleted
 
         @caseautomation: notautomated
         """
@@ -169,7 +170,7 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Select "New image" , provide it valid name and information.
         5. Select the desired template to create image and submit.
 
-        @Assert: The image is added to the CR successfully
+        @expectedresults: The image is added to the CR successfully
 
         @Caseautomation: notautomated
          """
@@ -191,7 +192,7 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Select "New image" , provide it invalid name and valid information.
         5. Select the desired template to create the image from and submit.
 
-        @Assert: The image should not be added to the CR
+        @expectedresults: The image should not be added to the CR
 
         @Caseautomation: notautomated
         """
@@ -213,7 +214,7 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Click Compute Profile tab.
         5. Select (3-Large) and submit.
 
-        @Assert: The Compute Resource created and opened successfully
+        @expectedresults: The Compute Resource created and opened successfully
 
         @caseautomation: notautomated
         """
@@ -235,7 +236,7 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Click Compute Profile tab.
         5. Edit (3-Large) with valid configurations and submit.
 
-        @Assert: The Compute Resource created and opened successfully
+        @expectedresults: The Compute Resource created and opened successfully
 
         @caseautomation: notautomated
         """
@@ -254,7 +255,7 @@ class RhevComputeResourceTestCase(UITestCase):
         1. Select the created compute resource.
         2. Go to "Virtual Machines" tab.
 
-        @Assert: The Virtual machines should be displayed
+        @expectedresults: The Virtual machines should be displayed
 
         @caseautomation: notautomated
         """
@@ -283,7 +284,7 @@ class RhevComputeResourceTestCase(UITestCase):
         7. Select the appropriate image .
         8. Associate the activation key and submit.
 
-        @Assert: The host should be provisioned successfully
+        @expectedresults: The host should be provisioned successfully
 
         @caseautomation: notautomated
         """
@@ -306,7 +307,7 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Select the "Compute profile" from the drop down.
         5. Provision the host using the compute profile.
 
-        @Assert: The host should be provisioned successfully
+        @expectedresults: The host should be provisioned successfully
 
         @caseautomation: notautomated
         """
@@ -330,7 +331,7 @@ class RhevComputeResourceTestCase(UITestCase):
         and memory.
         5. Provision the host using the compute profile.
 
-        @Assert: The host should be provisioned with custom settings
+        @expectedresults: The host should be provisioned with custom settings
 
         @caseautomation: notautomated
         """
@@ -352,7 +353,7 @@ class RhevComputeResourceTestCase(UITestCase):
         3. Select the Deploy on as rhev Compute Resource
         4. Provision the host
 
-        @Assert: The host should be provisioned with host group
+        @expectedresults: The host should be provisioned with host group
 
         @caseautomation: notautomated
         """

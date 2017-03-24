@@ -48,7 +48,7 @@ class CapsuleTestCase(CLITestCase):
 
         @id: 9050b362-c710-43ba-9d77-7680b8f9ed8c
 
-        @Assert: Proxy is not created
+        @expectedresults: Proxy is not created
         """
         # Create a random proxy
         with self.assertRaises(CLIFactoryError):
@@ -66,7 +66,7 @@ class CapsuleTestCase(CLITestCase):
 
         @id: 7decd7a3-2d35-43ff-9a20-de44e83c7389
 
-        @Assert: Proxy is created
+        @expectedresults: Proxy is created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -84,7 +84,7 @@ class CapsuleTestCase(CLITestCase):
 
         @id: 1b6973b1-259d-4866-b36f-c2d5fb154035
 
-        @Assert: Proxy is deleted
+        @expectedresults: Proxy is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -101,7 +101,7 @@ class CapsuleTestCase(CLITestCase):
 
         @id: 1a02a06b-e9ab-4b9b-bcb0-ac7060188316
 
-        @Assert: Proxy has the name updated
+        @expectedresults: Proxy has the name updated
         """
         proxy = make_proxy({u'name': gen_alphanumeric()})
         for new_name in valid_data_list():
@@ -126,7 +126,7 @@ class CapsuleTestCase(CLITestCase):
 
         @id: d3db63ce-b877-40eb-a863-294c12489ddd
 
-        @Assert: Proxy features are refreshed
+        @expectedresults: Proxy features are refreshed
 
         @CaseLevel: Integration
         """
@@ -150,7 +150,7 @@ class CapsuleTestCase(CLITestCase):
 
         @id: 2ddd0097-8f65-430e-963d-a3b5dcffe86b
 
-        @Assert: Proxy features are refreshed
+        @expectedresults: Proxy features are refreshed
 
         @CaseLevel: Integration
         """
@@ -186,8 +186,8 @@ class CapsuleIntegrationTestCase(CLITestCase):
            a proxy
         2. Attempt to provision instance
 
-        @Assert: Instance can be provisioned, with content coming through
-        proxy-enabled capsule.
+        @expectedresults: Instance can be provisioned, with content coming
+        through proxy-enabled capsule.
 
         @caseautomation: notautomated
         """
@@ -202,7 +202,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         1. attempt to register a system trhough a proxy-enabled capsule
 
-        @Assert: system is successfully registered
+        @expectedresults: system is successfully registered
 
         @caseautomation: notautomated
         """
@@ -217,7 +217,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         1. attempt to unregister a system through a proxy-enabled capsule
 
-        @Assert: system is successfully unregistered
+        @expectedresults: system is successfully unregistered
 
         @caseautomation: notautomated
         """
@@ -237,7 +237,8 @@ class CapsuleIntegrationTestCase(CLITestCase):
         1. attempt to subscribe a system to a content type variation, via a
            proxy-enabled capsule
 
-        @Assert: system is successfully subscribed to each content type
+        @expectedresults: system is successfully subscribed to each content
+        type
 
         @caseautomation: notautomated
         """
@@ -259,7 +260,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         2. Attempt to install content (RPMs, puppet modules) via proxy-enabled
            capsule
 
-        @Assert: system successfully consume content
+        @expectedresults: system successfully consume content
 
         @caseautomation: notautomated
         """
@@ -281,7 +282,8 @@ class CapsuleIntegrationTestCase(CLITestCase):
         2. attempt to unsubscribe a system from said content type(s) via a
            proxy-enabled capsule
 
-        @Assert: system is successfully unsubscribed from each content type
+        @expectedresults: system is successfully unsubscribed from each content
+        type
 
         @caseautomation: notautomated
         """
@@ -302,8 +304,8 @@ class CapsuleIntegrationTestCase(CLITestCase):
         2. Attempt to reregister using same credentials and certs from a
            functional capsule.
 
-        @Assert: Registration works , and certs RPM installed
-        from capsule.
+        @expectedresults: Registration works , and certs RPM installed from
+        capsule.
 
         @caseautomation: notautomated
         """
@@ -322,8 +324,8 @@ class CapsuleIntegrationTestCase(CLITestCase):
            unsubscribe, unregister) while connected to a capsule that is
            SSL-enabled
 
-        @Assert: No failures executing said test scenarios against SSL,
-        baseline functionality identical to non-SSL
+        @expectedresults: No failures executing said test scenarios against
+        SSL, baseline functionality identical to non-SSL
 
         @caseautomation: notautomated
         """
@@ -350,7 +352,8 @@ class CapsuleIntegrationTestCase(CLITestCase):
            ``#cat /etc/foreman-proxy/settings.d/bmc.yml | grep enabled``
         4. Restart foreman-proxy service
 
-        @Assert: Katello installer should show the options to enable BMC
+        @expectedresults: Katello installer should show the options to enable
+        BMC
 
         @caseautomation: notautomated
         """

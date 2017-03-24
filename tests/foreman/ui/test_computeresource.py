@@ -46,7 +46,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 71307d6d-04be-431f-b8fc-81ea883b4f19
 
-        @Assert: A libvirt Compute Resource is created successfully
+        @expectedresults: A libvirt Compute Resource is created successfully
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -69,7 +69,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 0ef00468-d6e6-449b-be3e-de95ba03a73b
 
-        @Assert: A libvirt Compute Resource is created successfully
+        @expectedresults: A libvirt Compute Resource is created successfully
         """
         with Session(self.browser) as session:
             for description in valid_data_list():
@@ -94,7 +94,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 95e8cf49-8cb5-4c3b-9b21-8d33c51c9ac6
 
-        @Assert: A libvirt Compute Resource is created successfully
+        @expectedresults: A libvirt Compute Resource is created successfully
         """
         with Session(self.browser) as session:
             for display_type in 'VNC', 'SPICE':
@@ -120,7 +120,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 26726673-a467-47d5-b24a-4535b98b3e50
 
-        @Assert: A libvirt Compute Resource is created successfully
+        @expectedresults: A libvirt Compute Resource is created successfully
         """
         with Session(self.browser) as session:
             for console_password in True, False:
@@ -146,7 +146,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 4d9be6b5-f9d4-402e-ad13-843335d83879
 
-        @Assert: A libvirt Compute Resource is not created
+        @expectedresults: A libvirt Compute Resource is not created
         """
         include_list = [' ']
         with Session(self.browser) as session:
@@ -173,7 +173,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 508d34bd-491c-461d-b568-7063c68e971d
 
-        @Assert: The libvirt Compute Resource is updated
+        @expectedresults: The libvirt Compute Resource is updated
         """
         with Session(self.browser) as session:
             for newname in valid_data_list():
@@ -200,7 +200,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: a1c3fd14-62e9-4e80-8ef7-bfa36420ce9b
 
-        @Assert: The libvirt Compute Resource is updated
+        @expectedresults: The libvirt Compute Resource is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -228,7 +228,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 2790e1c2-ecdc-4257-9912-49b50891aa1f
 
-        @Assert: The Compute Resource is deleted
+        @expectedresults: The Compute Resource is deleted
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -252,7 +252,7 @@ class ComputeResourceTestCase(UITestCase):
 
         @id: 860b0036-24ab-49de-8d99-75243444df06
 
-        @Assert: The Compute Resource created and opened successfully
+        @expectedresults: The Compute Resource created and opened successfully
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:

@@ -119,7 +119,8 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
            the thread iterates all total number of iterations
         6. produce result of timing
 
-        @Assert: Restoring where there's no activation key or registration
+        @expectedresults: Restoring where there's no activation key or
+        registration
 
         """
         self.kick_off_ak_test(self.num_threads[0], 5000)
@@ -139,7 +140,8 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
            each thread iterates a limited number of times
         6. produce result of timing
 
-        @Assert: Restoring where there's no activation key or registration
+        @expectedresults: Restoring where there's no activation key or
+        registration
 
         """
         self.kick_off_ak_test(self.num_threads[1], 5000)
@@ -149,7 +151,8 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
 
         @id: 65059f79-fea2-4359-b039-843951c383dc
 
-        @Assert: Restoring where there's no activation key or registration
+        @expectedresults: Restoring where there's no activation key or
+        registration
 
         """
         self.kick_off_ak_test(self.num_threads[2], 5000)
@@ -159,7 +162,8 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
 
         @id: cf893a78-73ab-4f0c-a077-11e4ee43cd3d
 
-        @Assert: Restoring where there's no activation key or registration
+        @expectedresults: Restoring where there's no activation key or
+        registration
 
         """
         self.kick_off_ak_test(self.num_threads[3], 6000)
@@ -169,7 +173,8 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
 
         @id: fa0f85fc-027f-4aac-8b81-8e9cf25f7f2b
 
-        @Assert: Restoring where there's no activation key or registration
+        @expectedresults: Restoring where there's no activation key or
+        registration
 
         """
         self.kick_off_ak_test(self.num_threads[4], 5000)
@@ -189,7 +194,8 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
            each thread iterates a limited number of times
         6. produce result of timing
 
-        @Assert: Restoring where there's no activation key or registration
+        @expectedresults: Restoring where there's no activation key or
+        registration
 
         """
         self.kick_off_ak_test(self.num_threads[5], 5000)

@@ -47,7 +47,7 @@ class UserTestCase(CLITestCase):
 
         @id: 2d430243-8512-46ee-8d21-7ccf0c7af807
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         include_list = [gen_string("alphanumeric", 100)]
         for login in valid_usernames_list() + include_list:
@@ -61,7 +61,7 @@ class UserTestCase(CLITestCase):
 
         @id: b5f07890-020c-4ea0-a519-75d325127b2b
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         include_list = [gen_string("alphanumeric", 50)]
         for firstname in valid_usernames_list() + include_list:
@@ -75,7 +75,7 @@ class UserTestCase(CLITestCase):
 
         @id: 1b3d7014-6575-4cfd-b6d7-8ff2bfef587e
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         include_list = [gen_string("alphanumeric", 50)]
         for lastname in valid_usernames_list() + include_list:
@@ -89,7 +89,7 @@ class UserTestCase(CLITestCase):
 
         @id: 2c3ba244-3bd7-4455-8289-03dc7a28a4a6
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         for email in valid_emails_list():
             with self.subTest(email):
@@ -105,7 +105,7 @@ class UserTestCase(CLITestCase):
 
         @id: cffb7317-0a17-4fff-bd2b-66d295cd40ad
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         include_list = [gen_string("alphanumeric", 3000)]
         for password in valid_usernames_list() + include_list:
@@ -119,7 +119,7 @@ class UserTestCase(CLITestCase):
 
         @id: 0d0384ad-d85a-492e-8630-7f48912a4fd5
 
-        @Assert: Admin User is created
+        @expectedresults: Admin User is created
         """
         user = make_user({'admin': '1'})
         self.assertEqual(user['admin'], 'yes')
@@ -130,7 +130,7 @@ class UserTestCase(CLITestCase):
 
         @id: efe7256d-8c8f-444c-8d59-43500e1319c3
 
-        @Assert: User is created and has new default location assigned
+        @expectedresults: User is created and has new default location assigned
         """
         location = make_location()
         user = make_user({
@@ -146,7 +146,8 @@ class UserTestCase(CLITestCase):
 
         @id: cc692b6f-2519-429b-8ecb-c4bb51ed3544
 
-        @Assert: User is created and has new default organization assigned
+        @expectedresults: User is created and has new default organization
+        assigned
         """
         org = make_org()
         user = make_user({
@@ -163,7 +164,7 @@ class UserTestCase(CLITestCase):
 
         @id: 4df495b8-ed02-480e-a935-ffc0b6746e08
 
-        @Assert: Role is added to user
+        @expectedresults: Role is added to user
 
         @BZ: 1138553
 
@@ -188,7 +189,7 @@ class UserTestCase(CLITestCase):
 
         @id: 51b15516-da42-4149-8032-87baa93f9e56
 
-        @Assert: Role is removed
+        @expectedresults: Role is removed
 
         @BZ: 1138553
 
@@ -219,7 +220,7 @@ class UserTestCase(CLITestCase):
 
         @id: d769ac61-f158-4e4e-a176-1c87de8b00f6
 
-        @Assert: Roles are added to user
+        @expectedresults: Roles are added to user
 
         @caseautomation: notautomated
 
@@ -233,7 +234,7 @@ class UserTestCase(CLITestCase):
 
         @id: 7faa3254-36ad-4496-9c0e-7b0454e4bc26
 
-        @Assert: All default roles are added to user
+        @expectedresults: All default roles are added to user
 
         @caseautomation: notautomated
 
@@ -246,7 +247,7 @@ class UserTestCase(CLITestCase):
 
         @id: 336bc067-9edd-481a-ae7a-0ff1270b2e41
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         org = make_org()
         user = make_user({'organization-ids': org['id']})
@@ -258,7 +259,7 @@ class UserTestCase(CLITestCase):
 
         @id: f537296c-a8a8-45ef-8996-c1d32b8f64de
 
-        @Assert: User is created
+        @expectedresults: User is created
 
         @CaseLevel: Integration
         """
@@ -280,7 +281,7 @@ class UserTestCase(CLITestCase):
         1. Create User in all supported ldap modes - (Active Driectory,
         IPA, Posix)
 
-        @Assert: User is created without specifying the password
+        @expectedresults: User is created without specifying the password
 
         @caseautomation: notautomated
 
@@ -293,7 +294,7 @@ class UserTestCase(CLITestCase):
 
         @id: 8bb53001-6377-49fe-a85c-f92204a5dea4
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for invalid_name in ('',
                              'space {0}'.format(gen_string('alpha')),
@@ -316,7 +317,7 @@ class UserTestCase(CLITestCase):
 
         @id: 08b7be40-40f5-4423-91a6-03bb2bfb714c
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for invalid_firstname in (gen_string("alpha", 51),
                                   gen_string("html")):
@@ -336,7 +337,7 @@ class UserTestCase(CLITestCase):
 
         @id: f73d2374-6bdf-4d25-945e-46a34fe692e7
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for invalid_lastname in (gen_string("alpha", 51),
                                  gen_string("html")):
@@ -356,7 +357,7 @@ class UserTestCase(CLITestCase):
 
         @id: e21be14c-e985-4f27-b189-1cfe454e03d2
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -377,7 +378,7 @@ class UserTestCase(CLITestCase):
 
         @id: e55b2937-9b43-45ee-aa22-2d4ae6da01f3
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
 
         @BZ: 1204686
         """
@@ -397,7 +398,7 @@ class UserTestCase(CLITestCase):
 
         @id: 1f60fbf8-a5f0-432e-9b4e-60bc0224294a
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with self.assertRaises(CLIReturnCodeError):
             User.create({
@@ -414,7 +415,7 @@ class UserTestCase(CLITestCase):
 
         @id: 4b142a12-8354-437e-89cc-c0505bda2027
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         with self.assertRaises(CLIReturnCodeError):
             User.create({
@@ -430,7 +431,7 @@ class UserTestCase(CLITestCase):
 
         @id: c51baf5e-206d-4e95-a713-795574080bd9
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user()
         for new_firstname in valid_usernames_list():
@@ -449,7 +450,7 @@ class UserTestCase(CLITestCase):
 
         @id: 72734d5a-bfba-4db8-9c8f-cc6190c74b69
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user()
         include_list = [gen_string("alphanumeric", 100)]
@@ -468,7 +469,7 @@ class UserTestCase(CLITestCase):
 
         @id: 03479f69-7606-46b3-9dc1-664d30f40ae1
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user()
         for new_lastname in valid_usernames_list():
@@ -487,7 +488,7 @@ class UserTestCase(CLITestCase):
 
         @id: 75067bf3-e43e-4c6a-b3fd-63e564eda7db
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user()
         for email in valid_emails_list():
@@ -506,7 +507,7 @@ class UserTestCase(CLITestCase):
 
         @id: 065197ab-1352-4da8-9df6-b6ff332e6847
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user()
         for password in valid_usernames_list():
@@ -524,7 +525,7 @@ class UserTestCase(CLITestCase):
 
         @id: 6a291547-d60d-4dc6-aeb6-d7ad969993a8
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user({'admin': '1'})
         self.assertEqual(user['admin'], 'yes')
@@ -541,7 +542,7 @@ class UserTestCase(CLITestCase):
 
         @id: 3c5cdeb0-c529-472e-a291-269b703bf9d1
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user()
         self.assertEqual(user['admin'], 'no')
@@ -559,7 +560,7 @@ class UserTestCase(CLITestCase):
 
         @id: 9b23f242-6a55-4267-bd70-b4a5619f7990
 
-        @Assert: User is updated
+        @expectedresults: User is updated
 
         @caseautomation: notautomated
         """
@@ -571,7 +572,7 @@ class UserTestCase(CLITestCase):
 
         @id: a41663a7-eb77-4083-9ca3-a1c1df1c87eb
 
-        @Assert: User is updated
+        @expectedresults: User is updated
 
         @caseautomation: notautomated
 
@@ -585,7 +586,7 @@ class UserTestCase(CLITestCase):
 
         @id: fc520d70-36ff-4676-93c1-ca8ba6cd8efc
 
-        @Assert: User is updated
+        @expectedresults: User is updated
 
         @caseautomation: notautomated
 
@@ -598,7 +599,7 @@ class UserTestCase(CLITestCase):
 
         @id: 7d16ea11-b1e9-4f3b-b3c5-a4b8569947da
 
-        @Assert: User is updated
+        @expectedresults: User is updated
         """
         user = make_user()
         org = make_org()
@@ -615,7 +616,7 @@ class UserTestCase(CLITestCase):
 
         @id: 2303ea38-eb08-4f68-ac73-48968e06aec0
 
-        @Assert: User is updated
+        @expectedresults: User is updated
 
         @CaseLevel: Integration
         """
@@ -637,7 +638,7 @@ class UserTestCase(CLITestCase):
 
         @id: 208bb597-1b33-44c8-9b15-b7bfcbb739fd
 
-        @Assert: User is not updated. Appropriate error shown.
+        @expectedresults: User is not updated. Appropriate error shown.
         """
         user = make_user()
         for new_user_name in invalid_names_list():
@@ -654,7 +655,7 @@ class UserTestCase(CLITestCase):
 
         @id: fb425e86-6e09-4535-b1dc-aef1e02ea712
 
-        @Assert: User is not updated. Appropriate error shown.
+        @expectedresults: User is not updated. Appropriate error shown.
         """
         user = make_user()
         for invalid_firstname in invalid_names_list():
@@ -673,7 +674,7 @@ class UserTestCase(CLITestCase):
 
         @id: 92ca237a-daa8-43bd-927b-a0bdc8250658
 
-        @Assert: User is not updated. Appropriate error shown.
+        @expectedresults: User is not updated. Appropriate error shown.
         """
         user = make_user()
         for invalid_lastname in (gen_string('alpha', 51),
@@ -691,7 +692,7 @@ class UserTestCase(CLITestCase):
 
         @id: 4a2876cc-2580-4ae9-8ce7-d7390bfebd4b
 
-        @Assert: User is not updated.  Appropriate error shown.
+        @expectedresults: User is not updated.  Appropriate error shown.
         """
         user = make_user()
         for email in invalid_emails_list():
@@ -708,7 +709,7 @@ class UserTestCase(CLITestCase):
 
         @id: 37cf4313-012f-4215-b537-030ee61c1c3c
 
-        @Assert: User is deleted
+        @expectedresults: User is deleted
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -724,7 +725,7 @@ class UserTestCase(CLITestCase):
 
         @id: 7e97e177-b676-49b3-86ee-644f6f6ff30c
 
-        @Assert: User is deleted
+        @expectedresults: User is deleted
         """
         user = make_user()
         User.exists(search=('login', user['login']))
@@ -738,7 +739,7 @@ class UserTestCase(CLITestCase):
 
         @id: 9752706c-fdbd-4a36-af6f-27824d22ea03
 
-        @Assert: User is deleted
+        @expectedresults: User is deleted
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -754,7 +755,7 @@ class UserTestCase(CLITestCase):
 
         @id: 4fc92958-9e75-4bd2-bcbe-32f906e432f5
 
-        @Assert: User is not deleted
+        @expectedresults: User is not deleted
         """
         with self.assertRaises(CLIReturnCodeError):
             User.delete({'login': self.foreman_user})
@@ -766,7 +767,7 @@ class UserTestCase(CLITestCase):
 
         @id: 3beef11a-c1d0-4b8f-a9f9-1eb557b36579
 
-        @Assert: User is listed
+        @expectedresults: User is listed
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -789,7 +790,7 @@ class UserTestCase(CLITestCase):
 
         @id: 7786d834-f899-4277-b7ed-5d66605fb746
 
-        @Assert: User is listed
+        @expectedresults: User is listed
         """
         for firstname in valid_usernames_list():
             with self.subTest(firstname):
@@ -811,7 +812,7 @@ class UserTestCase(CLITestCase):
 
         @id: 1fcc6b76-28d8-4253-86b0-dae09703abe1
 
-        @Assert: User is listed
+        @expectedresults: User is listed
         """
         for lastname in valid_usernames_list():
             with self.subTest(lastname):
@@ -833,7 +834,7 @@ class UserTestCase(CLITestCase):
 
         @id: 252f5583-6c34-43ae-9966-636fa0a2bb10
 
-        @Assert: User is listed
+        @expectedresults: User is listed
         """
         for mail in (gen_string("alpha") + "@somemail.com",
                      gen_string("alphanumeric", 10) + "@somemail.com",
@@ -859,7 +860,7 @@ class UserTestCase(CLITestCase):
 
         @id: 3d865df5-2e28-44fb-add8-c79a18db2f95
 
-        @Assert: User is listed
+        @expectedresults: User is listed
 
         @BZ: 1204667
         """
@@ -894,7 +895,7 @@ class UserTestCase(CLITestCase):
         6. Add/Remove Orgs
         7. Delete the User
 
-        @Assert: All actions passed
+        @expectedresults: All actions passed
 
         @caseautomation: notautomated
 
@@ -916,7 +917,8 @@ class UserTestCase(CLITestCase):
         5. Attempt to Add/Remove Users
         6. Attempt to Add/Remove Orgs
 
-        @Assert: All actions failed since the User is not assigned to any Org
+        @expectedresults: All actions failed since the User is not assigned to
+        any Org
 
         @caseautomation: notautomated
 

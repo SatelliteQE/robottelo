@@ -56,7 +56,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: e48a6260-97e0-4234-a69c-77bbbcde85d6
 
-        @Assert: Proxy is not created
+        @expectedresults: Proxy is not created
         """
         # Create a random proxy
         with self.assertRaises(HTTPError) as context:
@@ -72,7 +72,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: 0ffe0dc5-675e-45f4-b7e1-a14d3dd81f6e
 
-        @Assert: Proxy is created
+        @expectedresults: Proxy is created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -90,7 +90,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: 872bf12e-736d-43d1-87cf-2923966b59d0
 
-        @Assert: Proxy is deleted
+        @expectedresults: Proxy is deleted
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as (url, _):
@@ -107,7 +107,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: f279640e-d7e9-48a3-aed8-7bf406e9d6f2
 
-        @Assert: Proxy has the name updated
+        @expectedresults: Proxy has the name updated
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as (url, _):
@@ -126,7 +126,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: 0305fd54-4e0c-4dd9-a537-d342c3dc867e
 
-        @Assert: Proxy has the url updated
+        @expectedresults: Proxy has the url updated
         """
         # Create fake capsule
         port = get_available_capsule_port()
@@ -147,7 +147,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: 62631275-7a92-4d34-a949-c56e0c4063f1
 
-        @Assert: Proxy has the name updated
+        @expectedresults: Proxy has the name updated
         """
         organizations = [
             entities.Organization().create() for _ in range(2)]
@@ -169,7 +169,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: e08eaaa9-7c11-4cda-bbe7-6d1f7c732569
 
-        @Assert: Proxy has the name updated
+        @expectedresults: Proxy has the name updated
         """
         locations = [entities.Location().create() for _ in range(2)]
         new_port = get_available_capsule_port()
@@ -190,7 +190,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: d0237546-702e-4d1a-9212-8391295174da
 
-        @Assert: Proxy features are refreshed
+        @expectedresults: Proxy features are refreshed
 
         @CaseLevel: Integration
         """
@@ -212,7 +212,7 @@ class CapsuleTestCase(APITestCase):
 
         @id: 385efd1b-6146-47bf-babf-0127ce5955ed
 
-        @Assert: Puppet classes are imported from proxy
+        @expectedresults: Puppet classes are imported from proxy
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as (url, _):
@@ -256,7 +256,8 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         @id: 42d6b749-c047-4fd2-90ee-ffab7be558f9
 
-        @Assert: The response contains some value for the ``location`` field.
+        @expectedresults: The response contains some value for the ``location``
+        field.
 
         @BZ: 1262037
         """
@@ -273,8 +274,8 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
         @id: fbde9f87-33db-4b95-a5f7-71a618460c84
 
-        @Assert: The response contains some value for the ``organization``
-        field.
+        @expectedresults: The response contains some value for the
+        ``organization`` field.
 
         @BZ: 1262037
         """

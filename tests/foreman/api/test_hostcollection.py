@@ -42,7 +42,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 8f2b9223-f5be-4cb1-8316-01ea747cae14
 
-        @Assert: The host collection was successfully created and has
+        @expectedresults: The host collection was successfully created and has
         appropriate name.
         """
         for name in valid_data_list():
@@ -63,8 +63,8 @@ class HostCollectionTestCase(APITestCase):
 
         @BZ: 1415679
 
-        @Assert: Returned list of host collections for the system contains at
-        least one collection
+        @expectedresults: Returned list of host collections for the system
+        contains at least one collection
         """
         entities.HostCollection(organization=self.org).create()
         hc_list = entities.HostCollection().search()
@@ -77,8 +77,8 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 5f9de8ab-2c53-401b-add3-57d86c97563a
 
-        @Assert: The host collection was successfully created and present in
-        the list of collections for specific organization
+        @expectedresults: The host collection was successfully created and
+        present in the list of collections for specific organization
         """
         org = entities.Organization().create()
         hc = entities.HostCollection(organization=org).create()
@@ -92,7 +92,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 9d13392f-8d9d-4ff1-8909-4233e4691055
 
-        @Assert: The host collection was successfully created and has
+        @expectedresults: The host collection was successfully created and has
         appropriate description.
         """
         for desc in valid_data_list():
@@ -109,7 +109,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 86d9387b-7036-4794-96fd-5a3472dd9160
 
-        @Assert: The host collection was successfully created and has
+        @expectedresults: The host collection was successfully created and has
         appropriate limit.
         """
         for limit in (1, 3, 5, 10, 20):
@@ -127,7 +127,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: d385574e-5794-4442-b6cd-e5ded001d877
 
-        @Assert: The host collection was successfully created and has
+        @expectedresults: The host collection was successfully created and has
         appropriate 'unlimited hosts' parameter value.
         """
         for unlimited in (True, False):
@@ -147,8 +147,8 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 9dc0ad72-58c2-4079-b1ca-2c4373472f0f
 
-        @Assert: The host collection can be read back, and it includes one
-        host.
+        @expectedresults: The host collection can be read back, and it includes
+        one host.
         """
         host_collection = entities.HostCollection(
             host=[self.hosts[0]],
@@ -163,8 +163,8 @@ class HostCollectionTestCase(APITestCase):
 
         @id: bb8d2b42-9a8b-4c4f-ba0c-c56ae5a7eb1d
 
-        @Assert: The host collection can be read back, and it references two
-        hosts.
+        @expectedresults: The host collection can be read back, and it
+        references two hosts.
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -179,7 +179,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: da8bc901-7ac8-4029-bb62-af21aa4d3a88
 
-        @Assert: Host was added to the host collection.
+        @expectedresults: Host was added to the host collection.
 
         @CaseLevel: Integration
         """
@@ -197,7 +197,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: f76b4db1-ccd5-47ab-be15-8c7d91d03b22
 
-        @Assert: Hosts were added to the host collection.
+        @expectedresults: Hosts were added to the host collection.
 
         @CaseLevel: Integration
         """
@@ -215,8 +215,8 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 444a1528-64c8-41b6-ba2b-6c49799d5980
 
-        @Assert: The ``host_ids`` field matches the host IDs passed in when
-        creating the host collection.
+        @expectedresults: The ``host_ids`` field matches the host IDs passed in
+        when creating the host collection.
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -233,7 +233,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: b2dedb99-6dd7-41be-8aaa-74065c820ac6
 
-        @Assert: Host collection name was successfully updated
+        @expectedresults: Host collection name was successfully updated
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -248,7 +248,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: f8e9bd1c-1525-4b5f-a07c-eb6b6e7aa628
 
-        @Assert: Host collection description was updated
+        @expectedresults: Host collection description was updated
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -264,7 +264,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 4eda7796-cd81-453b-9b72-4ef84b2c1d8c
 
-        @Assert: Host collection limit was updated
+        @expectedresults: Host collection limit was updated
         """
         host_collection = entities.HostCollection(
             max_hosts=1,
@@ -283,7 +283,8 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 09a3973d-9832-4255-87bf-f9eaeab4aee8
 
-        @Assert: Host collection 'unlimited hosts' parameter was updated
+        @expectedresults: Host collection 'unlimited hosts' parameter was
+        updated
         """
         random_unlimited = choice([True, False])
         host_collection = entities.HostCollection(
@@ -306,7 +307,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 23082854-abcf-4085-be9c-a5d155446acb
 
-        @Assert: The host collection was updated with a new host.
+        @expectedresults: The host collection was updated with a new host.
         """
         host_collection = entities.HostCollection(
             host=[self.hosts[0]],
@@ -322,7 +323,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 0433b37d-ae16-456f-a51d-c7b800334861
 
-        @Assert: The host collection was updated with new hosts.
+        @expectedresults: The host collection was updated with new hosts.
         """
         host_collection = entities.HostCollection(
             host=self.hosts,
@@ -346,7 +347,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 13a16cd2-16ce-4966-8c03-5d821edf963b
 
-        @Assert: Host collection was successfully deleted
+        @expectedresults: Host collection was successfully deleted
         """
         host_collection = entities.HostCollection(
             organization=self.org).create()
@@ -360,7 +361,7 @@ class HostCollectionTestCase(APITestCase):
 
         @id: 38f67d04-a19d-4eab-a577-21b8d62c7389
 
-        @Assert: The host collection was not created
+        @expectedresults: The host collection was not created
         """
         for name in invalid_values_list():
             with self.subTest(name):

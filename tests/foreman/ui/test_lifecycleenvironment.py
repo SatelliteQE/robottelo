@@ -49,7 +49,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         @id: 2c3a9c4c-3508-4d75-8f60-8bc6f7c0717f
 
-        @Assert: Environment is created
+        @expectedresults: Environment is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -70,7 +70,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         @id: ed3d2c88-ef0a-4a1a-9f11-5bdb2119fc18
 
-        @Assert: Environment is created
+        @expectedresults: Environment is created
 
         @CaseLevel: Integration
         """
@@ -101,7 +101,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         @id: fe2d9b10-fc46-47e3-827c-6f87d725ed8f
 
-        @Assert: Environment is deleted
+        @expectedresults: Environment is deleted
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -122,7 +122,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         @id: 5cf64c5b-2105-4384-8630-965d9b8e3024
 
-        @Assert: Environment is updated
+        @expectedresults: Environment is updated
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -157,7 +157,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         1. Create a new environment.
 
-        @Assert: The environment is created without any errors.
+        @expectedresults: The environment is created without any errors.
 
         @CaseLevel: Integration
 
@@ -200,8 +200,8 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         1. Log in
         2. Navigate to Content -> Lifecycle Environments
 
-        @Assert: The additional lifecycle environment is viewable
-        and accessible by the custom user.
+        @expectedresults: The additional lifecycle environment is viewable and
+        accessible by the custom user.
 
         @CaseLevel: Integration
         """

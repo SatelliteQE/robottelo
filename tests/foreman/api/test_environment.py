@@ -48,7 +48,8 @@ class EnvironmentTestCase(APITestCase):
 
         @id: 8869ccf8-a511-4fa7-ac36-11494e85f532
 
-        @Assert: The environment created successfully and has expected name.
+        @expectedresults: The environment created successfully and has expected
+        name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -62,7 +63,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: de7e4132-5ca7-4b41-9af3-df075d31f8f4
 
-        @Assert: The environment created successfully and has expected
+        @expectedresults: The environment created successfully and has expected
         attributes.
         """
         org = entities.Organization().create()
@@ -80,7 +81,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: 34d4bf4a-f36e-4433-999c-beda6916e781
 
-        @Assert: The environment created successfully and has expected
+        @expectedresults: The environment created successfully and has expected
         attributes.
         """
         location = entities.Location().create()
@@ -98,7 +99,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: e2654954-b3a1-4594-a487-bcd0cc8195ad
 
-        @Assert: The server returns an error.
+        @expectedresults: The server returns an error.
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -112,7 +113,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: 8ec57d04-4ce6-48b4-b7f9-79025019ad0f
 
-        @Assert: The server returns an error.
+        @expectedresults: The server returns an error.
 
         @CaseLevel: Integration
         """
@@ -130,7 +131,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: ef48e79a-6b6a-4811-b49b-09f2effdd18f
 
-        @Assert: Environment entity is created and updated properly
+        @expectedresults: Environment entity is created and updated properly
         """
         env = entities.Environment().create()
         for new_name in valid_data_list():
@@ -146,7 +147,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: 31e43faa-65ee-4757-ac3d-3825eba37ae5
 
-        @Assert: Environment entity is updated properly
+        @expectedresults: Environment entity is updated properly
 
         @CaseLevel: Integration
         """
@@ -164,7 +165,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: da56b040-69e3-4d4f-8ab3-3bfe923eaffe
 
-        @Assert: Environment entity is updated properly
+        @expectedresults: Environment entity is updated properly
 
         @CaseLevel: Integration
         """
@@ -183,7 +184,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: 9cd024ab-db3d-4b15-b6da-dd2089321df3
 
-        @Assert: Environment entity is not updated
+        @expectedresults: Environment entity is not updated
         """
         env = entities.Environment().create()
         for new_name in invalid_names_list():
@@ -199,7 +200,7 @@ class EnvironmentTestCase(APITestCase):
 
         @id: 500539c0-f839-4c6b-838f-a3a256962d65
 
-        @Assert: Environment entity is deleted successfully
+        @expectedresults: Environment entity is deleted successfully
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -232,7 +233,8 @@ class MissingAttrEnvironmentTestCase(APITestCase):
 
         @id: a4c1bc22-d586-4150-92fc-7797f0f5bfb0
 
-        @Assert: The response contains some value for the ``location`` field.
+        @expectedresults: The response contains some value for the ``location``
+        field.
 
         @BZ: 1262029
 
@@ -251,8 +253,8 @@ class MissingAttrEnvironmentTestCase(APITestCase):
 
         @id: ac46bcac-5db0-4899-b2fc-d48d2116287e
 
-        @Assert: The response contains some value for the ``organization``
-        field.
+        @expectedresults: The response contains some value for the
+        ``organization`` field.
 
         @BZ: 1262029
 

@@ -39,7 +39,8 @@ class DiscoveryTestCase(CLITestCase):
 
         @Steps: Validate specified custom facts
 
-        @Assert: All defined custom facts should be displayed correctly
+        @expectedresults: All defined custom facts should be displayed
+        correctly
 
         @caseautomation: notautomated
 
@@ -63,7 +64,8 @@ class DiscoveryTestCase(CLITestCase):
 
         @Steps: Validate specified custom facts
 
-        @Assert: All defined custom facts should be displayed correctly
+        @expectedresults: All defined custom facts should be displayed
+        correctly
 
         @caseautomation: notautomated
 
@@ -80,8 +82,8 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should be provisioned successfully and entry from
-        discovered host list should be auto removed
+        @expectedresults: Host should be provisioned successfully and entry
+        from discovered host list should be auto removed
 
         @caseautomation: notautomated
 
@@ -98,8 +100,8 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should be provisioned successfully and entry from
-        discovered host list should be automatically removed.
+        @expectedresults: Host should be provisioned successfully and entry
+        from discovered host list should be automatically removed.
 
         @caseautomation: notautomated
 
@@ -116,7 +118,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        @expectedresults: Selected host should be removed successfully
 
         @caseautomation: notautomated
 
@@ -133,7 +135,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        @expectedresults: Selected host should be removed successfully
 
         @caseautomation: notautomated
 
@@ -150,7 +152,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Facts should be refreshed successfully with a new NIC
+        @expectedresults: Facts should be refreshed successfully with a new NIC
 
         @caseautomation: notautomated
 
@@ -167,7 +169,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Facts should be refreshed successfully with a new NIC
+        @expectedresults: Facts should be refreshed successfully with a new NIC
 
         @caseautomation: notautomated
 
@@ -184,7 +186,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host is rebooted
+        @expectedresults: Host is rebooted
 
         @caseautomation: notautomated
 
@@ -201,7 +203,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @Setup: PXELess host should already be discovered
 
-        @Assert: Host is rebooted
+        @expectedresults: Host is rebooted
 
         @caseautomation: notautomated
 
@@ -217,7 +219,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @id: 701a1892-1c6a-4ba1-bbd8-a37b7fb02fa0
 
-        @Assert: Host should be successfully rebooted and provisioned
+        @expectedresults: Host should be successfully rebooted and provisioned
 
         @caseautomation: notautomated
 
@@ -233,7 +235,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @id: 298417b3-d242-4999-89f9-198095704c0e
 
-        @Assert: Host should be successfully rebooted and provisioned
+        @expectedresults: Host should be successfully rebooted and provisioned
 
         @caseautomation: notautomated
 
@@ -248,7 +250,7 @@ class DiscoveryTestCase(CLITestCase):
 
         @id: 3a827080-3fab-4f64-a830-1b41841aa2df
 
-        @Assert: Host should be discovered and listed with names.
+        @expectedresults: Host should be discovered and listed with names.
 
         @caseautomation: notautomated
 
@@ -263,9 +265,9 @@ class DiscoveryTestCase(CLITestCase):
 
         @id: f694c361-5fbb-4c3a-b2ff-6dfe6ea14820
 
-        @Assert: User should be able to view, provision, edit and destroy one
-        or more discovered host as well view, create_new, edit, execute and
-        delete discovery rules.
+        @expectedresults: User should be able to view, provision, edit and
+        destroy one or more discovered host as well view, create_new, edit,
+        execute and delete discovery rules.
 
         @caseautomation: notautomated
 
@@ -280,8 +282,8 @@ class DiscoveryTestCase(CLITestCase):
 
         @id: 873e8411-563d-4bf9-84ce-62e522410cfe
 
-        @Assert: User should be able to list, provision, and destroy one
-        or more discovered host
+        @expectedresults: User should be able to list, provision, and destroy
+        one or more discovered host
 
         @caseautomation: notautomated
 

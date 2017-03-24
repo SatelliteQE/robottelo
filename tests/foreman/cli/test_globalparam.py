@@ -33,7 +33,7 @@ class GlobalParameterTestCase(CLITestCase):
 
         @id: af0d3338-d7a1-41e5-959a-289ebc326c5b
 
-        @Assert: Global Param is set
+        @expectedresults: Global Param is set
 
         """
         name = 'opt-%s' % gen_string('alpha', 10)
@@ -51,7 +51,7 @@ class GlobalParameterTestCase(CLITestCase):
 
         @id: 8dd6c4e8-4ec9-4bee-8a04-f5788960973a
 
-        @Assert: Global Param List is displayed
+        @expectedresults: Global Param List is displayed
 
         """
         name = 'opt-%s' % gen_string('alpha', 10)
@@ -72,7 +72,7 @@ class GlobalParameterTestCase(CLITestCase):
 
         @id: 2c44d9c9-2a21-4415-8e89-cfd3d963891b
 
-        @Assert: Global Param is deleted
+        @expectedresults: Global Param is deleted
 
         """
         name = 'opt-%s' % gen_string('alpha', 10)

@@ -32,7 +32,7 @@ class ComputeProfileTestCase(APITestCase):
 
         @id: 97d04911-9368-4674-92c7-1e3ff114bc18
 
-        @Assert: Compute Profile is created
+        @expectedresults: Compute Profile is created
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -46,7 +46,7 @@ class ComputeProfileTestCase(APITestCase):
 
         @id: 2d34a1fd-70a5-4e59-b2e2-86fbfe8e31ab
 
-        @Assert: Compute Profile is not created
+        @expectedresults: Compute Profile is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -60,7 +60,7 @@ class ComputeProfileTestCase(APITestCase):
 
         @id: c79193d7-2e0f-4ed9-b947-05feeddabfda
 
-        @Assert: Compute Profile is updated.
+        @expectedresults: Compute Profile is updated.
         """
         profile = entities.ComputeProfile().create()
         for new_name in valid_data_list():
@@ -76,7 +76,7 @@ class ComputeProfileTestCase(APITestCase):
 
         @id: 042b40d5-a78b-4e65-b5cb-5b270b800b37
 
-        @Assert: Compute Profile is not updated.
+        @expectedresults: Compute Profile is not updated.
         """
         profile = entities.ComputeProfile().create()
         for new_name in invalid_values_list():
@@ -94,7 +94,7 @@ class ComputeProfileTestCase(APITestCase):
 
         @id: 0a620e23-7ba6-4178-af7a-fd1e332f478f
 
-        @Assert: Compute Profile is deleted successfully.
+        @expectedresults: Compute Profile is deleted successfully.
         """
         for name in valid_data_list():
             with self.subTest(name):

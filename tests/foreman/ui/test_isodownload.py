@@ -34,7 +34,7 @@ class ISODownloadTestCase(UITestCase):
         1. find out the location where all iso's are kept
         2. check whether a valid iso can be downloaded
 
-        @Assert: iso file is properly downloaded on your satellite 6
+        @expectedresults: iso file is properly downloaded on your satellite 6
         system
 
         @caseautomation: notautomated
@@ -54,7 +54,7 @@ class ISODownloadTestCase(UITestCase):
         1. download the iso
         2. upload it to sat6 system
 
-        @Assert: uploading iso to satellite6 is successful
+        @expectedresults: uploading iso to satellite6 is successful
 
         @caseautomation: notautomated
 
@@ -74,7 +74,7 @@ class ISODownloadTestCase(UITestCase):
         2. upload it to sat6 system
         3. mount it a local sat6 directory
 
-        @Assert: iso is mounted to sat6 local directory
+        @expectedresults: iso is mounted to sat6 local directory
 
         @caseautomation: notautomated
 
@@ -93,7 +93,7 @@ class ISODownloadTestCase(UITestCase):
         1. after mounting the iso locally try to update the cdn url
         2. the path should be validated
 
-        @Assert: cdn url path is validated
+        @expectedresults: cdn url path is validated
 
         @caseautomation: notautomated
 
@@ -113,7 +113,7 @@ class ISODownloadTestCase(UITestCase):
         2. update the cdn url with file path
         3. check if proper message is displayed
 
-        @Assert: Asserting the message after successful upload
+        @expectedresults: Asserting the message after successful upload
 
         @caseautomation: notautomated
 
@@ -135,7 +135,7 @@ class ISODownloadTestCase(UITestCase):
         4. try to enable redhat repositories
 
 
-        @Assert: Redhat repositories are enabled
+        @expectedresults: Redhat repositories are enabled
 
         @caseautomation: notautomated
 
@@ -158,7 +158,7 @@ class ISODownloadTestCase(UITestCase):
         5. redhat repository enabled
 
 
-        @Assert: Checkbox functionality works
+        @expectedresults: Checkbox functionality works
 
         @caseautomation: notautomated
 
@@ -180,7 +180,7 @@ class ISODownloadTestCase(UITestCase):
          4. try to enable redhat repositories
          5. sync the repos
 
-        @Assert: Repos are synced after upload
+        @expectedresults: Repos are synced after upload
 
         @caseautomation: notautomated
 
@@ -203,7 +203,7 @@ class ISODownloadTestCase(UITestCase):
         5. sync the contents
         6. try disabling the repository
 
-        @Assert: Assert disabling the repo
+        @expectedresults: Assert disabling the repo
 
         @caseautomation: notautomated
 
