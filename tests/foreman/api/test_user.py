@@ -41,7 +41,7 @@ class UserTestCase(APITestCase):
 
         @id: a9827cda-7f6d-4785-86ff-3b6969c9c00a
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         for username in valid_usernames_list():
             with self.subTest(username):
@@ -54,7 +54,7 @@ class UserTestCase(APITestCase):
 
         @id: 036bb958-227c-420c-8f2b-c607136f12e0
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         for firstname in generate_strings_list(
                 exclude_types=['html'], max_length=50):
@@ -68,7 +68,7 @@ class UserTestCase(APITestCase):
 
         @id: 95d3b571-77e7-42a1-9c48-21f242e8cdc2
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         for lastname in generate_strings_list(
                 exclude_types=['html'], max_length=50):
@@ -82,7 +82,7 @@ class UserTestCase(APITestCase):
 
         @id: e68caf51-44ba-4d32-b79b-9ab9b67b9590
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         for mail in valid_emails_list():
             with self.subTest(mail):
@@ -95,7 +95,7 @@ class UserTestCase(APITestCase):
 
         @id: 53d0a419-0730-4f7d-9170-d855adfc5070
 
-        @Assert: User is created
+        @expectedresults: User is created
         """
         for password in generate_strings_list(
                 exclude_types=['html'], max_length=50):
@@ -109,7 +109,7 @@ class UserTestCase(APITestCase):
 
         @id: df6059e7-85c5-42fa-99b5-b7f1ef809f52
 
-        @Assert: The user cannot be fetched after deletion.
+        @expectedresults: The user cannot be fetched after deletion.
         """
         for mail in valid_emails_list():
             with self.subTest(mail):
@@ -124,7 +124,7 @@ class UserTestCase(APITestCase):
 
         @id: b5fedf65-37f5-43ca-806a-ac9a7979b19d
 
-        @Assert: The user's ``admin`` attribute is updated.
+        @expectedresults: The user's ``admin`` attribute is updated.
         """
         for admin_enable in (True, False):
             with self.subTest(admin_enable):
@@ -138,7 +138,7 @@ class UserTestCase(APITestCase):
 
         @id: ebbd1f5f-e71f-41f4-a956-ce0071b0a21c
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for mail in invalid_emails_list():
             with self.subTest(mail):
@@ -151,7 +151,7 @@ class UserTestCase(APITestCase):
 
         @id: aaf157a9-0375-4405-ad87-b13970e0609b
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for invalid_name in invalid_usernames_list():
             with self.subTest(invalid_name):
@@ -164,7 +164,7 @@ class UserTestCase(APITestCase):
 
         @id: cb1ca8a9-38b1-4d58-ae32-915b47b91657
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for invalid_name in invalid_names_list():
             with self.subTest(invalid_name):
@@ -177,7 +177,7 @@ class UserTestCase(APITestCase):
 
         @id: 59546d26-2b6b-400b-990f-0b5d1c35004e
 
-        @Assert: User is not created. Appropriate error shown.
+        @expectedresults: User is not created. Appropriate error shown.
         """
         for invalid_name in invalid_names_list():
             with self.subTest(invalid_name):
@@ -202,8 +202,8 @@ class UserRoleTestCase(APITestCase):
 
         @id: 32daacf1-eed4-49b1-81e1-ab0a5b0113f2
 
-        @Assert: A user is created with the given role(s) and the default
-        'Anonymous' role.
+        @expectedresults: A user is created with the given role(s) and the
+        default 'Anonymous' role.
 
         This test targets BZ 1216239.
         """
@@ -223,8 +223,8 @@ class UserRoleTestCase(APITestCase):
 
         @id: 7fdca879-d65f-44fa-b9f2-b6bb5df30c2d
 
-        @Assert: The user has whatever roles are given, plus the 'Anonymous'
-        role.
+        @expectedresults: The user has whatever roles are given, plus the
+        'Anonymous' role.
 
         This test targets BZ 1216239.
         """

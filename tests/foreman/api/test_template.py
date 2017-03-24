@@ -36,7 +36,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: ca19d9da-1049-4b39-823b-933fc1a0cebd
 
-        @Assert: The response is a JSON payload.
+        @expectedresults: The response is a JSON payload.
 
         @CaseLevel: Integration
         """
@@ -54,7 +54,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: b60907c3-47b9-4bc7-99d6-08615ebe9d68
 
-        @Assert: Config template is associated with organization
+        @expectedresults: Config template is associated with organization
 
         @CaseLevel: Integration
         """
@@ -90,7 +90,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: 20ccd5c8-98c3-4f22-af50-9760940e5d39
 
-        @Assert: Configuration Template is created and contains provided name.
+        @expectedresults: Configuration Template is created and contains
+        provided name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -103,7 +104,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
 
-        @Assert: Configuration Template is not created
+        @expectedresults: Configuration Template is not created
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -117,8 +118,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: 58ccc4ee-5faa-4fb2-bfd0-e19412e230dd
 
-        @Assert: Configuration Template is created, and its name can be
-        updated.
+        @expectedresults: Configuration Template is created, and its name can
+        be updated.
         """
         c_temp = entities.ConfigTemplate().create()
 
@@ -135,8 +136,8 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: f6167dc5-26ba-46d7-b61f-14c290d6a8fa
 
-        @Assert: Configuration Template is created, and its name is not
-        updated.
+        @expectedresults: Configuration Template is created, and its name is
+        not updated.
         """
         c_temp = entities.ConfigTemplate().create()
         for new_name in invalid_names_list():
@@ -153,7 +154,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: 1471f17c-4412-4717-a6c4-b57a8d2f8cfd
 
-        @Assert: Configuration Template is successfully deleted.
+        @expectedresults: Configuration Template is successfully deleted.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -168,7 +169,7 @@ class ConfigTemplateTestCase(APITestCase):
 
         @id: 8dfbb234-7a52-4873-be72-4de086472669
 
-        @Assert: The template is cloned successfully with all values
+        @expectedresults: The template is cloned successfully with all values
 
         @CaseLevel: Integration
         """

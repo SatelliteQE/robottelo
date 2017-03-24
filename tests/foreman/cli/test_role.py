@@ -34,7 +34,7 @@ class RoleTestCase(CLITestCase):
 
         @id: 6883177c-6926-428c-92ab-9effbe1372ae
 
-        @Assert: Role is created and has correct name
+        @expectedresults: Role is created and has correct name
 
         @BZ: 1138553
         """
@@ -49,7 +49,7 @@ class RoleTestCase(CLITestCase):
 
         @id: 6c99ee25-4e58-496c-af42-f8ad2da6cf07
 
-        @assert: Role is created and correct filter is assigned
+        @expectedresults: Role is created and correct filter is assigned
         """
         role = make_role()
         # Pick permissions by its resource type
@@ -71,7 +71,7 @@ class RoleTestCase(CLITestCase):
 
         @id: 7cb2b2e2-ad4d-41e9-b6b2-c0366eb09b9a
 
-        @assert: Role is created and has correct set of permissions
+        @expectedresults: Role is created and has correct set of permissions
         """
         role = make_role()
         # Pick permissions by its resource type
@@ -96,7 +96,7 @@ class RoleTestCase(CLITestCase):
 
         @id: 351780b4-697c-4f87-b989-dd9a9a2ad012
 
-        @Assert: Role is created and then deleted by its ID
+        @expectedresults: Role is created and then deleted by its ID
         """
         for name in generate_strings_list(length=10):
             with self.subTest(name):
@@ -112,7 +112,7 @@ class RoleTestCase(CLITestCase):
 
         @id: 3ce1b337-fd52-4460-b8a8-df49c94ffed1
 
-        @Assert: Role is created and its name is updated
+        @expectedresults: Role is created and its name is updated
         """
         role = make_role({'name': gen_string('alpha', 15)})
         for new_name in generate_strings_list(length=10):

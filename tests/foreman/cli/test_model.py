@@ -37,7 +37,7 @@ class ModelTestCase(CLITestCase):
 
         @id: c8192831-5dde-4c3c-8427-00902ddbc0ac
 
-        @Assert: Model is created.
+        @expectedresults: Model is created.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -51,7 +51,7 @@ class ModelTestCase(CLITestCase):
 
         @id: c36d3490-cd12-4f5f-a453-2ae5d0404496
 
-        @Assert: Model is created with specific vendor class
+        @expectedresults: Model is created with specific vendor class
         """
         vendor_class = gen_string('utf8')
         model = make_model({'vendor-class': vendor_class})
@@ -63,7 +63,7 @@ class ModelTestCase(CLITestCase):
 
         @id: b2eade66-b612-47e7-bfcc-6e363023f498
 
-        @Assert: Model is not created.
+        @expectedresults: Model is not created.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -76,7 +76,7 @@ class ModelTestCase(CLITestCase):
 
         @id: 66eb6cf2-9ec5-4947-97e0-b612780c5cc3
 
-        @Assert: Model is updated.
+        @expectedresults: Model is updated.
         """
         model = make_model()
         for new_name in valid_data_list():
@@ -95,7 +95,7 @@ class ModelTestCase(CLITestCase):
 
         @id: 98020a4a-1789-4df3-929c-6c132b57f5a1
 
-        @assert: Model name is not updated
+        @expectedresults: Model name is not updated
         """
         model = make_model()
         for new_name in invalid_values_list():
@@ -116,7 +116,7 @@ class ModelTestCase(CLITestCase):
 
         @id: 39f02cec-ac4c-4801-9a4a-11160247213f
 
-        @assert: Model is deleted
+        @expectedresults: Model is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -132,7 +132,7 @@ class ModelTestCase(CLITestCase):
 
         @id: f8b0d428-1b3d-4fc9-9ca1-1eb30c8ac20a
 
-        @assert: Model is not deleted
+        @expectedresults: Model is not deleted
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

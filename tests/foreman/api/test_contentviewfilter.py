@@ -58,8 +58,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: da29fd90-cd96-49f9-b94e-71d4e3a35a57
 
-        @Assert: An HTTP 200 response is received if a GET request is issued
-        with no arguments specified.
+        @expectedresults: An HTTP 200 response is received if a GET request is
+        issued with no arguments specified.
 
         @CaseLevel: Integration
         """
@@ -77,8 +77,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: e6fea726-930b-4b74-b784-41528811994f
 
-        @Assert: An HTTP 200 response is received if a GET request is issued
-        with bad arguments specified.
+        @expectedresults: An HTTP 200 response is received if a GET request is
+        issued with bad arguments specified.
 
         @CaseLevel: Integration
         """
@@ -97,8 +97,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: f78a133f-441f-4fcc-b292-b9eed228d755
 
-        @Assert: Content view filter created successfully and has correct name
-        and type
+        @expectedresults: Content view filter created successfully and has
+        correct name and type
 
         @CaseLevel: Integration
         """
@@ -118,8 +118,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: f9bfb6bf-a879-4f1a-970d-8f4df533cd59
 
-        @Assert: Content view filter created successfully and has correct name
-        and type
+        @expectedresults: Content view filter created successfully and has
+        correct name and type
 
         @CaseLevel: Integration
         """
@@ -139,8 +139,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: f1c88e72-7993-47ac-8fbc-c749d32bc768
 
-        @Assert: Content view filter created successfully and has correct name
-        and type
+        @expectedresults: Content view filter created successfully and has
+        correct name and type
 
         @CaseLevel: Integration
         """
@@ -160,8 +160,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 81130dc9-ae33-48bc-96a7-d54d3e99448e
 
-        @Assert: Content view filter created successfully and has correct
-        inclusion value
+        @expectedresults: Content view filter created successfully and has
+        correct inclusion value
 
         @CaseLevel: Integration
         """
@@ -180,8 +180,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: e057083f-e69d-46e7-b336-45faaf67fa52
 
-        @Assert: Content view filter created successfully and has correct
-        description
+        @expectedresults: Content view filter created successfully and has
+        correct description
 
         @CaseLevel: Integration
         """
@@ -200,8 +200,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 7207d4cf-3ccf-4d63-a50a-1373b16062e2
 
-        @Assert: Content view filter created successfully and has repository
-        assigned
+        @expectedresults: Content view filter created successfully and has
+        repository assigned
 
         @CaseLevel: Integration
         """
@@ -220,8 +220,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 789abd8a-9e9f-4c7c-b1ac-6b69f23f77dd
 
-        @Assert: Content view filter created successfully and has 'original
-        packages' value
+        @expectedresults: Content view filter created successfully and has
+        'original packages' value
 
         @CaseLevel: Integration
         """
@@ -244,7 +244,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 2cd28bf3-cd8a-4943-8e63-806d3676ada1
 
-        @Assert: Content view filter created successfully and has both
+        @expectedresults: Content view filter created successfully and has both
         repositories assigned (yum and docker)
 
         @CaseLevel: Integration
@@ -273,7 +273,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 8cf4227b-75c4-4d6f-b94f-88e4eb586435
 
-        @Assert: Content view filter was not created
+        @expectedresults: Content view filter was not created
 
         @CaseLevel: Integration
         """
@@ -292,7 +292,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 73a64ca7-07a3-49ee-8921-0474a16a23ff
 
-        @Assert: Second content view filter was not created
+        @expectedresults: Second content view filter was not created
 
         @CaseLevel: Integration
         """
@@ -312,7 +312,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 3b5af53f-9533-482f-9ec9-b313cbb91dd7
 
-        @Assert: Content view filter is not created
+        @expectedresults: Content view filter is not created
 
         @CaseLevel: Integration
         """
@@ -327,7 +327,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: aa427770-c327-4ca1-b67f-a9a94edca784
 
-        @Assert: Content view filter is not created
+        @expectedresults: Content view filter is not created
 
         @CaseLevel: Integration
         """
@@ -344,7 +344,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 07caeb9d-419d-43f8-996b-456b0cc0f70d
 
-        @Assert: Content view filter was deleted
+        @expectedresults: Content view filter was deleted
 
         @CaseLevel: Integration
         """
@@ -362,7 +362,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: f310c161-00d2-4281-9721-6e45cbc5e4ec
 
-        @Assert: Content view filter updated successfully and name was changed
+        @expectedresults: Content view filter updated successfully and name was
+        changed
 
         @CaseLevel: Integration
         """
@@ -381,8 +382,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: f2c5db28-0163-4cf3-929a-16ba1cb98c34
 
-        @Assert: Content view filter updated successfully and description was
-        changed
+        @expectedresults: Content view filter updated successfully and
+        description was changed
 
         @CaseLevel: Integration
         """
@@ -401,8 +402,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 0aedd2d6-d020-4a90-adcd-01694b47c0b0
 
-        @Assert: Content view filter updated successfully and inclusion value
-        was changed
+        @expectedresults: Content view filter updated successfully and
+        inclusion value was changed
 
         @CaseLevel: Integration
         """
@@ -422,7 +423,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 329ef155-c2d0-4aa2-bac3-79087ae49bdf
 
-        @Assert: Content view filter updated successfully and has new
+        @expectedresults: Content view filter updated successfully and has new
         repository assigned
 
         @CaseLevel: Integration
@@ -448,7 +449,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 478fbb1c-fa1d-4fcd-93d6-3a7f47092ed3
 
-        @Assert: Content view filter updated successfully and has new
+        @expectedresults: Content view filter updated successfully and has new
         repositories assigned
 
         @CaseLevel: Integration
@@ -481,8 +482,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 0c41e57a-afa3-479e-83ba-01f09f0fd2b6
 
-        @Assert: Content view filter updated successfully and 'original
-        packages' value was changed
+        @expectedresults: Content view filter updated successfully and
+        'original packages' value was changed
 
         @CaseLevel: Integration
         """
@@ -505,8 +506,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 909db0c9-764a-4ca8-9b56-cd8fedd543eb
 
-        @Assert: Content view filter was updated successfully and has both
-        repositories assigned (yum and docker)
+        @expectedresults: Content view filter was updated successfully and has
+        both repositories assigned (yum and docker)
 
         @CaseLevel: Integration
         """
@@ -536,7 +537,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 9799648a-3900-4186-8271-6b2dedb547ab
 
-        @Assert: Content view filter was not updated
+        @expectedresults: Content view filter was not updated
 
         @CaseLevel: Integration
         """
@@ -556,7 +557,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: b68569f1-9f7b-4a95-9e2a-a5da348abff7
 
-        @Assert: Content view filter was not updated
+        @expectedresults: Content view filter was not updated
 
         @CaseLevel: Integration
         """
@@ -580,7 +581,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: a6477d5f-e4d2-44ba-84f5-8f9004b52eb2
 
-        @Assert: Content view filter was not updated
+        @expectedresults: Content view filter was not updated
 
         @CaseLevel: Integration
         """
@@ -599,7 +600,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: 43ded66a-331c-4160-820d-261f973a7be2
 
-        @Assert: Content view filter was not updated
+        @expectedresults: Content view filter was not updated
 
         @CaseLevel: Integration
         """
@@ -619,7 +620,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         @id: e11ba045-da8a-4f26-a0b9-3b1149358717
 
-        @Assert: Content view filter was not updated
+        @expectedresults: Content view filter was not updated
 
         @CaseLevel: Integration
         """
@@ -651,7 +652,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         @id: 6a86060f-6b4f-4688-8ea9-c198e0aeb3f6
 
-        @Assert: The search completes with no errors.
+        @expectedresults: The search completes with no errors.
         """
         cv_filter = entities.ErratumContentViewFilter(
             content_view=self.content_view
@@ -664,7 +665,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         @id: 832c50cc-c2c8-48c9-9a23-80956baf5f3c
 
-        @Assert: The search completes with no errors.
+        @expectedresults: The search completes with no errors.
         """
         cv_filter = entities.PackageGroupContentViewFilter(
             content_view=self.content_view
@@ -677,7 +678,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
         @id: 1c9058f1-35c4-46f2-9b21-155ef988564a
 
-        @Assert: The search completes with no errors.
+        @expectedresults: The search completes with no errors.
         """
         cv_filter = entities.RPMContentViewFilter(
             content_view=self.content_view

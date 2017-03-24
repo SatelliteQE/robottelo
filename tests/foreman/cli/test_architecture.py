@@ -37,7 +37,7 @@ class ArchitectureTestCase(CLITestCase):
 
         @id: a3955346-cfc0-428d-8871-a10386fe7c59
 
-        @Assert: Architecture is created.
+        @expectedresults: Architecture is created.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -50,7 +50,7 @@ class ArchitectureTestCase(CLITestCase):
 
         @id: cfed972e-9b09-4852-bdd2-b5a8a8aed170
 
-        @Assert: Architecture is not created.
+        @expectedresults: Architecture is not created.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -63,7 +63,7 @@ class ArchitectureTestCase(CLITestCase):
 
         @id: 67f1e60b-29e2-44a4-8019-498e5ad0e201
 
-        @Assert: Architecture is updated.
+        @expectedresults: Architecture is updated.
         """
         architecture = make_architecture()
         for new_name in valid_data_list():
@@ -82,7 +82,7 @@ class ArchitectureTestCase(CLITestCase):
 
         @id: 037c4892-5e62-46dd-a2ed-92243e870e40
 
-        @assert: Architecture name is not updated
+        @expectedresults: Architecture name is not updated
         """
         architecture = make_architecture()
         for new_name in invalid_values_list():
@@ -103,7 +103,7 @@ class ArchitectureTestCase(CLITestCase):
 
         @id: df699e29-29a3-417a-a6ee-81e74b7211a4
 
-        @assert: Architecture is deleted
+        @expectedresults: Architecture is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -119,7 +119,7 @@ class ArchitectureTestCase(CLITestCase):
 
         @id: 78bae664-6493-4c74-a587-94170f20746e
 
-        @assert: Architecture is not deleted
+        @expectedresults: Architecture is not deleted
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):

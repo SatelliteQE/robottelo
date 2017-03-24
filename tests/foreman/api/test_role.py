@@ -35,8 +35,9 @@ class RoleTestCase(APITestCase):
 
         @id: 488a0970-f844-4286-b1eb-dd93005b4580
 
-        @Assert: An entity can be created without receiving any errors, the
-        entity can be fetched, and the fetched entity has the specified name.
+        @expectedresults: An entity can be created without receiving any
+        errors, the entity can be fetched, and the fetched entity has the
+        specified name.
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -51,7 +52,7 @@ class RoleTestCase(APITestCase):
 
         @id: 6e1d9f9c-3cbb-460b-8ef8-4a156e6552a0
 
-        @Assert: The role cannot be fetched after it is deleted.
+        @expectedresults: The role cannot be fetched after it is deleted.
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
@@ -70,7 +71,7 @@ class RoleTestCase(APITestCase):
 
         @id: 30cb4b42-24cd-48a0-a3c5-7ca44c060e2e
 
-        @Assert: The role is updated with the given name.
+        @expectedresults: The role is updated with the given name.
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):

@@ -237,7 +237,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
         3. produce result of timing, delegated to
            ``robottelo.tests.kick_off_sync_test``
 
-        @Assert: Target repositories are enabled
+        @expectedresults: Target repositories are enabled
         """
         time_result_dict_sync = Pulp.repositories_sequential_sync(
             self.repo_names_list,

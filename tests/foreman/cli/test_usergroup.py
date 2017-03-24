@@ -43,7 +43,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 4cb19ecf-53f8-4804-8fbd-a028c02f13c6
 
-        @Assert: User group is created successfully.
+        @expectedresults: User group is created successfully.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -57,7 +57,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 50baa271-c741-4905-aa56-a3ee48be0dc0
 
-        @Assert: User group is created successfully.
+        @expectedresults: User group is created successfully.
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -73,7 +73,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: bacef0e3-31dd-4991-93f7-f54fbe64d0f0
 
-        @Assert: User group is created successfully.
+        @expectedresults: User group is created successfully.
         """
         user = make_user()
         user_group = make_usergroup({'user-ids': user['id']})
@@ -86,8 +86,8 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 3b0a3c3c-aab2-4e8a-b043-7462621c7333
 
-        @Assert: User group is created successfully and contains all expected
-        users.
+        @expectedresults: User group is created successfully and contains all
+        expected users.
         """
         users = [make_user()['login'] for _ in range(randint(3, 5))]
         user_group = make_usergroup({'users': users})
@@ -100,7 +100,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 47fb3037-f48a-4f99-9a50-792b0fd77569
 
-        @Assert: User group is created successfully.
+        @expectedresults: User group is created successfully.
         """
         for role_name in valid_data_list():
             with self.subTest(role_name):
@@ -116,7 +116,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 8524a561-037c-4509-aaba-3213924a1cfe
 
-        @Assert: User group is created successfully.
+        @expectedresults: User group is created successfully.
         """
         role = make_role()
         user_group = make_usergroup({'role-ids': role['id']})
@@ -129,8 +129,8 @@ class UserGroupTestCase(CLITestCase):
 
         @id: b7113d49-b9ce-4603-a09d-5ab23fe2d568
 
-        @Assert: User group is created successfully and contains all expected
-        roles
+        @expectedresults: User group is created successfully and contains all
+        expected roles
         """
         roles = [make_role()['name'] for _ in range(randint(3, 5))]
         user_group = make_usergroup({'roles': roles})
@@ -143,7 +143,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 7bbe3af7-af36-4d13-a4ce-7ec5441b88bf
 
-        @Assert: User group is created successfully.
+        @expectedresults: User group is created successfully.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -160,7 +160,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 04ee66e5-e721-431b-ac6d-c7413fdc6dc2
 
-        @Assert: User group is created successfully.
+        @expectedresults: User group is created successfully.
         """
         sub_user_group = make_usergroup()
         user_group = make_usergroup({
@@ -174,8 +174,8 @@ class UserGroupTestCase(CLITestCase):
 
         @id: ca6031f7-0998-444b-94be-f8a9e4a9f733
 
-        @Assert: User group is created successfully and contains all expected
-        user groups
+        @expectedresults: User group is created successfully and contains all
+        expected user groups
         """
         sub_user_groups = [
             make_usergroup()['name'] for _ in range(randint(3, 5))]
@@ -189,7 +189,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 79d2d28d-a0d9-42ab-ba88-c259a463533a
 
-        @Assert: User group is not created.
+        @expectedresults: User group is not created.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -204,7 +204,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: b1eebf2f-a59e-43af-a980-ae73320b4311
 
-        @Assert: User group is not created.
+        @expectedresults: User group is not created.
         """
         user_group = make_usergroup()
         with self.assertRaises(CLIFactoryError):
@@ -216,7 +216,8 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 828d0051-53c8-4737-809a-983517f675bb
 
-        @Assert: User group list command returns valid and expected data
+        @expectedresults: User group list command returns valid and expected
+        data
 
         """
         user_group = make_usergroup()
@@ -233,7 +234,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: bed911fe-da39-4798-a5d2-8a0467bfacc3
 
-        @Assert: User group is update successfully.
+        @expectedresults: User group is update successfully.
         """
         user_group = make_usergroup()
         for new_name in valid_data_list():
@@ -252,7 +253,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 3bee63ff-ae2a-4fa4-a5bd-58ec85358c19
 
-        @Assert: User group is update successfully.
+        @expectedresults: User group is update successfully.
         """
         user_group = make_usergroup()
         for new_name in valid_data_list():
@@ -271,7 +272,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: e5aecee1-7c4c-4ac5-aee2-a3190cbe956f
 
-        @Assert: User group is not updated.
+        @expectedresults: User group is not updated.
         """
         user_group = make_usergroup()
         for new_name in invalid_values_list():
@@ -291,7 +292,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 32ad14cf-4ed8-4deb-b2fc-df4ed60efb78
 
-        @Assert: User group is not updated.
+        @expectedresults: User group is not updated.
         """
         user_group = make_usergroup()
         for new_name in invalid_values_list():
@@ -310,7 +311,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 359b1806-64c5-42ec-9448-991e82f70e98
 
-        @assert: User group is deleted successfully
+        @expectedresults: User group is deleted successfully
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -325,7 +326,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: b60b4da7-9d1b-487d-89e5-ebf3aa2218d6
 
-        @assert: User group is deleted successfully
+        @expectedresults: User group is deleted successfully
         """
         user_group = make_usergroup()
         UserGroup.delete({'id': user_group['id']})
@@ -339,7 +340,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 34ffa204-9376-41f2-aca1-edf29f553957
 
-        @Assert: User group is deleted successfully.
+        @expectedresults: User group is deleted successfully.
         """
         user = make_user()
         user_group = make_usergroup({'user-ids': user['id']})
@@ -354,7 +355,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: a4ce8724-d3c8-4c00-9421-aaa40394134d
 
-        @Assert: Role is added to user group successfully.
+        @expectedresults: Role is added to user group successfully.
 
         @CaseLevel: Integration
         """
@@ -374,7 +375,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 181bf2d5-0650-4fb0-890c-475eac3306a2
 
-        @Assert: Role is added to user group successfully.
+        @expectedresults: Role is added to user group successfully.
 
         @CaseLevel: Integration
         """
@@ -394,7 +395,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: f2972e48-67c3-4dc9-8c4b-aa550086afb7
 
-        @Assert: User is added to user group successfully.
+        @expectedresults: User is added to user group successfully.
 
         @CaseLevel: Integration
         """
@@ -414,7 +415,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: f622eb11-a3d2-4a25-8889-766133750431
 
-        @Assert: User is added to user group successfully.
+        @expectedresults: User is added to user group successfully.
 
         @CaseLevel: Integration
         """
@@ -433,7 +434,8 @@ class UserGroupTestCase(CLITestCase):
 
         @id: f041d325-93c0-4799-88d7-5ece65568266
 
-        @Assert: User group is added to another user group successfully.
+        @expectedresults: User group is added to another user group
+        successfully.
 
         @CaseLevel: Integration
         """
@@ -453,7 +455,8 @@ class UserGroupTestCase(CLITestCase):
 
         @id: de60c347-b440-45c6-8e79-19aa0d338099
 
-        @Assert: User group is added to another user group successfully.
+        @expectedresults: User group is added to another user group
+        successfully.
 
         @CaseLevel: Integration
         """
@@ -473,7 +476,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: f086e7f0-4a24-4097-8ec6-3f698ac926ba
 
-        @Assert: Role is removed from user group successfully.
+        @expectedresults: Role is removed from user group successfully.
 
         @CaseLevel: Integration
         """
@@ -494,7 +497,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 0a5fdeaf-a05f-4153-b2c8-c5f8745cbb80
 
-        @Assert: Role is removed from user group successfully.
+        @expectedresults: Role is removed from user group successfully.
 
         @CaseLevel: Integration
         """
@@ -515,7 +518,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 9ae91110-88dd-4449-82c7-59f626fdd2be
 
-        @Assert: User is removed from user group successfully.
+        @expectedresults: User is removed from user group successfully.
 
         @CaseLevel: Integration
         """
@@ -536,7 +539,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: e99b215b-05bb-4e7b-a11a-cd506d88df6c
 
-        @Assert: User is removed from user group successfully.
+        @expectedresults: User is removed from user group successfully.
 
         @CaseLevel: Integration
         """
@@ -557,7 +560,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: e7e8ccb2-a93d-420d-b71e-218ffbb428b4
 
-        @Assert: User group is removed from initial one successfully.
+        @expectedresults: User group is removed from initial one successfully.
 
         @CaseLevel: Integration
         """
@@ -578,7 +581,7 @@ class UserGroupTestCase(CLITestCase):
 
         @id: 45a070b5-60b1-4c8c-8171-9d63e0a55698
 
-        @Assert: User group is removed from initial one successfully.
+        @expectedresults: User group is removed from initial one successfully.
 
         @CaseLevel: Integration
         """

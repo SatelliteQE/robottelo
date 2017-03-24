@@ -37,7 +37,7 @@ class RoleTestCase(UITestCase):
 
         @id: 8170598b-cf3b-4ff7-9baa-bee73f90d255
 
-        @Assert: Role is created successfully
+        @expectedresults: Role is created successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -51,7 +51,7 @@ class RoleTestCase(UITestCase):
 
         @id: 4159a2ad-0952-4196-9e3b-56c721d24355
 
-        @Assert: Role is not created
+        @expectedresults: Role is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -66,7 +66,7 @@ class RoleTestCase(UITestCase):
 
         @id: c8bd515a-e556-4b98-a993-ec37f541ffc3
 
-        @Assert: Role is deleted successfully
+        @expectedresults: Role is deleted successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -80,7 +80,7 @@ class RoleTestCase(UITestCase):
 
         @id: c3ad9eed-6896-470d-9043-3fda37bbe489
 
-        @Assert: Role is updated
+        @expectedresults: Role is updated
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -98,7 +98,7 @@ class RoleTestCase(UITestCase):
 
         @id: d57abcf2-a42f-40db-a61c-61b56bcc55b9
 
-        @Assert: Role is updated
+        @expectedresults: Role is updated
         """
         name = gen_string('alpha')
         resource_type = 'Architecture'
@@ -127,7 +127,7 @@ class RoleTestCase(UITestCase):
 
         @id: e3e6af90-fb31-4de9-8f36-f50550d7f00e
 
-        @Assert: New role is created.
+        @expectedresults: New role is created.
         """
         builtin_name = choice(ROLES)
         new_name = gen_string('alpha')
@@ -161,7 +161,7 @@ class RoleTestCase(UITestCase):
 
         @id: a4367968-eae5-4b8a-9b5c-61824b261320
 
-        @Assert: New role is created and contains all permissions
+        @expectedresults: New role is created and contains all permissions
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -201,7 +201,7 @@ class RoleTestCase(UITestCase):
 
         @id: cbb17f37-9039-4875-981b-1f427b095ed1
 
-        @Assert: User is created successfully
+        @expectedresults: User is created successfully
 
         @BZ: 1353788
         """
@@ -226,7 +226,7 @@ class RoleTestCase(UITestCase):
 
         @id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
 
-        @Assert: Role is deleted
+        @expectedresults: Role is deleted
 
         @BZ: 1353788
         """
@@ -244,7 +244,7 @@ class RoleTestCase(UITestCase):
 
         @id: 593dfca9-18dc-46cf-a7b1-b32edad3550c
 
-        @Assert: Role is updated
+        @expectedresults: Role is updated
         """
         name = gen_string('alpha')
         org = entities.Organization().create()

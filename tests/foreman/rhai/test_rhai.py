@@ -78,8 +78,8 @@ class RHAITestCase(UITestCase):
 
         @id: f3aefdb3-ac99-402d-afd9-e53e9ee1e8d7
 
-        @Assert: Registered client should appear in the Systems sub-menu of Red
-        Hat Access Insights
+        @expectedresults: Registered client should appear in the Systems sub-
+        menu of Red Hat Access Insights
 
         """
         # Register a VM to Access Insights Service
@@ -106,9 +106,9 @@ class RHAITestCase(UITestCase):
 
         @id: 6ddfdb29-eeb5-41a4-8851-ad19130b112c
 
-        @Assert: 'Organization Selection Required' message must be displayed if
-        the user tries to view Access Insights overview without selecting an
-        org
+        @expectedresults: 'Organization Selection Required' message must be
+        displayed if the user tries to view Access Insights overview without
+        selecting an org
 
         """
         with Session(self.browser) as session:
@@ -128,8 +128,8 @@ class RHAITestCase(UITestCase):
 
         @id: 580f9704-8c6d-4f63-b027-68a6ac97af77
 
-        @Assert: Once the system is unregistered from the RHAI web interface
-        then the unregistered system should return `1` on running the
+        @expectedresults: Once the system is unregistered from the RHAI web
+        interface then the unregistered system should return `1` on running the
         service 'redhat-access-insights'
 
         """

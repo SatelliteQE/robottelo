@@ -39,7 +39,7 @@ class BootstrapScriptTestCase(CLITestCase):
         1. assure system is not registered
         2. register a system
 
-        @Assert: system is registered, host is created
+        @expectedresults: system is registered, host is created
 
         @caseautomation: notautomated
         """
@@ -57,7 +57,7 @@ class BootstrapScriptTestCase(CLITestCase):
         2. assure system is registered
         3. register system once again
 
-        @Assert: system is newly registered, host is created
+        @expectedresults: system is newly registered, host is created
 
         @caseautomation: notautomated
         """
@@ -75,7 +75,7 @@ class BootstrapScriptTestCase(CLITestCase):
         2. assure system is registered with rhn classic
         3. migrate system
 
-        @Assert: system is migrated, ie. registered
+        @expectedresults: system is migrated, ie. registered
 
         @caseautomation: notautomated
         """
@@ -92,7 +92,7 @@ class BootstrapScriptTestCase(CLITestCase):
         1. create AK with no available subscriptions
         2. try to register a system
 
-        @Assert: ends gracefully, reason displayed to user
+        @expectedresults: ends gracefully, reason displayed to user
 
         @caseautomation: notautomated
         """
@@ -110,7 +110,7 @@ class BootstrapScriptTestCase(CLITestCase):
            (Domain can't be blank...)
         2. try to register a system
 
-        @Assert: ends gracefully, reason displayed to user
+        @expectedresults: ends gracefully, reason displayed to user
 
         @caseautomation: notautomated
         """
@@ -127,7 +127,8 @@ class BootstrapScriptTestCase(CLITestCase):
         1. create host profile
         2. register a system
 
-        @Assert: system is registered, pre-created host profile is used
+        @expectedresults: system is registered, pre-created host profile is
+        used
 
         @caseautomation: notautomated
         """
@@ -145,7 +146,7 @@ class BootstrapScriptTestCase(CLITestCase):
            (AK or hostgroup being used doesn't provide CV that have sattools)
         2. try to register a system
 
-        @Assert: ends gracefully, reason displayed to user
+        @expectedresults: ends gracefully, reason displayed to user
 
         @caseautomation: notautomated
         """

@@ -58,7 +58,7 @@ class SubnetTestCase(UITestCase):
 
         @id: 2318f13c-db38-4919-831f-667fc6e2e7bf
 
-        @Assert: Subnet is created
+        @expectedresults: Subnet is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=8):
@@ -78,7 +78,7 @@ class SubnetTestCase(UITestCase):
 
         @id: b86772ad-a8ff-4c2b-93f4-4a715e4da59b
 
-        @Assert: Subnet is created with 255 chars
+        @expectedresults: Subnet is created with 255 chars
         """
         with Session(self.browser) as session:
             for test_data in valid_long_names():
@@ -104,7 +104,7 @@ class SubnetTestCase(UITestCase):
 
         @id: adbc7189-b451-49df-aa10-2ae732832dfe
 
-        @Assert: Subnet is created with domain associated
+        @expectedresults: Subnet is created with domain associated
 
         @CaseLevel: Integration
         """
@@ -144,7 +144,7 @@ class SubnetTestCase(UITestCase):
 
         @id: d53056ad-a219-40d5-b20e-95ad343c9d38
 
-        @Assert: Subnet is not created
+        @expectedresults: Subnet is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -165,7 +165,7 @@ class SubnetTestCase(UITestCase):
 
         @id: 5caa6aed-2bba-43d8-bb40-2d80b9d42b69
 
-        @Assert: Subnet is not created
+        @expectedresults: Subnet is not created
         """
         with Session(self.browser) as session:
             make_subnet(
@@ -195,7 +195,7 @@ class SubnetTestCase(UITestCase):
 
         @id: cb1265de-a0ed-40b7-ba25-fe92251b9001
 
-        @Assert: Subnet is deleted
+        @expectedresults: Subnet is deleted
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=8):
@@ -216,7 +216,7 @@ class SubnetTestCase(UITestCase):
 
         @id: 9eed9020-8d13-4ba0-909a-db44ad0aecb6
 
-        @Assert: Subnet is not deleted
+        @expectedresults: Subnet is not deleted
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -235,7 +235,7 @@ class SubnetTestCase(UITestCase):
 
         @id: ec9f11e3-27a7-45d8-91fe-f04c20b595bc
 
-        @Assert: Subnet name is updated
+        @expectedresults: Subnet name is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -259,7 +259,7 @@ class SubnetTestCase(UITestCase):
 
         @id: f79d3b1b-6101-4009-88ad-b259d4794e6c
 
-        @Assert: Subnet network is updated
+        @expectedresults: Subnet network is updated
         """
         name = gen_string('alpha')
         new_network = gen_ipaddr(ip3=True)
@@ -281,7 +281,7 @@ class SubnetTestCase(UITestCase):
 
         @id: 6cc5de06-5463-4919-abe4-92cef4506a54
 
-        @Assert: Subnet mask is updated
+        @expectedresults: Subnet mask is updated
         """
         name = gen_string('alpha')
         new_mask = gen_netmask(16, 31)

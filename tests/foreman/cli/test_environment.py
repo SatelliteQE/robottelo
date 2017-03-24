@@ -71,7 +71,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 8a81f853-929c-4eaa-8ae0-4c92ebf1f250
 
-        @Assert: Environment list is displayed
+        @expectedresults: Environment list is displayed
 
         @CaseLevel: Integration
         """
@@ -90,7 +90,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 3b22f035-ee3a-489e-89c5-e54571584af1
 
-        @Assert: Environment is created.
+        @expectedresults: Environment is created.
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -103,7 +103,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 8a4141b0-3bb9-47e5-baca-f9f027086d4c
 
-        @Assert: Environment is not created.
+        @expectedresults: Environment is not created.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -117,7 +117,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: d2187971-86b2-40c9-a93c-66f37691ae2b
 
-        @Assert: Environment is created and has new Location assigned
+        @expectedresults: Environment is created and has new Location assigned
 
         """
         new_loc = make_location()
@@ -134,7 +134,8 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 9fd9d2d5-db46-40a7-b341-41cdbde4356a
 
-        @Assert: Environment is created and has new Organization assigned
+        @expectedresults: Environment is created and has new Organization
+        assigned
 
         """
         new_org = make_org()
@@ -152,7 +153,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: e25af73a-d4ef-4287-83bf-625337d91392
 
-        @assert: Environment is deleted
+        @expectedresults: Environment is deleted
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -168,7 +169,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: fe77920c-62fd-4e0e-b960-a940a1370d10
 
-        @assert: Environment is not deleted
+        @expectedresults: Environment is not deleted
         """
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
@@ -182,7 +183,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 48765173-6086-4b91-9da7-594135f68751
 
-        @Assert: Environment is deleted.
+        @expectedresults: Environment is deleted.
         """
         environment = make_environment()
         Environment.delete({'name': environment['name']})
@@ -196,7 +197,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 7b34ce64-24be-4b3b-8f7e-1de07daafdd9
 
-        @Assert: Environment Update is displayed
+        @expectedresults: Environment Update is displayed
         """
         environment = make_environment()
         for new_name in valid_environments_list():
@@ -215,7 +216,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: adc5ad73-0547-40f9-b4d4-649780cfb87a
 
-        @Assert: Environment is not updated
+        @expectedresults: Environment is not updated
         """
         environment = make_environment()
         for new_name in invalid_values_list():
@@ -235,7 +236,8 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: d58d6dc5-a820-4c61-bd69-0c631c2d3f2e
 
-        @Assert: Environment Update finished and new location is assigned
+        @expectedresults: Environment Update finished and new location is
+        assigned
 
         """
         old_loc = make_location()
@@ -257,7 +259,8 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 2c40caf9-95a0-4b87-bd97-0a4448746052
 
-        @Assert: Environment Update finished and new organization is assigned
+        @expectedresults: Environment Update finished and new organization is
+        assigned
 
         """
         old_org = make_org()
@@ -284,7 +287,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
 
-        @Assert: The command runs without raising an error
+        @expectedresults: The command runs without raising an error
         """
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -306,7 +309,7 @@ class EnvironmentTestCase(CLITestCase):
 
         @id: e2fdd262-9b09-4252-8a5a-4e578e3b8547
 
-        @Assert: The command runs without raising an error
+        @expectedresults: The command runs without raising an error
         """
         sc_params_list = SmartClassParameter.list({
             'environment': self.env['name'],

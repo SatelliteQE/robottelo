@@ -56,7 +56,7 @@ class SyncTestCase(UITestCase):
 
         @id: 00fb0b04-0293-42c2-92fa-930c75acee89
 
-        @Assert: Sync procedure is successful
+        @expectedresults: Sync procedure is successful
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -85,7 +85,7 @@ class SyncTestCase(UITestCase):
 
         @id: e30f6509-0b65-4bcc-a522-b4f3089d3911
 
-        @Assert: Sync procedure for RedHat Repos is successful
+        @expectedresults: Sync procedure for RedHat Repos is successful
 
         @CaseLevel: Integration
         """
@@ -116,13 +116,12 @@ class SyncTestCase(UITestCase):
            'https://cdn.redhat.com'.
         5. Now Navigate to the 'Sync Page' and resync the repos synced earlier.
 
-        @Assert:
-        1. Syncing should work fine without any issues.
-        2. Only the deltas are re-downloaded and not the entire repo.
-           [ Could be an exception when 7Server was earlier pointing to 7.1
-             and current 7Server points to latest 7.2]
-        3. After reverting the link the repos should not be seen in
-           'Others Tab' and should be seen only in 'RPM's Tab'.
+        @expectedresults: 1. Syncing should work fine without any issues. 2.
+        Only the deltas are re-downloaded and not the entire repo. [ Could be
+        an exception when 7Server was earlier pointing to 7.1 and current
+        7Server points to latest 7.2] 3. After reverting the link the repos
+        should not be seen in 'Others Tab' and should be seen only in 'RPM's
+        Tab'.
 
         @caseautomation: notautomated
 
@@ -137,7 +136,7 @@ class SyncTestCase(UITestCase):
 
         @id: e4119b9b-0356-4661-a3ec-e5807224f7d2
 
-        @Assert: ostree repo should be synced successfully
+        @expectedresults: ostree repo should be synced successfully
 
         @caseautomation: notautomated
 
@@ -156,7 +155,7 @@ class SyncTestCase(UITestCase):
         1. Import a valid manifest
         2. Enable the OStree repo and sync it
 
-        @Assert: ostree repo should be synced successfully from CDN
+        @expectedresults: ostree repo should be synced successfully from CDN
 
         @caseautomation: notautomated
 

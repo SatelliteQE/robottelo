@@ -34,7 +34,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: cfec857c-ed6e-4472-93bb-70e1d4f39bae
 
-        @Assert: Partition table was created
+        @expectedresults: Partition table was created
 
         @BZ: 1229384
         """
@@ -50,7 +50,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: e7d8a444-c69a-4863-a715-83d2dcb3b6ec
 
-        @Assert: Partition Table is created and has correct name
+        @expectedresults: Partition Table is created and has correct name
         """
         for name in generate_strings_list(length=randint(4, 30)):
             with self.subTest(name):
@@ -63,7 +63,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: 28bfbd8b-2ada-44d0-89f3-63885cfb3495
 
-        @Assert: Partition Table is created and has correct content
+        @expectedresults: Partition Table is created and has correct content
         """
         content = 'Fake ptable'
         ptable = make_partition_table({'content': content})
@@ -77,7 +77,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: 6242c915-0f15-4d5f-9f7a-73cb58fac81e
 
-        @Assert: Partition Table is created and its name can be updated
+        @expectedresults: Partition Table is created and its name can be
+        updated
         """
         ptable = make_partition_table()
         for new_name in generate_strings_list(length=randint(4, 30)):
@@ -95,7 +96,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: 4d2369eb-4dc1-4ab5-96d4-c872c39f4ff5
 
-        @Assert: Partition Table is deleted
+        @expectedresults: Partition Table is deleted
         """
         ptable = make_partition_table()
         PartitionTable.delete({'id': ptable['id']})
@@ -108,7 +109,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: 27bd427c-7601-4f3b-998f-b7baaaad0fb0
 
-        @Assert: Partition Table is deleted
+        @expectedresults: Partition Table is deleted
         """
         ptable = make_partition_table()
         PartitionTable.delete({'name': ptable['name']})
@@ -122,7 +123,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: 37415a34-5dba-4551-b1c5-e6e59329f4ca
 
-        @Assert: Operating system is added to partition table
+        @expectedresults: Operating system is added to partition table
 
         @CaseLevel: Integration
         """
@@ -142,7 +143,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: ad97800a-0ef8-4ee9-ab49-05c82c77017f
 
-        @Assert: Operating system is added to partition table
+        @expectedresults: Operating system is added to partition table
 
         @CaseLevel: Integration
         """
@@ -162,7 +163,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: ee37be42-9ed3-44dd-9206-514e340e5524
 
-        @Assert: Operating system is added then removed from partition table
+        @expectedresults: Operating system is added then removed from partition
+        table
 
         @CaseLevel: Integration
         """
@@ -187,7 +189,8 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
         @id: f7544419-af4c-4dcf-8673-cad472745794
 
-        @Assert: Operating system is added then removed from partition table
+        @expectedresults: Operating system is added then removed from partition
+        table
 
         @CaseLevel: Integration
         """

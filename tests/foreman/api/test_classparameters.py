@@ -166,7 +166,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @id: a9e551f9-261b-40e6-b7f6-35621fc46285
 
-        @assert: Parameters listed for specific Host.
+        @expectedresults: Parameters listed for specific Host.
 
         @CaseLevel: Integration
         """
@@ -189,7 +189,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @id: 88ceea89-b8b5-4ca2-9d59-3b2614c7f9a7
 
-        @assert: Parameters listed for specific HostGroup.
+        @expectedresults: Parameters listed for specific HostGroup.
 
         @CaseLevel: Integration
         """
@@ -208,7 +208,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @id: c0378f1e-c215-4f85-892c-d21a8b5a7060
 
-        @assert: Parameters listed for specific Puppet class.
+        @expectedresults: Parameters listed for specific Puppet class.
         """
         result = self.puppet_class.list_scparams()['results']
         self.assertGreater(len(result), 0)
@@ -220,7 +220,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @id: d4a06038-7405-4d75-b8ac-c43f48a3bc59
 
-        @assert: Parameters listed for specific environment.
+        @expectedresults: Parameters listed for specific environment.
 
         @CaseLevel: Integration
         """
@@ -242,7 +242,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Set override to True.
         2. Set the new valid Default Value.
 
-        @assert: Parameter Value overridden with new value.
+        @expectedresults: Parameter Value overridden with new value.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -265,7 +265,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Set override to False.
         2. Set the new valid Default Value.
 
-        @assert: Parameter value not allowed/disabled to override.
+        @expectedresults: Parameter value not allowed/disabled to override.
         """
         sc_param = self.sc_params_list.pop()
         self.assertEqual(sc_param.read().override, False)
@@ -289,7 +289,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Set override to True.
         2. Set 'Use Puppet Default' to True.
 
-        @assert: Puppet Default Value applied on parameter.
+        @expectedresults: Puppet Default Value applied on parameter.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -312,7 +312,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Update the Key Type to any of available.
         3. Set a 'valid' default Value.
 
-        @assert: Parameter Updated with a new type successfully.
+        @expectedresults: Parameter Updated with a new type successfully.
         """
         sc_param = self.sc_params_list.pop()
         for data in valid_sc_parameters_data():
@@ -357,7 +357,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Update the Key Type.
         3. Attempt to set an 'Invalid' default Value.
 
-        @assert:
+        @expectedresults:
 
         1. Parameter not updated with string type for invalid value.
         2. Error raised for invalid default value.
@@ -392,7 +392,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set puppet default value to 'Use Puppet Default'.
         3. Set Validator Type and Rule to validate this value.
 
-        @assert: Validation shouldn't work with puppet default value.
+        @expectedresults: Validation shouldn't work with puppet default value.
         """
 
     @run_only_on('sat')
@@ -408,7 +408,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default value, Not empty.
         3. Set 'required' to true.
 
-        @assert: No error raised for non-empty default value
+        @expectedresults: No error raised for non-empty default value
         """
         sc_param = self.sc_params_list.pop()
         sc_param.parameter_type = 'boolean'
@@ -436,7 +436,7 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set no value for matcher. Keep blank.
         4. Set 'required' to true.
 
-        @assert: Error raised for blank matcher value.
+        @expectedresults: Error raised for blank matcher value.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -467,7 +467,7 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set some Value for matcher.
         4. Set 'required' to true.
 
-        @assert: Error not raised for matcher value.
+        @expectedresults: Error not raised for matcher value.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -496,7 +496,8 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set default value that doesn't matches the regex of step 3.
         3. Validate this value with regex validator type and rule.
 
-        @assert: Error raised for default value not matching with regex.
+        @expectedresults: Error raised for default value not matching with
+        regex.
         """
         value = gen_string('alpha')
         sc_param = self.sc_params_list.pop()
@@ -528,7 +529,8 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set default value that matches the regex of step 3.
         3. Validate this value with regex validator type and rule.
 
-        @assert: Error not raised for default value matching with regex.
+        @expectedresults: Error not raised for default value matching with
+        regex.
         """
         value = gen_string('numeric')
         sc_param = self.sc_params_list.pop()
@@ -558,7 +560,8 @@ class SmartClassParametersTestCase(APITestCase):
         the regex of step 3.
         3. Validate this value with regex validator type and rule.
 
-        @assert: Error raised for matcher value not matching with regex.
+        @expectedresults: Error raised for matcher value not matching with
+        regex.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('numeric')
@@ -597,7 +600,8 @@ class SmartClassParametersTestCase(APITestCase):
         2. Create a matcher with value that matches the regex of step 3.
         3. Validate this value with regex validator type and rule.
 
-        @assert: Error not raised for matcher value matching with regex.
+        @expectedresults: Error not raised for matcher value matching with
+        regex.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('numeric')
@@ -628,7 +632,8 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set default value that doesn't matches the list of step 3.
         3. Validate this value with list validator type and rule.
 
-        @assert: Error is raised for default value that is not in list.
+        @expectedresults: Error is raised for default value that is not in
+        list.
         """
         value = gen_string('alphanumeric')
         sc_param = self.sc_params_list.pop()
@@ -662,7 +667,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set default value that matches the list of step 3.
         3. Validate this value with list validator type and rule.
 
-        @assert: Error not raised for default value in list.
+        @expectedresults: Error not raised for default value in list.
         """
         # Generate list of values
         values_list = [
@@ -704,7 +709,7 @@ class SmartClassParametersTestCase(APITestCase):
         the list of step 3.
         3. Validate this value with list validator type and rule.
 
-        @assert: Error raised for matcher value not in list.
+        @expectedresults: Error raised for matcher value not in list.
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -742,7 +747,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Create a matcher with value that matches the list of step 3.
         3. Validate this value with list validator type and rule.
 
-        @assert: Error not raised for matcher value in list.
+        @expectedresults: Error not raised for matcher value in list.
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -772,7 +777,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Update parameter default type with valid value.
         3. Create a matcher with value that doesn't matches the default type.
 
-        @assert: Error raised for matcher value not of default type.
+        @expectedresults: Error raised for matcher value not of default type.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -803,7 +808,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Update parameter default type with valid value.
         3. Create a matcher with value that matches the default type.
 
-        @assert: Error not raised for matcher value of default type.
+        @expectedresults: Error not raised for matcher value of default type.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -833,7 +838,8 @@ class SmartClassParametersTestCase(APITestCase):
         2. Update parameter default type with Invalid value.
         3. Create a matcher with value that doesn't matches the default type.
 
-        @assert: Error raised for invalid default and matcher value both.
+        @expectedresults: Error raised for invalid default and matcher value
+        both.
         """
         sc_param = self.sc_params_list.pop()
         entities.OverrideValue(
@@ -863,7 +869,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Set override to True.
         2. Create a matcher with non existing attribute in org.
 
-        @assert: Error raised for non existing attribute.
+        @expectedresults: Error raised for non existing attribute.
         """
         sc_param = self.sc_params_list.pop()
         with self.assertRaises(HTTPError) as context:
@@ -891,7 +897,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some default Value.
         3. Create a matcher with all valid values.
 
-        @assert: The matcher has been created successfully.
+        @expectedresults: The matcher has been created successfully.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -920,7 +926,7 @@ class SmartClassParametersTestCase(APITestCase):
         3. Create matcher with valid attribute type, name and
         puppet default value.
 
-        @assert: The matcher has been created successfully.
+        @expectedresults: The matcher has been created successfully.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -958,7 +964,7 @@ class SmartClassParametersTestCase(APITestCase):
         6. Update the parameter with above steps.
         7. Go to YAML output of associated host.
 
-        @assert: The YAML output has the value only for fqdn matcher.
+        @expectedresults: The YAML output has the value only for fqdn matcher.
 
         @caseautomation: notautomated
         """
@@ -982,7 +988,7 @@ class SmartClassParametersTestCase(APITestCase):
         6. Update the parameter with above steps.
         7. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the value only for step 5 matcher.
         2. The YAML output doesn't have value for fqdn/host matcher.
@@ -1011,7 +1017,7 @@ class SmartClassParametersTestCase(APITestCase):
         7. Update the parameter with above steps.
         8. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the values merged from all the associated
         matchers.
@@ -1042,7 +1048,7 @@ class SmartClassParametersTestCase(APITestCase):
         7. Update the parameter with above steps.
         8. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the values only for fqdn.
         2. The YAML output doesn't have the values for attribute
@@ -1077,7 +1083,7 @@ class SmartClassParametersTestCase(APITestCase):
         8. Update the parameter with above steps.
         9. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the value only for fqdn.
         2. The YAML output doesn't have the puppet default values of matchers.
@@ -1108,7 +1114,7 @@ class SmartClassParametersTestCase(APITestCase):
         8. Update the parameter with above steps.
         9. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the values merged from all
         the associated matchers.
@@ -1140,7 +1146,7 @@ class SmartClassParametersTestCase(APITestCase):
         8. Update the parameter with above steps.
         9. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the values merged from all
         the associated matchers.
@@ -1172,7 +1178,7 @@ class SmartClassParametersTestCase(APITestCase):
         8. Update the parameter with above steps.
         9. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the values merged from all
         the associated matchers.
@@ -1204,7 +1210,7 @@ class SmartClassParametersTestCase(APITestCase):
         8. Update the parameter with above steps.
         9. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the values merged from all
         the associated matchers.
@@ -1236,7 +1242,7 @@ class SmartClassParametersTestCase(APITestCase):
         8. Update the parameter with above steps.
         9. Go to YAML output of associated host.
 
-        @assert:
+        @expectedresults:
 
         1. The YAML output has the values merged from all matchers.
         2. The YAML output has the default value of parameter.
@@ -1256,8 +1262,8 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. Set parameter type to array/hash.
 
-        @assert: The Merge Overrides, Merge Default checks are enabled to
-        check.
+        @expectedresults: The Merge Overrides, Merge Default checks are enabled
+        to check.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1288,8 +1294,8 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. Set parameter type other than array/hash.
 
-        @assert: The Merge Overrides, Merge Default checks are not enabled to
-        check.
+        @expectedresults: The Merge Overrides, Merge Default checks are not
+        enabled to check.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1337,7 +1343,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Set parameter type to array.
         2. Set 'merge overrides' to True.
 
-        @assert: The Avoid Duplicates is enabled to set to True.
+        @expectedresults: The Avoid Duplicates is enabled to set to True.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1366,7 +1372,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. Set parameter type other than array.
 
-        @assert:
+        @expectedresults:
 
         1. The Merge Overrides checkbox is only enabled to check
         for type hash other than array.
@@ -1404,7 +1410,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Override the parameter and create a matcher for some attribute.
         2. Remove the matcher created in step 1.
 
-        @assert: The matcher removed from parameter.
+        @expectedresults: The matcher removed from parameter.
         """
         sc_param = self.sc_params_list.pop()
         value = gen_string('alpha')
@@ -1432,7 +1438,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Delete the attribute.
         3. Recreate the attribute with same name as earlier.
 
-        @assert:
+        @expectedresults:
 
         1. The matcher for deleted attribute removed from parameter.
         2. On recreating attribute, the matcher should not
@@ -1479,7 +1485,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set some valid default value.
         3. Set 'Hidden Value' to true.
 
-        @assert: The 'hidden value' set to True for that parameter.
+        @expectedresults: The 'hidden value' set to True for that parameter.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1504,7 +1510,7 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set 'Hidden Value' to True and update parameter.
         4. After hiding, set the 'Hidden Value' to False.
 
-        @assert: The 'hidden value' set to false for that parameter.
+        @expectedresults: The 'hidden value' set to false for that parameter.
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True
@@ -1532,7 +1538,7 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set 'Hidden Value' to true and update the parameter.
         4. Now in hidden state, update the default value.
 
-        @assert:
+        @expectedresults:
 
         1. The parameter default value is updated.
         2. The 'hidden value' set/displayed as True for that parameter.
@@ -1566,7 +1572,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. Don't set any default value/Set empty value.
         3. Set 'Hidden Value' to true and update the parameter.
 
-        @assert:
+        @expectedresults:
 
         1. The 'hidden value' set to True for that parameter.
         2. The default value is empty even after hide.

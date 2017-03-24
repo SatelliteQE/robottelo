@@ -200,7 +200,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --errata <errata> --id <id>
            --organization-id <orgid>
 
-        @Assert: Erratum is installed.
+        @expectedresults: Erratum is installed.
 
         """
         HostCollection.erratum_install({
@@ -225,7 +225,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --errata <errata> --id <id>
            --organization <org name>
 
-        @Assert: Erratum is installed.
+        @expectedresults: Erratum is installed.
 
         """
         HostCollection.erratum_install({
@@ -250,7 +250,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --errata <errata> --id <id>
            --organization-label <org label>
 
-        @Assert: Errata is installed.
+        @expectedresults: Errata is installed.
 
         """
         HostCollection.erratum_install({
@@ -275,7 +275,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --errata <errata> --name <name>
            --organization-id <orgid>
 
-        @Assert: Erratum is installed.
+        @expectedresults: Erratum is installed.
 
         """
         HostCollection.erratum_install({
@@ -300,7 +300,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --errata <errata> --name <name>
            --organization <org name>
 
-        @Assert: Erratum is installed.
+        @expectedresults: Erratum is installed.
 
         """
         HostCollection.erratum_install({
@@ -325,7 +325,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --errata <errata> --name <name>
            --organization-label <org label>
 
-        @Assert: Erratum is installed.
+        @expectedresults: Erratum is installed.
 
         """
         HostCollection.erratum_install({
@@ -350,7 +350,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         1. host-collection erratum install --id <id> --organization-id <orgid>
 
-        @Assert: Error message thrown.
+        @expectedresults: Error message thrown.
 
         """
         with self.assertRaises(CLIReturnCodeError) as context:
@@ -378,7 +378,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --name <name> --organization-id
            <orgid>
 
-        @Assert: Error message thrown.
+        @expectedresults: Error message thrown.
 
         """
         with self.assertRaises(CLIReturnCodeError) as context:
@@ -406,7 +406,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         1. host-collection erratum install --errata <errata> --organization-id
            <orgid>
 
-        @Assert: Error message thrown.
+        @expectedresults: Error message thrown.
 
         """
         with self.assertRaises(CLIReturnCodeError):
@@ -429,7 +429,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         1. host-collection erratum install --errata <errata> --id <id>
 
-        @Assert: Error message thrown.
+        @expectedresults: Error message thrown.
 
         """
         with self.assertRaises(CLIReturnCodeError) as context:
@@ -456,7 +456,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
         1. host-collection erratum install --errata <errata> --name <name>
 
-        @Assert: Error message thrown.
+        @expectedresults: Error message thrown.
 
         """
         with self.assertRaises(CLIReturnCodeError) as context:
@@ -572,7 +572,7 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --order 'issued ASC'
         2. erratum list --order 'issued DESC'
 
-        @Assert: Errata is sorted by Issued date.
+        @expectedresults: Errata is sorted by Issued date.
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
@@ -640,7 +640,8 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --organization-id=<orgid> --order 'updated ASC'
         2. erratum list --organization-id=<orgid> --order 'updated DESC'
 
-        @Assert: Errata is filtered by org id and sorted by updated date.
+        @expectedresults: Errata is filtered by org id and sorted by updated
+        date.
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
@@ -709,7 +710,8 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --organization=<org name> --order 'updated ASC'
         2. erratum list --organization=<org name> --order 'updated DESC'
 
-        @Assert: Errata is filtered by org name and sorted by updated date.
+        @expectedresults: Errata is filtered by org name and sorted by updated
+        date.
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
@@ -778,7 +780,8 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --organization-label=<org_label> --order 'updated ASC'
         2. erratum list --organization-label=<org_label> --order 'updated DESC'
 
-        @Assert: Errata is filtered by org label and sorted by updated date.
+        @expectedresults: Errata is filtered by org label and sorted by updated
+        date.
         """
         sort_data = [('updated', 'ASC'), ('updated', 'DESC')]
         for sort_field, sort_order in sort_data:
@@ -847,7 +850,8 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --organization-id=<org_id> --order 'issued ASC'
         2. erratum list --organization-id=<org_id> --order 'issued DESC'
 
-        @Assert: Errata is filtered by org id and sorted by issued date.
+        @expectedresults: Errata is filtered by org id and sorted by issued
+        date.
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
@@ -916,7 +920,8 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --organization=<org_name> --order 'issued ASC'
         2. erratum list --organization=<org_name> --order 'issued DESC'
 
-        @Assert: Errata is filtered by org name and sorted by issued date.
+        @expectedresults: Errata is filtered by org name and sorted by issued
+        date.
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
@@ -985,7 +990,8 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --organization-label=<org_label> --order 'issued ASC'
         2. erratum list --organization-label=<org_label> --order 'issued DESC'
 
-        @Assert: Errata is filtered by org label and sorted by issued date.
+        @expectedresults: Errata is filtered by org label and sorted by issued
+        date.
         """
         sort_data = [('issued', 'ASC'), ('issued', 'DESC')]
         for sort_field, sort_order in sort_data:
@@ -1054,7 +1060,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --product-id=<productid>
 
-        @Assert: Errata is filtered by product id.
+        @expectedresults: Errata is filtered by product id.
         """
         org_product_erratum_list = Erratum.list({
             'product-id': self.org_product['id'],
@@ -1098,7 +1104,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --product-id=<product_id> --organization-id=<org_id>
 
-        @Assert: Errata is filtered by product id and Org id.
+        @expectedresults: Errata is filtered by product id and Org id.
         """
         product_erratum_list = Erratum.list({
             'organization-id': self.org['id'],
@@ -1170,7 +1176,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --product-id=<product_id> --organization=<org_name>
 
-        @Assert: Errata is filtered by product id and Org name.
+        @expectedresults: Errata is filtered by product id and Org name.
         """
         product_erratum_list = Erratum.list({
             'organization': self.org['name'],
@@ -1242,7 +1248,7 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --product-id=<product_id>
            --organization-label=<org_label>
 
-        @Assert: Errata is filtered by product id and Org label
+        @expectedresults: Errata is filtered by product id and Org label
         """
         product_erratum_list = Erratum.list({
             'organization-label': self.org['label'],
@@ -1311,7 +1317,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --product=<productname>
 
-        @Assert: Errata is filtered by product name.
+        @expectedresults: Errata is filtered by product name.
 
         @caseautomation: notautomated
 
@@ -1330,7 +1336,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --product=<product_name> --organization-id=<org_id>
 
-        @Assert: Errata is filtered by product name and Org id.
+        @expectedresults: Errata is filtered by product name and Org id.
         """
         product_erratum_list = Erratum.list({
             'organization-id': self.org['id'],
@@ -1399,7 +1405,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --product=<product_name> --organization=<org_name>
 
-        @Assert: Errata is filtered by product name and Org name.
+        @expectedresults: Errata is filtered by product name and Org name.
         """
         product_erratum_list = Erratum.list({
             'organization': self.org['name'],
@@ -1469,7 +1475,7 @@ class ErrataTestCase(CLITestCase):
         1. erratum list --product=<product_name>
            --organization-label=<org_label>
 
-        @Assert: Errata is filtered by product name and Org label.
+        @expectedresults: Errata is filtered by product name and Org label.
         """
         product_erratum_list = Erratum.list({
             'organization-label': self.org['label'],
@@ -1538,7 +1544,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --organization-id=<orgid>
 
-        @Assert: Errata is filtered by Org id.
+        @expectedresults: Errata is filtered by Org id.
         """
         org_erratum_list = Erratum.list({
             'organization-id': self.org['id'],
@@ -1578,7 +1584,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --organization=<org name>
 
-        @Assert: Errata is filtered by Org name.
+        @expectedresults: Errata is filtered by Org name.
         """
         org_erratum_list = Erratum.list({
             'organization': self.org['name'],
@@ -1618,7 +1624,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --organization-label=<org_label>
 
-        @Assert: Errata is filtered by Org label.
+        @expectedresults: Errata is filtered by Org label.
         """
         org_erratum_list = Erratum.list({
             'organization-label': self.org['label'],
@@ -1660,7 +1666,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --cve <cve_id>
 
-        @Assert: Errata is filtered by CVE.
+        @expectedresults: Errata is filtered by CVE.
 
         """
         org = make_org()
@@ -1715,7 +1721,7 @@ class ErrataTestCase(CLITestCase):
 
         1. erratum list --organization-id=<orgid>
 
-        @Assert: Check that the new user is able to see errata for one
+        @expectedresults: Check that the new user is able to see errata for one
         product only.
 
         """
@@ -1812,7 +1818,8 @@ class ErrataTestCase(CLITestCase):
         1. content-host list --erratum-id=<erratum_id>
            --organization-id=<org_id>
 
-        @Assert: List of affected content hosts for an erratum is displayed.
+        @expectedresults: List of affected content hosts for an erratum is
+        displayed.
 
         @caseautomation: notautomated
 
@@ -1838,8 +1845,8 @@ class ErrataTestCase(CLITestCase):
         4. content-host list --erratum-id=<erratum_id>
            --organization-id=<org_id> --erratum-restrict-unavailable=0
 
-        @Assert: List of affected content hosts for an erratum is displayed
-        filtered with corresponding restrict flags.
+        @expectedresults: List of affected content hosts for an erratum is
+        displayed filtered with corresponding restrict flags.
 
         @caseautomation: notautomated
 
@@ -1861,7 +1868,7 @@ class ErrataTestCase(CLITestCase):
 
         1. hammer content-host list --organization-id=<orgid>
 
-        @Assert: The available errata count is retrieved.
+        @expectedresults: The available errata count is retrieved.
 
         @caseautomation: notautomated
 

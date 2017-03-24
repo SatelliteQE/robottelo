@@ -326,7 +326,7 @@ class HostTestCase(UITestCase):
 
         @id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
 
-        @Assert: Host is created
+        @expectedresults: Host is created
 
         @CaseLevel: System
         """
@@ -369,7 +369,7 @@ class HostTestCase(UITestCase):
 
         @id: 4821444d-3c86-4f93-849b-60460e025ba0
 
-        @Assert: Host is created
+        @expectedresults: Host is created
 
         @CaseLevel: System
         """
@@ -418,7 +418,7 @@ class HostTestCase(UITestCase):
 
         @id: f1c19599-f613-431d-bf09-62addec1e60b
 
-        @Assert: Host is updated successfully
+        @expectedresults: Host is updated successfully
 
         @CaseLevel: System
         """
@@ -473,7 +473,7 @@ class HostTestCase(UITestCase):
 
         @id: 13735af1-f1c7-466e-a969-80618a1d854d
 
-        @Assert: Host is delete
+        @expectedresults: Host is delete
 
         @CaseLevel: System
         """
@@ -521,8 +521,8 @@ class HostTestCase(UITestCase):
 
         @id: c83f6819-2649-4a8b-bb1d-ce93b2243765
 
-        @Assert: Host's lifecycle environment and content view match the ones
-        specified in hostgroup
+        @expectedresults: Host's lifecycle environment and content view match
+        the ones specified in hostgroup
 
         @CaseLevel: Integration
 
@@ -584,7 +584,7 @@ class HostTestCase(UITestCase):
 
         @id: b97d6fe5-b0a1-4ddc-8d7f-cbf7b17c823d
 
-        @Assert: Host is created
+        @expectedresults: Host is created
 
         @caseautomation: notautomated
 
@@ -598,7 +598,7 @@ class HostTestCase(UITestCase):
 
         @id: 4c030cf5-b89c-4dec-bb3e-0cb3215a2315
 
-        @Assert: Host is updated
+        @expectedresults: Host is updated
 
         @caseautomation: notautomated
 
@@ -612,7 +612,7 @@ class HostTestCase(UITestCase):
 
         @id: 5ddf2f7f-f7aa-4321-8717-372c7b6e99b6
 
-        @Assert: Atomic host should be provisioned and listed under
+        @expectedresults: Atomic host should be provisioned and listed under
         content-hosts/Hosts
 
         @caseautomation: notautomated
@@ -628,8 +628,8 @@ class HostTestCase(UITestCase):
 
         @id: 09729944-b60b-4742-8f1b-e8859e2e36d3
 
-        @Assert: Atomic host should be registered successfully and listed under
-        content-hosts/Hosts
+        @expectedresults: Atomic host should be registered successfully and
+        listed under content-hosts/Hosts
 
         @caseautomation: notautomated
 
@@ -644,8 +644,8 @@ class HostTestCase(UITestCase):
 
         @id: 31e5ffcf-2e3c-474a-a6a3-6d8e2f392abe
 
-        @Assert: Atomic host should be registered successfully and listed under
-        content-hosts/Hosts
+        @expectedresults: Atomic host should be registered successfully and
+        listed under content-hosts/Hosts
 
         @caseautomation: notautomated
 
@@ -659,8 +659,8 @@ class HostTestCase(UITestCase):
 
         @id: c0bcf753-8ddf-4e95-b214-42d1e077a6cf
 
-        @Assert: Atomic host should be deleted successfully and shouldn't be
-        listed under hosts/content-hosts
+        @expectedresults: Atomic host should be deleted successfully and
+        shouldn't be listed under hosts/content-hosts
 
         @caseautomation: notautomated
 
@@ -674,7 +674,8 @@ class HostTestCase(UITestCase):
 
         @id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
 
-        @Assert: All selected atomic hosts should be deleted successfully
+        @expectedresults: All selected atomic hosts should be deleted
+        successfully
 
         @caseautomation: notautomated
 
@@ -688,7 +689,7 @@ class HostTestCase(UITestCase):
 
         @id: 2ddd3bb7-ef58-42c0-908c-ae4d4bd0bff9
 
-        @Assert: Atomic host should be updated with new content-view
+        @expectedresults: Atomic host should be updated with new content-view
 
         @caseautomation: notautomated
 
@@ -703,8 +704,8 @@ class HostTestCase(UITestCase):
 
         @id: 56a46a1e-9e24-4ad7-9cea-3d78c7310b14
 
-        @Assert: Ostree/atomic commands should be executed successfully via job
-        templates
+        @expectedresults: Ostree/atomic commands should be executed
+        successfully via job templates
 
         @caseautomation: notautomated
 

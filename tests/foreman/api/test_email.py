@@ -32,8 +32,8 @@ class EmailTestCase(APITestCase):
 
         1. Enable and disable email notifications using /api/mail_notifications
 
-        @Assert: Enabling and disabling email notification preferences saved
-        accordingly.
+        @expectedresults: Enabling and disabling email notification preferences
+        saved accordingly.
 
         @caseautomation: notautomated
         """

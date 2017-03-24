@@ -33,7 +33,7 @@ class PingTestCase(CLITestCase):
         1. Execute hammer ping
         2. Check its return code, should be 0 if all services are ok else != 0
 
-        @assert: hammer ping returns a right return code
+        @expectedresults: hammer ping returns a right return code
         """
         result = ssh.command('hammer -u {0} -p {1} ping'.format(
             self.foreman_user,

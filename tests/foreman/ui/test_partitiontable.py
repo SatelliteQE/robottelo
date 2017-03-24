@@ -47,7 +47,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 2b8ee84f-34d4-464f-8fcb-4dd9647e43f0
 
-        @Assert: Partition table is created
+        @expectedresults: Partition table is created
 
         @BZ: 1229384
         """
@@ -69,7 +69,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
 
-        @Assert: Partition table is created
+        @expectedresults: Partition table is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -89,7 +89,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 37bb748a-63d1-4d88-954f-71634168072a
 
-        @Assert: Partition table is created
+        @expectedresults: Partition table is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -109,7 +109,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: f17e16ff-b07f-44ec-a824-b9af460c35aa
 
-        @Assert: Partition table is created
+        @expectedresults: Partition table is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -131,8 +131,8 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 91c64054-cd0c-4d4b-888b-17d42e298527
 
-        @Assert: New partition table is created and is present in the list of
-        selected partition tables for any new organization
+        @expectedresults: New partition table is created and is present in the
+        list of selected partition tables for any new organization
 
         @CaseLevel: Integration
         """
@@ -163,8 +163,8 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 69e6df0f-af1f-4aa2-8987-3e3b9a16be37
 
-        @Assert: New partition table is created and is not present in the list
-        of selected partition tables for any new organization
+        @expectedresults: New partition table is created and is not present in
+        the list of selected partition tables for any new organization
 
         @CaseLevel: Integration
         """
@@ -195,8 +195,8 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 8dfaae7c-2f33-4f0d-93f6-1f78ea4d750d
 
-        @Assert: New partition table is created and is present in the list of
-        selected partition tables for any new location
+        @expectedresults: New partition table is created and is present in the
+        list of selected partition tables for any new location
 
         @CaseLevel: Integration
         """
@@ -227,8 +227,8 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 094d4583-763b-48d4-a89a-23b90741fd6f
 
-        @Assert: New partition table is created and is not present in the list
-        of selected partition tables for any new location
+        @expectedresults: New partition table is created and is not present in
+        the list of selected partition tables for any new location
 
         @CaseLevel: Integration
         """
@@ -258,7 +258,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 225f1bb9-d5b2-4863-b89b-416f7cf5a7be
 
-        @Assert: Partition table is not created
+        @expectedresults: Partition table is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -281,7 +281,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 3462ff33-1645-41c1-8fbd-513c7e4a18ed
 
-        @Assert: Partition table is not created
+        @expectedresults: Partition table is not created
         """
         name = gen_string('utf8')
         os_family = 'Red Hat'
@@ -309,7 +309,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 427bce9b-c38e-4d78-943f-3cc7f422ebcd
 
-        @Assert: Partition table is not created
+        @expectedresults: Partition table is not created
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -326,7 +326,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 405ed98a-4207-4bf8-899e-dcea7791850e
 
-        @Assert: Partition table is deleted
+        @expectedresults: Partition table is deleted
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -346,7 +346,7 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 63203508-7c73-4ce0-853e-64564167bec3
 
-        @Assert: Partition table is updated
+        @expectedresults: Partition table is updated
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -375,7 +375,8 @@ class PartitionTableTestCase(UITestCase):
 
         @id: 704e8336-e14a-4d1a-b9db-2f81c8af6ecc
 
-        @Assert: Partition table is not updated.  Appropriate error shown.
+        @expectedresults: Partition table is not updated.  Appropriate error
+        shown.
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:

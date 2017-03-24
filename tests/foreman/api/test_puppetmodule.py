@@ -47,7 +47,7 @@ class RepositorySearchTestCase(APITestCase):
 
         @id: eafc7a71-d550-4983-9941-b87aa57b83e9
 
-        @Assert: No puppet modules are returned.
+        @expectedresults: No puppet modules are returned.
         """
         query = {'repository_id': self.repository.id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
@@ -58,7 +58,7 @@ class RepositorySearchTestCase(APITestCase):
 
         @id: 5337b2be-e207-4580-8407-19b88cb40403
 
-        @Assert: Only the modules in that repository are returned.
+        @expectedresults: Only the modules in that repository are returned.
         """
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             self.repository.upload_content(files={'content': handle})
@@ -97,7 +97,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         @id: 3a59e2fc-5c95-405e-bf4a-f1fe78e73300
 
-        @Assert: No puppet modules are found.
+        @expectedresults: No puppet modules are found.
         """
         self.content_view.publish()
         self.content_view = self.content_view.read()
@@ -110,7 +110,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         @id: cc358a91-8640-48e3-851d-383e55ba42c3
 
-        @Assert: One puppet module is found.
+        @expectedresults: One puppet module is found.
         """
         # Find the puppet module in `self.repository` and assign it to
         # `self.content_view`. Publish the content view.

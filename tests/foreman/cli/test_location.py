@@ -69,7 +69,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 76a90b92-296c-4b5a-9c81-183ff71937e2
 
-        @Assert: Location is created successfully and has proper name
+        @expectedresults: Location is created successfully and has proper name
 
         """
         for name in valid_loc_data_list():
@@ -84,8 +84,8 @@ class LocationTestCase(CLITestCase):
 
         @id: e1844d9d-ec4a-44b3-9743-e932cc70020d
 
-        @Assert: Location created successfully and has expected and correct
-        description
+        @expectedresults: Location created successfully and has expected and
+        correct description
 
         """
         description = gen_string('utf8')
@@ -99,8 +99,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 96dd25bf-8535-41a5-ba63-60a2b52487b8
 
-        @Assert: Location created successfully and has correct user assigned to
-        it with expected login name
+        @expectedresults: Location created successfully and has correct user
+        assigned to it with expected login name
 
         """
         user = make_user()
@@ -114,8 +114,8 @@ class LocationTestCase(CLITestCase):
 
         @id: ed65dfd2-00b6-4ec9-9da0-1956d8a5cf5d
 
-        @Assert: Location created successfully and has correct user assigned to
-        it with expected login name
+        @expectedresults: Location created successfully and has correct user
+        assigned to it with expected login name
 
         """
         user = make_user()
@@ -129,8 +129,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 49c72f7d-08b7-4dd3-af7f-5b97889a4583
 
-        @Assert: Location created successfully and has correct compute resource
-        assigned to it
+        @expectedresults: Location created successfully and has correct compute
+        resource assigned to it
 
         """
         comp_resource = make_compute_resource()
@@ -144,8 +144,8 @@ class LocationTestCase(CLITestCase):
 
         @id: a849c847-bc18-4d87-a47b-43975090f509
 
-        @Assert: Location created successfully and has correct compute resource
-        assigned to it
+        @expectedresults: Location created successfully and has correct compute
+        resource assigned to it
 
         """
         comp_resource = make_compute_resource()
@@ -159,8 +159,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 1ae669e3-479a-427a-ac97-0878667c3dce
 
-        @Assert: Location created successfully and list of config templates
-        assigned to that location should contain expected one
+        @expectedresults: Location created successfully and list of config
+        templates assigned to that location should contain expected one
 
         """
         template = make_template()
@@ -178,8 +178,8 @@ class LocationTestCase(CLITestCase):
 
         @id: a523bf4e-dc90-4f15-ae79-5246d0568fa5
 
-        @Assert: Location created successfully and list of config templates
-        assigned to that location should contain expected one
+        @expectedresults: Location created successfully and list of config
+        templates assigned to that location should contain expected one
 
         """
         template = make_template()
@@ -197,8 +197,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 54507b72-93ea-471e-bfd5-857c44b6abed
 
-        @Assert: Location created successfully and has correct and expected
-        domain assigned to it
+        @expectedresults: Location created successfully and has correct and
+        expected domain assigned to it
 
         """
         domain = make_domain()
@@ -212,8 +212,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 06426c06-744d-44cf-bbba-449ef1f62659
 
-        @Assert: Location created successfully and has correct and expected
-        domain assigned to it
+        @expectedresults: Location created successfully and has correct and
+        expected domain assigned to it
 
         """
         domain = make_domain()
@@ -227,8 +227,8 @@ class LocationTestCase(CLITestCase):
 
         @id: cef956bd-7c78-49f8-917a-f344fadf217a
 
-        @Assert: Location created successfully and has correct subnet with
-        expected network address assigned to it
+        @expectedresults: Location created successfully and has correct subnet
+        with expected network address assigned to it
 
         """
         subnet = make_subnet()
@@ -243,8 +243,8 @@ class LocationTestCase(CLITestCase):
 
         @id: efe2fce4-ecd9-4765-8d77-dff776a1ba13
 
-        @Assert: Location created successfully and has correct subnet with
-        expected network address assigned to it
+        @expectedresults: Location created successfully and has correct subnet
+        with expected network address assigned to it
 
         """
         subnet = make_subnet()
@@ -259,8 +259,8 @@ class LocationTestCase(CLITestCase):
 
         @id: cd38b895-57f7-4d07-aa4b-7299a69ec203
 
-        @Assert: Location created successfully and has correct and expected
-        environment assigned to it
+        @expectedresults: Location created successfully and has correct and
+        expected environment assigned to it
 
         """
         env = make_environment()
@@ -274,8 +274,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 3c9a47b5-798b-4f41-a9dc-219ad43b6fdf
 
-        @Assert: Location created successfully and has correct and expected
-        environment assigned to it
+        @expectedresults: Location created successfully and has correct and
+        expected environment assigned to it
 
         """
         env = make_environment()
@@ -289,8 +289,8 @@ class LocationTestCase(CLITestCase):
 
         @id: d4421f79-72ea-4d68-8ae7-aedd2b32dfe9
 
-        @Assert: Location created successfully and has correct and expected
-        host group assigned to it
+        @expectedresults: Location created successfully and has correct and
+        expected host group assigned to it
 
         """
         host_group = make_hostgroup()
@@ -304,8 +304,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 7b465d98-efcc-4c49-b45b-b51c26d5010d
 
-        @Assert: Location created successfully and has correct and expected
-        host group assigned to it
+        @expectedresults: Location created successfully and has correct and
+        expected host group assigned to it
 
         """
         host_group = make_hostgroup()
@@ -319,8 +319,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 72d71056-6bf7-4af0-95d4-828709e1efba
 
-        @Assert: Location created successfully and has correct and expected
-        media assigned to it
+        @expectedresults: Location created successfully and has correct and
+        expected media assigned to it
 
         """
         medium = make_medium()
@@ -336,8 +336,8 @@ class LocationTestCase(CLITestCase):
 
         @id: eac6bfe2-1ead-4784-b9a8-d21b1f10d8d2
 
-        @Assert: Location created successfully and has correct environments
-        assigned to it
+        @expectedresults: Location created successfully and has correct
+        environments assigned to it
 
         """
         envs_amount = randint(3, 5)
@@ -355,8 +355,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 71e581ef-0950-4cc7-8671-6fddfd06e378
 
-        @Assert: Location created successfully and has correct domains assigned
-        to it
+        @expectedresults: Location created successfully and has correct domains
+        assigned to it
 
         """
         domains_amount = randint(3, 5)
@@ -374,7 +374,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 2dfe8ff0-e84a-42c0-a480-0f8345ee66d0
 
-        @Assert: Location is not created
+        @expectedresults: Location is not created
 
         """
         for invalid_name in invalid_values_list():
@@ -388,7 +388,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 4fbaea41-9775-40a2-85a5-4dc05cc95134
 
-        @Assert: Second location is not created
+        @expectedresults: Second location is not created
 
         """
         name = gen_string('utf8')
@@ -404,7 +404,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 83115ace-9340-44cd-9e47-5585b267d7ed
 
-        @Assert: Location is not created
+        @expectedresults: Location is not created
 
         """
         with self.assertRaises(CLIFactoryError):
@@ -417,7 +417,7 @@ class LocationTestCase(CLITestCase):
 
         @id: fa892edf-8c42-44dc-8f36-bed50798b59b
 
-        @Assert: Location is not created
+        @expectedresults: Location is not created
 
         """
         with self.assertRaises(CLIFactoryError):
@@ -429,8 +429,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 09fa55a5-c688-4bd3-94df-8ab7a2ccda84
 
-        @Assert: Location is updated successfully and has proper and expected
-        name
+        @expectedresults: Location is updated successfully and has proper and
+        expected name
 
         """
         loc = make_location()
@@ -451,8 +451,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 123a8a28-f81d-439a-82d0-5c3d814d1a25
 
-        @Assert: Location is updated successfully and has correct user assigned
-        to it
+        @expectedresults: Location is updated successfully and has correct user
+        assigned to it
 
         """
         user = [make_user() for _ in range(2)]
@@ -473,8 +473,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 2bb2ec4a-2423-46a8-8772-a263823640df
 
-        @Assert: Location is updated successfully and has correct subnet with
-        expected network address assigned to it
+        @expectedresults: Location is updated successfully and has correct
+        subnet with expected network address assigned to it
 
         """
         subnet = [make_subnet() for _ in range(2)]
@@ -498,8 +498,8 @@ class LocationTestCase(CLITestCase):
 
         @id: 3a547413-53dc-4305-84e9-8db7a6bed3b2
 
-        @Assert: Location updated successfully and has correct compute resource
-        assigned to it
+        @expectedresults: Location updated successfully and has correct compute
+        resource assigned to it
 
         """
         resources_amount = randint(3, 5)
@@ -529,8 +529,8 @@ class LocationTestCase(CLITestCase):
 
         @id: e53504d0-8328-485c-bc8c-36ea9a2ad3e1
 
-        @Assert: Location updated successfully and has correct and expected
-        host groups assigned to it
+        @expectedresults: Location updated successfully and has correct and
+        expected host groups assigned to it
 
         """
         host_groups = [make_hostgroup() for _ in range(3)]
@@ -556,7 +556,7 @@ class LocationTestCase(CLITestCase):
 
         @id: a41abf03-61ca-4201-8a80-7062a6196851
 
-        @Assert: Location is not updated
+        @expectedresults: Location is not updated
 
         """
         for invalid_name in invalid_values_list():
@@ -575,7 +575,7 @@ class LocationTestCase(CLITestCase):
 
         @id: ec49ea4d-754a-4958-8180-f61eb6d8cede
 
-        @Assert: Location is not updated
+        @expectedresults: Location is not updated
 
         """
         loc = make_location()
@@ -592,7 +592,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 937730ff-bb46-437b-bfc7-915045d1782c
 
-        @Assert: Location is not updated
+        @expectedresults: Location is not updated
 
         """
         loc = make_location()
@@ -609,7 +609,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 32b1e969-a1a8-4d65-bde9-a825ab542b1d
 
-        @Assert: Capsule is added to the org
+        @expectedresults: Capsule is added to the org
 
         @CaseLevel: Integration
         """
@@ -633,7 +633,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 15e3c1e6-4fa3-4965-8808-a9ba01d1c050
 
-        @assert: Capsule is added to the org
+        @expectedresults: Capsule is added to the org
 
         @CaseLevel: Integration
         """
@@ -657,7 +657,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 98681f4f-a5e2-44f6-8879-d23ad90b4c59
 
-        @Assert: Capsule is removed from the org
+        @expectedresults: Capsule is removed from the org
 
         @CaseLevel: Integration
         """
@@ -685,7 +685,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 91dcafbe-5f52-48af-b5c7-9319b2929f5a
 
-        @Assert: Capsule is removed from the org
+        @expectedresults: Capsule is removed from the org
 
         @CaseLevel: Integration
         """
@@ -713,7 +713,7 @@ class LocationTestCase(CLITestCase):
 
         @id: b44e56e4-00f0-4b7c-bef6-48b10c7b2b59
 
-        @Assert: Location is deleted successfully
+        @expectedresults: Location is deleted successfully
 
         """
         for name in valid_loc_data_list():
@@ -731,7 +731,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 71e394e3-85e6-456d-b03d-6787db9059aa
 
-        @Assert: Location is deleted successfully
+        @expectedresults: Location is deleted successfully
 
         """
         loc = make_location()
@@ -745,7 +745,7 @@ class LocationTestCase(CLITestCase):
 
         @id: d4c2f27d-7c16-4296-9da6-2e7135bfb6ad
 
-        @Assert: Parameter is added to the location
+        @expectedresults: Parameter is added to the location
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -766,7 +766,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 61b564f2-a42a-48de-833d-bec3a127d0f5
 
-        @Assert: Parameter is added to the location
+        @expectedresults: Parameter is added to the location
         """
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
@@ -787,7 +787,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 7b61fa71-0203-4709-9abd-9bb51ce6c19f
 
-        @Assert: Parameter is updated
+        @expectedresults: Parameter is updated
         """
         param_name = gen_string('alpha')
         param_new_value = gen_string('alpha')
@@ -816,7 +816,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 97fda466-1894-431e-bc76-3b1c7643522f
 
-        @Assert: Parameter is removed from the location
+        @expectedresults: Parameter is removed from the location
         """
         param_name = gen_string('alpha')
         location = make_location()
@@ -841,7 +841,7 @@ class LocationTestCase(CLITestCase):
 
         @id: 13836073-3e39-4d3e-b4b4-e87619c28bae
 
-        @Assert: Parameter is removed from the location
+        @expectedresults: Parameter is removed from the location
         """
         param_name = gen_string('alpha')
         location = make_location()

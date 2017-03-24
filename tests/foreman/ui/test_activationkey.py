@@ -134,7 +134,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 091f1034-9850-4004-a0ca-d398d1626a5e
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -153,7 +153,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 4c8f4dca-723f-4dae-a8df-4e00a7fc7d95
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -173,7 +173,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: f75e994a-6da1-40a3-9685-f8387388b3f0
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
 
         @CaseLevel: Integration
         """
@@ -202,7 +202,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
 
         @CaseLevel: Integration
         """
@@ -229,7 +229,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 0e4ad2b4-47a7-4087-828f-2b0535a97b69
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
 
         @CaseLevel: Integration
         """
@@ -267,7 +267,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 417f0b36-fd49-4414-87ab-6f72a09696f2
 
-        @Assert: Activation key is created, added host collection is listed
+        @expectedresults: Activation key is created, added host collection is
+        listed
 
         @CaseLevel: Integration
         """
@@ -314,8 +315,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 187456ec-5690-4524-9701-8bdb74c7912a
 
-        @Assert: Activation key is created, removed host collection
-        is not listed
+        @expectedresults: Activation key is created, removed host collection is
+        not listed
 
         @CaseLevel: Integration
         """
@@ -371,7 +372,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: cd45363e-8a79-4aa4-be97-885aea9434c9
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -390,7 +391,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 143ca57d-89ff-45e0-99cf-4d4033ea3690
 
-        @Assert: Activation key is not created. Appropriate error shown.
+        @expectedresults: Activation key is not created. Appropriate error
+        shown.
 
         @CaseLevel: Integration
         """
@@ -414,7 +416,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 71ecf5b2-ce4f-41b0-b30d-45f89713f8c1
 
-        @Assert: Activation key is not created. Appropriate error shown.
+        @expectedresults: Activation key is not created. Appropriate error
+        shown.
 
         @CaseLevel: Integration
         """
@@ -440,7 +443,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 113e4c1e-cf4d-4c6a-88c9-766db8271933
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -462,7 +465,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: b6019881-3d6e-4b75-89f5-1b62aff3b1ca
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
 
         @CaseLevel: Integration
         """
@@ -490,7 +493,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 7e40e1ed-8314-406b-9451-05f64806a6e6
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
 
         @CaseLevel: Integration
         """
@@ -523,7 +526,7 @@ class ActivationKeyTestCase(UITestCase):
         2. Register systems to it
         3. Delete the Activation key
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
 
         @CaseLevel: System
         """
@@ -563,7 +566,7 @@ class ActivationKeyTestCase(UITestCase):
         2. Attempt to remove an Activation Key
         3. Click Cancel in the confirmation dialog box
 
-        @Assert: Activation key is not deleted
+        @expectedresults: Activation key is not deleted
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -582,7 +585,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 81d74424-893d-46c4-a20c-c20c85d4e898
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -606,7 +609,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 24988466-af1d-4dcd-80b7-9c7d317fb805
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         name = gen_string('alpha')
         description = gen_string('alpha')
@@ -632,7 +635,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 895cda6a-bb1e-4b94-a858-95f0be78a17b
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
 
         @CaseLevel: Integration
         """
@@ -671,7 +674,7 @@ class ActivationKeyTestCase(UITestCase):
         2. Update the Content view with another Content view which has custom
         products
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
 
         @CaseLevel: Integration
         """
@@ -721,7 +724,7 @@ class ActivationKeyTestCase(UITestCase):
         2. Update the content view with another content view which has RH
            products
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
 
         @CaseLevel: Integration
         """
@@ -783,7 +786,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: e6ef8dbe-dfb6-4226-8253-ff2e24cabe12
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -804,7 +807,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 2585ac91-baf0-43de-ba6e-862415402e62
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -826,7 +829,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 6eb0f747-cd4d-421d-b11e-b8917bb0cec6
 
-        @Assert: Activation key is not updated.  Appropriate error shown.
+        @expectedresults: Activation key is not updated.  Appropriate error
+        shown.
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -850,7 +854,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: d42d8b6a-d3f4-4baa-be20-127f52f2313e
 
-        @Assert: Activation key is not updated.  Appropriate error shown.
+        @expectedresults: Activation key is not updated.  Appropriate error
+        shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -885,7 +890,7 @@ class ActivationKeyTestCase(UITestCase):
         3. Register Systems to match the Usage Limit
         4. Attempt to register an other system after reaching the Usage Limit
 
-        @Assert: System Registration fails. Appropriate error shown
+        @expectedresults: System Registration fails. Appropriate error shown
 
         @CaseLevel: System
         """
@@ -931,7 +936,7 @@ class ActivationKeyTestCase(UITestCase):
         2. Create different hosts
         3. Associate the hosts to Activation key
 
-        @Assert: Hosts are successfully associated to Activation key
+        @expectedresults: Hosts are successfully associated to Activation key
 
         @CaseLevel: System
         """
@@ -961,7 +966,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: d805341b-6d2f-4e16-8cb4-902de00b9a6c
 
-        @Assert: RH products are successfully associated to Activation key
+        @expectedresults: RH products are successfully associated to Activation
+        key
 
         @CaseLevel: Integration
         """
@@ -1006,7 +1012,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: e66db2bf-517a-46ff-ba23-9f9744bef884
 
-        @Assert: Custom products are successfully associated to Activation key
+        @expectedresults: Custom products are successfully associated to
+        Activation key
 
         @CaseLevel: Integration
         """
@@ -1045,7 +1052,8 @@ class ActivationKeyTestCase(UITestCase):
         2. Associate RH product(s) to Activation Key
         3. Associate custom product(s) to Activation Key
 
-        @Assert: RH/Custom product is successfully associated to Activation key
+        @expectedresults: RH/Custom product is successfully associated to
+        Activation key
 
         @CaseLevel: Integration
         """
@@ -1117,7 +1125,8 @@ class ActivationKeyTestCase(UITestCase):
         2. Associate a manifest to the Activation Key
         3. Delete the manifest
 
-        @Assert: Deleting a manifest removes it from the Activation key
+        @expectedresults: Deleting a manifest removes it from the Activation
+        key
 
         @CaseLevel: Integration
         """
@@ -1167,7 +1176,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 4d6b6b69-9d63-4180-af2e-a5d908f8adb7
 
-        @Assert: Multiple Activation keys are attached to a system
+        @expectedresults: Multiple Activation keys are attached to a system
 
         @CaseLevel: System
         """
@@ -1240,8 +1249,8 @@ class ActivationKeyTestCase(UITestCase):
         2. Associate it to host-group
         3. Provision content-host with same Activation key
 
-        @Assert: Content-host should be successfully provisioned and registered
-        with Activation key
+        @expectedresults: Content-host should be successfully provisioned and
+        registered with Activation key
 
         @caseautomation: notautomated
 
@@ -1256,7 +1265,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: f43d9ecf-f8ec-49cc-bd12-be7cdb3bf07c
 
-        @Assert: Activation Key copy exists
+        @expectedresults: Activation Key copy exists
         """
         with Session(self.browser) as session:
             for new_name in valid_data_list():
@@ -1276,7 +1285,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 117af9a8-e669-46cb-8a54-071087d0d082
 
-        @Assert: Activation Key copy does not exist
+        @expectedresults: Activation Key copy does not exist
         """
         with Session(self.browser) as session:
             for new_name in invalid_names_list():
@@ -1295,7 +1304,7 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: f0504bd8-52d2-40cd-91c6-64d71b14c876
 
-        @Assert: Activation Key can be read
+        @expectedresults: Activation Key can be read
 
         @BZ: 1291271
         """
@@ -1331,8 +1340,8 @@ class ActivationKeyTestCase(UITestCase):
 
         @id: 4c37fb12-ea2a-404e-b7cc-a2735e8dedb6
 
-        @Assert: Both Red Hat and custom product subscriptions are assigned as
-        Activation Key's product content
+        @expectedresults: Both Red Hat and custom product subscriptions are
+        assigned as Activation Key's product content
 
         @BZ: 1360239
 

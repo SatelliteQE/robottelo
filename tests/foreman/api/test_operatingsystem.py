@@ -41,7 +41,7 @@ class OperatingSystemParameterTestCase(APITestCase):
 
         @id: e817ae43-226c-44e3-b559-62b8d394047b
 
-        @Assert: A parameter is created and can be read afterwards.
+        @expectedresults: A parameter is created and can be read afterwards.
         """
         # Check whether OS 1 exists.
         os1 = entities.OperatingSystem(id=1).read_raw()
@@ -82,7 +82,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: e95707bf-3344-4d85-866f-4642a8f66cff
 
-        @Assert: Operating system entity is created and has proper name
+        @expectedresults: Operating system entity is created and has proper
+        name
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -96,8 +97,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 6ad32d22-53cc-4bab-ac10-f466f75d7cc6
 
-        @Assert: Operating system entity is created and has proper OS family
-        assigned
+        @expectedresults: Operating system entity is created and has proper OS
+        family assigned
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
@@ -111,8 +112,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: fc2e36ca-eb5c-440b-957e-390cd9820945
 
-        @Assert: Operating system entity is created and has proper minor
-        version
+        @expectedresults: Operating system entity is created and has proper
+        minor version
         """
         minor_version = gen_string('numeric')
         os = entities.OperatingSystem(minor=minor_version).create()
@@ -126,7 +127,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: b45e0b94-62f7-45ff-a19e-83c7a0f51339
 
-        @Assert: The minor version can be read back as a string.
+        @expectedresults: The minor version can be read back as a string.
         """
         minor = int(gen_string('numeric', random.randint(1, 16)))
         operating_sys = entities.OperatingSystem(minor=minor).create()
@@ -139,7 +140,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 980e6411-da11-4fec-ae46-47722367ae40
 
-        @Assert: Operating system entity is created and has proper description
+        @expectedresults: Operating system entity is created and has proper
+        description
         """
         name = gen_string('utf8')
         for desc in valid_data_list():
@@ -156,8 +158,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 00830e71-b414-41ab-bc8f-03fd2fbd5a84
 
-        @Assert: Operating system entity is created and has proper password
-        hash type
+        @expectedresults: Operating system entity is created and has proper
+        password hash type
         """
         for pass_hash in ['MD5', 'SHA256', 'SHA512']:
             with self.subTest(pass_hash):
@@ -171,8 +173,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 6a3f7183-b0bf-4834-8c69-a49fe8d7ee5a
 
-        @Assert: The operating system is created and points at the given
-        architecture.
+        @expectedresults: The operating system is created and points at the
+        given architecture.
 
         @CaseLevel: Integration
         """
@@ -189,8 +191,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: afd26c6a-bf54-4883-baa5-95f263e6fb36
 
-        @Assert: The operating system is created and points at the expected
-        architectures.
+        @expectedresults: The operating system is created and points at the
+        expected architectures.
 
         @CaseLevel: Integration
         """
@@ -210,8 +212,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: bef37ff9-d8fa-4518-9073-0518aa9f9a42
 
-        @Assert: The operating system is created and points at the given
-        partition table.
+        @expectedresults: The operating system is created and points at the
+        given partition table.
 
         @CaseLevel: Integration
         """
@@ -228,8 +230,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: ed48a279-a222-45ce-81e4-72ae9422482a
 
-        @Assert: The operating system is created and points at the expected
-        partition tables.
+        @expectedresults: The operating system is created and points at the
+        expected partition tables.
 
         @CaseLevel: Integration
         """
@@ -249,7 +251,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 56fadee4-c676-48b6-a2db-e6fef9d2a575
 
-        @Assert: The operating system is created and points at the given media.
+        @expectedresults: The operating system is created and points at the
+        given media.
 
         @CaseLevel: Integration
         """
@@ -265,8 +268,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: df73ecba-5a1c-4201-9c2f-b2e03e8fec25
 
-        @Assert: The operating system is created and points at the expected
-        config template.
+        @expectedresults: The operating system is created and points at the
+        expected config template.
 
         @CaseLevel: Integration
         """
@@ -284,7 +287,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: cd4286fd-7128-4385-9c8d-ef979c22ee38
 
-        @Assert: Operating system entity is not created
+        @expectedresults: Operating system entity is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -299,7 +302,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 205a433d-750b-4b06-9fd4-274303780d6d
 
-        @Assert: Operating system entity is not created
+        @expectedresults: Operating system entity is not created
         """
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(family='NON_EXISTENT_OS').create()
@@ -313,7 +316,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: fe5fc36a-5994-4d8a-91f6-0425765b8c39
 
-        @Assert: Operating system entity is not created
+        @expectedresults: Operating system entity is not created
 
         @BZ: 1328935
         """
@@ -330,7 +333,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: f2646bc2-d639-4079-bdcb-ff76679f1457
 
-        @Assert: Operating system entity is not created
+        @expectedresults: Operating system entity is not created
         """
         for major_version in gen_string('numeric', 6), '', '-6':
             with self.subTest(major_version):
@@ -345,7 +348,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: dec4b456-153c-4a66-8b8e-b12ac7800e51
 
-        @Assert: Operating system entity is not created
+        @expectedresults: Operating system entity is not created
         """
         for minor_version in gen_string('numeric', 17), '-5':
             with self.subTest(minor_version):
@@ -360,7 +363,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 9cfcb6d4-0601-4fc7-bd1e-8b8327129a69
 
-        @Assert: Operating system entity is not created
+        @expectedresults: Operating system entity is not created
         """
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(password_hash='INVALID_HASH').create()
@@ -374,7 +377,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 3f2ca323-7789-4d2b-bf21-2454317147ff
 
-        @Assert: Second operating system entity is not created
+        @expectedresults: Second operating system entity is not created
         """
         os = entities.OperatingSystem().create()
         with self.assertRaises(HTTPError):
@@ -388,7 +391,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 2898e16a-865a-4de6-b2a5-bb0934fc2b76
 
-        @Assert: Operating system entity is created and updated properly
+        @expectedresults: Operating system entity is created and updated
+        properly
         """
         os = entities.OperatingSystem().create()
         for new_name in valid_data_list():
@@ -405,7 +409,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: c809700a-b6ab-4651-9bd0-d0d9bd6a47dd
 
-        @Assert: Operating system entity is created and updated properly
+        @expectedresults: Operating system entity is created and updated
+        properly
         """
         os = entities.OperatingSystem(description=gen_string('utf8')).create()
         for new_desc in valid_data_list():
@@ -422,7 +427,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: e57fd4a3-f0ae-49fb-bd84-9a6ec606a2a2
 
-        @Assert: Operating system entity is created and updated properly
+        @expectedresults: Operating system entity is created and updated
+        properly
         """
         os = entities.OperatingSystem().create()
         new_major_version = gen_string('numeric', 5)
@@ -438,7 +444,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: ca36f7cf-4487-4743-be06-52c5f47ffe71
 
-        @Assert: Operating system entity is created and updated properly
+        @expectedresults: Operating system entity is created and updated
+        properly
         """
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
         new_minor_version = gen_string('numeric')
@@ -454,7 +461,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 3d1f8fdc-d2de-4277-a0ba-07228a2fae82
 
-        @Assert: Operating system entity is created and updated properly
+        @expectedresults: Operating system entity is created and updated
+        properly
         """
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
         new_os_family = OPERATING_SYSTEMS[
@@ -471,8 +479,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: ad69b4a3-6371-4516-b5ce-f6298edf35b3
 
-        @Assert: The operating system is updated and points at the expected
-        architecture.
+        @expectedresults: The operating system is updated and points at the
+        expected architecture.
 
         @CaseLevel: Integration
         """
@@ -494,8 +502,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 0dde5372-4b90-4c83-b497-31e94065adab
 
-        @Assert: The operating system is updated and points at the expected
-        partition table.
+        @expectedresults: The operating system is updated and points at the
+        expected partition table.
 
         @CaseLevel: Integration
         """
@@ -517,8 +525,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 18b5f6b5-52ab-4722-8412-f0de85ad20fe
 
-        @Assert: The operating system is updated and points at the expected
-        media.
+        @expectedresults: The operating system is updated and points at the
+        expected media.
 
         @CaseLevel: Integration
         """
@@ -540,8 +548,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 756c4aa8-278d-488e-b48f-a8d2ace4526e
 
-        @Assert: The operating system is updated and points at the expected
-        medias.
+        @expectedresults: The operating system is updated and points at the
+        expected medias.
 
         @CaseLevel: Integration
         """
@@ -567,8 +575,8 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 02125a7a-905a-492a-a49b-768adf4ac00c
 
-        @Assert: The operating system is updated and points at the expected
-        config template.
+        @expectedresults: The operating system is updated and points at the
+        expected config template.
 
         @CaseLevel: Integration
         """
@@ -590,7 +598,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 3ba55d6e-99cb-4878-b41b-a59476d1db58
 
-        @Assert: Operating system entity is not updated
+        @expectedresults: Operating system entity is not updated
         """
         os = entities.OperatingSystem().create()
         for new_name in invalid_values_list():
@@ -607,7 +615,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: de07c2f7-0896-493d-976c-e9f3a8a57025
 
-        @Assert: Operating system entity is not updated
+        @expectedresults: Operating system entity is not updated
         """
         os = entities.OperatingSystem().create()
         with self.assertRaises(HTTPError):
@@ -621,7 +629,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 130d028f-302d-4c20-b35c-c7f024f3897b
 
-        @Assert: Operating system entity is not updated
+        @expectedresults: Operating system entity is not updated
         """
         os = entities.OperatingSystem(minor=gen_string('numeric')).create()
         with self.assertRaises(HTTPError):
@@ -636,7 +644,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: fc11506e-8a46-470b-bde0-6fc5db98463f
 
-        @Assert: Operating system entity is not updated
+        @expectedresults: Operating system entity is not updated
         """
         os = entities.OperatingSystem(family=OPERATING_SYSTEMS[0]).create()
         with self.assertRaises(HTTPError):
@@ -650,7 +658,7 @@ class OperatingSystemTestCase(APITestCase):
 
         @id: 3dbffb56-ad99-441d-921c-0fad6504d257
 
-        @Assert: Operating System entity is deleted successfully
+        @expectedresults: Operating System entity is deleted successfully
         """
         for name in valid_data_list():
             with self.subTest(name):

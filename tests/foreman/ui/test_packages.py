@@ -54,8 +54,8 @@ class PackagesTestCase(UITestCase):
 
         @id: e182a89f-74e4-4b29-8152-1ea3bd014fd3
 
-        @Assert: Content search functionality works as intended and expected
-        packages are present inside of repository
+        @expectedresults: Content search functionality works as intended and
+        expected packages are present inside of repository
 
         @CaseLevel: Integration
         """
@@ -73,8 +73,8 @@ class PackagesTestCase(UITestCase):
 
         @id: 249ac04b-8e31-42e9-ac37-08608bf867a1
 
-        @Assert: Content search functionality works as intended and expected
-        packages are present inside of repositories
+        @expectedresults: Content search functionality works as intended and
+        expected packages are present inside of repositories
 
         @CaseLevel: Integration
         """
@@ -97,8 +97,8 @@ class PackagesTestCase(UITestCase):
 
         @id: 57625386-4a9e-4bea-b2d5-d97326043150
 
-        @Assert: Package is present inside of repository and has all expected
-        values in details section
+        @expectedresults: Package is present inside of repository and has all
+        expected values in details section
 
         @CaseLevel: Integration
         """

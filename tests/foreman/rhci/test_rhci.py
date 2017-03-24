@@ -61,7 +61,7 @@ class RHCIDeploymentTestCase(APITestCase):
 
         @id: b1162fea-9afd-4b8d-89cc-e141e02fcdbe
 
-        @Assert: An RHCI deployment is created with a random name.
+        @expectedresults: An RHCI deployment is created with a random name.
 
         """
         for name in (gen_string(str_type='alpha'),
@@ -89,7 +89,7 @@ class RHCIDeploymentTestCase(APITestCase):
 
         @id: 1761b17f-b2cb-44fc-9dd8-f2e9fbccbb38
 
-        @Assert: An RHCI deployment is updated with a random name.
+        @expectedresults: An RHCI deployment is updated with a random name.
 
         """
         for data in valid_name_update_tests():
@@ -116,7 +116,7 @@ class RHCIDeploymentTestCase(APITestCase):
 
         @id: 89bb4342-a99d-4653-a7cd-fc3f08acaf72
 
-        @Assert: An RHCI deployment is deleted.
+        @expectedresults: An RHCI deployment is deleted.
 
         """
         data = gen_string(str_type='alpha')

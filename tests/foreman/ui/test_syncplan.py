@@ -123,7 +123,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: ceb125a4-449a-4a86-a94f-2a28884e3a41
 
-        @Assert: Sync Plan is created
+        @expectedresults: Sync Plan is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -143,7 +143,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 6ccd2229-dcc3-4090-9ec9-84fea837c50c
 
-        @Assert: Sync Plan is created
+        @expectedresults: Sync Plan is created
         """
         with Session(self.browser) as session:
             for desc in generate_strings_list():
@@ -164,7 +164,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 8916285a-c8d2-415a-b694-c32727e93ac0
 
-        @Assert: Sync Plan is created
+        @expectedresults: Sync Plan is created
         """
         with Session(self.browser) as session:
             for interval in valid_sync_intervals():
@@ -185,7 +185,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: a4709229-325c-4027-b4dc-10a226c4d7bf
 
-        @Assert: Sync Plan is created with the specified time.
+        @expectedresults: Sync Plan is created with the specified time.
 
         @CaseLevel: Integration
         """
@@ -217,7 +217,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 020b3aff-7216-4ad6-b95e-8ffaf68cba20
 
-        @Assert: Sync Plan is created with the specified date
+        @expectedresults: Sync Plan is created with the specified date
 
         @CaseLevel: Integration
         """
@@ -246,7 +246,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 64724669-0289-4e8a-a44d-eb47e094ef18
 
-        @Assert: Sync Plan is not created
+        @expectedresults: Sync Plan is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -266,7 +266,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 6d042f9b-82f2-4795-aa48-4603c1698aaa
 
-        @Assert: Sync Plan cannot be created with existing name
+        @expectedresults: Sync Plan cannot be created with existing name
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -287,7 +287,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 6b22468f-6abc-4a63-b283-28c7816a5e86
 
-        @Assert: Sync Plan's name is updated
+        @expectedresults: Sync Plan's name is updated
         """
         plan_name = gen_string('alpha')
         entities.SyncPlan(
@@ -309,7 +309,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 35820efd-099e-45dd-8298-77d5f35c26db
 
-        @Assert: Sync Plan's interval is updated
+        @expectedresults: Sync Plan's interval is updated
         """
         name = gen_string('alpha')
         entities.SyncPlan(
@@ -336,7 +336,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 19bdb36a-ed2a-4bbb-9d8d-9ad9f6a800a2
 
-        @Assert: Sync Plan has the associated product
+        @expectedresults: Sync Plan has the associated product
 
         @CaseLevel: Integration
         """
@@ -365,7 +365,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 860bd88e-a425-4218-b02c-64402ee8af9d
 
-        @Assert: Sync Plan does not have the associated product
+        @expectedresults: Sync Plan does not have the associated product
 
         @CaseLevel: Integration
         """
@@ -401,7 +401,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 81beec05-e38c-48bc-8f01-10cb1e10a3f6
 
-        @Assert: Sync Plan is deleted successfully
+        @expectedresults: Sync Plan is deleted successfully
         """
         with Session(self.browser) as session:
             for plan_name in generate_strings_list():
@@ -422,7 +422,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: bf01f23f-ba55-4c88-baad-85603fce57a4
 
-        @Assert: sync plan should be created successfully
+        @expectedresults: sync plan should be created successfully
 
         @caseautomation: notautomated
 
@@ -438,7 +438,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: b56fccb9-8f84-4676-a777-b3c6458c909e
 
-        @Assert: Repository was not synchronized
+        @expectedresults: Repository was not synchronized
 
         @BZ: 1279539
 
@@ -476,7 +476,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: d65e91c4-a0b6-4588-a3ff-fe9cd3762556
 
-        @Assert: Product is synchronized successfully.
+        @expectedresults: Product is synchronized successfully.
 
         @BZ: 1279539
 
@@ -524,7 +524,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: fdd3b2a2-8d8e-4a18-b6a5-363e8dd5f998
 
-        @Assert: Product is synchronized successfully.
+        @expectedresults: Product is synchronized successfully.
 
         @CaseLevel: System
         """
@@ -576,7 +576,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 9564e726-59c6-4d24-bb3d-f0ab3c4b26a5
 
-        @Assert: Products are synchronized successfully.
+        @expectedresults: Products are synchronized successfully.
 
         @CaseLevel: System
         """
@@ -644,7 +644,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 73a456fb-ad17-4921-b57c-27fc8e432a83
 
-        @Assert: Product is synchronized successfully.
+        @expectedresults: Product is synchronized successfully.
 
         @BZ: 1279539
 
@@ -707,7 +707,7 @@ class SyncPlanTestCase(UITestCase):
 
         @id: 193d0159-d4a7-4f50-b037-7289f4576ade
 
-        @Assert: Product is synchronized successfully.
+        @expectedresults: Product is synchronized successfully.
 
         @CaseLevel: System
         """

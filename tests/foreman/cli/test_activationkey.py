@@ -93,7 +93,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: a5aaab5e-bc18-459e-a384-74aef752ec88
 
-        @Assert: Activation key is created with chosen name
+        @expectedresults: Activation key is created with chosen name
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -106,7 +106,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 5a5ca7f9-1449-4365-ac8a-978605620bf2
 
-        @Assert: Activation key is created with chosen description
+        @expectedresults: Activation key is created with chosen description
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -122,7 +122,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 9171adb2-c9ac-4cda-978f-776826668aa3
 
-        @Assert: Activation key is created and associated to Library
+        @expectedresults: Activation key is created and associated to Library
         """
         lce = self.get_default_env()
         new_ak_env = self._make_activation_key({
@@ -137,7 +137,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: ad4d4611-3fb5-4449-ae47-305f9931350e
 
-        @Assert: Activation key is created and associated to expected
+        @expectedresults: Activation key is created and associated to expected
         environment
         """
         env = make_lifecycle_environment({u'organization-id': self.org['id']})
@@ -153,7 +153,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 7410f7c4-e8b5-4080-b6d2-65dbcedffe8a
 
-        @assert: Activation key is created
+        @expectedresults: Activation key is created
         """
         lce = self.get_default_env()
         new_ak_env = self._make_activation_key({
@@ -168,7 +168,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: ec7b1af5-c3f4-40c3-b1df-c69c02a3b9a7
 
-        @Assert: Activation key is created and has proper content view assigned
+        @expectedresults: Activation key is created and has proper content view
+        assigned
 
         @CaseLevel: Integration
         """
@@ -191,7 +192,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: cba13c72-9845-486d-beff-e0fb55bb762c
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
         """
         new_ak = self._make_activation_key()
         self.assertEqual(new_ak['host-limit'], u'Unlimited')
@@ -202,7 +203,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 529a0f9e-977f-4e9d-a1af-88bb98c28a6a
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
         """
         new_ak = self._make_activation_key({
             u'max-hosts': '10',
@@ -216,7 +217,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: d9b7e3a9-1d24-4e47-bd4a-dce75772d829
 
-        @Assert: Activation key is not created. Appropriate error shown.
+        @expectedresults: Activation key is not created. Appropriate error
+        shown.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -229,7 +231,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 247ebc2e-c80f-488b-aeaf-6bf5eba55375
 
-        @Assert: Activation key is not created. Appropriate error shown.
+        @expectedresults: Activation key is not created. Appropriate error
+        shown.
         """
         include_list = ['-1', '-500', 0, 0.5]
         for limit in invalid_values_list() + include_list:
@@ -246,7 +249,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: ef5f6a28-6bfd-415b-aac9-b3dc9a014ca9
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -269,7 +272,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 006cbe5c-fb72-43a1-9760-30c97043c36b
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
         """
         new_ak = self._make_activation_key()
         ActivationKey.delete({
@@ -287,7 +290,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: f66e5a42-b531-4290-a907-9f5c01305885
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
         """
         new_ak = self._make_activation_key()
         ActivationKey.delete({
@@ -305,7 +308,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: bba323fa-0362-4a9b-97af-560d446cbb6c
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
 
         @CaseLevel: Integration
         """
@@ -323,7 +326,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: e1830e52-5b1a-4ac4-8d0a-df6efb218a8b
 
-        @Assert: Activation key is deleted
+        @expectedresults: Activation key is deleted
 
         @CaseLevel: Integration
         """
@@ -341,7 +344,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: bc304894-fd9b-4622-96e3-57c2257e26ca
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         activation_key = self._make_activation_key()
         for name in valid_data_list():
@@ -362,7 +365,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: bce4533e-1a58-4edb-a51a-4aa46bc28676
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         new_name = gen_string('alpha')
         activation_key = self._make_activation_key()
@@ -381,7 +384,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 60a4e860-d99c-431e-b70b-9b0fa90d839b
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         activation_key = self._make_activation_key()
         for description in valid_data_list():
@@ -401,7 +404,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 55aaee60-b8c8-49f0-995a-6c526b9b653b
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
 
         @CaseLevel: Integration
         """
@@ -432,7 +435,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: aa94997d-fc9b-4532-aeeb-9f27b9834914
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
 
         @CaseLevel: Integration
         """
@@ -453,7 +456,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: a55bb8dc-c7d8-4a6a-ac0f-1d5a377da543
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         new_ak = self._make_activation_key()
         self.assertEqual(new_ak['host-limit'], u'Unlimited')
@@ -471,7 +474,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 0b83657b-41d1-4fb2-9c23-c36011322b83
 
-        @Assert: Activation key is updated
+        @expectedresults: Activation key is updated
         """
         new_ak = self._make_activation_key({
             u'max-hosts': '10',
@@ -491,7 +494,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: b75e7c38-fde2-4110-ba65-4157319fc159
 
-        @Assert: Activation key is not updated. Appropriate error shown.
+        @expectedresults: Activation key is not updated. Appropriate error
+        shown.
         """
         new_ak = self._make_activation_key()
         for name in invalid_values_list():
@@ -510,7 +514,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: cb5fa263-924c-471f-9c57-9506117ca92d
 
-        @Assert: Activation key is not updated. Appropriate error shown.
+        @expectedresults: Activation key is not updated. Appropriate error
+        shown.
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError):
@@ -535,7 +540,8 @@ class ActivationKeyTestCase(CLITestCase):
         4. Attempt to register an other Content host after reaching the Usage
            Limit
 
-        @Assert: Content host Registration fails. Appropriate error shown
+        @expectedresults: Content host Registration fails. Appropriate error
+        shown
 
         @CaseLevel: System
         """
@@ -576,7 +582,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @BZ: 1110476
 
-        @Assert: Hosts are successfully associated to Activation key
+        @expectedresults: Hosts are successfully associated to Activation key
 
         @CaseLevel: Integration
         """
@@ -608,7 +614,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 7b15de8e-edde-41aa-937b-ad6aa529891a
 
-        @Assert: RH products are successfully associated to Activation key
+        @expectedresults: RH products are successfully associated to Activation
+        key
 
         @CaseLevel: System
         """
@@ -632,7 +639,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 96ace967-e165-4069-8ff7-f54c4c822de0
 
-        @Assert: Custom products are successfully associated to Activation key
+        @expectedresults: Custom products are successfully associated to
+        Activation key
 
         @CaseLevel: System
 
@@ -664,7 +672,8 @@ class ActivationKeyTestCase(CLITestCase):
         2. Associate RH product(s) to Activation Key
         3. Associate custom product(s) to Activation Key
 
-        @Assert: RH/Custom product is successfully associated to Activation key
+        @expectedresults: RH/Custom product is successfully associated to
+        Activation key
 
         @CaseLevel: System
 
@@ -705,7 +714,8 @@ class ActivationKeyTestCase(CLITestCase):
         3. Delete manifest
         4. See if the activation key automatically removed the subscriptions.
 
-        @Assert: Deleting a manifest removes it from the Activation key
+        @expectedresults: Deleting a manifest removes it from the Activation
+        key
 
         @caseautomation: notautomated
         """
@@ -719,7 +729,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: bbbe4641-bfb0-48d6-acfc-de4294b18c15
 
-        @Assert: Deleting subscription removes it from the Activation key
+        @expectedresults: Deleting subscription removes it from the Activation
+        key
 
         @CaseLevel: Integration
         """
@@ -763,7 +774,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 24fddd9c-03ae-41a7-8649-72296cbbafdf
 
-        @Assert: Multiple Activation keys are attached to a Content host
+        @expectedresults: Multiple Activation keys are attached to a Content
+        host
 
         @CaseLevel: System
         """
@@ -811,7 +823,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 888669e2-2ff7-48e3-9c56-6ac497bec5a0
 
-        @Assert: Multiple Activation keys are attached to a Content host
+        @expectedresults: Multiple Activation keys are attached to a Content
+        host
 
         @CaseLevel: System
         """
@@ -822,7 +835,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 644b70d9-86c1-4e26-b38e-6aafab3efa34
 
-        @Assert: Activation key is listed
+        @expectedresults: Activation key is listed
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -840,7 +853,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 4d9aad38-cd6e-41cb-99a0-9a593cf22655
 
-        @Assert: Activation key is listed
+        @expectedresults: Activation key is listed
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         self._make_activation_key({u'content-view-id': cv['id']})
@@ -858,7 +871,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 9801319a-f42c-41a4-9ea4-3718e544c8e0
 
-        @Assert: Activation key is created
+        @expectedresults: Activation key is created
         """
         name = gen_string('utf8')
         activation_key = self._make_activation_key({'name': name})
@@ -892,7 +905,8 @@ class ActivationKeyTestCase(CLITestCase):
         4. Remove host collection associated to Activation key using id of that
            collection
 
-        @Assert: Host collection successfully removed from activation key
+        @expectedresults: Host collection successfully removed from activation
+        key
 
         @CaseLevel: Integration
         """
@@ -932,7 +946,8 @@ class ActivationKeyTestCase(CLITestCase):
         4. Remove the host collection associated to Activation key using name
            of that collection
 
-        @Assert: Host collection successfully removed from activation key
+        @expectedresults: Host collection successfully removed from activation
+        key
 
         @CaseLevel: Integration
         """
@@ -982,7 +997,7 @@ class ActivationKeyTestCase(CLITestCase):
         2. Upload manifest and add subscription
         3. Associate the activation key to subscription
 
-        @Assert: Subscription successfully added to activation key
+        @expectedresults: Subscription successfully added to activation key
 
         @CaseLevel: Integration
         """
@@ -1011,7 +1026,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: c9ad8aff-07ba-4804-a198-f719fe905123
 
-        @Assert: Activation key is successfully copied
+        @expectedresults: Activation key is successfully copied
         """
         parent_ak = self._make_activation_key()
         for new_name in valid_data_list():
@@ -1029,7 +1044,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 5d5405e6-3b26-47a3-96ff-f6c0f6c32607
 
-        @Assert: Activation key is successfully copied
+        @expectedresults: Activation key is successfully copied
         """
         parent_ak = self._make_activation_key()
         result = ActivationKey.copy({
@@ -1045,7 +1060,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: f867c468-4155-495c-a1e5-c04d9868a2e0
 
-        @Assert: Activation key is not successfully copied
+        @expectedresults: Activation key is not successfully copied
         """
         parent_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as exception:
@@ -1070,7 +1085,7 @@ class ActivationKeyTestCase(CLITestCase):
         2. Copy Activation key by passing id of parent
         3. Verify content was successfully copied
 
-        @Assert: Activation key is successfully copied
+        @expectedresults: Activation key is successfully copied
 
         @CaseLevel: Integration
         """
@@ -1118,7 +1133,7 @@ class ActivationKeyTestCase(CLITestCase):
         2. Update the key with the value's inverse.
         3. Verify key was updated.
 
-        @Assert: Activation key is successfully copied
+        @expectedresults: Activation key is successfully copied
         """
         new_ak = self._make_activation_key()
         attach_value = new_ak['auto-attach']
@@ -1138,7 +1153,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: 9e18b950-6f0f-4f82-a3ac-ef6aba950a78
 
-        @Assert: Activation key is successfully updated
+        @expectedresults: Activation key is successfully updated
         """
         new_ak = self._make_activation_key()
         for new_value in (u'1', u'0', u'true', u'false', u'yes', u'no'):
@@ -1162,7 +1177,8 @@ class ActivationKeyTestCase(CLITestCase):
         1. Attempt to update a key with incorrect auto-attach value
         2. Verify that an appropriate error message was returned
 
-        @Assert: Activation key is not updated. Appropriate error shown.
+        @expectedresults: Activation key is not updated. Appropriate error
+        shown.
         """
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError) as exe:
@@ -1188,7 +1204,7 @@ class ActivationKeyTestCase(CLITestCase):
         3. Override the product's content enabled state
         4. Verify that the command succeeded
 
-        @Assert: Activation key content override was successful
+        @expectedresults: Activation key content override was successful
 
         @CaseLevel: System
         """
@@ -1222,7 +1238,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @id: ba9c4b29-2349-47ea-8081-917de2c17ed2
 
-        @Assert: Activation Key can be read
+        @expectedresults: Activation Key can be read
 
         @BZ: 1291271
         """

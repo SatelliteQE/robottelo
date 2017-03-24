@@ -52,7 +52,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 1e545c56-2f53-44c1-a17e-38c83f8fe0c1
 
-        @Assert: Compute resources are created with expected names
+        @expectedresults: Compute resources are created with expected names
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -70,7 +70,8 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 1fa5b35d-ee47-452b-bb5f-4a4ca321f992
 
-        @Assert: Compute resources are created with expected descriptions
+        @expectedresults: Compute resources are created with expected
+        descriptions
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -89,7 +90,8 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 76380f31-e217-4ff1-ac6b-20f41e59f133
 
-        @Assert: Compute resources are created with expected display_type value
+        @expectedresults: Compute resources are created with expected
+        display_type value
         """
         for display_type in ('spice', 'vnc'):
             with self.subTest(display_type):
@@ -108,7 +110,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: f61c66c9-15f8-4b00-9e53-7ebfb09397cc
 
-        @Assert: Compute resources are created with expected providers
+        @expectedresults: Compute resources are created with expected providers
         """
         for entity in (entities.DockerComputeResource(),
                        entities.LibvirtComputeResource()):
@@ -124,8 +126,8 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: c6c6c6f7-50ca-4f38-8126-eb95359d7cbb
 
-        @Assert: A compute resource is created with expected multiple locations
-        assigned
+        @expectedresults: A compute resource is created with expected multiple
+        locations assigned
 
         @CaseLevel: Integration
         """
@@ -149,7 +151,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 2f6e5019-6353-477e-a81f-2a551afc7556
 
-        @Assert: A compute resource is created with expected multiple
+        @expectedresults: A compute resource is created with expected multiple
         organizations assigned
 
         @CaseLevel: Integration
@@ -173,7 +175,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 60f08418-b1a2-445e-9cd6-dbc92a33b57a
 
-        @Assert: Compute resource is updated with expected names
+        @expectedresults: Compute resource is updated with expected names
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -192,7 +194,8 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: aac5dc53-8709-441b-b360-28b8efd3f63f
 
-        @Assert: Compute resource is updated with expected descriptions
+        @expectedresults: Compute resource is updated with expected
+        descriptions
         """
         compresource = entities.LibvirtComputeResource(
             description=gen_string('alpha'),
@@ -213,7 +216,8 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 0cbf08ac-acc4-476a-b389-271cea2b6cda
 
-        @Assert: Compute resource is updated with expected display_type value
+        @expectedresults: Compute resource is updated with expected
+        display_type value
         """
         compresource = entities.LibvirtComputeResource(
             display_type='VNC',
@@ -233,7 +237,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 259aa060-ed9e-4ed5-91e1-7fb0a3592879
 
-        @Assert: Compute resource is updated with expected url
+        @expectedresults: Compute resource is updated with expected url
         """
         new_url = 'qemu+tcp://localhost:16509/system'
 
@@ -252,7 +256,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 57e96c7c-da9e-4400-af80-c374cd6b3d4a
 
-        @Assert: Compute resource is updated with expected location
+        @expectedresults: Compute resource is updated with expected location
 
         @CaseLevel: Integration
         """
@@ -273,7 +277,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: cda9f501-2879-4cb0-a017-51ee795232f1
 
-        @Assert: Compute resource is updated with expected locations
+        @expectedresults: Compute resource is updated with expected locations
 
         @CaseLevel: Integration
         """
@@ -299,7 +303,8 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 430b64a2-7f64-4344-a73b-1b47d8dfa6cb
 
-        @Assert: Compute resource is updated with expected organization
+        @expectedresults: Compute resource is updated with expected
+        organization
 
         @CaseLevel: Integration
         """
@@ -319,7 +324,8 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 2c759ad5-d115-46d9-8365-712c0bb39a1d
 
-        @Assert: Compute resource is updated with expected organizations
+        @expectedresults: Compute resource is updated with expected
+        organizations
 
         @CaseLevel: Integration
         """
@@ -344,7 +350,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 0117a4f1-e2c2-44aa-8919-453166aeebbc
 
-        @Assert: Compute resources is successfully deleted
+        @expectedresults: Compute resources is successfully deleted
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -361,7 +367,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: f73bf838-3ffd-46d3-869c-81b334b47b13
 
-        @Assert: Compute resources are not created
+        @expectedresults: Compute resources are not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -379,7 +385,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 9376e25c-2aa8-4d99-83aa-2eec160c030e
 
-        @Assert: Compute resources is not created
+        @expectedresults: Compute resources is not created
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
@@ -402,7 +408,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 37e9bf39-382e-4f02-af54-d3a17e285c2a
 
-        @Assert: Compute resources are not created
+        @expectedresults: Compute resources are not created
         """
         for url in ('', gen_string('alpha')):
             with self.subTest(url):
@@ -419,7 +425,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: a6554c1f-e52f-4614-9fc3-2127ced31470
 
-        @Assert: Compute resource is not updated
+        @expectedresults: Compute resource is not updated
         """
         name = gen_string('alphanumeric')
         compresource = entities.LibvirtComputeResource(
@@ -441,7 +447,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: 4d7c5eb0-b8cb-414f-aa10-fe464a164ab4
 
-        @Assert: Compute resources is not updated
+        @expectedresults: Compute resources is not updated
         """
         name = gen_string('alphanumeric')
         entities.LibvirtComputeResource(
@@ -466,7 +472,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @id: b5256090-2ceb-4976-b54e-60d60419fe50
 
-        @Assert: Compute resources is not updated
+        @expectedresults: Compute resources is not updated
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],

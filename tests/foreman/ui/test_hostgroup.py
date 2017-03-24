@@ -54,7 +54,7 @@ class HostgroupTestCase(UITestCase):
 
         @id: 8bcf45e5-9e7f-4050-9de6-a90350b70006
 
-        @Assert: Hostgroup is created
+        @expectedresults: Hostgroup is created
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -69,7 +69,7 @@ class HostgroupTestCase(UITestCase):
 
         @id: a0232740-ae9f-44ce-9f3d-bafc8f1b05cb
 
-        @Assert: Hostgroup is not created
+        @expectedresults: Hostgroup is not created
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -85,7 +85,7 @@ class HostgroupTestCase(UITestCase):
 
         @id: 237b684d-3b55-444a-be00-a9825952bb53
 
-        @Assert: Hostgroup is not created
+        @expectedresults: Hostgroup is not created
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -102,7 +102,7 @@ class HostgroupTestCase(UITestCase):
 
         @id: f118532b-ca9b-4bf4-b53b-9573abcb347a
 
-        @Assert: Hostgroup is deleted
+        @expectedresults: Hostgroup is deleted
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -117,7 +117,7 @@ class HostgroupTestCase(UITestCase):
 
         @id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
 
-        @Assert: Hostgroup is updated
+        @expectedresults: Hostgroup is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -136,7 +136,7 @@ class HostgroupTestCase(UITestCase):
 
         @id: c0ab1148-93ff-41d3-93c3-2ff139349884
 
-        @Assert: Hostgroup is created with oscap capsule
+        @expectedresults: Hostgroup is created with oscap capsule
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -157,7 +157,7 @@ class HostgroupTestCase(UITestCase):
 
         @id: cfda3c1b-37fd-42c1-a74c-841efb83b2f5
 
-        @Assert: Hostgroup is created with activation keys
+        @expectedresults: Hostgroup is created with activation keys
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -187,7 +187,7 @@ class HostgroupTestCase(UITestCase):
         5. Go to the new Hostgroup page, select content view B & Library,
             click on the activation key tab and click in the input box
 
-        @Assert: Only the activation key for view B is listed
+        @expectedresults: Only the activation key for view B is listed
 
         @BZ: 1321511
         """

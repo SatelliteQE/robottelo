@@ -47,7 +47,7 @@ class LDAPAuthSourceTestCase(UITestCase):
         1. Create a new LDAP Auth source with AD.
         2. Fill in all the fields appropriately for AD.
 
-        @Assert: Whether creating LDAP Auth with AD is successful.
+        @expectedresults: Whether creating LDAP Auth with AD is successful.
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():
@@ -81,7 +81,7 @@ class LDAPAuthSourceTestCase(UITestCase):
         1. Create a new LDAP Auth source with AD.
         2. Delete LDAP Auth source with AD.
 
-        @Assert: Whether deleting LDAP Auth with AD is successful.
+        @expectedresults: Whether deleting LDAP Auth with AD is successful.
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():

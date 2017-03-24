@@ -75,7 +75,7 @@ class JobTemplateTestCase(CLITestCase):
 
         @id: a5a67b10-61b0-4362-b671-9d9f095c452c
 
-        @Assert: The job template was successfully created
+        @expectedresults: The job template was successfully created
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -93,8 +93,8 @@ class JobTemplateTestCase(CLITestCase):
 
         @id: eb51afd4-e7b3-42c3-81c3-6e18ef3d7efe
 
-        @Assert: Job Template with invalid name cannot be created and error is
-        raised
+        @expectedresults: Job Template with invalid name cannot be created and
+        error is raised
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -115,7 +115,7 @@ class JobTemplateTestCase(CLITestCase):
 
         @id: 66100c82-97f5-4300-a0c9-8cf041f7789f
 
-        @Assert: The name duplication is caught and error is raised
+        @expectedresults: The name duplication is caught and error is raised
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -139,7 +139,7 @@ class JobTemplateTestCase(CLITestCase):
 
         @id: 749be863-94ae-4008-a242-c23f353ca404
 
-        @Assert: The empty file is detected and error is raised
+        @expectedresults: The empty file is detected and error is raised
         """
         template_name = gen_string('alpha', 7)
         with self.assertRaisesRegex(
@@ -158,7 +158,7 @@ class JobTemplateTestCase(CLITestCase):
 
         @id: 33104c04-20e9-47aa-99da-4bf3414ea31a
 
-        @Assert: The Job Template has been deleted
+        @expectedresults: The Job Template has been deleted
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -176,7 +176,7 @@ class JobTemplateTestCase(CLITestCase):
 
         @id: 25fcfcaa-fc4c-425e-919e-330e36195c4a
 
-        @Assert: Verify no errors are thrown
+        @expectedresults: Verify no errors are thrown
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -258,7 +258,7 @@ class RemoteExecutionTestCase(CLITestCase):
 
         @id: f4470ed4-f971-4a3c-a2f1-150d45755e48
 
-        @Assert: Verify the job was successfully ran against the host
+        @expectedresults: Verify the job was successfully ran against the host
         """
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
@@ -282,7 +282,7 @@ class RemoteExecutionTestCase(CLITestCase):
 
         @id: 71928f36-61b4-46e6-842c-a051cfd9a68e
 
-        @Assert: Verify the job was successfully ran against the host
+        @expectedresults: Verify the job was successfully ran against the host
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
@@ -311,7 +311,8 @@ class RemoteExecutionTestCase(CLITestCase):
 
         @id: 1953517b-6908-40aa-858b-747629d2f374
 
-        @Assert: Verify the job was successfully ran after the designated time
+        @expectedresults: Verify the job was successfully ran after the
+        designated time
         """
         system_current_time = ssh.command('date +"%b %d %Y %I:%M%p"').stdout[0]
         current_time_object = datetime.strptime(

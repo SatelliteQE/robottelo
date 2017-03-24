@@ -75,8 +75,8 @@ class RHAIClientTestCase(TestCase):
 
         @id: 167758c9-cbfa-4a81-9a11-27f88aaf9118
 
-        @Assert: 'redhat-access-insights --test-connection' should return
-        zero on a successfully registered machine to RHAI service
+        @expectedresults: 'redhat-access-insights --test-connection' should
+        return zero on a successfully registered machine to RHAI service
         """
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.configure_rhai_client(self.ak_name, self.org_label,

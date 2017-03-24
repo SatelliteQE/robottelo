@@ -94,7 +94,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: ad2b1b03-68a1-49c8-9523-4164fcd7ee14
 
-        @Assert: Content host is created and has random name
+        @expectedresults: Content host is created and has random name
         """
         for name in valid_hosts_list():
             with self.subTest(name):
@@ -113,7 +113,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: c08b0dac-9820-4261-bb0b-8a78f5c78a74
 
-        @Assert: Content host is created using organization name
+        @expectedresults: Content host is created using organization name
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
@@ -135,7 +135,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 4723e735-3a14-4ebd-83c1-30be065f4b42
 
-        @Assert: Content host is created using organization label
+        @expectedresults: Content host is created using organization label
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
@@ -158,7 +158,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: bb69a70e-17f9-4639-802d-90e6a4520afa
 
-        @Assert: Content host is created using content view name
+        @expectedresults: Content host is created using content view name
         """
         new_system = make_content_host({
             u'content-view': self.DEFAULT_CV['name'],
@@ -176,7 +176,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 0093be1c-3664-448e-87f5-758bab34958a
 
-        @Assert: Content host is created using lifecycle name
+        @expectedresults: Content host is created using lifecycle name
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
@@ -197,7 +197,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: e102b034-0011-471d-ba21-5ef8d129a61f
 
-        @Assert: Content host is created using new lifecycle
+        @expectedresults: Content host is created using new lifecycle
         """
         new_system = make_content_host({
             u'content-view-id': self.PROMOTED_CV['id'],
@@ -218,7 +218,8 @@ class ContentHostTestCase(CLITestCase):
 
         @id: f90873b9-fb3a-4c93-8647-4b1aea0a2c35
 
-        @Assert: Content host is created using new published, promoted cv
+        @expectedresults: Content host is created using new published, promoted
+        cv
         """
         if ContentHostTestCase.PROMOTED_CV is None:
             self.fail("Couldn't prepare promoted contentview for this test")
@@ -242,7 +243,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: f92b6070-b2d1-4e3e-975c-39f1b1096697
 
-        @Assert: Content host is not created
+        @expectedresults: Content host is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -261,7 +262,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 9997383d-3c27-4f14-94f9-4b8b51180eb6
 
-        @Assert: Content host is not created using new unpublished cv
+        @expectedresults: Content host is not created using new unpublished cv
         """
         cv = make_content_view({
             u'organization-id': ContentHostTestCase.NEW_ORG['id'],
@@ -282,7 +283,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 1aa55e52-a97e-4c11-aab1-244bd4de0dd3
 
-        @Assert: Content host is created and then deleted
+        @expectedresults: Content host is created and then deleted
 
         @BZ: 1328202
         """
@@ -304,7 +305,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 22f1206c-b712-45e9-8e65-3a0a225d6188
 
-        @Assert: Content host is created and then deleted
+        @expectedresults: Content host is created and then deleted
         """
         for name in valid_hosts_list():
             with self.subTest(name):
@@ -324,8 +325,8 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 178d3570-7177-435b-96e9-bcbb6b0b63b3
 
-        @Assert: The UUID generated is different when registering the same
-        content host.
+        @expectedresults: The UUID generated is different when registering the
+        same content host.
         """
         name = gen_string('alpha', 15).lower()
         content_host = make_content_host({
@@ -352,7 +353,8 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
 
-        @Assert: Content host successfully registered to appropriate org
+        @expectedresults: Content host successfully registered to appropriate
+        org
 
         @CaseLevel: System
         """
@@ -377,7 +379,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
 
-        @Assert: Content host cannot be registered twice
+        @expectedresults: Content host cannot be registered twice
 
         @CaseLevel: System
         """
@@ -409,7 +411,7 @@ class ContentHostTestCase(CLITestCase):
 
         @id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
 
-        @Assert: Content hosts are listed for the given org
+        @expectedresults: Content hosts are listed for the given org
 
         @CaseLevel: System
         """
@@ -437,8 +439,8 @@ class ContentHostTestCase(CLITestCase):
 
         @id: c5ce988d-d0ea-4958-9956-5a4b039b285c
 
-        @Assert: After unregistering, content hosts list for the org does not
-        show the content host
+        @expectedresults: After unregistering, content hosts list for the org
+        does not show the content host
 
         @CaseLevel: System
         """

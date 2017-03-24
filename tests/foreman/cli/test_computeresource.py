@@ -125,7 +125,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: 6460bcc7-d7f7-406a-aecb-b3d54d51e697
 
-        @Assert: Compute resource is created
+        @expectedresults: Compute resource is created
 
         """
         ComputeResource.create({
@@ -141,7 +141,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: f54af041-4471-4d8e-9429-45d821df0440
 
-        @Assert: Compute resource Info is displayed
+        @expectedresults: Compute resource Info is displayed
 
         """
         name = gen_string('utf8')
@@ -160,7 +160,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: 11123361-ffbc-4c59-a0df-a4af3408af7a
 
-        @Assert: Compute resource List is displayed
+        @expectedresults: Compute resource List is displayed
 
         """
         comp_res = make_compute_resource({
@@ -181,7 +181,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: 7fcc0b66-f1c1-4194-8a4b-7f04b1dd439a
 
-        @Assert: Compute resource deleted
+        @expectedresults: Compute resource deleted
 
         """
         comp_res = make_compute_resource({
@@ -202,7 +202,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: adc6f4f8-6420-4044-89d1-c69e0bfeeab9
 
-        @Assert: Compute Resource created
+        @expectedresults: Compute Resource created
 
         """
         for options in valid_name_desc_data():
@@ -221,7 +221,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: 224c7cbc-6bac-4a94-8141-d6249896f5a2
 
-        @Assert: Compute resource is created and has location assigned
+        @expectedresults: Compute resource is created and has location assigned
 
         """
         location = make_location()
@@ -236,8 +236,8 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: f665c586-39bf-480a-a0fc-81d9e1eb7c54
 
-        @Assert: Compute resource is created and has multiple locations
-        assigned
+        @expectedresults: Compute resource is created and has multiple
+        locations assigned
 
         """
         locations_amount = random.randint(3, 5)
@@ -258,7 +258,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: 4531b3e3-906b-4835-a6ab-3332dc9bd636
 
-        @Assert: Compute Resource is created and set-console-password
+        @expectedresults: Compute Resource is created and set-console-password
         parameter is set
 
         @BZ: 1214312
@@ -286,7 +286,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: cd432ff3-b3b9-49cd-9a16-ed00d81679dd
 
-        @Assert: Compute resource not created
+        @expectedresults: Compute resource not created
         """
         for options in invalid_create_data():
             with self.subTest(options):
@@ -305,7 +305,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: ddb5c45b-1ea3-46d0-b248-56c0388d2e4b
 
-        @Assert: Compute resource not created
+        @expectedresults: Compute resource not created
 
         """
         comp_res = make_compute_resource()
@@ -325,7 +325,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: 213d7f04-4c54-4985-8ca0-d2a1a9e3b305
 
-        @Assert: Compute Resource successfully updated
+        @expectedresults: Compute Resource successfully updated
 
         """
         for options in valid_update_data():
@@ -362,7 +362,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: e7aa9b39-dd01-4f65-8e89-ff5a6f4ee0e3
 
-        @Assert: Compute Resource not updated
+        @expectedresults: Compute Resource not updated
 
         """
         for options in invalid_update_data():
@@ -385,7 +385,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: 5b4c838a-0265-4c71-a73d-305fecbe508a
 
-        @Assert: No error is returned.
+        @expectedresults: No error is returned.
 
         Targets BZ 1100344.
 
@@ -406,7 +406,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         @id: ef09351e-dcd3-4b4f-8d3b-995e9e5873b3
 
-        @Assert: No error is returned.
+        @expectedresults: No error is returned.
 
         Targets BZ 1100344.
 

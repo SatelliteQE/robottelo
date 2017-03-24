@@ -182,7 +182,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Create a smart Variable with Valid name and valid default value
 
-        @assert: The smart Variable is created successfully
+        @expectedresults: The smart Variable is created successfully
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -202,7 +202,7 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Create a smart Variable with invalid name and valid default
         value
 
-        @assert: The smart Variable is not created
+        @expectedresults: The smart Variable is not created
         """
         for name in invalid_values_list():
             with self.subTest(name), self.assertRaises(HTTPError):
@@ -220,7 +220,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Delete a smart Variable by id
 
-        @assert: The smart Variable is deleted successfully
+        @expectedresults: The smart Variable is deleted successfully
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class
@@ -247,7 +247,7 @@ class SmartVariablesTestCase(APITestCase):
         2. Update the puppet class associated to the smart variable created in
            step1.
 
-        @assert: The variable is updated with new puppet class.
+        @expectedresults: The variable is updated with new puppet class.
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -272,7 +272,7 @@ class SmartVariablesTestCase(APITestCase):
         1. Create a smart variable with valid name.
         2. Update smart variable name created in step1.
 
-        @assert: The variable is updated with new name.
+        @expectedresults: The variable is updated with new name.
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -295,8 +295,8 @@ class SmartVariablesTestCase(APITestCase):
         1. Create a smart Variable with Valid name and default value.
         2. Attempt to create a variable with same name from same/other class.
 
-        @assert: The variable with same name are not allowed to create from
-        any class.
+        @expectedresults: The variable with same name are not allowed to create
+        from any class.
         """
         name = gen_string('alpha')
         entities.SmartVariable(
@@ -320,7 +320,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @id: 4fc1f249-5da7-493b-a1d3-4ce7b625ad96
 
-        @assert: All variables listed for Host
+        @expectedresults: All variables listed for Host
 
         @CaseLevel: Integration
         """
@@ -338,7 +338,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @id: db6861cc-b390-45bc-8c7d-cf10f46aecb3
 
-        @assert: All variables listed for HostGroup
+        @expectedresults: All variables listed for HostGroup
 
         @CaseLevel: Integration
         """
@@ -355,7 +355,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @id: cd743329-b354-4ddc-ada0-3ddd774e2701
 
-        @assert: All variables listed for puppet class
+        @expectedresults: All variables listed for puppet class
         """
         self.assertGreater(len(self.puppet_class.list_smart_variables()), 0)
 
@@ -370,7 +370,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Create a variable with all valid key types and default values
 
-        @assert: Variable created with all given types successfully
+        @expectedresults: Variable created with all given types successfully
         """
         for data in valid_sc_variable_data():
             with self.subTest(data):
@@ -404,7 +404,7 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Create a variable with all valid key types and invalid default
         values
 
-        @assert: Variable is not created for invalid value
+        @expectedresults: Variable is not created for invalid value
         """
         for data in invalid_sc_variable_data():
             with self.subTest(data):
@@ -430,7 +430,7 @@ class SmartVariablesTestCase(APITestCase):
 
         1. Create a matcher for variable with empty value and type string
 
-        @assert: Matcher is created with empty value
+        @expectedresults: Matcher is created with empty value
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -459,7 +459,7 @@ class SmartVariablesTestCase(APITestCase):
         1. Create a matcher for variable with empty value and type any other
            than string
 
-        @assert: Matcher is not created for empty value
+        @expectedresults: Matcher is not created for empty value
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -487,7 +487,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Create a matcher for variable with invalid match value
 
-        @assert: Matcher is not created
+        @expectedresults: Matcher is not created
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -516,7 +516,8 @@ class SmartVariablesTestCase(APITestCase):
            of step 2
         2. Validate this value with regexp validator type and rule
 
-        @assert: Variable is not created for non matching value with regex
+        @expectedresults: Variable is not created for non matching value with
+        regex
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
@@ -549,7 +550,7 @@ class SmartVariablesTestCase(APITestCase):
            step 2
         2. Validate this value with regex validator type and rule
 
-        @assert: Variable is created for matching value with regex
+        @expectedresults: Variable is created for matching value with regex
         """
         value = gen_string('numeric')
         smart_variable = entities.SmartVariable(
@@ -579,7 +580,8 @@ class SmartVariablesTestCase(APITestCase):
         1. Create a matcher with value that doesn't matches the regex of step 2
         2. Validate this value with regex validator type and rule
 
-        @assert: Matcher is not created for non matching value with regexp
+        @expectedresults: Matcher is not created for non matching value with
+        regexp
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -611,7 +613,7 @@ class SmartVariablesTestCase(APITestCase):
         1. Create a matcher with value that matches the regex of step 2
         2. Validate this value with regex validator type and rule
 
-        @assert: Matcher is created for matching value with regex
+        @expectedresults: Matcher is created for matching value with regex
         """
         value = gen_string('numeric')
         smart_variable = entities.SmartVariable(
@@ -646,8 +648,8 @@ class SmartVariablesTestCase(APITestCase):
            validator of step 2
         2. Validate this value with list validator type and rule
 
-        @assert: Variable is not created for non matching value with list
-        validator
+        @expectedresults: Variable is not created for non matching value with
+        list validator
         """
         with self.assertRaises(HTTPError) as context:
             entities.SmartVariable(
@@ -674,7 +676,7 @@ class SmartVariablesTestCase(APITestCase):
            of step 2
         2. Validate this value with list validator type and rule
 
-        @assert: Variable is created for matching value with list
+        @expectedresults: Variable is created for matching value with list
         """
         # Generate list of values
         values_list = [
@@ -709,8 +711,8 @@ class SmartVariablesTestCase(APITestCase):
            of step 2
         2. Validate this value with list validator type and rule
 
-        @assert: Matcher is not created for non matching value with list
-        validator
+        @expectedresults: Matcher is not created for non matching value with
+        list validator
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -743,7 +745,8 @@ class SmartVariablesTestCase(APITestCase):
            of step 2
         2. Validate this value with list validator type and rule
 
-        @assert: Matcher is created for matching value with list validator
+        @expectedresults: Matcher is created for matching value with list
+        validator
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -777,8 +780,8 @@ class SmartVariablesTestCase(APITestCase):
         1. Create variable with valid type and value
         2. Create a matcher with value that doesn't matches the default type
 
-        @assert: Matcher is not created for non matching the type of default
-        value
+        @expectedresults: Matcher is not created for non matching the type of
+        default value
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -809,7 +812,8 @@ class SmartVariablesTestCase(APITestCase):
         1. Create variable with valid type and value
         2. Create a matcher with value that matches the default value type
 
-        @assert: Matcher is created for matching the type of default value
+        @expectedresults: Matcher is created for matching the type of default
+        value
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -836,7 +840,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Create matcher for non existing attribute
 
-        @assert: Matcher is not created for non existing attribute
+        @expectedresults: Matcher is not created for non existing attribute
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -863,7 +867,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Create a matcher with all valid values
 
-        @assert: The matcher has been created successfully
+        @expectedresults: The matcher has been created successfully
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
@@ -899,7 +903,8 @@ class SmartVariablesTestCase(APITestCase):
            Note - The FQDN/host should have this attribute
         5. Check ENC output of associated host.
 
-        @assert: The ENC output shows variable value of fqdn matcher only
+        @expectedresults: The ENC output shows variable value of fqdn matcher
+        only
 
         @caseautomation: notautomated
         """
@@ -924,7 +929,8 @@ class SmartVariablesTestCase(APITestCase):
         4. Create second matcher for attribute of step 3 with valid details
         5. Check ENC output of associated host.
 
-        @assert: The ENC output shows variable value of step 4 matcher only
+        @expectedresults: The ENC output shows variable value of step 4 matcher
+        only
 
         @caseautomation: notautomated
         """
@@ -952,7 +958,7 @@ class SmartVariablesTestCase(APITestCase):
         5. Set 'merge overrides' to True
         6. Check ENC output of associated host
 
-        @assert:
+        @expectedresults:
 
         1. The ENC output shows variable values merged from all the
            associated matchers
@@ -985,7 +991,7 @@ class SmartVariablesTestCase(APITestCase):
         5. Set 'merge overrides' to True
         6. Check ENC output of associated host
 
-        @assert:
+        @expectedresults:
 
         1. The ENC output shows variable values only for fqdn
         2. The variable doesn't have the values for attribute
@@ -1020,7 +1026,7 @@ class SmartVariablesTestCase(APITestCase):
         6. Set 'merge default' to True
         7. Check ENC output of associated host
 
-        @assert:
+        @expectedresults:
 
         1. The ENC output shows the variable values merged from all the
            associated matchers
@@ -1054,7 +1060,7 @@ class SmartVariablesTestCase(APITestCase):
         6. Set 'merge default' to True
         7. Check ENC output of associated host
 
-        @assert:
+        @expectedresults:
 
         1. The ENC output shows variable values merged from all the associated
            matchers
@@ -1088,7 +1094,7 @@ class SmartVariablesTestCase(APITestCase):
         6. Set 'avoid duplicate' to True
         7. Check ENC output of associated host
 
-        @assert:
+        @expectedresults:
 
         1. The ENC output shows the variable values merged from all the
            associated matchers
@@ -1122,7 +1128,7 @@ class SmartVariablesTestCase(APITestCase):
         6. Set 'avoid duplicates' to True
         7. Check ENC output of associated host
 
-        @assert:
+        @expectedresults:
 
         1. The ENC output shows the variable values merged from all matchers
         2. The variable shows default value of variable
@@ -1140,7 +1146,8 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Set variable type to array/hash
 
-        @assert: The Merge Overrides, Merge Default flags are enabled to set
+        @expectedresults: The Merge Overrides, Merge Default flags are enabled
+        to set
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1164,8 +1171,8 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Set variable type other than array/hash
 
-        @assert: The Merge Overrides, Merge Default flags are not enabled to
-        set
+        @expectedresults: The Merge Overrides, Merge Default flags are not
+        enabled to set
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1204,7 +1211,7 @@ class SmartVariablesTestCase(APITestCase):
         1. Set variable type to array
         2. Set 'merge overrides' to True
 
-        @assert: The Avoid Duplicates is enabled to set to True
+        @expectedresults: The Avoid Duplicates is enabled to set to True
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1227,7 +1234,7 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps: Set variable type other than array
 
-        @assert:
+        @expectedresults:
 
         1. The Merge Overrides flag is only enabled to set for type hash
            other than array
@@ -1271,7 +1278,7 @@ class SmartVariablesTestCase(APITestCase):
         1. Create the variable and create a matcher for some attribute
         2. Remove the matcher created in step 1
 
-        @assert: The matcher removed from variable
+        @expectedresults: The matcher removed from variable
         """
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
@@ -1303,7 +1310,7 @@ class SmartVariablesTestCase(APITestCase):
         2. Delete the attribute
         3. Recreate the attribute with same name as earlier
 
-        @assert:
+        @expectedresults:
 
         1. The matcher for deleted attribute removed from variable
         2. On recreating attribute, the matcher should not reappear in variable
@@ -1360,7 +1367,7 @@ class SmartVariablesTestCase(APITestCase):
         1. Create variable with valid type and value
         2. Set 'Hidden Value' flag to true
 
-        @assert: The 'hidden value' flag is set
+        @expectedresults: The 'hidden value' flag is set
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1382,7 +1389,7 @@ class SmartVariablesTestCase(APITestCase):
         2. Set 'Hidden Value' flag to True
         3. After hiding, set the 'Hidden Value' flag to False
 
-        @assert: The 'hidden value' flag set to false
+        @expectedresults: The 'hidden value' flag set to false
         """
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
@@ -1407,7 +1414,7 @@ class SmartVariablesTestCase(APITestCase):
         2. Set 'Hidden Value' flag to true
         3. Now in hidden state, update the default value
 
-        @assert:
+        @expectedresults:
 
         1. The variable default value is updated
         2. The 'hidden value' flag set to True

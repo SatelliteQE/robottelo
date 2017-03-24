@@ -74,7 +74,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 267bd784-1ef7-4270-a264-6f8659e239fd
 
-        @Assert: Host Collection is created
+        @expectedresults: Host Collection is created
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -89,7 +89,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 830ff39e-0d4c-4368-bc47-12b060a09410
 
-        @Assert: Host Collection is created
+        @expectedresults: Host Collection is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -107,7 +107,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 9983b61d-f820-4b60-ae5e-a45925f2dcf0
 
-        @Assert: Host Collection is created
+        @expectedresults: Host Collection is created
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -121,8 +121,8 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 04e36c46-7577-4308-b9bb-4ec74549d9d3
 
-        @Assert: Host Collection is not created and appropriate error message
-        thrown
+        @expectedresults: Host Collection is not created and appropriate error
+        message thrown
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -142,7 +142,8 @@ class HostCollectionTestCase(UITestCase):
 
         @id: c15b3540-809e-4339-ad5f-1ab488244299
 
-        @Assert: Host Collection is not created. Appropriate error shown.
+        @expectedresults: Host Collection is not created. Appropriate error
+        shown.
         """
         with Session(self.browser) as session:
             for limit in invalid_names_list():
@@ -164,7 +165,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 9df33661-7a9c-40d9-8f2c-52e5ed21c156
 
-        @Assert: Host Collection is updated
+        @expectedresults: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -183,7 +184,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 5ef92657-489f-46a2-9b3a-e40322ca86d8
 
-        @Assert: Host Collection is updated
+        @expectedresults: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -210,7 +211,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 6f5015c4-06c9-4873-806e-5f9d39c9d8a8
 
-        @Assert: Host Collection is updated
+        @expectedresults: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -229,7 +230,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 823acd9e-1259-47b6-8236-7547ef3fff98
 
-        @Assert: Host Collection is updated
+        @expectedresults: Host Collection is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -248,7 +249,8 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 7af999e8-5189-45c0-a92d-8c05b03f556a
 
-        @Assert: Host Collection is not updated.  Appropriate error shown.
+        @expectedresults: Host Collection is not updated.  Appropriate error
+        shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -269,7 +271,8 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 3f3749f9-cf52-4897-993f-804def785510
 
-        @Assert: Host Collection is not updated.  Appropriate error shown.
+        @expectedresults: Host Collection is not updated.  Appropriate error
+        shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -287,7 +290,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 978a985c-29f4-4b1f-8c68-8cd412af21e6
 
-        @Assert: Host Collection is deleted
+        @expectedresults: Host Collection is deleted
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -303,7 +306,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: af8d968c-8241-40dc-b92c-81965f470191
 
-        @Assert: Host Collection copy exists
+        @expectedresults: Host Collection copy exists
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -322,7 +325,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 99d47520-c09a-4fbc-8e53-a4e889af0187
 
-        @Assert: Host Collection copy does not exist
+        @expectedresults: Host Collection copy does not exist
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -343,7 +346,7 @@ class HostCollectionTestCase(UITestCase):
 
         @id: 80824c9f-15a1-4f76-b7ac-7d9ca9f6ed9e
 
-        @Assert: Host is added to Host Collection successfully
+        @expectedresults: Host is added to Host Collection successfully
 
         @CaseLevel: System
         """
@@ -378,8 +381,8 @@ class HostCollectionTestCase(UITestCase):
         3. Create one more Host and try to add it to Host Collection
         4. Check that expected error is shown
 
-        @Assert: Second host is not added to Host Collection and appropriate
-        error is shown
+        @expectedresults: Second host is not added to Host Collection and
+        appropriate error is shown
 
         @CaseLevel: System
         """
@@ -512,8 +515,8 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         @id: eead8392-0ffc-4062-b045-5d0252670775
 
-        @assert: Package was successfully installed on all the hosts in host
-        collection
+        @expectedresults: Package was successfully installed on all the hosts
+        in host collection
 
         @CaseLevel: System
         """
@@ -533,8 +536,8 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         @id: 488fa88d-d0ef-4108-a050-96fb621383df
 
-        @Assert: Package was successfully removed from all the hosts in host
-        collection
+        @expectedresults: Package was successfully removed from all the hosts
+        in host collection
 
         @CaseLevel: System
         """
@@ -562,8 +565,8 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         @id: 5a6fff0a-686f-419b-a773-4d03713e47e9
 
-        @Assert: Package was successfully upgraded on all the hosts in host
-        collection
+        @expectedresults: Package was successfully upgraded on all the hosts in
+        host collection
 
         @CaseLevel: System
         """
@@ -584,8 +587,8 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         @id: 2bf47798-d30d-451a-8de5-bc03bd8b9a48
 
-        @Assert: Package group was successfully installed on all the hosts in
-        host collection
+        @expectedresults: Package group was successfully installed on all the
+        hosts in host collection
 
         @CaseLevel: System
         """
@@ -605,8 +608,8 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         @id: 458897dc-9836-481a-b777-b147d64836f2
 
-        @Assert: Package group was successfully removed  on all the hosts in
-        host collection
+        @expectedresults: Package group was successfully removed  on all the
+        hosts in host collection
 
         @CaseLevel: System
         """
@@ -635,8 +638,8 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         @id: e9d9ed44-d99a-4990-81de-91fb45d996c6
 
-        @Assert: Errata was successfully installed in all the hosts in host
-        collection
+        @expectedresults: Errata was successfully installed in all the hosts in
+        host collection
 
         @CaseLevel: System
         """

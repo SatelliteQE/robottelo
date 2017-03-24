@@ -39,7 +39,7 @@ class UserGroupTestCase(UITestCase):
 
         @id: 43e70c8d-455e-4da8-9c69-ab80dae2a0bc
 
-        @Assert: Usergroup is created successfully
+        @expectedresults: Usergroup is created successfully
         """
         user_name = gen_string('alpha')
         # Create a new user
@@ -65,7 +65,7 @@ class UserGroupTestCase(UITestCase):
 
         @id: 2c67dcd6-89b7-4a04-8528-d1f1f2c4530d
 
-        @Assert: Usergroup is not created
+        @expectedresults: Usergroup is not created
         """
         with Session(self.browser) as session:
             for group_name in invalid_names_list():
@@ -82,7 +82,7 @@ class UserGroupTestCase(UITestCase):
 
         @id: 5dafa0d4-e2a2-4ac0-926d-fa57d56bbe0b
 
-        @Assert: Usergroup cannot be created with existing name
+        @expectedresults: Usergroup cannot be created with existing name
         """
         group_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -100,7 +100,7 @@ class UserGroupTestCase(UITestCase):
 
         @id: ca82f84b-bc5a-4f7d-b70d-9ee3e1b0fffa
 
-        @Assert: Usergroup is deleted
+        @expectedresults: Usergroup is deleted
         """
         with Session(self.browser) as session:
             for group_name in generate_strings_list():
@@ -115,7 +115,7 @@ class UserGroupTestCase(UITestCase):
 
         @id: 2bda3db5-f54f-412f-831f-8e005631f271
 
-        @Assert: Usergroup is deleted but not the added user
+        @expectedresults: Usergroup is deleted but not the added user
 
         @CaseLevel: Integration
         """
@@ -144,7 +144,7 @@ class UserGroupTestCase(UITestCase):
 
         @id: 2f49ab7c-2f11-48c0-99c2-448fc86b5ad2
 
-        @Assert: Usergroup is updated
+        @expectedresults: Usergroup is updated
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -162,7 +162,7 @@ class UserGroupTestCase(UITestCase):
 
         @id: 5fdb1c36-196d-4ba5-898d-40f484b81090
 
-        @Assert: Usergroup is updated
+        @expectedresults: Usergroup is updated
         """
         name = gen_string('alpha')
         user_name = gen_string('alpha')

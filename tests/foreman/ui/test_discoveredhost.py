@@ -165,7 +165,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Steps: PXE boot a host/VM
 
-        @Assert: Host should be successfully discovered
+        @expectedresults: Host should be successfully discovered
 
 
         @CaseLevel: System
@@ -189,7 +189,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Steps: Boot a host/VM using modified discovery ISO.
 
-        @Assert: Host should be successfully discovered
+        @expectedresults: Host should be successfully discovered
 
 
         @CaseLevel: System
@@ -214,7 +214,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Steps: Boot a host/VM using discovery ISO
 
-        @Assert: Host should be successfully discovered
+        @expectedresults: Host should be successfully discovered
 
         @caseautomation: notautomated
 
@@ -234,7 +234,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Steps: Boot a host/VM using discovery ISO
 
-        @Assert: Host should be successfully discovered
+        @expectedresults: Host should be successfully discovered
 
         @caseautomation: notautomated
 
@@ -250,7 +250,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: 9703eb00-9857-4076-8b83-031a58d7c1cd
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -266,7 +266,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: 8254a85f-21c8-4483-b453-15126762f6e5
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -282,7 +282,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: ae75173f-8358-4886-9420-06cff3a8510e
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -298,7 +298,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: f13fd843-6b39-4c5e-bb7a-b9af9e71eb7b
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -314,7 +314,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: 515d32ce-44eb-4d27-a353-699bc80fc566
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -329,7 +329,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: cdfebc3d-d8c1-4f82-a384-cc5cd9926c65
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @CaseLevel: System
         """
@@ -355,7 +355,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: e29c7f71-096e-42ef-9bbf-77fecac86a9c
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -371,7 +371,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: 206a375c-3f42-4cc8-b338-bb85127cffc9
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -387,7 +387,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: 1e25326d-2976-4a12-8e02-c4be6705f522
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @caseautomation: notautomated
 
@@ -402,7 +402,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: 0d004ed0-594f-492f-8756-33349094aa8e
 
-        @Assert: Host should be discovered successfully
+        @expectedresults: Host should be discovered successfully
 
         @CaseLevel: System
         """
@@ -430,7 +430,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Steps: Validate specified custom facts
 
-        @Assert: All defined custom facts should be displayed correctly
+        @expectedresults: All defined custom facts should be displayed
+        correctly
 
 
         @CaseLevel: System
@@ -459,8 +460,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should be provisioned successfully and entry from
-        discovered host should be auto removed
+        @expectedresults: Host should be provisioned successfully and entry
+        from discovered host should be auto removed
 
         @caseautomation: notautomated
 
@@ -478,8 +479,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should be provisioned successfully and entry from
-        discovered host should be auto removed
+        @expectedresults: Host should be provisioned successfully and entry
+        from discovered host should be auto removed
 
         @caseautomation: notautomated
 
@@ -495,7 +496,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        @expectedresults: Selected host should be removed successfully
 
 
         @CaseLevel: System
@@ -516,7 +517,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        @expectedresults: Selected host should be removed successfully
 
 
         @CaseLevel: System
@@ -539,7 +540,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Selected host should be removed successfully
+        @expectedresults: Selected host should be removed successfully
 
 
         @CaseLevel: System
@@ -577,7 +578,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Facts should be refreshed successfully with new NIC
+        @expectedresults: Facts should be refreshed successfully with new NIC
 
 
         @CaseLevel: System
@@ -610,7 +611,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Facts should be refreshed successfully with new NIC
+        @expectedresults: Facts should be refreshed successfully with new NIC
 
         @CaseLevel: System
         """
@@ -641,7 +642,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should be successfully rebooted.
+        @expectedresults: Host should be successfully rebooted.
 
         @CaseLevel: System
         """
@@ -672,7 +673,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Default org should be successfully changed for multiple hosts
+        @expectedresults: Default org should be successfully changed for
+        multiple hosts
 
         @CaseLevel: System
         """
@@ -708,8 +710,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Default Location should be successfully changed for multiple
-        hosts
+        @expectedresults: Default Location should be successfully changed for
+        multiple hosts
 
         @caseautomation: notautomated
 
@@ -729,7 +731,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should reboot and provision
+        @expectedresults: Host should reboot and provision
 
         @caseautomation: notautomated
 
@@ -748,7 +750,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Multiple hosts should already be discovered in same subnet.
 
-        @Assert: All Hosts of same subnet should reboot and provision
+        @expectedresults: All Hosts of same subnet should reboot and provision
 
         @caseautomation: notautomated
 
@@ -766,8 +768,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Multiple hosts should already be discovered
 
-        @Assert: Host with lower count have higher priority
-        and that rule should be executed first.
+        @expectedresults: Host with lower count have higher priority and that
+        rule should be executed first.
 
         @caseautomation: notautomated
 
@@ -785,7 +787,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Host should not be rebooted automatically
+        @expectedresults: Host should not be rebooted automatically
 
         @caseautomation: notautomated
 
@@ -803,7 +805,7 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: Rule should automatically be skipped on clicking
+        @expectedresults: Rule should automatically be skipped on clicking
         'Auto provision'. UI Should raise 'No matching rule found'
 
         @caseautomation: notautomated
@@ -822,8 +824,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host with two CPUs should already be discovered
 
-        @Assert: Rule should only be applied to one discovered host and for
-        other rule should already be skipped.
+        @expectedresults: Rule should only be applied to one discovered host
+        and for other rule should already be skipped.
 
         @caseautomation: notautomated
 
@@ -840,8 +842,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: User should be able to update the rule and it should be
-        executed on discovered host
+        @expectedresults: User should be able to update the rule and it should
+        be executed on discovered host
 
         @caseautomation: notautomated
 
@@ -858,7 +860,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: The hostname should be updated and host should be provisioned
+        @expectedresults: The hostname should be updated and host should be
+        provisioned
 
         @caseautomation: notautomated
 
@@ -881,8 +884,8 @@ class DiscoveryTestCase(UITestCase):
 
         @Setup: Host should already be discovered
 
-        @Assert: discovery_prefix is updated and provisioned host has same
-        prefix in its hostname
+        @expectedresults: discovery_prefix is updated and provisioned host has
+        same prefix in its hostname
 
         @caseautomation: notautomated
 
@@ -897,7 +900,8 @@ class DiscoveryTestCase(UITestCase):
 
         @id: e26129b5-16fa-418c-b768-21670e9f0b74
 
-        @Assert: All host should be successfully rebooted and provisioned
+        @expectedresults: All host should be successfully rebooted and
+        provisioned
 
         @caseautomation: notautomated
 
@@ -919,8 +923,8 @@ class DiscoveryTestCase(UITestCase):
 
         3. Add bios_vendor
 
-        @Assert: The added fact should be displayed on 'discovered_host' page
-        after successful discovery
+        @expectedresults: The added fact should be displayed on
+        'discovered_host' page after successful discovery
 
 
         @CaseLevel: System
@@ -955,8 +959,8 @@ class DiscoveryTestCase(UITestCase):
 
         3. Add 'test'
 
-        @Assert: The added fact should be displayed on 'discovered_host' page
-        after successful discovery and shows 'N/A'
+        @expectedresults: The added fact should be displayed on
+        'discovered_host' page after successful discovery and shows 'N/A'
 
         @caseautomation: notautomated
 
@@ -971,9 +975,9 @@ class DiscoveryTestCase(UITestCase):
 
         @id: c219c877-e785-41a3-9abe-803a9b26bcad
 
-        @Assert: User should be able to view, provision, edit and destroy one
-        or more discovered host as well view, create_new, edit, execute and
-        delete discovery rules.
+        @expectedresults: User should be able to view, provision, edit and
+        destroy one or more discovered host as well view, create_new, edit,
+        execute and delete discovery rules.
 
         @caseautomation: notautomated
 
@@ -988,7 +992,8 @@ class DiscoveryTestCase(UITestCase):
 
         @id: 075bd559-a3bb-42ca-86a4-60581c650a1d
 
-        @Assert: User should be able to view existing discovered host and rule
+        @expectedresults: User should be able to view existing discovered host
+        and rule
 
         @caseautomation: notautomated
 
@@ -1004,7 +1009,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: a18694ad-7642-472f-8e7c-c911c892a763
 
-        @Assert: All buttons should work
+        @expectedresults: All buttons should work
 
         @caseautomation: notautomated
 
@@ -1020,7 +1025,7 @@ class DiscoveryTestCase(UITestCase):
 
         @id: b1d24367-9a7e-4d8e-85b6-989d8c520498
 
-        @Assert: User should get an error message
+        @expectedresults: User should get an error message
 
         @caseautomation: notautomated
 
@@ -1036,9 +1041,9 @@ class DiscoveryTestCase(UITestCase):
 
         @id: adef940c-8948-4cd9-88b3-f0b307134536
 
-        @Assert: User should get an error message "Unable to bring network via
-        DHCP" and click on 'OK' should open the ''Network configuration screen"
-        to manually specify the IP/GW/DNS.
+        @expectedresults: User should get an error message "Unable to bring
+        network via DHCP" and click on 'OK' should open the ''Network
+        configuration screen" to manually specify the IP/GW/DNS.
 
         @caseautomation: notautomated
 
