@@ -16,7 +16,7 @@
 :Upstream: No
 """
 
-from fauxfactory import gen_string, gen_alphanumeric
+from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -24,17 +24,17 @@ from robottelo.cli.package import Package
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.task import Task
 from robottelo.cli.factory import (
+    CLIFactoryError,
     make_content_view,
+    make_filter,
     make_gpg_key,
     make_lifecycle_environment,
-    make_filter,
     make_org,
     make_product,
     make_product_wait,
     make_repository,
     make_role,
     make_user,
-    CLIFactoryError,
 )
 from robottelo.cli.filter import Filter
 from robottelo.cli.repository import Repository
@@ -1320,25 +1320,25 @@ class RepositoryTestCase(CLITestCase):
             result[0]['message'],
         )
 
-    @skip_if_bug_open('bugzilla', 1410916)
+    @skip_if_bug_open('bugzilla', 1436209)
     @run_only_on('sat')
     @tier2
     def test_negative_restricted_user_cv_add_repository(self):
         """Attempt to add a product repository to content view with a
         restricted user, using product name not visible to restricted user.
 
-        @id: 65792ae0-c5be-4a6c-9062-27dc03b83e10
+        :id: 65792ae0-c5be-4a6c-9062-27dc03b83e10
 
-        @BZ: 1410916
+        :BZ: 1436209
 
-        @Steps:
+        :Steps:
             1. Setup a restricted user with permissions that filter the
                products with names like Test_* or "rhel7*"
             2. Create a content view
             3. Create a product with name that should not be visible to the
                user and add a repository to it
 
-        @Assert:
+        :expectedresults:
             1. The admin user can view the product repository
             2. The restricted user cannot view the product repository
             3. The restricted user cannot add the product repository to a
@@ -1347,7 +1347,7 @@ class RepositoryTestCase(CLITestCase):
                view, assert that the restricted user still cannot view the
                product repository.
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         required_permissions = {
             'Katello::Product': (
