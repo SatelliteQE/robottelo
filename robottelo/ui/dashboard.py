@@ -182,7 +182,8 @@ class Dashboard(Base):
         return True
 
     def validate_task_navigation(
-            self, criteria_name, expected_search_value=None, task_name=None):
+            self, task_result, task_state, check_search_value=True,
+            task_name=None):
         """Find specific criteria on Task Status widget and then click on it.
         After application navigate on Tasks page, check whether proper search
         string is inherited into search box and that search is actually
@@ -191,14 +192,16 @@ class Dashboard(Base):
         """
         self.navigate_to_entity()
         strategy, value = locators['dashboard.task.search_criteria']
-        self.click((strategy, value % criteria_name))
+        self.click((strategy, value % (task_result, task_state)))
         if self.wait_until_element(locators['task.page_title']) is None:
             raise UIError(
                 'Redirection to Tasks page does not work properly')
-        if expected_search_value:
+        if check_search_value:
             actual_value = self.wait_until_element(
                 common_locators['search']).get_attribute('value')
-            if actual_value != expected_search_value:
+            expected_value = 'state={0}&result={1}'.format(
+                task_state, task_result)
+            if actual_value != expected_value:
                 raise UIError(
                     'Search box contains invalid data')
         if task_name:
