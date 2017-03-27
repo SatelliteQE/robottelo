@@ -53,7 +53,6 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -771,57 +770,6 @@ class ContentViewTestCase(UITestCase):
                     '5.6.6'
                 )
             )
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1402826)
-    @tier2
-    def test_negative_add_same_package_filter_twice(self):
-        """Update version of package inside exclusive cv package filter
-
-        @id: 5a97de5a-679e-4150-adf7-b4a28290b834
-
-        @assert: Same package filter can not be added again
-
-        @CaseLevel: Integration
-        """
-        cv_name = gen_string('alpha')
-        repo_name = gen_string('alpha')
-        package_name = 'walrus'
-        with Session(self.browser) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
-            # Create content-view
-            make_contentview(session, org=self.organization.name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            self.content_views.add_remove_repos(cv_name, [repo_name])
-            for filter_type in FILTER_TYPE['exclude'], FILTER_TYPE['include']:
-                with self.subTest(filter_type):
-                    filter_name = gen_string('alpha')
-                    self.content_views.add_filter(
-                        cv_name,
-                        filter_name,
-                        FILTER_CONTENT_TYPE['package'],
-                        filter_type,
-                    )
-                    self.content_views.add_packages_to_filter(
-                        cv_name,
-                        filter_name,
-                        [package_name],
-                        ['Equal To'],
-                        ['0.71-1'],
-                        [None],
-                    )
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
-                    self.content_views.add_packages_to_filter(
-                        cv_name,
-                        filter_name,
-                        [package_name],
-                        ['Equal To'],
-                        ['0.71-1'],
-                        [None],
-                    )
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.error_sub_form']))
 
     @run_only_on('sat')
     @tier2

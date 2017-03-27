@@ -81,7 +81,7 @@ from robottelo.vm import VirtualMachine
 ERRATUM_MAX_IDS_INFO = 10
 
 
-@skip_if_bug_open('bugzilla', 1405428)
+@skip_if_bug_open('bugzilla', 1372372)
 @run_in_one_thread
 class HostCollectionErrataInstallTestCase(CLITestCase):
     """CLI Tests for the errata management feature"""
@@ -1041,7 +1041,7 @@ class ErrataTestCase(CLITestCase):
                 # as needed
                 self.assertEqual(errata_ids, sorted_errata_ids)
 
-    @skip_if_bug_open('bugzilla', 1402767)
+    @skip_if_bug_open('bugzilla', 1283173)
     @tier3
     def test_positive_list_filter_by_product_id(self):
         """Filter errata by product id
