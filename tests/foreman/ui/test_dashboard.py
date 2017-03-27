@@ -415,16 +415,16 @@ class DashboardTestCase(UITestCase):
         content_view.publish()
         with Session(self.browser) as session:
             set_context(session, org=org.name)
-            self.assertTrue(self.dashboard.validate_task_navigation(
-                'pending', 'state=running&result=pending'))
+            self.assertTrue(
+                self.dashboard.validate_task_navigation('pending', 'running'))
             self.assertTrue(self.dashboard.validate_task_navigation(
                 'success',
-                'state=stopped&result=success',
-                "Publish content view '{0}'; organization '{1}'".format(
-                    content_view.name, org.name)
+                'stopped',
+                task_name="Publish content view '{0}'; organization "
+                          "'{1}'".format(content_view.name, org.name)
             ))
             self.assertTrue(self.dashboard.validate_task_navigation(
-                'error', 'state=stopped&result=error'))
+                'error', 'stopped'))
 
     @tier2
     def test_positive_latest_warning_error_tasks(self):
