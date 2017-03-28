@@ -19,6 +19,9 @@ BZ_CLOSED_STATUSES = [
 DISTRO_RHEL6 = "rhel68"
 DISTRO_RHEL7 = "rhel72"
 
+INTERFACE_API = 'API'
+INTERFACE_CLI = 'CLI'
+
 FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',
     'rhev': 'RHEV',
