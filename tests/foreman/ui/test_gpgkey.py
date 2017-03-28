@@ -749,6 +749,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1436152)
     @tier2
     def test_positive_add_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key
@@ -759,7 +760,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @assert: gpg key is associated with product as well as with
         the repositories
 
-        @BZ: 1210180
+        @BZ: 1436152
 
         @CaseLevel: Integration
         """
@@ -1063,6 +1064,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1436152)
     @tier2
     def test_positive_update_key_for_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key
@@ -1074,7 +1076,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @assert: gpg key is associated with product as well as with
         repository before/after update
 
-        @BZ: 1210180
+        @BZ: 1436152
 
         @CaseLevel: Integration
         """
@@ -1407,6 +1409,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1436152)
     @tier2
     def test_positive_delete_key_for_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg then associate
@@ -1418,7 +1421,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         the repositories during creation but removed from product
         after deletion
 
-        @BZ: 1210180
+        @BZ: 1436152
 
         @CaseLevel: Integration
         """
