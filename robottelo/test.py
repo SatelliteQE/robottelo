@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """Test utilities for writing foreman tests
 
 All test cases for foreman tests are defined in this module and have utilities
@@ -467,6 +468,14 @@ class UITestCase(TestCase):
             self.addCleanup(self.browser.quit)
         self.browser.maximize_window()
         self.browser.get(settings.server.get_url())
+        # Workaround 'Certificate Error' screen on Microsoft Edge
+        if (self.driver_name == 'edge' and
+                'Certificate Error' in self.browser.title or
+                'Login' not in self.browser.title):
+            self.browser.get(
+                "javascript:document.getElementById('invalidcert_continue')"
+                ".click()"
+            )
 
         self.browser.foreman_user = self.foreman_user
         self.browser.foreman_password = self.foreman_password
