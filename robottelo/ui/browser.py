@@ -1,4 +1,5 @@
 """Tools to help getting a browser instance to run UI tests."""
+from fauxfactory import gen_string
 import logging
 import six
 import time
@@ -83,7 +84,7 @@ def browser():
 
 class DockerBrowser(object):
     """Provide a browser instance running inside a docker container."""
-    def __init__(self):
+    def __init__(self, name=None):
         if docker is None:
             raise DockerBrowserError(
                 'Package docker-py is not installed. Install it in order to '
@@ -92,6 +93,7 @@ class DockerBrowser(object):
         self.webdriver = None
         self.container = None
         self._client = None
+        self._name = name
         self._started = False
 
     def start(self):
@@ -192,6 +194,8 @@ class DockerBrowser(object):
             host_config=self._client.create_host_config(
                 publish_all_ports=True),
             image='selenium/standalone-firefox',
+            name=self._name.split('.', 4)[-1] + '_{0}'.format(
+                    gen_string('alphanumeric', 3)),
             ports=[4444],
         )
         LOGGER.debug('Starting container with ID "%s"', self.container['Id'])
