@@ -91,6 +91,27 @@ class NavigationTestCase(UITestCase):
                     self.assertIsNone(session.nav.wait_until_element(
                         common_locators['notif.error'], timeout=1))
 
+    @tier1
+    def test_positive_navigate_katello_foreman(self):
+        """Navigate from katello application page to foreman one
+
+        @id: dd4d5d3d-4902-4f85-968d-a9c46fce0b32
+
+        @BZ: 1351464
+
+        @Assert: Page is opened without errors
+        """
+        with Session(self.browser) as session:
+            self.products.navigate_to_entity()
+            self.environment.navigate_to_entity()
+            self.assertIsNotNone(session.nav.wait_until_element(
+                menu_locators['menu.current_text']))
+            self.assertIsNone(session.nav.wait_until_element(
+                common_locators['alert.error'], timeout=1))
+            self.assertIsNone(session.nav.wait_until_element(
+                common_locators['notif.error'], timeout=1))
+            self.assertIn('environments', self.browser.current_url)
+
     @skip_if_bug_open('bugzilla', 1394974)
     @tier1
     def test_positive_sat_logo_redirection(self):
