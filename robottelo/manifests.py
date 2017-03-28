@@ -9,7 +9,13 @@ import zipfile
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
+
+from robottelo.api.utils import upload_manifest
+from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
+from robottelo.constants import INTERFACE_API, INTERFACE_CLI
+from robottelo.decorators.func_locker import lock_function
+from robottelo.ssh import upload_file
 
 
 class ManifestCloner(object):
@@ -168,3 +174,52 @@ def original_manifest():
             # my fancy stuff
     """
     return Manifest(_manifest_cloner.original())
+
+
+@lock_function
+def upload_manifest_locked(org_id, manifest,  interface=INTERFACE_API):
+    """Upload a manifest with locking, using the requested interface.
+
+    :type org_id: int
+    :type manifest: robottelo.manifests.Manifest
+    :type interface: str
+
+    :returns: the upload result
+
+    Note: The manifest uploading is strictly locked only when using this
+        function
+
+    Usage::
+
+        # for API interface
+        manifest = manifests.clone()
+        upload_manifest_locked(org_id, manifest, interface=INTERFACE_API)
+
+        # for CLI interface
+        manifest = manifests.clone()
+        upload_manifest_locked(org_id, manifest, interface=INTERFACE_CLI)
+
+        # or in one line with default interface
+        result = upload_manifest_locked(org_id, manifests.clone())
+        subscription_id = result[id']
+    """
+
+    if interface not in [INTERFACE_API, INTERFACE_CLI]:
+        raise ValueError(
+            'upload manifest with interface "{0}" not supported'
+            .format(interface)
+        )
+    if interface == INTERFACE_API:
+        with manifest:
+            result = upload_manifest(org_id, manifest.content)
+    else:
+        # interface is INTERFACE_CLI
+        with manifest:
+            upload_file(manifest.content, manifest.filename)
+
+        result = Subscription.upload({
+            'file': manifest.filename,
+            'organization-id': org_id,
+        })
+
+    return result
