@@ -541,7 +541,7 @@ class HostGroupTestCase(CLITestCase):
 
         @id: 4b044719-431d-4d72-8974-330cc62fd020
 
-        @Assert: Puppet class is associated with hostgroup
+        @expectedresults: Puppet class is associated with hostgroup
         """
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
@@ -563,7 +563,7 @@ class HostGroupTestCase(CLITestCase):
 
         @id: 4c37354f-ef2d-4d54-98ac-906bc611d292
 
-        @Assert: Puppet class is associated with hostgroup
+        @expectedresults: Puppet class is associated with hostgroup
         """
         hostgroup = make_hostgroup({
             'environment-id': self.env['id'],
@@ -585,7 +585,7 @@ class HostGroupTestCase(CLITestCase):
 
         @id: 2e977aed-c0d4-478e-9c84-f07deac912cd
 
-        @Assert: All puppet classes are associated with hostgroup
+        @expectedresults: All puppet classes are associated with hostgroup
 
         @BZ: 1264163
         """
