@@ -17,6 +17,7 @@
 """
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
+from nailgun import entities
 from robottelo import ssh
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
@@ -28,9 +29,11 @@ from robottelo.cli.factory import (
     make_job_template,
     make_lifecycle_environment,
     make_org,
+    make_subnet,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
+from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
 from robottelo.config import settings
@@ -42,6 +45,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import (
+    bz_bug_is_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -251,6 +255,25 @@ class RemoteExecutionTestCase(CLITestCase):
             self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
         add_remote_execution_ssh_key(self.client.ip_addr)
+        # create subnet for current org, default loc and domain
+        subnet_options = {
+            u'domain-ids': 1,
+            u'organization-ids': self.org["id"],
+            u'location-ids': 2
+           }
+        if not bz_bug_is_open(1328322):
+            subnet_options[u'remote-execution-proxy-id'] = 1
+        new_sub = make_subnet(subnet_options)
+        # add rex proxy to subnet, default is internal proxy (id 1)
+        if bz_bug_is_open(1328322):
+            subnet = entities.Subnet(id=new_sub["id"])
+            subnet.remote_execution_proxy_ids = [1]
+            subnet.update(["remote_execution_proxy_ids"])
+        # add host to subnet
+        Host.update({
+            'name': self.client.hostname,
+            'subnet-id': new_sub['id'],
+        })
 
     @tier2
     def test_positive_run_default_job_template(self):
