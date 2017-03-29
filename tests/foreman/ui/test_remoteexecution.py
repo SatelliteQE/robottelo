@@ -22,9 +22,20 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
+from robottelo.cli.factory import make_subnet
 from robottelo.cli.job_invocation import JobInvocation
-from robottelo.decorators import stubbed, tier1, tier2, tier3
-from robottelo.helpers import add_remote_execution_ssh_key, get_data_file
+from robottelo.cli.host import Host
+from robottelo.decorators import (
+    bz_bug_is_open,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
+from robottelo.helpers import (
+        add_remote_execution_ssh_key,
+        get_data_file
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_job_template, set_context
 from robottelo.ui.locators import common_locators, locators
@@ -378,6 +389,20 @@ class RemoteExecutionTestCase(UITestCase):
         """Create an organization which can be re-used in tests."""
         super(RemoteExecutionTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
+        # create subnet for current org, default loc and domain
+        # add rex proxy to subnet, default is internal proxy (id 1)
+        subnet_options = {
+            u'domain-ids': 1,
+            u'organizations': cls.organization.name,
+            u'location-ids': 2
+           }
+        if not bz_bug_is_open(1328322):
+            subnet_options[u'remote-execution-proxy-id'] = 1
+        cls.new_sub = make_subnet(subnet_options)
+        if bz_bug_is_open(1328322):
+            subnet = entities.Subnet(id=cls.new_sub["id"])
+            subnet.remote_execution_proxy_ids = [1]
+            subnet.update(["remote_execution_proxy_ids"])
 
     def get_client_datetime(self):
         """Make Javascript call inside of browser session to get exact current
@@ -425,6 +450,10 @@ class RemoteExecutionTestCase(UITestCase):
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             add_remote_execution_ssh_key(client.ip_addr)
+            Host.update({
+                u'name': client.hostname,
+                u'subnet-id': self.new_sub['id'],
+            })
             with Session(self.browser) as session:
                 set_context(session, org=self.organization.name)
                 self.hosts.click(self.hosts.search(client.hostname))
@@ -468,6 +497,10 @@ class RemoteExecutionTestCase(UITestCase):
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             add_remote_execution_ssh_key(client.ip_addr)
+            Host.update({
+                u'name': client.hostname,
+                u'subnet-id': self.new_sub['id'],
+            })
             with Session(self.browser) as session:
                 set_context(session, org=self.organization.name)
                 make_job_template(
@@ -525,6 +558,10 @@ class RemoteExecutionTestCase(UITestCase):
                     vm.register_contenthost(
                         self.organization.label, lce='Library')
                     add_remote_execution_ssh_key(vm.ip_addr)
+                    Host.update({
+                        u'name': vm.hostname,
+                        u'subnet-id': self.new_sub['id'],
+                    })
                 with Session(self.browser) as session:
                     set_context(session, org=self.organization.name)
                     self.hosts.navigate_to_entity()
@@ -574,6 +611,10 @@ class RemoteExecutionTestCase(UITestCase):
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             add_remote_execution_ssh_key(client.ip_addr)
+            Host.update({
+                u'name': client.hostname,
+                u'subnet-id': self.new_sub['id'],
+            })
             with Session(self.browser) as session:
                 set_context(session, org=self.organization.name)
                 self.hosts.click(self.hosts.search(client.hostname))
