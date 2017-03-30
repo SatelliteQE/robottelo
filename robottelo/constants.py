@@ -320,6 +320,8 @@ LANGUAGES = {
     u'zh_TW': u'zh_TW'
 }
 
+SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
+
 TIMEZONES = [
     u'(GMT+00:00) UTC',
     u'(GMT-10:00) Hawaii',
