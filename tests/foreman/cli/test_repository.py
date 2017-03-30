@@ -16,7 +16,7 @@
 :Upstream: No
 """
 
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -24,17 +24,23 @@ from robottelo.cli.package import Package
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.task import Task
 from robottelo.cli.factory import (
+    CLIFactoryError,
     make_content_view,
+    make_filter,
     make_gpg_key,
     make_lifecycle_environment,
     make_org,
     make_product,
     make_product_wait,
     make_repository,
-    CLIFactoryError
+    make_role,
+    make_user,
 )
+from robottelo.cli.filter import Filter
 from robottelo.cli.repository import Repository
+from robottelo.cli.role import Role
 from robottelo.cli.settings import Settings
+from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
     DOCKER_REGISTRY_HUB,
@@ -1313,6 +1319,165 @@ class RepositoryTestCase(CLITestCase):
             "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
             result[0]['message'],
         )
+
+    @skip_if_bug_open('bugzilla', 1436209)
+    @run_only_on('sat')
+    @tier2
+    def test_negative_restricted_user_cv_add_repository(self):
+        """Attempt to add a product repository to content view with a
+        restricted user, using product name not visible to restricted user.
+
+        :id: 65792ae0-c5be-4a6c-9062-27dc03b83e10
+
+        :BZ: 1436209
+
+        :Steps:
+            1. Setup a restricted user with permissions that filter the
+               products with names like Test_* or "rhel7*"
+            2. Create a content view
+            3. Create a product with name that should not be visible to the
+               user and add a repository to it
+
+        :expectedresults:
+            1. The admin user can view the product repository
+            2. The restricted user cannot view the product repository
+            3. The restricted user cannot add the product repository to a
+               content view
+            4. After the attempt of adding the product repository to content
+               view, assert that the restricted user still cannot view the
+               product repository.
+
+        :CaseLevel: Integration
+        """
+        required_permissions = {
+            'Katello::Product': (
+                [
+                    'view_products',
+                    'create_products',
+                    'edit_products',
+                    'destroy_products',
+                    'sync_products',
+                    'export_products'
+                ],
+                'name ~ "Test_*" || name ~ "rhel7*"'
+            ),
+            'Katello::ContentView': (
+                [
+                    'view_content_views',
+                    'create_content_views',
+                    'edit_content_views',
+                    'destroy_content_views',
+                    'publish_content_views',
+                    'promote_or_remove_content_views',
+                    'export_content_views'
+                ],
+                'name ~ "Test_*" || name ~ "rhel7*"'
+            ),
+            'Organization': (
+                [
+                    'view_organizations',
+                    'create_organizations',
+                    'edit_organizations',
+                    'destroy_organizations',
+                    'assign_organizations'
+                ], None
+            )
+        }
+        user_name = gen_alphanumeric()
+        user_password = gen_alphanumeric()
+        # Generate a product name that is not like Test_* or rhel7*
+        product_name = 'zoo_{0}'.format(gen_string('alpha', 20))
+        # Generate a content view name like Test_*
+        content_view_name = 'Test_{0}'.format(gen_string('alpha', 20))
+        # Create an organization
+        org = make_org()
+        # Create a non admin user, for the moment without any permissions
+        user = make_user({
+            'admin': False,
+            'default-organization-id': org['id'],
+            'organization-ids': [org['id']],
+            'login': user_name,
+            'password': user_password,
+        })
+        # Create a new role
+        role = make_role()
+        # Get the available permissions
+        available_permissions = Filter.available_permissions()
+        # group the available permissions by resource type
+        available_rc_permissions = {}
+        for permission in available_permissions:
+            permission_resource = permission['resource']
+            if permission_resource not in available_rc_permissions:
+                available_rc_permissions[permission_resource] = []
+            available_rc_permissions[permission_resource].append(permission)
+        # create only the required role permissions per resource type
+        for resource_type, permission_data in required_permissions.items():
+            permission_names, search = permission_data
+            # assert that the required resource type is available
+            self.assertIn(resource_type, available_rc_permissions)
+            available_permission_names = [
+                permission['name']
+                for permission in available_rc_permissions[resource_type]
+                if permission['name'] in permission_names
+                ]
+            # assert that all the required permissions are available
+            self.assertEqual(set(permission_names),
+                             set(available_permission_names))
+            # Create the current resource type role permissions
+            make_filter({
+                'role-id': role['id'],
+                'permissions': permission_names,
+                'search': search,
+            })
+        # Add the created and initiated role with permissions to user
+        User.add_role({'id': user['id'], 'role-id': role['id']})
+        # assert that the user is not an admin one and cannot read the current
+        # role info (note: view_roles is not in the required permissions)
+        with self.assertRaises(CLIReturnCodeError) as context:
+            Role.with_user(user_name, user_password).info(
+                {'id': role['id']})
+        self.assertIn(
+            'Forbidden - server refused to process the request',
+            context.exception.stderr
+        )
+        # Create a product
+        product = make_product(
+            {'organization-id': org['id'], 'name': product_name})
+        # Create a yum repository and synchronize
+        repo = make_repository({
+            'product-id': product['id'],
+            'url': FAKE_1_YUM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        # Create a content view
+        content_view = make_content_view(
+            {'organization-id': org['id'], 'name': content_view_name})
+        # assert that the user can read the content view info as per required
+        # permissions
+        user_content_view = ContentView.with_user(
+            user_name, user_password).info({'id': content_view['id']})
+        # assert that this is the same content view
+        self.assertEqual(content_view['name'], user_content_view['name'])
+        # assert admin user is able to view the product
+        repos = Repository.list({'organization-id': org['id']})
+        self.assertEqual(len(repos), 1)
+        # assert that this is the same repo
+        self.assertEqual(repos[0]['id'], repo['id'])
+        # assert that restricted user is not able to view the product
+        repos = Repository.with_user(user_name, user_password).list(
+            {'organization-id': org['id']})
+        self.assertEqual(len(repos), 0)
+        # assert that the user cannot add the product repo to content view
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.with_user(user_name, user_password).add_repository({
+                'id': content_view['id'],
+                'organization-id': org['id'],
+                'repository-id': repo['id'],
+            })
+        # assert that restricted user still not able to view the product
+        repos = Repository.with_user(user_name, user_password).list(
+            {'organization-id': org['id']})
+        self.assertEqual(len(repos), 0)
 
     @skip_if_bug_open('bugzilla', 1378442)
     @tier1
