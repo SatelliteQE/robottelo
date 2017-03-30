@@ -19,8 +19,10 @@ from random import choice
 from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
     make_activation_key,
@@ -45,6 +47,7 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
+from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
@@ -62,6 +65,7 @@ from robottelo.constants import (
     PRDS,
     REPOS,
     REPOSET,
+    SATELLITE_SUBSCRIPTION_NAME,
 )
 from robottelo.datafactory import (
     invalid_values_list,
@@ -79,7 +83,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
-from robottelo.vm import VirtualMachine
+from robottelo.vm import VirtualMachine, VirtualMachineError
 
 
 class HostCreateTestCase(CLITestCase):
@@ -1097,6 +1101,7 @@ class KatelloAgentTestCase(CLITestCase):
         # Create VM and register content host
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
         self.client.create()
+        self.addCleanup(vm_cleanup, self.client)
         self.client.install_katello_ca()
         # Register content host, install katello-agent
         self.client.register_contenthost(
@@ -1107,11 +1112,6 @@ class KatelloAgentTestCase(CLITestCase):
         if settings.cdn:
             self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
-
-    def tearDown(self):
-        """Destroy the VM"""
-        self.client.destroy()
-        super(KatelloAgentTestCase, self).tearDown()
 
     @tier3
     @run_only_on('sat')
@@ -1380,6 +1380,377 @@ class KatelloAgentTestCase(CLITestCase):
             expected_hosts_ids = {self.host['id'], client_host['id']}
             hosts_ids = {host['id'] for host in hosts}
             self.assertEqual(hosts_ids, expected_hosts_ids)
+
+
+@run_in_one_thread
+class HostSubscriptionTestCase(CLITestCase):
+    """Test for host subscription sub command
+
+    Notes::
+
+        This TestCase use a subscription that differ from the default one,
+        but also contain rh products and Katello agent.
+
+    """
+
+    org = None
+    env = None
+    hosts_env = None
+    content_view = None
+    activation_key = None
+
+    @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key"""
+        super(HostSubscriptionTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.env = make_lifecycle_environment({
+            u'organization-id': cls.org['id'],
+        })
+        cls.content_view = make_content_view({
+            u'organization-id': cls.org['id'],
+        })
+        cls.activation_key = make_activation_key({
+            u'lifecycle-environment-id': cls.env['id'],
+            u'organization-id': cls.org['id'],
+        })
+
+        cls.subscription_name = SATELLITE_SUBSCRIPTION_NAME
+        # create a rh capsule content
+        setup_org_for_a_rh_repo({
+            u'product': PRDS['rhsc'],
+            u'repository-set': REPOSET['rhsc7'],
+            u'repository': REPOS['rhsc7']['name'],
+            u'organization-id': cls.org['id'],
+            u'content-view-id': cls.content_view['id'],
+            u'lifecycle-environment-id': cls.env['id'],
+            u'activationkey-id': cls.activation_key['id'],
+            u'subscription': cls.subscription_name,
+        })
+        org_subscriptions = Subscription.list(
+            {'organization-id': cls.org['id']})
+        cls.default_subscription_id = None
+        cls.repository_id = REPOS['rhsc7']['id']
+        for org_subscription in org_subscriptions:
+            if org_subscription['name'] == cls.subscription_name:
+                cls.default_subscription_id = org_subscription['id']
+                break
+        # create a new lce for hosts subscription
+        cls.hosts_env = make_lifecycle_environment({
+            u'organization-id': cls.org['id'],
+        })
+        # refresh content view data
+        cls.content_view = ContentView.info({'id': cls.content_view['id']})
+        content_view_version = cls.content_view['versions'][-1]
+        ContentView.version_promote({
+            u'id': content_view_version['id'],
+            u'organization-id': cls.org['id'],
+            u'to-lifecycle-environment-id': cls.hosts_env['id'],
+        })
+
+    def setUp(self):
+        """Create  a virtual machine without registration"""
+        super(HostSubscriptionTestCase, self).setUp()
+        self.client = VirtualMachine(distro=DISTRO_RHEL7)
+        self.client.create()
+        self.addCleanup(vm_cleanup, self.client)
+        self.client.install_katello_ca()
+
+    def _register_client(self, activation_key=None, lce=False,
+                         enable_repo=False, auto_attach=False):
+        """Register the client as a content host consumer
+
+        :param activation_key: activation key if registration with activation
+            key
+        :param lce: boolean to indicate whether the registration should be made
+            by environment
+        :param enable_repo: boolean to indicate whether to enable repository
+        :param auto_attach: boolean to indicate whether to register with
+            auto-attach option, in case of registration with activation key a
+            command is launched
+        :return: the registration result
+        """
+        if activation_key is None:
+            activation_key = self.activation_key
+
+        if lce:
+            result = self.client.register_contenthost(
+                self.org['name'],
+                lce='{0}/{1}'.format(
+                    self.hosts_env['name'], self.content_view['name']),
+                auto_attach=auto_attach
+            )
+        else:
+            result = self.client.register_contenthost(
+                self.org['name'],
+                activation_key=activation_key['name'],
+            )
+            if auto_attach and self.client.subscribed:
+                result = self.client.run('subscription-manager attach --auto')
+
+        if self.client.subscribed and enable_repo:
+            self.client.enable_repo(self.repository_id)
+
+        return result
+
+    def _client_enable_repo(self):
+        """Enable the client default repository"""
+        result = self.client.run(
+            'subscription-manager repos --enable {0}'
+            .format(self.repository_id)
+        )
+        return result
+
+    def _make_activation_key(self, add_subscription=False):
+        """Create a new activation key
+
+        :param add_subscription: boolean to indicate whether to add the default
+            subscription to the created activation key
+        :return: the created activation key
+        """
+        activation_key = make_activation_key({
+            'organization-id': self.org['id'],
+            'content-view-id': self.content_view['id'],
+            'lifecycle-environment-id': self.hosts_env['id'],
+        })
+        if add_subscription:
+            ActivationKey.add_subscription({
+                'organization-id': self.org['id'],
+                'id': activation_key['id'],
+                'subscription-id': self.default_subscription_id
+            })
+        return activation_key
+
+    def _host_subscription_register(self):
+        """Register the subscription of client as a content host consumer"""
+        Host.subscription_register({
+            u'organization-id': self.org['id'],
+            u'content-view-id': self.content_view['id'],
+            u'lifecycle-environment-id': self.hosts_env['id'],
+            u'name': self.client.hostname,
+        })
+
+    @tier3
+    def test_positive_register(self):
+        """Attempt to register a host
+
+        @id: b1c601ee-4def-42ce-b353-fc2657237533
+
+        @expectedresults: host successfully registered
+
+        @CaseLevel: System
+        """
+        activation_key = self._make_activation_key(add_subscription=False)
+        hosts = Host.list({
+            'organization-id': self.org['id'],
+            'search': self.client.hostname
+        })
+        self.assertEqual(len(hosts), 0)
+        self._host_subscription_register()
+        hosts = Host.list({
+            'organization-id': self.org['id'],
+            'search': self.client.hostname
+        })
+        self.assertGreater(len(hosts), 0)
+        host = Host.info({'id': hosts[0]['id']})
+        self.assertEqual(host['name'], self.client.hostname)
+        # note: when not registered the following command lead to exception,
+        # see unregister
+        host_subscriptions = ActivationKey.subscriptions({
+            'organization-id': self.org['id'],
+            'id': activation_key['id'],
+            'host-id': host['id'],
+        }, output_format='json')
+        self.assertEqual(len(host_subscriptions), 0)
+
+    @tier3
+    def test_positive_attach(self):
+        """Attempt to attach a subscription to host
+
+        @id: d5825bfb-59e3-4d49-8df8-902cc7a9d66b
+
+        @BZ: 1366437
+
+        @expectedresults: host successfully subscribed, subscription repository
+            enabled, and repository package installed
+
+        @CaseLevel: System
+        """
+        # create an activation key without subscriptions
+        activation_key = self._make_activation_key(add_subscription=False)
+        # register the client host
+        self._host_subscription_register()
+        host = Host.info({'name': self.client.hostname})
+        self._register_client(activation_key=activation_key)
+        self.assertTrue(self.client.subscribed)
+        # attach the subscription to host
+        Host.subscription_attach({
+            'host-id': host['id'],
+            'subscription-id': self.default_subscription_id
+        })
+        result = self._client_enable_repo()
+        self.assertEqual(result.return_code, 0)
+        # ensure that katello agent can be installed
+        with self.assertNotRaises(VirtualMachineError):
+            self.client.install_katello_agent()
+
+    @tier3
+    def test_positive_attach_with_lce(self):
+        """Attempt to attach a subscription to host, registered by lce
+
+        @id: a362b959-9dde-4d1b-ae62-136c6ef943ba
+
+        @BZ: 1366437
+
+        @expectedresults: host successfully subscribed, subscription
+            repository enabled, and repository package installed
+
+        @CaseLevel: System
+        """
+        self._register_client(lce=True, auto_attach=True)
+        self.assertTrue(self.client.subscribed)
+        host = Host.info({'name': self.client.hostname})
+        Host.subscription_attach({
+            'host-id': host['id'],
+            'subscription-id': self.default_subscription_id
+        })
+        result = self._client_enable_repo()
+        self.assertEqual(result.return_code, 0)
+        # ensure that katello agent can be installed
+        with self.assertNotRaises(VirtualMachineError):
+            self.client.install_katello_agent()
+
+    @tier3
+    def test_negative_without_attach(self):
+        """Attempt to enable a repository of a subscription that was not
+        attached to a host
+
+        @id: 54a2c95f-be08-4353-a96c-4bc4d96ad03d
+
+        @expectedresults: repository not enabled on host
+
+        @CaseLevel: System
+        """
+        activation_key = self._make_activation_key(add_subscription=False)
+        self._host_subscription_register()
+        self._register_client(activation_key=activation_key, auto_attach=True)
+        self.assertTrue(self.client.subscribed)
+        result = self._client_enable_repo()
+        self.assertNotEqual(result.return_code, 0)
+
+    @tier3
+    def test_negative_without_attach_with_lce(self):
+        """Attempt to enable a repository of a subscription that was not
+        attached to a host
+
+        @id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
+
+        @expectedresults: repository not enabled on host
+
+        @CaseLevel: System
+        """
+        self._register_client(lce=True, auto_attach=True)
+        self.assertTrue(self.client.subscribed)
+        result = self._client_enable_repo()
+        self.assertNotEqual(result.return_code, 0)
+
+    @tier3
+    def test_positive_remove(self):
+        """Attempt to remove a subscription from content host
+
+        @id: 3833c349-1f5b-41ac-bbac-2c1f33232d76
+
+        @expectedresults: subscription successfully removed from host
+
+        @CaseLevel: System
+        """
+        activation_key = self._make_activation_key(add_subscription=True)
+        self._host_subscription_register()
+        host = Host.info({'name': self.client.hostname})
+        host_subscriptions = ActivationKey.subscriptions({
+            'organization-id': self.org['id'],
+            'id': activation_key['id'],
+            'host-id': host['id'],
+        }, output_format='json')
+        self.assertEqual(len(host_subscriptions), 0)
+        self._register_client(activation_key=activation_key)
+        Host.subscription_attach({
+            'host-id': host['id'],
+            'subscription-id': self.default_subscription_id
+        })
+        host_subscriptions = ActivationKey.subscriptions({
+            'organization-id': self.org['id'],
+            'id': activation_key['id'],
+            'host-id': host['id'],
+        }, output_format='json')
+        self.assertEqual(len(host_subscriptions), 1)
+        self.assertEqual(
+            host_subscriptions[0]['name'], self.subscription_name)
+        Host.subscription_remove({
+            'host-id': host['id'],
+            'subscription-id': self.default_subscription_id
+        })
+        host_subscriptions = ActivationKey.subscriptions({
+            'organization-id': self.org['id'],
+            'id': activation_key['id'],
+            'host-id': host['id'],
+        }, output_format='json')
+        self.assertEqual(len(host_subscriptions), 0)
+
+    @tier3
+    def test_positive_auto_attach(self):
+        """Attempt to auto attach a subscription to content host
+
+        @id: e3eebf72-d512-4892-828b-70165ea4b129
+
+        @expectedresults: host successfully subscribed, subscription
+            repository enabled, and repository package installed
+
+        @CaseLevel: System
+        """
+        activation_key = self._make_activation_key(add_subscription=True)
+        self._host_subscription_register()
+        host = Host.info({'name': self.client.hostname})
+        self._register_client(activation_key=activation_key)
+        Host.subscription_auto_attach({'host-id': host['id']})
+        result = self._client_enable_repo()
+        self.assertEqual(result.return_code, 0)
+        # ensure that katello agent can be installed
+        with self.assertNotRaises(VirtualMachineError):
+            self.client.install_katello_agent()
+
+    @tier3
+    def test_positive_unregister(self):
+        """Attempt to unregister host subscription
+
+        @id: 608f5b6d-4688-478e-8be8-e946771d5247
+
+        @expectedresults: host subscription is unregistered
+
+        @CaseLevel: System
+        """
+        # register the host client
+        activation_key = self._make_activation_key(add_subscription=True)
+        self._register_client(
+            activation_key=activation_key, enable_repo=True, auto_attach=True)
+        self.assertTrue(self.client.subscribed)
+        host = Host.info({'name': self.client.hostname})
+        host_subscriptions = ActivationKey.subscriptions({
+            'organization-id': self.org['id'],
+            'id': activation_key['id'],
+            'host-id': host['id'],
+        }, output_format='json')
+        self.assertGreater(len(host_subscriptions), 0)
+        Host.subscription_unregister({'host': self.client.hostname})
+        with self.assertRaises(CLIReturnCodeError):
+            # raise error that the host was not registered by
+            # subscription-manager register
+            ActivationKey.subscriptions({
+                'organization-id': self.org['id'],
+                'id': activation_key['id'],
+                'host-id': host['id'],
+            })
 
 
 class HostErrataTestCase(CLITestCase):

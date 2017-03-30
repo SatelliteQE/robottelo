@@ -92,7 +92,8 @@ class ActivationKey(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def subscriptions(cls, options=None):
+    def subscriptions(cls, options=None, output_format=None):
         """List associated subscriptions"""
         cls.command_sub = 'subscriptions'
-        return cls.execute(cls._construct_command(options))
+        return cls.execute(
+            cls._construct_command(options), output_format=output_format)
