@@ -215,8 +215,9 @@ class RoleTestCase(UITestCase):
                 session, username=user_name, roles=[role_name], edit=True)
             self.user.search_and_click(user_name)
             self.user.click(tab_locators['users.tab_roles'])
+            strategy, value = common_locators['entity_deselect']
             element = self.user.wait_until_element(
-                common_locators['entity_deselect'] % role_name)
+                (strategy, value % role_name))
             self.assertIsNotNone(element)
 
     @skip_if_bug_open('bugzilla', 1353788)
