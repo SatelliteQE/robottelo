@@ -511,7 +511,14 @@ class VirtualMachine(object):
                 'Satellite')
 
     def __enter__(self):
-        self.create()
+        try:
+            self.create()
+        except Exception as exp:
+            # in any case log the exception
+            logger.exception(exp)
+            self.destroy()
+            raise
+
         return self
 
     def __exit__(self, *exc):
