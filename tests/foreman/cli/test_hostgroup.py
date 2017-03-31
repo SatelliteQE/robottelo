@@ -644,7 +644,7 @@ class HostGroupTestCase(CLITestCase):
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_class['name'],
+            'puppet-classes': self.puppet_classes[0]['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
             'organization': self.org['name'],
@@ -652,7 +652,8 @@ class HostGroupTestCase(CLITestCase):
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
             'environment': self.env['name'],
-            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+            'search': u'puppetclass="{0}"'.format(
+                self.puppet_classes[0]['name'])
         })
         scp_id = choice(sc_params_list)['id']
         SmartClassParameter.update({'id': scp_id, 'override': 1})
@@ -672,7 +673,7 @@ class HostGroupTestCase(CLITestCase):
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_class['name'],
+            'puppet-classes': self.puppet_classes[0]['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
             'organization': self.org['name'],
@@ -680,7 +681,8 @@ class HostGroupTestCase(CLITestCase):
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
             'environment': self.env['name'],
-            'search': u'puppetclass="{0}"'.format(self.puppet_class['name'])
+            'search': u'puppetclass="{0}"'.format(
+                self.puppet_classes[0]['name'])
         })
         scp_id = choice(sc_params_list)['id']
         SmartClassParameter.update({'id': scp_id, 'override': 1})
@@ -700,14 +702,14 @@ class HostGroupTestCase(CLITestCase):
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_class['name'],
+            'puppet-classes': self.puppet_classes[0]['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
             'organization': self.org['name'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
+            {'puppet-class': self.puppet_classes[0]['name']})
         # Verify that affected sc-param is listed
         hg_variables = HostGroup.smart_variables(
             {'hostgroup-id': hostgroup['id']})
@@ -725,14 +727,14 @@ class HostGroupTestCase(CLITestCase):
         """
         # Create hostgroup with associated puppet class
         hostgroup = make_hostgroup({
-            'puppet-classes': self.puppet_class['name'],
+            'puppet-classes': self.puppet_classes[0]['name'],
             'environment': self.env['name'],
             'content-view': self.cv['name'],
             'organization': self.org['name'],
         })
         # Create smart variable
         smart_variable = make_smart_variable(
-            {'puppet-class': self.puppet_class['name']})
+            {'puppet-class': self.puppet_classes[0]['name']})
         # Verify that affected sc-param is listed
         hg_variables = HostGroup.smart_variables(
             {'hostgroup': hostgroup['name']})
