@@ -55,9 +55,9 @@ class VirtualMachine(object):
         distro_el7 = settings.distro.image_el7
         self.cpu = cpu
         self.ram = ram
-        if distro == 'rhel6':
+        if distro == DISTRO_RHEL6:
             distro = distro_el6
-        if distro == 'rhel7':
+        if distro == DISTRO_RHEL7:
             distro = distro_el7
         if distro is None:
             distro = distro_el7
