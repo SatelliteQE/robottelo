@@ -278,7 +278,7 @@ class TestCase(unittest2.TestCase):
         if not settings.configured:
             settings.configure()
         cls.logger = logging.getLogger('robottelo')
-        cls.logger.debug('Started setUpClass: {0}/{1}'.format(
+        cls.logger.info('Started setUpClass: {0}/{1}'.format(
             cls.__module__, cls.__name__))
         # NOTE: longMessage defaults to True in Python 3.1 and above
         cls.longMessage = True
@@ -293,7 +293,7 @@ class TestCase(unittest2.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.logger.debug('Started tearDownClass: {0}/{1}'.format(
+        cls.logger.info('Started tearDownClass: {0}/{1}'.format(
             cls.__module__, cls.__name__))
         if settings.cleanup:
             cls.cleaner.clean()
