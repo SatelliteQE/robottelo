@@ -133,13 +133,12 @@ def get_connection(hostname=None, username=None, password=None,
         hostname, username, password, key_filename, timeout
     )
     try:
-        logger.info('Instantiated Paramiko client {0}'.format(client._id))
-        logger.debug('Connected to [%s]', hostname)
+        logger.debug('Instantiated Paramiko client {0}'.format(client._id))
+        logger.info('Connected to [%s]', hostname)
         yield client
     finally:
-        logger.info('Destroying Paramiko client {0}'.format(client._id))
         client.close()
-        logger.info('Destroyed Paramiko client {0}'.format(client._id))
+        logger.debug('Destroyed Paramiko client {0}'.format(client._id))
 
 
 def add_authorized_key(key, hostname=None, username=None, password=None,
@@ -272,7 +271,7 @@ def execute_command(cmd, connection, output_format=None, timeout=120):
     :param timeout: defaults to 120
     :return: SSHCommandResult
     """
-    logger.debug('>>> %s', cmd)
+    logger.info('>>> %s', cmd)
     _, stdout, stderr = connection.exec_command(cmd, timeout)
 
     errorcode = stdout.channel.recv_exit_status()
@@ -284,11 +283,11 @@ def execute_command(cmd, connection, output_format=None, timeout=120):
     if stdout:
         # Convert to unicode string
         stdout = decode_to_utf8(stdout)
-        logger.debug('<<< stdout\n%s', stdout)
+        logger.info('<<< stdout\n%s', stdout)
     if stderr:
         # Convert to unicode string and remove all color codes characters
         stderr = regex.sub('', decode_to_utf8(stderr))
-        logger.debug('<<< stderr\n%s', stderr)
+        logger.info('<<< stderr\n%s', stderr)
     # we don't want a list as output of 'plain' just pure text
     if stdout and output_format not in ('json', 'plain'):
         # Mostly only for hammer commands
