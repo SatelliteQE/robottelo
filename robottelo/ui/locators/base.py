@@ -2712,4 +2712,8 @@ locators = LocatorDict({
     "smart_variable.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "smart_variable.table_value": (By.XPATH, "//td[contains(., '%s')]"),
+
+    # Smart Class Parameters
+    "sc_parameters.select_name": (By.XPATH, "//a[contains(., '%s')]"),
+
 })

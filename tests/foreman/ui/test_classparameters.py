@@ -15,19 +15,113 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
+from nailgun import entities
 
+from robottelo.api.utils import delete_puppet_class, publish_puppet_module
+from robottelo.cli.factory import add_permissions_to_user
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
+    tier2,
     tier3
 )
 from robottelo.test import UITestCase
+from robottelo.ui.session import Session
 
 
 class SmartClassParametersTestCase(UITestCase):
     """Implements Smart Class Parameter tests in UI"""
+
+    @classmethod
+    def set_session_org(cls):
+        """Creates new organization to be used for current session the
+        session_user will login automatically with this org in context
+        """
+        cls.session_org = entities.Organization().create()
+
+    @classmethod
+    def setUpClass(cls):
+        """Import some parametrized puppet classes. This is required to make
+        sure that we have smart class parameter available.
+        Read all available smart class parameters for imported puppet class to
+        be able to work with unique entity for each specific test.
+        """
+        super(SmartClassParametersTestCase, cls).setUpClass()
+        cls.puppet_modules = [
+            {'author': 'robottelo', 'name': 'ui_test_classparameters'},
+        ]
+        cv = publish_puppet_module(
+            cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.session_org)
+        cls.env = entities.Environment().search(
+            query={'search': u'content_view="{0}"'.format(cv.name)}
+        )[0].read()
+        cls.puppet_class = entities.PuppetClass().search(query={
+            'search': u'name = "{0}" and environment = "{1}"'.format(
+                cls.puppet_modules[0]['name'], cls.env.name)
+        })[0]
+        cls.sc_params_list = entities.SmartClassParameters().search(
+            query={
+                'search': 'puppetclass="{0}"'.format(cls.puppet_class.name),
+                'per_page': 1000
+            })
+
+    @classmethod
+    def tearDownClass(cls):
+        """Removes puppet class."""
+        super(SmartClassParametersTestCase, cls).tearDownClass()
+        delete_puppet_class(cls.puppet_class.name)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_search(self):
+        """Search for specific smart class parameter
+
+        :id: 76fcb049-2c3e-4ac1-944b-6dd7b0c69097
+
+        :expectedresults: Specified smart class parameter can be found in the
+            system
+        """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.assertIsNotNone(self.sc_parameters.search(sc_param.parameter))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_search_with_non_admin_user(self):
+        """Search for specific smart class parameter using non admin user
+
+        :id: 79bd4071-1baa-44af-91dd-1e093445af29
+
+        :expectedresults: Specified smart class parameter can be found in the
+            system
+
+        :BZ: 1391556
+
+        :CaseLevel: Integration
+        """
+        sc_param = self.sc_params_list.pop()
+        username = gen_string('alpha')
+        password = gen_string('alpha')
+        required_user_permissions = {
+            'Puppetclass': [
+                'view_puppetclasses',
+            ],
+            'PuppetclassLookupKey': [
+                'view_external_parameters',
+                'create_external_parameters',
+                'edit_external_parameters',
+                'destroy_external_parameters',
+            ],
+        }
+        user = entities.User(
+            login=username, password=password, admin=False).create()
+        add_permissions_to_user(user.id, required_user_permissions)
+        with Session(self.browser, username, password):
+            self.assertIsNotNone(self.sc_parameters.search(sc_param.parameter))
 
     @run_only_on('sat')
     @stubbed()
