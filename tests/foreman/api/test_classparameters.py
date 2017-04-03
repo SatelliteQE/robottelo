@@ -256,6 +256,12 @@ class SmartClassParametersTestCase(APITestCase):
         user.update(['role'])
         cfg = get_nailgun_config()
         cfg.auth = (login, password)
+        # assert that the user is not an admin one and cannot read the current
+        # role
+        with self.assertRaises(HTTPError) as context:
+            entities.Role(cfg, id=role.id).read()
+        self.assertIn(
+            '403 Client Error: Forbidden', context.exception.message)
         result = entities.PuppetClass(
             cfg, id=self.puppet_class.id).list_scparams()['results']
         self.assertGreater(len(result), 0)

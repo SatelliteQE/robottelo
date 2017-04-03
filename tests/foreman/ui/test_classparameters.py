@@ -17,9 +17,13 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from requests import HTTPError
 
-from robottelo.api.utils import delete_puppet_class, publish_puppet_module
-from robottelo.cli.factory import add_permissions_to_user
+from robottelo.api.utils import (
+    create_role_permissions,
+    delete_puppet_class,
+    publish_puppet_module,
+)
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.decorators import (
     run_only_on,
@@ -29,6 +33,7 @@ from robottelo.decorators import (
     tier2,
     tier3
 )
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -117,9 +122,22 @@ class SmartClassParametersTestCase(UITestCase):
                 'destroy_external_parameters',
             ],
         }
-        user = entities.User(
-            login=username, password=password, admin=False).create()
-        add_permissions_to_user(user.id, required_user_permissions)
+        role = entities.Role().create()
+        create_role_permissions(role, required_user_permissions)
+        entities.User(
+            login=username,
+            password=password,
+            role=[role],
+            admin=False
+        ).create()
+        # assert that the user is not an admin one and cannot read the current
+        # role info (note: view_roles is not in the required permissions)
+        cfg = get_nailgun_config()
+        cfg.auth = (username, password)
+        with self.assertRaises(HTTPError) as context:
+            entities.Role(cfg, id=role.id).read()
+        self.assertIn(
+            '403 Client Error: Forbidden', context.exception.message)
         with Session(self.browser, username, password):
             self.assertIsNotNone(self.sc_parameters.search(sc_param.parameter))
 
