@@ -70,6 +70,10 @@ def browser():
         elif webdriver_name == 'ie':
             desired_capabilities = (
                 webdriver.DesiredCapabilities.INTERNETEXPLORER.copy())
+        elif webdriver_name == 'edge':
+            desired_capabilities = webdriver.DesiredCapabilities.EDGE.copy()
+            desired_capabilities['acceptSslCerts'] = True
+            desired_capabilities['javascriptEnabled'] = True
         else:
             desired_capabilities = webdriver.DesiredCapabilities.FIREFOX.copy()
         if settings.webdriver_desired_capabilities:
