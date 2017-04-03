@@ -9,8 +9,8 @@ import zipfile
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
+from nailgun import entities
 
-from robottelo.api.utils import upload_manifest
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import INTERFACE_API, INTERFACE_CLI
@@ -211,7 +211,10 @@ def upload_manifest_locked(org_id, manifest,  interface=INTERFACE_API):
         )
     if interface == INTERFACE_API:
         with manifest:
-            result = upload_manifest(org_id, manifest.content)
+            result = entities.Subscription().upload(
+                data={'organization_id': org_id},
+                files={'content': manifest.content},
+            )
     else:
         # interface is INTERFACE_CLI
         with manifest:
