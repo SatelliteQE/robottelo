@@ -54,7 +54,7 @@ ssh_key=
 # Webdriver to use. Valid values are chrome, firefox, ie, edge, phantomjs
 # webdriver=firefox
 
-# Binary location for selected wedriver
+# Binary location for selected wedriver (not needed if using saucelabs)
 # webdriver_binary=/usr/bin/firefox
 # webdriver_binary=/usr/bin/chromedriver
 # webdriver_binary=C:\\Program Files (x86)\\Microsoft Web Driver\\MicrosoftWebDriver.exe
@@ -70,7 +70,11 @@ ssh_key=
 # PS.: the base DesiredCapabilities dict will be get by the browser
 # specified by webdriver config. If you override browserName then that
 # browser will be used instead.
-#webdriver_desired_capabilities=platform=OS X 10.11,version=44.0,...
+# examples:
+# (note: version=<browser version>)
+# webdriver_desired_capabilities=platform=OS X 10.9,version=45.0,build=myBuildName,parentTunnel=otherUser,seleniumVersion=2.48.0
+# webdriver_desired_capabilities=platform=macOS 10.12,version=45.0,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200
+# webdriver_desired_capabilities=platform=Windows 10,version=14.14393,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200,browserName=MicrosoftEdge
 
 # saucelabs_user=
 # saucelabs_key=
