@@ -2955,3 +2955,28 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     # Puppet Class entities
     ContentView.publish({u'id': cv['id']})
     return ContentView.info({u'id': cv['id']})
+
+
+def add_permissions_to_user(user_id, permissions_list):
+    """Assign specific permissions to custom user"""
+    # Create a new role
+    role = make_role()
+    # Get the available permissions
+    available_permissions = Filter.available_permissions()
+    # group the available permissions by resource type
+    available_rc_permissions = {}
+    for permission in available_permissions:
+        permission_resource = permission['resource']
+        if permission_resource not in available_rc_permissions:
+            available_rc_permissions[permission_resource] = []
+        available_rc_permissions[permission_resource].append(
+            permission)
+    # create only the required role permissions per resource type
+    for resource_type, permission_names in permissions_list.items():
+        # Create the current resource type role permissions
+        make_filter({
+            'role-id': role['id'],
+            'permissions': permission_names,
+        })
+    # Add the created and initiated role with permissions to user
+    User.add_role({'id': user_id, 'role-id': role['id']})
