@@ -71,6 +71,7 @@ class CapsuleVirtualMachine(VirtualMachine):
                     'cannot find a default compatible distro to create'
                     ' the virtual machine')
 
+        self._capsule_distro = distro
         self._capsule_domain = settings.capsule.domain
         self._capsule_instance_name = settings.capsule.instance_name
         self._capsule_hostname_hash = settings.capsule.hash
@@ -96,6 +97,10 @@ class CapsuleVirtualMachine(VirtualMachine):
         self._capsule = None
         self._capsule_org = None
         self._capsule_lce = None
+
+    @property
+    def capsule_distro(self):
+        return self._capsule_distro
 
     @property
     def hostname_local(self):
