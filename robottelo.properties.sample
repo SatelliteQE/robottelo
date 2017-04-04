@@ -78,7 +78,7 @@ ssh_key=
 # (note: version=<browser version>)
 # webdriver_desired_capabilities=platform=OS X 10.9,version=45.0,build=myBuildName,parentTunnel=otherUser,seleniumVersion=2.48.0
 # webdriver_desired_capabilities=platform=macOS 10.12,version=45.0,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200
-# webdriver_desired_capabilities=platform=Windows 10,version=14.14393,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200,browserName=MicrosoftEdge
+# webdriver_desired_capabilities=platform=Windows 10,version=14.14393,build=myBuildName,seleniumVersion=2.48.0,screenResolution=1600x1200
 
 # saucelabs_user=
 # saucelabs_key=

@@ -94,10 +94,21 @@ class Remote(DriverLoggerMixin, webdriver.Remote):
     """Custom Remote for custom logging"""
 
 
-def browser():
-    """Creates a webdriver browser instance based on configuration."""
-    webdriver_name = settings.webdriver.lower()
-    if settings.browser == 'selenium':
+def browser(browser_name=None, webdriver_name=None):
+    """Creates a webdriver browser.
+
+    :param browser_name: one of selenium, saucelabs, docker
+    :param webdriver_name: one of firefox, chrome, edge, ie, phantomjs
+
+    If any of the params are None then will be read from properties file.
+    """
+
+    webdriver_name = webdriver_name or settings.webdriver
+    browser_name = browser_name or settings.browser
+    webdriver_name = webdriver_name.lower()
+    browser_name = browser_name.lower()
+
+    if browser_name == 'selenium':
         if webdriver_name == 'firefox':
             return Firefox(
                 firefox_binary=webdriver.firefox.firefox_binary.FirefoxBinary(
@@ -131,7 +142,7 @@ def browser():
                 service_args=['--ignore-ssl-errors=true'])
         elif webdriver_name == 'remote':
             return Remote()
-    elif settings.browser == 'saucelabs':
+    elif browser_name == 'saucelabs':
         if webdriver_name == 'chrome':
             desired_capabilities = webdriver.DesiredCapabilities.CHROME.copy()
         elif webdriver_name == 'ie':
@@ -150,6 +161,17 @@ def browser():
             command_executor=_sauce_ondemand_url(
                 settings.saucelabs_user, settings.saucelabs_key),
             desired_capabilities=desired_capabilities
+        )
+    elif browser_name == 'docker':
+        # in test_cases you should use `with DockerBrowser()`
+        # this options here is useful only for local command line testing
+        # note: docker_browser is not destroyed when using `manage ui browse`
+        _docker_browser = DockerBrowser()
+        _docker_browser.start()
+        return _docker_browser.webdriver
+    else:
+        raise NotImplementedError(
+            "Supported browsers are: selenium, saucelabs, docker"
         )
 
 
