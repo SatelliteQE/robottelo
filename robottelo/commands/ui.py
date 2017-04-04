@@ -30,28 +30,18 @@ from robottelo.config import settings
 from robottelo.constants import UI_CRUD
 from robottelo.helpers import Storage
 from robottelo.ui.browser import browser as selenium_browser
-from robottelo.ui.browser import DockerBrowser
 from robottelo.ui import factory as ui_factory
 from robottelo.ui.session import Session
 
 
-def _get_browser(browser=None):
+def _get_browser(browser_name=None, webdriver_name=None):
     """Gets a new instance of a browser to interact"""
-
-    browser = browser or settings.browser
-    if browser == 'docker':
-        _docker_browser = DockerBrowser()
-        _docker_browser.start()
-        _browser = _docker_browser.webdriver
-    elif browser == "selenium":
-        _browser = selenium_browser()
-    else:
-        raise NotImplementedError(
-            "this shell only supports docker and selenium")
-
-    _browser.maximize_window()
-    _browser.get(settings.server.get_url())
-    return _browser
+    browser = selenium_browser(
+        browser_name=browser_name, webdriver_name=webdriver_name
+    )
+    browser.maximize_window()
+    browser.get(settings.server.get_url())
+    return browser
 
 
 def _import_ui_crud():
@@ -68,9 +58,11 @@ def _import_ui_crud():
 @click.option('--host', required=False, default=None,
               help="satellite host name e.g:'foo.bar.com'")
 @click.option('--browser', required=False, default=None,
-              help='selenium or docker (defaults to properties file)')
+              help='browser_name selenium, saucelabs or docker')
+@click.option('--driver', required=False, default=None,
+              help='selenium driver ie, firefox, chrome, edge, phantomjs')
 @click.argument('entity', required=False, default=None)
-def browse(entity, browser, host):
+def browse(entity, browser, driver, host):
     """Opens a page in defined browser for interaction:\n
     All parameters defaults to what is in robottelo.properties file.\n
         example: $ manage ui browse activationkey\n
@@ -80,7 +72,7 @@ def browse(entity, browser, host):
     settings.configure()
     if host:
         settings.server.hostname = host
-    current_browser = _get_browser(browser)
+    current_browser = _get_browser(browser, driver)
     with Session(current_browser) as session:  # noqa
 
         ui_crud = _import_ui_crud()
