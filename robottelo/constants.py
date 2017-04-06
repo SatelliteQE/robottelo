@@ -1443,6 +1443,8 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'edit_organizations'},
         {'name': 'destroy_organizations'},
         {'name': 'assign_organizations'},
+    ],
+    'Katello::Subscription': [
         {'name': 'view_subscriptions', 'bz': [1306359]},
         {'name': 'attach_subscriptions', 'bz': [1306359]},
         {'name': 'unattach_subscriptions', 'bz': [1306359]},
