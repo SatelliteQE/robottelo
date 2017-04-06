@@ -16,6 +16,7 @@
 """
 
 from fauxfactory import gen_string
+
 from robottelo.datafactory import (
     filtered_datapoint,
     invalid_values_list,
@@ -29,15 +30,17 @@ from robottelo.ui.session import Session
 
 
 @filtered_datapoint
-def valid_hw_model_names():
+def valid_hw_model_names(validator=None, default=None, tries=10):
     """Returns a list of valid hw model names"""
+
+    kwargs = {'validator': validator, 'default': default, 'tries': tries}
     return [
-        {u'name': gen_string('alpha')},
-        {u'name': gen_string('numeric')},
-        {u'name': gen_string('alphanumeric')},
-        {u'name': gen_string('html'), 'bugzilla': 1265150},
-        {u'name': gen_string('latin1')},
-        {u'name': gen_string('utf8')}
+        {u'name': gen_string('alpha', **kwargs)},
+        {u'name': gen_string('numeric', **kwargs)},
+        {u'name': gen_string('alphanumeric', **kwargs)},
+        {u'name': gen_string('html', **kwargs), 'bugzilla': 1265150},
+        {u'name': gen_string('latin1', **kwargs)},
+        {u'name': gen_string('utf8', **kwargs)}
     ]
 
 
@@ -111,14 +114,20 @@ class HardwareModelTestCase(UITestCase):
 
         @expectedresults: Hardware-Model is deleted
         """
+        def not_start_with_digit(value):
+            return not value[0].isdigit()
+
+        valid_names = valid_hw_model_names(
+            not_start_with_digit,
+            'QE Fake Hardware '
+        )
+
         with Session(self.browser) as session:
-            for test_data in valid_hw_model_names():
+            for test_data in valid_names:
+                if 'bugzilla' in test_data:
+                    # while bz 1265150 is not cherry picked html is not valid
+                    # input
+                    continue
                 with self.subTest(test_data):
-                    bug_id = test_data.pop('bugzilla', None)
-                    if bug_id is not None and bz_bug_is_open(bug_id):
-                        self.skipTest(
-                            'Bugzilla bug {0} is open for html '
-                            'data.'.format(bug_id)
-                        )
                     make_hw_model(session, name=test_data['name'])
                     self.hardwaremodel.delete(test_data['name'])
