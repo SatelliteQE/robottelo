@@ -1312,7 +1312,11 @@ class ActivationKeyTestCase(UITestCase):
         # Create user
         password = gen_string('alpha')
         user = entities.User(
-            password=password, login=gen_string('alpha'), admin=True).create()
+            password=password,
+            login=gen_string('alpha'),
+            admin=True,
+            default_organization=self.organization,
+        ).create()
         # Create Activation Key with new user credentials
         with Session(
                 self.browser,
