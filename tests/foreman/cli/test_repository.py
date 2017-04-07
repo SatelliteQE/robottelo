@@ -64,7 +64,6 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -1223,17 +1222,17 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['sync']['status'], 'Success')
         self.assertEqual(repo['content-counts']['packages'], '32')
         # Find repo packages and remove them
-        packages = Package.list({'repository': repo['name']})
-        remove_options = {
+        packages = Package.list({
+            'repository': repo['name'],
+            'product': self.product['name'],
+            'organization': self.org['name'],
+        })
+        Repository.remove_content({
             'name': repo['name'],
             'product': self.product['name'],
             'organization': self.org['name'],
             'ids': [package['id'] for package in packages],
-        }
-        if bz_bug_is_open(1413145):
-            remove_options.pop('product')
-            remove_options.pop('organization')
-        Repository.remove_content(remove_options)
+        })
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['packages'], '0')
 
