@@ -23,6 +23,7 @@ from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
+    _setup_org_for_a_rh_repo,
     CLIFactoryError,
     make_activation_key,
     make_content_view,
@@ -31,7 +32,6 @@ from robottelo.cli.factory import (
     make_org,
     make_user,
     setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
 )
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
@@ -620,7 +620,9 @@ class ActivationKeyTestCase(CLITestCase):
         @CaseLevel: System
         """
         org = make_org()
-        result = setup_org_for_a_rh_repo({
+        # exceptional case here. we need this repo to be RH one no matter are
+        # we in downstream or cdn
+        result = _setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
@@ -680,7 +682,9 @@ class ActivationKeyTestCase(CLITestCase):
         @BZ: 1360239
         """
         org = make_org()
-        result = setup_org_for_a_rh_repo({
+        # exceptional case here. we need this repo to be RH one no matter are
+        # we in downstream or cdn
+        result = _setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],

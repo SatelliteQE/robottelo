@@ -2236,14 +2236,13 @@ class ContentViewTestCase(CLITestCase):
         # create a client host and register it with the created user
         with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
             host_client.install_katello_ca()
-            result = host_client.register_contenthost(
+            host_client.register_contenthost(
                 org['name'],
                 lce=u'{0}/{1}'.format(env['name'], content_view['name']),
                 username=user_name,
                 password=user_password
             )
-            self.assertIn(u'The system has been registered with ID',
-                          u''.join(result.stdout))
+            self.assertTrue(host_client.subscribed)
             # check that the client host exist in the system
             org_hosts = Host.list({'organization-id': org['id']})
             self.assertEqual(len(org_hosts), 1)
