@@ -1459,12 +1459,25 @@ PERMISSIONS_WITH_BZ = {
     ],
 }
 
-# removed u'config.snar' and u'pulp.snar' that are no
-# longer created by default, need to check if that's expceted
 BACKUP_FILES = [
+    u'config_files.tar.gz',
+    u'.config.snar',
+    u'metadata',
+    u'mongo_data.tar.gz',
+    u'.mongo.snar',
+    u'pgsql_data.tar.gz',
+    u'.postgres.snar',
+    u'pulp_data.tar',
+    u'.pulp.snar',
+]
+
+HOT_BACKUP_FILES = [
     u'candlepin.dump',
     u'config_files.tar.gz',
+    u'.config.snar',
     u'foreman.dump',
+    u'metadata',
     u'mongo_dump',
     u'pulp_data.tar',
+    u'.pulp.snar',
 ]

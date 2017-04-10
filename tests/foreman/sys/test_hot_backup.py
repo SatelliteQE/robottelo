@@ -19,8 +19,9 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.constants import BACKUP_FILES
+from robottelo.constants import BACKUP_FILES, HOT_BACKUP_FILES
 from robottelo.decorators import stubbed, backup, skip_if_bug_open
+from robottelo.helpers import get_services_status
 from robottelo.ssh import _get_connection
 from robottelo.test import TestCase
 
@@ -34,8 +35,14 @@ def make_random_tmp_directory(connection):
     return name
 
 
+def tmp_directory_cleanup(connection, *args):
+    for name in args:
+        connection.run('rm -rf /tmp/{0}'.format(name))
+
+
+@backup
 class HotBackupTestCase(TestCase):
-    """Implements ``katello-backup --online`` tests"""
+    """Implements ``katello-backup`` tests"""
 
     @classmethod
     def setUpClass(cls):
@@ -45,19 +52,19 @@ class HotBackupTestCase(TestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @backup
-    @skip_if_bug_open('bugzilla', 1399244)
-    def test_positive_backup_with_existing_directory(self):
-        """katello-backup with existing directory
+    def test_positive_online_backup_with_existing_directory(self):
+        """katello-backup --online-backup with existing directory
 
         @id: 3f8285d5-c68b-4d84-8568-bcd7e4f7f19e
 
         @Steps:
 
         1. Create a directory (ie /tmp/xyz)
-        2. Run ``katello-backup /tmp/xyz``
+        2. Run ``katello-backup --online-backup /tmp/xyz``
 
         @expectedresults: The backup is successfully created in existing folder
-        and contains all the default files needed to restore.
+        and contains all the default files needed to restore. Services keep
+        running.
 
         """
         with _get_connection() as connection:
@@ -69,15 +76,18 @@ class HotBackupTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
             files = connection.run(
-                'ls /tmp/{0}/katello-backup*'.format(dir_name),
+                'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
             )
             # backup could have more files than the default so it is superset
-            self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, dir_name)
 
     @backup
-    @skip_if_bug_open('bugzilla', 1399244)
-    def test_positive_directory_created(self):
-        """katello-backup with non-existing directory
+    def test_positive_online_backup_with_directory_created(self):
+        """katello-backup --online with non-existing directory
 
 
         @id: 946991ad-125a-4f24-a33e-ea27fce38eda
@@ -85,10 +95,11 @@ class HotBackupTestCase(TestCase):
         @Steps:
 
         1. Ensure the directory /tmp/xyz does not exist.
-        2. Run ``katello /tmp/xyz``
+        2. Run ``katello-backup --online-backup /tmp/xyz``
 
         @expectedresults: ``/tmp/xyz`` is created and the backup is saved to it
-        containing all the default files needed to restore.
+        containing all the default files needed to restore. Services
+        keep running.
 
         """
         with _get_connection() as connection:
@@ -101,48 +112,259 @@ class HotBackupTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
             files = connection.run(
-                'ls /tmp/{0}/katello-backup*'.format(dir_name),
+                'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
             )
             # backup could have more files than the default so it is superset
-            self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, dir_name)
 
     @backup
-    @skip_if_bug_open('bugzilla', 1399244)
-    def test_positive_skip_pulp(self):
-        """Katello-backup with --skip-pulp option should not create pulp
-        files in destination.
+    def test_positive_online_skip_pulp(self):
+        """Katello-backup --online-backup with --skip-pulp-content
+        option should not create pulp files in destination.
 
         @id: 0f0c1915-dd07-4571-9b05-e0778efc85b2
 
         @Steps:
 
-        1. Run backup with --skip-pulp option to /tmp/bck-no-pulp
+        1. Run online backup with --skip-pulp-content option
         2. List contents of the destination
 
-        @expectedresults: ``/tmp/bck-no-pulp`` is created and pulp related
-        files are not present.
+        @expectedresults: ``/tmp/bck-no-pulp`` is created and pulp
+        related files are not present. Services keep running.
 
         """
         with _get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup '
-                '--skip-pulp'.format(dir_name),
+                '--skip-pulp-content'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
             files = connection.run(
-                    'ls /tmp/{0}/katello-backup'.format(dir_name),
+                    'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.assertNotIn(u'.pulp.snar', files.stdout)
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, dir_name)
 
     @backup
-    @skip_if_bug_open('bugzilla', 1399244)
-    @skip_if_bug_open('bugzilla', 1384901)
+    def test_positive_skip_pulp(self):
+        """Katello-backup with --skip-pulp-content option should not
+        create pulp files in destination.
+
+        @id: f0fa2daa-209e-4d46-9b67-3041768a2a77
+
+        @Steps:
+
+        1. Run online backup with --skip-pulp-content option
+        2. List contents of the destination
+
+        @expectedresults: Backup is created and pulp related
+        files are not present. Services are started back again.
+
+        """
+        with _get_connection() as connection:
+            dir_name = make_random_tmp_directory(connection)
+            result = connection.run(
+                'katello-backup /tmp/{0} '
+                '--skip-pulp-content'.format(dir_name),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                    'list'
+                    )
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.assertNotIn(u'.pulp.snar', files.stdout)
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, dir_name)
+
+    @backup
     def test_positive_incremental(self):
-        """Make an incremental backup
+        """Katello-backup with --incremental option
+
+        @id: 3bd1e85c-8c95-4198-a126-35eaf14572ed
+
+        @Steps:
+
+        1. Run full backup
+        2. Run incremental backup from the previous backup
+
+        @expectedresults: Incremental backup is created. Services are
+        started back again.
+
+        """
+        with _get_connection() as connection:
+            b1_dir = make_random_tmp_directory(connection)
+            # run full backup
+            result = connection.run(
+                'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'list'
+                    )
+            # backup could have more files than the default so it is superset
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
+
+            # run incremental backup
+            b1_dest = make_random_tmp_directory(connection)
+            timestamped_dir = connection.run(
+                    'ls /tmp/{0}/'.format(b1_dir),
+                    'list'
+                    )
+            result = connection.run(
+                'katello-backup /tmp/{0} --incremental /tmp/{1}/{2}'
+                .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dest), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
+                    'list'
+                    )
+            self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, b1_dir, b1_dest)
+
+    @backup
+    def test_positive_online_incremental_skip_pulp(self):
+        """Katello-backup with --online --skip-pulp-content and
+        --incremental options
+
+        @id: 49c42a81-88c3-4827-9b9e-6c41a8570234
+
+        @Steps:
+
+        1. Run full backup
+        2. Run online incremental backup without pulp from the previous backup
+
+        @expectedresults: Incremental backup is created and pulp related files
+        are not present. Services keep running.
+
+        """
+        with _get_connection() as connection:
+            b1_dir = make_random_tmp_directory(connection)
+            # run full backup
+            result = connection.run(
+                'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'list'
+                    )
+            # backup could have more files than the default so it is superset
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
+
+            # run incremental backup
+            b1_dest = make_random_tmp_directory(connection)
+            timestamped_dir = connection.run(
+                    'ls /tmp/{0}/'.format(b1_dir),
+                    'list'
+                    )
+            result = connection.run(
+                '''katello-backup --online-backup \
+                        --skip-pulp-content /tmp/{0} \
+                        --incremental /tmp/{1}/{2}'''
+                .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dest), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
+                    'list'
+                    )
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.assertNotIn(u'.pulp.snar', files.stdout)
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, b1_dir, b1_dest)
+
+    @backup
+    def test_positive_incremental_skip_pulp(self):
+        """Katello-backup with --skip-pulp-content and --incremental
+        options
+
+        @id: b2e6095c-648c-48a2-af5b-212c9d7e18e6
+
+        @Steps:
+
+        1. Run full backup
+        2. Run incremental backup without pulp from the previous backup
+
+        @expectedresults: Incremental backup is created with and pulp related
+        files are not present. Services are started back again.
+
+        """
+        with _get_connection() as connection:
+            b1_dir = make_random_tmp_directory(connection)
+            # run full backup
+            result = connection.run(
+                'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'list'
+                    )
+            # backup could have more files than the default so it is superset
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
+
+            # run incremental backup
+            b1_dest = make_random_tmp_directory(connection)
+            timestamped_dir = connection.run(
+                    'ls /tmp/{0}/'.format(b1_dir),
+                    'list'
+                    )
+            result = connection.run(
+                '''katello-backup \
+                        --skip-pulp-content /tmp/{0} \
+                        --incremental /tmp/{1}/{2}'''
+                .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dest), ' '.join(result.stdout))
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
+                    'list'
+                    )
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            self.assertNotIn(u'.pulp.snar', files.stdout)
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, b1_dir, b1_dest)
+
+    @backup
+    @skip_if_bug_open('bugzilla', 1435333)
+    def test_positive_online_incremental(self):
+        """Make an incremental online backup
 
         @id: a5b3536f-8365-41c7-9386-cddde588fe8c
 
@@ -167,11 +389,12 @@ class HotBackupTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
             files = connection.run(
-                    'ls /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
                     'list'
                     )
             # backup could have more files than the default so it is superset
-            self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
+            self.assertTrue(set(files.stdout).issuperset(
+                set(HOT_BACKUP_FILES)))
 
             # Create a new repo
             repo_name = gen_string('alpha')
@@ -181,32 +404,41 @@ class HotBackupTestCase(TestCase):
 
             # run incremental backup /tmp/ib1
             ib1_dir = gen_string('alpha')
+            # destination directory for incremental backup
+            ib1_dest = gen_string('alpha')
             connection.run('cp -r /tmp/{0} /tmp/{1}'.format(b1_dir, ib1_dir))
             timestamped_dir = connection.run(
                     'ls /tmp/{0}/'.format(ib1_dir),
                     'list'
                     )
             result = connection.run(
-                'katello-backup --online-backup --incremental /tmp/{0}/{1}'
-                .format(ib1_dir, timestamped_dir.stdout[0]),
+                '''katello-backup \
+                        --online-backup /tmp/{0} \
+                        --incremental /tmp/{1}/{2}'''
+                .format(ib1_dest, ib1_dir, timestamped_dir.stdout[0]),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(ib1_dir), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(ib1_dest), ' '.join(result.stdout))
 
             # restore /tmp/b1 and assert repo 1 is not there
-            connection.run('katello-restore /tmp/{0}'.format(b1_dir))
+            connection.run(
+                    'katello-restore -y /tmp/{0}/katello-backup*'
+                    .format(b1_dir))
             repo_list = entities.Repository().search(
                 query={'search': 'name={0}'.format(repo_name)}
             )
             self.assertEqual(len(repo_list), 0)
 
             # restore /tmp/ib1 and assert repo 1 is there
-            connection.run('katello-restore /tmp/{0}'.format(ib1_dir))
+            connection.run(
+                    'katello-restore -y /tmp/{0}/katello-backup*'
+                    .format(ib1_dest))
             repo_list = entities.Repository().search(
                 query={'search': 'name={0}'.format(repo_name)}
             )
             self.assertEqual(len(repo_list), 1)
+            tmp_directory_cleanup(connection, b1_dir, ib1_dir, ib1_dest)
 
     @backup
     @stubbed()
@@ -260,6 +492,7 @@ class HotBackupTestCase(TestCase):
         @id: b0d7de3a-d1d5-4cb9-8041-47301b658408
 
         @Steps:
+
         1. Create load on the Satellite by having multiple host pull content.
         2. Run a backup while the Satellite is under load
         3. Restore the backup

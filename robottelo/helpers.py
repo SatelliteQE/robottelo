@@ -14,6 +14,7 @@ from nailgun.config import ServerConfig
 from robottelo import ssh
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
+from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
 
 # This conditional is here to centralize use of lru_cache
 if six.PY3:  # pragma: no cover
@@ -413,3 +414,37 @@ def default_url_on_new_port(oldport, newport):
 def get_func_name(func):
     """Given a func object return standardized name to use across project"""
     return '{0}.{1}'.format(func.__module__, func.__name__)
+
+
+def get_services_status():
+    """Check if core services are running"""
+    major_version = get_host_info()[1]
+    services = (
+        'foreman-proxy',
+        'foreman-tasks',
+        'httpd',
+        'mongod',
+        'postgresql',
+        'pulp_celerybeat',
+        'pulp_resource_manager',
+        'pulp_streamer',
+        'pulp_workers',
+        'qdrouterd',
+        'qpidd',
+        'smart_proxy_dynflow_core',
+        'squid',
+        'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat',
+    )
+
+    # check `services` status using service command
+    if major_version >= RHEL_7_MAJOR_VERSION:
+        status_format = '''(for i in {0}; do systemctl status $i; rc=$?;
+                if [[ $rc != 0 ]]; then exit $rc; fi; done);'''
+    else:
+        status_format = '''(for i in {0}; do service $i status; rc=$?;
+                if [[ $rc != 0 ]]; then exit $rc; fi; done);'''
+
+    result = ssh.command(status_format.format(' '.join(services)))
+    if (result.return_code != 0):
+        return False
+    return True
