@@ -98,9 +98,9 @@ class ContentHostTestCase(UITestCase):
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
         self.client.create()
         self.client.install_katello_ca()
-        result = self.client.register_contenthost(
+        self.client.register_contenthost(
             self.session_org.label, self.activation_key.name)
-        self.assertEqual(result.return_code, 0)
+        self.assertTrue(self.client.subscribed)
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
 

@@ -2297,7 +2297,7 @@ def setup_org_for_a_custom_repo(options=None):
     }
 
 
-def setup_org_for_a_rh_repo(options=None):
+def _setup_org_for_a_rh_repo(options=None):
     """Sets up Org for the given Red Hat repository by:
 
     1. Checks if organization and lifecycle environment were given, otherwise
@@ -2311,6 +2311,9 @@ def setup_org_for_a_rh_repo(options=None):
     5. Checks if activation key was given, otherwise creates a new one and
         associates it with the content view.
     6. Adds the RH repo subscription to the activation key
+
+    Note that in most cases you should use ``setup_org_for_a_rh_repo`` instead
+    as it's more flexible.
 
     Options::
 
@@ -2471,6 +2474,44 @@ def setup_org_for_a_rh_repo(options=None):
     }
 
 
+def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False):
+    """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
+    instead of CDN's 'Satellite Capsule' and 'Satellite Tools' if
+    ``settings.cdn == 0`` and URL for custom repositories is set in properties.
+
+    :param options: a dict with options to pass to function
+        ``_setup_org_for_a_rh_repo``. See its docstring for more details
+    :param force_manifest_upload: bool flag whether to upload a manifest to
+        organization even if downstream custom repo is used instead of CDN.
+        Useful when test relies on organization with manifest (e.g. uses some
+        other RH repo afterwards). Defaults to False.
+    :return: a dict with entity ids (see ``_setup_org_for_a_rh_repo`` and
+        ``setup_org_for_a_custom_repo``).
+    """
+    repo_url = None
+    if 'Satellite Tools' in options.get('repository'):
+        repo_url = settings.sattools_repo
+    elif 'Satellite Capsule' in options.get('repository'):
+        repo_url = settings.capsule_repo
+    if settings.cdn or not repo_url:
+        return _setup_org_for_a_rh_repo(options)
+    else:
+        options['url'] = repo_url
+        result = setup_org_for_a_custom_repo(options)
+        if force_manifest_upload:
+            with manifests.clone() as manifest:
+                upload_file(manifest.content, manifest.filename)
+            try:
+                Subscription.upload({
+                    u'file': manifest.filename,
+                    u'organization-id': result.get('organization-id'),
+                })
+            except CLIReturnCodeError as err:
+                raise CLIFactoryError(
+                    u'Failed to upload manifest\n{0}'.format(err.msg))
+        return result
+
+
 def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     """Creates puppet repo, sync it via provided url and publish using
     Content View publishing mechanism. It makes puppet class available
@@ -2552,12 +2593,13 @@ def _get_capsule_vm_distro_repos(distro):
             'arch': rh_product_arch
         })
         # Red Hat Satellite Capsule 6.2 (for RHEL 7 Server)
-        rh_repos.append({
-            'product': PRDS['rhsc'],
-            'repository-set': REPOSET['rhsc7'],
-            'repository': REPOS['rhsc7']['name'],
-            'repository-id': REPOS['rhsc7']['id'],
-        })
+        if settings.cdn or not settings.capsule_repo:
+            rh_repos.append({
+                'product': PRDS['rhsc'],
+                'repository-set': REPOSET['rhsc7'],
+                'repository': REPOS['rhsc7']['name'],
+                'repository-id': REPOS['rhsc7']['id'],
+            })
     elif distro == DISTRO_RHEL6:
         # Red Hat Enterprise Linux 6 Server
         rh_product_arch = PRD_SETS['rhel_68']['arch']
@@ -2571,12 +2613,13 @@ def _get_capsule_vm_distro_repos(distro):
             'arch': rh_product_arch
         })
         # Red Hat Satellite Capsule 6.2 (for RHEL 6 Server)
-        rh_repos.append({
-            'product': PRDS['rhsc'],
-            'repository-set': REPOSET['rhsc6'],
-            'repository': REPOS['rhsc6']['name'],
-            'repository-id': REPOS['rhsc6']['id'],
-        })
+        if settings.cdn or not settings.capsule_repo:
+            rh_repos.append({
+                'product': PRDS['rhsc'],
+                'repository-set': REPOSET['rhsc6'],
+                'repository': REPOS['rhsc6']['name'],
+                'repository-id': REPOS['rhsc6']['id'],
+            })
     else:
         raise CLIFactoryError('distro "{}" not supported'.format(distro))
 
@@ -2682,14 +2725,30 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
                 u'Failed to fetch repository info\n{0}'.format(err.msg))
-    # Synchronize the RH repositories
-    for rh_repo in rh_repos:
+    # If we aren't working with CDN, create custom repo with latest capsule
+    # repo available
+    if not settings.cdn and settings.capsule_repo:
+        prod = make_product_wait({
+            'name': 'capsule-{}'.format(gen_string('alphanumeric')),
+            'organization-id': org_id,
+        })
+        capsule_repo = make_repository({
+            'name': 'capsule-{}'.format(gen_string('alphanumeric')),
+            'product-id': prod['id'],
+            'organization-id': org_id,
+            'url': settings.capsule_repo,
+        })
+        rh_repos_info.append(capsule_repo)
+    # Set download policy to 'on demand'
+    for rh_repo in rh_repos_info:
+        Repository.update({
+            'download-policy': 'on_demand',
+            'id': rh_repo['id'],
+        })
+    # Synchronize the repositories
+    for rh_repo in rh_repos_info:
         try:
-            Repository.synchronize({
-                u'name': rh_repo['repository'],
-                u'organization-id': org_id,
-                u'product': rh_repo['product'],
-            })
+            Repository.synchronize({'id': rh_repo['id']})
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
                 u'Failed to synchronize repository\n{0}'.format(err.msg))
@@ -2743,6 +2802,11 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
         u'lifecycle-environment-id': lce_id,
         u'content-view-id': content_view_id,
         u'name': 'capsule-{0}'.format(gen_alphanumeric())
+    })
+    ActivationKey.update({
+        'auto-attach': 0,
+        'id': activation_key['id'],
+        'organization-id': org_id,
     })
     # Add subscriptions to activation-key
     subscriptions = Subscription.list({'organization-id': org_id})

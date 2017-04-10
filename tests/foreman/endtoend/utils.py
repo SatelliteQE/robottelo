@@ -32,7 +32,7 @@ class ClientProvisioningMixin(object):
             # Register client with foreman server using act keys
             result = vm.register_contenthost(
                 organization_label, activation_key_name)
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(vm.subscribed)
             # Install rpm on client
             result = vm.run('yum install -y {0}'.format(package_name))
             self.assertEqual(result.return_code, 0)
