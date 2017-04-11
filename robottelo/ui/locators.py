@@ -3392,5 +3392,112 @@ locators = LocatorDict({
 
     # Smart Class Parameters
     "sc_parameters.select_name": (By.XPATH, "//a[contains(., '%s')]"),
+    "sc_parameters.description": (
+        By.XPATH,
+        "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@name, '[description]')]"),
+    "sc_parameters.puppetclass": (
+        By.XPATH,
+        "//div[contains(@id, 'puppetclass_lookup_key_') and "
+        "contains(@id, 'puppetclass')]/a/span[contains(@class, 'arrow')]"),
+    "sc_parameters.override": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@name, '[override]') and @type='checkbox']"),
+    "sc_parameters.key_type": (
+        By.XPATH,
+        "//select[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@name, '[key_type]')]"),
+    "sc_parameters.default_value": (
+        By.XPATH,
+        "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@name, '[default_value]')]"),
+    "sc_parameters.puppet_default": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@id, 'use_puppet_default')]"),
+    "sc_parameters.hidden_value": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@id, 'hidden_value')]"),
+    "sc_parameters.optional_expander": (
+        By.XPATH,
+        "//h2[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
+        "contains(@data-target, 'input_validators')]"),
+    "sc_parameters.required": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@id, 'required')]"),
+    "sc_parameters.validator_type": (
+        By.XPATH,
+        "//select[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@name, '[validator_type]')]"),
+    "sc_parameters.validator_rule": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@name, '[validator_rule]')]"),
+    "sc_parameters.matcher_priority": (
+        By.XPATH,
+        "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@name, 'puppetclass_lookup_key')) and "
+        "contains(@name, '[path]')]"),
+    "sc_parameters.merge_overrides": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@id, 'merge_override')]"),
+    "sc_parameters.merge_default": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@id, 'merge_default')]"),
+    "sc_parameters.avoid_duplicates": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'puppetclass_lookup_key_')) and "
+        "contains(@id, 'avoid_duplicates')]"),
+    "sc_parameters.add_matcher": (
+        By.XPATH,
+        "//a[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
+        "contains(@data-original-title, 'new matcher')]"
+    ),
+    "sc_parameters.matcher_attribute_type": (
+        By.XPATH,
+        "(//select[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
+        "contains(@class, 'matcher_key')])[%i]"
+    ),
+    "sc_parameters.matcher_attribute_value": (
+        By.XPATH,
+        "(//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
+        "contains(@class, 'matcher_value')])[%i]"
+    ),
+    "sc_parameters.matcher_value": (
+        By.XPATH,
+        "(//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
+        "contains(@name, '[value]')])[%i]"
+    ),
+    "sc_parameters.matcher_puppet_default": (
+        By.XPATH,
+        "(//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
+        "contains(@name, '[use_puppet_default]') and @type='checkbox' and "
+        "contains(@name, '[lookup_values_attributes]')])[%i]"
+    ),
 
+    "sc_parameters.matcher_error": (By.XPATH, "//tr[@class='has-error']"),
+    "sc_parameters.table_value": (By.XPATH, "//td[contains(., '%s')]"),
 })
