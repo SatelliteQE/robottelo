@@ -20,8 +20,6 @@ from nailgun import entities
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
-    bz_bug_is_open,
     stubbed,
     tier2,
     tier3,
@@ -127,16 +125,18 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1349364)
     @tier2
     def test_positive_upload_facts(self):
         """Upload fake facts to create a discovered host
 
         @id: c1f40204-bbb0-46d0-9b60-e42f00ad1649
 
+        @BZ: 1349364, 1392919
+
         @Steps:
 
         1. POST /api/v2/discovered_hosts/facts
+        2. Read the created discovered host
 
         @expectedresults: Host should be created successfully
 
@@ -144,13 +144,12 @@ class DiscoveryTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                mac_address = gen_mac()
-                host = _create_discovered_host(name, macaddress=mac_address)
-                if bz_bug_is_open(1392919):
-                    host_name = 'mac{0}'.format(mac_address.replace(':', ''))
-                else:
-                    host_name = 'mac{0}'.format(host['mac'].replace(':', ''))
-                self.assertEqual(host['name'], host_name)
+                result = _create_discovered_host(name)
+                discovered_host = entities.DiscoveredHost(
+                    id=result['id']).read()
+                host_name = 'mac{0}'.format(
+                    discovered_host.mac.replace(':', ''))
+                self.assertEqual(discovered_host.name, host_name)
 
     @stubbed()
     @tier3
