@@ -648,7 +648,7 @@ class HostTestCase(APITestCase):
         :CaseImportance: Critical
         """
         host = entities.Host().create()
-        new_mac = gen_mac()
+        new_mac = gen_mac(multicast=False)
         host.mac = new_mac
         host = host.update(['mac'])
         self.assertEqual(host.mac, new_mac)

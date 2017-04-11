@@ -204,7 +204,7 @@ def generate_system_facts(name=None):
     new_facts['dmi.system.uuid'] = gen_uuid()
     new_facts['dmi.system.version'] = u'RHEL'
     new_facts['lscpu.architecture'] = distro['architecture']
-    new_facts['net.interface.eth1.hwaddr'] = gen_mac()
+    new_facts['net.interface.eth1.hwaddr'] = gen_mac(multicast=False)
     new_facts['net.interface.eth1.ipaddr'] = gen_ipaddr()
     new_facts['network.hostname'] = name
     new_facts['network.ipaddr'] = new_facts['net.interface.eth1.ipaddr']
