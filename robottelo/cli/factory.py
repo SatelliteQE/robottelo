@@ -2606,14 +2606,14 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
        org_id and lce_id to be able to create and promote the capsule
        content view and to create the capsule subscription key.
     """
-    if capsule_vm.distro not in (DISTRO_RHEL6, DISTRO_RHEL7):
+    distro = capsule_vm.capsule_distro
+    if distro not in (DISTRO_RHEL6, DISTRO_RHEL7):
         raise CLIFactoryError(
-            u'virtual machine distro "{}" not supported'.format(
-                capsule_vm.distro)
+            u'virtual machine distro "{}" not supported'.format(distro)
         )
 
     # Get the necessary repositories info to setup a capsule host
-    capsule_vm_distro_repos = _get_capsule_vm_distro_repos(capsule_vm.distro)
+    capsule_vm_distro_repos = _get_capsule_vm_distro_repos(distro)
     rh_product_arch, rh_product_releasever, rh_repos = capsule_vm_distro_repos
 
     if organization_ids is None:
