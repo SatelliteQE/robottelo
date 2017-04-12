@@ -48,6 +48,11 @@
 
 .. automodule:: tests.foreman.ui.test_computeresource_azure
 
+:mod:`tests.foreman.ui.test_computeresource_ec2`
+------------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_computeresource_ec2
+
 :mod:`tests.foreman.ui.test_computeresource_openstack`
 ------------------------------------------------------
 
