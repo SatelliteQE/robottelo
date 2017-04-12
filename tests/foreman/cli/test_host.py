@@ -971,7 +971,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_mac = gen_mac()
+        new_mac = gen_mac(multicast=False)
         Host.update({
             'id': self.host['id'],
             'mac': new_mac,
@@ -990,7 +990,7 @@ class HostUpdateTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_mac = gen_mac()
+        new_mac = gen_mac(multicast=False)
         Host.update({
             'mac': new_mac,
             'name': self.host['name'],
