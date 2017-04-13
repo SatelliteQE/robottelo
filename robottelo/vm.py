@@ -260,9 +260,6 @@ class VirtualMachine(object):
             raise VirtualMachineError('Failed to install katello-agent')
         gofer_check = self.run('service goferd status')
         if gofer_check.return_code != 0:
-            self.run('service goferd start')
-        gofer_check = self.run('service goferd status')
-        if gofer_check.return_code != 0:
             raise VirtualMachineError('katello-agent is not running')
 
     def install_katello_ca(self):

@@ -1415,7 +1415,7 @@ class HostSubscriptionTestCase(CLITestCase):
             u'lifecycle-environment-id': cls.env['id'],
             u'activationkey-id': cls.activation_key['id'],
             u'subscription': cls.subscription_name,
-        })
+        }, force_use_cdn=True)
         org_subscriptions = Subscription.list(
             {'organization-id': cls.org['id']})
         cls.default_subscription_id = None

@@ -2474,13 +2474,16 @@ def _setup_org_for_a_rh_repo(options=None):
     }
 
 
-def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False):
+def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False,
+                            force_use_cdn=False):
     """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
     instead of CDN's 'Satellite Capsule' and 'Satellite Tools' if
     ``settings.cdn == 0`` and URL for custom repositories is set in properties.
 
     :param options: a dict with options to pass to function
         ``_setup_org_for_a_rh_repo``. See its docstring for more details
+    :param force_use_cdn: bool flag whether to use CDN even if there's
+        downstream repo available and ``settings.cdn == 0``.
     :param force_manifest_upload: bool flag whether to upload a manifest to
         organization even if downstream custom repo is used instead of CDN.
         Useful when test relies on organization with manifest (e.g. uses some
@@ -2488,15 +2491,15 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False):
     :return: a dict with entity ids (see ``_setup_org_for_a_rh_repo`` and
         ``setup_org_for_a_custom_repo``).
     """
-    repo_url = None
+    custom_repo_url = None
     if 'Satellite Tools' in options.get('repository'):
-        repo_url = settings.sattools_repo
+        custom_repo_url = settings.sattools_repo
     elif 'Satellite Capsule' in options.get('repository'):
-        repo_url = settings.capsule_repo
-    if settings.cdn or not repo_url:
+        custom_repo_url = settings.capsule_repo
+    if force_use_cdn or settings.cdn or not custom_repo_url:
         return _setup_org_for_a_rh_repo(options)
     else:
-        options['url'] = repo_url
+        options['url'] = custom_repo_url
         result = setup_org_for_a_custom_repo(options)
         if force_manifest_upload:
             with manifests.clone() as manifest:

@@ -23,7 +23,6 @@ from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
-    _setup_org_for_a_rh_repo,
     CLIFactoryError,
     make_activation_key,
     make_content_view,
@@ -32,6 +31,7 @@ from robottelo.cli.factory import (
     make_org,
     make_user,
     setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
 )
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
@@ -620,14 +620,14 @@ class ActivationKeyTestCase(CLITestCase):
         @CaseLevel: System
         """
         org = make_org()
-        # exceptional case here. we need this repo to be RH one no matter are
-        # we in downstream or cdn
-        result = _setup_org_for_a_rh_repo({
+        # Using CDN as we need this repo to be RH one no matter are we in
+        # downstream or cdn
+        result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
             u'organization-id': org['id'],
-        })
+        }, force_use_cdn=True)
         content = ActivationKey.product_content({
             u'id': result['activationkey-id'],
             u'organization-id': org['id'],
@@ -682,14 +682,14 @@ class ActivationKeyTestCase(CLITestCase):
         @BZ: 1360239
         """
         org = make_org()
-        # exceptional case here. we need this repo to be RH one no matter are
-        # we in downstream or cdn
-        result = _setup_org_for_a_rh_repo({
+        # Using CDN as we need this repo to be RH one no matter are we in
+        # downstream or cdn
+        result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
             u'organization-id': org['id'],
-        })
+        }, force_use_cdn=True)
         result = setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
             u'organization-id': org['id'],
