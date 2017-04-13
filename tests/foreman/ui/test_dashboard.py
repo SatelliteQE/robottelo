@@ -18,7 +18,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo import manifests
 from robottelo.api.utils import promote, upload_manifest
-from robottelo.cli.factory import _setup_org_for_a_rh_repo
+from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.constants import (
     ANY_CONTEXT,
     DISTRO_RHEL7,
@@ -630,9 +630,9 @@ class DashboardTestCase(UITestCase):
             environment=env,
             organization=org,
         ).create()
-        # exceptional case. we need a rh repo (no matter are we in cdn or
+        # Using cdn repo as we need a rh repo (no matter are we in cdn or
         # downstream) for subscription status to be ok
-        _setup_org_for_a_rh_repo({
+        setup_org_for_a_rh_repo({
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
@@ -640,7 +640,7 @@ class DashboardTestCase(UITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_use_cdn=True)
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(org.label, activation_key.name)
