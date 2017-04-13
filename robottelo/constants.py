@@ -324,6 +324,8 @@ DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
 DEFAULT_ROLE = 'Anonymous'
 
+SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
+
 LANGUAGES = [
     u'zh_TW',
     u'Galego',

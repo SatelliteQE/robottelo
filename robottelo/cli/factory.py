@@ -2327,6 +2327,8 @@ def setup_org_for_a_rh_repo(options=None):
                                     one if empty)
         activationkey-id (optional) - ID of activation key (or create a new one
                                     if empty)
+        subscription (optional) - subscription name (or use the default one
+                                  if empty)
 
     :return: A dictionary with the entity ids of Activation key, Content view,
         Lifecycle Environment, Organization and Repository
@@ -2457,7 +2459,8 @@ def setup_org_for_a_rh_repo(options=None):
     activationkey_add_subscription_to_repo({
         u'organization-id': org_id,
         u'activationkey-id': activationkey_id,
-        u'subscription': DEFAULT_SUBSCRIPTION_NAME,
+        u'subscription': options.get(
+            u'subscription', DEFAULT_SUBSCRIPTION_NAME),
     })
     return {
         u'activationkey-id': activationkey_id,
