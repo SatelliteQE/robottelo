@@ -703,6 +703,11 @@ def make_partition_table(options=None):
                                               Comma separated list of values.
         --locations LOCATION_NAMES            Comma separated list of values.
         --name NAME
+        --operatingsystem-ids OPERATINGSYSTEM_IDS Array of operating system IDs
+            to associate with the partition table Comma separated list of
+            values. Values containing comma should be double quoted
+        --operatingsystems OPERATINGSYSTEM_TITLES Comma separated list of
+            values. Values containing comma should be double quoted
         --organization-ids ORGANIZATION_IDS   REPLACE organizations with given
                                               ids.
                                               Comma separated list of values.
@@ -721,6 +726,8 @@ def make_partition_table(options=None):
         u'location-ids': None,
         u'locations': None,
         u'name': gen_alphanumeric(),
+        u'operatingsystem-ids': None,
+        u'operatingsystems': None,
         u'organization-ids': None,
         u'organizations': None,
         u'os-family': random.choice(OPERATING_SYSTEMS),
