@@ -9,6 +9,110 @@ from robottelo.ui.navigator import Navigator
 
 class Org(Base):
     """Provides the CRUD functionality for Organization."""
+    _entity_filter_and_locator_dct = {
+        'users': {
+            'filter_key': FILTER['org_user'],
+            'tab_locator': tab_locators['context.tab_users']
+        },
+        'capsules': {
+            'filter_key': FILTER['org_capsules'],
+            'tab_locator': tab_locators['context.tab_capsules']
+        },
+        'subnets': {
+            'filter_key': FILTER['org_subnet'],
+            'tab_locator': tab_locators['context.tab_subnets']
+        },
+        'resources': {
+            'filter_key': FILTER['org_resource'],
+            'tab_locator': tab_locators['context.tab_resources']
+        },
+        'medias': {
+            'filter_key': FILTER['org_media'],
+            'tab_locator': tab_locators['context.tab_media']
+        },
+        'templates': {
+            'filter_key': FILTER['org_template'],
+            'tab_locator': tab_locators['context.tab_template']
+        },
+        'ptables': {
+            'filter_key': FILTER['org_ptable'],
+            'tab_locator': tab_locators['context.tab_ptable']
+        },
+        'domains': {
+            'filter_key': FILTER['org_domain'],
+            'tab_locator': tab_locators['context.tab_domains']
+        },
+        'envs': {
+            'filter_key': FILTER['org_envs'],
+            'tab_locator': tab_locators['context.tab_env']
+        },
+        'hostgroups': {
+            'filter_key': FILTER['org_hostgroup'],
+            'tab_locator': tab_locators['context.tab_hostgrps']
+        },
+        'locations': {
+            'filter_key': FILTER['org_location'],
+            'tab_locator': tab_locators['context.tab_locations']
+        },
+    }
+
+    def add_entity(self, org_name, entity_type, entity_name):
+        """Helper to add an entity to an existing organization.
+        Return ui entity on list so it can be used on tests. If it is not None
+        entity was added
+
+        :param org_name: name of Organization
+        :param entity_type: Entity's name param for self.update
+        :param entity_name: Entity's name
+        :return entity: ui element
+        """
+        kwargs = {entity_type: [entity_name]}
+        self.update(org_name, select=True, **kwargs)
+        self.search_and_click(org_name)
+        tab_locator = self._entity_filter_and_locator_dct[entity_type][
+            'tab_locator']
+        self.click(tab_locator)
+        return self.wait_until_element(
+            common_locators['entity_deselect'] % entity_name)
+
+    def remove_entity(self, org_name, entity_type, entity_name):
+        """Helper to remove an entity from an existing organization.
+        Return ui entity on list so it can be used on tests. If it is not None
+        entity was removed
+
+        :param org_name: name of Organization
+        :param entity_type: Entity's name param for self.update
+        :param entity_name: Entity's name
+        :return entity: ui element
+        """
+        kwargs = {entity_type: [entity_name]}
+        self.update(org_name, **kwargs)
+        self.search_and_click(org_name)
+        tab_locator = self._entity_filter_and_locator_dct[entity_type][
+            'tab_locator']
+        self.click(tab_locator)
+        return self.wait_until_element(
+            common_locators['entity_select'] % entity_name)
+
+    def create_with_entity(self, org_name, entity_type, entity_name):
+        """Helper function to assert Organization creation with related
+        entities
+
+        :param org_name: Organization's name to be created
+        :param entity_type: one of following entities: users
+        :param entity_name: Entity's name
+        :return entity: element on screen if present. So assertIsNotNone can
+                be used to test entity successful attachment
+        """
+        self.navigate_to_entity()
+        kwargs = {entity_type: [entity_name]}
+        self.create(org_name, **kwargs)
+        self.search_and_click(org_name)
+        tab_locator = self._entity_filter_and_locator_dct[entity_type][
+            'tab_locator']
+        self.click(tab_locator)
+        return self.wait_until_element(
+            common_locators['entity_deselect'] % entity_name)
 
     def navigate_to_entity(self):
         """Navigate to org entity page"""
@@ -27,63 +131,73 @@ class Org(Base):
                        new_envs=None, new_hostgroups=None, new_locations=None,
                        select=None):
         """Configures different entities of selected organization."""
-        loc = tab_locators
-
         if users or new_users:
-            self.configure_entity(users, FILTER['org_user'],
-                                  tab_locator=loc['context.tab_users'],
-                                  new_entity_list=new_users,
-                                  entity_select=select)
+            self.configure_entity(
+                users,
+                new_entity_list=new_users,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['users']
+            )
         if capsules or new_capsules:
-            self.configure_entity(capsules, FILTER['org_capsules'],
-                                  tab_locator=loc['context.tab_capsules'],
-                                  new_entity_list=new_capsules,
-                                  entity_select=select)
+            self.configure_entity(
+                capsules,
+                new_entity_list=new_capsules,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['capsules'])
         if subnets or new_subnets:
-            self.configure_entity(subnets, FILTER['org_subnet'],
-                                  tab_locator=loc['context.tab_subnets'],
-                                  new_entity_list=new_subnets,
-                                  entity_select=select)
+            self.configure_entity(
+                subnets,
+                new_entity_list=new_subnets,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['subnets'])
         if resources or new_resources:
-            self.configure_entity(resources, FILTER['org_resource'],
-                                  tab_locator=loc['context.tab_resources'],
-                                  new_entity_list=new_resources,
-                                  entity_select=select)
+            self.configure_entity(
+                resources,
+                new_entity_list=new_resources,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['resources'])
         if medias or new_medias:
-            self.configure_entity(medias, FILTER['org_media'],
-                                  tab_locator=loc['context.tab_media'],
-                                  new_entity_list=new_medias,
-                                  entity_select=select)
+            self.configure_entity(
+                medias,
+                new_entity_list=new_medias,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['medias'])
         if templates or new_templates:
-            self.configure_entity(templates, FILTER['org_template'],
-                                  tab_locator=loc['context.tab_template'],
-                                  new_entity_list=new_templates,
-                                  entity_select=select)
+            self.configure_entity(
+                templates,
+                new_entity_list=new_templates,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['templates'])
         if ptables or new_ptables:
-            self.configure_entity(ptables, FILTER['org_ptable'],
-                                  tab_locator=loc['context.tab_ptable'],
-                                  new_entity_list=new_ptables,
-                                  entity_select=select)
+            self.configure_entity(
+                ptables,
+                new_entity_list=new_ptables,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['ptables'])
         if domains or new_domains:
-            self.configure_entity(domains, FILTER['org_domain'],
-                                  tab_locator=loc['context.tab_domains'],
-                                  new_entity_list=new_domains,
-                                  entity_select=select)
+            self.configure_entity(
+                domains,
+                new_entity_list=new_domains,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['domains'])
         if envs or new_envs:
-            self.configure_entity(envs, FILTER['org_envs'],
-                                  tab_locator=loc['context.tab_env'],
-                                  new_entity_list=new_envs,
-                                  entity_select=select)
+            self.configure_entity(
+                envs,
+                new_entity_list=new_envs,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['envs'])
         if hostgroups or new_hostgroups:
-            self.configure_entity(hostgroups, FILTER['org_hostgroup'],
-                                  tab_locator=loc['context.tab_hostgrps'],
-                                  new_entity_list=new_hostgroups,
-                                  entity_select=select)
+            self.configure_entity(
+                hostgroups,
+                new_entity_list=new_hostgroups,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['hostgroups'])
         if locations or new_locations:
-            self.configure_entity(hostgroups, FILTER['org_location'],
-                                  tab_locator=loc['context.tab_locations'],
-                                  new_entity_list=new_locations,
-                                  entity_select=select)
+            self.configure_entity(
+                locations,
+                new_entity_list=new_locations,
+                entity_select=select,
+                **self._entity_filter_and_locator_dct['locations'])
 
     def create(self, org_name=None, label=None, desc=None, users=None,
                capsules=None, subnets=None, resources=None, medias=None,
