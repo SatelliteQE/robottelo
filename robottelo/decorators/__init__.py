@@ -33,8 +33,8 @@ tier2 = pytest.mark.tier2
 tier3 = pytest.mark.tier3
 # Long running tests
 tier4 = pytest.mark.tier4
-# Backup & restore tests
-backup = pytest.mark.backup
+# Destructive tests
+destructive = pytest.mark.destructive
 
 # Tests to be executed in 1 thread
 run_in_one_thread = pytest.mark.run_in_one_thread

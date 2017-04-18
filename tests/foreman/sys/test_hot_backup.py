@@ -20,7 +20,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import BACKUP_FILES, HOT_BACKUP_FILES
-from robottelo.decorators import stubbed, backup, skip_if_bug_open
+from robottelo.decorators import stubbed, destructive, skip_if_bug_open
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
@@ -40,7 +40,7 @@ def tmp_directory_cleanup(connection, *args):
         connection.run('rm -rf /tmp/{0}'.format(name))
 
 
-@backup
+@destructive
 class HotBackupTestCase(TestCase):
     """Implements ``katello-backup`` tests"""
 
@@ -51,7 +51,7 @@ class HotBackupTestCase(TestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
-    @backup
+    @destructive
     def test_positive_online_backup_with_existing_directory(self):
         """katello-backup --online-backup with existing directory
 
@@ -85,7 +85,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, dir_name)
 
-    @backup
+    @destructive
     def test_positive_online_backup_with_directory_created(self):
         """katello-backup --online with non-existing directory
 
@@ -121,7 +121,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, dir_name)
 
-    @backup
+    @destructive
     def test_positive_online_skip_pulp(self):
         """Katello-backup --online-backup with --skip-pulp-content
         option should not create pulp files in destination.
@@ -156,7 +156,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, dir_name)
 
-    @backup
+    @destructive
     def test_positive_skip_pulp(self):
         """Katello-backup with --skip-pulp-content option should not
         create pulp files in destination.
@@ -191,7 +191,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, dir_name)
 
-    @backup
+    @destructive
     def test_positive_incremental(self):
         """Katello-backup with --incremental option
 
@@ -245,7 +245,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
-    @backup
+    @destructive
     def test_positive_online_incremental_skip_pulp(self):
         """Katello-backup with --online --skip-pulp-content and
         --incremental options
@@ -304,7 +304,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
-    @backup
+    @destructive
     def test_positive_incremental_skip_pulp(self):
         """Katello-backup with --skip-pulp-content and --incremental
         options
@@ -362,7 +362,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
-    @backup
+    @destructive
     @skip_if_bug_open('bugzilla', 1435333)
     def test_positive_online_incremental(self):
         """Make an incremental online backup
@@ -441,7 +441,7 @@ class HotBackupTestCase(TestCase):
             self.assertEqual(len(repo_list), 1)
             tmp_directory_cleanup(connection, b1_dir, ib1_dir, ib1_dest)
 
-    @backup
+    @destructive
     @stubbed()
     def test_positive_restore_after_update(self):
         """Restore from a backup in updated version of satellite
@@ -464,7 +464,7 @@ class HotBackupTestCase(TestCase):
         """
         # IS THIS CASE REASONABLE?
 
-    @backup
+    @destructive
     @stubbed()
     def test_positive_restore(self):
         """Restore to a Satellite with config that has been updated since the
@@ -485,7 +485,7 @@ class HotBackupTestCase(TestCase):
 
         """
 
-    @backup
+    @destructive
     @stubbed()
     def test_positive_load_backup(self):
         """Load testing, backup
@@ -505,7 +505,7 @@ class HotBackupTestCase(TestCase):
 
         """
 
-    @backup
+    @destructive
     @stubbed()
     def test_positive_load_restore(self):
         """Load testing, restore
@@ -523,7 +523,7 @@ class HotBackupTestCase(TestCase):
 
         """
 
-    @backup
+    @destructive
     @stubbed()
     def test_positive_pull_content(self):
         """Pull content while a backup is running.
