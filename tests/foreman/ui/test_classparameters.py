@@ -24,6 +24,7 @@ from requests import HTTPError
 
 from robottelo.api.utils import (
     create_role_permissions,
+    delete_puppet_class,
     publish_puppet_module,
 )
 from robottelo.constants import ANY_CONTEXT, CUSTOM_PUPPET_REPO
@@ -178,16 +179,11 @@ class SmartClassParametersTestCase(UITestCase):
         cls.host.add_puppetclass(data={'puppetclass_id': cls.puppet_class.id})
         cls.domain_name = entities.Domain(id=cls.host.domain.id).read().name
 
-    # TearDown brakes parallel tests run as every test depends on the same
-    # puppet class that will be removed during TearDown.
-    # Uncomment for developing or debugging and do not forget to import
-    # `robottelo.api.utils.delete_puppet_class`.
-    #
-    # @classmethod
-    # def tearDownClass(cls):
-    #     """Removes puppet class."""
-    #     super(SmartClassParametersTestCase, cls).tearDownClass()
-    #     delete_puppet_class(cls.puppet_class.name)
+    @classmethod
+    def tearDownClass(cls):
+        """Removes puppet class."""
+        super(SmartClassParametersTestCase, cls).tearDownClass()
+        delete_puppet_class(cls.puppet_class.name)
 
     @run_only_on('sat')
     @tier1
@@ -201,7 +197,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         with Session(self.browser):
-            self.assertIsNotNone(self.sc_parameters.search_sc_params(
+            self.assertIsNotNone(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
 
     @run_only_on('sat')
@@ -249,7 +245,7 @@ class SmartClassParametersTestCase(UITestCase):
         self.assertIn(
             '403 Client Error: Forbidden', context.exception.message)
         with Session(self.browser, username, password):
-            self.assertIsNotNone(self.sc_parameters.search_sc_params(
+            self.assertIsNotNone(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
 
     @run_only_on('sat')
@@ -275,10 +271,8 @@ class SmartClassParametersTestCase(UITestCase):
                 override=True,
                 default_value=new_value
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            default_value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.default_value']).text
+            default_value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
             self.assertEqual(default_value, new_value)
 
     @run_only_on('sat')
@@ -301,20 +295,20 @@ class SmartClassParametersTestCase(UITestCase):
                 self.puppet_class.name,
                 override=True
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
+            self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
-            self.assertTrue(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.puppet_default']))
-            self.assertTrue(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.hidden_value']))
             self.sc_parameters.click(
                 locators['sc_parameters.optional_expander'])
-            self.assertTrue(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.validator_type']))
-            self.assertTrue(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.matcher_priority']))
-            self.assertTrue(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.add_matcher']))
+            locators_list = [
+                'sc_parameters.puppet_default',
+                'sc_parameters.hidden_value',
+                'sc_parameters.validator_type',
+                'sc_parameters.matcher_priority',
+                'sc_parameters.add_matcher',
+            ]
+            for locator in locators_list:
+                self.assertTrue(
+                    self.sc_parameters.is_element_enabled(locators[locator]))
 
     @run_only_on('sat')
     @tier1
@@ -336,24 +330,21 @@ class SmartClassParametersTestCase(UITestCase):
                 self.puppet_class.name,
                 override=False
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
+            self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.default_value']))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.puppet_default']))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.hidden_value']))
             self.sc_parameters.click(
                 locators['sc_parameters.optional_expander'])
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.validator_type']))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.matcher_priority']))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.add_matcher']))
+            locators_list = [
+                'sc_parameters.default_value',
+                'sc_parameters.puppet_default',
+                'sc_parameters.hidden_value',
+                'sc_parameters.validator_type',
+                'sc_parameters.matcher_priority',
+                'sc_parameters.add_matcher',
+            ]
+            for locator in locators_list:
+                self.assertFalse(
+                    self.sc_parameters.is_element_enabled(locators[locator]))
 
     @run_only_on('sat')
     @tier1
@@ -385,12 +376,8 @@ class SmartClassParametersTestCase(UITestCase):
                         key_type=data['sc_type'],
                         default_value=data['value'],
                     )
-                    self.sc_parameters.click(
-                        self.sc_parameters.search_sc_params(
-                            sc_param.parameter, self.puppet_class.name)
-                    )
-                    value = self.sc_parameters.wait_until_element(
-                        locators['sc_parameters.default_value']).text
+                    value = self.sc_parameters.fetch_default_value(
+                        sc_param.parameter, self.puppet_class.name)
                     # Application is adding some data for yaml type once
                     # variable is created
                     if data['sc_type'] == 'yaml':
@@ -419,10 +406,8 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         with Session(self.browser):
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            initial_value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.default_value']).text
+            initial_value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
             for data in invalid_sc_parameters_data():
                 with self.subTest(data):
                     self.sc_parameters.update(
@@ -436,12 +421,8 @@ class SmartClassParametersTestCase(UITestCase):
                         self.sc_parameters.wait_until_element(
                             common_locators['haserror'])
                     )
-                    self.sc_parameters.click(
-                        self.sc_parameters.search_sc_params(
-                            sc_param.parameter, self.puppet_class.name)
-                    )
-                    value = self.sc_parameters.wait_until_element(
-                        locators['sc_parameters.default_value']).text
+                    value = self.sc_parameters.fetch_default_value(
+                        sc_param.parameter, self.puppet_class.name)
                     self.assertEqual(value, initial_value)
 
     @run_only_on('sat')
@@ -468,7 +449,7 @@ class SmartClassParametersTestCase(UITestCase):
                 validator_type='list',
                 validator_rule='45, test, 75',
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
+            self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
             self.assertTrue(self.sc_parameters.wait_until_element(
                 locators['sc_parameters.puppet_default']).is_selected())
@@ -588,10 +569,8 @@ class SmartClassParametersTestCase(UITestCase):
                 self.sc_parameters.wait_until_element(
                     common_locators['haserror'], timeout=5)
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.default_value']).text
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
             self.assertEqual(value, initial_value)
 
     @run_only_on('sat')
@@ -664,11 +643,9 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertIsNone(
                 self.sc_parameters.wait_until_element(
                     locators['sc_parameters.matcher_error'], timeout=5))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, matcher_value)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(matchers_list[0], matcher_value)
 
     @run_only_on('sat')
     @tier1
@@ -729,10 +706,8 @@ class SmartClassParametersTestCase(UITestCase):
                 self.sc_parameters.wait_until_element(
                     common_locators['haserror'], timeout=5)
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.default_value']).text
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
             self.assertEqual(value, '475')
 
     @run_only_on('sat')
@@ -806,11 +781,9 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertIsNone(
                 self.sc_parameters.wait_until_element(
                     locators['sc_parameters.matcher_error'], timeout=5))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, '30')
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(matchers_list[0], '30')
 
     @run_only_on('sat')
     @tier1
@@ -878,11 +851,9 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertIsNone(
                 self.sc_parameters.wait_until_element(
                     locators['sc_parameters.matcher_error'], timeout=5))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(int(value), matcher_value)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(int(matchers_list[0]), matcher_value)
 
     @run_only_on('sat')
     @tier1
@@ -991,7 +962,7 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertIsNone(
                 self.sc_parameters.wait_until_element(
                     locators['sc_parameters.matcher_error'], timeout=5))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
+            self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
             self.assertFalse(self.sc_parameters.is_element_enabled(
                 locators['sc_parameters.matcher_value'] % 1))
@@ -1029,7 +1000,8 @@ class SmartClassParametersTestCase(UITestCase):
                 self.puppet_class.name,
                 override=True,
                 default_value=gen_string('alpha'),
-                matcher_priority='fqdn\nhostgroup\nos\ndomain',
+                matcher_priority='\n'.join(
+                    ['fqdn', 'hostgroup', 'os', 'domain']),
                 matcher=[
                     {
                         'matcher_attribute': 'fqdn={0}'.format(self.host.name),
@@ -1043,14 +1015,9 @@ class SmartClassParametersTestCase(UITestCase):
 
                 ]
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, override_value)
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 2).text
-            self.assertEqual(value, override_value2)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, override_value)
@@ -1092,7 +1059,8 @@ class SmartClassParametersTestCase(UITestCase):
                 self.puppet_class.name,
                 override=True,
                 default_value=gen_string('alpha'),
-                matcher_priority='domain\nhostgroup\nos\nfqdn',
+                matcher_priority='\n'.join(
+                    ['domain', 'hostgroup', 'os', 'fqdn']),
                 matcher=[
                     {
                         'matcher_attribute': 'fqdn={0}'.format(self.host.name),
@@ -1106,14 +1074,9 @@ class SmartClassParametersTestCase(UITestCase):
 
                 ]
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, override_value)
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 2).text
-            self.assertEqual(value, override_value2)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, override_value2)
@@ -1174,14 +1137,9 @@ class SmartClassParametersTestCase(UITestCase):
 
                 ]
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, override_value)
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 2).text
-            self.assertEqual(value, override_value2)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, [80, 90, 90, 100])
@@ -1339,14 +1297,9 @@ class SmartClassParametersTestCase(UITestCase):
 
                 ]
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, override_value)
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 2).text
-            self.assertEqual(value, override_value2)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, ['example', 80, 90, 90, 100])
@@ -1503,14 +1456,9 @@ class SmartClassParametersTestCase(UITestCase):
 
                 ]
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, override_value)
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 2).text
-            self.assertEqual(value, override_value2)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, [80, 90, 100])
@@ -1571,14 +1519,9 @@ class SmartClassParametersTestCase(UITestCase):
 
                 ]
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, override_value)
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 2).text
-            self.assertEqual(value, override_value2)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, [70, 80, 90, 100])
@@ -1610,7 +1553,7 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertIsNone(
                 self.sc_parameters.wait_until_element(
                     locators['sc_parameters.matcher_error'], timeout=5))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
+            self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
             self.assertTrue(self.sc_parameters.is_element_enabled(
                 locators['sc_parameters.merge_overrides']))
@@ -1647,14 +1590,16 @@ class SmartClassParametersTestCase(UITestCase):
                 default_value=gen_string('alpha'),
                 key_type='string',
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
+            self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.merge_overrides']))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.merge_default']))
-            self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.avoid_duplicates']))
+            locators_list = [
+                'sc_parameters.merge_overrides',
+                'sc_parameters.merge_default',
+                'sc_parameters.avoid_duplicates',
+            ]
+            for locator in locators_list:
+                self.assertFalse(
+                    self.sc_parameters.is_element_enabled(locators[locator]))
 
     @run_only_on('sat')
     @tier2
@@ -1701,11 +1646,9 @@ class SmartClassParametersTestCase(UITestCase):
                 'overrides_number',
                 '1'
             ))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1).text
-            self.assertEqual(value, matcher_value)
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(matchers_list[0], matcher_value)
             hostgroup.delete()
             self.assertTrue(self.sc_parameters.validate_smart_class_parameter(
                 sc_param.parameter,
@@ -1713,7 +1656,7 @@ class SmartClassParametersTestCase(UITestCase):
                 'overrides_number',
                 '0',
             ))
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
+            self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
             self.assertIsNone(self.sc_parameters.wait_until_element(
                 locators['sc_parameters.matcher_value'] % 1, timeout=5))
@@ -1953,13 +1896,12 @@ class SmartClassParametersTestCase(UITestCase):
                 }],
                 hidden_value=True,
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            default_value = self.sc_parameters.wait_until_element(
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, initial_value)
+            locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertEqual(
-                default_value.get_attribute('value'), initial_value)
-            self.assertIn('masked-input', default_value.get_attribute('class'))
+            self.assertIn('masked-input', locator.get_attribute('class'))
             matcher_value = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.matcher_value'] % 1)
             self.assertIn('masked-input', matcher_value.get_attribute('class'))
@@ -2000,14 +1942,12 @@ class SmartClassParametersTestCase(UITestCase):
             )
             self.sc_parameters.update(
                 sc_param.parameter, self.puppet_class.name, hidden_value=False)
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            default_value = self.sc_parameters.wait_until_element(
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, initial_value)
+            locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertEqual(
-                default_value.get_attribute('value'), initial_value)
-            self.assertNotIn(
-                'masked-input', default_value.get_attribute('class'))
+            self.assertNotIn('masked-input', locator.get_attribute('class'))
             matcher_value = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.matcher_value'] % 1)
             self.assertNotIn(
@@ -2108,14 +2048,12 @@ class SmartClassParametersTestCase(UITestCase):
                 self.puppet_class.name,
                 default_value=new_value,
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            default_value = self.sc_parameters.wait_until_element(
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, new_value)
+            locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertEqual(
-                default_value.get_attribute('value'), new_value)
-            self.assertIn(
-                'masked-input', default_value.get_attribute('class'))
+            self.assertIn('masked-input', locator.get_attribute('class'))
 
     @run_only_on('sat')
     @stubbed()
@@ -2182,13 +2120,13 @@ class SmartClassParametersTestCase(UITestCase):
                 }],
                 hidden_value=True,
             )
-            self.sc_parameters.click(self.sc_parameters.search_sc_params(
-                sc_param.parameter, self.puppet_class.name))
-            default_value = self.sc_parameters.wait_until_element(
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, '')
+            locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertEqual(default_value.get_attribute('value'), '')
             self.assertIn(
-                'masked-input', default_value.get_attribute('class'))
+                'masked-input', locator.get_attribute('class'))
             value = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.matcher_value'] % 1)
             self.assertIn(
