@@ -15,8 +15,11 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
+import yaml
+
+from fauxfactory import gen_integer, gen_string
 from nailgun import entities
+from random import choice, uniform
 from requests import HTTPError
 
 from robottelo.api.utils import (
@@ -24,20 +27,115 @@ from robottelo.api.utils import (
     delete_puppet_class,
     publish_puppet_module,
 )
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import ANY_CONTEXT, CUSTOM_PUPPET_REPO
+from robottelo.datafactory import filtered_datapoint, generate_strings_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
-    tier3
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import UITestCase
+from robottelo.ui.factory import set_context
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
+@filtered_datapoint
+def valid_sc_parameters_data():
+    """Returns a list of valid smart class parameter types and values"""
+    return [
+        {
+            u'sc_type': 'string',
+            u'value': choice(generate_strings_list()),
+        },
+        {
+            u'sc_type': 'boolean',
+            u'value': choice(['true', 'false']),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('numeric', 5).lstrip('0'),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': str(uniform(-1000, 1000)),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': u'["{0}","{1}","{2}"]'.format(
+                gen_string('alpha'),
+                gen_string('numeric').lstrip('0'),
+                gen_string('html'),
+            ),
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': '{0}: {1}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '--- {0}=>{1}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'json',
+            u'value': u'{{"{0}":"{1}","{2}":"{3}"}}'.format(
+                gen_string('alpha'),
+                gen_string('numeric').lstrip('0'),
+                gen_string('alpha'),
+                gen_string('alphanumeric')
+            ),
+        },
+    ]
+
+
+@filtered_datapoint
+def invalid_sc_parameters_data():
+    """Returns a list of invalid smart class parameter types and values"""
+    return [
+        {
+            u'sc_type': 'boolean',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('utf8'),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '{{{0}:{1}}}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'json',
+            u'value': u'{{{0}:{1},{2}:{3}}}'.format(
+                gen_string('alpha'),
+                gen_string('numeric').lstrip('0'),
+                gen_string('alpha'),
+                gen_string('alphanumeric')
+            ),
+        }
+    ]
+
+
+@run_in_one_thread
 class SmartClassParametersTestCase(UITestCase):
     """Implements Smart Class Parameter tests in UI"""
 
@@ -56,8 +154,9 @@ class SmartClassParametersTestCase(UITestCase):
         be able to work with unique entity for each specific test.
         """
         super(SmartClassParametersTestCase, cls).setUpClass()
+        cls.pm_name = 'ui_test_classparameters'
         cls.puppet_modules = [
-            {'author': 'robottelo', 'name': 'ui_test_classparameters'},
+            {'author': 'robottelo', 'name': cls.pm_name},
         ]
         cv = publish_puppet_module(
             cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.session_org)
@@ -73,6 +172,12 @@ class SmartClassParametersTestCase(UITestCase):
                 'search': 'puppetclass="{0}"'.format(cls.puppet_class.name),
                 'per_page': 1000
             })
+
+        cls.host = entities.Host(organization=cls.session_org).create()
+        cls.host.environment = cls.env
+        cls.host.update(['environment'])
+        cls.host.add_puppetclass(data={'puppetclass_id': cls.puppet_class.id})
+        cls.domain_name = entities.Domain(id=cls.host.domain.id).read().name
 
     @classmethod
     def tearDownClass(cls):
@@ -92,7 +197,8 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         with Session(self.browser):
-            self.assertIsNotNone(self.sc_parameters.search(sc_param.parameter))
+            self.assertIsNotNone(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
 
     @run_only_on('sat')
     @tier2
@@ -139,11 +245,11 @@ class SmartClassParametersTestCase(UITestCase):
         self.assertIn(
             '403 Client Error: Forbidden', context.exception.message)
         with Session(self.browser, username, password):
-            self.assertIsNotNone(self.sc_parameters.search(sc_param.parameter))
+            self.assertIsNotNone(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_override_checkbox(self):
         """Override the Default Parameter value.
 
@@ -155,37 +261,25 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Submit the changes.
 
         :expectedresults: Parameter Value overridden with new value.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        new_value = gen_string('alpha')
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=new_value
+            )
+            default_value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
+            self.assertEqual(default_value, new_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_override_checkbox(self):
-        """Override the Default Parameter value - override Unchecked.
-
-        :id: 3002d976-7c34-4da0-9b43-db28441d94de
-
-        :steps:
-            1.  Don't check the Override checkbox.
-            2.  Set the new valid Default Value.
-            3.  Attempt to submit the changes.
-
-        :expectedresults: Parameter value not allowed/disabled to override.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_edit_parameter_dialog(self):
-        """Enable Validation, merging and matcher sections.
+        """Validation, merging and matcher sections are accessible for enabled
+        'Override' checkbox.
 
         :id: a6639110-1a58-4f68-8265-369b515f9c4a
 
@@ -193,52 +287,66 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: Puppet Default, Hiding, Validation, Merging and
             Matcher section enabled.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True
+            )
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            self.sc_parameters.click(
+                locators['sc_parameters.optional_expander'])
+            locators_list = [
+                'sc_parameters.puppet_default',
+                'sc_parameters.hidden_value',
+                'sc_parameters.validator_type',
+                'sc_parameters.matcher_priority',
+                'sc_parameters.add_matcher',
+            ]
+            for locator in locators_list:
+                self.assertTrue(
+                    self.sc_parameters.is_element_enabled(locators[locator]))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_edit_parameter_dialog(self):
-        """Disable Validation, merging and matcher sections.
+        """Validation, merging and matcher sections are not accessible for
+        disabled 'Override' checkbox.
 
         :id: 30da3a17-05a5-4c19-8210-80c3a8dcf32b
 
-        :steps: Dont't Check the Override checkbox.
+        :steps: Don't Check the Override checkbox.
 
-        :expectedresults: Puppet Default, Hiding, Validation, Merging and
-            Matcher section is disabled.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
+        :expectedresults: Default Value, Puppet Default, Hiding, Validation,
+            Merging and Matcher section is disabled.
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=False
+            )
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            self.sc_parameters.click(
+                locators['sc_parameters.optional_expander'])
+            locators_list = [
+                'sc_parameters.default_value',
+                'sc_parameters.puppet_default',
+                'sc_parameters.hidden_value',
+                'sc_parameters.validator_type',
+                'sc_parameters.matcher_priority',
+                'sc_parameters.add_matcher',
+            ]
+            for locator in locators_list:
+                self.assertFalse(
+                    self.sc_parameters.is_element_enabled(locators[locator]))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_puppet_default(self):
-        """On Override, Set Puppet Default Value.
-
-        :id: 49b68cd4-8a4b-4980-b3f0-40678f687fd7
-
-        :steps:
-            1.  Check the Override checkbox.
-            2.  Check 'Use Puppet Default' checkbox.
-            3.  Submit the changes.
-
-        :expectedresults: Puppet Default Value applied on parameter.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_parameter_type(self):
         """Positive Parameter Update for parameter types - Valid Value.
@@ -253,15 +361,30 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Enter a 'valid' default Value.
             4.  Submit the changes.
 
-        :expectedresults: Parameter Updated with a new type successfully.
-
-        :caseautomation: notautomated
+        :expectedresults: Parameter updated with a new type successfully.
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            for data in valid_sc_parameters_data():
+                with self.subTest(data):
+                    self.sc_parameters.update(
+                        sc_param.parameter,
+                        self.puppet_class.name,
+                        override=True,
+                        key_type=data['sc_type'],
+                        default_value=data['value'],
+                    )
+                    value = self.sc_parameters.fetch_default_value(
+                        sc_param.parameter, self.puppet_class.name)
+                    # Application is adding some data for yaml type once
+                    # variable is created
+                    if data['sc_type'] == 'yaml':
+                        data['value'] += '\n...'
+                    self.assertEqual(value, data['value'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_update_parameter_type(self):
         """Negative Parameter Update for parameter types - Invalid Value.
@@ -276,17 +399,34 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Enter an 'Invalid' default Value.
             4.  Submit the changes.
 
-        :expectedresults: Parameter not updated with string type for invalid
-            value.
-
-        :caseautomation: notautomated
+        :expectedresults: Parameter is not updated with invalid value for
+            specific type.
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            initial_value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
+            for data in invalid_sc_parameters_data():
+                with self.subTest(data):
+                    self.sc_parameters.update(
+                        sc_param.parameter,
+                        self.puppet_class.name,
+                        override=True,
+                        key_type=data['sc_type'],
+                        default_value=data['value'],
+                    )
+                    self.assertIsNotNone(
+                        self.sc_parameters.wait_until_element(
+                            common_locators['haserror'])
+                    )
+                    value = self.sc_parameters.fetch_default_value(
+                        sc_param.parameter, self.puppet_class.name)
+                    self.assertEqual(value, initial_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_puppet_default_value(self):
         """Validation doesn't works on puppet default value.
 
@@ -298,15 +438,33 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value under section 'Optional Input Validator'.
 
         :expectedresults: Validation shouldn't work with puppet default value.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                puppet_default=True,
+                validator_type='list',
+                validator_rule='45, test, 75',
+            )
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            self.assertTrue(self.sc_parameters.wait_until_element(
+                locators['sc_parameters.puppet_default']).is_selected())
+            self.assertFalse(self.sc_parameters.is_element_enabled(
+                locators['sc_parameters.default_value']))
+            self.sc_parameters.click(
+                locators['sc_parameters.optional_expander'])
+            value = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.validator_rule']
+            ).get_attribute('value')
+            self.assertEqual(value, u'45, test, 75')
 
     @run_only_on('sat')
     @stubbed()
-    @tier3
+    @tier2
     def test_negative_validate_default_value_required_checkbox(self):
         """Error raised for blank default Value - Required checkbox.
 
@@ -323,34 +481,12 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier3
-    def test_positive_validate_default_value_required_checkbox(self):
-        """Error not raised for default Value - Required checkbox.
-
-        :id: a4c82c28-8bdf-4c6a-93d6-5d57145f095f
-
-        :steps:
-            1.  Check the Override checkbox.
-            2.  Provide some default value.
-            3.  Check Required checkbox in 'Optional Input Validator'.
-            4.  Submit the change.
-
-        :expectedresults: Error not raised default value by 'Required'
-            checkbox.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_negative_validate_matcher_value_required_checkbox(self):
         """Error raised for blank matcher Value - Required checkbox.
 
@@ -368,35 +504,11 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_validate_matcher_value_required_checkbox(self):
-        """Error not raised for matcher Value - Required checkbox.
-
-        :id: f91d2868-0d87-4cc5-984b-a114badd366f
-
-        :steps:
-            1.  Check the Override checkbox.
-            2.  Create a matcher for Parameter for some attribute.
-            3.  Provide some Value for matcher.
-            4.  Check Required checkbox in 'Optional Input Validator'.
-            5.  Submit the change.
-
-        :expectedresults: Error not raised for matcher value by 'Required'
-            checkbox.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_regex(self):
         """Error raised for default value not matching with regex.
 
@@ -410,15 +522,24 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: Error raised for default value not matching with
             regex.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                validator_type='regexp',
+                validator_rule='[0-9]',
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    common_locators['haserror'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_regex(self):
         """Error not raised for default value matching with regex.
 
@@ -426,21 +547,34 @@ class SmartClassParametersTestCase(UITestCase):
 
         :steps:
             1.  Check the Override checkbox.
-            2.  Provide default value that matches the regex of step 3..
+            2.  Provide default value that matches the regex of step 3.
             3.  Validate this value with regex validator type and rule.
             4.  Submit the change.
 
         :expectedresults: Error not raised for default value matching with
             regex.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        initial_value = gen_string('numeric')
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=initial_value,
+                validator_type='regexp',
+                validator_rule='[0-9]',
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    common_locators['haserror'], timeout=5)
+            )
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
+            self.assertEqual(value, initial_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_regex(self):
         """Error raised for matcher value not matching with regex.
 
@@ -455,15 +589,28 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: Error raised for matcher value not matching with
             regex.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('numeric'),
+                validator_type='regexp',
+                validator_rule='[0-9]',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_regex(self):
         """Error not raised for matcher value matching with regex.
 
@@ -477,15 +624,31 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: Error not raised for matcher value matching with
             regex.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        matcher_value = gen_string('numeric')
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('numeric'),
+                validator_type='regexp',
+                validator_rule='[0-9]',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': matcher_value,
+                }]
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'], timeout=5))
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(matchers_list[0], matcher_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_list(self):
         """Error raised for default value not in list.
 
@@ -498,15 +661,24 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Submit the change.
 
         :expectedresults: Error raised for default value not in list.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alphanumeric'),
+                validator_type='list',
+                validator_rule='45, test',
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    common_locators['haserror'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_list(self):
         """Error not raised for default value in list.
 
@@ -519,15 +691,27 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Submit the change.
 
         :expectedresults: Error not raised for default value in list.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='475',
+                validator_type='list',
+                validator_rule='true, 50, 475',
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    common_locators['haserror'], timeout=5)
+            )
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name)
+            self.assertEqual(value, '475')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_list(self):
         """Error raised for matcher value not in list.
 
@@ -541,15 +725,32 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Submit the change.
 
         :expectedresults: Error raised for matcher value not in list.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='50',
+                validator_type='list',
+                validator_rule='25, example, 50',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': 'myexample'
+                }]
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    common_locators['haserror'], timeout=5)
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_list(self):
         """Error not raised for matcher value in list.
 
@@ -562,15 +763,30 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Submit the change.
 
         :expectedresults: Error not raised for matcher value in list.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='test',
+                validator_type='list',
+                validator_rule='test, example, 30',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': '30'
+                }]
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'], timeout=5))
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(matchers_list[0], '30')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_default_type(self):
         """Error raised for matcher value not of default type.
 
@@ -584,15 +800,27 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Submit the change.
 
         :expectedresults: Error raised for matcher value not of default type.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_integer(),
+                key_type='integer',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
 
@@ -605,15 +833,30 @@ class SmartClassParametersTestCase(UITestCase):
             4.  Submit the change.
 
         :expectedresults: Error not raised for matcher value of default type.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        matcher_value = gen_integer()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_integer(),
+                key_type='integer',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': matcher_value
+                }]
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'], timeout=5))
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(int(matchers_list[0]), matcher_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value both at a time.
 
@@ -628,15 +871,31 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: Error raised for invalid default and matcher value
             both.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                key_type='integer',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    common_locators['haserror'])
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
 
@@ -648,36 +907,26 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Attempt to submit the change.
 
         :expectedresults: Error raised for non existing attribute.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                matcher=[{
+                    'matcher_attribute': 'hostgroup={0}'.format(
+                        gen_string('alpha')),
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_create_matcher(self):
-        """Create matcher for attribute in parameter.
-
-        :id: 36ef93af-d79a-4e94-9759-fbdfa77df98b
-
-        :steps:
-            1.  Check the Override checkbox.
-            2.  Set some default Value.
-            3.  Click on 'Add Matcher' button to add matcher.
-            4.  Choose valid attribute type, name and value.
-            5.  Submit the change.
-
-        :expectedresults: The matcher has been created successfully.
-
-        :caseautomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher_puppet_default_value(self):
         """Create matcher for attribute in parameter,
@@ -694,14 +943,32 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: The matcher has been created successfully.
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_integer(),
+                key_type='integer',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': '',
+                    'matcher_puppet_default': True
+                }]
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'], timeout=5))
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            self.assertFalse(self.sc_parameters.is_element_enabled(
+                locators['sc_parameters.matcher_value'] % 1))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
@@ -719,14 +986,44 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: The YAML output has the value only for fqdn matcher.
 
-        :caseautomation: notautomated
+        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = gen_string('alphanumeric')
+        override_value2 = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                matcher_priority='\n'.join(
+                    ['fqdn', 'hostgroup', 'os', 'domain']),
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, override_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate priority.
 
@@ -748,14 +1045,45 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The YAML output has the value only for step 5 matcher.
             2.  The YAML output doesn't have value for fqdn/host matcher.
 
-        :caseautomation: notautomated
+        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = gen_string('alphanumeric')
+        override_value2 = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                matcher_priority='\n'.join(
+                    ['domain', 'hostgroup', 'os', 'fqdn']),
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, override_value2)
+            self.assertNotEqual(output_scp, override_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
@@ -780,14 +1108,44 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The YAML output doesn't have the default value of parameter.
             3.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = '[80,90]'
+        override_value2 = '[90,100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, [80, 90, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_merge_override(self):
         """Attempt to merge the values from non associated matchers.
 
@@ -813,15 +1171,42 @@ class SmartClassParametersTestCase(UITestCase):
             3.  The YAML output doesn't have the default value of parameter.
             4.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = '[80,90]'
+        override_value2 = '[90,100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'os=rhel2',
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, [80, 90])
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
-    def test_positive_create_matcher_merge_oveeride_puppet_value(self):
+    @tier2
+    def test_positive_create_matcher_merge_override_puppet_value(self):
         """Merge the values of all the associated matchers + puppet default value.
 
         :id: 4eed74ac-0ead-4723-af4d-8638406691f6
@@ -850,12 +1235,13 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
@@ -881,14 +1267,45 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The YAML output has the default value of parameter.
             3.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = '[80,90]'
+        override_value2 = '[90,100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='[example]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_default=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, ['example', 80, 90, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_merge_default(self):
         """Empty default value is not shown in merged values.
 
@@ -915,14 +1332,43 @@ class SmartClassParametersTestCase(UITestCase):
                 parameter.
             3.  Duplicate values in YAML output if any are displayed.
 
-        :caseautomation: notautomated
+        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = '[80,90]'
+        override_value2 = '[90,100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='[]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_default=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, [80, 90, 90, 100])
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_merge_puppet_default(self):
         """Merge the values of all the associated matchers + puppet default value.
 
@@ -950,12 +1396,13 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
@@ -981,14 +1428,43 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The YAML output has the default value of parameter.
             3.  Duplicate values in YAML output are removed / not displayed.
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = '[80,90]'
+        override_value2 = '[90,100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_avoid=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, [80, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_avoid_duplicate(self):
         """Duplicates not removed as they were not really present.
 
@@ -1013,16 +1489,48 @@ class SmartClassParametersTestCase(UITestCase):
             2.  The YAML output has the default value of parameter.
             3.  No value removed as duplicate value.
 
-        :caseautomation: notautomated
+        :CaseLevel: Integration
 
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        override_value = '[70,80]'
+        override_value2 = '[90,100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_avoid=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(self.host.name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 2)
+            self.assertEqual(matchers_list, [override_value, override_value2])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp, [70, 80, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_enable_merge_overrides_default_checkboxes(self):
-        """Enable Merge Overrides, Merge Default checkbox for supported types.
+        """Enable Merge Overrides, Merge Default and Avoid Duplicates
+        checkboxes for supported types.
 
         :id: d6323648-4720-4c33-b25f-2b2b569d9df0
 
@@ -1030,17 +1538,37 @@ class SmartClassParametersTestCase(UITestCase):
             1.  Check the Override checkbox.
             2.  Set parameter type to array/hash.
 
-        :expectedresults: The Merge Overrides, Merge Default checkbox are
-            enabled to check.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
+        :expectedresults: The Merge Overrides, Merge Default and Avoid
+            Duplicates checkboxes are enabled to check.
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='[20]',
+                key_type='array',
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'], timeout=5))
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            self.assertTrue(self.sc_parameters.is_element_enabled(
+                locators['sc_parameters.merge_overrides']))
+            self.assertFalse(self.sc_parameters.is_element_enabled(
+                locators['sc_parameters.merge_default']))
+            self.assertFalse(self.sc_parameters.is_element_enabled(
+                locators['sc_parameters.avoid_duplicates']))
+            self.sc_parameters.click(locators['sc_parameters.merge_overrides'])
+            self.assertTrue(self.sc_parameters.is_element_enabled(
+                locators['sc_parameters.merge_default']))
+            self.assertTrue(self.sc_parameters.is_element_enabled(
+                locators['sc_parameters.avoid_duplicates']))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
 
@@ -1052,56 +1580,29 @@ class SmartClassParametersTestCase(UITestCase):
 
         :expectedresults: The Merge Overrides, Merge Default checkboxes are not
             enabled to check.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                key_type='string',
+            )
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            locators_list = [
+                'sc_parameters.merge_overrides',
+                'sc_parameters.merge_default',
+                'sc_parameters.avoid_duplicates',
+            ]
+            for locator in locators_list:
+                self.assertFalse(
+                    self.sc_parameters.is_element_enabled(locators[locator]))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_enable_avaoid_duplicates_checkbox(self):
-        """Enable Avoid duplicates checkbox for supported type- array.
-
-        :id: 77eaa0b6-4388-4e49-88cd-b059d0c53e02
-
-        :steps:
-            1.  Check the Override checkbox.
-            2.  Set parameter type to array.
-            3.  Check Merge Overrides checkbox.
-
-        :expectedresults: The Avoid Duplicates checkbox is enabled to check.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_enable_avaoid_duplicates_checkbox(self):
-        """Disable Avoid duplicates checkbox for non supported types.
-
-        :id: 2b69cec7-1136-4566-9c75-80c71e917fbf
-
-        :steps:
-            1.  Check the Override checkbox.
-            2.  Set parameter type other than array.
-
-        :expectedresults: 1.  The Merge Overrides checkbox is only enabled to
-            check for type hash. 2.  The Avoid duplicates checkbox not enabled
-            to check for any type than array.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
 
@@ -1112,14 +1613,63 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Delete the attribute.
             3.  Recreate the attribute with same name as earlier.
 
-        :expectedresults: 1.  The matcher for deleted attribute removed from
-            parameter. 2.  On recreating attribute, the matcher should not
-            reappear in parameter.
+        :expectedresults:
+            1.  The matcher for deleted attribute removed from parameter.
+            2.  On recreating attribute, the matcher should not reappear
+                in parameter.
 
-        :caseautomation: notautomated
-
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
+        sc_param = self.sc_params_list.pop()
+        hg_name = gen_string('alpha')
+        matcher_value = gen_string('alpha')
+        hostgroup = entities.HostGroup(
+            name=hg_name, environment=self.env).create()
+        hostgroup.add_puppetclass(
+            data={'puppetclass_id': self.puppet_class.id})
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                key_type='string',
+                matcher=[{
+                    'matcher_attribute': 'hostgroup={0}'.format(
+                        hostgroup.name),
+                    'matcher_value': matcher_value,
+                }]
+            )
+            self.assertTrue(self.sc_parameters.validate_smart_class_parameter(
+                sc_param.parameter,
+                self.puppet_class.name,
+                'overrides_number',
+                '1'
+            ))
+            matchers_list = self.sc_parameters.fetch_matcher_values(
+                sc_param.parameter, self.puppet_class.name, 1)
+            self.assertEqual(matchers_list[0], matcher_value)
+            hostgroup.delete()
+            self.assertTrue(self.sc_parameters.validate_smart_class_parameter(
+                sc_param.parameter,
+                self.puppet_class.name,
+                'overrides_number',
+                '0',
+            ))
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            self.assertIsNone(self.sc_parameters.wait_until_element(
+                locators['sc_parameters.matcher_value'] % 1, timeout=5))
+            hostgroup = entities.HostGroup(
+                name=hg_name, environment=self.env).create()
+            hostgroup.add_puppetclass(
+                data={'puppetclass_id': self.puppet_class.id})
+            self.assertTrue(self.sc_parameters.validate_smart_class_parameter(
+                sc_param.parameter,
+                self.puppet_class.name,
+                'overrides_number',
+                '0',
+            ))
 
     @run_only_on('sat')
     @stubbed()
@@ -1135,9 +1685,11 @@ class SmartClassParametersTestCase(UITestCase):
             3.  From host/hostgroup, override the parameter value.
             4.  Submit the changes.
 
-        :expectedresults: 1.  The host/hostgroup is saved with changes. 2.  New
-            matcher for fqdn/hostgroup created inside parameter.
-            :caseautomation: notautomated
+        :expectedresults:
+            1.  The host/hostgroup is saved with changes.
+            2.  New matcher for fqdn/hostgroup created inside parameter.
+
+        :caseautomation: notautomated
 
         :CaseImportance: Critical
         """
@@ -1156,16 +1708,18 @@ class SmartClassParametersTestCase(UITestCase):
             2.  Associate parameter with fqdn/hostgroup.
             3.  From host/hostgroup, Attempt to override the parameter with
                 some other key type of value.
-        :expectedresults: 1.  Error thrown for invalid type value. 2.  No
-            matcher for fqdn/hostgroup is created inside parameter.
-            :caseautomation: notautomated
+        :expectedresults:
+            1.  Error thrown for invalid type value.
+            2.  No matcher for fqdn/hostgroup is created inside parameter.
+
+        :caseautomation: notautomated
 
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_override_from_attribute_puppet_default(self):
         """Impact on parameter on overriding the parameter value
         from attribute - puppet default.
@@ -1188,12 +1742,14 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_override_from_attribute_required_checked(self):
         """Error for empty value on overriding the parameter value
         from attribute - Required checked.
@@ -1216,12 +1772,14 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_matcher_from_attribute(self):
         """Impact on parameter on editing the parameter value from attribute.
 
@@ -1242,12 +1800,14 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_update_matcher_from_attribute(self):
         """No Impact on parameter on editing the parameter with
         invalid value from attribute.
@@ -1269,13 +1829,15 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1295179)
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_parameter_in_nested_hostgroup(self):
         """Update parameter value in nested hostgroup.
 
@@ -1296,12 +1858,13 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_parameter_default_value(self):
         """Hide the default value of parameter.
 
@@ -1318,15 +1881,33 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The default value shown in hidden state.
             2.  Changes submitted successfully.
             3.  Matcher values shown hidden if any.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        initial_value = gen_string('alpha')
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=initial_value,
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }],
+                hidden_value=True,
+            )
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, initial_value)
+            locator = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.default_value'])
+            self.assertIn('masked-input', locator.get_attribute('class'))
+            matcher_value = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.matcher_value'] % 1)
+            self.assertIn('masked-input', matcher_value.get_attribute('class'))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_unhide_parameter_default_value(self):
         """Unhide the default value of parameter.
 
@@ -1344,15 +1925,37 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The default value shown in unhidden state.
             2.  Changes submitted successfully.
             3.  Matcher values shown unhidden if any.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        initial_value = gen_string('alpha')
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=initial_value,
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }],
+                hidden_value=True,
+            )
+            self.sc_parameters.update(
+                sc_param.parameter, self.puppet_class.name, hidden_value=False)
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, initial_value)
+            locator = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.default_value'])
+            self.assertNotIn('masked-input', locator.get_attribute('class'))
+            matcher_value = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.matcher_value'] % 1)
+            self.assertNotIn(
+                'masked-input', matcher_value.get_attribute('class'))
 
     @run_only_on('sat')
     @stubbed()
-    @tier3
+    @tier2
     def test_positive_hide_default_value_in_attribute(self):
         """Hide the default value of parameter in attribute.
 
@@ -1375,12 +1978,12 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier3
+    @tier2
     def test_positive_unhide_default_value_in_attribute(self):
         """Unhide the default value of parameter in attribute.
 
@@ -1405,11 +2008,10 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
-        :CaseLevel: System
+        :CaseLevel: Integration
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_hidden_value_in_parameter(self):
         """Update the hidden default value of parameter.
@@ -1429,14 +2031,33 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The parameter default value is updated.
             2.  The parameter default value displayed as hidden.
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        sc_param = self.sc_params_list.pop()
+        new_value = gen_string('alpha')
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                hidden_value=True,
+            )
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                default_value=new_value,
+            )
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, new_value)
+            locator = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.default_value'])
+            self.assertIn('masked-input', locator.get_attribute('class'))
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_hidden_value_in_attribute(self):
         """Update the hidden default value of parameter in attribute.
 
@@ -1460,12 +2081,13 @@ class SmartClassParametersTestCase(UITestCase):
 
         :caseautomation: notautomated
 
+        :CaseLevel: Integration
+
         :CaseImportance: Critical
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
@@ -1483,8 +2105,30 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The 'Hidden Value' checkbox is enabled to check.
             2.  The default value shows empty on hide.
             3.  Matcher Value shown as hidden.
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        matcher_value = gen_string('alpha')
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value='',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': matcher_value
+                }],
+                hidden_value=True,
+            )
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, '')
+            locator = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.default_value'])
+            self.assertIn(
+                'masked-input', locator.get_attribute('class'))
+            value = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.matcher_value'] % 1)
+            self.assertIn(
+                'masked-input', value.get_attribute('class'))
+            self.assertEqual(value.get_attribute('value'), matcher_value)
