@@ -2514,7 +2514,7 @@ def setup_org_for_a_custom_repo(options=None):
     }
 
 
-def setup_org_for_a_rh_repo(options=None):
+def _setup_org_for_a_rh_repo(options=None):
     """Sets up Org for the given Red Hat repository by:
 
     1. Checks if organization and lifecycle environment were given, otherwise
@@ -2528,6 +2528,9 @@ def setup_org_for_a_rh_repo(options=None):
     5. Checks if activation key was given, otherwise creates a new one and
         associates it with the content view.
     6. Adds the RH repo subscription to the activation key
+
+    Note that in most cases you should use ``setup_org_for_a_rh_repo`` instead
+    as it's more flexible.
 
     Options::
 
@@ -2683,6 +2686,47 @@ def setup_org_for_a_rh_repo(options=None):
         u'organization-id': org_id,
         u'repository-id': rhel_repo['id'],
     }
+
+
+def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False,
+                            force_use_cdn=False):
+    """Wrapper above ``_setup_org_for_a_rh_repo`` to use custom downstream repo
+    instead of CDN's 'Satellite Capsule' and 'Satellite Tools' if
+    ``settings.cdn == 0`` and URL for custom repositories is set in properties.
+
+    :param options: a dict with options to pass to function
+        ``_setup_org_for_a_rh_repo``. See its docstring for more details
+    :param force_use_cdn: bool flag whether to use CDN even if there's
+        downstream repo available and ``settings.cdn == 0``.
+    :param force_manifest_upload: bool flag whether to upload a manifest to
+        organization even if downstream custom repo is used instead of CDN.
+        Useful when test relies on organization with manifest (e.g. uses some
+        other RH repo afterwards). Defaults to False.
+    :return: a dict with entity ids (see ``_setup_org_for_a_rh_repo`` and
+        ``setup_org_for_a_custom_repo``).
+    """
+    custom_repo_url = None
+    if 'Satellite Tools' in options.get('repository'):
+        custom_repo_url = settings.sattools_repo
+    elif 'Satellite Capsule' in options.get('repository'):
+        custom_repo_url = settings.capsule_repo
+    if force_use_cdn or settings.cdn or not custom_repo_url:
+        return _setup_org_for_a_rh_repo(options)
+    else:
+        options['url'] = custom_repo_url
+        result = setup_org_for_a_custom_repo(options)
+        if force_manifest_upload:
+            with manifests.clone() as manifest:
+                upload_file(manifest.content, manifest.filename)
+            try:
+                Subscription.upload({
+                    u'file': manifest.filename,
+                    u'organization-id': result.get('organization-id'),
+                })
+            except CLIReturnCodeError as err:
+                raise CLIFactoryError(
+                    u'Failed to upload manifest\n{0}'.format(err.msg))
+        return result
 
 
 def configure_env_for_provision(org=None, loc=None):

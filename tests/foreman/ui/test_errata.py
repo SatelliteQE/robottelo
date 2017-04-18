@@ -231,11 +231,11 @@ class ErrataTestCase(UITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
+            client.register_contenthost(
                 self.session_org.label,
                 self.activation_key.name,
             )
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
@@ -269,11 +269,11 @@ class ErrataTestCase(UITestCase):
             clients = [client1, client2]
             for client in clients:
                 client.install_katello_ca()
-                result = client.register_contenthost(
+                client.register_contenthost(
                     self.session_org.label,
                     self.activation_key.name,
                 )
-                self.assertEqual(result.return_code, 0)
+                self.assertTrue(client.subscribed)
                 client.enable_repo(REPOS['rhst7']['id'])
                 client.install_katello_agent()
                 client.run(
@@ -426,11 +426,11 @@ class ErrataTestCase(UITestCase):
                 distro=DISTRO_RHEL7) as client2:
             for client in client1, client2:
                 client.install_katello_ca()
-                result = client.register_contenthost(
+                client.register_contenthost(
                     self.session_org.label,
                     self.activation_key.name,
                 )
-                self.assertEqual(result.return_code, 0)
+                self.assertTrue(client.subscribed)
                 client.enable_repo(REPOS['rhst7']['id'])
                 client.install_katello_agent()
                 client.run(
@@ -559,11 +559,11 @@ class ErrataTestCase(UITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
                 client.install_katello_ca()
-                result = client.register_contenthost(
+                client.register_contenthost(
                     self.session_org.label,
                     self.activation_key.name,
                 )
-                self.assertEqual(result.return_code, 0)
+                self.assertTrue(client.subscribed)
                 client.enable_repo(REPOS['rhst7']['id'])
                 client.install_katello_agent()
                 client.run(
@@ -620,11 +620,11 @@ class ErrataTestCase(UITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
+            client.register_contenthost(
                 self.session_org.label,
                 self.activation_key.name,
             )
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
             client.run(
@@ -718,11 +718,8 @@ class ErrataTestCase(UITestCase):
         })
         with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
-                org.label,
-                activation_key.name,
-            )
-            self.assertEqual(result.return_code, 0)
+            client.register_contenthost(org.label, activation_key.name)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
@@ -822,11 +819,8 @@ class ErrataTestCase(UITestCase):
         })
         with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
-                org.label,
-                activation_key.name,
-            )
-            self.assertEqual(result.return_code, 0)
+            client.register_contenthost(org.label, activation_key.name)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
@@ -943,11 +937,11 @@ class FilteredErrataTestCase(UITestCase):
         })
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
+            client.register_contenthost(
                 self.session_org.label,
                 activation_key.name,
             )
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))

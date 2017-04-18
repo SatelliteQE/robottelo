@@ -213,13 +213,13 @@ class IncrementalUpdateTestCase(TestCase):
         client.install_katello_ca()
 
         # Register content host, install katello-agent
-        result = client.register_contenthost(
+        client.register_contenthost(
             org_name,
             act_key,
             releasever=DEFAULT_RELEASE_VERSION
         )
-        assert result.return_code == 0
-        result = client.install_katello_agent()
+        assert client.subscribed
+        client.install_katello_agent()
         client.run('katello-package-upload')
 
     @staticmethod

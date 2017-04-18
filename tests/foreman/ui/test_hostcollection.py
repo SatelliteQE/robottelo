@@ -496,9 +496,9 @@ class HostCollectionPackageManagementTest(UITestCase):
             self.hosts.append(client)
             client.create()
             client.install_katello_ca()
-            result = client.register_contenthost(
+            client.register_contenthost(
                 self.session_org.label, self.activation_key.name)
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
         host_ids = [

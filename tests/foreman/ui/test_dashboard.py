@@ -654,6 +654,8 @@ class DashboardTestCase(UITestCase):
             environment=env,
             organization=org,
         ).create()
+        # Using cdn repo as we need a rh repo (no matter are we in cdn or
+        # downstream) for subscription status to be ok
         setup_org_for_a_rh_repo({
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
@@ -662,12 +664,12 @@ class DashboardTestCase(UITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_use_cdn=True)
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
+            client.register_contenthost(
                 org.label, activation_key.name)
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
             with Session(self.browser) as session:

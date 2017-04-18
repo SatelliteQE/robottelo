@@ -30,13 +30,11 @@ from robottelo.cli.factory import (
     make_lifecycle_environment,
     make_org,
     make_subnet,
-    setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
-from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     PRDS,
@@ -227,26 +225,16 @@ class RemoteExecutionTestCase(CLITestCase):
             u'lifecycle-environment-id': cls.env['id'],
             u'organization-id': cls.org['id'],
         })
-        if settings.cdn:
-            # Add subscription to Satellite Tools repo to activation key
-            setup_org_for_a_rh_repo({
-                u'product': PRDS['rhel'],
-                u'repository-set': REPOSET['rhst7'],
-                u'repository': REPOS['rhst7']['name'],
-                u'organization-id': cls.org['id'],
-                u'content-view-id': cls.content_view['id'],
-                u'lifecycle-environment-id': cls.env['id'],
-                u'activationkey-id': cls.activation_key['id'],
-            })
-        else:
-            # Create custom internal Tools repo, add to activation key
-            setup_org_for_a_custom_repo({
-                u'url': settings.sattools_repo,
-                u'organization-id': cls.org['id'],
-                u'content-view-id': cls.content_view['id'],
-                u'lifecycle-environment-id': cls.env['id'],
-                u'activationkey-id': cls.activation_key['id'],
-            })
+        # Add subscription to Satellite Tools repo to activation key
+        setup_org_for_a_rh_repo({
+            u'product': PRDS['rhel'],
+            u'repository-set': REPOSET['rhst7'],
+            u'repository': REPOS['rhst7']['name'],
+            u'organization-id': cls.org['id'],
+            u'content-view-id': cls.content_view['id'],
+            u'lifecycle-environment-id': cls.env['id'],
+            u'activationkey-id': cls.activation_key['id'],
+        })
 
     def setUp(self):
         """Create VM, subscribe it to satellite-tools repo, install katello-ca
@@ -263,8 +251,8 @@ class RemoteExecutionTestCase(CLITestCase):
             self.org['label'],
             self.activation_key['name'],
         )
-        if settings.cdn:
-            self.client.enable_repo(REPOS['rhst7']['id'])
+        self.assertTrue(self.client.subscribed)
+        self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
         add_remote_execution_ssh_key(self.client.ip_addr)
         # create subnet for current org, default loc and domain

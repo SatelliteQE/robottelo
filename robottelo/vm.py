@@ -14,7 +14,7 @@ import os
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
+from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
 from robottelo.decorators import bz_bug_is_open
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 
@@ -230,14 +230,25 @@ class VirtualMachine(object):
                 u'Failed to install {0} rpm.'.format(package_name)
             )
 
-    def enable_repo(self, repo):
-        """Enables specified Red Hat repository on the virtual machine.
+    def enable_repo(self, repo, force=False):
+        """Enables specified Red Hat repository on the virtual machine. Does
+        nothing if capsule or satellite tools repo was passed and downstream
+        with custom repo URLs detected (custom repos are enabled by default
+        when registering a host).
 
         :param repo: Red Hat repository name.
+        :param force: enforce enabling command, even when custom repos are
+            detected for satellite tools or capsule.
         :return: None.
 
         """
-        self.run(u'subscription-manager repos --enable {0}'.format(repo))
+        downstream_repo = None
+        if repo in (REPOS['rhst6']['id'], REPOS['rhst7']['id']):
+            downstream_repo = settings.sattools_repo
+        elif repo in (REPOS['rhsc6']['id'], REPOS['rhsc7']['id']):
+            downstream_repo = settings.capsule_repo
+        if force or settings.cdn or not downstream_repo:
+            self.run(u'subscription-manager repos --enable {0}'.format(repo))
 
     def install_katello_agent(self):
         """Installs katello agent on the virtual machine.
