@@ -635,7 +635,7 @@ class Base(object):
             element = target
         if element is None:
             raise UINoSuchElementError(
-                u'{0}: element {1} was not found while trying to click'
+                '{0}: element {1} was not found while trying to click'
                 .format(type(self).__name__, str(target))
             )
         # Required since from selenium 2.48.0. which makes Selenium more
