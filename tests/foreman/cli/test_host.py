@@ -376,12 +376,12 @@ class HostCreateTestCase(CLITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
+            client.register_contenthost(
                 self.new_org['label'],
                 lce='{}/{}'.format(
                     self.new_lce['label'], self.promoted_cv['label']),
             )
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
 
     @tier3
     def test_negative_register_twice(self):
@@ -404,6 +404,7 @@ class HostCreateTestCase(CLITestCase):
                 self.new_org['label'],
                 activation_key['name'],
             )
+            self.assertTrue(client.subscribed)
             result = client.register_contenthost(
                 self.new_org['label'],
                 activation_key['name'],
@@ -538,6 +539,7 @@ class HostCreateTestCase(CLITestCase):
                 self.new_org['label'],
                 activation_key['name'],
             )
+            self.assertTrue(client.subscribed)
             hosts = Host.list({
                 'organization-id': self.new_org['id'],
                 'environment-id': self.new_lce['id'],
@@ -568,6 +570,7 @@ class HostCreateTestCase(CLITestCase):
                 self.new_org['label'],
                 activation_key['name'],
             )
+            self.assertTrue(client.subscribed)
             hosts = Host.list({
                 'organization-id': self.new_org['id'],
                 'environment-id': self.new_lce['id'],
@@ -1623,26 +1626,16 @@ class KatelloAgentTestCase(CLITestCase):
             u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
             u'organization-id': KatelloAgentTestCase.org['id'],
         })
-        if settings.cdn:
-            # Add subscription to Satellite Tools repo to activation key
-            setup_org_for_a_rh_repo({
-                u'product': PRDS['rhel'],
-                u'repository-set': REPOSET['rhst7'],
-                u'repository': REPOS['rhst7']['name'],
-                u'organization-id': KatelloAgentTestCase.org['id'],
-                u'content-view-id': KatelloAgentTestCase.content_view['id'],
-                u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
-            })
-        else:
-            # Create custom internal Tools repo, add to activation key
-            setup_org_for_a_custom_repo({
-                u'url': settings.sattools_repo,
-                u'organization-id': KatelloAgentTestCase.org['id'],
-                u'content-view-id': KatelloAgentTestCase.content_view['id'],
-                u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
-                u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
-            })
+        # Add subscription to Satellite Tools repo to activation key
+        setup_org_for_a_rh_repo({
+            u'product': PRDS['rhel'],
+            u'repository-set': REPOSET['rhst7'],
+            u'repository': REPOS['rhst7']['name'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
+            u'content-view-id': KatelloAgentTestCase.content_view['id'],
+            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+            u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
+        })
         # Create custom repo, add subscription to activation key
         setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
@@ -1668,9 +1661,9 @@ class KatelloAgentTestCase(CLITestCase):
             KatelloAgentTestCase.org['label'],
             KatelloAgentTestCase.activation_key['name'],
         )
+        self.assertTrue(self.client.subscribed)
         self.host = Host.info({'name': self.client.hostname})
-        if settings.cdn:
-            self.client.enable_repo(REPOS['rhst7']['id'])
+        self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
 
     @tier3

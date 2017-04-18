@@ -646,8 +646,7 @@ class ActivationKeyTestCase(CLITestCase):
         with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
             with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
                 vm1.install_katello_ca()
-                result = vm1.register_contenthost(
-                    self.org['label'], new_ak['name'])
+                vm1.register_contenthost(self.org['label'], new_ak['name'])
                 self.assertTrue(vm1.subscribed)
                 vm2.install_katello_ca()
                 result = vm2.register_contenthost(
@@ -704,12 +703,14 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseLevel: System
         """
         org = make_org()
+        # Using CDN as we need this repo to be RH one no matter are we in
+        # downstream or cdn
         result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
             u'organization-id': org['id'],
-        })
+        }, force_use_cdn=True)
         content = ActivationKey.product_content({
             u'id': result['activationkey-id'],
             u'organization-id': org['id'],
@@ -764,12 +765,14 @@ class ActivationKeyTestCase(CLITestCase):
         :BZ: 1426386
         """
         org = make_org()
+        # Using CDN as we need this repo to be RH one no matter are we in
+        # downstream or cdn
         result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
             u'organization-id': org['id'],
-        })
+        }, force_use_cdn=True)
         result = setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
             u'organization-id': org['id'],

@@ -83,7 +83,7 @@ class ErrataTestCase(APITestCase):
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
-        })
+        }, force_manifest_upload=True)
         cls.custom_entities = setup_org_for_a_custom_repo({
             'url': FAKE_6_YUM_REPO,
             'organization-id': cls.org.id,
@@ -189,9 +189,9 @@ class ErrataTestCase(APITestCase):
             clients = [client1, client2]
             for client in clients:
                 client.install_katello_ca()
-                result = client.register_contenthost(
+                client.register_contenthost(
                     self.org.label, self.activation_key.name)
-                self.assertEqual(result.return_code, 0)
+                self.assertTrue(client.subscribed)
                 client.enable_repo(REPOS['rhst7']['id'])
                 client.install_katello_agent()
             host_ids = [
@@ -224,9 +224,9 @@ class ErrataTestCase(APITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
+            client.register_contenthost(
                 self.org.label, self.activation_key.name)
-            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
             host_id = entities.Host().search(query={
@@ -479,7 +479,7 @@ class ErrataTestCase(APITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_use_cdn=True)
         setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': org.id,
@@ -505,11 +505,8 @@ class ErrataTestCase(APITestCase):
         promote(cvv, env.id)
         with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
-                org.label,
-                activation_key.name,
-            )
-            self.assertEqual(result.return_code, 0)
+            client.register_contenthost(org.label, activation_key.name)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
@@ -557,7 +554,7 @@ class ErrataTestCase(APITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_manifest_upload=True)
         setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': org.id,
@@ -583,11 +580,8 @@ class ErrataTestCase(APITestCase):
         promote(cvv, env.id)
         with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
-            result = client.register_contenthost(
-                org.label,
-                activation_key.name,
-            )
-            self.assertEqual(result.return_code, 0)
+            client.register_contenthost(org.label, activation_key.name)
+            self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
@@ -647,7 +641,7 @@ class ErrataTestCase(APITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_use_cdn=True)
         setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': org.id,

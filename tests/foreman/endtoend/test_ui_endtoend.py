@@ -440,6 +440,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             with VirtualMachine(distro=DISTRO_RHEL6) as vm:
                 vm.install_katello_ca()
                 vm.register_contenthost(org_name, activation_key_name)
+                self.assertTrue(vm.subscribed)
                 vm.configure_puppet(rhel6_repo)
                 host = vm.hostname
                 set_context(session, org=ANY_CONTEXT['org'])

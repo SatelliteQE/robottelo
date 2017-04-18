@@ -467,6 +467,7 @@ class RemoteExecutionTestCase(UITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
+            self.assertTrue(client.subscribed)
             add_remote_execution_ssh_key(client.ip_addr)
             Host.update({
                 u'name': client.hostname,
@@ -514,6 +515,7 @@ class RemoteExecutionTestCase(UITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
+            self.assertTrue(client.subscribed)
             add_remote_execution_ssh_key(client.ip_addr)
             Host.update({
                 u'name': client.hostname,
@@ -575,6 +577,7 @@ class RemoteExecutionTestCase(UITestCase):
                     vm.install_katello_ca()
                     vm.register_contenthost(
                         self.organization.label, lce='Library')
+                    self.assertTrue(vm.subscribed)
                     add_remote_execution_ssh_key(vm.ip_addr)
                     Host.update({
                         u'name': vm.hostname,
@@ -628,6 +631,7 @@ class RemoteExecutionTestCase(UITestCase):
         with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
+            self.assertTrue(client.subscribed)
             add_remote_execution_ssh_key(client.ip_addr)
             Host.update({
                 u'name': client.hostname,

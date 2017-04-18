@@ -2370,9 +2370,9 @@ class ContentViewTestCase(UITestCase):
             # create a vm host client and ensure it can be subscribed
             with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
                 host_client.install_katello_ca()
-                result = host_client.register_contenthost(
-                        org.label, activation_key.name)
-                self.assertEqual(result.return_code, 0)
+                host_client.register_contenthost(
+                    org.label, activation_key.name)
+                self.assertTrue(host_client.subscribed)
                 # assert the host_client exists in content hosts page
                 self.assertIsNotNone(
                     self.contenthost.search(host_client.hostname))
@@ -2428,14 +2428,9 @@ class ContentViewTestCase(UITestCase):
             # create a vm host client and ensure it can be subscribed
             with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
                 host_client.install_katello_ca()
-                result = host_client.register_contenthost(
-                        org.label, activation_key.name)
-                # without an rh subscription the result code is != 0
-                # see issue #4153
-                # so assert the system is subscribed by the message
-                message = '\n'.join(result.stdout)
-                self.assertIn(
-                    'The system has been registered with ID:', message)
+                host_client.register_contenthost(
+                    org.label, activation_key.name)
+                self.assertTrue(host_client.subscribed)
                 # assert the host_client exists in content hosts page
                 self.assertIsNotNone(
                     self.contenthost.search(host_client.hostname))
@@ -2498,14 +2493,9 @@ class ContentViewTestCase(UITestCase):
             ).create()
             with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
                 host_client.install_katello_ca()
-                result = host_client.register_contenthost(
-                        org.label, activation_key.name)
-                # without an rh subscription the result code is != 0
-                # see issue #4153
-                # so assert the system is subscribed by the message
-                message = '\n'.join(result.stdout)
-                self.assertIn(
-                    'The system has been registered with ID:', message)
+                host_client.register_contenthost(
+                    org.label, activation_key.name)
+                self.assertTrue(host_client.subscribed)
                 # assert the host_client exists in content hosts page
                 self.assertIsNotNone(
                     self.contenthost.search(host_client.hostname))

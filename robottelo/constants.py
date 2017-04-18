@@ -210,6 +210,18 @@ REPOSET = {
 }
 
 REPOS = {
+    'rhsc7': {
+        'id': 'rhel-7-server-satellite-capsule-6.2-rpms',
+        'name': (
+            'Red Hat Satellite Capsule 6.2 for RHEL 7 Server RPMs x86_64'
+        ),
+    },
+    'rhsc6': {
+        'id': 'rhel-6-server-satellite-capsule-6.2-rpms',
+        'name': (
+            'Red Hat Satellite Capsule 6.2 for RHEL 6 Server RPMs x86_64'
+        ),
+    },
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.2-rpms',
         'name': (

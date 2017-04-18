@@ -147,6 +147,7 @@ class OpenScapTestCase(UITestCase):
                         self.config_env['org_name'],
                         self.config_env['ak_name']
                     )
+                    self.assertTrue(vm.subscribed)
                     vm.configure_puppet(value['rhel_repo'])
                     self.hosts.update(
                         name=vm._target_image,
@@ -246,6 +247,7 @@ class OpenScapTestCase(UITestCase):
                     self.config_env['org_name'],
                     self.config_env['ak_name']
                 )
+                self.assertTrue(vm.subscribed)
                 vm.configure_puppet(vm_values.get('rhel_repo'))
                 self.hosts.update(
                     name=vm._target_image,

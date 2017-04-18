@@ -563,8 +563,8 @@ class ActivationKeyTestCase(UITestCase):
                 common_locators['alert.success_sub_form']))
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
-                result = vm.register_contenthost(self.organization.label, name)
-                self.assertEqual(result.return_code, 0)
+                vm.register_contenthost(self.organization.label, name)
+                self.assertTrue(vm.subscribed)
                 self.activationkey.delete(name)
 
     @tier1
@@ -937,13 +937,12 @@ class ActivationKeyTestCase(UITestCase):
             with VirtualMachine(distro=self.vm_distro) as vm1:
                 with VirtualMachine(distro=self.vm_distro) as vm2:
                     vm1.install_katello_ca()
-                    result = vm1.register_contenthost(
-                        self.organization.label, name)
-                    self.assertEqual(result.return_code, 0)
+                    vm1.register_contenthost(self.organization.label, name)
+                    self.assertTrue(vm1.subscribed)
                     vm2.install_katello_ca()
                     result = vm2.register_contenthost(
                         self.organization.label, name)
-                    self.assertNotEqual(result.return_code, 0)
+                    self.assertFalse(vm2.subscribed)
                     self.assertGreater(len(result.stderr), 0)
                     self.assertIn(
                         'Max Hosts ({0}) reached for activation key'
@@ -980,6 +979,7 @@ class ActivationKeyTestCase(UITestCase):
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
                 vm.register_contenthost(self.organization.label, key_name)
+                self.assertTrue(vm.subscribed)
                 name = self.activationkey.fetch_associated_content_host(
                     key_name)
                 self.assertEqual(vm.hostname, name)
@@ -1248,11 +1248,11 @@ class ActivationKeyTestCase(UITestCase):
             # Create VM
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
-                result = vm.register_contenthost(
+                vm.register_contenthost(
                     self.organization.label,
                     '{0},{1}'.format(key_1_name, key_2_name),
                 )
-                self.assertEqual(result.return_code, 0)
+                self.assertTrue(vm.subscribed)
                 # Assert the content-host association with activation-key
                 for key_name in [key_1_name, key_2_name]:
                     name = self.activationkey.fetch_associated_content_host(
@@ -1356,7 +1356,7 @@ class ActivationKeyTestCase(UITestCase):
             'content-view-id': content_view['id'],
             'lifecycle-environment-id': env['id'],
             'activationkey-id': activation_key['id'],
-        })
+        }, force_manifest_upload=True)
         another_ak = make_activation_key({
             'content-view-id': content_view['id'],
             'lifecycle-environment-id': env['id'],
@@ -1371,12 +1371,10 @@ class ActivationKeyTestCase(UITestCase):
                 distro=DISTRO_RHEL7) as client2:
             client1.install_katello_ca()
             client2.install_katello_ca()
-            result = client1.register_contenthost(
-                org['label'], activation_key['name'])
-            self.assertEqual(result.return_code, 0)
-            result = client2.register_contenthost(
-                org['label'], another_ak['name'])
-            self.assertEqual(result.return_code, 0)
+            client1.register_contenthost(org['label'], activation_key['name'])
+            self.assertTrue(client1.subscribed)
+            client2.register_contenthost(org['label'], another_ak['name'])
+            self.assertTrue(client2.subscribed)
             with Session(self.browser) as session:
                 set_context(session, org=org['name'])
                 self.assertIsNotNone(
