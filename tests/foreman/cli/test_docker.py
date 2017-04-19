@@ -1486,7 +1486,7 @@ class DockerContainersTestCase(CLITestCase):
         cls.cr_external = make_compute_resource({
             'organization-ids': [cls.org['id']],
             'provider': DOCKER_PROVIDER,
-            'url': settings.docker.external_url,
+            'url': 'http://{0}:2375'.format(settings.server.hostname),
         })
         install_katello_ca()
 

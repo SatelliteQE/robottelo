@@ -1313,7 +1313,7 @@ class DockerContainerTestCase(UITestCase):
         cls.cr_external = entities.DockerComputeResource(
             name=gen_string('alpha'),
             organization=[cls.organization],
-            url=settings.docker.external_url,
+            url='http://{0}:2375'.format(settings.server.hostname),
         ).create()
         cls.parameter_list = [
             {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
