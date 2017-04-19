@@ -405,13 +405,13 @@ class DockerRepositoryTestCase(UITestCase):
         """Create sync plan, disable it, add to product and create docker repo
         for mentioned product.
 
-        :id: 8a926e5a-2602-4007-ab4d-e0881a2538aa
+        @id: 8a926e5a-2602-4007-ab4d-e0881a2538aa
 
-        :expectedresults: Docker repository is successfully created
+        @expectedresults: Docker repository is successfully created
 
-        :CaseImportance: Critical
+        @CaseImportance: Critical
 
-        :BZ: 1410939
+        @BZ: 1410939
         """
         sync_plan = entities.SyncPlan(
             enabled=True,
