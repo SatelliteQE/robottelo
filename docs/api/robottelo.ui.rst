@@ -193,6 +193,11 @@
 
 .. automodule:: robottelo.ui.role
 
+:mod:`robottelo.ui.scparams`
+----------------------------
+
+.. automodule:: robottelo.ui.scparams
+
 :mod:`robottelo.ui.session`
 ---------------------------
 

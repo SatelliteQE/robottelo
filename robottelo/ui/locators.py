@@ -247,6 +247,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_variable_lookup_keys']")),
+    "menu.smart_class_parameters": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_puppetclass_lookup_keys']")),
     "menu.configure_groups": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -3385,4 +3389,8 @@ locators = LocatorDict({
     "smart_variable.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "smart_variable.table_value": (By.XPATH, "//td[contains(., '%s')]"),
+
+    # Smart Class Parameters
+    "sc_parameters.select_name": (By.XPATH, "//a[contains(., '%s')]"),
+
 })

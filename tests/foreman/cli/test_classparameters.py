@@ -25,8 +25,10 @@ from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
+    add_permissions_to_user,
     make_hostgroup,
     make_org,
+    make_user,
     publish_puppet_module,
 )
 from robottelo.cli.host import Host
@@ -399,10 +401,46 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in sc_params})
         )
-        if not bz_bug_is_open(1432927):
-            # Check that only unique results are returned
-            self.assertEqual(
-                len(sc_params), len({scp['id'] for scp in sc_params}))
+        # Check that only unique results are returned
+        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_list_with_non_admin_user(self):
+        """List all the parameters for specific puppet class by id.
+
+        @id: 00fbf150-34fb-45d0-80e9-d5798d24a24f
+
+        @expectedresults: Parameters listed for specific Puppet class.
+
+        @BZ: 1391556
+
+        @CaseImportance: Critical
+        """
+        password = gen_string('alpha')
+        required_user_permissions = {
+            'Puppetclass': [
+                'view_puppetclasses',
+            ],
+            'PuppetclassLookupKey': [
+                'view_external_parameters',
+                'create_external_parameters',
+                'edit_external_parameters',
+                'destroy_external_parameters',
+            ],
+        }
+        user = make_user({
+            'admin': '0',
+            'password': password,
+        })
+        add_permissions_to_user(user['id'], required_user_permissions)
+        sc_params = SmartClassParameter.with_user(
+            user['login'],
+            password,
+        ).list({'puppet-class-id': self.puppet_class['id']})
+        self.assertGreater(len(sc_params), 0)
+        # Check that only unique results are returned
+        self.assertEqual(len(sc_params), len({scp['id'] for scp in sc_params}))
 
     @skip_if_bug_open('bugzilla', 1432927)
     @run_only_on('sat')
@@ -415,7 +453,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @expectedresults: Parameters listed for specific Puppet class.
 
-        BZ: 1385351
+        @BZ: 1385351
         """
         cv = publish_puppet_module(
             self.puppet_modules, CUSTOM_PUPPET_REPO, self.org['id'])
