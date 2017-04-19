@@ -21,11 +21,11 @@ class SmartClassParameter(Base):
         """
         return locators['sc_parameters.select_name']
 
-    def search_sc_params(self, sc_param_name, puppet_class):
+    def search(self, sc_param_name, puppet_class):
         """Search for unique smart class parameter based on its name and puppet
         class parameter it is assigned to
         """
-        return self.search(
+        return super(SmartClassParameter, self).search(
             sc_param_name,
             _raw_query='parameter = {0} and puppetclass_name = {1}'.format(
                 sc_param_name, puppet_class)
@@ -38,7 +38,7 @@ class SmartClassParameter(Base):
                matcher_priority=None, matcher_merge_overrides=None,
                matcher_merge_default=None, matcher_merge_avoid=None):
         """Updates existing Smart Class Parameter from UI"""
-        self.click(self.search_sc_params(name, puppet_class))
+        self.click(self.search(name, puppet_class))
         if description:
             self.assign_value(
                 locators['sc_parameters.description'], description)
@@ -129,11 +129,13 @@ class SmartClassParameter(Base):
         on the index page
 
         :param str name: Name of Smart Class Parameter to be validated
+        :param str puppet_class: Name of puppet class Smart Class Parameter
+            assigned to
         :param str field_name: Smart Class Parameter field that should be
             validated (e.g. 'puppet_class' or 'overrides_number')
         :param str field_value: Expected value for specified field
         """
-        self.search_sc_params(name, puppet_class)
+        self.search(name, puppet_class)
         searched = self.wait_until_element(
             locators['sc_parameters.table_value'] % field_value)
         if searched is None:
@@ -143,3 +145,22 @@ class SmartClassParameter(Base):
             )
         else:
             return True
+
+    def fetch_default_value(self, name, puppet_class, hidden=False):
+        """Get default value for specific Smart Class Parameter"""
+        self.click(self.search(name, puppet_class))
+        locator = self.wait_until_element(
+            locators['sc_parameters.default_value'])
+        return locator.get_attribute('value') if hidden else locator.text
+
+    def fetch_matcher_values(self, name, puppet_class, matchers_count):
+        """Get list of values for specified number of Smart Class Parameter
+        matchers
+        """
+        self.click(self.search(name, puppet_class))
+        return [
+            self.wait_until_element(
+                locators['sc_parameters.matcher_value'] % (i+1)).text
+            for i
+            in range(0, matchers_count)
+        ]
