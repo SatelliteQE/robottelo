@@ -3413,7 +3413,7 @@ locators = LocatorDict({
         "contains(@name, '[key_type]')]"),
     "sc_parameters.default_value": (
         By.XPATH,
-        "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "//*[(ancestor::div[@class='tab-pane fields active'] or "
         "contains(@id, 'puppetclass_lookup_key_')) and "
         "contains(@name, '[default_value]')]"),
     "sc_parameters.puppet_default": (
@@ -3486,7 +3486,7 @@ locators = LocatorDict({
     ),
     "sc_parameters.matcher_value": (
         By.XPATH,
-        "(//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "(//*[(ancestor::div[@class='tab-pane fields active'] or "
         "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
         "contains(@name, '[value]')])[%i]"
     ),

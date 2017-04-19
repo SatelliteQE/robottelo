@@ -105,23 +105,20 @@ class SmartClassParameter(Base):
         for i, matcher in enumerate(matcher_list, start=1):
             self.click(locators['sc_parameters.add_matcher'])
             matcher_attribute = matcher['matcher_attribute'].split('=')
+            strategy, value = locators['sc_parameters.matcher_attribute_type']
             self.assign_value(
-                locators['sc_parameters.matcher_attribute_type'] % i,
-                matcher_attribute[0]
-            )
+                (strategy, value % i), matcher_attribute[0])
+            strategy, value = locators['sc_parameters.matcher_attribute_value']
             self.assign_value(
-                locators['sc_parameters.matcher_attribute_value'] % i,
-                matcher_attribute[1]
-            )
+                (strategy, value % i), matcher_attribute[1])
+            strategy, value = locators['sc_parameters.matcher_value']
             self.assign_value(
-                locators['sc_parameters.matcher_value'] % i,
-                matcher['matcher_value']
-            )
+                (strategy, value % i), matcher['matcher_value'])
             if 'matcher_puppet_default' in matcher.keys():
+                strategy, value = locators[
+                    'sc_parameters.matcher_puppet_default']
                 self.assign_value(
-                    locators['sc_parameters.matcher_puppet_default'] % i,
-                    matcher['matcher_puppet_default']
-                )
+                    (strategy, value % i), matcher['matcher_puppet_default'])
 
     def validate_smart_class_parameter(
             self, name, puppet_class, field_name, field_value):
@@ -136,8 +133,8 @@ class SmartClassParameter(Base):
         :param str field_value: Expected value for specified field
         """
         self.search(name, puppet_class)
-        searched = self.wait_until_element(
-            locators['sc_parameters.table_value'] % field_value)
+        strategy, value = locators['sc_parameters.table_value']
+        searched = self.wait_until_element((strategy, value % field_value))
         if searched is None:
             raise UIError(
                 'Smart Class Parameter "{0}" field in the table has not "{1}" '
@@ -157,10 +154,10 @@ class SmartClassParameter(Base):
         """Get list of values for specified number of Smart Class Parameter
         matchers
         """
+        strategy, value = locators['sc_parameters.matcher_value']
         self.click(self.search(name, puppet_class))
         return [
-            self.wait_until_element(
-                locators['sc_parameters.matcher_value'] % (i+1)).text
+            self.wait_until_element((strategy, value % (i+1))).text
             for i
             in range(0, matchers_count)
         ]

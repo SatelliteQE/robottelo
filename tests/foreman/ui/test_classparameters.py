@@ -964,8 +964,9 @@ class SmartClassParametersTestCase(UITestCase):
                     locators['sc_parameters.matcher_error'], timeout=5))
             self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
+            strategy, value = locators['sc_parameters.matcher_value']
             self.assertFalse(self.sc_parameters.is_element_enabled(
-                locators['sc_parameters.matcher_value'] % 1))
+                (strategy, value % 1)))
 
     @run_only_on('sat')
     @tier2
@@ -1658,8 +1659,9 @@ class SmartClassParametersTestCase(UITestCase):
             ))
             self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
+            strategy, value = locators['sc_parameters.matcher_value']
             self.assertIsNone(self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1, timeout=5))
+                (strategy, value % 1), timeout=5))
             hostgroup = entities.HostGroup(
                 name=hg_name, environment=self.env).create()
             hostgroup.add_puppetclass(
@@ -1901,10 +1903,12 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertEqual(value, initial_value)
             locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertIn('masked-input', locator.get_attribute('class'))
+            self.assertEqual(locator.get_attribute('type'), 'password')
+            self.assertIn('***', locator.get_attribute('placeholder'))
+            strategy, value = locators['sc_parameters.matcher_value']
             matcher_value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1)
-            self.assertIn('masked-input', matcher_value.get_attribute('class'))
+                (strategy, value % 1))
+            self.assertEqual(matcher_value.get_attribute('type'), 'password')
 
     @run_only_on('sat')
     @tier1
@@ -1947,11 +1951,11 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertEqual(value, initial_value)
             locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertNotIn('masked-input', locator.get_attribute('class'))
+            self.assertEqual(locator.get_attribute('type'), 'textarea')
+            strategy, value = locators['sc_parameters.matcher_value']
             matcher_value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1)
-            self.assertNotIn(
-                'masked-input', matcher_value.get_attribute('class'))
+                (strategy, value % 1))
+            self.assertEqual(matcher_value.get_attribute('type'), 'textarea')
 
     @run_only_on('sat')
     @stubbed()
@@ -2053,7 +2057,7 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertEqual(value, new_value)
             locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertIn('masked-input', locator.get_attribute('class'))
+            self.assertEqual(locator.get_attribute('type'), 'password')
 
     @run_only_on('sat')
     @stubbed()
@@ -2125,10 +2129,9 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertEqual(value, '')
             locator = self.sc_parameters.wait_until_element(
                 locators['sc_parameters.default_value'])
-            self.assertIn(
-                'masked-input', locator.get_attribute('class'))
+            self.assertEqual(locator.get_attribute('type'), 'password')
+            strategy, value = locators['sc_parameters.matcher_value']
             value = self.sc_parameters.wait_until_element(
-                locators['sc_parameters.matcher_value'] % 1)
-            self.assertIn(
-                'masked-input', value.get_attribute('class'))
+                (strategy, value % 1))
+            self.assertEqual(value.get_attribute('type'), 'password')
             self.assertEqual(value.get_attribute('value'), matcher_value)
