@@ -1,3 +1,12 @@
+.. image:: https://badge.waffle.io/SatelliteQE/robottelo.png?label=ready&title=Ready 
+ :target: https://waffle.io/SatelliteQE/robottelo
+ :alt: 'Stories in Ready'
+.. image:: https://badge.waffle.io/SatelliteQE/robottelo.png?label=ready&title=Ready 
+ :target: https://waffle.io/SatelliteQE/robottelo
+ :alt: 'Stories in Ready'
+.. image:: https://badge.waffle.io/SatelliteQE/robottelo.png?label=ready&title=Ready 
+ :target: https://waffle.io/SatelliteQE/robottelo
+ :alt: 'Stories in Ready'
 Robottelo
 =========
 
