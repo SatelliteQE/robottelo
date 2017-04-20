@@ -46,6 +46,7 @@ from robottelo.datafactory import (
     valid_org_names_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -74,6 +75,13 @@ def valid_labels_list():
 
 class OrganizationTestCase(CLITestCase):
     """Tests for Organizations via Hammer CLI"""
+
+    def _make_proxy(self, options=None):
+        """Create a Proxy and register the cleanup function"""
+        proxy = make_proxy(options=options)
+        # Add capsule to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        return proxy
 
     # Tests for issues
 
@@ -1093,6 +1101,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(len(response), 0)
 
     @run_only_on('sat')
+    @run_in_one_thread
     @tier2
     def test_positive_add_capsule_by_name(self):
         """Add a capsule to organization by its name
@@ -1104,9 +1113,7 @@ class OrganizationTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         org = make_org()
-        proxy = make_proxy()
-        # Add capsule and org to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
+        proxy = self._make_proxy()
         self.addCleanup(org_cleanup, org['id'])
 
         Org.add_smart_proxy({
@@ -1117,6 +1124,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(proxy['name'], org['smart-proxies'])
 
     @run_only_on('sat')
+    @run_in_one_thread
     @tier2
     def test_positive_add_capsule_by_id(self):
         """Add a capsule to organization by its ID
@@ -1128,9 +1136,7 @@ class OrganizationTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         org = make_org()
-        proxy = make_proxy()
-        # Add capsule and org to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
+        proxy = self._make_proxy()
         self.addCleanup(org_cleanup, org['id'])
 
         Org.add_smart_proxy({
@@ -1141,6 +1147,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(proxy['name'], org['smart-proxies'])
 
     @run_only_on('sat')
+    @run_in_one_thread
     @tier2
     def test_positive_remove_capsule_by_id(self):
         """Remove a capsule from organization by its id
@@ -1152,9 +1159,7 @@ class OrganizationTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         org = make_org()
-        proxy = make_proxy()
-        # Add capsule and org to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
+        proxy = self._make_proxy()
         self.addCleanup(org_cleanup, org['id'])
 
         Org.add_smart_proxy({
@@ -1169,6 +1174,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertNotIn(proxy['name'], org['smart-proxies'])
 
     @run_only_on('sat')
+    @run_in_one_thread
     @tier2
     def test_positive_remove_capsule_by_name(self):
         """Remove a capsule from organization by its name
@@ -1180,9 +1186,7 @@ class OrganizationTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         org = make_org()
-        proxy = make_proxy()
-        # Add capsule and org to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
+        proxy = self._make_proxy()
         self.addCleanup(org_cleanup, org['id'])
 
         Org.add_smart_proxy({

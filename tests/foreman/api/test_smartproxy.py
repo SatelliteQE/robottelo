@@ -41,6 +41,13 @@ from robottelo.test import APITestCase
 class CapsuleTestCase(APITestCase):
     """Tests for Smart Proxy (Capsule) entity."""
 
+    def _create_smart_proxy(self, **kwargs):
+        """Create a Smart Proxy and register the cleanup function"""
+        proxy = entities.SmartProxy(**kwargs).create()
+        # Add proxy id to cleanup list
+        self.addCleanup(capsule_cleanup, proxy.id)
+        return proxy
+
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier1
@@ -75,10 +82,8 @@ class CapsuleTestCase(APITestCase):
             with self.subTest(name):
                 new_port = get_available_capsule_port()
                 with default_url_on_new_port(9090, new_port) as url:
-                    proxy = entities.SmartProxy(name=name, url=url).create()
+                    proxy = self._create_smart_proxy(name=name, url=url)
                     self.assertEquals(proxy.name, name)
-                # Add capsule id to cleanup list
-                self.addCleanup(capsule_cleanup, proxy.id)
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -114,14 +119,12 @@ class CapsuleTestCase(APITestCase):
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = entities.SmartProxy(url=url).create()
+            proxy = self._create_smart_proxy(url=url)
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     proxy.name = new_name
                     proxy = proxy.update(['name'])
                     self.assertEqual(proxy.name, new_name)
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy.id)
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -138,15 +141,13 @@ class CapsuleTestCase(APITestCase):
         # Create fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
-            proxy = entities.SmartProxy(url=url).create()
+            proxy = self._create_smart_proxy(url=url)
         # Open another tunnel to update url
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
             proxy.url = url
             proxy = proxy.update(['url'])
             self.assertEqual(proxy.url, url)
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy.id)
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -164,15 +165,13 @@ class CapsuleTestCase(APITestCase):
             entities.Organization().create() for _ in range(2)]
         newport = get_available_capsule_port()
         with default_url_on_new_port(9090, newport) as url:
-            proxy = entities.SmartProxy(url=url).create()
+            proxy = self._create_smart_proxy(url=url)
             proxy.organization = organizations
             proxy = proxy.update(['organization'])
             self.assertEqual(
                 {org.id for org in proxy.organization},
                 {org.id for org in organizations}
             )
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy.id)
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -189,15 +188,13 @@ class CapsuleTestCase(APITestCase):
         locations = [entities.Location().create() for _ in range(2)]
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = entities.SmartProxy(url=url).create()
+            proxy = self._create_smart_proxy(url=url)
             proxy.location = locations
             proxy = proxy.update(['location'])
             self.assertEqual(
                 {loc.id for loc in proxy.location},
                 {loc.id for loc in locations}
             )
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy.id)
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -218,13 +215,12 @@ class CapsuleTestCase(APITestCase):
         # get an available port for our fake capsule
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = entities.SmartProxy(url=url).create()
+            proxy = self._create_smart_proxy(url=url)
             proxy.refresh()
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy.id)
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1398695)
     @tier1
     def test_positive_import_puppet_classes(self):
         """Import puppet classes from proxy
@@ -237,15 +233,13 @@ class CapsuleTestCase(APITestCase):
         """
         new_port = get_available_capsule_port()
         with default_url_on_new_port(9090, new_port) as url:
-            proxy = entities.SmartProxy(url=url).create()
+            proxy = self._create_smart_proxy(url=url)
             result = proxy.import_puppetclasses()
             self.assertEqual(
                 result['message'],
                 "Successfully updated environment and puppetclasses from "
                 "the on-disk puppet installation"
             )
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy.id)
 
 
 @run_in_one_thread
