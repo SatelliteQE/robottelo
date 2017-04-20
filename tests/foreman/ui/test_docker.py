@@ -399,6 +399,42 @@ class DockerRepositoryTestCase(UITestCase):
                 self.products.search(product_name).click()
                 self.assertIsNotNone(self.repository.search(repo_name))
 
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_disabled_sync_plan(self):
+        """Create sync plan, disable it, add to product and create docker repo
+        for mentioned product.
+
+        @id: 8a926e5a-2602-4007-ab4d-e0881a2538aa
+
+        @expectedresults: Docker repository is successfully created
+
+        @CaseImportance: Critical
+
+        @BZ: 1410939
+        """
+        sync_plan = entities.SyncPlan(
+            enabled=True,
+            organization=self.organization,
+        ).create()
+        sync_plan.enabled = False
+        sync_plan = sync_plan.update(['enabled'])
+        self.assertEqual(sync_plan.enabled, False)
+        product = entities.Product(
+            organization=self.organization,
+            sync_plan=sync_plan,
+        ).create()
+        self.assertEqual(product.sync_plan.id, sync_plan.id)
+        repo_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            _create_repository(
+                session,
+                org=self.organization.name,
+                name=repo_name,
+                product=product.name,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+
 
 class DockerContentViewTestCase(UITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views."""
