@@ -326,14 +326,14 @@ DEFAULT_ROLE = 'Anonymous'
 
 SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
 
-LANGUAGES = [
-    u'zh_TW',
-    u'Galego',
-    u'Deutsch',
-    u'it',
-    u'日本語',
-    u'sv_SE',
-]
+LANGUAGES = {
+    u'Deutsch': u'de',
+    u'Galego': u'gl',
+    u'it': u'it',
+    u'日本語': u'ja',
+    u'sv_SE': u'sv_SE',
+    u'zh_TW': u'zh_TW'
+}
 
 TIMEZONES = [
     u'(GMT+00:00) UTC',
