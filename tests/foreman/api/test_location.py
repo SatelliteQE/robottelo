@@ -24,7 +24,7 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.cleanup import capsule_cleanup, location_cleanup
 from robottelo.cli.factory import make_proxy
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import run_in_one_thread, tier1, tier2
 from robottelo.datafactory import filtered_datapoint, invalid_values_list
 from robottelo.test import APITestCase
 
@@ -52,6 +52,13 @@ def valid_loc_data_list():
 class LocationTestCase(APITestCase):
     """Tests for the ``locations`` path."""
     # TODO Add coverage for media, realms as soon as they're implemented
+
+    def _make_proxy(self, options=None):
+        """Create a Proxy and register the cleanup function"""
+        proxy = make_proxy(options=options)
+        # Add capsule to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        return proxy
 
     @tier1
     def test_positive_create_with_name(self):
@@ -250,6 +257,7 @@ class LocationTestCase(APITestCase):
         for org in location.organization:
             self.assertIn(org.id, org_ids)
 
+    @run_in_one_thread
     @tier2
     def test_positive_create_with_capsule(self):
         """Create new location with assigned capsule to it
@@ -261,9 +269,7 @@ class LocationTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        proxy_id = make_proxy()['id']
-        # Add capsule to cleanup list
-        self.addCleanup(capsule_cleanup, proxy_id)
+        proxy_id = self._make_proxy()['id']
 
         proxy = entities.SmartProxy(id=proxy_id).read()
         location = entities.Location(smart_proxy=[proxy]).create()
@@ -563,6 +569,7 @@ class LocationTestCase(APITestCase):
             set([org.id for org in location.organization]),
         )
 
+    @run_in_one_thread
     @tier2
     def test_positive_update_capsule(self):
         """Update location with new capsule
@@ -574,11 +581,8 @@ class LocationTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        proxy_id_1 = make_proxy()['id']
-        proxy_id_2 = make_proxy()['id']
-        # Add capsules to cleanup list
-        self.addCleanup(capsule_cleanup, proxy_id_1)
-        self.addCleanup(capsule_cleanup, proxy_id_2)
+        proxy_id_1 = self._make_proxy()['id']
+        proxy_id_2 = self._make_proxy()['id']
 
         proxy = entities.SmartProxy(id=proxy_id_1).read()
         location = entities.Location(smart_proxy=[proxy]).create()
@@ -631,6 +635,7 @@ class LocationTestCase(APITestCase):
                 domain.id
             )
 
+    @run_in_one_thread
     @tier2
     def test_positive_remove_capsule(self):
         """Remove a capsule from location
@@ -641,9 +646,7 @@ class LocationTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        proxy_id = make_proxy()['id']
-        # Add capsule to cleanup list
-        self.addCleanup(capsule_cleanup, proxy_id)
+        proxy_id = self._make_proxy()['id']
 
         proxy = entities.SmartProxy(id=proxy_id).read()
         location = entities.Location(smart_proxy=[proxy]).create()

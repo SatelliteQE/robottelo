@@ -42,6 +42,13 @@ from robottelo.test import CLITestCase
 class CapsuleTestCase(CLITestCase):
     """Proxy cli tests"""
 
+    def _make_proxy(self, options=None):
+        """Create a Proxy and register the cleanup function"""
+        proxy = make_proxy(options=options)
+        # Add proxy id to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        return proxy
+
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier1
@@ -72,10 +79,8 @@ class CapsuleTestCase(CLITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                proxy = make_proxy({u'name': name})
+                proxy = self._make_proxy({u'name': name})
                 self.assertEquals(proxy['name'], name)
-                # Add capsule id to cleanup list
-                self.addCleanup(capsule_cleanup, proxy['id'])
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -105,7 +110,7 @@ class CapsuleTestCase(CLITestCase):
 
         @expectedresults: Proxy has the name updated
         """
-        proxy = make_proxy({u'name': gen_alphanumeric()})
+        proxy = self._make_proxy({u'name': gen_alphanumeric()})
         for new_name in valid_data_list():
             with self.subTest(new_name):
                 newport = get_available_capsule_port()
@@ -117,8 +122,6 @@ class CapsuleTestCase(CLITestCase):
                     })
                     proxy = Proxy.info({u'id': proxy['id']})
                     self.assertEqual(proxy['name'], new_name)
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -139,10 +142,8 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as (url, _):
-            proxy = make_proxy({u'url': url})
+            proxy = self._make_proxy({u'url': url})
             Proxy.refresh_features({u'id': proxy['id']})
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
 
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
@@ -163,10 +164,8 @@ class CapsuleTestCase(CLITestCase):
         # get an available port for our fake capsule
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as (url, _):
-            proxy = make_proxy({u'url': url})
+            proxy = self._make_proxy({u'url': url})
             Proxy.refresh_features({u'id': proxy['name']})
-        # Add capsule id to cleanup list
-        self.addCleanup(capsule_cleanup, proxy['id'])
 
 
 @run_in_one_thread
