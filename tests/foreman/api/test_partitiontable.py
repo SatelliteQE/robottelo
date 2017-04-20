@@ -101,6 +101,58 @@ class PartitionTableTestCase(APITestCase):
         ptable = entities.PartitionTable(os_family=os_family).create()
         self.assertEqual(ptable.os_family, os_family)
 
+    def test_positive_create_with_org(self):
+        """Create new partition table with organization
+
+        :id: 5f97b180-3708-4e1c-8407-42977459d4b6
+
+        :expectedresults: Partition table created successfully and has correct
+            organization assigned
+
+        :CaseImportance: Critical
+        """
+        org = entities.Organization().create()
+        ptable = entities.PartitionTable(organization=[org]).create()
+        self.assertEqual(ptable.organization[0].read().name, org.name)
+
+    def test_positive_search(self):
+        """Create new partition table and try to find it using its name
+
+        :id: 08520746-444b-47c9-a8a3-438170147453
+
+        :expectedresults: Search functionality works as expected and correct
+            partition table returned
+
+        :CaseImportance: Critical
+        """
+        ptable = entities.PartitionTable().create()
+        result = entities.PartitionTable().search(
+            query={'search': ptable.name})
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].id, ptable.id)
+
+    @skip_if_bug_open('bugzilla', 1375788)
+    def test_positive_search_by_organization(self):
+        """Create new partition table and try to find it using its name and
+        organization it assigned to
+
+        :id: cdbc5d5a-c924-4cb3-8b54-d84fc6bbb651
+
+        :expectedresults: Search functionality works as expected and correct
+            partition table returned
+
+        :BZ: 1375788
+
+        :CaseImportance: Critical
+        """
+        org = entities.Organization().create()
+        ptable = entities.PartitionTable(organization=[org]).create()
+        result = entities.PartitionTable().search(query={
+            'search': ptable.name, 'organization_id': org.id
+        })
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].read().organization[0].id, org.id)
+
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Try to create partition table using invalid names only
