@@ -86,9 +86,10 @@ class MyAccountTestCase(UITestCase):
                 with self.logged_test_user():
                     self.my_account.navigate_to_entity()
                     self.my_account.wait_until_element(locator)
-                    self.my_account.assign_value(
-                        locator[locator_name], new_value)
+                    self.my_account.assign_value(locator, new_value)
                     self.my_account.click(common_locators['submit'])
+                    self.my_account.wait_until_element_is_not_visible(
+                        common_locators["notif.success"])
                     self.my_account.navigate_to_entity()
 
                     self.assertEqual(
@@ -171,6 +172,8 @@ class MyAccountTestCase(UITestCase):
                         lang
                     )
                     self.my_account.click(common_locators['submit'])
+                    self.my_account.wait_until_element_is_not_visible(
+                        common_locators["notif.success"])
                     self.my_account.navigate_to_entity()
                     option = self.my_account.wait_until_element_exists(
                         locators['users.selected_lang'])
@@ -205,6 +208,8 @@ class MyAccountTestCase(UITestCase):
                     self.my_account.assign_value(
                         locators['users.password_confirmation'], password)
                     self.my_account.click(common_locators['submit'])
+                    self.my_account.wait_until_element_is_not_visible(
+                        common_locators["notif.success"])
                     self.login.logout()
                     self.login.login(self.account_user.login, password)
                     self.assertTrue(self.login.is_logged())
