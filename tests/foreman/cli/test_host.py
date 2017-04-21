@@ -20,6 +20,7 @@ from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
 from robottelo.cleanup import vm_cleanup
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
@@ -31,6 +32,7 @@ from robottelo.cli.factory import (
     make_domain,
     make_environment,
     make_fake_host,
+    make_host_collection,
     make_hostgroup,
     make_lifecycle_environment,
     make_medium,
@@ -42,6 +44,7 @@ from robottelo.cli.factory import (
     setup_org_for_a_rh_repo,
 )
 from robottelo.cli.host import Host
+from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
 from robottelo.cli.operatingsys import OperatingSys
@@ -1854,6 +1857,57 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run(
             'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         self.assertNotEqual(result.return_code, 0)
+
+    @tier3
+    def test_positive_register_host_ak_with_host_collection(self):
+        """Attempt to register a host using activation key with host collection
+
+        :id: 7daf4e40-3fa6-42af-b3f7-1ca1a5c9bfeb
+
+        :BZ: 1385814
+
+        :expectedresults: Host successfully registered and listed in host
+            collection
+
+        :CaseLevel: System
+        """
+        # create a new activation key
+        activation_key = make_activation_key({
+            u'lifecycle-environment-id': self.env['id'],
+            u'organization-id': self.org['id'],
+            u'content-view-id': self.content_view['id'],
+        })
+        hc = make_host_collection({u'organization-id': self.org['id']})
+        ActivationKey.add_host_collection({
+            'id': activation_key['id'],
+            'organization-id': self.org['id'],
+            'host-collection-id': hc['id']
+        })
+        # add the registered instance host to collection
+        HostCollection.add_host({
+            'id': hc['id'],
+            'organization-id': self.org['id'],
+            'host-ids': self.host['id']
+        })
+        with VirtualMachine() as client:
+            client.create()
+            client.install_katello_ca()
+            # register the client host with the current activation key
+            result = client.register_contenthost(
+                self.org['name'], activation_key=activation_key['name'])
+            self.assertEqual(result.return_code, 0)
+            self.assertTrue(client.subscribed)
+            # note: when registering the host, it should be automatically added
+            # to the host collection
+            client_host = Host.info({'name': client.hostname})
+            hosts = HostCollection.hosts({
+                'id': hc['id'],
+                'organization-id': self.org['id'],
+            })
+            self.assertEqual(len(hosts), 2)
+            expected_hosts_ids = {self.host['id'], client_host['id']}
+            hosts_ids = {host['id'] for host in hosts}
+            self.assertEqual(hosts_ids, expected_hosts_ids)
 
 
 class HostErrataTestCase(CLITestCase):
