@@ -91,6 +91,7 @@ from robottelo.ui.repository import Repos
 from robottelo.ui.rhai import RHAI
 from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
+from robottelo.ui.scparams import SmartClassParameter
 from robottelo.ui.smart_variable import SmartVariable
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.subscription import Subscriptions
@@ -559,6 +560,7 @@ class UITestCase(TestCase):
         self.rhai = RHAI(self.browser)
         self.role = Role(self.browser)
         self.settings = Settings(self.browser)
+        self.sc_parameters = SmartClassParameter(self.browser)
         self.smart_variable = SmartVariable(self.browser)
         self.subnet = Subnet(self.browser)
         self.subscriptions = Subscriptions(self.browser)

@@ -256,6 +256,12 @@ class Navigator(Base):
             menu_locators['menu.smart_variables'],
         )
 
+    def go_to_smart_class_parameters(self):
+        self.menu_click(
+            menu_locators['menu.configure'],
+            menu_locators['menu.smart_class_parameters'],
+        )
+
     def go_to_config_groups(self):
         self.menu_click(
             menu_locators['menu.configure'],

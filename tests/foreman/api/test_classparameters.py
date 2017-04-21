@@ -34,6 +34,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 
@@ -211,6 +212,50 @@ class SmartClassParametersTestCase(APITestCase):
         @expectedresults: Parameters listed for specific Puppet class.
         """
         result = self.puppet_class.list_scparams()['results']
+        self.assertGreater(len(result), 0)
+        # Check that only unique results are returned
+        self.assertEqual(len(result), len({scp['id'] for scp in result}))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_list_with_non_admin_user(self):
+        """List all the parameters for specific puppet class by id.
+
+        @id: e8b140c0-5c6a-404f-870c-8ebb128830ef
+
+        @expectedresults: Parameters listed for specific Puppet class.
+
+        @BZ: 1391556
+
+        @CaseImportance: Critical
+        """
+        # Create a new user and give them minimal permissions.
+        login = gen_string('alpha')
+        password = gen_string('alpha')
+        user = entities.User(
+            login=login,
+            password=password,
+            admin=False,
+        ).create()
+        role = entities.Role().create()
+        for res_type in ['Puppetclass', 'PuppetclassLookupKey']:
+            permission = entities.Permission(resource_type=res_type).search()
+            entities.Filter(
+                permission=permission,
+                role=role
+            ).create()
+        user.role = [role]
+        user.update(['role'])
+        cfg = get_nailgun_config()
+        cfg.auth = (login, password)
+        # assert that the user is not an admin one and cannot read the current
+        # role
+        with self.assertRaises(HTTPError) as context:
+            entities.Role(cfg, id=role.id).read()
+        self.assertIn(
+            '403 Client Error: Forbidden', context.exception.message)
+        result = entities.PuppetClass(
+            cfg, id=self.puppet_class.id).list_scparams()['results']
         self.assertGreater(len(result), 0)
 
     @run_only_on('sat')
