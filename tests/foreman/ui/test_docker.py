@@ -425,7 +425,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
 
-        :BZ: 1410939
+        :BZ: 1426410
         """
         sync_plan = entities.SyncPlan(
             enabled=True,
