@@ -74,7 +74,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
                 'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
             )
@@ -110,7 +110,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
                 'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
             )
@@ -145,7 +145,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
                     'list'
@@ -180,7 +180,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(dir_name), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
                     'list'
@@ -214,7 +214,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
                     'list'
@@ -235,7 +235,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dest), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
                     'list'
@@ -269,7 +269,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
                     'list'
@@ -292,7 +292,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dest), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
                     'list'
@@ -327,7 +327,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
                     'list'
@@ -350,7 +350,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dest), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
                     'list'
@@ -387,7 +387,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dir), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
                     'list'
@@ -419,7 +419,7 @@ class HotBackupTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(ib1_dest), ' '.join(result.stdout))
+            self.assertIn(BCK_MSG.format(ib1_dest), result.stdout)
 
             # restore /tmp/b1 and assert repo 1 is not there
             connection.run(
