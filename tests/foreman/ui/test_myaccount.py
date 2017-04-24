@@ -16,14 +16,13 @@
 :Upstream: No
 """
 
-from fauxfactory import gen_string, gen_alpha
+from fauxfactory import gen_alpha, gen_email
 from nailgun.entities import User
+
 from robottelo.constants import LANGUAGES
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
-from robottelo.ui.locators import common_locators
-from robottelo.ui.locators import locators
 from robottelo.ui.session import Session
 
 
@@ -49,58 +48,29 @@ class MyAccountTestCase(UITestCase):
 
     [2] Negative Name Variations -  html, Blank, Greater than Max Length,
     Lesser than Min Length, Greater than Max DB size
-
     """
 
     def setUp(self):
-        """Setup of myaccount"""
+        """Setup of Tests.
+
+        Once following tests are going to update logged user, the default user
+        can not be used once she is used on a bunch of other tests.
+
+        So this method creates a new user for each test for the sake of
+        isolation
+        """
         super(MyAccountTestCase, self).setUp()
-        # Creating user for each test to not mess with default user
-        user = User(login=gen_alpha(), password='password')
-        # copying missing id because create returns only password's hash once
-        # it is not stored in plain text for security reason
-        user.id = user.create().id
-        self.account_user = user
+        password = 'password'
+        self.account_user = User(login=gen_alpha(), password=password).create()
+        self.account_password = password
 
     def tearDown(self):
         """Deleting test user after each test"""
         super(MyAccountTestCase, self).tearDown()
         self.account_user.delete()
 
-    def logged_test_user(self):
-        """Create session with test user"""
-        return Session(
-            self.browser,
-            self.account_user.login,
-            self.account_user.password)
-
-    def assert_text_field_update(self, locator_name, *new_values):
-        """Check user account text property is updated
-
-        :param locator_name: My Account form input locator
-        :param new_values: new values to be checked for locator_name proper
-        """
-        locator = locators[locator_name]
-        for new_value in new_values:
-            with self.subTest(new_value):
-                with self.logged_test_user():
-                    self.my_account.navigate_to_entity()
-                    self.my_account.wait_until_element(locator)
-                    self.my_account.assign_value(locator, new_value)
-                    self.my_account.click(common_locators['submit'])
-                    self.my_account.wait_until_element_is_not_visible(
-                        common_locators["notif.success"])
-                    self.my_account.navigate_to_entity()
-
-                    self.assertEqual(
-                        new_value,
-                        self.my_account.wait_until_element(
-                            locator
-                        ).get_attribute('value')
-                    )
-
     @tier1
-    def test_positive_update_firstname(self):
+    def test_positive_update_first_name(self):
         """Update Firstname in My Account
 
         :id: d5e617e6-ff61-451b-9e82-dd14e7348de6
@@ -111,9 +81,18 @@ class MyAccountTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        valid_strs = _valid_string_data()
-        valid_strs.append('name with space')
-        self.assert_text_field_update('users.firstname', *valid_strs)
+        valid_names = _valid_string_data()
+        valid_names.append('name with space')
+        for first_name in valid_names:
+            with self.subTest(first_name):
+                with Session(self.browser, self.account_user.login,
+                             self.account_password):
+                    first_name_element = \
+                        self.my_account.update_and_find_element(
+                            'first_name', first_name)
+                    self.assertIsNotNone(first_name_element)
+                    self.assertEqual(
+                        first_name, first_name_element.get_attribute('value'))
 
     @tier1
     def test_positive_update_email(self):
@@ -127,8 +106,13 @@ class MyAccountTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        email = u'{0}@example.com'.format(gen_string('alpha'))
-        self.assert_text_field_update('users.email', email)
+        with Session(self.browser, self.account_user.login,
+                     self.account_password):
+            email = gen_email()
+            email_element = self.my_account.update_and_find_element(
+                'email', email)
+            self.assertIsNotNone(email_element)
+            self.assertEqual(email, email_element.get_attribute('value'))
 
     @tier1
     def test_positive_update_surname(self):
@@ -144,9 +128,18 @@ class MyAccountTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        valid_strs = _valid_string_data()
-        valid_strs.append('name with space')
-        self.assert_text_field_update('users.lastname', *valid_strs)
+        valid_names = _valid_string_data()
+        valid_names.append('name with space')
+        for last_name in valid_names:
+            with self.subTest(last_name):
+                with Session(self.browser, self.account_user.login,
+                             self.account_password):
+                    last_name_element = \
+                        self.my_account.update_and_find_element(
+                            'last_name', last_name)
+                    self.assertIsNotNone(last_name_element)
+                    self.assertEqual(
+                        last_name, last_name_element.get_attribute('value'))
 
     @tier1
     def test_positive_update_language(self):
@@ -160,29 +153,18 @@ class MyAccountTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-
         for lang, locale in LANGUAGES.items():
             with self.subTest(lang):
                 user = User(login=gen_alpha(), password='password')
                 user.id = user.create().id
                 with Session(self.browser, user.login, user.password):
-                    self.my_account.navigate_to_entity()
-                    self.my_account.select(
-                        locators['users.language_dropdown'],
-                        lang
-                    )
-                    self.my_account.click(common_locators['submit'])
-                    self.my_account.wait_until_element_is_not_visible(
-                        common_locators["notif.success"])
-                    self.my_account.navigate_to_entity()
-                    option = self.my_account.wait_until_element_exists(
-                        locators['users.selected_lang'])
+                    language_element = self.my_account.update_and_find_element(
+                        'language', lang)
+                    self.assertIsNotNone(language_element)
                     # Cant use directly lang because its value changes
                     # after updating current language
                     self.assertEqual(
-                        locale,
-                        option.get_attribute('value')
-                    )
+                        locale, language_element.get_attribute('value'))
                 user.delete()
 
     @tier1
@@ -199,22 +181,15 @@ class MyAccountTestCase(UITestCase):
         """
         for password in _valid_string_data(max_len=254):
             with self.subTest(password):
-                with self.logged_test_user():
-                    self.my_account.navigate_to_entity()
-                    self.my_account.wait_until_element(
-                        locators['users.password'])
-                    self.my_account.assign_value(
-                        locators['users.password'], password)
-                    self.my_account.assign_value(
-                        locators['users.password_confirmation'], password)
-                    self.my_account.click(common_locators['submit'])
-                    self.my_account.wait_until_element_is_not_visible(
-                        common_locators["notif.success"])
-                    self.login.logout()
-                    self.login.login(self.account_user.login, password)
+                with Session(self.browser, self.account_user.login,
+                             self.account_password):
+                    self.my_account.update(
+                        password=password, password_confirmation=password)
+                # Updating password for login
+                self.account_password = password
+                with Session(self.browser, self.account_user.login,
+                             self.account_password):
                     self.assertTrue(self.login.is_logged())
-                    # Updating test user password for next login
-                    self.account_user.password = password
 
     @stubbed()
     @tier1
