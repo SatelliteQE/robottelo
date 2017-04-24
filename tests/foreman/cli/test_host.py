@@ -1915,14 +1915,7 @@ class KatelloAgentTestCase(CLITestCase):
 
 @run_in_one_thread
 class HostSubscriptionTestCase(CLITestCase):
-    """Test for host subscription sub command
-
-    Notes::
-
-        This TestCase use a subscription that differ from the default one,
-        but also contain rh products and Katello agent.
-
-    """
+    """Tests for host subscription sub command"""
 
     org = None
     env = None
@@ -1932,6 +1925,7 @@ class HostSubscriptionTestCase(CLITestCase):
 
     @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if_bug_open('bugzilla', 1444886)
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key"""
         super(HostSubscriptionTestCase, cls).setUpClass()
@@ -2066,11 +2060,11 @@ class HostSubscriptionTestCase(CLITestCase):
     def test_positive_register(self):
         """Attempt to register a host
 
-        @id: b1c601ee-4def-42ce-b353-fc2657237533
+        :id: b1c601ee-4def-42ce-b353-fc2657237533
 
-        @expectedresults: host successfully registered
+        :expectedresults: host successfully registered
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         activation_key = self._make_activation_key(add_subscription=False)
         hosts = Host.list({
@@ -2095,18 +2089,19 @@ class HostSubscriptionTestCase(CLITestCase):
         }, output_format='json')
         self.assertEqual(len(host_subscriptions), 0)
 
+    @skip_if_bug_open('bugzilla', '1199515')
     @tier3
     def test_positive_attach(self):
         """Attempt to attach a subscription to host
 
-        @id: d5825bfb-59e3-4d49-8df8-902cc7a9d66b
+        :id: d5825bfb-59e3-4d49-8df8-902cc7a9d66b
 
-        @BZ: 1366437
+        :BZ: 1199515
 
-        @expectedresults: host successfully subscribed, subscription repository
+        :expectedresults: host successfully subscribed, subscription repository
             enabled, and repository package installed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         # create an activation key without subscriptions
         activation_key = self._make_activation_key(add_subscription=False)
@@ -2126,18 +2121,19 @@ class HostSubscriptionTestCase(CLITestCase):
         with self.assertNotRaises(VirtualMachineError):
             self.client.install_katello_agent()
 
+    @skip_if_bug_open('bugzilla', '1199515')
     @tier3
     def test_positive_attach_with_lce(self):
         """Attempt to attach a subscription to host, registered by lce
 
-        @id: a362b959-9dde-4d1b-ae62-136c6ef943ba
+        :id: a362b959-9dde-4d1b-ae62-136c6ef943ba
 
-        @BZ: 1366437
+        :BZ: 1199515
 
-        @expectedresults: host successfully subscribed, subscription
+        :expectedresults: host successfully subscribed, subscription
             repository enabled, and repository package installed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self._register_client(lce=True, auto_attach=True)
         self.assertTrue(self.client.subscribed)
@@ -2157,11 +2153,11 @@ class HostSubscriptionTestCase(CLITestCase):
         """Attempt to enable a repository of a subscription that was not
         attached to a host
 
-        @id: 54a2c95f-be08-4353-a96c-4bc4d96ad03d
+        :id: 54a2c95f-be08-4353-a96c-4bc4d96ad03d
 
-        @expectedresults: repository not enabled on host
+        :expectedresults: repository not enabled on host
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         activation_key = self._make_activation_key(add_subscription=False)
         self._host_subscription_register()
@@ -2175,11 +2171,11 @@ class HostSubscriptionTestCase(CLITestCase):
         """Attempt to enable a repository of a subscription that was not
         attached to a host
 
-        @id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
+        :id: fc469e70-a7cb-4fca-b0ea-3c9e3dfff849
 
-        @expectedresults: repository not enabled on host
+        :expectedresults: repository not enabled on host
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         self._register_client(lce=True, auto_attach=True)
         self.assertTrue(self.client.subscribed)
@@ -2190,11 +2186,11 @@ class HostSubscriptionTestCase(CLITestCase):
     def test_positive_remove(self):
         """Attempt to remove a subscription from content host
 
-        @id: 3833c349-1f5b-41ac-bbac-2c1f33232d76
+        :id: 3833c349-1f5b-41ac-bbac-2c1f33232d76
 
-        @expectedresults: subscription successfully removed from host
+        :expectedresults: subscription successfully removed from host
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         activation_key = self._make_activation_key(add_subscription=True)
         self._host_subscription_register()
@@ -2233,12 +2229,12 @@ class HostSubscriptionTestCase(CLITestCase):
     def test_positive_auto_attach(self):
         """Attempt to auto attach a subscription to content host
 
-        @id: e3eebf72-d512-4892-828b-70165ea4b129
+        :id: e3eebf72-d512-4892-828b-70165ea4b129
 
-        @expectedresults: host successfully subscribed, subscription
+        :expectedresults: host successfully subscribed, subscription
             repository enabled, and repository package installed
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         activation_key = self._make_activation_key(add_subscription=True)
         self._host_subscription_register()
@@ -2255,11 +2251,11 @@ class HostSubscriptionTestCase(CLITestCase):
     def test_positive_unregister(self):
         """Attempt to unregister host subscription
 
-        @id: 608f5b6d-4688-478e-8be8-e946771d5247
+        :id: 608f5b6d-4688-478e-8be8-e946771d5247
 
-        @expectedresults: host subscription is unregistered
+        :expectedresults: host subscription is unregistered
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         # register the host client
         activation_key = self._make_activation_key(add_subscription=True)
