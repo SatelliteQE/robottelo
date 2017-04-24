@@ -30,7 +30,12 @@ from robottelo.datafactory import (
     invalid_names_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import (
+    run_in_one_thread_if_bug_open,
+    run_only_on,
+    tier1,
+    tier2,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_smart_variable, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -316,6 +321,7 @@ class SmartVariablesTestCase(UITestCase):
             self.assertIsNone(sv_value)
 
     @run_only_on('sat')
+    @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_positive_update_name(self):
         """Update Smart Variable name.
@@ -346,6 +352,7 @@ class SmartVariablesTestCase(UITestCase):
                     old_name = new_name  # for next iteration
 
     @run_only_on('sat')
+    @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_positive_update_variable_puppet_class(self):
         """Update Smart Variable puppet class.
@@ -408,6 +415,7 @@ class SmartVariablesTestCase(UITestCase):
             )
 
     @run_only_on('sat')
+    @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_positive_update_type(self):
         """Update Smart Variable with valid default value for all variable
@@ -451,6 +459,7 @@ class SmartVariablesTestCase(UITestCase):
                     self.assertEqual(value, data['value'])
 
     @run_only_on('sat')
+    @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_negative_update_type(self):
         """Attempt to update Smart Variable with invalid default value for all
@@ -1862,6 +1871,7 @@ class SmartVariablesTestCase(UITestCase):
             self.assertEqual(default_value.get_attribute('type'), 'password')
 
     @run_only_on('sat')
+    @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
     def test_positive_update_hidden_value(self):
         """Update the hidden default value of variable.
