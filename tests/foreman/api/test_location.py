@@ -70,6 +70,18 @@ class LocationTestCase(APITestCase):
                 self.assertEqual(location.name, name)
 
     @tier1
+    def test_positive_create_with_comma_separated_name(self):
+        """Create new location using name that has comma inside
+
+        :id: 3131e99d-b278-462e-a650-a5a4f4e0a2f1
+
+        :expectedresults: Location created successfully and has expected name
+        """
+        name = '{0}, {1}'.format(gen_string('alpha'), gen_string('alpha'))
+        location = entities.Location(name=name).create()
+        self.assertEqual(location.name, name)
+
+    @tier1
     def test_positive_create_with_description(self):
         """Create new location with custom description
 

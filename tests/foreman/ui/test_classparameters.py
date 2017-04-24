@@ -927,10 +927,54 @@ class SmartClassParametersTestCase(UITestCase):
             )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1402036)
+    @tier1
+    def test_positive_validate_matcher_with_comma(self):
+        """Create matcher for attribute that has comma in its value
+
+        :id: 2116e85b-add5-4bc3-aab7-5c9f0965c4a8
+
+        :steps:
+            1.  Check the Override checkbox.
+            2.  Create a matcher with attribute that has comma in its value
+            3.  Submit the change.
+
+        :BZ: 1402036
+
+        :expectedresults: Matcher is created and its attribute is not modified
+            after update is submitted
+        """
+        sc_param = self.sc_params_list.pop()
+        loc_name = '{0}, {1}'.format(gen_string('alpha'), gen_string('alpha'))
+        entities.Location(name=loc_name).create()
+        with Session(self.browser):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                matcher_priority='\n'.join(
+                    ['fqdn', 'hostgroup', 'os', 'domain', 'location']),
+                matcher=[{
+                    'matcher_attribute': 'location={0}'.format(loc_name),
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNone(
+                self.sc_parameters.wait_until_element(
+                    locators['sc_parameters.matcher_error'], timeout=5))
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            attribute_value = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.matcher_attribute_value'] % 1
+            ).get_attribute('value')
+            self.assertEqual(attribute_value, loc_name)
+
+    @run_only_on('sat')
     @tier1
     def test_positive_create_matcher_puppet_default_value(self):
-        """Create matcher for attribute in parameter,
-        Where Value is puppet default value.
+        """Create matcher for attribute in parameter, where Value is puppet
+        default value.
 
         :id: 656f25cd-4394-414a-bd8e-458f0e51c668
 
