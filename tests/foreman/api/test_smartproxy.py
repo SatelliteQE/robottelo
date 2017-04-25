@@ -23,6 +23,7 @@ from robottelo.cleanup import capsule_cleanup
 from robottelo.config import settings
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -36,6 +37,7 @@ from robottelo.helpers import (
 from robottelo.test import APITestCase
 
 
+@run_in_one_thread
 class CapsuleTestCase(APITestCase):
     """Tests for Smart Proxy (Capsule) entity."""
 
@@ -238,7 +240,7 @@ class CapsuleTestCase(APITestCase):
             proxy = entities.SmartProxy(url=url).create()
             result = proxy.import_puppetclasses()
             self.assertEqual(
-                result.message,
+                result['message'],
                 "Successfully updated environment and puppetclasses from "
                 "the on-disk puppet installation"
             )
@@ -246,6 +248,7 @@ class CapsuleTestCase(APITestCase):
         self.addCleanup(capsule_cleanup, proxy.id)
 
 
+@run_in_one_thread
 class SmartProxyMissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 
