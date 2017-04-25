@@ -19,8 +19,14 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo import ssh
 from robottelo.constants import BACKUP_FILES, HOT_BACKUP_FILES
-from robottelo.decorators import stubbed, destructive, skip_if_bug_open
+from robottelo.decorators import (
+        bz_bug_is_open,
+        destructive,
+        skip_if_bug_open,
+        stubbed,
+)
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
@@ -299,7 +305,9 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
-            self.assertNotIn(u'.pulp.snar', files.stdout)
+            rhel_release = ssh.command('lsb_release -r --short | cut -c1-1')
+            if not bz_bug_is_open(1445224) or rhel_release == 6:
+                self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
@@ -357,7 +365,9 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
-            self.assertNotIn(u'.pulp.snar', files.stdout)
+            rhel_release = ssh.command('lsb_release -r --short | cut -c1-1')
+            if not bz_bug_is_open(1445224) or rhel_release == 6:
+                self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
