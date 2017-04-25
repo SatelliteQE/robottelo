@@ -1724,7 +1724,7 @@ class KatelloAgentTestCase(CLITestCase):
 
         :id: 4d1095c8-d354-42ac-af44-adf6dbb46deb
 
-        :Assert: erratum is recognized by the
+        :expectedresults: erratum is recognized by the
             `yum update --security` command on client
 
         :CaseLevel: System
