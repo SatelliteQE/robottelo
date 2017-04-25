@@ -585,3 +585,33 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
             bz_namespace.decorated_functions.append(
                 (get_func_name(func), str(self.bug_id))
             )
+
+
+class run_in_one_thread_if_bug_open(skip_if_bug_open, object):
+    """A decorator that sets pytest marker and allows to select test that
+    should be run sequentially only if bug is open.
+    """
+
+    _wrapper = run_in_one_thread
+
+    def __call__(self, func):
+        """Return unchanged function or function decorated with
+        `pytest.mark.run_in_one_thread` marker decorator if bug is open.
+
+        :param func: The function being decorated.
+
+        :return: The return value of test method ``func``.
+        :raises BugTypeError: If ``bug_type`` is not recognized.
+        """
+        self.register_bug_id(func)
+
+        if self.bug_type not in ('bugzilla', 'redmine'):
+            raise BugTypeError(
+                '"{0}" is not a recognized bug type. Did you mean '
+                '"bugzilla" or "redmine"?'.format(self.bug_type)
+            )
+
+        if (self.bug_type == 'bugzilla' and bz_bug_is_open(self.bug_id)) or \
+                (self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id)):
+            func = self._wrapper(func)
+        return func
