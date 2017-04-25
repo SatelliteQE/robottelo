@@ -23,6 +23,7 @@ from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -37,6 +38,7 @@ from robottelo.helpers import (
 from robottelo.test import CLITestCase
 
 
+@run_in_one_thread
 class CapsuleTestCase(CLITestCase):
     """Proxy cli tests"""
 
@@ -167,6 +169,7 @@ class CapsuleTestCase(CLITestCase):
         self.addCleanup(capsule_cleanup, proxy['id'])
 
 
+@run_in_one_thread
 class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
 

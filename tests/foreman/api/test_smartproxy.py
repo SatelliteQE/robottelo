@@ -225,6 +225,7 @@ class CapsuleTestCase(APITestCase):
             )
 
 
+@run_in_one_thread
 class SmartProxyMissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 

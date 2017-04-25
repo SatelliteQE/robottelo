@@ -16,10 +16,18 @@
 @Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    stubbed,
+    tier1,
+    tier3,
+    tier4
+)
 from robottelo.test import UITestCase
 
 
+@run_in_one_thread
 class CapsuleTestCase(UITestCase):
     """Implements capsule tests in UI"""
 
