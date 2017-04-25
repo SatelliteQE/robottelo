@@ -81,7 +81,6 @@ from robottelo.vm import VirtualMachine
 ERRATUM_MAX_IDS_INFO = 10
 
 
-@skip_if_bug_open('bugzilla', 1405428)
 @run_in_one_thread
 class HostCollectionErrataInstallTestCase(CLITestCase):
     """CLI Tests for the errata management feature"""
@@ -93,6 +92,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
     VIRTUAL_MACHINES_COUNT = 2
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1405428)
     @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key,
