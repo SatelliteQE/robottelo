@@ -20,7 +20,11 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import BACKUP_FILES, HOT_BACKUP_FILES
-from robottelo.decorators import stubbed, destructive, skip_if_bug_open
+from robottelo.decorators import (
+        destructive,
+        skip_if_bug_open,
+        stubbed,
+)
 from robottelo.helpers import get_services_status
 from robottelo.ssh import _get_connection
 from robottelo.test import TestCase
@@ -260,6 +264,8 @@ class HotBackupTestCase(TestCase):
         @expectedresults: Incremental backup is created and pulp related files
         are not present. Services keep running.
 
+        @bz: 1445224
+
         """
         with _get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
@@ -317,6 +323,8 @@ class HotBackupTestCase(TestCase):
 
         @expectedresults: Incremental backup is created with and pulp related
         files are not present. Services are started back again.
+
+        @bz: 1445224
 
         """
         with _get_connection() as connection:
