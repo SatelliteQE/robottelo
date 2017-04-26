@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import ssh
+from robottelo.config import settings
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
@@ -230,7 +231,9 @@ class RemoteExecutionTestCase(CLITestCase):
         """
         super(RemoteExecutionTestCase, self).setUp()
         # Create VM and register content host
-        self.client = VirtualMachine(distro=DISTRO_RHEL7)
+        self.client = VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge)
         self.addCleanup(vm_cleanup, self.client)
         self.client.create()
         self.client.install_katello_ca()
