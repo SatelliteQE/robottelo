@@ -167,9 +167,9 @@ class HostCreateTestCase(CLITestCase):
         """
         # Create host with associated puppet class
         host = entities.Host(
-            puppetclass=self.puppet_class['id'],
+            puppetclass=[int(self.puppet_class['id'])],
             environment=entities.Environment(id=self.puppet_env['id']).read(),
-            organization=self.new_org['id'],
+            organization=int(self.new_org['id']),
         ).create()
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -195,9 +195,9 @@ class HostCreateTestCase(CLITestCase):
         """
         # Create host with associated puppet class
         host = entities.Host(
-            puppetclass=self.puppet_class['id'],
+            puppetclass=[int(self.puppet_class['id'])],
             environment=entities.Environment(id=self.puppet_env['id']).read(),
-            organization=self.new_org['id'],
+            organization=int(self.new_org['id']),
         ).create()
         # Override one of the sc-params from puppet class
         sc_params_list = SmartClassParameter.list({
@@ -223,9 +223,9 @@ class HostCreateTestCase(CLITestCase):
         """
         # Create host with associated puppet class
         host = entities.Host(
-            puppetclass=self.puppet_class['id'],
+            puppetclass=[int(self.puppet_class['id'])],
             environment=entities.Environment(id=self.puppet_env['id']).read(),
-            organization=self.new_org['id'],
+            organization=int(self.new_org['id']),
         ).create()
         # Create smart variable
         smart_variable = make_smart_variable(
@@ -248,9 +248,9 @@ class HostCreateTestCase(CLITestCase):
         """
         # Create host with associated puppet class
         host = entities.Host(
-            puppetclass=self.puppet_class['id'],
+            puppetclass=[int(self.puppet_class['id'])],
             environment=entities.Environment(id=self.puppet_env['id']).read(),
-            organization=self.new_org['id'],
+            organization=int(self.new_org['id']),
         ).create()
         # Create smart variable
         smart_variable = make_smart_variable(
