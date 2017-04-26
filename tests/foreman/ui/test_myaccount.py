@@ -87,12 +87,10 @@ class MyAccountTestCase(UITestCase):
             with self.subTest(first_name):
                 with Session(self.browser, self.account_user.login,
                              self.account_password):
-                    first_name_element = \
-                        self.my_account.update_and_find_element(
-                            'first_name', first_name)
-                    self.assertIsNotNone(first_name_element)
-                    self.assertEqual(
-                        first_name, first_name_element.get_attribute('value'))
+                    self.my_account.update(first_name=first_name)
+                    self.my_account.navigate_to_entity()
+                    self.my_account.validate_logged_user(
+                        'first_name', first_name)
 
     @tier1
     def test_positive_update_email(self):
@@ -109,10 +107,9 @@ class MyAccountTestCase(UITestCase):
         with Session(self.browser, self.account_user.login,
                      self.account_password):
             email = gen_email()
-            email_element = self.my_account.update_and_find_element(
-                'email', email)
-            self.assertIsNotNone(email_element)
-            self.assertEqual(email, email_element.get_attribute('value'))
+            self.my_account.update(email=email)
+            self.my_account.navigate_to_entity()
+            self.my_account.validate_logged_user('email', email)
 
     @tier1
     def test_positive_update_surname(self):
@@ -134,12 +131,10 @@ class MyAccountTestCase(UITestCase):
             with self.subTest(last_name):
                 with Session(self.browser, self.account_user.login,
                              self.account_password):
-                    last_name_element = \
-                        self.my_account.update_and_find_element(
-                            'last_name', last_name)
-                    self.assertIsNotNone(last_name_element)
-                    self.assertEqual(
-                        last_name, last_name_element.get_attribute('value'))
+                    self.my_account.update(last_name=last_name)
+                    self.my_account.navigate_to_entity()
+                    self.my_account.validate_logged_user(
+                        'last_name', last_name)
 
     @tier1
     def test_positive_update_language(self):
@@ -153,18 +148,16 @@ class MyAccountTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        for lang, locale in LANGUAGES.items():
-            with self.subTest(lang):
+        for language, locale in LANGUAGES.items():
+            with self.subTest(language):
                 user = User(login=gen_alpha(), password='password')
                 user.id = user.create().id
                 with Session(self.browser, user.login, user.password):
-                    language_element = self.my_account.update_and_find_element(
-                        'language', lang)
-                    self.assertIsNotNone(language_element)
-                    # Cant use directly lang because its value changes
+                    self.my_account.update(language=language)
+                    self.my_account.navigate_to_entity()
+                    # Cant use directly language because its value changes
                     # after updating current language
-                    self.assertEqual(
-                        locale, language_element.get_attribute('value'))
+                    self.my_account.validate_logged_user('language', locale)
                 user.delete()
 
     @tier1
