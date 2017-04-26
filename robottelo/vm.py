@@ -49,7 +49,7 @@ class VirtualMachine(object):
     def __init__(
             self, cpu=1, ram=512, distro=None, provisioning_server=None,
             image_dir=None, tag=None, hostname=None, domain=None,
-            target_image=None):
+            target_image=None, bridge=None):
         distro_el6 = settings.distro.image_el6
         distro_el7 = settings.distro.image_el7
         self.cpu = cpu
@@ -90,6 +90,7 @@ class VirtualMachine(object):
         self._target_image = target_image or str(id(self))
         if tag:
             self._target_image = tag + self._target_image
+        self.bridge = bridge
 
     @property
     def subscribed(self):
@@ -139,7 +140,7 @@ class VirtualMachine(object):
             '-t {target_image}',
             '-m {vm_ram}',
             '-c {vm_cpu}',
-            '-n bridge=br0 -f',
+            '-n bridge={bridge} -f',
         ]
 
         if self.image_dir is not None:
@@ -151,6 +152,9 @@ class VirtualMachine(object):
         if self._domain is not None:
             command_args.append('-d {domain}')
 
+        if self.bridge is None:
+            self.bridge = 'br0'
+
         command = u' '.join(command_args).format(
             source_image=u'{0}-base'.format(self.distro),
             target_image=self.target_image,
@@ -158,7 +162,8 @@ class VirtualMachine(object):
             vm_cpu=self.cpu,
             image_dir=self.image_dir,
             hostname=self.hostname,
-            domain=self.domain
+            domain=self.domain,
+            bridge=self.bridge
         )
 
         result = ssh.command(command, self.provisioning_server)
