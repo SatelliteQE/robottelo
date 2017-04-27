@@ -248,6 +248,48 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(self.role.search(new_name))
             self.role.delete(new_name)
 
+    @tier1
+    def test_positive_create_filter_admin_user_with_locs(self):
+        """Attempt to create a role filter by admin user, who has 6+ locations
+        assigned
+
+        :id: 688ecb7d-1d49-494c-97cc-0d5e715f3bb1
+
+        :expectedresults: filter was successfully created
+
+        :BZ: 1315580
+
+        :CaseImportance: Critical
+        """
+        locs = []
+        for _ in range(6):
+            locs.append(
+                entities.Location(organization=[self.session_org]).create())
+        self.session_user.location += locs
+        self.session_user = self.session_user.update(['location'])
+        self.assertTrue(
+            {loc.id for loc in locs}.issubset(
+                {loc.id for loc in self.session_user.location})
+        )
+        resource_type = 'Architecture'
+        permissions = ['view_architectures', 'edit_architectures']
+        role_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            make_role(session, name=role_name)
+            self.assertIsNotNone(self.role.search(role_name))
+            self.role.add_permission(
+                role_name,
+                resource_type=resource_type,
+                permission_list=permissions,
+            )
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            assigned_permissions = self.role.get_permissions(
+                role_name, [resource_type])
+            self.assertIsNotNone(assigned_permissions)
+            self.assertEqual(
+                set(permissions), set(assigned_permissions[resource_type]))
+
 
 class CannedRoleTestCases(UITestCase):
     """Implements Canned Roles tests from UI"""
