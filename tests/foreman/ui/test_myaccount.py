@@ -23,6 +23,7 @@ from robottelo.constants import LANGUAGES
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
+from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.session import Session
 
 
@@ -51,7 +52,7 @@ class MyAccountTestCase(UITestCase):
     """
 
     def setUp(self):
-        """Setup of Tests.
+        """Setup of myaccount.
 
         Once following tests are going to update logged user, the default user
         can not be used once she is used on a bunch of other tests.
@@ -61,13 +62,8 @@ class MyAccountTestCase(UITestCase):
         """
         super(MyAccountTestCase, self).setUp()
         password = 'password'
-        self.account_user = User(login=gen_alpha(), password=password).create()
+        self.account_user = User(password=password).create()
         self.account_password = password
-
-    def tearDown(self):
-        """Deleting test user after each test"""
-        super(MyAccountTestCase, self).tearDown()
-        self.account_user.delete()
 
     @tier1
     def test_positive_update_first_name(self):
@@ -88,9 +84,10 @@ class MyAccountTestCase(UITestCase):
                 with Session(self.browser, self.account_user.login,
                              self.account_password):
                     self.my_account.update(first_name=first_name)
-                    self.my_account.navigate_to_entity()
-                    self.my_account.validate_logged_user(
-                        'first_name', first_name)
+                    self.assertEqual(
+                        first_name,
+                        self.my_account.get_field_value('first_name')
+                    )
 
     @tier1
     def test_positive_update_email(self):
@@ -108,8 +105,7 @@ class MyAccountTestCase(UITestCase):
                      self.account_password):
             email = gen_email()
             self.my_account.update(email=email)
-            self.my_account.navigate_to_entity()
-            self.my_account.validate_logged_user('email', email)
+            self.assertEqual(email, self.my_account.get_field_value('email'))
 
     @tier1
     def test_positive_update_surname(self):
@@ -132,9 +128,10 @@ class MyAccountTestCase(UITestCase):
                 with Session(self.browser, self.account_user.login,
                              self.account_password):
                     self.my_account.update(last_name=last_name)
-                    self.my_account.navigate_to_entity()
-                    self.my_account.validate_logged_user(
-                        'last_name', last_name)
+                    self.assertEqual(
+                        last_name,
+                        self.my_account.get_field_value('last_name')
+                    )
 
     @tier1
     def test_positive_update_language(self):
@@ -150,15 +147,14 @@ class MyAccountTestCase(UITestCase):
         """
         for language, locale in LANGUAGES.items():
             with self.subTest(language):
-                user = User(login=gen_alpha(), password='password')
-                user.id = user.create().id
-                with Session(self.browser, user.login, user.password):
+                password = gen_alpha()
+                user = User(password=password).create()
+                with Session(self.browser, user.login, password):
                     self.my_account.update(language=language)
-                    self.my_account.navigate_to_entity()
                     # Cant use directly language because its value changes
                     # after updating current language
-                    self.my_account.validate_logged_user('language', locale)
-                user.delete()
+                    self.assertEqual(
+                        locale, self.my_account.get_field_value('language'))
 
     @tier1
     def test_positive_update_password(self):
@@ -174,15 +170,21 @@ class MyAccountTestCase(UITestCase):
         """
         for password in _valid_string_data(max_len=254):
             with self.subTest(password):
-                with Session(self.browser, self.account_user.login,
-                             self.account_password):
+                user = User(password='old_password').create()
+                with Session(self.browser, user.login, 'old_password'):
                     self.my_account.update(
                         password=password, password_confirmation=password)
-                # Updating password for login
-                self.account_password = password
-                with Session(self.browser, self.account_user.login,
-                             self.account_password):
+
+                # UINoSuchElementError is raised on __exit__ once logout is
+                # only possible with prior login
+                with self.assertRaises(UINoSuchElementError):
+                    with Session(self.browser, user.login, 'old_password'):
+                        self.assertFalse(self.login.is_logged())
+
+                with Session(self.browser, user.login, password):
                     self.assertTrue(self.login.is_logged())
+                    # Check user can navigate to her own account again
+                    self.my_account.navigate_to_entity()
 
     @stubbed()
     @tier1

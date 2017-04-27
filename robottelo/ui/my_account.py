@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements My Account UI."""
-from robottelo.ui.base import Base, UINoSuchElementError, UIError
+from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
@@ -25,12 +25,15 @@ class MyAccount(Base):
         """Navigate to My Account page"""
         Navigator(self.browser).go_to_my_account()
 
-    def update(self, **kwargs):
-        """Update my account properties
-
-        :param kwargs: Properties to be update. Available: first_name,
-            last_name, email, language, password or password_confirmation
-        """
+    def update(self, first_name=None, last_name=None, language=None,
+               password=None, password_confirmation=None, email=None):
+        """Update my account properties"""
+        kwargs = {
+            'first_name': first_name, 'last_name': last_name,
+            'language': language, 'password': password, 'email': email,
+            'password_confirmation': password_confirmation
+        }
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
         self.navigate_to_entity()
         for property_name, new_value in kwargs.items():
             input_locator = _property_locator_dct[property_name]
@@ -41,24 +44,18 @@ class MyAccount(Base):
         self.wait_until_element_is_not_visible(
             common_locators["notif.success"])
 
-    def validate_logged_user(self, field_name, field_value):
-        """Checks if logged user has field_value. Exception is raised in
-        case there is no web ui related to field_name or value present on
-        element differs from field_value
+    def get_field_value(self, field_name):
+        """Return value present on input element respective to field_name
 
-        :param field_name: one of: first_name,
-            last_name, email, language, password or password_confirmation
-        :param field_value: expected field value
+        :param str field_name: one of ["first_name", "last_name", "email",
+            "language", "password", "password_confirmation"]
+        :return str
         """
+        self.navigate_to_entity()
         value_locator = _value_locator_dct[field_name]
-        element = self.find_element(value_locator)
+        element = self.wait_until_element_exists(value_locator)
         if element is None:
             raise UINoSuchElementError(
                 'Unable to find the field for "{0}".'.format(field_name)
             )
-        element_value = element.get_attribute('value')
-        if element_value != field_value:
-            raise UIError(
-                'MyAccount "{0}" field has value "{1}" which is different '
-                'from "{2}"'.format(field_name, element_value, field_value)
-            )
+        return element.get_attribute('value')
