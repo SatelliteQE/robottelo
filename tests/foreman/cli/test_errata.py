@@ -58,7 +58,8 @@ from robottelo.decorators import (
     stubbed,
     tier3,
     run_in_one_thread,
-    run_only_on
+    run_only_on,
+    skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
 
@@ -1091,22 +1092,28 @@ class ErrataTestCase(CLITestCase):
             set([])
         )
 
-    @stubbed()
-    def test_positive_list_filter_by_product_name(self):
-        """Filter errata by product name
+    @skip_if_bug_open('bugzilla', 1400235)
+    @tier3
+    def test_negative_list_filter_by_product_name(self):
+        """Attempt to Filter errata by product name
 
         :id: c7a5988b-668f-4c48-bc1e-97cb968a2563
 
+        :BZ: 1400235
+
         :Setup: Errata synced on satellite server.
 
-        :Steps: erratum list --product=<productname>
+        :Steps: erratum list --product=<product_name>
 
-        :expectedresults: Errata is filtered by product name.
+        :expectedresults: Error must be returned.
 
-        :caseautomation: notautomated
-
-        :BZ: 1400235
+        :CaseLevel: System
         """
+        with self.assertRaises(CLIReturnCodeError):
+            Erratum.list({
+                'product': self.org_product['name'],
+                'per-page': 1000
+            })
 
     @tier3
     def test_positive_list_filter_by_product_name_and_org_id(self):
