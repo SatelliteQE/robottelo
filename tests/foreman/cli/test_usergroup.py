@@ -167,7 +167,8 @@ class UserGroupTestCase(CLITestCase):
                 user_group = make_usergroup({
                     'user-groups': sub_user_group['name']})
                 self.assertEqual(len(user_group['user-groups']), 1)
-                self.assertEqual(user_group['user-groups'][0], name)
+                self.assertEqual(user_group['user-groups'][0]['usergroup'],
+                                 name)
 
     @tier1
     def test_positive_create_with_usergroup_id(self):
@@ -183,7 +184,9 @@ class UserGroupTestCase(CLITestCase):
         sub_user_group = make_usergroup()
         user_group = make_usergroup({
             'user-group-ids': sub_user_group['id']})
-        self.assertEqual(user_group['user-groups'][0], sub_user_group['name'])
+        self.assertEqual(
+            user_group['user-groups'][0]['usergroup'], sub_user_group['name']
+        )
 
     @tier1
     def test_positive_create_with_usergroups(self):
@@ -199,9 +202,12 @@ class UserGroupTestCase(CLITestCase):
         """
         sub_user_groups = [
             make_usergroup()['name'] for _ in range(randint(3, 5))]
-        user_group = make_usergroup({'user-groups': sub_user_groups})
+        user_groups = make_usergroup({'user-groups': sub_user_groups})
         self.assertEqual(
-            sorted(sub_user_groups), sorted(user_group['user-groups']))
+            sorted(sub_user_groups),
+            sorted([user_group['usergroup']
+                    for user_group in user_groups['user-groups']])
+        )
 
     @tier1
     def test_negative_create_with_name(self):
