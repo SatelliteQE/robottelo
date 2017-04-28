@@ -8,6 +8,7 @@ _property_locator_dct = {
         'first_name': locators['users.firstname'],
         'email': locators['users.email'],
         'language': locators['users.language_dropdown'],
+        'current_password': locators['users.current_password'],
         'password': locators['users.password'],
         'password_confirmation': locators['users.password_confirmation'],
         'last_name': locators['users.lastname']
@@ -26,11 +27,13 @@ class MyAccount(Base):
         Navigator(self.browser).go_to_my_account()
 
     def update(self, first_name=None, last_name=None, language=None,
-               password=None, password_confirmation=None, email=None):
+               current_password=None, password=None,
+               password_confirmation=None, email=None):
         """Update my account properties"""
         kwargs = {
             'first_name': first_name, 'last_name': last_name,
-            'language': language, 'password': password, 'email': email,
+            'language': language, 'current_password': current_password,
+            'password': password, 'email': email,
             'password_confirmation': password_confirmation
         }
         kwargs = {k: v for k, v in kwargs.items() if v is not None}

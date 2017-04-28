@@ -225,6 +225,10 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
     to use ephemeral user. E.g. one user is created for each test so it can
     have whatever field updated"""
 
+    login = None
+    password = None
+    user = None
+
     def setUp(self):
         """Create a new user for each test to not impact the default
         user.
@@ -256,7 +260,10 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_password = gen_string('alphanumeric')
-        self.update_user({'password': new_password})
+        self.update_user({
+            'password': new_password,
+            'current-password': self.password
+        })
         # If password is updated, hammer authentication must fail because old
         # password stored on self is used
         self.assertRaises(CLIReturnCodeError, self.user_info)
