@@ -23,7 +23,12 @@ from robottelo.cli.factory import make_domain, make_location, make_org
 from robottelo.datafactory import (
     filtered_datapoint, invalid_id_list, valid_data_list
 )
-from robottelo.decorators import run_only_on, tier1, bz_bug_is_open
+from robottelo.decorators import (
+    run_only_on,
+    tier1,
+    tier2,
+    bz_bug_is_open,
+)
 from robottelo.test import CLITestCase
 
 
@@ -183,6 +188,33 @@ class DomainTestCase(CLITestCase):
             with self.subTest(options):
                 with self.assertRaises(CLIFactoryError):
                     make_domain(options)
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_create_with_invalid_dns_id(self):
+        """Attempt to register a domain with invalid id
+
+        :id: 4aa52167-368a-41ad-87b7-41d468ad41a8
+
+        :expectedresults: Error is raised and user friendly message returned
+
+        :BZ: 1398392
+
+        :CaseLevel: Integration
+        """
+        with self.assertRaises(CLIFactoryError) as context:
+            make_domain({
+                'name': gen_string('alpha'),
+                'dns-id': -1,
+            })
+        valid_messages = ['Invalid smart-proxy id', 'Invalid capsule id']
+        exception_string = str(context.exception)
+        messages = [
+            message
+            for message in valid_messages
+            if message in exception_string
+        ]
+        self.assertGreater(len(messages), 0)
 
     @tier1
     @run_only_on('sat')
