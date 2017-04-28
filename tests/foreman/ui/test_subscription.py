@@ -14,12 +14,19 @@
 
 @Upstream: No
 """
+from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1
+from robottelo.decorators import (
+    run_in_one_thread,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+    tier2,
+)
 from robottelo.test import UITestCase
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -53,3 +60,35 @@ class SubscriptionTestCase(UITestCase):
                 tab_locators['subs.import_history.deleted']))
             self.assertIsNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
+
+    @skip_if_bug_open('bugzilla', 1399725)
+    @tier2
+    def test_positive_access_with_non_admin_user(self):
+        """Access subscription page with user that has viewer permissions
+
+        @id: bbbb1138-0737-4df6-93a5-3dabc081958d
+
+        @expectedresults: Subscription page is rendered properly without errors
+
+        @BZ: 1399725
+
+        @CaseLevel: Integration
+
+        @CaseImportance: Critical
+        """
+        # We need to have an organization without manifests
+        org = entities.Organization().create()
+        role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
+        password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=False,
+            role=[role],
+            password=password,
+            organization=[org],
+        ).create()
+        with Session(self.browser, user.login, password) as session:
+            session.nav.go_to_select_org(org.name, force=False)
+            self.subscriptions.navigate_to_entity()
+            self.assertIsNotNone(self.subscriptions.wait_until_element(
+                locators['subs.no_manifests_title']))
+            self.assertFalse(self.browser.current_url.endswith('katello/403'))

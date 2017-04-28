@@ -2832,6 +2832,9 @@ locators = LocatorDict({
     "subs.subscription_search": (
         By.XPATH,
         "//input[@class='form-control ng-scope ng-pristine ng-valid']"),
+    "subs.no_manifests_title": (
+        By.XPATH,
+        '//span[contains(., "You currently don\'t have any Subscriptions")]'),
 
     # Settings
     "settings.param": (
