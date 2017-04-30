@@ -110,7 +110,7 @@ class HotBackupTestCase(TestCase):
         """
         with get_connection() as connection:
             dir_name = gen_string('alpha')
-            connection.run('rm -rf /tmp/{0}'.format(dir_name))
+            tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(dir_name),
                 output_format='plain'
@@ -125,6 +125,37 @@ class HotBackupTestCase(TestCase):
                 set(HOT_BACKUP_FILES)))
             # check if services are running correctly
             self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, dir_name)
+
+    @destructive
+    @skip_if_bug_open('bugzilla', 1323607)
+    def test_positive_online_backup_exit_code_on_failure(self):
+        """katello-backup --online-backup correct exit code on failure
+
+        :id: a26795bf-faa4-49ce-8613-2ed7bc9c0540
+
+        :Steps:
+
+            1. Stop the postgresql service
+            2. Run ``katello-backup --online-backup``
+            3. Assert exit code is not 0
+            4. Start the service again
+
+        :bz: 1323607
+
+        :expectedresults: katello-backup finished with correct exit code
+
+        """
+        with get_connection() as connection:
+            dir_name = gen_string('alpha')
+            dead_service = 'postgresql'
+            connection.run('service {0} stop'.format(dead_service))
+            tmp_directory_cleanup(connection, dir_name)
+            result = connection.run(
+                'katello-backup /tmp/{0} --online-backup'.format(dir_name)
+            )
+            self.assertNotEqual(result.return_code, 0)
+            connection.run('service {0} start'.format(dead_service))
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
