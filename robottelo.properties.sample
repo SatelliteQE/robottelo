@@ -76,7 +76,9 @@ ssh_key=
 # be pulled from there instead of using the CDN channel. These information is
 # more suited to be used for downstream, downstream-iso and zstream builds.
 # capsule_repo=http://capsule/repo
-# sattools_repo=http://sattools/repo
+# sattools_repo=
+#   rhel6=http://sattools/repo/el6,
+#   rhel7=http://sattools/repo/el7,
 
 
 # For LDAP Authentication.
