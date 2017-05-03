@@ -30,6 +30,9 @@ from robottelo.ssh import _get_connection
 from robottelo.test import TestCase
 
 BCK_MSG = 'BACKUP Complete, contents can be found in: /tmp/{0}'
+NODIR_MSG = 'ERROR: Please specify an export directory'
+NOPREV_MSG = 'Please specify the previous backup directory'
+BADPREV_MSG = 'Previous backup directory does not exist: {0}'
 
 
 def make_random_tmp_directory(connection):
@@ -157,6 +160,52 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
+    def test_negative_online_backup_with_no_directory(self):
+        """katello-backup --online-backup with no directory
+
+        @id: e5f58d05-1043-48c0-971f-8f30cc8642ed
+
+        @Steps:
+
+        1. Run ``katello-backup --online-backup``
+
+        @expectedresults: The error message is shown, services are not
+        stopped
+
+        """
+        with _get_connection() as connection:
+            result = connection.run(
+                'katello-backup --online-backup',
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 1)
+            self.assertIn(NODIR_MSG, result.stderr)
+            self.assertTrue(get_services_status())
+
+    @destructive
+    def test_negative_backup_with_no_directory(self):
+        """katello-backup with no directory specified
+
+        @id: e229a4e0-4944-4369-ab7f-0f4e65480e47
+
+        @Steps:
+
+        1. Run ``katello-backup``
+
+        @expectedresults: The error message is shown, services are not
+        stopped
+
+        """
+        with _get_connection() as connection:
+            result = connection.run(
+                'katello-backup',
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 1)
+            self.assertIn(NODIR_MSG, result.stderr)
+            self.assertTrue(get_services_status())
+
+    @destructive
     def test_positive_online_skip_pulp(self):
         """Katello-backup --online-backup with --skip-pulp-content
         option should not create pulp files in destination.
@@ -279,6 +328,78 @@ class HotBackupTestCase(TestCase):
             # check if services are running correctly
             self.assertTrue(get_services_status())
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
+
+    @destructive
+    @skip_if_bug_open('bugzilla', 1447619)
+    def test_negative_incremental_with_no_src_directory(self):
+        """katello-backup --incremental with no source directory
+
+        @id: 8bb36ffe-822e-448e-88cd-93885efd59a7
+
+        @Steps:
+
+        1. Run ``katello-backup --incremental``
+
+        @expectedresults: The error message is shown, services are not
+        stopped
+
+        """
+        with _get_connection() as connection:
+            result = connection.run(
+                'katello-backup --incremental',
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 1)
+            self.assertIn(NOPREV_MSG, result.stderr)
+            self.assertTrue(get_services_status())
+
+    @destructive
+    def test_negative_incremental_with_no_dest_directory(self):
+        """katello-backup --incremental with no destination directory
+
+        @id: 183195df-b5df-4edf-814e-221bbcdcbde1
+
+        @Steps:
+
+        1. Run ``katello-backup --incremental /tmp``
+
+        @expectedresults: The error message is shown, services are not
+        stopped
+
+        """
+        with _get_connection() as connection:
+            result = connection.run(
+                'katello-backup --incremental /tmp',
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 1)
+            self.assertIn(NODIR_MSG, result.stderr)
+            self.assertTrue(get_services_status())
+
+    @destructive
+    def test_negative_incremental_with_invalid_dest_directory(self):
+        """katello-backup --incremental with invalid destination directory
+
+        @id: 1667f35e-049e-4a1a-ae7a-a2da6661b3d8
+
+        @Steps:
+
+        1. Run ``katello-backup /tmp --incremental nonexistent``
+
+        @expectedresults: The error message is shown, services are not
+        stopped
+
+        """
+        with _get_connection() as connection:
+            dir_name = gen_string('alpha')
+            connection.run('rm -rf /tmp/{0}'.format(dir_name))
+            result = connection.run(
+                'katello-backup /tmp --incremental {0}'.format(dir_name),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 1)
+            self.assertIn(BADPREV_MSG.format(dir_name), result.stderr)
+            self.assertTrue(get_services_status())
 
     @destructive
     def test_positive_online_incremental_skip_pulp(self):
