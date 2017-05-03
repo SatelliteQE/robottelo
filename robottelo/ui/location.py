@@ -97,6 +97,11 @@ class Location(Base):
         if parent:
             self.select(locators['location.parent'], parent)
         self.click(common_locators['submit'])
+        to_edit_locator = locators['location.proceed_to_edit']
+        if self.wait_until_element(to_edit_locator):
+            # In this case there is unassigned host and we need to skip step
+            # "2 Select Hosts"
+            self.click(to_edit_locator)
         self._configure_location(
             users=users, capsules=capsules,
             subnets=subnets, resources=resources,
