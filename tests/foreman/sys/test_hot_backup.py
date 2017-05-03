@@ -46,6 +46,17 @@ def tmp_directory_cleanup(connection, *args):
         connection.run('rm -rf /tmp/{0}'.format(name))
 
 
+def directory_size_compare(connection, full_dir, inc_dir):
+    size_full = connection.run(
+            "du -s /tmp/{0}/katello-backup* | cut -f1".format(full_dir))
+    size_inc = connection.run(
+            "du -s /tmp/{0}/katello-backup* | cut -f1".format(inc_dir))
+    if size_full.stdout[0] > size_inc.stdout[0]:
+        return True
+    else:
+        return False
+
+
 @destructive
 class HotBackupTestCase(TestCase):
     """Implements ``katello-backup`` tests"""
@@ -246,12 +257,12 @@ class HotBackupTestCase(TestCase):
         with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
-            result = connection.run(
+            result_full = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
-            self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
+            self.assertEqual(result_full.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dir), result_full.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
                     'list'
@@ -266,13 +277,13 @@ class HotBackupTestCase(TestCase):
                     'ls /tmp/{0}/'.format(b1_dir),
                     'list'
                     )
-            result = connection.run(
+            result_inc = connection.run(
                 'katello-backup /tmp/{0} --incremental /tmp/{1}/{2}'
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
                 output_format='plain'
             )
-            self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
+            self.assertEqual(result_inc.return_code, 0)
+            self.assertIn(BCK_MSG.format(b1_dest), result_inc.stdout)
             files = connection.run(
                     'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
                     'list'
@@ -280,6 +291,8 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
             # check if services are running correctly
             self.assertTrue(get_services_status())
+            self.assertTrue(
+                    directory_size_compare(connection, b1_dir, b1_dest))
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
@@ -341,6 +354,8 @@ class HotBackupTestCase(TestCase):
                 self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())
+            self.assertTrue(
+                    directory_size_compare(connection, b1_dir, b1_dest))
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
@@ -401,6 +416,8 @@ class HotBackupTestCase(TestCase):
                 self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())
+            self.assertTrue(
+                    directory_size_compare(connection, b1_dir, b1_dest))
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
@@ -480,6 +497,8 @@ class HotBackupTestCase(TestCase):
                 query={'search': 'name={0}'.format(repo_name)}
             )
             self.assertEqual(len(repo_list), 1)
+            self.assertTrue(
+                    directory_size_compare(connection, b1_dir, ib1_dest))
             tmp_directory_cleanup(connection, b1_dir, ib1_dir, ib1_dest)
 
     @destructive
