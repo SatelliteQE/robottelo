@@ -581,9 +581,10 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
         """Every time the test is decorated, takes the BZ number and
         register it in pytest global namespace variable to be accessible in
         conftest in order to perform the filtering of test collection
+        if settings.bugzilla.wontfix_lookup == False just returns False.
         """
         bz_namespace = getattr(pytest, 'bugzilla', None)
-        if bz_namespace:
+        if bz_namespace and settings.bugzilla.wontfix_lookup is True:
             bz_namespace.decorated_functions.append(
                 (get_func_name(func), str(self.bug_id))
             )
