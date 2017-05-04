@@ -353,7 +353,7 @@ class FakeManifestSettings(FeatureSettings):
         super(FakeManifestSettings, self).__init__(*args, **kwargs)
         self.cert_url = None
         self.key_url = None
-        self.url = None
+        self.urls = None
 
     def read(self, reader):
         """Read fake manifest settings."""
@@ -361,8 +361,8 @@ class FakeManifestSettings(FeatureSettings):
             'fake_manifest', 'cert_url')
         self.key_url = reader.get(
             'fake_manifest', 'key_url')
-        self.url = reader.get(
-            'fake_manifest', 'url')
+        self.urls = reader.get(
+            'fake_manifest', 'manifest_urls',cast=dict)
 
     def validate(self):
         """Validate fake manifest settings."""
