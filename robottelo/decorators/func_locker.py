@@ -41,10 +41,10 @@ Usage::
                 # do some operations that conflict with test_to_lock
 """
 import functools
+import inspect
 import logging
 import os
 import tempfile
-import unittest2
 
 from contextlib import contextmanager
 
@@ -60,6 +60,8 @@ LOCK_DIR = None
 LOCK_DEFAULT_TIMEOUT = 1800  # 30 minutes
 LOCK_FILE_NAME_EXT = 'lock'
 LOCK_DEFAULT_SCOPE = None
+
+_DEFAULT_CLASS_NAME_DEPTH = 3
 
 
 class FunctionLockerError(Exception):
@@ -133,40 +135,15 @@ def _get_scope_path(scope, scope_kwargs=None, scope_context=None, create=True):
     return scope_path
 
 
-def _get_function_name(function):
+def _get_function_name(function, class_name=None):
     """Return a string representation of the function as
-     module_path.Class_name.function_name
-     """
-    names = [function.__module__]
-    if hasattr(function, 'im_self'):
+    module_path.Class_name.function_name
 
-        self = function.im_self
-        if isinstance(self, type):
-            # this is a class method
-            names.append(self.__name__)
-        else:
-            # this is an instance
-            names.append(self.__class__.__name__)
-
-    names.append(function.__name__)
-    return '.'.join(names)
-
-
-def _get_context_function_name(context, function):
-    """Return a string representation of the function as
-    module_path.Class_name.function_name, this function is invoked when the
-    function is used with decorator.
+    note: the class name is the first parent class
     """
     names = [function.__module__]
-    if context and hasattr(context, function.__name__):
-
-        if isinstance(context, type):
-            context_class = context
-        else:
-            context_class = context.__class__
-
-        if issubclass(context_class, unittest2.TestCase):
-            names.append(context_class.__name__)
+    if class_name:
+        names.append(class_name)
 
     names.append(function.__name__)
     return '.'.join(names)
@@ -234,16 +211,26 @@ def lock_function(function=None, scope=_get_default_scope, scope_context=None,
     :param scope_kwargs: kwargs to be passed to scope if is a callable
     :param timeout: the time in seconds to wait for acquiring the lock
     """
+    class_names = []
+    class_name = None
+    index = 1
+    while class_name != '<module>' and index <= _DEFAULT_CLASS_NAME_DEPTH:
+        if class_name:
+            class_names.append(class_name)
+        class_name = inspect.getouterframes(inspect.currentframe())[index][3]
+        index += 1
+
+    class_names.reverse()
+    class_name = '.'.join(class_names)
 
     def main_wrapper(func):
 
+        setattr(func, '__class_name__', class_name)
+        setattr(func, '__function_locked__', True)
+
         @functools.wraps(func)
         def function_wrapper(*args, **kwargs):
-            if len(args) > 0:
-                context = args[0]
-            else:
-                context = None
-            function_name = _get_context_function_name(context, func)
+            function_name = _get_function_name(func, class_name=class_name)
             lock_file_path = _get_function_name_lock_path(
                 function_name,
                 scope=scope,
@@ -302,7 +289,11 @@ def locking_function(function, scope=_get_default_scope, scope_context=None,
     :param scope_kwargs: kwargs to be passed to scope if is a callable
     :param timeout: the time in seconds to wait for acquiring the lock
     """
-    function_name = _get_function_name(function)
+    if not getattr(function, '__function_locked__', False):
+        raise FunctionLockerError(
+            'Cannot ensure locking when using a non locked function')
+    class_name = getattr(function, '__class_name__', None)
+    function_name = _get_function_name(function, class_name=class_name)
     lock_file_path = _get_function_name_lock_path(
         function_name,
         scope=scope,
