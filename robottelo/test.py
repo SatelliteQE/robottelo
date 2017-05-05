@@ -22,13 +22,18 @@ except ImportError:
 from datetime import datetime
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo import ssh
+from robottelo import manifests, ssh
 from robottelo.cleanup import EntitiesCleaner
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG, DEFAULT_ORG_ID
+from robottelo.constants import (
+    INTERFACE_API,
+    INTERFACE_CLI,
+    DEFAULT_ORG,
+    DEFAULT_ORG_ID,
+)
 from robottelo.performance.constants import NUM_THREADS
 from robottelo.performance.graph import (
     generate_bar_chart_stat,
@@ -244,6 +249,7 @@ class _AssertNotRaisesContext(object):
 class TestCase(unittest2.TestCase):
     """Robottelo test case"""
 
+    _default_interface = INTERFACE_API
     _default_notraises_value_handler = None
 
     @pytest.fixture(autouse=True)
@@ -294,6 +300,28 @@ class TestCase(unittest2.TestCase):
             cls.__module__, cls.__name__))
         if settings.cleanup:
             cls.cleaner.clean()
+
+    @classmethod
+    def upload_manifest(cls, org_id, manifest, interface=None):
+        """Upload manifest locked using the default TestCase manifest if
+        interface not specified.
+
+        Usage::
+
+            manifest = manifests.clone()
+            self.upload_manifest(org_id, manifest)
+
+            # or if you want to specify explicitly an interface
+            manifest = manifests.clone()
+            self.upload_manifest(org_id, manifest, interface=INTERFACE_CLI)
+
+            # in one line
+            result = self.upload_manifest(org_id, manifests.clone())
+        """
+        if interface is None:
+            interface = cls._default_interface
+        return manifests.upload_manifest_locked(
+            org_id, manifest, interface=interface)
 
     def setUp(self):
         """setup for tests"""
@@ -376,12 +404,14 @@ class TestCase(unittest2.TestCase):
 
 class APITestCase(TestCase):
     """Test case for API tests."""
+    _default_interface = INTERFACE_API
     _default_notraises_value_handler = APINotRaisesValueHandler
     _multiprocess_can_split_ = True
 
 
 class CLITestCase(TestCase):
     """Test case for CLI tests."""
+    _default_interface = INTERFACE_CLI
     _default_notraises_value_handler = CLINotRaisesValueHandler
     _multiprocess_can_split_ = True
 
@@ -402,6 +432,7 @@ class CLITestCase(TestCase):
 
 class UITestCase(TestCase):
     """Test case for UI tests."""
+    _default_interface = INTERFACE_API
 
     @classmethod
     def setUpClass(cls):  # noqa
