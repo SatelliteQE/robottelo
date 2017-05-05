@@ -541,7 +541,6 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1435333)
     def test_positive_online_incremental(self):
         """Make an incremental online backup
 
@@ -554,6 +553,8 @@ class HotBackupTestCase(TestCase):
             3. Run incremental backup ib1
             4. Restore base backup, verify c1 config doesnt not exist
             5. restore ib1, verify c1 config does exist
+
+        :bz: 1445871
 
         :expectedresults: Backup "ib1" is backed up.
 
