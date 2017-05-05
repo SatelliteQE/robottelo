@@ -33,6 +33,11 @@
 
 .. automodule:: tests.foreman.api.test_computeresource
 
+:mod:`tests.foreman.api.test_contentmanagement`
+-----------------------------------------------
+
+.. automodule:: tests.foreman.api.test_contentmanagement
+
 :mod:`tests.foreman.api.test_contentviewfilter`
 -----------------------------------------------
 
