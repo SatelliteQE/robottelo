@@ -63,6 +63,8 @@ class ContentManagementTestCase(APITestCase):
 
         @id: 35513099-c918-4a8e-90d0-fd4c87ad2f82
 
+        @BZ: 1388296
+
         @expectedresults:
 
         1. Repository sync triggers capsule sync
