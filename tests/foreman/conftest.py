@@ -2,6 +2,8 @@
 """Configurations for py.test runner"""
 import datetime
 import pytest
+from robottelo.config import settings
+from robottelo.decorators import setting_is_set
 from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
 from robottelo.helpers import get_func_name
 
@@ -19,6 +21,28 @@ def log(message, level="DEBUG"):
     print(full_message)  # noqa
     with open('robottelo.log', 'a') as log_file:
         log_file.write(full_message)
+
+
+def pytest_report_header(config):
+    """Called when pytest session starts"""
+    messages = []
+
+    shared_function_enabled = 'OFF'
+    scope = ''
+    storage = 'file'
+    if setting_is_set('shared_function'):
+        if settings.shared_function.enabled:
+            shared_function_enabled = 'ON'
+        scope = settings.shared_function.scope
+        if not scope:
+            scope = ''
+        storage = settings.shared_function.storage
+
+    messages.append(
+        'shared_function enabled - {0} - scope: {1} - storage: {2}'.format(
+            shared_function_enabled, scope, storage))
+
+    return messages
 
 
 @pytest.fixture(scope="session")

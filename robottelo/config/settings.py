@@ -1,4 +1,5 @@
 """Define and instantiate the configuration class for Robottelo."""
+import importlib
 import logging
 import os
 import sys
@@ -643,6 +644,70 @@ class UpgradeSettings(FeatureSettings):
         return validation_errors
 
 
+class SharedFunctionSettings(FeatureSettings):
+    """Shared function settings definitions."""
+
+    MAX_SHARE_TIMEOUT = 86400
+
+    def __init__(self, *args, **kwargs):
+        super(SharedFunctionSettings, self).__init__(*args, **kwargs)
+        self.storage = None
+        self.scope = None
+        self.enabled = None
+        self.lock_timeout = None
+        self.share_timeout = None
+        self.redis_host = None
+        self.redis_port = None
+        self.redis_db = None
+        self.redis_password = None
+        self.call_retries = None
+
+    def read(self, reader):
+        """Read shared settings."""
+        self.storage = reader.get('shared_function', 'storage', 'file')
+        self.scope = reader.get('shared_function', 'scope', None)
+        self.enabled = reader.get(
+            'shared_function', 'enabled', False, bool)
+        self.lock_timeout = reader.get(
+            'shared_function', 'lock_timeout', 7200, int)
+        self.share_timeout = reader.get(
+            'shared_function', 'share_timeout', self.MAX_SHARE_TIMEOUT, int)
+        self.redis_host = reader.get(
+            'shared_function', 'redis_host', 'localhost')
+        self.redis_port = reader.get(
+            'shared_function', 'redis_port', 6379, int)
+        self.redis_db = reader.get(
+            'shared_function', 'redis_db', 0, int)
+        self.redis_password = reader.get(
+            'shared_function', 'redis_password', None)
+        self.call_retries = reader.get(
+            'shared_function', 'call_retries', 2, int)
+
+    def validate(self):
+        """Validate the shared settings"""
+        validation_errors = []
+        supported_storage_handlers = ['file', 'redis']
+        if self.storage not in supported_storage_handlers:
+            validation_errors.append(
+                '[shared] storage must be one of {}'
+                .format(supported_storage_handlers)
+            )
+        if self.storage == 'redis':
+            try:
+                importlib.import_module('redis')
+            except ImportError:
+                validation_errors.append(
+                    '[shared] python redis package not installed')
+
+        if self.share_timeout > self.MAX_SHARE_TIMEOUT:
+            validation_errors.append(
+                '[shared] share time out cannot be more than 86400'
+                ' seconds (24 hours)'
+            )
+
+        return validation_errors
+
+
 class Settings(object):
     """Robottelo's settings representation."""
 
@@ -683,6 +748,7 @@ class Settings(object):
         self.oscap = OscapSettings()
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
+        self.shared_function = SharedFunctionSettings()
         self.transition = TransitionSettings()
         self.vlan_networking = VlanNetworkSettings()
         self.upgrade = UpgradeSettings()
