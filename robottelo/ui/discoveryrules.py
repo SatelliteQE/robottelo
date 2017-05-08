@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 """Implements Discovery Rules from UI."""
-from robottelo.decorators import bz_bug_is_open
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -10,7 +10,8 @@ class DiscoveryRules(Base):
     """Manipulates Discovery Rules from UI"""
 
     def _configure_discovery(self, hostname=None, host_limit=None,
-                             priority=None, enabled=True):
+                             priority=None, locations=None, organizations=None,
+                             select=None, enabled=True):
         """Configures various parameters for discovery rule."""
         if hostname:
             self.text_field_update(
@@ -28,9 +29,24 @@ class DiscoveryRules(Base):
                 priority
             )
         self.assign_value(locators['discoveryrules.enabled'], enabled)
+        if locations:
+            self.configure_entity(
+                locations,
+                FILTER['discovery_rule_loc'],
+                tab_locator=tab_locators['tab_loc'],
+                entity_select=select
+            )
+        if organizations:
+            self.configure_entity(
+                organizations,
+                FILTER['discovery_rule_org'],
+                tab_locator=tab_locators['tab_org'],
+                entity_select=select
+            )
 
     def create(self, name, search_rule, hostgroup, hostname=None,
-               host_limit=None, priority=None, enabled=True):
+               host_limit=None, priority=None, locations=None,
+               organizations=None, select=True, enabled=True):
         """Creates new discovery rule from UI"""
         self.click(locators['discoveryrules.new'])
         if not self.wait_until_element(locators['discoveryrules.name']):
@@ -38,7 +54,10 @@ class DiscoveryRules(Base):
         self.text_field_update(locators['discoveryrules.name'], name)
         self.text_field_update(locators['discoveryrules.search'], search_rule)
         self.select(locators['discoveryrules.hostgroup_dropdown'], hostgroup)
-        self._configure_discovery(hostname, host_limit, priority, enabled)
+        self._configure_discovery(
+            hostname, host_limit, priority, locations, organizations,
+            select, enabled,
+        )
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):
@@ -53,10 +72,6 @@ class DiscoveryRules(Base):
         """Searches existing discovery rule from UI. It is necessary to use
         custom search as we don't have both search bar and search button there.
         """
-        if not bz_bug_is_open(1233135):
-            raise DeprecationWarning(
-                'Search box is implemented. Use generic search method'
-            )
         self.navigate_to_entity()
         strategy, value = self._search_locator()
         if len(name) > 32:

@@ -2924,6 +2924,9 @@ locators = LocatorDict({
     "discoveredhosts.reboot": (
         By.XPATH, ("//a[contains(@href,'%s') and "
                    "contains(@data-id,'reboot')]")),
+    "discoveredhosts.auto_provision": (
+        By.XPATH, ("//a[contains(@href,'%s') and "
+                   "contains(@data-id,'auto_provision')]")),
     "discoveredhosts.delete": (
         By.XPATH, ("//a[@class='delete' and contains(@data-confirm, '%s')]")),
     "discoveredhosts.delete_from_facts": (
@@ -2936,17 +2939,26 @@ locators = LocatorDict({
                    "input[@type='checkbox']")),
     "discoveredhosts.select_action": (
         By.XPATH, ("//div[@id='submit_multiple']/a[@data-toggle='dropdown']")),
+    "discoveredhosts.select_action_facts": (
+        By.XPATH, ("//div[@id='title_action']//a[@data-toggle='dropdown']")),
+    "discoveredhosts.provision_from_facts": (
+        By.XPATH, ("//div[@id='title_action']//ul/li"
+                   "/a[contains(., 'Provision')]")),
     "discoveredhosts.multi_delete": (
         By.XPATH, ("//a[contains(@onclick, "
                    "'/discovered_hosts/multiple_destroy')]")),
+    "discoveredhosts.auto_provision_all": (
+        By.XPATH, ("//div[@id='submit_multiple']"
+                   "/following::a[contains(@href, 'auto_provision_all')]")),
     "discoveredhosts.assign_org": (
         By.XPATH, ("//a[contains(@onclick, "
                    "'/discovered_hosts/select_multiple_organization')]")),
     "discoveredhosts.assign_loc": (
         By.XPATH, ("//a[contains(@onclick, "
                    "'/discovered_hosts/select_multiple_location')]")),
-    "discoveredhosts.select_org": (By.ID, "organization_id"),
-    "discoveredhosts.select_loc": (By.ID, "location_id"),
+    "discoveredhosts.select_org": (
+        By.XPATH, ("//select[@id='organization_id']")),
+    "discoveredhosts.select_loc": (By.XPATH, "//select[@id='location_id']"),
     "discoveredhosts.fetch_interfaces": (
         By.XPATH, ("//div[@id='content']/table/tbody/tr[2]/"
                    "td[contains(.,'eth')]")),

@@ -47,6 +47,13 @@ class DiscoveryRuleTestCase(UITestCase):
     """Implements Foreman discovery Rules in UI."""
 
     @classmethod
+    def set_session_org(cls):
+        cls.session_org = entities.Organization().create()
+        cls.session_loc = entities.Location(
+            organization=[cls.session_org]
+        ).create()
+
+    @classmethod
     def setUpClass(cls):
         """Display all the discovery rules on the same page"""
         super(DiscoveryRuleTestCase, cls).setUpClass()
@@ -55,8 +62,10 @@ class DiscoveryRuleTestCase(UITestCase):
         cls.saved_per_page = str(cls.per_page.value)
         cls.per_page.value = '100000'
         cls.per_page.update({'value'})
-
-        cls.host_group = entities.HostGroup().create()
+        cls.host_group = entities.HostGroup(
+            organization=[cls.session_org],
+            location=[cls.session_loc],
+        ).create()
 
     @classmethod
     def tearDownClass(cls):
@@ -125,6 +134,7 @@ class DiscoveryRuleTestCase(UITestCase):
             make_discoveryrule(
                 session,
                 name=name,
+                locations=[self.session_loc.name],
                 hostgroup=self.host_group.name,
                 hostname=hostname,
             )

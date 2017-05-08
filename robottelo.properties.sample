@@ -93,6 +93,11 @@ ssh_key=
 # rhel6_repo=http://example.com/yum/repo_files/rhel6-updates.repo
 # rhel7_repo=http://example.com/yum/repo_files/rhel7-updates.repo
 
+# Provide link to rhel6/7 repositories URL as we need all OS packages in order
+# to have real installation media for provisioning procedure
+# rhel6_os=http://example.com/yum/rhel6-os/
+# rhel7_os=http://example.com/yum/rhel7-os/
+
 # If capsule and satellite tools repositories available related packages will
 # be pulled from there instead of using the CDN channel. These information is
 # more suited to be used for downstream, downstream-iso and zstream builds.

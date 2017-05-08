@@ -723,6 +723,8 @@ class Settings(object):
         self.reader = None
         self.rhel6_repo = None
         self.rhel7_repo = None
+        self.rhel7_os = None
+        self.rhel6_os = None
         self.sattools_repo = None
         self.screenshots_path = None
         self.saucelabs_key = None
@@ -808,6 +810,8 @@ class Settings(object):
         self.project = self.reader.get('robottelo', 'project', 'sat')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
+        self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
+        self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.sattools_repo = self.reader.get(
             'robottelo', 'sattools_repo', None)
         self.screenshots_path = self.reader.get(
