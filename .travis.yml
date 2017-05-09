@@ -6,6 +6,7 @@ python:
     - "3.5"
     - "3.6"
 install:
+    - pip install -U pip
     - pip install -r requirements.txt coveralls flake8 sphinx tox-travis manage
 script:
     - flake8 .
