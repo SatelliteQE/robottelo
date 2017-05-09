@@ -10,7 +10,7 @@ paramiko==2.1.2
 pygal==2.3.1
 pytest==3.0.7
 pytest_services==1.1.14
-requests==2.13.0
+requests==2.14.0
 selenium==2.48.0  # pyup: ignore
 six==1.10.0
 testimony==1.5.0
