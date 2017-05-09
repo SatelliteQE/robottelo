@@ -173,6 +173,7 @@ class Hosts(Base):
             [{'organization': 'My_org01'}]
             [{'command': 'ls'}]
         """
+        self.navigate_to_entity()
         for host in hosts:
             strategy, value = locators['host.checkbox']
             self.click((strategy, value % host))
@@ -194,6 +195,12 @@ class Hosts(Base):
                         parameter['command']
                     )
                     self.click(common_locators['submit'])
+                if action == 'Delete Hosts':
+                    self.click(locators['host.bulk_submit'])
+                    return self.wait_until_element(
+                        locators['task.finished_state'],
+                        timeout=parameter['timeout'],
+                    )
 
     def fetch_host_parameters(self, name, domain_name, parameters_list):
         """Fetches parameter values of specified host

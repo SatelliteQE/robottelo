@@ -1152,6 +1152,9 @@ locators = LocatorDict({
         By.XPATH, "//span[text()='Result:']/following-sibling::span"),
     "task.selected.summary": (
         By.XPATH, "//span[text()='Errors:']/following-sibling::span/pre"),
+    "task.finished_state": (
+        By.XPATH,
+        "//div[contains(@class, 'progress') and contains(@style, '100.0%')]"),
 
     # Operating system (OS)
     "operatingsys.new": (
