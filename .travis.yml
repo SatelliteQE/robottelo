@@ -4,6 +4,7 @@ env:
     - TOXENV=py27
     - TOXENV=py34
 install:
+    - pip install -U pip
     - pip install -r requirements.txt
 script:
     - flake8 .
