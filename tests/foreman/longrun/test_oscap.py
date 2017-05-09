@@ -242,7 +242,6 @@ class OpenScapTestCase(UITestCase):
                     vm.install_katello_ca()
                     vm.register_contenthost(self.org_name, self.ak_name)
                     vm.configure_puppet(value['rhel_repo'])
-                    session.nav.go_to_hosts()
                     set_context(session, org=ANY_CONTEXT['org'])
                     self.hosts.update_host_bulkactions(
                         [host],
