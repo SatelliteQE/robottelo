@@ -306,13 +306,15 @@ class DockerSettings(FeatureSettings):
     """Docker settings definitions."""
     def __init__(self, *args, **kwargs):
         super(DockerSettings, self).__init__(*args, **kwargs)
-        self.unix_socket = None
+        self.docker_image = None
         self.external_url = None
         self.external_registry_1 = None
         self.external_registry_2 = None
+        self.unix_socket = None
 
     def read(self, reader):
         """Read docker settings."""
+        self.docker_image = reader.get('docker', 'docker_image')
         self.unix_socket = reader.get(
             'docker', 'unix_socket', False, bool)
         self.external_url = reader.get('docker', 'external_url')
@@ -322,10 +324,9 @@ class DockerSettings(FeatureSettings):
     def validate(self):
         """Validate docker settings."""
         validation_errors = []
-        if not any((self.unix_socket, self.external_url)):
+        if not self.docker_image:
             validation_errors.append(
-                'Either [docker] unix_socket or external_url options must '
-                'be provided or enabled.')
+                '[docker] docker_image option must be provided or enabled.')
         if not all((self.external_registry_1, self.external_registry_2)):
             validation_errors.append(
                 'Both [docker] external_registry_1 and external_registry_2 '
