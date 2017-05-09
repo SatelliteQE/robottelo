@@ -498,6 +498,7 @@ class RemoteExecutionTestCase(UITestCase):
         client_datetime = self.browser.execute_script(script)
         return datetime.strptime(client_datetime, '%Y-%m-%d : %H:%M')
 
+    @stubbed()
     @tier2
     def test_positive_run_default_job_template(self):
         """Run a job template against a single host
@@ -539,210 +540,16 @@ class RemoteExecutionTestCase(UITestCase):
                 )
                 # get job invocation id from the current url
                 invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
-                self.assertTrue(
-                        status,
-                        'host output: {0}'.format(
+                try:
+                    self.assertTrue(status)
+                except AssertionError:
+                    result = 'host output: {0}'.format(
                             ' '.join(JobInvocation.get_output({
                                 'id': invocation_id,
                                 'host': client.hostname})
                             )
                         )
-                    )
-
-    @tier3
-    def test_positive_run_custom_job_template(self):
-        """Run a job template against a single host
-
-        :id: 89b75feb-afff-44f2-a2bd-2ffe74b63ec7
-
-        :Setup: Create a working job template.
-
-        :Steps:
-
-            1. Navigate to an individual host and click Run Job
-            2. Select the job and appropriate template
-            3. Run the job
-
-        :expectedresults: Verify the job was successfully ran against the host
-
-        :CaseLevel: System
-        """
-        jobs_template_name = gen_string('alpha')
-        with VirtualMachine(
-                distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge,
-                provisioning_server=settings.compute_resources.libvirt_hostname
-                ) as client:
-            client.install_katello_ca()
-            client.register_contenthost(self.organization.label, lce='Library')
-            self.assertTrue(client.subscribed)
-            add_remote_execution_ssh_key(client.ip_addr)
-            Host.update({
-                u'name': client.hostname,
-                u'subnet-id': self.new_sub['id'],
-            })
-            with Session(self) as session:
-                set_context(session, org=self.organization.name)
-                make_job_template(
-                    session,
-                    name=jobs_template_name,
-                    template_type='input',
-                    template_content='<%= input("command") %>',
-                    provider_type='SSH',
-                )
-                self.assertIsNotNone(
-                    self.jobtemplate.search(jobs_template_name))
-                self.jobtemplate.add_input(
-                    jobs_template_name, 'command', required=True)
-                self.hosts.click(self.hosts.search(client.hostname))
-                status = self.job.run(
-                    job_category='Miscellaneous',
-                    job_template=jobs_template_name,
-                    options_list=[{'name': 'command', 'value': 'ls'}]
-                )
-                # get job invocation id from the current url
-                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
-                self.assertTrue(
-                        status,
-                        'host output: {0}'.format(
-                            ' '.join(JobInvocation.get_output({
-                                'id': invocation_id,
-                                'host': client.hostname})
-                            )
-                        )
-                    )
-
-    @tier3
-    @upgrade
-    def test_positive_run_job_template_multiple_hosts(self):
-        """Run a job template against multiple hosts
-
-        :id: 7f1981cb-afcc-49b7-a565-7fef9aa8ddde
-
-        :Setup: Create a working job template.
-
-        :Steps:
-
-            1. Navigate to the hosts page and select at least two hosts
-            2. Click the "Select Action"
-            3. Select the job and appropriate template
-            4. Run the job
-
-        :expectedresults: Verify the job was successfully ran against the hosts
-
-        :CaseLevel: System
-        """
-        with VirtualMachine(
-                distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge,
-                provisioning_server=settings.compute_resources.libvirt_hostname
-             ) as client, VirtualMachine(
-                distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge,
-                provisioning_server=settings.compute_resources.libvirt_hostname
-             ) as client2:
-                for vm in client, client2:
-                    vm.install_katello_ca()
-                    vm.register_contenthost(
-                        self.organization.label, lce='Library')
-                    self.assertTrue(vm.subscribed)
-                    add_remote_execution_ssh_key(vm.ip_addr)
-                    Host.update({
-                        u'name': vm.hostname,
-                        u'subnet-id': self.new_sub['id'],
-                    })
-                with Session(self) as session:
-                    set_context(session, org=self.organization.name)
-                    self.hosts.update_host_bulkactions(
-                        [client.hostname, client2.hostname],
-                        action='Run Job',
-                        parameters_list=[{'command': 'ls'}],
-                    )
-                    strategy, value = locators['job_invocation.status']
-                    if self.job.wait_until_element(
-                            (strategy, value % 'succeeded'), 240) is not None:
-                        status = True
-                    else:
-                        status = False
-                    # get job invocation id from the current url
-                    invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
-                    self.assertTrue(status, 'host output: {0}'.format(
-                        ' '.join(JobInvocation.get_output({
-                             'id': invocation_id,
-                             'host': client.hostname
-                         }))))
-
-    @tier3
-    def test_positive_run_scheduled_job_template(self):
-        """Schedule a job to be ran against a host
-
-        :id: 35c8b68e-1ac5-4c33-ad62-a939b87f76fb
-
-        :Setup: Use pre-defined job template.
-
-        :Steps:
-
-            1. Navigate to an individual host and click Run Job
-            2. Select the job and appropriate template
-            3. Select "Schedule Future Job"
-            4. Enter a desired time for the job to run
-            5. Click submit
-
-        :expectedresults:
-
-            1. Verify the job was not immediately ran
-            2. Verify the job was successfully ran after the designated time
-
-        :CaseLevel: System
-        """
-        with VirtualMachine(
-                distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge,
-                provisioning_server=settings.compute_resources.libvirt_hostname
-                ) as client:
-            client.install_katello_ca()
-            client.register_contenthost(self.organization.label, lce='Library')
-            self.assertTrue(client.subscribed)
-            add_remote_execution_ssh_key(client.ip_addr)
-            Host.update({
-                u'name': client.hostname,
-                u'subnet-id': self.new_sub['id'],
-            })
-            with Session(self) as session:
-                set_context(session, org=self.organization.name)
-                self.hosts.click(self.hosts.search(client.hostname))
-                plan_time = (
-                        self.get_client_datetime() + timedelta(seconds=90)
-                        ).strftime("%Y-%m-%d %H:%M")
-                status = self.job.run(
-                    job_category='Commands',
-                    job_template='Run Command - SSH Default',
-                    options_list=[{'name': 'command', 'value': 'ls'}],
-                    schedule='future',
-                    schedule_options=[
-                        {'name': 'start_at', 'value': plan_time}],
-                    result='queued'
-                )
-                self.assertTrue(status)
-                strategy, value = locators['job_invocation.status']
-                self.job.wait_until_element_is_not_visible(
-                    (strategy, value % 'queued'), 95)
-                if self.job.wait_until_element(
-                        (strategy, value % 'succeeded'), 180) is not None:
-                    status2 = True
-                else:
-                    status2 = False
-                # get job invocation id from the current url
-                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
-                self.assertTrue(
-                        status2,
-                        'host output: {0}'.format(
-                            ' '.join(JobInvocation.get_output({
-                                'id': invocation_id,
-                                'host': client.hostname})
-                            )
-                        )
-                    )
+                    raise AssertionError(result)
 
     @stubbed()
     @tier3
@@ -823,3 +630,287 @@ class RemoteExecutionTestCase(UITestCase):
 
         :CaseLevel: System
         """
+
+    @tier2
+    def test_positive_run_default_job_template_by_ip(self):
+        """Run a job template on a host connected by ip
+
+        :id: 9a90aa9a-00b4-460e-b7e6-250360ee8e4d
+
+        :Setup: Use pre-defined job template.
+
+        :Steps:
+
+            1. Set remote_execution_connect_by_ip on host to true
+            2. Navigate to an individual host and click Run Job
+            3. Select the job and appropriate template
+            4. Run the job
+
+        :expectedresults: Verify the job was successfully ran against the host
+
+        :CaseLevel: Integration
+        """
+        with VirtualMachine(
+              distro=DISTRO_RHEL7,
+              provisioning_server=settings.compute_resources.libvirt_hostname,
+              bridge=settings.vlan_networking.bridge,
+              ) as client:
+            client.install_katello_ca()
+            client.register_contenthost(self.organization.label, lce='Library')
+            self.assertTrue(client.subscribed)
+            add_remote_execution_ssh_key(client.ip_addr)
+            Host.update({
+                'name': client.hostname,
+                'subnet-id': self.new_sub['id'],
+            })
+            # connect to host by ip
+            Host.set_parameter({
+                'host': client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            })
+            with Session(self.browser) as session:
+                set_context(session, org=self.organization.name)
+                self.hosts.click(self.hosts.search(client.hostname))
+                status = self.job.run(
+                    job_category='Commands',
+                    job_template='Run Command - SSH Default',
+                    options_list=[{'name': 'command', 'value': 'ls'}]
+                )
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                try:
+                    self.assertTrue(status)
+                except AssertionError:
+                    result = 'host output: {0}'.format(
+                            ' '.join(JobInvocation.get_output({
+                                'id': invocation_id,
+                                'host': client.hostname})
+                            )
+                        )
+                    raise AssertionError(result)
+
+    @tier3
+    def test_positive_run_custom_job_template_by_ip(self):
+        """Run a job template on a host connected by ip
+
+        :id: e283ae09-8b14-4ce1-9a76-c1bbd511d58c
+
+        :Setup: Create a working job template.
+
+        :Steps:
+
+            1. Set remote_execution_connect_by_ip on host to true
+            2. Navigate to an individual host and click Run Job
+            3. Select the job and appropriate template
+            4. Run the job
+
+        :expectedresults: Verify the job was successfully ran against the host
+
+        :CaseLevel: System
+        """
+        jobs_template_name = gen_string('alpha')
+        with VirtualMachine(
+              distro=DISTRO_RHEL7,
+              provisioning_server=settings.compute_resources.libvirt_hostname,
+              bridge=settings.vlan_networking.bridge,
+              ) as client:
+            client.install_katello_ca()
+            client.register_contenthost(self.organization.label, lce='Library')
+            self.assertTrue(client.subscribed)
+            add_remote_execution_ssh_key(client.ip_addr)
+            Host.update({
+                'name': client.hostname,
+                'subnet-id': self.new_sub['id'],
+            })
+            # connect to host by ip
+            Host.set_parameter({
+                'host': client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            })
+            with Session(self.browser) as session:
+                set_context(session, org=self.organization.name)
+                make_job_template(
+                    session,
+                    name=jobs_template_name,
+                    template_type='input',
+                    template_content='<%= input("command") %>',
+                    provider_type='SSH',
+                )
+                self.assertIsNotNone(
+                    self.jobtemplate.search(jobs_template_name))
+                self.jobtemplate.add_input(
+                    jobs_template_name, 'command', required=True)
+                self.hosts.click(self.hosts.search(client.hostname))
+                status = self.job.run(
+                    job_category='Miscellaneous',
+                    job_template=jobs_template_name,
+                    options_list=[{'name': 'command', 'value': 'ls'}]
+                )
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                try:
+                    self.assertTrue(status)
+                except AssertionError:
+                    result = 'host output: {0}'.format(
+                            ' '.join(JobInvocation.get_output({
+                                'id': invocation_id,
+                                'host': client.hostname})
+                            )
+                        )
+                    raise AssertionError(result)
+
+    @upgrade
+    @tier3
+    def test_positive_run_job_template_multiple_hosts_by_ip(self):
+        """Run a job template against multiple hosts by ip
+
+        :id: c4439ec0-bb80-47f6-bc31-fa7193bfbeeb
+
+        :Setup: Create a working job template.
+
+        :Steps:
+
+            1. Set remote_execution_connect_by_ip on hosts to true
+            2. Navigate to the hosts page and select at least two hosts
+            3. Click the "Select Action"
+            4. Select the job and appropriate template
+            5. Run the job
+
+        :expectedresults: Verify the job was successfully ran against the hosts
+
+        :CaseLevel: System
+        """
+        prov_server = settings.compute_resources.libvirt_hostname
+        with VirtualMachine(
+              distro=DISTRO_RHEL7,
+              provisioning_server=prov_server,
+              bridge=settings.vlan_networking.bridge,
+              ) as client:
+            with VirtualMachine(
+                  distro=DISTRO_RHEL7,
+                  provisioning_server=prov_server,
+                  bridge=settings.vlan_networking.bridge,
+                  ) as client2:
+                for vm in client, client2:
+                    vm.install_katello_ca()
+                    vm.register_contenthost(
+                        self.organization.label, lce='Library')
+                    self.assertTrue(vm.subscribed)
+                    add_remote_execution_ssh_key(vm.ip_addr)
+                    Host.update({
+                        'name': vm.hostname,
+                        'subnet-id': self.new_sub['id'],
+                    })
+                    # connect to host by ip
+                    Host.set_parameter({
+                        'host': vm.hostname,
+                        'name': 'remote_execution_connect_by_ip',
+                        'value': 'True',
+                    })
+                with Session(self.browser) as session:
+                    set_context(session, org=self.organization.name)
+                    self.hosts.update_host_bulkactions(
+                        [client.hostname, client2.hostname],
+                        action='Run Job',
+                        parameters_list=[{'command': 'ls'}],
+                    )
+                    strategy, value = locators['job_invocation.status']
+                    if self.job.wait_until_element(
+                            (strategy, value % 'succeeded'), 240) is not None:
+                        status = True
+                    else:
+                        status = False
+                    # get job invocation id from the current url
+                    invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                    try:
+                        self.assertTrue(status)
+                    except AssertionError:
+                        result = 'host output: {0}'.format(
+                                ' '.join(JobInvocation.get_output({
+                                     'id': invocation_id,
+                                     'host': client.hostname})
+                                )
+                            )
+                        raise AssertionError(result)
+
+    @tier3
+    def test_positive_run_scheduled_job_template_by_ip(self):
+        """Schedule a job to be ran against a host by ip
+
+        :id: 4387bed9-969d-45fb-80c2-b0905bb7f1bd
+
+        :Setup: Use pre-defined job template.
+
+        :Steps:
+
+            1. Set remote_execution_connect_by_ip on host to true
+            2. Navigate to an individual host and click Run Job
+            3. Select the job and appropriate template
+            4. Select "Schedule Future Job"
+            5. Enter a desired time for the job to run
+            6. Click submit
+
+        :expectedresults:
+
+            1. Verify the job was not immediately ran
+            2. Verify the job was successfully ran after the designated time
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(
+              distro=DISTRO_RHEL7,
+              provisioning_server=settings.compute_resources.libvirt_hostname,
+              bridge=settings.vlan_networking.bridge,
+              ) as client:
+            client.install_katello_ca()
+            client.register_contenthost(self.organization.label, lce='Library')
+            self.assertTrue(client.subscribed)
+            add_remote_execution_ssh_key(client.ip_addr)
+            Host.update({
+                'name': client.hostname,
+                'subnet-id': self.new_sub['id'],
+            })
+            # connect to host by ip
+            Host.set_parameter({
+                'host': client.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            })
+            with Session(self.browser) as session:
+                set_context(session, org=self.organization.name)
+                self.hosts.click(self.hosts.search(client.hostname))
+                plan_time = (
+                        self.get_client_datetime() + timedelta(seconds=90)
+                        ).strftime("%Y-%m-%d %H:%M")
+                status = self.job.run(
+                    job_category='Commands',
+                    job_template='Run Command - SSH Default',
+                    options_list=[{'name': 'command', 'value': 'ls'}],
+                    schedule='future',
+                    schedule_options=[
+                        {'name': 'start_at', 'value': plan_time}],
+                    result='queued'
+                )
+                self.assertTrue(status)
+                strategy, value = locators['job_invocation.status']
+                self.job.wait_until_element_is_not_visible(
+                    (strategy, value % 'queued'), 95)
+                if self.job.wait_until_element(
+                        (strategy, value % 'succeeded'), 180) is not None:
+                    status2 = True
+                else:
+                    status2 = False
+                # get job invocation id from the current url
+                invocation_id = self.browser.current_url.rsplit('/', 1)[-1]
+                try:
+                    self.assertTrue(status2)
+                except AssertionError:
+                    result = 'host output: {0}'.format(
+                            ' '.join(JobInvocation.get_output({
+                                'id': invocation_id,
+                                'host': client.hostname})
+                            )
+                        )
+                    raise AssertionError(result)

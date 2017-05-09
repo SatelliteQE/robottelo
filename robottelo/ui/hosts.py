@@ -275,7 +275,7 @@ class Hosts(Base):
                         parameter['organization']
                     )
                     self.click(locators['host.bulk_submit'])
-                if action == 'Run Job':
+                if action == 'Schedule Remote Job':
                     self.assign_value(
                         locators['job_invocation.command'],
                         parameter['command']

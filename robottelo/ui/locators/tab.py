@@ -386,7 +386,9 @@ tab_locators = LocatorDict({
         "//a[@data-toggle='tab' and contains(@href, 'Provisioning')]"),
     "settings.tab_email": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Email')]"),
-
+    "settings.tab_remoteexecution": (
+         By.XPATH,
+         "//a[@data-toggle='tab' and contains(@href, 'RemoteExecution')]"),
     "puppetclass.parameters": (
         By.XPATH, "//a[contains(@href,'class_param')]"),
 
