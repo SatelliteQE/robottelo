@@ -5133,6 +5133,12 @@
               "value": "DESCRIPTION"
             },
             {
+              "help": "Force yum metadata regeneration on the repositories in the content view version One of true/false, yes/no, 1/0.",
+              "name": "force-yum-metadata-regeneration",
+              "shortname": null,
+              "value": "FORCE_YUM_METADATA_REGENERATION"
+            },
+            {
               "help": "Content view identifier",
               "name": "id",
               "shortname": null,
@@ -6265,10 +6271,28 @@
                   "value": "CONTENT_VIEW_ID"
                 },
                 {
+                  "help": "The description for the content view version promotion",
+                  "name": "description",
+                  "shortname": null,
+                  "value": "DESCRIPTION"
+                },
+                {
+                  "help": "Identifiers for Lifecycle Environment Comma separated list of values.",
+                  "name": "environment-ids",
+                  "shortname": null,
+                  "value": "ENVIRONMENT_IDS"
+                },
+                {
                   "help": "force content view promotion and bypass lifecycle environment restriction",
                   "name": "force",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Force yum metadata regeneration on the repositories in the content view version One of true/false, yes/no, 1/0.",
+                  "name": "force-yum-metadata-regeneration",
+                  "shortname": null,
+                  "value": "FORCE_YUM_METADATA_REGENERATION"
                 },
                 {
                   "help": "Environment name from where to promote its version from (if version is unknown)",
@@ -23963,10 +23987,22 @@
               "value": "PRODUCT_ID"
             },
             {
+              "help": "Force sync even if no upstream changes are detected. Only used with yum repositories. One of true/false, yes/no, 1/0.",
+              "name": "skip-metadata-check",
+              "shortname": null,
+              "value": "SKIP_METADATA_CHECK"
+            },
+            {
               "help": "temporarily override feed URL for sync",
               "name": "source-url",
               "shortname": null,
               "value": "SOURCE_URL"
+            },
+            {
+              "help": "Force a sync and validate the checksums of all content. Only used with yum repositories. One of true/false, yes/no, 1/0.",
+              "name": "validate-contents",
+              "shortname": null,
+              "value": "VALIDATE_CONTENTS"
             },
             {
               "help": "print help",
