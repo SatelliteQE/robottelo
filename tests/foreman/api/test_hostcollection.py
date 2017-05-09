@@ -14,11 +14,13 @@
 
 @Upstream: No
 """
+from fauxfactory import gen_string
 from nailgun import entities
 from random import choice
 from requests.exceptions import HTTPError
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.datafactory import invalid_values_list, valid_data_list
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 
@@ -140,7 +142,6 @@ class HostCollectionTestCase(APITestCase):
                 self.assertEqual(
                     host_collection.unlimited_hosts, unlimited)
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_create_with_host(self):
         """Create a host collection that contains a host.
@@ -156,7 +157,6 @@ class HostCollectionTestCase(APITestCase):
         ).create()
         self.assertEqual(len(host_collection.host), 1)
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_create_with_hosts(self):
         """Create a host collection that contains hosts.
@@ -172,7 +172,6 @@ class HostCollectionTestCase(APITestCase):
         ).create()
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier2
     def test_positive_add_host(self):
         """Add a host to host collection.
@@ -190,7 +189,48 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), 1)
 
-    @skip_if_bug_open('bugzilla', 1325989)
+    @tier2
+    def test_positive_add_host_by_non_admin(self):
+        """Add a host to host collection using non admin user with all
+        necessary permissions.
+
+        @id: b70be5c9-c16c-495a-8b33-cc4eda3ed0b9
+
+        @expectedresults: Host was added to the host collection.
+
+        @BZ: 1390919
+
+        @CaseLevel: Integration
+        """
+        login = gen_string('alpha')
+        password = gen_string('alpha')
+        role = entities.Role().create()
+        for res_type in ['Host', 'Katello::HostCollection']:
+            permission = entities.Permission(resource_type=res_type).search()
+            entities.Filter(
+                organization=[self.org],
+                permission=permission,
+                role=role
+            ).create()
+        entities.User(
+            login=login,
+            password=password,
+            role=[role],
+            admin=False
+        ).create()
+        host_collection = entities.HostCollection(
+            organization=self.org,
+        ).create()
+        self.assertEqual(len(host_collection.host), 0)
+        cfg = get_nailgun_config()
+        cfg.auth = (login, password)
+        host_collection = entities.HostCollection(
+            cfg,
+            id=host_collection.id,
+            host=[self.hosts[0]],
+        ).update(['host'])
+        self.assertEqual(len(host_collection.host), 1)
+
     @tier2
     def test_positive_add_hosts(self):
         """Add hosts to host collection.
@@ -208,7 +248,6 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_read_host_ids(self):
         """Read a host collection and look at the ``host_ids`` field.
