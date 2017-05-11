@@ -43,7 +43,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     skip_if_not_set,
     tier1,
     tier2,
@@ -249,11 +249,11 @@ class RemoteExecutionTestCase(CLITestCase):
             u'organization-ids': self.org["id"],
             u'location-ids': 2
            }
-        if not bz_bug_is_open(1328322):
+        if not affected_by_bz(1328322):
             subnet_options[u'remote-execution-proxy-id'] = 1
         new_sub = make_subnet(subnet_options)
         # add rex proxy to subnet, default is internal proxy (id 1)
-        if bz_bug_is_open(1328322):
+        if affected_by_bz(1328322):
             subnet = entities.Subnet(id=new_sub["id"])
             subnet.remote_execution_proxy_ids = [1]
             subnet.update(["remote_execution_proxy_ids"])

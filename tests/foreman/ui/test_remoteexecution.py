@@ -26,7 +26,7 @@ from robottelo.cli.factory import make_subnet
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.host import Host
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     stubbed,
     tier1,
     tier2,
@@ -396,10 +396,10 @@ class RemoteExecutionTestCase(UITestCase):
             u'organizations': cls.organization.name,
             u'location-ids': 2
            }
-        if not bz_bug_is_open(1328322):
+        if not affected_by_bz(1328322):
             subnet_options[u'remote-execution-proxy-id'] = 1
         cls.new_sub = make_subnet(subnet_options)
-        if bz_bug_is_open(1328322):
+        if affected_by_bz(1328322):
             subnet = entities.Subnet(id=cls.new_sub["id"])
             subnet.remote_execution_proxy_ids = [1]
             subnet.update(["remote_execution_proxy_ids"])

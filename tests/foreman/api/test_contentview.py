@@ -31,7 +31,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -97,7 +97,7 @@ class ContentViewTestCase(APITestCase):
             host.content_facet_attributes['lifecycle_environment_id'],
             lc_env.id
         )
-        if not bz_bug_is_open(1223494):
+        if not affected_by_bz(1223494):
             self.assertEqual(host.organization.id, org.id)
 
     @tier2

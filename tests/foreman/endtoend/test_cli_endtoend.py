@@ -49,7 +49,7 @@ from robottelo.constants import (
 )
 from robottelo.config import settings
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     setting_is_set,
     skip_if_not_set,
 )
@@ -355,7 +355,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             u'name': content_host_name,
             u'organization-id': org['id'],
         })
-        if bz_bug_is_open(1328202):
+        if affected_by_bz(1328202):
             results = ContentHost.with_user(
                 user['login'],
                 user['password']
@@ -421,7 +421,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'subnet-id': subnet['id'],
             }
         )
-        if not bz_bug_is_open('1326101'):
+        if not affected_by_bz('1326101'):
             Org.with_user(
                 user['login'],
                 user['password']

@@ -20,7 +20,7 @@ from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_only_on,
     skip_if_bug_open,
     tier1,
@@ -233,7 +233,7 @@ class EntityTestCase(APITestCase):
                 # hierarchy needs fixing (SatelliteQE/nailgun#42), so we just
                 # comment it out above.
                 if (entity_cls in BZ_1118015_ENTITIES and
-                        bz_bug_is_open(1118015)):
+                        affected_by_bz(1118015)):
                     self.skipTest('Bugzilla bug 1118015 is open.')
 
                 response = entity_cls().create_raw()
@@ -314,7 +314,7 @@ class EntityIdTestCase(APITestCase):
                 self.logger.info('test_put_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 if (entity_cls in BZ_1154156_ENTITIES and
-                        bz_bug_is_open(1154156)):
+                        affected_by_bz(1154156)):
                     self.skipTest("Bugzilla bug 1154156 is open.")
 
                 # Create an entity
@@ -354,7 +354,7 @@ class EntityIdTestCase(APITestCase):
                 self.logger.info('test_delete_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 if (entity_cls == entities.ConfigTemplate and
-                        bz_bug_is_open(1096333)):
+                        affected_by_bz(1096333)):
                     self.skipTest('Cannot delete config templates.')
                 try:
                     entity = entity_cls(id=entity_cls().create_json()['id'])
@@ -362,7 +362,7 @@ class EntityIdTestCase(APITestCase):
                     self.fail(err)
                 response = entity.delete_raw()
                 if (entity_cls in BZ_1187366_ENTITIES and
-                        bz_bug_is_open(1187366)):
+                        affected_by_bz(1187366)):
                     self.skipTest('BZ 1187366 is open.')
                 self.assertIn(
                     response.status_code,
@@ -408,7 +408,7 @@ class DoubleCheckTestCase(APITestCase):
                 self.logger.info('test_put_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 if (entity_cls in BZ_1154156_ENTITIES and
-                        bz_bug_is_open(1154156)):
+                        affected_by_bz(1154156)):
                     self.skipTest("Bugzilla bug 1154156 is open.")
 
                 # Create an entity.
@@ -450,7 +450,7 @@ class DoubleCheckTestCase(APITestCase):
                 self.logger.info('test_post_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 if (entity_cls in BZ_1154156_ENTITIES and
-                        bz_bug_is_open(1154156)):
+                        affected_by_bz(1154156)):
                     self.skipTest('Bugzilla bug 1154156 is open.')
 
                 entity = entity_cls()
@@ -481,10 +481,10 @@ class DoubleCheckTestCase(APITestCase):
                 self.logger.info('test_delete_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
                 if (entity_cls is entities.ConfigTemplate and
-                        bz_bug_is_open(1096333)):
+                        affected_by_bz(1096333)):
                     self.skipTest('BZ 1096333: Cannot delete config templates')
                 if (entity_cls in BZ_1187366_ENTITIES and
-                        bz_bug_is_open(1187366)):
+                        affected_by_bz(1187366)):
                     self.skipTest('BZ 1187366: Cannot delete orgs or envs.')
 
                 # Create an entity, delete it and get it.

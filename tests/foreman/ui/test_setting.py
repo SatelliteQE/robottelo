@@ -21,7 +21,7 @@ from functools import wraps
 from random import choice, randint
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_only_on,
     skip_if_bug_open,
     tier1,
@@ -41,7 +41,7 @@ def pick_one_if_bz_open(func):
     def func_wrapper(*args, **kwargs):
         """Check whether defect is open and make corresponding decision"""
         data_set = func(*args, **kwargs)
-        if bz_bug_is_open(1335799):
+        if affected_by_bz(1335799):
             data_set = [choice(data_set)]
         return data_set
     return func_wrapper

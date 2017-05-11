@@ -23,7 +23,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
+from robottelo.decorators import affected_by_bz, run_only_on, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_subnet
@@ -84,7 +84,7 @@ class SubnetTestCase(UITestCase):
             for test_data in valid_long_names():
                 with self.subTest(test_data):
                     bug_id = test_data.pop('bz-bug', None)
-                    if bug_id is not None and bz_bug_is_open(bug_id):
+                    if bug_id is not None and affected_by_bz(bug_id):
                         self.skipTest(
                             'Bugzilla bug {0} is open.'.format(bug_id)
                         )

@@ -22,7 +22,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import bz_bug_is_open, tier1
+from robottelo.decorators import affected_by_bz, tier1
 from robottelo.test import APITestCase
 
 
@@ -41,7 +41,7 @@ class RoleTestCase(APITestCase):
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
-                if bz_bug_is_open(1112657) and name in [
+                if affected_by_bz(1112657) and name in [
                         'cjk', 'latin1', 'utf8']:
                     self.skipTest('Bugzilla bug 1112657 is open.')
                 self.assertEqual(entities.Role(name=name).create().name, name)
@@ -56,7 +56,7 @@ class RoleTestCase(APITestCase):
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
-                if bz_bug_is_open(1112657) and name in [
+                if affected_by_bz(1112657) and name in [
                         'cjk', 'latin1', 'utf8']:
                     self.skipTest('Bugzilla bug 1112657 is open.')
                 role = entities.Role(name=name).create()
@@ -75,7 +75,7 @@ class RoleTestCase(APITestCase):
         """
         for name in generate_strings_list(exclude_types=['html']):
             with self.subTest(name):
-                if bz_bug_is_open(1112657) and name in [
+                if affected_by_bz(1112657) and name in [
                         'cjk', 'latin1', 'utf8']:
                     self.skipTest('Bugzilla bug 1112657 is open.')
                 role = entities.Role().create()
