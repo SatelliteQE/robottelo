@@ -433,6 +433,8 @@ FAKE_1_YUM_REPO_RPMS = [
 ]
 FAKE_0_PUPPET_MODULE = 'httpd'
 
+PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
+
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
 PERMISSIONS = {

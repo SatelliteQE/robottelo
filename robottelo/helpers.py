@@ -15,7 +15,11 @@ from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
-from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+from robottelo.constants import (
+    PULP_PUBLISHED_YUM_REPOS_PATH,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
+)
 
 # This conditional is here to centralize use of lru_cache and urljoin
 if six.PY3:  # pragma: no cover
@@ -475,14 +479,13 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None,
     if not any([lce, cvv]):
         raise ValueError('Either `lce` or `cvv` is required')
 
-    base_path = '/var/lib/pulp/published/yum/http/repos'
     if lce:
         repo_path = '{}/{}/{}/custom/{}/{}'.format(org, lce, cv, prod, repo)
     elif cvv:
         repo_path = '{}/content_views/{}/{}/custom/{}/{}'.format(
             org, cv, cvv, prod, repo)
 
-    return os.path.join(base_path, repo_path)
+    return os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_path)
 
 
 def create_repo(repo_fetch_url, packages, repo_name, hostname=None):
@@ -498,8 +501,7 @@ def create_repo(repo_fetch_url, packages, repo_name, hostname=None):
     :return: URL where the repository can be accessed
     :rtype: str
     """
-    base_path = '/var/lib/pulp/published/yum/http/repos'
-    repo_path = os.path.join(base_path, repo_name)
+    repo_path = os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_name)
     result = ssh.command(
         'sudo -u apache mkdir -p {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
