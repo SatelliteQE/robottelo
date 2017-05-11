@@ -981,9 +981,10 @@ class ActivationKeyTestCase(UITestCase):
                 vm.install_katello_ca()
                 vm.register_contenthost(self.organization.label, key_name)
                 self.assertTrue(vm.subscribed)
-                name = self.activationkey.fetch_associated_content_hosts(
-                    key_name)[0]
-                self.assertEqual(vm.hostname, name)
+                hostnames = self.activationkey.fetch_associated_content_hosts(
+                    key_name)
+                self.assertEqual(len(hostnames), 1)
+                self.assertEqual(vm.hostname, hostnames[0])
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -1256,9 +1257,10 @@ class ActivationKeyTestCase(UITestCase):
                 self.assertTrue(vm.subscribed)
                 # Assert the content-host association with activation-key
                 for key_name in [key_1_name, key_2_name]:
-                    name = self.activationkey.fetch_associated_content_hosts(
-                        key_name)[0]
-                    self.assertEqual(vm.hostname, name)
+                    names = self.activationkey.fetch_associated_content_hosts(
+                        key_name)
+                    self.assertEqual(len(names), 1)
+                    self.assertEqual(vm.hostname, names[0])
 
     @run_only_on('sat')
     @stubbed()
