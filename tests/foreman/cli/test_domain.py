@@ -24,10 +24,11 @@ from robottelo.datafactory import (
     filtered_datapoint, invalid_id_list, valid_data_list
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
+    skip_if_bug_open,
     tier1,
     tier2,
-    bz_bug_is_open,
 )
 from robottelo.test import CLITestCase
 
@@ -190,15 +191,16 @@ class DomainTestCase(CLITestCase):
                     make_domain(options)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1398392)
     @run_only_on('sat')
     def test_negative_create_with_invalid_dns_id(self):
         """Attempt to register a domain with invalid id
 
-        :id: 4aa52167-368a-41ad-87b7-41d468ad41a8
+        @id: 4aa52167-368a-41ad-87b7-41d468ad41a8
 
-        :expectedresults: Error is raised and user friendly message returned
+        @expectedresults: Error is raised and user friendly message returned
 
-        :BZ: 1398392
+        @BZ: 1398392
 
         :CaseLevel: Integration
         """
@@ -207,14 +209,7 @@ class DomainTestCase(CLITestCase):
                 'name': gen_string('alpha'),
                 'dns-id': -1,
             })
-        valid_messages = ['Invalid smart-proxy id', 'Invalid capsule id']
-        exception_string = str(context.exception)
-        messages = [
-            message
-            for message in valid_messages
-            if message in exception_string
-        ]
-        self.assertGreater(len(messages), 0)
+        self.assertIn('Invalid smart-proxy id', str(context.exception))
 
     @tier1
     @run_only_on('sat')
