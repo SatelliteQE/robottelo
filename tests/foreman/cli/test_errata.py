@@ -54,7 +54,7 @@ from robottelo.constants import (
     PRDS,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     stubbed,
     tier3,
     run_in_one_thread,
@@ -1549,7 +1549,7 @@ class ErrataTestCase(CLITestCase):
             context.exception.stderr
         )
         # try to get the erratum products list by organization id only
-        if not bz_bug_is_open('1403947'):
+        if not affected_by_bz('1403947'):
             # ensure that all products erratum are accessible by admin user
             admin_org_erratum_info_list = Erratum.list({
                 'organization-id': org['id']})

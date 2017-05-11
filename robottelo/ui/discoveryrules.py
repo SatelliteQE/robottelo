@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Discovery Rules from UI."""
 from robottelo.constants import FILTER
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -68,7 +68,7 @@ class DiscoveryRules(Base):
         """Searches existing discovery rule from UI. It is necessary to use
         custom search as we don't have both search bar and search button there.
         """
-        if not bz_bug_is_open(1233135):
+        if not affected_by_bz(1233135):
             raise DeprecationWarning(
                 'Search box is implemented. Use generic search method'
             )

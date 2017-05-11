@@ -4,7 +4,7 @@
 import time
 
 from robottelo.constants import FILTER_ERRATA_DATE, FILTER_ERRATA_TYPE
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -589,7 +589,7 @@ class ContentViews(Base):
         """Search for version in content view"""
         self.search_and_click(name)
         self.click(tab_locators['contentviews.tab_versions'])
-        if not bz_bug_is_open(1400535):
+        if not affected_by_bz(1400535):
             self.assign_value(
                 common_locators['kt_table_search'], version_name)
             self.click(common_locators['kt_table_search_button'])

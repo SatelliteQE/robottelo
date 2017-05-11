@@ -22,10 +22,10 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.constants import BACKUP_FILES, HOT_BACKUP_FILES
 from robottelo.decorators import (
-        bz_bug_is_open,
-        destructive,
-        skip_if_bug_open,
-        stubbed,
+    affected_by_bz,
+    destructive,
+    skip_if_bug_open,
+    stubbed,
 )
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
@@ -470,7 +470,7 @@ class HotBackupTestCase(TestCase):
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
             rhel_release = ssh.command('lsb_release -r --short | cut -c1-1')
-            if not bz_bug_is_open(1445224) or rhel_release == 6:
+            if not affected_by_bz(1445224) or rhel_release == 6:
                 self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())
@@ -532,7 +532,7 @@ class HotBackupTestCase(TestCase):
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
             rhel_release = ssh.command('lsb_release -r --short | cut -c1-1')
-            if not bz_bug_is_open(1445224) or rhel_release == 6:
+            if not affected_by_bz(1445224) or rhel_release == 6:
                 self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())

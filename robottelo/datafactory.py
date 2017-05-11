@@ -6,7 +6,7 @@ from functools import wraps
 from fauxfactory import gen_string, gen_integer
 from robottelo.config import settings
 from robottelo.constants import STRING_TYPES
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 from robottelo.upgrade import get_all_yaml_data, get_yaml_field_value
 from six.moves.urllib.parse import quote_plus
 
@@ -60,7 +60,7 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
 
     # Handle No bug_id, If some entity doesn't support a str_type.
     # Remove str_type from dictionary only if bug is open.
-    if exclude_types and (bug_id is None or bz_bug_is_open(bug_id)):
+    if exclude_types and (bug_id is None or affected_by_bz(bug_id)):
         for item in exclude_types:
             strings.pop(item, None)
 

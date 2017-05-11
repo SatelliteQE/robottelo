@@ -20,7 +20,7 @@ from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_only_on,
     skip_if_bug_open,
     tier1,
@@ -237,7 +237,7 @@ class EntityTestCase(APITestCase):
                 # hierarchy needs fixing (SatelliteQE/nailgun#42), so we just
                 # comment it out above.
                 if (entity_cls in BZ_1118015_ENTITIES and
-                        bz_bug_is_open(1118015)):
+                        affected_by_bz(1118015)):
                     self.skipTest('Bugzilla bug 1118015 is open.')
 
                 response = entity_cls().create_raw()
@@ -319,7 +319,7 @@ class EntityIdTestCase(APITestCase):
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
         )
-        if bz_bug_is_open(1378009):
+        if affected_by_bz(1378009):
             exclude_list += (entities.HostGroup,)
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
@@ -410,7 +410,7 @@ class DoubleCheckTestCase(APITestCase):
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
         )
-        if bz_bug_is_open(1378009):
+        if affected_by_bz(1378009):
             exclude_list += (entities.HostGroup, )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):

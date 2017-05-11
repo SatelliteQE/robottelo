@@ -40,7 +40,7 @@ from robottelo.constants import (
     FAKE_6_PUPPET_REPO,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     setting_is_set,
     skip_if_not_set,
 )
@@ -399,7 +399,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 cv_name,
                 [REPOS['rhst6']['name']],
             )
-            if not bz_bug_is_open(1191422):
+            if not affected_by_bz(1191422):
                 self.assertIsNotNone(self.content_views.wait_until_element(
                     common_locators['alert.success']
                 ))
@@ -408,14 +408,14 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 cv_name, puppet_module, filter_term='Latest')
             # Publish content-view
             self.content_views.publish(cv_name)
-            if not bz_bug_is_open(1191422):
+            if not affected_by_bz(1191422):
                 self.assertIsNotNone(self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form']
                 ))
             # Promote content-view to life-cycle environment.
             self.content_views.promote(
                 cv_name, version='Version 1', env=env_name)
-            if not bz_bug_is_open(1191422):
+            if not affected_by_bz(1191422):
                 self.assertIsNotNone(self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form']
                 ))
@@ -432,7 +432,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             self.activationkey.enable_repos(
                 activation_key_name, [REPOSET['rhst6']]
             )
-            if not bz_bug_is_open(1191541):
+            if not affected_by_bz(1191541):
                 self.assertIsNotNone(self.activationkey.wait_until_element(
                     common_locators['alert.success']
                 ))

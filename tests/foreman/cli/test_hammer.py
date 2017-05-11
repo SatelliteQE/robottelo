@@ -18,7 +18,7 @@ import json
 
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.decorators import bz_bug_is_open, tier1
+from robottelo.decorators import affected_by_bz, tier1
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
 from six import StringIO
@@ -96,7 +96,7 @@ class HammerCommandsTestCase(CLITestCase):
         command_subcommands = set(
             [subcommand['name'] for subcommand in output['subcommands']]
         )
-        if 'discovery_rule' in command and bz_bug_is_open(1219610):
+        if 'discovery_rule' in command and affected_by_bz(1219610):
             # Adjust the discovery_rule subcommand name. The expected data is
             # already with the naming convetion name
             expected = _fetch_command_info(
@@ -114,7 +114,7 @@ class HammerCommandsTestCase(CLITestCase):
                 [subcommand['name'] for subcommand in expected['subcommands']]
             )
 
-        if command == 'hammer' and bz_bug_is_open(1219610):
+        if command == 'hammer' and affected_by_bz(1219610):
             # Adjust the discovery_rule subcommand name
             command_subcommands.discard('discovery_rule')
             command_subcommands.add('discovery-rule')

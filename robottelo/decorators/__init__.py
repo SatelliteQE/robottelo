@@ -437,7 +437,7 @@ def _skip_downstream_condition(bug):
         return sat_version < flag_version
 
 
-def bz_bug_is_open(bug_id):
+def affected_by_bz(bug_id):
     """Tell whether Bugzilla bug ``bug_id`` is open.
 
     If information about bug ``bug_id`` cannot be fetched, the bug is assumed
@@ -570,7 +570,7 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
             :raises BugTypeError: If ``bug_type`` is not recognized.
 
             """
-            if self.bug_type == 'bugzilla' and bz_bug_is_open(self.bug_id):
+            if self.bug_type == 'bugzilla' and affected_by_bz(self.bug_id):
                 LOGGER.debug(
                     'Skipping test %s in module %s due to Bugzilla bug #%s',
                     func.__name__,

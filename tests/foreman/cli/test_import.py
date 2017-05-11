@@ -38,7 +38,7 @@ from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
@@ -125,7 +125,7 @@ def import_content_hosts(files, tmp_dir):
         u'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
         u'verbose': True
     })
-    # WONTFIX if bz_bug_is_open('1263650'):
+    # WONTFIX if affected_by_bz('1263650'):
     wait_for_publish()
     # proceed with importing the content hosts
     import_chosts = Import.content_host_with_tr_data({
@@ -283,7 +283,7 @@ def gen_import_org_manifest_data():
             u'organization': gen_string('alphanumeric')
         } for i in range(len(org_ids))]},
     )
-    if not bz_bug_is_open('1260722'):
+    if not affected_by_bz('1260722'):
         random_data = random_data + (
             {'users': [{
                 u'key': 'organization_id',
@@ -1241,7 +1241,7 @@ class TestImport(CLITestCase):
                     'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                 })
-                # WONTFIX if bz_bug_is_open('1263650'):
+                # WONTFIX if affected_by_bz('1263650'):
                 wait_for_publish()
                 # get the sat6 mapping of the imported organizations
                 imp_orgs = get_sat6_id(
@@ -1412,7 +1412,7 @@ class TestImport(CLITestCase):
         file_name = build_csv_file([csv_row], self.default_dataset[0])
         invalid_chars = '[^\da-zA-Z\-\.\_]'
         # create a random org that will be mapped to sat5 org with id = 1
-        if bz_bug_is_open(1226981):
+        if affected_by_bz(1226981):
             org_data = {'name': gen_string('alphanumeric')}
         else:
             org_data = {'name': gen_string('utf8')}

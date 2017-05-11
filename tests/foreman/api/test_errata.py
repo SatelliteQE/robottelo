@@ -42,7 +42,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_in_one_thread,
     skip_if_not_set,
     stubbed,
@@ -96,7 +96,7 @@ class ErrataTestCase(APITestCase):
         """Workaround BZ1374669 and install package via CLI while the bug is
         open.
         """
-        if bz_bug_is_open(1374669):
+        if affected_by_bz(1374669):
             for client in clients:
                 result = client.run('yum install -y {}'.format(package_name))
                 self.assertEqual(result.return_code, 0)

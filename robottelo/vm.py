@@ -15,7 +15,7 @@ import os
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 
 logger = logging.getLogger(__name__)
@@ -262,7 +262,7 @@ class VirtualMachine(object):
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
-        if bz_bug_is_open('1431747'):
+        if affected_by_bz('1431747'):
             gofer_start = self.run('service goferd start')
             if gofer_start.return_code != 0:
                 raise VirtualMachineError('Failed to start katello-agent')
