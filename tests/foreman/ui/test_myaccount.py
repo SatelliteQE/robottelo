@@ -170,15 +170,17 @@ class MyAccountTestCase(UITestCase):
         """
         for password in _valid_string_data(max_len=254):
             with self.subTest(password):
-                user = User(password='old_password').create()
-                with Session(self.browser, user.login, 'old_password'):
+                old_password = 'old_password'
+                user = User(password=old_password).create()
+                with Session(self.browser, user.login, old_password):
                     self.my_account.update(
-                        password=password, password_confirmation=password)
+                        current_password=old_password, password=password,
+                        password_confirmation=password)
 
                 # UINoSuchElementError is raised on __exit__ once logout is
                 # only possible with prior login
                 with self.assertRaises(UINoSuchElementError):
-                    with Session(self.browser, user.login, 'old_password'):
+                    with Session(self.browser, user.login, old_password):
                         self.assertFalse(self.login.is_logged())
 
                 with Session(self.browser, user.login, password):

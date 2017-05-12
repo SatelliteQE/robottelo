@@ -983,6 +983,7 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'user_auth_source_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "users.current_password": (By.ID, "user_current_password"),
     "users.password": (By.ID, "user_password"),
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
     "users.user": (By.XPATH, "//a[contains(., '%s')]"),
