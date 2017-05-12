@@ -31,6 +31,7 @@ from robottelo.cli.factory import (
     make_content_view,
     make_lifecycle_environment,
     make_org,
+    setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
 from robottelo.constants import (
@@ -980,9 +981,10 @@ class ActivationKeyTestCase(UITestCase):
                 vm.install_katello_ca()
                 vm.register_contenthost(self.organization.label, key_name)
                 self.assertTrue(vm.subscribed)
-                name = self.activationkey.fetch_associated_content_host(
+                hostnames = self.activationkey.fetch_associated_content_hosts(
                     key_name)
-                self.assertEqual(vm.hostname, name)
+                self.assertEqual(len(hostnames), 1)
+                self.assertEqual(vm.hostname, hostnames[0])
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -1255,9 +1257,10 @@ class ActivationKeyTestCase(UITestCase):
                 self.assertTrue(vm.subscribed)
                 # Assert the content-host association with activation-key
                 for key_name in [key_1_name, key_2_name]:
-                    name = self.activationkey.fetch_associated_content_host(
+                    names = self.activationkey.fetch_associated_content_hosts(
                         key_name)
-                    self.assertEqual(vm.hostname, name)
+                    self.assertEqual(len(names), 1)
+                    self.assertEqual(vm.hostname, names[0])
 
     @run_only_on('sat')
     @stubbed()
@@ -1478,3 +1481,49 @@ class ActivationKeyTestCase(UITestCase):
                 set(self.activationkey.fetch_product_contents(ak.name)),
                 {custom_repo.name, REPOSET['rhst7']}
             )
+
+    @skip_if_not_set('clients')
+    @tier3
+    def test_positive_host_associations(self):
+        """Register few hosts with different activation keys and ensure proper
+        data is reflected under Associations > Content Hosts tab
+
+        :id: 111aa2af-caf4-4940-8e4b-5b071d488876
+
+        :expectedresults: Only hosts, registered by specific AK are shown under
+            Associations > Content Hosts tab
+
+        :BZ: 1344033
+
+        :CaseLevel: System
+        """
+        org = entities.Organization().create()
+        org_entities = setup_org_for_a_custom_repo({
+            'url': FAKE_1_YUM_REPO,
+            'organization-id': org.id,
+        })
+        ak1 = entities.ActivationKey(
+            id=org_entities['activationkey-id']).read()
+        ak2 = entities.ActivationKey(
+            content_view=org_entities['content-view-id'],
+            environment=org_entities['lifecycle-environment-id'],
+            organization=org.id,
+        ).create()
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm1, VirtualMachine(
+                distro=DISTRO_RHEL7) as vm2:
+            vm1.install_katello_ca()
+            vm1.register_contenthost(org.label, ak1.name)
+            self.assertTrue(vm1.subscribed)
+            vm2.install_katello_ca()
+            vm2.register_contenthost(org.label, ak2.name)
+            self.assertTrue(vm2.subscribed)
+            with Session(self.browser) as session:
+                set_context(session, org=org.name)
+                ak1_hosts = self.activationkey.fetch_associated_content_hosts(
+                    ak1.name)
+                self.assertEqual(len(ak1_hosts), 1)
+                self.assertIn(vm1.hostname, ak1_hosts)
+                ak2_hosts = self.activationkey.fetch_associated_content_hosts(
+                    ak2.name)
+                self.assertEqual(len(ak2_hosts), 1)
+                self.assertIn(vm2.hostname, ak2_hosts)
