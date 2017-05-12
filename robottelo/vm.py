@@ -289,7 +289,7 @@ class VirtualMachine(object):
 
     def register_contenthost(self, org, activation_key=None, lce=None,
                              force=True, releasever=None, username=None,
-                             password=None):
+                             password=None, auto_attach=False):
         """Registers content host on foreman server using activation-key. This
         can be done in two ways: either by specifying organization name and
         activation key name or by specifying organization name and lifecycle
@@ -305,6 +305,8 @@ class VirtualMachine(object):
         :param releasever: Set a release version
         :param username: a user name to register the content host with
         :param password: the user password
+        :param auto_attach: automatically attach compatible subscriptions to
+            this system.
         :return: SSHCommandResult instance filled with the result of the
             registration.
         """
@@ -321,6 +323,8 @@ class VirtualMachine(object):
                 username,
                 password,
             )
+            if auto_attach:
+                cmd += u' --auto-attach'
         else:
             raise VirtualMachineError(
                 'Please provide either activation key or lifecycle '

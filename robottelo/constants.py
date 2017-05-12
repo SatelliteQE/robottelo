@@ -199,6 +199,7 @@ PRDS = {
     'rhcf': 'Red Hat CloudForms',
     'rhel': 'Red Hat Enterprise Linux Server',
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
+    'rhsc': 'Red Hat Satellite Capsule',
 }
 
 REPOSET = {
@@ -207,6 +208,8 @@ REPOSET = {
     'rhva6': (
         'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
     ),
+    'rhsc7': 'Red Hat Satellite Capsule 6.2 (for RHEL 7 Server) (RPMs)',
+    'rhsc6': 'Red Hat Satellite Capsule 6.2 (for RHEL 6 Server) (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.2 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.2 (for RHEL 6 Server) (RPMs)',
     'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'
@@ -334,6 +337,8 @@ LANGUAGES = {
     u'简体中文': u'zh_CN',
     u'zh_TW': u'zh_TW'
 }
+
+SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
 
 TIMEZONES = [
     u'(GMT+00:00) UTC',
