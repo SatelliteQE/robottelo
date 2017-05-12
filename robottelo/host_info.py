@@ -2,6 +2,7 @@
 import logging
 
 import re
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.helpers import lru_cache
 
 from robottelo import ssh
@@ -10,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 @lru_cache(maxsize=1)
 def get_host_os_version():
-    """Fetchs host's OS version through SSH
+    """Fetches host's OS version through SSH
     :return: str with version
     """
     cmd = ssh.command('cat /etc/redhat-release')
@@ -38,7 +39,7 @@ _SAT_6_1_VERSION_COMMAND = (
 
 @lru_cache(maxsize=1)
 def get_host_sat_version():
-    """Fetchs host's Satellite version through SSH
+    """Fetches host's Satellite version through SSH
     :return: Satellite version
     :rtype: version
     """
@@ -76,6 +77,53 @@ def _extract_sat_version(ssh_cmd):
             return host_sat_version, ssh_result
 
     return 'Not Available', ssh_result
+
+
+def get_repo_rpms(repo_path, hostname=None):
+    """Returns a list of rpms in specific repository directory.
+
+    :param str repo_path: unix path to the repo, e.g. '/var/lib/pulp/fooRepo'
+    :param str optional hostname: hostname or IP address of the remote host. If
+        ``None`` the hostname will be get from ``main.server.hostname`` config.
+    :return: list representing rpm package names
+    :rtype: list
+    """
+    result = ssh.command(
+        '(cd {} && find *.rpm)'.format(repo_path),
+        hostname=hostname,
+    )
+    if result.return_code != 0:
+        raise CLIReturnCodeError(
+            result.return_code, result.stderr, 'No .rpm found')
+    # strip empty lines
+    return [rpm for rpm in result.stdout if rpm]
+
+
+def get_repomd_revision(repo_path, hostname=None):
+    """Fetches a revision of repository.
+
+    :param str repo_path: unix path to the repo, e.g. '/var/lib/pulp/fooRepo'
+    :param str optional hostname: hostname or IP address of the remote host. If
+        ``None`` the hostname will be get from ``main.server.hostname`` config.
+    :return: string containing repository revision
+    :rtype: str
+    """
+    repomd_path = 'repodata/repomd.xml'
+    result = ssh.command(
+        "grep -oP '(?<=<revision>).*?(?=</revision>)' {}/{}"
+        .format(repo_path, repomd_path),
+        hostname=hostname,
+    )
+    # strip empty lines
+    stdout = [line for line in result.stdout if line]
+    if result.return_code != 0 or len(stdout) != 1:
+        raise CLIReturnCodeError(
+            result.return_code,
+            result.stderr,
+            'Unable to fetch revision for {}. Please double check your '
+            'hostname, path and contents of repomd.xml'.format(repo_path)
+        )
+    return stdout[0]
 
 
 class SatVersionDependentValues(object):

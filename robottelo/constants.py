@@ -431,7 +431,14 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'stork-0.12-2.noarch',
 ]
 
+FAKE_1_YUM_REPO_RPMS = [
+    'bear-4.1-1.noarch.rpm',
+    'camel-0.1-1.noarch.rpm',
+    'cat-1.0-1.noarch.rpm',
+]
 FAKE_0_PUPPET_MODULE = 'httpd'
+
+PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
 
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
