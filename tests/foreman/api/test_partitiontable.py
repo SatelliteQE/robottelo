@@ -18,7 +18,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 :Upstream: No
 """
-from fauxfactory import gen_integer
+from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
@@ -85,6 +85,21 @@ class PartitionTableTestCase(APITestCase):
             with self.subTest(layout):
                 ptable = entities.PartitionTable(layout=layout).create()
                 self.assertEqual(ptable.layout, layout)
+
+    @tier1
+    def test_positive_create_with_layout_length(self):
+        """Create a Partition Table with layout length more than 4096 chars
+
+        :id: 7a07d70c-6130-4357-81c3-4f1254e519d2
+
+        :expectedresults: Partition table created successfully and has correct
+            layout
+
+        :BZ: 1270181
+        """
+        layout = gen_string('alpha', 5000)
+        ptable = entities.PartitionTable(layout=layout).create()
+        self.assertEqual(ptable.layout, layout)
 
     @tier1
     def test_positive_create_with_os(self):
