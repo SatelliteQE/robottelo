@@ -59,6 +59,30 @@ def setting_is_set(option):
     return True
 
 
+def skip_if(cond, reason=None):
+    """Skips test if expected condition is True.
+
+    Decorating a method::
+
+        @skip_if(foo is not bar, 'skipping due foo is not bar')
+        def test_something(self):
+            self.assertTrue(True)
+    """
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not cond:
+                return func(*args, **kwargs)
+            r = reason if reason else 'Skipping due expected condition is true'
+            LOGGER.info(r)
+            raise unittest2.SkipTest(r)
+
+        return wrapper
+
+    return decorator
+
+
 def skip_if_not_set(*options):
     """Skips test if expected configuration is not set.
 
