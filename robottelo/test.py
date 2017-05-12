@@ -100,6 +100,7 @@ from robottelo.ui.subscription import Subscriptions
 from robottelo.ui.sync import Sync
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.systemgroup import SystemGroup
+from robottelo.ui.task import Task
 from robottelo.ui.template import Template
 from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
@@ -585,6 +586,7 @@ class UITestCase(TestCase):
         self.sync = Sync(self.browser)
         self.syncplan = Syncplan(self.browser)
         self.systemgroup = SystemGroup(self.browser)
+        self.task = Task(self.browser)
         self.template = Template(self.browser)
         self.trend = Trend(self.browser)
         self.user = User(self.browser)

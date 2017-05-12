@@ -80,6 +80,7 @@ common_locators = LocatorDict({
 
     "search": (By.ID, "search"),
     "clear_search": (By.XPATH, "//a[@class='autocomplete-clear']"),
+    "search_no_results": (By.XPATH, "//div[text()='No entries found']"),
     "auto_search": (
         By.XPATH,
         ("//ul[contains(@class, 'ui-autocomplete') or "
