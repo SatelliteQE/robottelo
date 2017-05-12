@@ -16,8 +16,28 @@
 @Upstream: No
 """
 
+from fauxfactory import gen_alpha, gen_email
+from nailgun.entities import User
+
+from robottelo.constants import LANGUAGES
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
+from robottelo.ui.base import UINoSuchElementError
+from robottelo.ui.session import Session
+
+
+def _valid_string_data(min_len=1, max_len=50):
+    """Generates valid string data for ui tests
+
+    :param min_len: min len for generated string
+    :param max_len: max len for generated string. Default is 50 because of
+    ui validation
+    :return: list of generated strings
+    """
+    return generate_strings_list(
+        min_length=min_len, max_length=max_len, exclude_types=['html']
+    )
 
 
 class MyAccountTestCase(UITestCase):
@@ -29,12 +49,24 @@ class MyAccountTestCase(UITestCase):
 
     [2] Negative Name Variations -  Blank, Greater than Max Length,
     Lesser than Min Length, Greater than Max DB size
-
     """
 
-    @stubbed()
+    def setUp(self):
+        """Setup of myaccount.
+
+        Once following tests are going to update logged user, the default user
+        can not be used once she is used on a bunch of other tests.
+
+        So this method creates a new user for each test for the sake of
+        isolation
+        """
+        super(MyAccountTestCase, self).setUp()
+        password = 'password'
+        self.account_user = User(password=password).create()
+        self.account_password = password
+
     @tier1
-    def test_positive_update_firstname(self):
+    def test_positive_update_first_name(self):
         """Update Firstname in My Account
 
         @id: d5e617e6-ff61-451b-9e82-dd14e7348de6
@@ -43,26 +75,19 @@ class MyAccountTestCase(UITestCase):
         1. Update current User with all variations of Firstname in [1]
 
         @expectedresults: Current User is updated
-
-        @caseautomation: notautomated
         """
+        valid_names = _valid_string_data()
+        valid_names.append('name with space')
+        for first_name in valid_names:
+            with self.subTest(first_name):
+                with Session(self.browser, self.account_user.login,
+                             self.account_password):
+                    self.my_account.update(first_name=first_name)
+                    self.assertEqual(
+                        first_name,
+                        self.my_account.get_field_value('first_name')
+                    )
 
-    @stubbed()
-    @tier1
-    def test_positive_update_surname(self):
-        """Update Surname in My Account
-
-        @id: 755c1acc-901b-40de-8bdc-1eace9713ed7
-
-        @Steps:
-        1. Update current User with all variations of Surname in [1]
-
-        @expectedresults: Current User is updated
-
-        @caseautomation: notautomated
-        """
-
-    @stubbed()
     @tier1
     def test_positive_update_email(self):
         """Update Email Address in My Account
@@ -73,11 +98,36 @@ class MyAccountTestCase(UITestCase):
         1. Update current User with all variations of Email Address in [1]
 
         @expectedresults: Current User is updated
-
-        @caseautomation: notautomated
         """
+        with Session(self.browser, self.account_user.login,
+                     self.account_password):
+            email = gen_email()
+            self.my_account.update(email=email)
+            self.assertEqual(email, self.my_account.get_field_value('email'))
 
-    @stubbed()
+    @tier1
+    def test_positive_update_surname(self):
+        """Update Surname in My Account
+
+        @id: 755c1acc-901b-40de-8bdc-1eace9713ed7
+
+        @Steps:
+        1. Update current User with all variations of Surname in [1]
+
+        @expectedresults: Current User is updated
+        """
+        valid_names = _valid_string_data()
+        valid_names.append('name with space')
+        for last_name in valid_names:
+            with self.subTest(last_name):
+                with Session(self.browser, self.account_user.login,
+                             self.account_password):
+                    self.my_account.update(last_name=last_name)
+                    self.assertEqual(
+                        last_name,
+                        self.my_account.get_field_value('last_name')
+                    )
+
     @tier1
     def test_positive_update_language(self):
         """Update Language in My Account
@@ -88,11 +138,18 @@ class MyAccountTestCase(UITestCase):
         1. Update current User with all different Language options
 
         @expectedresults: Current User is updated
-
-        @caseautomation: notautomated
         """
+        for language, locale in LANGUAGES.items():
+            with self.subTest(language):
+                password = gen_alpha()
+                user = User(password=password).create()
+                with Session(self.browser, user.login, password):
+                    self.my_account.update(language=language)
+                    # Cant use directly language because its value changes
+                    # after updating current language
+                    self.assertEqual(
+                        locale, self.my_account.get_field_value('language'))
 
-    @stubbed()
     @tier1
     def test_positive_update_password(self):
         """Update Password/Verify fields in My Account
@@ -103,9 +160,24 @@ class MyAccountTestCase(UITestCase):
         1. Update Password/Verify fields with all variations in [1]
 
         @expectedresults: User is updated
-
-        @caseautomation: notautomated
         """
+        for password in _valid_string_data(max_len=254):
+            with self.subTest(password):
+                user = User(password='old_password').create()
+                with Session(self.browser, user.login, 'old_password'):
+                    self.my_account.update(
+                        password=password, password_confirmation=password)
+
+                # UINoSuchElementError is raised on __exit__ once logout is
+                # only possible with prior login
+                with self.assertRaises(UINoSuchElementError):
+                    with Session(self.browser, user.login, 'old_password'):
+                        self.assertFalse(self.login.is_logged())
+
+                with Session(self.browser, user.login, password):
+                    self.assertTrue(self.login.is_logged())
+                    # Check user can navigate to her own account again
+                    self.my_account.navigate_to_entity()
 
     @stubbed()
     @tier1
