@@ -178,12 +178,15 @@ class ActivationKey(Base):
         self.click(
             tab_locators['ak.host_collections.list.remove_selected'])
 
-    def fetch_associated_content_host(self, name):
-        """Fetch associated content host from selected activation key."""
+    def fetch_associated_content_hosts(self, name):
+        """Fetch associated content hosts from selected activation key."""
         self.click(self.search(name))
         self.click(tab_locators['ak.associations'])
         self.click(locators['ak.content_hosts'])
-        return self.wait_until_element(locators['ak.content_host_name']).text
+        return [
+            chost.text for chost
+            in self.find_elements(locators['ak.content_host_name'])
+        ]
 
     def fetch_product_contents(self, name):
         """Fetch associated product content from selected activation key."""
