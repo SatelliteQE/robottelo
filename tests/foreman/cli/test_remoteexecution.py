@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import ssh
+from robottelo.config import settings
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
