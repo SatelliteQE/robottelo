@@ -17,6 +17,7 @@
 from datetime import datetime, timedelta
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, DISTRO_RHEL7
+from robottelo.config import settings
 from robottelo.datafactory import (
     gen_string,
     generate_strings_list,
@@ -464,7 +465,10 @@ class RemoteExecutionTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+        with VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge
+                ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             self.assertTrue(client.subscribed)
@@ -512,7 +516,10 @@ class RemoteExecutionTestCase(UITestCase):
         :CaseLevel: System
         """
         jobs_template_name = gen_string('alpha')
-        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+        with VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge
+                ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             self.assertTrue(client.subscribed)
@@ -571,8 +578,14 @@ class RemoteExecutionTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with VirtualMachine(distro=DISTRO_RHEL7) as client:
-            with VirtualMachine(distro=DISTRO_RHEL7) as client2:
+        with VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge
+                ) as client:
+            with VirtualMachine(
+                    distro=DISTRO_RHEL7,
+                    bridge=settings.vlan_networking.bridge
+                    ) as client2:
                 for vm in client, client2:
                     vm.install_katello_ca()
                     vm.register_contenthost(
@@ -628,7 +641,10 @@ class RemoteExecutionTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+        with VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge
+                ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             self.assertTrue(client.subscribed)

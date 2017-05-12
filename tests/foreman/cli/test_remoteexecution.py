@@ -246,7 +246,9 @@ class RemoteExecutionTestCase(CLITestCase):
         """
         super(RemoteExecutionTestCase, self).setUp()
         # Create VM and register content host
-        self.client = VirtualMachine(distro=DISTRO_RHEL7)
+        self.client = VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge)
         self.addCleanup(vm_cleanup, self.client)
         self.client.create()
         self.client.install_katello_ca()
