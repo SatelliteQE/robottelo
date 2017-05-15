@@ -130,11 +130,20 @@ class CapsuleVirtualMachine(VirtualMachine):
     def _capsule_setup_ddns(self):
         """Setup and configure ddns client and ensure it's functionality"""
         self.run('yum localinstall -y {}'.format(self._ddns_package_url))
+        ddns_package_prefix = 'redhat-internal-ddns'
+        ddns_bin_client = '{0}-client.sh'.format(ddns_package_prefix)
+        ddns_bin_client_support_update = True
+        if ddns_package_prefix not in self._ddns_package_url:
+            ddns_package_prefix = 'redhat-ddns'
+            ddns_bin_client = '{0}-client'.format(ddns_package_prefix)
+            ddns_bin_client_support_update = False
+
         self.run(
-            'echo "{0} {1} {2}" >> /etc/redhat-internal-ddns/hosts'.format(
+            'echo "{0} {1} {2}" >> /etc/{3}/hosts'.format(
                 self._capsule_instance_name,
                 self._capsule_domain,
-                self._capsule_hostname_hash
+                self._capsule_hostname_hash,
+                ddns_package_prefix
             )
         )
         self.run('echo "127.0.0.1 {} localhost" > /etc/hosts'.format(
@@ -146,8 +155,9 @@ class CapsuleVirtualMachine(VirtualMachine):
             self.run('hostnamectl set-hostname {}'.format(
                 self._capsule_hostname))
 
-        self.run('redhat-internal-ddns-client.sh enable')
-        self.run('redhat-internal-ddns-client.sh update')
+        self.run('{0} enable'.format(ddns_bin_client))
+        if ddns_bin_client_support_update:
+            self.run('{0} update'.format(ddns_bin_client))
 
         def ensure_host_resolved(
                 ssh_func, host_to_ping, ip_addr, time_sleep=60, retries=10):
