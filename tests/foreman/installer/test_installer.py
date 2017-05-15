@@ -322,9 +322,11 @@ class SELinuxTestCase(TestCase):
 
 
 def extract_params(lst):
-    """Generator funcion to extract satellite installer params
+    """Generator function to extract satellite installer params from lst.
+    In general lst is cmd.stdout, e.g., a list of strings representing host
+    stdout
 
-    :param lst: list of string
+    :param lst: list  of strings
     :return: generator with all params
     """
     for line in lst:
