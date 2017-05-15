@@ -192,6 +192,7 @@ class Hosts(Base):
             [{'organization': 'My_org01'}]
             [{'command': 'ls'}]
         """
+        self.navigate_to_entity()
         for host in hosts:
             self.click(locators['host.checkbox'] % host)
         self.click(locators['host.select_action_list'])
@@ -211,6 +212,12 @@ class Hosts(Base):
                         parameter['command']
                     )
                     self.click(common_locators['submit'])
+                if action == 'Delete Hosts':
+                    self.click(locators['host.bulk_submit'])
+                    return self.wait_until_element(
+                        locators['task.finished_state'],
+                        timeout=parameter['timeout'],
+                    )
 
     def get_yaml_output(self, name):
         """Return YAML output for specific host

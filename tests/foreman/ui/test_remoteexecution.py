@@ -598,7 +598,6 @@ class RemoteExecutionTestCase(UITestCase):
                     })
                 with Session(self.browser) as session:
                     set_context(session, org=self.organization.name)
-                    self.hosts.navigate_to_entity()
                     self.hosts.update_host_bulkactions(
                         [client.hostname, client2.hostname],
                         action='Run Job',
