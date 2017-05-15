@@ -73,11 +73,14 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@id='menu_item_audits']")),
-
     "menu.jobs": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@id='menu_item_job_invocations']")),
+    "menu.tasks": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_tasks']")),
 
     # Content Menu
     "menu.content": (
@@ -823,6 +826,7 @@ common_locators = LocatorDict({
 
     "search": (By.ID, "search"),
     "clear_search": (By.XPATH, "//a[@class='autocomplete-clear']"),
+    "search_no_results": (By.XPATH, "//div[text()='No entries found']"),
     "auto_search": (
         By.XPATH, "//ul[contains(@id, 'ui-id')]/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),

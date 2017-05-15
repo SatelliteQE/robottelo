@@ -117,7 +117,7 @@ class Base(object):
         """Helper method to perform the commonly used search then click"""
         return self.click(self.search(element))
 
-    def search(self, element, _raw_query=None):
+    def search(self, element, _raw_query=None, expecting_results=True):
         """Uses the search box to locate an element from a list of elements.
 
         :param element: either element name or a tuple, containing element name
@@ -128,6 +128,8 @@ class Base(object):
             named 'bar') or to combine complex queries (e.g.
             'name = foo and os = bar'). Note that this will ignore entity's
             default ``search_key``.
+        :param expecting_results: Specify whether we expect to find any entity
+            or not
         """
         element_name = element[0] if isinstance(element, tuple) else element
         # Navigate to the page
@@ -166,6 +168,12 @@ class Base(object):
         self.perform_action_chain_move(search_button_locator)
 
         self.click(search_button_locator)
+
+        # In case we expecting that search should not find any entity
+        if expecting_results is False:
+            return self.wait_until_element(
+                common_locators[prefix + 'search_no_results'])
+
         # Make sure that found element is returned no matter it described by
         # its own locator or common one (locator can transform depending on
         # element name length)
