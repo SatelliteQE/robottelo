@@ -16,6 +16,9 @@
 @Upstream: No
 """
 from random import randint
+
+from fauxfactory import gen_string
+
 from robottelo.datafactory import generate_strings_list
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_os, make_partition_table
@@ -66,6 +69,21 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         @expectedresults: Partition Table is created and has correct content
         """
         content = 'Fake ptable'
+        ptable = make_partition_table({'content': content})
+        ptable_content = PartitionTable().dump({'id': ptable['id']})
+        self.assertTrue(content in ptable_content[0])
+
+    @tier1
+    def test_positive_create_with_content_length(self):
+        """Create a Partition Table with content length more than 4096 chars
+
+        @id: 59e6f9ef-85c2-4229-8831-00edb41b19f4
+
+        @expectedresults: Partition Table is created and has correct content
+
+        @BZ: 1270181
+        """
+        content = gen_string('alpha', 5000)
         ptable = make_partition_table({'content': content})
         ptable_content = PartitionTable().dump({'id': ptable['id']})
         self.assertTrue(content in ptable_content[0])
