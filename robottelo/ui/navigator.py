@@ -61,6 +61,11 @@ class Navigator(Base):
             menu_locators['menu.monitor'], menu_locators['menu.jobs'],
         )
 
+    def go_to_tasks(self):
+        self.menu_click(
+            menu_locators['menu.monitor'], menu_locators['menu.tasks'],
+        )
+
     def go_to_life_cycle_environments(self):
         self.menu_click(
             menu_locators['menu.content'],
