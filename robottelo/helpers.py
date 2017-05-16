@@ -272,6 +272,30 @@ def remove_katello_ca(hostname=None):
                 raise AssertionError('Failed to reset the rhsm.conf')
 
 
+def md5_by_url(url, hostname=None):
+    """Returns md5 checksum of a file, accessible via URL. Useful when you want
+    to calculate checksum but don't want to deal with storing a file and
+    removing it afterwards.
+
+    :param str url: URL of a file.
+    :param str hostname: Hostname or IP address of the remote host. If
+         ``None`` the hostname will be get from ``main.server.hostname`` config
+    :return str: string containing md5 checksum.
+    :raises: AssertionError: If non-zero return code received (file couldn't be
+        reached or calculation was not successful).
+    """
+    filename = url.split('/')[-1]
+    result = ssh.command(
+        'wget -qO - {} | tee {} | md5sum | awk \'{{print $1}}\''.format(
+            url, filename),
+        hostname=hostname
+    )
+    if result.return_code != 0:
+        raise AssertionError(
+            'Failed to calculate md5 checksum of {}'.format(filename))
+    return result.stdout[0]
+
+
 def add_remote_execution_ssh_key(hostname, key_path=None, **kwargs):
     """Add remote execution keys to the client
 
@@ -473,40 +497,41 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None,
     return os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_path)
 
 
-def create_repo(repo_fetch_url, packages, repo_name, hostname=None):
+def create_repo(name, repo_fetch_url=None, packages=None, hostname=None):
     """Creates a repository from given packages and publishes it into pulp's
     directory for web access.
 
+    :param str name: repository name - name of a directory with packages
     :param str repo_fetch_url: URL to fetch packages from
     :param packages: list of packages to fetch (with extension)
-    :param str repo_name: repository name - name of a directory with packages
         and repodata
     :param str optional hostname: hostname or IP address of the remote host. If
         ``None`` the hostname will be get from ``main.server.hostname`` config.
     :return: URL where the repository can be accessed
     :rtype: str
     """
-    repo_path = os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_name)
+    repo_path = os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, name)
     result = ssh.command(
         'sudo -u apache mkdir -p {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
         raise CLIReturnCodeError(
             result.return_code, result.stderr, 'Unable to create repo dir')
-    # Add trailing slash if it's not there already
-    if not repo_fetch_url.endswith('/'):
-        repo_fetch_url += '/'
-    for package in packages:
-        result = ssh.command(
-            '(cd {} && wget {})'
-            .format(repo_path, urljoin(repo_fetch_url, package)),
-            hostname=hostname,
-        )
-        if result.return_code != 0:
-            raise CLIReturnCodeError(
-                result.return_code,
-                result.stderr,
-                'Unable to download package {}'.format(package),
+    if repo_fetch_url:
+        # Add trailing slash if it's not there already
+        if not repo_fetch_url.endswith('/'):
+            repo_fetch_url += '/'
+        for package in packages:
+            result = ssh.command(
+                '(cd {} && wget {})'
+                .format(repo_path, urljoin(repo_fetch_url, package)),
+                hostname=hostname,
             )
+            if result.return_code != 0:
+                raise CLIReturnCodeError(
+                    result.return_code,
+                    result.stderr,
+                    'Unable to download package {}'.format(package),
+                )
 
     result = ssh.command('createrepo {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
@@ -520,7 +545,7 @@ def create_repo(repo_fetch_url, packages, repo_name, hostname=None):
     published_url = 'http://{}{}/pulp/repos/{}/'.format(
         settings.server.hostname,
         ':{}'.format(settings.server.port) if settings.server.port else '',
-        repo_name
+        name
     )
 
     return published_url
