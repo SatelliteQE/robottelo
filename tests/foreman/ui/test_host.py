@@ -708,11 +708,11 @@ class HostTestCase(UITestCase):
     def test_positive_search_by_parameter(self):
         """Search for the host by global parameter assigned to it
 
-        @id: 8e61127c-d0a0-4a46-a3c6-22d3b2c5457c
+        :id: 8e61127c-d0a0-4a46-a3c6-22d3b2c5457c
 
-        @expectedresults: Only one specific host is returned by search
+        :expectedresults: Only one specific host is returned by search
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         param_name = gen_string('alpha')
@@ -745,11 +745,11 @@ class HostTestCase(UITestCase):
     def test_positive_search_by_parameter_with_different_values(self):
         """Search for the host by global parameter assigned to it by its value
 
-        @id: c3a4551e-d759-4a9d-ba90-8db4cab3db2c
+        :id: c3a4551e-d759-4a9d-ba90-8db4cab3db2c
 
-        @expectedresults: Only one specific host is returned by search
+        :expectedresults: Only one specific host is returned by search
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         name = gen_string('alpha')
@@ -786,12 +786,12 @@ class HostTestCase(UITestCase):
         any random string as parameter value to make sure that all hosts will
         be present in the list
 
-        @id: a4affb90-1222-4d9a-94be-213f9e5be573
+        :id: a4affb90-1222-4d9a-94be-213f9e5be573
 
-        @expectedresults: All assigned hosts to organization are returned by
-        search
+        :expectedresults: All assigned hosts to organization are returned by
+            search
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         param_name = gen_string('alpha')
@@ -828,14 +828,14 @@ class HostTestCase(UITestCase):
         any random string as parameter value to make sure that all hosts will
         be present in the list
 
-        @id: 264065b7-0d04-467d-887a-0aba0d871b7c
+        :id: 264065b7-0d04-467d-887a-0aba0d871b7c
 
-        @expectedresults: All assigned hosts to organization are returned by
-        search
+        :expectedresults: All assigned hosts to organization are returned by
+            search
 
-        @BZ: 1392422
+        :BZ: 1392422
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         org = entities.Organization().create()
         param_name = gen_string('alpha')
