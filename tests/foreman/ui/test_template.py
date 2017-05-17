@@ -19,7 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -293,6 +293,40 @@ class TemplateTestCase(UITestCase):
             )
             self.assertIsNotNone(self.template.search(name))
             self.template.update(name, False, new_name, new_os_list=os_list)
+            self.assertIsNotNone(self.template.search(new_name))
+
+    @skip_if_bug_open('bugzilla', 1446523)
+    @tier1
+    def test_positive_update_with_manager_role(self):
+        """Create template providing the initial name, then update its name
+        with manager user role.
+
+        :id: 463790a2-c384-4851-99d2-78777762b6df
+
+        :expectedresults: Provisioning Template is created, and its name can
+            be updated.
+
+        :CaseImportance: Critical
+
+        :BZ: 1277308
+        """
+        new_name = gen_string('alpha')
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        template = entities.ProvisioningTemplate(
+            organization=[self.organization]).create()
+        # Create user with Manager role
+        role = entities.Role().search(query={'search': 'name="Manager"'})[0]
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[self.organization],
+            default_organization=self.organization,
+        ).create()
+        with Session(self.browser, user=user_login, password=user_password):
+            self.template.update(name=template.name, new_name=new_name)
             self.assertIsNotNone(self.template.search(new_name))
 
     @run_only_on('sat')

@@ -23,8 +23,10 @@ from robottelo.cli.factory import (
     make_org,
     make_os,
     make_template,
+    make_user,
 )
 from robottelo.cli.template import Template
+from robottelo.cli.user import User
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
@@ -66,6 +68,38 @@ class TemplateTestCase(CLITestCase):
         })
         template = Template.info({'id': template['id']})
         self.assertEqual(updated_name, template['name'])
+
+    @skip_if_bug_open('bugzilla', 1446523)
+    @tier1
+    def test_positive_update_with_manager_role(self):
+        """Create template providing the initial name, then update its name
+        with manager user role.
+
+        :id: 28c4357a-93cb-4b01-a445-5db50435bcc0
+
+        :expectedresults: Provisioning Template is created, and its name can
+            be updated.
+
+        :CaseImportance: Critical
+
+        :BZ: 1277308
+        """
+        new_name = gen_string('alpha')
+        username = gen_string('alpha')
+        password = gen_string('alpha')
+        template = make_template()
+        # Create user with Manager role
+        user = make_user({
+            'login': username,
+            'password': password,
+            'admin': False,
+        })
+        User.add_role({'id': user['id'], 'role': "Manager"})
+        # Update template name with that user
+        Template.with_user(username=username, password=password).update({
+            'id': template['id'], 'name': new_name})
+        template = Template.info({'id': template['id']})
+        self.assertEqual(new_name, template['name'])
 
     @run_only_on('sat')
     @tier1
