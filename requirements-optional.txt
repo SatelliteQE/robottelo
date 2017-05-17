@@ -1,5 +1,5 @@
 # For running tests and checking code quality using these modules.
-coveralls
+codecov
 flake8
 mock
 pytest-cov
