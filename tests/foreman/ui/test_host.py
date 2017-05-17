@@ -46,14 +46,15 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
+from robottelo.ui.locators import locators
 from robottelo.ui.factory import make_host, set_context
 from robottelo.ui.session import Session
 
 import robottelo.cli.factory as cli_factory
 
 
-class HostTestCase(UITestCase):
-    """Implements Host tests in UI"""
+class LibvirtHostTestCase(UITestCase):
+    """Implements Libvirt Host tests in UI"""
 
     hostname = gen_string('numeric')
 
@@ -84,7 +85,7 @@ class HostTestCase(UITestCase):
         15. Search for media and associate org/location
         16. Create new host group with all required entities
         """
-        super(HostTestCase, cls).setUpClass()
+        super(LibvirtHostTestCase, cls).setUpClass()
         # Create a new Organization and Location
         cls.org_ = entities.Organization(name=gen_string('alpha')).create()
         cls.org_name = cls.org_.name
@@ -330,7 +331,7 @@ class HostTestCase(UITestCase):
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
                 self.hosts.delete(host_name, True)
-        super(HostTestCase, self).tearDown()
+        super(LibvirtHostTestCase, self).tearDown()
 
     @run_only_on('sat')
     @tier3
@@ -374,6 +375,10 @@ class HostTestCase(UITestCase):
                 u'{0}.{1}'.format(self.hostname, self.domain_name)
             )
             self.assertIsNotNone(search)
+
+
+class HostTestCase(UITestCase):
+    """Implements Host tests in UI"""
 
     @run_only_on('sat')
     @stubbed
@@ -697,6 +702,167 @@ class HostTestCase(UITestCase):
             # Delete host
             self.hosts.delete(
                 u'{0}.{1}'.format(host.name, host.domain.name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_search_by_parameter(self):
+        """Search for the host by global parameter assigned to it
+
+        :id: 8e61127c-d0a0-4a46-a3c6-22d3b2c5457c
+
+        :expectedresults: Only one specific host is returned by search
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        parameters = [{'name': param_name, 'value': param_value}]
+        param_host = entities.Host(
+            organization=org,
+            host_parameters_attributes=parameters,
+        ).create()
+        additional_host = entities.Host(organization=org).create()
+        with Session(self.browser) as session:
+            set_context(session, org=org.name)
+            # Check that hosts present in the system
+            for host in [param_host, additional_host]:
+                self.assertIsNotNone(self.hosts.search(host.name))
+            # Check that search by parameter returns only one host in the list
+            self.assertIsNotNone(
+                self.hosts.search(
+                    param_host.name,
+                    _raw_query='params.{0} = {1}'.format(
+                        param_name, param_value)
+                )
+            )
+            strategy, value = locators['host.select_name']
+            self.assertIsNone(self.hosts.wait_until_element(
+                (strategy, value % additional_host.name)))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_search_by_parameter_with_different_values(self):
+        """Search for the host by global parameter assigned to it by its value
+
+        :id: c3a4551e-d759-4a9d-ba90-8db4cab3db2c
+
+        :expectedresults: Only one specific host is returned by search
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        name = gen_string('alpha')
+        param_values = [gen_string('alpha'), gen_string('alphanumeric')]
+        hosts = [
+            entities.Host(
+                organization=org,
+                host_parameters_attributes=[{'name': name, 'value': value}]
+            ).create()
+            for value in param_values
+        ]
+        with Session(self.browser) as session:
+            set_context(session, org=org.name)
+            # Check that hosts present in the system
+            for host in hosts:
+                self.assertIsNotNone(self.hosts.search(host.name))
+            # Check that search by parameter returns only one host in the list
+            strategy, value = locators['host.select_name']
+            for i in range(2):
+                self.assertIsNotNone(
+                    self.hosts.search(
+                        hosts[i].name,
+                        _raw_query='params.{0} = {1}'.format(
+                            name, param_values[i])
+                    )
+                )
+                self.assertIsNone(self.hosts.wait_until_element(
+                    (strategy, value % hosts[-i-1])))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_search_by_parameter_with_prefix(self):
+        """Search by global parameter assigned to host using prefix 'not' and
+        any random string as parameter value to make sure that all hosts will
+        be present in the list
+
+        :id: a4affb90-1222-4d9a-94be-213f9e5be573
+
+        :expectedresults: All assigned hosts to organization are returned by
+            search
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        parameters = [{'name': param_name, 'value': param_value}]
+        param_host = entities.Host(
+            organization=org,
+            host_parameters_attributes=parameters,
+        ).create()
+        additional_host = entities.Host(organization=org).create()
+        with Session(self.browser) as session:
+            set_context(session, org=org.name)
+            # Check that hosts present in the system
+            for host in [param_host, additional_host]:
+                self.assertIsNotNone(self.hosts.search(host.name))
+            # Check that search by parameter with 'not' prefix returns both
+            # hosts in the list
+            self.assertIsNotNone(
+                self.hosts.search(
+                    param_host.name,
+                    _raw_query='not params.{0} = {1}'.format(
+                        param_name, gen_string('alphanumeric'))
+                )
+            )
+            strategy, value = locators['host.select_name']
+            self.assertIsNotNone(self.hosts.wait_until_element(
+                (strategy, value % additional_host.name)))
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1392422)
+    @tier2
+    def test_positive_search_by_parameter_with_operator(self):
+        """Search by global parameter assigned to host using operator '<>' and
+        any random string as parameter value to make sure that all hosts will
+        be present in the list
+
+        :id: 264065b7-0d04-467d-887a-0aba0d871b7c
+
+        :expectedresults: All assigned hosts to organization are returned by
+            search
+
+        :BZ: 1392422
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        parameters = [{'name': param_name, 'value': param_value}]
+        param_host = entities.Host(
+            organization=org,
+            host_parameters_attributes=parameters,
+        ).create()
+        additional_host = entities.Host(organization=org).create()
+        with Session(self.browser) as session:
+            set_context(session, org=org.name)
+            # Check that hosts present in the system
+            for host in [param_host, additional_host]:
+                self.assertIsNotNone(self.hosts.search(host.name))
+            # Check that search by parameter with '<>' operator returns both
+            # hosts in the list
+            self.assertIsNotNone(
+                self.hosts.search(
+                    param_host.name,
+                    _raw_query='params.{0} <> {1}'.format(
+                        param_name, gen_string('alphanumeric'))
+                )
+            )
+            strategy, value = locators['host.select_name']
+            self.assertIsNotNone(self.hosts.wait_until_element(
+                (strategy, value % additional_host.name)))
 
     @tier2
     def test_positive_validate_inherited_cv_lce(self):
