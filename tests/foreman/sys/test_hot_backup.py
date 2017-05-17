@@ -469,7 +469,6 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
-            self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())
             self.assertTrue(
@@ -531,7 +530,6 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
-            self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
             self.assertTrue(get_services_status())
             self.assertTrue(
