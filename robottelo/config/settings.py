@@ -227,12 +227,15 @@ class BugzillaSettings(FeatureSettings):
         super(BugzillaSettings, self).__init__(*args, **kwargs)
         self.password = None
         self.username = None
+        self.wontfix_lookup = None
 
     def read(self, reader):
         """Read and validate Bugzilla server settings."""
         get_bz = partial(reader.get, 'bugzilla')
         self.password = get_bz('bz_password', None)
         self.username = get_bz('bz_username', None)
+        self.wontfix_lookup = reader.get(
+            'bugzilla', 'wontfix_lookup', True, bool)
 
     def get_credentials(self):
         """Return credentials for interacting with a Bugzilla API.

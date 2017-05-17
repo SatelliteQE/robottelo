@@ -26,6 +26,10 @@ def get_decorated_bugs():  # pragma: no cover
     Important information is stored on `bug_data` key::
         bugs[BUG_ID]['bug_data']['resolution|status|flags|whiteboard']
     """
+
+    if not settings.configured:
+        settings.configure()
+
     # look for settings bugzilla credentials
     # any way Parser bugzilla reader will check for exported environment names
     # BUGZILLA_USER_NAME and BUGZILLA_USER_PASSWORD if no credentials was
@@ -42,10 +46,19 @@ def get_decorated_bugs():  # pragma: no cover
     return bugs
 
 
-def get_deselect_bug_ids(bugs=None, log=None):
+def get_deselect_bug_ids(bugs=None, log=None):  # pragma: no cover
     """returns the IDs of bugs to be deselected from test collection"""
+
+    if not settings.configured:
+        settings.configure()
+
+    if settings.bugzilla.wontfix_lookup is not True:
+        return []
+
     if log is None:
         log = log_debug
+
+    log('Fetching WONTFIX BZs on Bugzilla API...')
     bugs = bugs or get_decorated_bugs()
     wontfixes = []
     for bug_id, data in bugs.items():
@@ -61,7 +74,7 @@ def get_deselect_bug_ids(bugs=None, log=None):
 
 
 def group_by_key(data):
-    """Gets a lsit of tuples and groups by item[0] - the key"""
+    """Gets a list of tuples and groups by item[0] - the key"""
     res = defaultdict(list)
     for k, v in data:
         res[k].append(v)
