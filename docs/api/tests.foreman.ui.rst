@@ -263,6 +263,11 @@
 
 .. automodule:: tests.foreman.ui.test_system_registration
 
+:mod:`tests.foreman.ui.test_task`
+---------------------------------
+
+.. automodule:: tests.foreman.ui.test_task
+
 :mod:`tests.foreman.ui.test_template`
 -------------------------------------
 

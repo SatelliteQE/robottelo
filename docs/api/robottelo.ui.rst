@@ -238,6 +238,11 @@
 
 .. automodule:: robottelo.ui.systemgroup
 
+:mod:`robottelo.ui.task`
+------------------------
+
+.. automodule:: robottelo.ui.task
+
 :mod:`robottelo.ui.template`
 ----------------------------
 
