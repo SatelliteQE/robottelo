@@ -1683,11 +1683,14 @@ locators = LocatorDict({
     "contentviews.remove": (
         By.XPATH,
         "//button[contains(@ng-click, 'content-views.details.deletion')]"),
+    "contentviews.version_dropdown": (
+        By.XPATH, "//td/a[contains(., '%s')]/following::td/div/"
+                  "button[contains(@class, 'dropdown-toggle')]"),
     "contentviews.remove_ver": (
-        By.XPATH, ("//td/a[contains(., '%s')]/following::td/"
-                   "button[contains(@ng-click, 'version-deletion')]")),
+        By.XPATH, ("//td/a[contains(., '%s')]/following::td//"
+                   "a[contains(@ng-click, 'version-deletion')]")),
     "contentviews.completely_remove_checkbox": (
-        By.XPATH, "//span/input[contains(@ng-model, 'deleteArchive')]"),
+        By.XPATH, "//input[contains(@ng-model, 'deleteArchive')]"),
     "contentviews.next_button": (
         By.XPATH, "//button[@ng-click='processSelection()']"),
     "contentviews.affected_button": (
