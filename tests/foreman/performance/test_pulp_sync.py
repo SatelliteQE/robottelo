@@ -108,16 +108,16 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
             3. for each test case, delegate synchronization to
                 ``robottelo.tests.kick_off_sync_test``
             4. in each test case, get the max timing value on each iteration
-                and store into max-timing-dict. For example, for 2-repo
-                test case, it sync 2 repositories and repeat 3 three times::
+               and store into max-timing-dict. For example, for 2-repo
+               test case, it sync 2 repositories and repeat 3 three times::
 
-                             1       2       3
-                    repo-1   21.48   13.87   33.16
-                    repo-2   95.33   81.77   21.69
+                         1       2       3
+                repo-1   21.48   13.87   33.16
+                repo-2   95.33   81.77   21.69
 
-                Then it would extract the max only and return the dictionary:
-                ``{2: [95.33, 81.77, 33.16]}``. Repeat from 2-repo test case
-                to 10-repo case.
+               Then it would extract the max only and return the dictionary:
+               ``{2: [95.33, 81.77, 33.16]}``. Repeat from 2-repo test case
+               to 10-repo case.
         """
         total_max_timing = {}
         for current_num_threads in range(2, self.max_num_tests + 1):

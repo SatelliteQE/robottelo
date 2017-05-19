@@ -837,19 +837,19 @@ class InterSatelliteSyncTestCase(CLITestCase):
         :steps:
 
             1. Export whole kickstart tree contents to a directory specified in
-                settings.
+               settings.
             2. Dont copy exported contents to /var/www/html/pub/export
-                directory.
+               directory.
             3. Attempt to import these not copied contents from some other
-                org/satellite.
+               org/satellite.
 
         :expectedresults:
 
             1. Whole kickstart tree has been exported to directory specified in
-                settings.
+               settings.
             2. The exported contents are not imported due to non availability.
             3. Error is thrown for non availability of kickstart tree to
-                import.
+               import.
 
         :caseautomation: notautomated
 
@@ -1018,7 +1018,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             1. First, Export and Import whole Red Hat YUM repo.
             2. Add some packages to the earlier exported yum repo.
             3. Incrementally export the yum repo as ISO from last exported
-                date.
+               date.
 
         :expectedresults: Repo contents have been exported as ISO incrementally
             in separate directory.
@@ -1041,7 +1041,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
             1. First, Export and Import whole Red Hat YUM repo.
             2. Add some packages to the earlier exported yum repo.
             3. Incrementally export the yum repo as ISO from last exported
-                date.
+               date.
             4. Mount incrementally exported contents ISO.
             5. Import the repo contents incrementally.
 
