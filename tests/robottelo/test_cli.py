@@ -4,10 +4,10 @@ import unittest2
 from functools import partial
 from robottelo.cli.base import (
     Base,
-    CLIReturnCodeError,
-    CLIError,
     CLIBaseError,
-    CLIDataBaseError
+    CLIDataBaseError,
+    CLIError,
+    CLIReturnCodeError
 )
 
 if six.PY2:

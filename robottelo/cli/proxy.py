@@ -32,7 +32,7 @@ class Proxy(Base):
     command_base = 'proxy'
 
     @classmethod
-    def importclasses(cls, options=None):
+    def import_classes(cls, options=None):
         """Import puppet classes from puppet proxy."""
         cls.command_sub = 'import-classes'
         return cls.execute(cls._construct_command(options))

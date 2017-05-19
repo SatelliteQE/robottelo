@@ -33,7 +33,7 @@ def _csv_reader(output):
         data = data.encode('utf8')
     handler = StringIO(data)
 
-    for row in csv.reader(handler):
+    for row in csv.reader(handler):  # pragma: no cover
         if six.PY2:
             yield [value.decode('utf8') for value in row]
         else:
@@ -111,7 +111,7 @@ def parse_help(output):
 
         if state == subcommands_section_state:
             match = subcommand_regex.search(line)
-            if match is None:
+            if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
                 contents['subcommands'][-1]['description'] += (
@@ -124,7 +124,7 @@ def parse_help(output):
                 })
         if state == options_section_state:
             match = option_regex.search(line)
-            if match is None:
+            if match is None:  # pragma: no cover
                 continue
             if match.group('name') is None:
                 contents['options'][-1]['help'] += (
