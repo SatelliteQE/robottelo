@@ -43,6 +43,10 @@ FOREMAN_PROVIDERS = {
 
 LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 
+AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
+
+COMPUTE_PROFILE_LARGE = '3-Large'
+
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
     'BASE', 'BASEFONT', 'BDO', 'BIG', 'BLINK', 'BLOCKQUOTE', 'BODY', 'BR',
@@ -81,6 +85,7 @@ FILTER = {
     'cr_org': 'compute_resource_organization',
     'discovery_rule_loc': 'discovery_rule_location',
     'discovery_rule_org': 'discovery_rule_organization',
+    'ec2_security_groups': 'compute_attribute_vm_attrs_security_group',
     'env_org': 'environment_organization',
     'filter_org': 'filter_organization',
     'filter_loc': 'filter_location',

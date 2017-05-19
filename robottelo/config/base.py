@@ -350,6 +350,47 @@ class DockerSettings(FeatureSettings):
         )
 
 
+class EC2Settings(FeatureSettings):
+    """AWS EC2 settings definitions."""
+
+    def __init__(self, *args, **kwargs):
+        super(EC2Settings, self).__init__(*args, **kwargs)
+        self.access_key = None
+        self.secret_key = None
+        self.region = None
+        self.image = None
+        self.availability_zone = None
+        self.subnet = None
+        self.security_groups = None
+        self.managed_ip = None
+
+    def read(self, reader):
+        """Read AWS EC2 settings."""
+        self.access_key = reader.get('ec2', 'access_key')
+        self.secret_key = reader.get('ec2', 'secret_key')
+        self.region = reader.get('ec2', 'region', 'us-west-2')
+        self.image = reader.get('ec2', 'image')
+        self.availability_zone = reader.get('ec2', 'availability_zone')
+        self.subnet = reader.get('ec2', 'subnet')
+        self.security_groups = reader.get(
+            'ec2', 'security_groups', ['default'], list)
+        self.managed_ip = reader.get('ec2', 'managed_ip', 'Private')
+
+    def validate(self):
+        """Validate AWS EC2 settings."""
+        validation_errors = []
+        if not all((self.access_key, self.secret_key, self.region)):
+            validation_errors.append(
+                'All [ec2] access_key, secret_key, region options '
+                'must be provided'
+            )
+        if self. managed_ip not in ('Private', 'Public'):
+            validation_errors.append(
+                '[ec2] managed_ip option must be Public or Private'
+            )
+        return validation_errors
+
+
 class FakeManifestSettings(FeatureSettings):
     """Fake manifest settings defintitions."""
     def __init__(self, *args, **kwargs):
@@ -464,6 +505,7 @@ class RHEVSettings(FeatureSettings):
         self.password = None
         self.datacenter = None
         self.vm_name = None
+        self.storage_domain = None
         # Image Information
         self.image_os = None
         self.image_arch = None
@@ -479,6 +521,7 @@ class RHEVSettings(FeatureSettings):
         self.password = reader.get('rhev', 'password')
         self.datacenter = reader.get('rhev', 'datacenter')
         self.vm_name = reader.get('rhev', 'vm_name')
+        self.storage_domain = reader.get('rhev', 'storage_domain', 'NFS-BOS')
         # Image Information
         self.image_os = reader.get('rhev', 'image_os')
         self.image_arch = reader.get('rhev', 'image_arch')
@@ -772,6 +815,7 @@ class Settings(object):
         self.discovery = DiscoveryISOSettings()
         self.distro = DistroSettings()
         self.docker = DockerSettings()
+        self.ec2 = EC2Settings()
         self.fake_capsules = FakeCapsuleSettings()
         self.fake_manifest = FakeManifestSettings()
         self.ldap = LDAPSettings()

@@ -303,6 +303,31 @@ ssh_key=
 # 'semanage port -a -t websm_port_t -p tcp <port-range>'
 port_range=9091, 14999
 
+# [ec2]
+# AWS EC2 to be added as a compute resource.
+# Access key ID of the IAM user
+# access_key=
+# Secret access key of the IAM user
+# secret_key=
+# The default AWS region for the compute resources
+# by default US West (Oregon)
+# region=us-west-2
+# The default compute resource profile image
+# image=
+# The default compute resource profile availability zone set it empty if no
+# preferences
+# availability_zone=eu-west-2a
+# default
+# The default compute resource profile subnet set it empty if no preferences
+# subnet=172.31.0.0/20
+# The default compute resource profile security groups (comma separated list)
+#  default value is default
+# security_groups=default
+# The default compute resource profile security managed ip available values Private, Public
+# default value is private
+# managed_ip=Private
+
+
 # [rhev]
 # RHEV to be added as a compute resource.
 # hostname: RHEV API URL, for example: https://ovirt.example.com/api
@@ -315,6 +340,9 @@ port_range=9091, 14999
 # datacenter=
 # vm_name: Name of VM to power On/Off & delete
 # vm_name=
+# storage_domain: VM storage domain, possible values NFS-BOS, NFS-SATENG, VMS,
+# default value NFS-BOS
+# storage_domain=NFS-BOS
 
 # RHEV Compute resource image data
 # image_os: Operating system of the image
@@ -352,3 +380,4 @@ port_range=9091, 14999
 # image_password=
 # image_name: Image name on the external provider
 # image_name=
+

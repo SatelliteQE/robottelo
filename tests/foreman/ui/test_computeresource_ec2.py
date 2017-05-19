@@ -13,15 +13,45 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from fauxfactory import gen_string
+
+from robottelo.config import settings
+from robottelo.constants import (
+    AWS_EC2_FLAVOR_T2_MICRO,
+    COMPUTE_PROFILE_LARGE,
+    FOREMAN_PROVIDERS
+)
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.test import UITestCase
+from robottelo.ui.factory import make_resource
+from robottelo.ui.session import Session
 
 
 class Ec2ComputeResourceTestCase(UITestCase):
     """Implements EC2 compute resource tests in UI"""
 
+    @classmethod
+    @skip_if_not_set('ec2')
+    def setUpClass(cls):
+        super(Ec2ComputeResourceTestCase, cls).setUpClass()
+        cls.aws_access_key = settings.ec2.access_key
+        cls.aws_secret_key = settings.ec2.secret_key
+        cls.aws_region = settings.ec2.region
+        cls.aws_image = settings.ec2.image
+        cls.aws_availability_zone = settings.ec2.availability_zone
+        cls.aws_subnet = settings.ec2.subnet
+        cls.aws_security_groups = settings.ec2.security_groups
+        cls.aws_managed_ip = settings.ec2.managed_ip
+
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_ec2_with_name(self):
         """Create a new ec2 compute resource with valid name
@@ -39,10 +69,24 @@ class Ec2ComputeResourceTestCase(UITestCase):
         :expectedresults: An ec2 compute resource is created
             successfully.
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseImportance: Critical
         """
+        parameter_list = [
+            ['Access Key', self.aws_access_key, 'field'],
+            ['Secret Key', self.aws_secret_key, 'field'],
+            ['Region', self.aws_region, 'special select']
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+                make_resource(
+                    session,
+                    name=name,
+                    provider_type=FOREMAN_PROVIDERS['ec2'],
+                    parameter_list=parameter_list
+                )
+                self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @stubbed()
@@ -141,7 +185,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1451626)
     @tier1
     def test_positive_delete_ec2(self):
         """Delete An ec2 compute resource
@@ -160,10 +204,28 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource is deleted
 
-        :Caseautomation: notautomated
+        :BZ: 1451626
+
+        :Caseautomation: Automated
 
         :CaseImportance: Critical
         """
+        parameter_list = [
+            ['Access Key', self.aws_access_key, 'field'],
+            ['Secret Key', self.aws_secret_key, 'field'],
+            ['Region', self.aws_region, 'special select']
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['ec2'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            self.compute_resource.delete(name)
+            self.assertIsNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @stubbed()
@@ -216,7 +278,6 @@ class Ec2ComputeResourceTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_access_ec2_with_default_profile(self):
         """Associate default (3-Large) compute profile to ec2 compute
@@ -236,11 +297,29 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
         """
+        parameter_list = [
+            ['Access Key', self.aws_access_key, 'field'],
+            ['Secret Key', self.aws_secret_key, 'field'],
+            ['Region', self.aws_region, 'special select']
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['ec2'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(
+                self.compute_resource.select_profile(
+                    name,
+                    COMPUTE_PROFILE_LARGE
+                )
+            )
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_access_ec2_with_custom_profile(self):
         """Associate custom (3-Large) compute profile to ec2 compute resource
@@ -259,8 +338,29 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
         """
+        parameter_list = [
+            ['Access Key', self.aws_access_key, 'field'],
+            ['Secret Key', self.aws_secret_key, 'field'],
+            ['Region', self.aws_region, 'special select']
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['ec2'],
+                parameter_list=parameter_list
+            )
+            self.compute_resource.set_profile_values(
+                name, COMPUTE_PROFILE_LARGE,
+                flavor=AWS_EC2_FLAVOR_T2_MICRO,
+                availability_zone=self.aws_availability_zone,
+                subnet=self.aws_subnet,
+                security_groups=self.aws_security_groups,
+                managed_ip=self.aws_managed_ip,
+            )
 
     @run_only_on('sat')
     @stubbed()
