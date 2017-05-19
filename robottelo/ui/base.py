@@ -706,6 +706,12 @@ class Base(object):
         if self.element_type(target) == 'select':
             if isinstance(target, tuple):
                 element = self.wait_until_element(target)
+                if element is None:
+                    # restore the Timeout exception
+                    raise TimeoutException(
+                        u'{0}: Timeout waiting for element {1} to display.'
+                        .format(type(self).__name__, target)
+                    )
             else:
                 element = target
             if scroll:

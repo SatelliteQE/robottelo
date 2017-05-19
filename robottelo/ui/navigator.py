@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Navigator UI."""
 from robottelo.decorators import bz_bug_is_open
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base, TimeoutException, UIError
 from robottelo.ui.locators import menu_locators
 
 
@@ -17,6 +17,12 @@ class Navigator(Base):
             self.perform_action_chain_move(sub_menu_locator)
             tertiary_element = self.wait_until_element(
                 tertiary_menu_locator)
+            if tertiary_element is None:
+                # restore the Timeout exception
+                raise TimeoutException(
+                    u'{0}: Timeout waiting for element {1} to display.'
+                    .format(type(self).__name__, tertiary_menu_locator)
+                )
             self.browser.execute_script(
                 "arguments[0].click();",
                 tertiary_element,
