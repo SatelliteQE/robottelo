@@ -39,7 +39,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Provide a valid name to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
 
@@ -69,7 +69,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Provide a valid description to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
 
@@ -99,7 +99,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Provide a invalid name to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
 
@@ -129,7 +129,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Provide a valid name to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
             5. Update the name of the created CR with valid string.
@@ -160,7 +160,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Provide a valid name to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
             5. Create a new organization.
@@ -190,7 +190,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Provide a valid name to azure compute resource.
             4. Test the connection using "Test Connection" and submit.
             5. Delete the created compute resource.
@@ -222,7 +222,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Select the created azure CR and click images tab.
             4. Select "New image" , provide it valid name and information.
             5. Select the desired template to create image and submit.
@@ -252,7 +252,7 @@ class AzureComputeResourceTestCase(UITestCase):
 
             1. Create a compute resource of type azure.
             2. Provide a valid subscription ID and a path to the ".pem"
-                certificate.
+               certificate.
             3. Select the created azure CR and click images tab.
             4. Select "New image" , provide it invalid name.
             5. Select the desired template to create the image from and submit.
