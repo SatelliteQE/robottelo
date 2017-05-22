@@ -29,7 +29,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import affected_by_bz, skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -685,7 +685,7 @@ class ContentViewFilterTestCase(CLITestCase):
                         'name': cvf_name,
                         'new-name': new_name,
                     })
-                if bz_bug_is_open(1328943):
+                if affected_by_bz(1328943):
                     result = ContentView.filter.info({
                         u'content-view-id': self.content_view['id'],
                         u'id': content_view_filter['id'],

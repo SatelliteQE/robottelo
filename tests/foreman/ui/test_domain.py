@@ -23,7 +23,7 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_only_on,
     tier1,
     tier2,
@@ -138,7 +138,7 @@ class DomainTestCase(UITestCase):
             for testdata in valid_domain_update_data():
                 with self.subTest(testdata):
                     bug_id = testdata.pop('bugzilla', None)
-                    if bug_id is not None and bz_bug_is_open(bug_id):
+                    if bug_id is not None and affected_by_bz(bug_id):
                         self.skipTest('Bugzilla bug {0} is open.'.format(
                             bug_id))
                     new_name = new_description = DOMAIN % testdata['name']

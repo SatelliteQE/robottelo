@@ -34,7 +34,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_only_on,
     tier1,
     tier2,
@@ -266,7 +266,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         for name in self.invalid_hostnames_list():
             with self.subTest(name):
                 bug_id = name.pop('bugzilla', None)
-                if bug_id is not None and bz_bug_is_open(bug_id):
+                if bug_id is not None and affected_by_bz(bug_id):
                     self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
                 with self.assertRaises(CLIFactoryError):
                     self._make_discoveryrule({u'hostname': name})

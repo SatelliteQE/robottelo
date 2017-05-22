@@ -6,7 +6,7 @@ from nailgun import entities, signals
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.proxy import Proxy
 from robottelo.constants import DEFAULT_ORG_ID
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 
 
 LOGGER = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 def capsule_cleanup(proxy_id=None):
     """Deletes the capsule with the given id"""
-    if bz_bug_is_open(1398695):
+    if affected_by_bz(1398695):
         try:
             Proxy.delete({'id': proxy_id})
         except CLIReturnCodeError as err:

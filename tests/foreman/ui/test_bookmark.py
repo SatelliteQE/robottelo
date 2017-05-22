@@ -21,7 +21,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import BOOKMARK_ENTITIES, STRING_TYPES
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_in_one_thread,
     skip_if_bug_open,
     tier1,
@@ -62,7 +62,7 @@ class BookmarkTestCase(UITestCase):
             # Skip the entities, which can't be tested ATM (require framework
             # update)
             skip = entity.get('skip_for_ui')
-            if skip and (skip is True or bz_bug_is_open(skip)):
+            if skip and (skip is True or affected_by_bz(skip)):
                 continue
             cls.entities.append(entity)
             # Some pages require at least 1 existing entity for search bar to

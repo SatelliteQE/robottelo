@@ -37,7 +37,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     setting_is_set,
     skip_if_not_set,
 )
@@ -821,7 +821,7 @@ class AvailableURLsTestCase(TestCase):
         for group, path_pairs in api_paths.items():
             api_paths[group] = list(path_pairs.values())
 
-        if bz_bug_is_open(1166875):
+        if affected_by_bz(1166875):
             # The server returns incorrect paths.
             api_paths['docker_manifests'].append(u'/katello/api/docker_manifests')
             api_paths['docker_manifests'].remove(u'/katello/api/compare')
@@ -927,7 +927,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         #    …
         # }, u'status': u'ok'}
         services = response['services']
-        if bz_bug_is_open('1325995'):
+        if affected_by_bz('1325995'):
             services.pop('foreman_auth')
         self.assertTrue(
             all([service['status'] == u'ok' for service in services.values()]),

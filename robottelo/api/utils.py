@@ -22,7 +22,7 @@ from robottelo.constants import (
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 
 
 def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
@@ -49,7 +49,7 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
     r_set.enable(data=payload)
     result = entities.Repository(name=repo).search(
         query={'organization_id': org_id})
-    if bz_bug_is_open(1252101):
+    if affected_by_bz(1252101):
         for _ in range(5):
             if len(result) > 0:
                 break
