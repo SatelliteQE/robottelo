@@ -320,17 +320,14 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             product=product, url=FAKE_1_YUM_REPO).create()
         repo.sync()
         # Create and publish content views
-        cv_versions = []
-        for _ in range(2):
-            content_view = entities.ContentView(
-                organization=org, repository=[repo]).create()
-            content_view.publish()
-            cv_versions.append(content_view.read().version[0])
+        content_view = entities.ContentView(
+            organization=org, repository=[repo]).create()
+        content_view.publish()
         # Create and publish composite content view
         composite_cv = entities.ContentView(
             organization=org,
             composite=True,
-            component=cv_versions,
+            component=[content_view.read().version[0]],
         ).create()
         composite_cv.publish()
         composite_cv = composite_cv.read()
