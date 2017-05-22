@@ -3129,11 +3129,11 @@ class ContentViewTestCase(UITestCase):
     def test_positive_delete_composite_version(self):
         """Delete a composite content-view version associated to 'Library'
 
-        :id: b2d9b21d-1e0d-40f1-9bbc-3c88cddd4f5e
+        @id: b2d9b21d-1e0d-40f1-9bbc-3c88cddd4f5e
 
-        :expectedresults: Deletion was performed successfully
+        @expectedresults: Deletion was performed successfully
 
-        :CaseLevel: Integration
+        @CaseLevel: Integration
 
         @BZ: 1276479
         """

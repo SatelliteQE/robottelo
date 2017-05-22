@@ -305,11 +305,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         that content view. Add repository to initial content view
         for better coverage.
 
-        :id: b5bb547e-0174-464c-b974-0254d372cdd6
+        @id: b5bb547e-0174-464c-b974-0254d372cdd6
 
-        :expectedresults: Content version deleted successfully
+        @expectedresults: Content version deleted successfully
 
-        :CaseLevel: Integration
+        @CaseLevel: Integration
 
         @BZ: 1276479
         """
