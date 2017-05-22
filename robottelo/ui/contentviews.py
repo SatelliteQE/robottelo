@@ -77,6 +77,7 @@ class ContentViews(Base):
     def delete_version(self, name, version):
         """Deletes published content view's version"""
         self.search_and_click(name)
+        self.click(locators['contentviews.version_dropdown'] % version)
         self.click(locators['contentviews.remove_ver'] % version)
         self.click(locators['contentviews.completely_remove_checkbox'])
         self.click(locators['contentviews.next_button'])
