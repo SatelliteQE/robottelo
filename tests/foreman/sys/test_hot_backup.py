@@ -217,6 +217,46 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(get_services_status())
 
     @destructive
+    @skip_if_bug_open('bugzilla', 1444069)
+    @skip_if_bug_open('bugzilla', 1432013)
+    def test_positive_online_relative_path(self):
+        """run katello-backup --online-backup with relative path
+
+        @id: 3b5d8ac3-1ba1-4e3b-89f4-be950c8eef86
+
+        @Steps:
+
+        1. Run online backup to relative path
+        2. List contents of the destination
+
+        @bz: 1444069, 1432013
+
+        @expectedresults:  backup is successful, foreman.dump and
+        candlepin.dump are created
+
+        """
+        with _get_connection() as connection:
+            connection.run('katello-service start')
+            dir_name = gen_string('alpha')
+            result = connection.run(
+                'katello-backup {0} --online-backup '
+                '--skip-pulp-content'.format(dir_name),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                    'list'
+                    )
+            self.assertIn(u'candlepin.dump', files.stdout)
+            self.assertIn(u'foreman.dump', files.stdout)
+            self.assertNotIn(u'pulp_data.tar', files.stdout)
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            connection.run('rm -rf {0}'.format(dir_name))
+
+    @destructive
     def test_positive_online_skip_pulp(self):
         """Katello-backup --online-backup with --skip-pulp-content
         option should not create pulp files in destination.
@@ -352,6 +392,8 @@ class HotBackupTestCase(TestCase):
         @Steps:
 
         1. Run ``katello-backup --incremental``
+
+        @bz: 1447619
 
         @expectedresults: The error message is shown, services are not
         stopped
@@ -552,6 +594,8 @@ class HotBackupTestCase(TestCase):
         3. Run incremental backup ib1
         4. Restore base backup, verify c1 config doesnt not exist
         5. restore ib1, verify c1 config does exist
+
+        @bz: 1435333
 
         @expectedresults: Backup "ib1" is backed up.
 
