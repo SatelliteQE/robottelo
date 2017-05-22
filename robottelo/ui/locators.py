@@ -530,6 +530,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@href='#primary']"),
     "roles.tab_org": (
         By.XPATH, "//a[@href='#organizations']"),
+    "roles.tab_location": (
+        By.XPATH, "//a[@href='#locations']"),
 
     # GPG key
     # Third level UI
@@ -1896,6 +1898,8 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'filter_resource_type')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "roles.override": (By.ID, "override_taxonomy_checkbox"),
+    "roles.unlimited": (By.ID, "filter_unlimited"),
     "roles.role": (By.XPATH, "//a[contains(., '%s')]"),
     "roles.perm_filter": (By.XPATH,
                           "//input[@placeholder='Filter permissions']"),

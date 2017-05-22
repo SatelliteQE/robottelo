@@ -244,13 +244,13 @@ class RoleTestCase(UITestCase):
         """Attempt to create a role filter by admin user, who has 6+ locations
         assigned
 
-        :id: 688ecb7d-1d49-494c-97cc-0d5e715f3bb1
+        @id: 688ecb7d-1d49-494c-97cc-0d5e715f3bb1
 
-        :expectedresults: filter was successfully created
+        @expectedresults: filter was successfully created
 
-        :BZ: 1315580
+        @BZ: 1315580
 
-        :CaseImportance: Critical
+        @CaseImportance: Critical
         """
         locs = []
         for _ in range(6):
