@@ -3336,7 +3336,7 @@ class ContentViewTestCase(UITestCase):
 
         :CaseLevel: Integration
 
-        @BZ: 1276479
+        :BZ: 1276479
         """
         org = entities.Organization().create()
         # Create and publish product/repository
