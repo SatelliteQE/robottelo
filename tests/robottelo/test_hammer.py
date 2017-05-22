@@ -367,6 +367,8 @@ class ParseInfoTestCase(unittest2.TestCase):
             '    Repo ID:   10',
             ' 2) Repo Name: repo2',
             '    Repo ID:   20',
+            ' 3) Repo Name => repo3',
+            '    Repo ID =>   30',
         ]
         self.assertEqual(
             hammer.parse_info(output),
@@ -388,6 +390,14 @@ class ParseInfoTestCase(unittest2.TestCase):
                 'repositories': [
                     {'repo-id': '10', 'repo-name': 'repo1'},
                     {'repo-id': '20', 'repo-name': 'repo2'},
+                    {'repo-id': '30', 'repo-name': 'repo3'},
                 ],
             }
+        )
+
+    def test_parse_json_list(self):
+        """Can parse a list in json"""
+        self.assertEqual(
+            hammer.parse_json('["item1", "item2"]'),
+            ['item1', 'item2']
         )

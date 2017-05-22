@@ -566,7 +566,7 @@ def configure_puppet_test():
     puppet_env.location.append(loc)
     puppet_env.organization.append(org)
     puppet_env = puppet_env.update(['location', 'organization'])
-    Proxy.importclasses({
+    Proxy.import_classes({
         u'environment': puppet_env.name,
         u'name': sat6_hostname,
     })

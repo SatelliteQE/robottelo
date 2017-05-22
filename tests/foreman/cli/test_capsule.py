@@ -195,7 +195,7 @@ class CapsuleTestCase(CLITestCase):
         port = get_available_capsule_port()
         with default_url_on_new_port(9090, port) as url:
             proxy = self._make_proxy({u'url': url})
-            Proxy.importclasses({u'id': proxy['id']})
+            Proxy.import_classes({u'id': proxy['id']})
 
 
 @run_in_one_thread
