@@ -3125,6 +3125,50 @@ class ContentViewTestCase(UITestCase):
             self.content_views.delete_version(cv.name, version)
             self.content_views.validate_version_deleted(cv.name, version)
 
+    @tier2
+    def test_positive_delete_composite_version(self):
+        """Delete a composite content-view version associated to 'Library'
+
+        @id: b2d9b21d-1e0d-40f1-9bbc-3c88cddd4f5e
+
+        @expectedresults: Deletion was performed successfully
+
+        @CaseLevel: Integration
+
+        @BZ: 1276479
+        """
+        org = entities.Organization().create()
+        # Create and publish product/repository
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            product=product, url=FAKE_1_YUM_REPO).create()
+        repo.sync()
+        # Create and publish content view
+        content_view = entities.ContentView(
+            organization=org, repository=[repo]).create()
+        content_view.publish()
+        # Create and publish composite content view
+        composite_cv = entities.ContentView(
+            organization=org,
+            composite=True,
+            component=[content_view.read().version[0]],
+        ).create()
+        composite_cv.publish()
+        composite_cv = composite_cv.read()
+        # Get published content-view version id
+        self.assertEqual(len(composite_cv.version), 1)
+        cvv = composite_cv.version[0].read()
+        self.assertEqual(len(cvv.environment), 1)
+        # API returns version like '1.0'
+        # WebUI displays version like 'Version 1.0'
+        version = 'Version {0}'.format(cvv.version)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            self.content_views.delete_version(composite_cv.name, version)
+            self.content_views.check_progress_bar_status(version)
+            self.content_views.validate_version_deleted(
+                composite_cv.name, version)
+
     @run_only_on('sat')
     @stubbed()
     @tier2

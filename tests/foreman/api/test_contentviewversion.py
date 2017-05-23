@@ -298,6 +298,51 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         self.assertEqual(len(content_view.read().version), 0)
 
     @tier2
+    def test_positive_delete_composite_version(self):
+        """Create composite content view and publish it. After that try to
+        disassociate content view from 'Library' environment through
+        'delete_from_environment' command and delete content view version from
+        that content view. Add repository to initial content view
+        for better coverage.
+
+        @id: b5bb547e-0174-464c-b974-0254d372cdd6
+
+        @expectedresults: Content version deleted successfully
+
+        @CaseLevel: Integration
+
+        @BZ: 1276479
+        """
+        org = entities.Organization().create()
+        # Create and publish product/repository
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            product=product, url=FAKE_1_YUM_REPO).create()
+        repo.sync()
+        # Create and publish content views
+        content_view = entities.ContentView(
+            organization=org, repository=[repo]).create()
+        content_view.publish()
+        # Create and publish composite content view
+        composite_cv = entities.ContentView(
+            organization=org,
+            composite=True,
+            component=[content_view.read().version[0]],
+        ).create()
+        composite_cv.publish()
+        composite_cv = composite_cv.read()
+        # Get published content-view version id
+        self.assertEqual(len(composite_cv.version), 1)
+        cvv = composite_cv.version[0].read()
+        self.assertEqual(len(cvv.environment), 1)
+        # Delete the content-view version from selected env
+        composite_cv.delete_from_environment(cvv.environment[0].id)
+        # Delete the version
+        composite_cv.version[0].delete()
+        # Make sure that content view version is really removed
+        self.assertEqual(len(composite_cv.read().version), 0)
+
+    @tier2
     def test_negative_delete(self):
         """Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
