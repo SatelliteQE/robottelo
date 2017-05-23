@@ -41,6 +41,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -1396,14 +1397,14 @@ class ActivationKeyTestCase(UITestCase):
         """Register few hosts with different activation keys and ensure proper
         data is reflected under Associations > Content Hosts tab
 
-        :id: 111aa2af-caf4-4940-8e4b-5b071d488876
+        @id: 111aa2af-caf4-4940-8e4b-5b071d488876
 
-        :expectedresults: Only hosts, registered by specific AK are shown under
+        @expectedresults: Only hosts, registered by specific AK are shown under
             Associations > Content Hosts tab
 
-        :BZ: 1344033
+        @BZ: 1344033
 
-        :CaseLevel: System
+        @CaseLevel: System
         """
         org = entities.Organization().create()
         org_entities = setup_org_for_a_custom_repo({
@@ -1431,6 +1432,8 @@ class ActivationKeyTestCase(UITestCase):
                     ak1.name)
                 self.assertEqual(len(ak1_hosts), 1)
                 self.assertIn(vm1.hostname, ak1_hosts)
+                if bz_bug_is_open(1454739):
+                    self.navigator.go_to_dashboard()
                 ak2_hosts = self.activationkey.fetch_associated_content_hosts(
                     ak2.name)
                 self.assertEqual(len(ak2_hosts), 1)
