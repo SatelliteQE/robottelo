@@ -765,3 +765,13 @@ class Base(object):
                 .format(str(target))
             )
         self.logger.debug(u'Assigned value %s to %s', value, str(target))
+
+    def get_selected_value(self, locator):
+        """Get currently selected value for select list
+
+        :param locator: Locator of select list element
+        :return: Text currently selected in the list
+        """
+        element = self.wait_until_element(locator)
+        selected_option = Select(element).first_selected_option
+        return selected_option.text

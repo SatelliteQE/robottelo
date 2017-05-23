@@ -224,15 +224,13 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # Publish and promote CV to next environment
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
             self.content_views.promote(cv_name, 'Version 1', env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -263,15 +261,8 @@ class ContentViewTestCase(UITestCase):
                 puppet_module,
                 filter_term='Latest',
             )
-        # Workaround to fetch added puppet module name:
-        # UI doesn't refresh and populate the added module name
-        # until we logout and navigate again to puppet-module tab
-        with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_content_views()
-            module = self.content_views.fetch_puppet_module(
-                cv_name, puppet_module)
-            self.assertIsNotNone(module)
+            self.assertIsNotNone(self.content_views.fetch_puppet_module(
+                cv_name, puppet_module))
 
     @run_only_on('sat')
     @tier2
@@ -1357,6 +1348,60 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_positive_check_composite_cv_addition_list_versions(self):
+        """Create new content view and publish two times. After that remove
+        first content view version from the list and try to add that view to
+        composite one. Check what content view version is going to be added
+
+        :id: ffd4ac4a-4152-433a-a411-567bab115b05
+
+        :expectedresults: second non-composite content view version should be
+            listed as default one to be added to composite view
+
+        :CaseLevel: Integration
+
+        :BZ: 1411074
+        """
+        non_composite_cv = gen_string('alpha')
+        composite_cv = gen_string('alpha')
+        with Session(self.browser) as session:
+            # Create unpublished component CV
+            make_contentview(
+                session,
+                org=self.organization.name,
+                name=non_composite_cv,
+            )
+            self.assertIsNotNone(
+                self.content_views.search(non_composite_cv))
+            # Publish content view two times to have two versions
+            for _ in range(2):
+                self.content_views.publish(non_composite_cv)
+            # Delete first version for cv
+            self.content_views.delete_version(non_composite_cv, 'Version 1.0')
+            # Create composite CV
+            make_contentview(
+                session,
+                org=self.organization.name,
+                name=composite_cv,
+                is_composite=True
+            )
+            self.assertIsNotNone(self.content_views.search(composite_cv))
+            # Check version of content view that we like to add to composite
+            # one
+            self.content_views.search_and_click(composite_cv)
+            self.content_views.click(
+                tab_locators['contentviews.tab_content_views'])
+            self.content_views.click(
+                tab_locators['contentviews.tab_cv_add'])
+            self.content_views.assign_value(
+                common_locators['kt_search'], non_composite_cv)
+            self.content_views.click(common_locators['kt_search_button'])
+            version = self.content_views.get_selected_value(
+                locators['contentviews.add_cv_version_dropdown'])
+            self.assertEqual(version, 'Always Use Latest (Currently 2.0)')
+
+    @run_only_on('sat')
+    @tier2
     def test_negative_add_non_composite_cv_to_composite(self):
         """Attempt to associate both published and unpublished
         non-composite content views with composite content view.
@@ -1412,8 +1457,6 @@ class ContentViewTestCase(UITestCase):
             # Add published component to composite CV
             self.content_views.add_remove_cv(
                 composite_cv_name, [published_cv_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # Add unpublished component to composite CV
             with self.assertRaises(UINoSuchElementError):
                 self.content_views.add_remove_cv(

@@ -150,10 +150,11 @@ tab_locators = LocatorDict({
     # Content Views
     # Third level UI
     "contentviews.tab_details": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+        By.XPATH, "//a[@ui-sref='content-view.info']"),
     "contentviews.tab_versions": (
         By.XPATH,
-        "//a[@class='ng-scope' and contains(@ui-sref, 'details.versions')]"),
+        "//a[@class='ng-scope' and "
+        "contains(@ui-sref, 'content-view.versions')]"),
     "contentviews.tab_content": (
         By.XPATH, "//ul/li/a[@class='dropdown-toggle']/i"),
     "contentviews.tab_content_views": (
