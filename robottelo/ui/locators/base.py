@@ -1109,9 +1109,18 @@ locators = LocatorDict({
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
     "roles.clone": (By.XPATH, "//a[contains(@data-id, 'clone')]"),
     "roles.name": (By.ID, "role_name"),
+    "roles.locked": (
+        By.XPATH,
+        ("//td/em[normalize-space(.)='%s']"
+         "/following::td/span[contains(@class, 'lock')]")
+    ),
     "roles.dropdown": (
         By.XPATH,
         ("//td/span/a[normalize-space(.)='%s']"
+         "/following::td/div/a[@data-toggle='dropdown']")),
+    "roles.locked_dropdown": (
+        By.XPATH,
+        ("//td/em[normalize-space(.)='%s']"
          "/following::td/div/a[@data-toggle='dropdown']")),
     "roles.add_permission": (
         By.XPATH, "//a[@data-id='aid_filters_new']"),
