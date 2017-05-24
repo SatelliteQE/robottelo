@@ -765,3 +765,17 @@ class Base(object):
                 .format(str(target))
             )
         self.logger.debug(u'Assigned value %s to %s', value, str(target))
+
+    def get_selected_value(self, target):
+        """Get currently selected value for select list
+
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
+        :return: Currently selected list element text
+        """
+        if isinstance(target, (tuple, Locator)):
+            element = self.wait_until_element(target)
+        else:
+            element = target
+        selected_option = Select(element).first_selected_option
+        return selected_option.text

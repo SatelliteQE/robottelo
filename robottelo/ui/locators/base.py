@@ -1658,24 +1658,26 @@ locators = LocatorDict({
         "//tr[contains(@ng-repeat, 'contentView')]"
         "/td/a[contains(., '%s')]"),
     "contentviews.edit_name": (
-        By.XPATH, "//form[@bst-edit-text='contentView.name']//div/span/i"),
+        By.XPATH, "//dd[@bst-edit-text='contentView.name']//div/span"
+                  "/i[contains(@class, 'fa-edit')]"),
     "contentviews.edit_name_text": (
         By.XPATH,
-        "//form[@bst-edit-text='contentView.name']/div/input"),
+        "//dd[@bst-edit-text='contentView.name']/form/div/input"),
     "contentviews.save_name": (
         By.XPATH,
-        ("//form[@bst-edit-text='contentView.name']"
+        ("//dd[@bst-edit-text='contentView.name']"
          "//button[@ng-click='save()']")),
     "contentviews.edit_description": (
         By.XPATH,
-        "//form[@bst-edit-textarea='contentView.description']//div/span/i"),
+        "//dd[@bst-edit-textarea='contentView.description']//div/span"
+        "/i[contains(@class, 'fa-edit')]"),
     "contentviews.edit_description_text": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='contentView.description']"
-         "/div/textarea")),
+        "//dd[@bst-edit-textarea='contentView.description']/form"
+        "/div/textarea"),
     "contentviews.save_description": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='contentView.description']"
+        ("//dd[@bst-edit-textarea='contentView.description']"
          "//button[@ng-click='save()']")),
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
@@ -1687,8 +1689,9 @@ locators = LocatorDict({
         By.XPATH, "//td/a[contains(., '%s')]/following::td/div/"
                   "button[contains(@class, 'dropdown-toggle')]"),
     "contentviews.remove_ver": (
-        By.XPATH, ("//td/a[contains(., '%s')]/following::td//"
-                   "a[contains(@ng-click, 'version-deletion')]")),
+        By.XPATH,
+        ("//td[a[contains(., '%s')]]/following-sibling::td[@class='col-sm-2']"
+         "//a[contains(@ng-click, 'version-deletion')]")),
     "contentviews.completely_remove_checkbox": (
         By.XPATH, "//input[contains(@ng-model, 'deleteArchive')]"),
     "contentviews.next_button": (
@@ -1722,9 +1725,13 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@class, 'alert-success')]"
          "/div/span[contains(., 'Successfully removed')]")),
+    "contentviews.select_action_dropdown": (
+        By.XPATH,
+        ("//button[contains(@class, 'dropdown')]"
+         "[descendant::span[text()='Select Action']]")),
     "contentviews.publish": (
-        By.XPATH, "//button[contains(@ng-click, 'details.publish')]"),
-    "contentviews.publish_comment": (By.ID, "comment"),
+        By.XPATH, "//a[contains(@ui-sref, 'content-view.publish')]"),
+    "contentviews.publish_description": (By.ID, "description"),
     "contentviews.publish_progress": (
         By.XPATH,
         ("//tr/td[contains(., '%s')]"
@@ -1732,7 +1739,7 @@ locators = LocatorDict({
     "contentviews.ver_label": (
         By.XPATH, "//div[@label='Version']/label"),
     "contentviews.ver_num": (
-        By.XPATH, "//div[@class='col-sm-5 input']/span/span"),
+        By.XPATH, "//div[@label='Version']/div/span"),
     "contentviews.content_repo": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'repositories')]"),
@@ -1741,8 +1748,7 @@ locators = LocatorDict({
         "//a[@class='ng-binding' and contains(@ui-sref,'repositories.info')]"),
     "contentviews.select_repo": (
         By.XPATH,
-        ("//div[@bst-table='repositoriesTable']"
-         "//td[contains(normalize-space(.), '%s')]"
+        ("//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
     "contentviews.add_repo": (
@@ -1754,22 +1760,23 @@ locators = LocatorDict({
         "//button[contains(@ng-show, 'list') and "
         "contains(@ng-click, 'removeRepositories')]"),
     "contentviews.repo_search": (
-        By.XPATH, "//input[@ng-model='repositorySearch']"),
+        By.XPATH, "//input[@ng-model='table.searchTerm']"),
     "contentviews.promote_button": (
         By.XPATH,
-        ("//table[@bst-table='table']//tr/td[contains(., '%s')]"
-         "/following-sibling::td[@class='col-sm-2']/button")),
+        ("//td[a[contains(., '%s')]]/following-sibling::td[@class='col-sm-2']"
+         "//span[text()='Promote']")),
     "contentviews.env_to_promote": (
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
     "contentviews.promote_version": (
         By.XPATH, "//button[@ng-click='verifySelection()']"),
     "contentview.version_filter": (
-        By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
+        By.XPATH, "//input[@ng-model='table.searchTerm' and "
+                  "@placeholder='Filter...']"),
     "contentviews.add_module": (
         By.XPATH,
-        ("//div[@data-block='actions']"
-         "/button[@ui-sref='content-views.details.puppet-modules.names']")),
+        ("//div[@data-block='list-actions']"
+         "/button[@ui-sref='content-view.puppet-modules.names']")),
     "contentviews.select_module": (
         By.XPATH,
         ("//tr/td[contains(., '%s')]/following-sibling::td"
@@ -1791,6 +1798,8 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='addContentViews()']"),
     "contentviews.remove_cv": (
         By.XPATH, "//button[@ng-click='removeContentViews()']"),
+    "contentviews.add_cv_version_dropdown": (
+        By.XPATH, "//select[contains(@name, 'version')]"),
     "contentviews.cv_filter": (
         By.XPATH, "//input[@ng-model='contentViewVersionFilter']"),
     "contentviews.content_filters": (
@@ -1894,9 +1903,7 @@ locators = LocatorDict({
     "contentviews.search_filters": (
         By.XPATH,
         ("//div[@data-block='search']"
-         "//input[@ng-model='detailsTable.searchTerm']")),
-    "contentviews.search_button": (
-        By.XPATH, "//button[contains(@ng-click, 'detailsTable.search')]"),
+         "//input[@ng-model='table.searchTerm']")),
     "contentviews.table_filter": (
         By.XPATH, "//input[@ng-model='filterTerm']"),
     "contentviews.filter_name": (

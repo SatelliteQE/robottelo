@@ -26,11 +26,9 @@ common_locators = LocatorDict({
     "alert.error": (
         By.XPATH, "//div[contains(@class, 'alert-danger')]"),
     "alert.success_sub_form": (
-        By.XPATH,
-        "//div[@ng-hide]//div[contains(@class, 'alert-success')]"),
+        By.XPATH, "//div[contains(@bst-alert, 'success')]"),
     "alert.error_sub_form": (
-        By.XPATH,
-        "//div[@ng-hide]//div[contains(@class, 'alert-danger')]"),
+        By.XPATH, "//div[contains(@bst-alert, 'danger')]"),
 
     "selected_entity": (
         By.XPATH,

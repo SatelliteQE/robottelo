@@ -29,7 +29,7 @@ class ContentViews(Base):
         self.click(locators['contentviews.content_filters'])
         self.assign_value(
             locators['contentviews.search_filters'], filter_name)
-        self.click(locators['contentviews.search_button'])
+        self.click(common_locators['kt_search_button'])
         self.click(locators['contentviews.select_filter_name'] % filter_name)
 
     def set_calendar_date_value(self, name, value):
@@ -79,7 +79,8 @@ class ContentViews(Base):
         self.search_and_click(name)
         self.click(locators['contentviews.version_dropdown'] % version)
         self.click(locators['contentviews.remove_ver'] % version)
-        self.click(locators['contentviews.completely_remove_checkbox'])
+        self.assign_value(
+            locators['contentviews.completely_remove_checkbox'], True)
         self.click(locators['contentviews.next_button'])
         self.click(locators['contentviews.confirm_remove_ver'])
 
@@ -90,7 +91,7 @@ class ContentViews(Base):
         self.click(locators['contentviews.content_filters'])
         self.assign_value(
             locators['contentviews.search_filters'], filter_name)
-        self.click(locators['contentviews.search_button'])
+        self.click(common_locators['kt_search_button'])
         return self.wait_until_element(
             locators['contentviews.filter_name'] % filter_name)
 
@@ -136,6 +137,12 @@ class ContentViews(Base):
                 self.click(tab_locators['contentviews.tab_repo_remove'])
             self.assign_value(
                 locators['contentviews.repo_search'], repo_name)
+            self.click(common_locators['kt_search_button'])
+            if not self.wait_until_element(locator % repo_name):
+                raise UIError(
+                    'Could not find repo "{0}" to add into CV'
+                    .format(repo_name)
+                )
             self.click(locator % repo_name)
             if add_repo:
                 self.click(locators['contentviews.add_repo'])
@@ -170,11 +177,12 @@ class ContentViews(Base):
                 poll_frequency=0.5,
             )
 
-    def publish(self, cv_name, comment=None):
+    def publish(self, cv_name, description=None):
         """Publishes to create new version of CV and promotes the contents to
         'Library' environment
         """
         self.search_and_click(cv_name)
+        self.click(locators['contentviews.select_action_dropdown'])
         self.click(locators['contentviews.publish'])
         version_label = self.wait_until_element(
             locators['contentviews.ver_label'])
@@ -182,9 +190,9 @@ class ContentViews(Base):
             locators['contentviews.ver_num'])
         # To fetch the publish version e.g. 'Version 1'
         version = '{0} {1}'.format(version_label.text, version_number.text)
-        if comment:
+        if description:
             self.assign_value(
-                locators['contentviews.publish_comment'], comment)
+                locators['contentviews.publish_description'], description)
         self.click(common_locators['create'])
         self.check_progress_bar_status(version)
         return version
@@ -215,10 +223,10 @@ class ContentViews(Base):
         self.click(locators['contentviews.add_module'])
         self.assign_value(
             locators['contentviews.search_filters'], module_name)
-        self.click(locators['contentviews.search_button'])
+        self.click(common_locators['kt_search_button'])
         self.click(locators['contentviews.select_module'] % module_name)
         self.assign_value(
-            locators['contentview.version_filter'], filter_term)
+            common_locators['kt_search'], filter_term)
         self.click(locators['contentviews.select_module_ver'] % filter_term)
 
     def add_remove_cv(self, composite_cv, cv_names, is_add=True):
@@ -293,7 +301,7 @@ class ContentViews(Base):
         # Workaround to remove previously used search string
         # from search box
         self.find_element(locators['contentviews.search_filters']).clear()
-        self.click(locators['contentviews.search_button'])
+        self.click(common_locators['kt_search_button'])
         for filter_name in filter_names:
             self.click(
                 locators['contentviews.select_filter_checkbox'] % filter_name)
@@ -532,8 +540,8 @@ class ContentViews(Base):
         """Get added puppet module name from selected content-view"""
         self.search_and_click(cv_name)
         self.click(tab_locators['contentviews.tab_puppet_modules'])
-        self.assign_value(
-            locators['contentviews.search_filters'], module_name)
+        self.assign_value(common_locators['kt_search'], module_name)
+        self.click(common_locators['kt_search_button'])
         return self.wait_until_element(
             locators['contentviews.get_module_name'] % module_name)
 
@@ -575,6 +583,7 @@ class ContentViews(Base):
         has activation key or content host assigned to it
         """
         self.search_and_click(name)
+        self.click(locators['contentviews.version_dropdown'] % version)
         self.click(locators['contentviews.remove_ver'] % version)
         self.click(locators['contentviews.next_button'])
         self.wait_until_element(locators['contentviews.affected_button'])
@@ -633,6 +642,7 @@ class ContentViews(Base):
         # find and open the content view
         self.search_and_click(name)
         # click on the version remove button
+        self.click(locators['contentviews.version_dropdown'] % version)
         self.click(locators.contentviews.remove_ver % version)
         # ensure, that remove Completely remove version check box is unchecked
         self.assign_value(
