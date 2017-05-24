@@ -77,12 +77,14 @@ tab_locators = LocatorDict({
     "users.tab_filters": (By.XPATH, "//a[@href='#filters']"),
 
     "prd.tab_details": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+        By.XPATH, ("//a[@class='ng-scope'"
+                   " and contains(@ui-sref,'product.info')]")),
     "prd.tab_repos": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
+        By.XPATH, "//a[@class='ng-scope'"
+                  "and contains(@ui-sref,'product.repositories')]"),
     "prd.tab_tasks": (
-        By.XPATH, ("//a[@class='ng-scope' and contains(@href,'tasks')"
-                   " and contains(@ui-sref, 'products')]")),
+        By.XPATH, ("//a[@class='ng-scope'"
+                   " and contains(@ui-sref, 'product.tasks')]")),
 
     # For Orgs and Locations
     "context.tab_users": (

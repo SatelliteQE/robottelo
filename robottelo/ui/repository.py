@@ -119,12 +119,12 @@ class Repos(Base):
             self.click(locators['repo.discovered_url_checkbox'] % url)
         self.click(locators['repo.create_selected'])
         if new_product:
-            self.click(locators['repo.new_product'])
+            self.select(locators['repo.product'], 'New Product')
             self.assign_value(locators['repo.new_product_name'], product)
             if gpg_key:
                 self.select(locators['repo.gpgkey_in_discover'], gpg_key)
         else:
-            self.click(locators['repo.existing_product'])
+            self.select(locators['repo.product'], 'Existing Product')
             self.select(locators['repo.select_exist_product'], product)
         self.click(locators['repo.create'])
 

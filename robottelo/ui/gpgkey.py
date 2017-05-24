@@ -4,7 +4,6 @@
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class GPGKey(Base):
@@ -24,7 +23,6 @@ class GPGKey(Base):
         self.click(locators['gpgkey.new'])
         self.assign_value(common_locators['name'], name)
         if upload_key:
-            self.click(locators['gpgkey.upload'])
             self.assign_value(locators['gpgkey.file_path'], key_path)
         elif key_content:
             self.click(locators['gpgkey.content'])
@@ -51,8 +49,12 @@ class GPGKey(Base):
                 locators['gpgkey.save_name']
             )
         if new_key:
-            self.assign_value(locators['gpgkey.file_path'], new_key)
-            self.click(locators['gpgkey.upload_button'])
+            self.edit_entity(
+                locators['gpgkey.edit_content'],
+                locators['gpgkey.file_path'],
+                new_key,
+                locators['gpgkey.save_content']
+            )
 
     def get_product_repo(self, key_name, entity_name, entity_type='Product'):
         """To validate whether product and repo associated with gpg keys.
@@ -66,12 +68,16 @@ class GPGKey(Base):
         self.search_and_click(key_name)
         if entity_type == 'Product':
             self.click(tab_locators['gpgkey.tab_products'])
-            self.assign_value(locators['gpgkey.product_search'], entity_name)
+            self.assign_value(
+                locators['gpgkey.product_repo_search'], entity_name)
+            return self.wait_until_element(
+                locators['gpgkey.product'] % entity_name)
         elif entity_type == 'Repository':
             self.click(tab_locators['gpgkey.tab_repos'])
-            self.assign_value(locators['gpgkey.repo_search'], entity_name)
-        return self.wait_until_element(
-            locators['gpgkey.product_repo'] % entity_name)
+            self.assign_value(
+                locators['gpgkey.product_repo_search'], entity_name)
+            return self.wait_until_element(
+                locators['gpgkey.repo'] % entity_name)
 
     def assert_key_from_product(self, name, prd_element, repo=None):
         """Assert the key association after deletion from product tab."""
@@ -80,9 +86,7 @@ class GPGKey(Base):
             self.click(tab_locators['prd.tab_repos'])
             self.click(locators['repo.select'] % repo)
             self.click(locators['repo.gpg_key_edit'])
-            element = Select(
-                self.find_element(locators['repo.gpg_key_update'])
-            ).first_selected_option.text
+            element = self.get_selected_value(locators['repo.gpg_key_update'])
             if element != '':
                 raise UIError(
                     'GPGKey "{0}" is still assoc with selected repo'
@@ -91,9 +95,7 @@ class GPGKey(Base):
         else:
             self.click(tab_locators['prd.tab_details'])
             self.click(locators['prd.gpg_key_edit'])
-            element = Select(
-                self.find_element(locators['prd.gpg_key_update'])
-            ).first_selected_option.text
+            element = self.get_selected_value(locators['prd.gpg_key_update'])
             if element != '':
                 raise UIError(
                     'GPG key "{0}" is still assoc with product'
