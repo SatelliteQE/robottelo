@@ -1658,7 +1658,8 @@ locators = LocatorDict({
         "//tr[contains(@ng-repeat, 'contentView')]"
         "/td/a[contains(., '%s')]"),
     "contentviews.edit_name": (
-        By.XPATH, "//dd[@bst-edit-text='contentView.name']//div/span/i[1]"),
+        By.XPATH, "//dd[@bst-edit-text='contentView.name']//div/span"
+                  "/i[contains(@class, 'fa-edit')]"),
     "contentviews.edit_name_text": (
         By.XPATH,
         "//dd[@bst-edit-text='contentView.name']/form/div/input"),
@@ -1668,7 +1669,8 @@ locators = LocatorDict({
          "//button[@ng-click='save()']")),
     "contentviews.edit_description": (
         By.XPATH,
-        "//dd[@bst-edit-textarea='contentView.description']//div/span/i[1]"),
+        "//dd[@bst-edit-textarea='contentView.description']//div/span"
+        "/i[contains(@class, 'fa-edit')]"),
     "contentviews.edit_description_text": (
         By.XPATH,
         "//dd[@bst-edit-textarea='contentView.description']/form"
@@ -1688,7 +1690,7 @@ locators = LocatorDict({
                   "button[contains(@class, 'dropdown-toggle')]"),
     "contentviews.remove_ver": (
         By.XPATH,
-        ("//td/a[contains(., '%s')]/following::td[@class='col-sm-2'][1]"
+        ("//td[a[contains(., '%s')]]/following-sibling::td[@class='col-sm-2']"
          "//a[contains(@ng-click, 'version-deletion')]")),
     "contentviews.completely_remove_checkbox": (
         By.XPATH, "//input[contains(@ng-model, 'deleteArchive')]"),
@@ -1761,7 +1763,7 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='table.searchTerm']"),
     "contentviews.promote_button": (
         By.XPATH,
-        ("//td/a[contains(., '%s')]/following::td[@class='col-sm-2'][1]"
+        ("//td[a[contains(., '%s')]]/following-sibling::td[@class='col-sm-2']"
          "//span[text()='Promote']")),
     "contentviews.env_to_promote": (
         By.XPATH,
