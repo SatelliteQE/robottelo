@@ -200,6 +200,28 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(orgs[0].id, org.id)
         self.assertEqual(orgs[0].name, org.name)
 
+    @tier1
+    def test_negative_create_with_wrong_path(self):
+        """Attempt to create an organization using foreman API path
+        (``api/v2/organizations``)
+
+        :id: 499ae5ef-b1e4-4fb8-967a-57d525e06326
+
+        :BZ: 1241068
+
+        :expectedresults: API returns 404 error with 'Route overriden by
+            Katello' message
+
+        :CaseImportance: Critical
+        """
+        org = entities.Organization()
+        org._meta['api_path'] = 'api/v2/organizations'
+        with self.assertRaises(HTTPError) as err:
+            org.create()
+        self.assertEqual(err.exception.response.status_code, 404)
+        self.assertIn(
+            'Route overriden by Katello', err.exception.response.text)
+
 
 class OrganizationUpdateTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
