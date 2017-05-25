@@ -21,7 +21,7 @@ import time
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests, ssh
-from robottelo.api.utils import upload_manifest
+from robottelo.api.utils import create_role_permissions, upload_manifest
 from robottelo.constants import (
     CHECKSUM_TYPE,
     DOCKER_REGISTRY_HUB,
@@ -56,6 +56,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     stubbed,
+    skip_if_bug_open,
     tier1,
     tier2,
 )
@@ -63,8 +64,14 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.host_info import get_host_os_version
 from robottelo.test import UITestCase
+from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_repository, set_context
-from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.locators import (
+    common_locators,
+    locators,
+    menu_locators,
+    tab_locators,
+)
 from robottelo.ui.session import Session
 from selenium.common.exceptions import NoSuchElementException
 
@@ -260,6 +267,130 @@ class RepositoryTestCase(UITestCase):
                     )
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'checksum', checksum))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_create_as_non_admin_user(self):
+        """Create a repository as a non admin user
+
+        @id: 582949c4-b95f-4d64-b7f0-fb80b3d2bd7e
+
+        @expectedresults: Repository successfully created
+
+        @BZ: 1374505
+
+        @CaseLevel: Integration
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        repo_name = gen_string('alpha')
+        user_permissions = {
+            None: ['access_dashboard'],
+            'Katello::Product': [
+                'view_products',
+                'create_products',
+                'edit_products',
+                'destroy_products',
+                'sync_products',
+                'export_products',
+            ],
+        }
+        role = entities.Role().create()
+        create_role_permissions(role, user_permissions)
+        entities.User(
+            login=user_login,
+            password=user_password,
+            role=[role],
+            admin=False,
+            default_organization=self.session_org,
+            organization=[self.session_org],
+        ).create()
+        product = entities.Product(organization=self.session_org).create()
+        with Session(self.browser, user_login, user_password) as session:
+            # ensure that the created user is not a global admin user
+            # check administer->users page
+            with self.assertRaises(UINoSuchElementError):
+                session.nav.go_to_users()
+            # ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.wait_until_element(
+                    menu_locators['menu.hosts'], timeout=5)
+            )
+            self.products.search_and_click(product.name)
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_1_YUM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1447829)
+    @tier2
+    def test_positive_create_as_non_admin_user_with_cv_published(self):
+        """Create a repository as a non admin user in a product that already
+        contain a repository that is used in a published content view.
+
+        @id: 407864eb-50b8-4bc8-bbc7-0e6f8136d89f
+
+        @expectedresults: New repository successfully created by non admin user
+
+        @BZ: 1447829
+
+        @CaseLevel: Integration
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        repo_name = gen_string('alpha')
+        user_permissions = {
+            None: ['access_dashboard'],
+            'Katello::Product': [
+                'view_products',
+                'create_products',
+                'edit_products',
+                'destroy_products',
+                'sync_products',
+                'export_products',
+            ],
+        }
+        role = entities.Role().create()
+        create_role_permissions(role, user_permissions)
+        entities.User(
+            login=user_login,
+            password=user_password,
+            role=[role],
+            admin=False,
+            default_organization=self.session_org,
+            organization=[self.session_org],
+        ).create()
+        product = entities.Product(organization=self.session_org).create()
+        repo = entities.Repository(
+            product=product, url=FAKE_2_YUM_REPO).create()
+        repo.sync()
+        content_view = entities.ContentView(
+            organization=self.session_org).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        with Session(self.browser, user_login, user_password) as session:
+            # ensure that the created user is not a global admin user
+            # check administer->users page
+            with self.assertRaises(UINoSuchElementError):
+                session.nav.go_to_users()
+            # ensure that the created user has only the assigned
+            # permissions, check that hosts menu tab does not exist
+            self.assertIsNone(
+                self.content_views.wait_until_element(
+                    menu_locators['menu.hosts'], timeout=5)
+            )
+            self.products.search_and_click(product.name)
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_1_YUM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
     @tier1
