@@ -1165,7 +1165,7 @@ locators = LocatorDict({
 
     # Products
     "prd.new": (By.XPATH, "//button[contains(@ui-sref,'products.new')]"),
-    "prd.title": (By.XPATH, "//h2/span[contains(.,'Product %s')]"),
+    "prd.title": (By.XPATH, "//h2/span[contains(.,'%s')]"),
     "prd.bulk_actions": (
         By.XPATH, "//button[contains(@ui-sref,'products.bulk-actions')]"),
     "prd.repo_discovery": (
@@ -1190,27 +1190,26 @@ locators = LocatorDict({
     "prd.sync_hrs": (By.XPATH, "//input[@ng-model='hours']"),
     "prd.sync_mins": (By.XPATH, "//input[@ng-model='minutes']"),
     "prd.gpg_key_edit": (
-        By.XPATH, "//form[@selector='product.gpg_key_id']//i"),
-    "prd.gpg_key_update": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
-                                      "/div/select")),
-    "prd.gpg_key": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
+        By.XPATH, ("//dd[@selector='product.gpg_key_id']"
+                   "//i[contains(@class, 'fa-edit')]")),
+    "prd.gpg_key_update": (
+        By.XPATH, "//dd[@selector='product.gpg_key_id']//select"),
+    "prd.gpg_key": (By.XPATH, ("//dd[@selector='product.gpg_key_id']"
                                "//div/span")),
-    "prd.name_edit": (By.XPATH, ("//form[@bst-edit-text='product.name']"
+    "prd.name_edit": (By.XPATH, ("//dd[@bst-edit-text='product.name']"
                                  "//i[contains(@class,'fa-edit')]")),
-    "prd.name_update": (By.XPATH, ("//form[@bst-edit-text='product.name']"
-                                   "/div/input")),
+    "prd.name_update": (
+        By.XPATH, "//dd[@bst-edit-text='product.name']//input"),
     "prd.desc_edit": (
-        By.XPATH, ("//form[@bst-edit-textarea='product.description']"
-                   "//i[contains(@class,'icon-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-textarea='product.description']"
+                   "//i[contains(@class,'fa-edit')]")),
     "prd.desc_update": (
-        By.XPATH, ("//form[@bst-edit-textarea='product.description']"
-                   "/div/textarea")),
+        By.XPATH, "//dd[@bst-edit-textarea='product.description']//textarea"),
     "prd.sync_plan_edit": (
-        By.XPATH, ("//form[@selector='product.sync_plan_id']"
+        By.XPATH, ("//dd[@selector='product.sync_plan_id']"
                    "//i[contains(@class,'fa-edit')]")),
     "prd.sync_plan_update": (
-        By.XPATH, ("//form[@selector='product.sync_plan_id']"
-                   "/div/select")),
+        By.XPATH, "//dd[@selector='product.sync_plan_id']//select"),
     # Puppet Classes
     "puppetclass.new": (
         By.XPATH, "//a[@data-id='aid_puppetclasses_new']"),
@@ -1242,7 +1241,7 @@ locators = LocatorDict({
     "repo.upstream_name": (By.ID, "docker_upstream_name"),
     "repo.checksum": (By.ID, "checksum_type"),
     "repo.via_http": (By.ID, "unprotected"),
-    "repo.search": (By.XPATH, "//input[@ng-model='detailsTable.searchTerm']"),
+    "repo.search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
     "repo.remove": (
         By.XPATH, "//button[contains(@ng-show, 'canRemove')]"),
     "repo.sync_now": (
@@ -1258,24 +1257,20 @@ locators = LocatorDict({
         By.XPATH, ("//span[@class='ng-scope' and contains(., 'Result')]"
                    "/../../span[contains(@class, 'info-value')]")),
     "repo.repo_discover": (
-        By.XPATH, "//button[@ui-sref='products.discovery.scan']"),
+        By.XPATH, "//button[@ui-sref='product-discovery.scan']"),
     "repo.discover_url": (By.XPATH, "//input[@ng-model='discovery.url']"),
     "repo.discover_button": (By.XPATH, "//button[@type='submit']"),
     "repo.discovered_url_checkbox": (
-        By.XPATH, ("//table[@bst-table='discoveryTable']"
-                   "//td[contains(., '%s')]"
-                   "/../td/input[@type='checkbox']")),
+        By.XPATH, "//td[contains(., '%s')]/../td/input[@type='checkbox']"),
     "repo.cancel_discover": (
         By.XPATH, "//button[@ng-show='discovery.pending']"),
     "repo.create_selected": (
         By.XPATH, "//button[@ng-click='setupSelected()']"),
     "repo.create": (By.XPATH, "//button[@ng-click='createRepos()']"),
-    "repo.existing_product": (
-        By.XPATH, "//input[@type='radio' and @value='false']"),
+    "repo.product": (
+        By.XPATH, "//select[@ng-model='createRepoChoices.newProduct']"),
     "repo.select_exist_product": (
         By.XPATH, "//select[@ng-model='createRepoChoices.existingProductId']"),
-    "repo.new_product": (
-        By.XPATH, "//input[@type='radio' and @value='true']"),
     "repo.new_product_name": (
         By.XPATH, "//input[@ng-model='createRepoChoices.product.name']"),
     "repo.gpgkey_in_discover": (
@@ -1300,44 +1295,44 @@ locators = LocatorDict({
         By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
                    "/div/input")),
     "repo.gpg_key_edit": (
-        By.XPATH, "//form[@selector='repository.gpg_key_id']//i"),
+        By.XPATH, ("//dd[@selector='repository.gpg_key_id']"
+                   "//i[contains(@class, 'edit')]")),
     "repo.gpg_key_update": (
-        By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select"),
+        By.XPATH, "//dd[@selector='repository.gpg_key_id']//select"),
     "repo.gpg_key": (
-        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
-                   "//div/span")),
+        By.XPATH, "//dd[@selector='repository.gpg_key_id']//div/span"),
     "repo.download_policy_edit": (
-        By.XPATH, "//form[@selector='repository.download_policy']//i"),
+        By.XPATH, ("//dd[@selector='repository.download_policy']"
+                   "//i[contains(@class, 'edit')]")),
     "repo.download_policy_update": (
-        By.XPATH, "//form[@selector='repository.download_policy']/div/select"),
+        By.XPATH, "//dd[@selector='repository.download_policy']//div/select"),
     "repo.download_policy": (By.ID, "download_policy"),
     "repo.checksum_edit": (
-        By.XPATH, ("//form[@selector='repository.checksum_type']"
-                   "/div/div/span/i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@selector='repository.checksum_type']"
+                   "//i[contains(@class,'fa-edit')]")),
     "repo.checksum_update": (
-        By.XPATH, "//form[@selector='repository.checksum_type']/div/select"),
+        By.XPATH, "//dd[@selector='repository.checksum_type']//div/select"),
     "repo.upstream_edit": (
-        By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
+        By.XPATH, ("//dd[@bst-edit-text='repository.docker_upstream_name']"
                    "//i[contains(@class,'fa-edit')]")),
     "repo.upstream_update": (
-        By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
-                   "/div/input")),
+        By.XPATH, ("//dd[@bst-edit-text='repository.docker_upstream_name']"
+                   "//div/input")),
     "repo.fetch_url": (
-        By.XPATH, ("//form[@bst-edit-text='repository.url']"
-                   "/div[@class='bst-edit']"
-                   "/div/span[contains(@class,'editable-value')]")),
+        By.XPATH, ("//dd[@bst-edit-text='repository.url']"
+                   "//span[contains(@class,'editable-value')]")),
     "repo.fetch_gpgkey": (
-        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
-                   "/div[@class='bst-edit']/div/span[2]")),
+        By.XPATH, ("//dd[@selector='repository.gpg_key_id']"
+                   "//div/span[2]")),
     "repo.fetch_download_policy": (
-        By.XPATH, ("//form[@selector='repository.download_policy']"
-                   "/div[@class='bst-edit']/div/span[2]")),
+        By.XPATH, ("//dd[@selector='repository.download_policy']"
+                   "//div[@class='bst-edit']/div/span[2]")),
     "repo.fetch_checksum": (
-        By.XPATH, ("//form[@selector='repository.checksum_type']"
-                   "/div/div/span[contains(@class,'value')]")),
+        By.XPATH, ("//dd[@selector='repository.checksum_type']"
+                   "//div/div/span[contains(@class,'value')]")),
     "repo.fetch_upstream": (
-        By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
-                   "/div[@class='bst-edit']/div/span[2]")),
+        By.XPATH, ("//dd[@bst-edit-text='repository.docker_upstream_name']"
+                   "//div[@class='bst-edit']/div/span[2]")),
     "repo.fetch_packages": (
         By.XPATH, "//td[span[text()='Packages']]/following-sibling::td",
     ),
@@ -1620,35 +1615,40 @@ locators = LocatorDict({
 
     # GPG Key
     "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpg-keys.new']"),
-    "gpgkey.upload": (By.XPATH, "//input[@type='radio'and @value='upload']"),
     "gpgkey.content": (
-        By.XPATH, "//textarea[@placeholder='Paste contents...']"),
-    "gpgkey.file_path": (
-        By.XPATH, "//input[@type='file']"),
+        By.XPATH,
+        "//textarea[@name='content' and @ng-model='gpgKey.pastedGPG']"),
+    "gpgkey.file_path": (By.XPATH, "//input[@type='file']"),
     "gpgkey.key_name": (
         By.XPATH,
         "//tr[@ng-repeat='gpgKey in table.rows']/td/a[contains(., '%s')]"),
     "gpgkey.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
+    "gpgkey.edit_content": (
+        By.XPATH, ("//dd[@bst-edit-custom='gpgKey.content']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "gpgkey.edit_name": (
-        By.XPATH, "//form[@bst-edit-text='gpgKey.name']//div/span/i"),
+        By.XPATH, ("//dd[@bst-edit-text='gpgKey.name']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "gpgkey.new_form": (By.XPATH, "//form[contains(@name,'gpgKeyForm')]"),
     "gpgkey.edit_name_text": (
+        By.XPATH, "//dd[@bst-edit-text='gpgKey.name']/form/div/input"),
+    "gpgkey.save_content": (
         By.XPATH,
-        "//form[@bst-edit-text='gpgKey.name']/div/input"),
+        "//dd[@bst-edit-custom='gpgKey.content']//button[@ng-click='save()']"),
     "gpgkey.save_name": (
         By.XPATH,
-        ("//form[@bst-edit-text='gpgKey.name']"
-         "//button[@ng-click='save()']")),
+        "//dd[@bst-edit-text='gpgKey.name']//button[@ng-click='save()']"),
     "gpgkey.upload_button": (
         By.XPATH, "//button[@ng-click='progress.uploading = true']"),
-    "gpgkey.product_search": (
-        By.XPATH, "//input[@ng-model='productSearch']"),
-    "gpgkey.repo_search": (
-        By.XPATH, "//input[@ng-model='repositorySearch']"),
-    "gpgkey.product_repo": (
+    "gpgkey.product_repo_search": (
+        By.XPATH, "//input[@ng-model='table.searchTerm']"),
+    "gpgkey.product": (
         By.XPATH,
-        "//td/a[contains(@href, 'repositories') and contains(., '%s')]"),
+        "//td/a[contains(@ui-sref, 'product.info') and contains(., '%s')]"),
+    "gpgkey.repo": (
+        By.XPATH,
+        "//td/a[contains(@ui-sref, 'repository.info') and contains(., '%s')]"),
 
     # Content views
     "contentviews.new": (By.XPATH, "//a[@ui-sref='content-views.new']"),
