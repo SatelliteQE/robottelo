@@ -75,7 +75,7 @@ from robottelo.constants import (
     PRD_SETS,
     TEMPLATE_TYPES,
 )
-from robottelo.decorators import bz_bug_is_open, cacheable
+from robottelo.decorators import affected_by_bz, cacheable
 from robottelo.helpers import (
     update_dictionary, default_url_on_new_port, get_available_capsule_port
 )
@@ -713,7 +713,7 @@ def make_product_wait(options=None, wait_for=5):
     try:
         product = make_product(options)
     except CLIFactoryError as err:
-        if not bz_bug_is_open(1332650):
+        if not affected_by_bz(1332650):
             raise err
         sleep(wait_for)
         try:

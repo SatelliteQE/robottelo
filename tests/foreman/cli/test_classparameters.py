@@ -43,7 +43,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    bz_bug_is_open)
+    affected_by_bz)
 from robottelo.test import CLITestCase
 
 
@@ -186,7 +186,7 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in env_sc_params})
         )
-        if not bz_bug_is_open(1432927):
+        if not affected_by_bz(1432927):
             # Check that only unique results are returned
             self.assertEqual(
                 len(env_sc_params),
@@ -211,7 +211,7 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in env_sc_params})
         )
-        if not bz_bug_is_open(1432927):
+        if not affected_by_bz(1432927):
             # Check that only unique results are returned
             self.assertEqual(
                 len(env_sc_params),
@@ -248,7 +248,7 @@ class SmartClassParametersTestCase(CLITestCase):
         host_sc_params = SmartClassParameter.list({'host': host.name})
         self.assertGreater(len(host_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
-        if not bz_bug_is_open(1432927):
+        if not affected_by_bz(1432927):
             # Check that only unique results are returned
             self.assertEqual(
                 len(host_sc_params),
@@ -285,7 +285,7 @@ class SmartClassParametersTestCase(CLITestCase):
         host_sc_params = SmartClassParameter.list({'host-id': host.id})
         self.assertGreater(len(host_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in host_sc_params])
-        if not bz_bug_is_open(1432927):
+        if not affected_by_bz(1432927):
             # Check that only unique results are returned
             self.assertEqual(
                 len(host_sc_params),
@@ -321,7 +321,7 @@ class SmartClassParametersTestCase(CLITestCase):
             {'hostgroup': hostgroup['name']})
         self.assertGreater(len(hostgroup_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
-        if not bz_bug_is_open(1432927):
+        if not affected_by_bz(1432927):
             # Check that only unique results are returned
             self.assertEqual(
                 len(hostgroup_sc_params),
@@ -357,7 +357,7 @@ class SmartClassParametersTestCase(CLITestCase):
             {'hostgroup-id': hostgroup['id']})
         self.assertGreater(len(hostgroup_sc_params), 0)
         self.assertIn(sc_param_id, [scp['id'] for scp in hostgroup_sc_params])
-        if not bz_bug_is_open(1432927):
+        if not affected_by_bz(1432927):
             # Check that only unique results are returned
             self.assertEqual(
                 len(hostgroup_sc_params),
@@ -380,7 +380,7 @@ class SmartClassParametersTestCase(CLITestCase):
             {scp['id'] for scp in self.sc_params_list}.issubset(
                 {scp['id'] for scp in sc_params})
         )
-        if not bz_bug_is_open(1432927):
+        if not affected_by_bz(1432927):
             # Check that only unique results are returned
             self.assertEqual(
                 len(sc_params), len({scp['id'] for scp in sc_params}))

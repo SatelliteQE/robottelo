@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Navigator UI."""
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import menu_locators
 
@@ -23,7 +23,7 @@ class Navigator(Base):
             )
         # 1328627 - as the number of subs increases, dashboard page gets slower
         wait_timeout = 12
-        if bz_bug_is_open(1328627):
+        if affected_by_bz(1328627):
             wait_timeout = 40
         self.wait_until_element_is_not_visible(
             menu_locators['navbar.spinner'],

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Bookmarks UI"""
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
@@ -38,7 +38,7 @@ class Bookmark(Base):
         and search button there. Also bookmark names are unique only inside the
         same controller, so controller name should be specified too.
         """
-        if not bz_bug_is_open(1322012):
+        if not affected_by_bz(1322012):
             raise DeprecationWarning(
                 'Search box is implemented. Use generic search method'
             )

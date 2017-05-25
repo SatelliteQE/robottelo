@@ -49,7 +49,7 @@ from robottelo.datafactory import (
     valid_hostgroups_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_only_on,
     skip_if_bug_open,
     tier1,
@@ -422,7 +422,7 @@ class HostGroupTestCase(CLITestCase):
             ),
             hostgroup['operating-system']
         )
-        if not bz_bug_is_open('1313056'):
+        if not affected_by_bz('1313056'):
             self.assertEqual(cv['name'], hostgroup['content-view'])
             self.assertEqual(
                 lce['name'], hostgroup['lifecycle-environment']

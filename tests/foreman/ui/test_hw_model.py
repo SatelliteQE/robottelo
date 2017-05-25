@@ -21,7 +21,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1
+from robottelo.decorators import affected_by_bz, run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hw_model
 from robottelo.ui.locators import common_locators
@@ -92,7 +92,7 @@ class HardwareModelTestCase(UITestCase):
             for test_data in valid_hw_model_names():
                 with self.subTest(test_data):
                     bug_id = test_data.pop('bugzilla', None)
-                    if bug_id is not None and bz_bug_is_open(bug_id):
+                    if bug_id is not None and affected_by_bz(bug_id):
                         self.skipTest(
                             'Bugzilla bug {0} is open for html '
                             'data.'.format(bug_id)
@@ -115,7 +115,7 @@ class HardwareModelTestCase(UITestCase):
             for test_data in valid_hw_model_names():
                 with self.subTest(test_data):
                     bug_id = test_data.pop('bugzilla', None)
-                    if bug_id is not None and bz_bug_is_open(bug_id):
+                    if bug_id is not None and affected_by_bz(bug_id):
                         self.skipTest(
                             'Bugzilla bug {0} is open for html '
                             'data.'.format(bug_id)

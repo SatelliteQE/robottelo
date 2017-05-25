@@ -98,7 +98,7 @@ class HammerCommandsTestCase(CLITestCase):
         )
         # the bug was closed with status "CLOSED WONTFIX"
         # keep the code commented in case of a reopen
-        # if 'discovery_rule' in command and bz_bug_is_open(1219610):
+        # if 'discovery_rule' in command and affected_by_bz(1219610):
         #     # Adjust the discovery_rule subcommand name. The expected data is
         #     # already with the naming convention name
         #     expected = _fetch_command_info(
@@ -119,7 +119,7 @@ class HammerCommandsTestCase(CLITestCase):
 
         # the bug was closed with status "CLOSED WONTFIX"
         # keep the code commented in case of a reopen
-        # if command == 'hammer' and bz_bug_is_open(1219610):
+        # if command == 'hammer' and affected_by_bz(1219610):
         #     # Adjust the discovery_rule subcommand name
         #     command_subcommands.discard('discovery_rule')
         #     command_subcommands.add('discovery-rule')

@@ -1,7 +1,7 @@
 """Implements Subscriptions/Manifest handling for the UI"""
 import os
 
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
@@ -38,7 +38,7 @@ class Subscriptions(Base):
             handler.write(manifest.content.read())
         browse_element.send_keys(manifest.filename)
         self.click(locators['subs.upload'])
-        timeout = 900 if bz_bug_is_open(1339696) else 300
+        timeout = 900 if affected_by_bz(1339696) else 300
         self.wait_until_element(locators['subs.manifest_exists'], timeout)
         os.remove(manifest.filename)
 
@@ -46,7 +46,7 @@ class Subscriptions(Base):
         """Deletes Manifest/subscriptions via UI."""
         self.click(locators['subs.manage_manifest'])
         self.click(locators['subs.delete_manifest'])
-        timeout = 900 if bz_bug_is_open(1339696) else 300
+        timeout = 900 if affected_by_bz(1339696) else 300
         self.wait_until_element_is_not_visible(
             locators['subs.manifest_exists'], timeout)
 

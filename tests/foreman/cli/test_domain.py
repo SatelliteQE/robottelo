@@ -23,7 +23,7 @@ from robottelo.cli.factory import make_domain, make_location, make_org
 from robottelo.datafactory import (
     filtered_datapoint, invalid_id_list, valid_data_list
 )
-from robottelo.decorators import run_only_on, tier1, bz_bug_is_open
+from robottelo.decorators import run_only_on, tier1, affected_by_bz
 from robottelo.test import CLITestCase
 
 
@@ -48,7 +48,7 @@ def invalid_create_params():
     params = [
         {u'name': gen_string(str_type='utf8', length=256)},
     ]
-    if not bz_bug_is_open(1398392):
+    if not affected_by_bz(1398392):
         params.append({u'dns-id': '-1'})
     return params
 
@@ -75,7 +75,7 @@ def invalid_update_params():
         {u'name': ''},
         {u'name': gen_string(str_type='utf8', length=256)},
     ]
-    if not bz_bug_is_open(1398392):
+    if not affected_by_bz(1398392):
         params.append({u'dns-id': '-1'})
     return params
 

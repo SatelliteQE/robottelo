@@ -24,7 +24,7 @@ Subcommands::
 """
 from robottelo.cli.base import Base
 from robottelo.cli.host import Host
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import affected_by_bz
 
 
 class ContentHost(Base):
@@ -45,7 +45,7 @@ class ContentHost(Base):
                     organization_field = key
                     organization_value = value
         content_host = Host.subscription_register(options)
-        if bz_bug_is_open(1328202):
+        if affected_by_bz(1328202):
             results = ContentHost.list({
                 organization_field: organization_value,
             })

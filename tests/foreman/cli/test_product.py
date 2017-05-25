@@ -34,7 +34,7 @@ from robottelo.datafactory import (
     valid_labels_list,
     invalid_values_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
+from robottelo.decorators import affected_by_bz, run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -317,7 +317,7 @@ class ProductTestCase(CLITestCase):
                 u'id': new_product['id'],
                 u'organization-id': self.org['id'],
             })
-            if bz_bug_is_open(1219490):
+            if affected_by_bz(1219490):
                 for _ in range(5):
                     time.sleep(5)
                     Product.info({

@@ -28,7 +28,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
+    affected_by_bz,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -1384,7 +1384,7 @@ class DockerContainerTestCase(APITestCase):
         cr_interfaces = [self.cr_external, self.cr_internal]
         # there is some bugs affecting docker internal interface on RHEL7
         if get_host_os_version().startswith('RHEL7'):
-            if bz_bug_is_open(1366573) or bz_bug_is_open(1414797):
+            if affected_by_bz(1366573) or affected_by_bz(1414797):
                 cr_interfaces.pop()
         for compute_resource in cr_interfaces:
             with self.subTest(compute_resource.url):
