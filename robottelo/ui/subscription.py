@@ -42,13 +42,17 @@ class Subscriptions(Base):
         self.wait_until_element(locators['subs.manifest_exists'], timeout)
         os.remove(manifest.filename)
 
-    def delete(self):
+    def delete(self, really=True):
         """Deletes Manifest/subscriptions via UI."""
         self.click(locators['subs.manage_manifest'])
         self.click(locators['subs.delete_manifest'])
-        timeout = 900 if bz_bug_is_open(1339696) else 300
-        self.wait_until_element_is_not_visible(
-            locators['subs.manifest_exists'], timeout)
+        if really:
+            self.click(common_locators['confirm_remove'])
+            timeout = 900 if bz_bug_is_open(1339696) else 300
+            self.wait_until_element_is_not_visible(
+                locators['subs.manifest_exists'], timeout)
+        else:
+            self.click(common_locators['cancel'])
 
     def refresh(self):
         """Refreshes Manifest/subscriptions via UI."""
