@@ -172,6 +172,33 @@ class ContentViewFilterTestCase(CLITestCase):
         })
         self.assertEqual(cvf['description'], description)
 
+    @tier1
+    def test_positive_list_by_name_and_org(self):
+        """Create new content view filter and try to list it by its name and
+        organization it belongs
+
+        :id: e685892d-9dc3-48f2-8a09-8f861dceaf4e
+
+        :expectedresults: Content view filter created and listed successfully
+
+        :BZ: 1378018
+
+        :CaseImportance: Critical
+        """
+        cvf_name = gen_string('utf8')
+        ContentView.filter.create({
+            'content-view-id': self.content_view['id'],
+            'name': cvf_name,
+            'organization-id': self.org['id'],
+            'type': 'package_group',
+        })
+        cvf = ContentView.filter.list({
+            u'content-view': self.content_view['name'],
+            u'organization': self.org['name'],
+        })
+        self.assertEqual(len(cvf), 1)
+        self.assertEqual(cvf[0]['name'], cvf_name)
+
     @skip_if_bug_open('bugzilla', 1356906)
     @tier1
     def test_positive_create_by_cv_name(self):
