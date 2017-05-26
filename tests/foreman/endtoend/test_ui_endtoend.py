@@ -444,7 +444,6 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 vm.configure_puppet(rhel6_repo)
                 host = vm.hostname
                 set_context(session, org=ANY_CONTEXT['org'])
-                session.nav.go_to_hosts()
                 self.hosts.update_host_bulkactions(
                     [host],
                     action='Assign Organization',

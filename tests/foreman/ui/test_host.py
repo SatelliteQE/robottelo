@@ -917,7 +917,6 @@ class HostTestCase(UITestCase):
             'partition-table-id': host.ptable.id,
             'puppet-proxy-id': puppet_proxy['id'],
         })
-
         with Session(self.browser) as session:
             set_context(session, host.organization.name, host.location.name)
             result = self.hosts.fetch_host_parameters(
@@ -1341,21 +1340,6 @@ class AtomicHostTestCase(UITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_bulk_delete_atomic_host(self):
-        """Delete a multiple atomic hosts
-
-        :id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
-
-        :expectedresults: All selected atomic hosts should be deleted
-            successfully
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @stubbed()
-    @tier3
     def test_positive_update_atomic_host_cv(self):
         """Update atomic-host with a new environment and content-view
 
@@ -1378,6 +1362,52 @@ class AtomicHostTestCase(UITestCase):
 
         :expectedresults: Ostree/atomic commands should be executed
             successfully via job templates
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+
+class BulkHostTestCase(UITestCase):
+    """Implements tests for Bulk Hosts actions in UI"""
+
+    @tier3
+    def test_positive_bulk_delete_host(self):
+        """Delete a multiple hosts from the list
+
+        :id: 8da2084a-8b50-46dc-b305-18eeb80d01e0
+
+        :expectedresults: All selected hosts should be deleted successfully
+
+        :BZ: 1368026
+
+        :CaseLevel: System
+        """
+        org = entities.Organization().create()
+        hosts_names = [
+            entities.Host(
+                organization=org
+            ).create().name
+            for _ in range(18)
+        ]
+        with Session(self.browser) as session:
+            set_context(session, org=org.name)
+            self.assertIsNotNone(self.hosts.update_host_bulkactions(
+                hosts_names,
+                action='Delete Hosts',
+                parameters_list=[{'timeout': 300}],
+            ))
+
+    @stubbed()
+    @tier3
+    def test_positive_bulk_delete_atomic_host(self):
+        """Delete a multiple atomic hosts
+
+        :id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
+
+        :expectedresults: All selected atomic hosts should be deleted
+            successfully
 
         :caseautomation: notautomated
 
