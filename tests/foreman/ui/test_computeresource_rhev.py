@@ -17,10 +17,14 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import (
+    COMPUTE_PROFILE_LARGE,
+    FOREMAN_PROVIDERS
+)
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -50,6 +54,7 @@ class RhevComputeResourceTestCase(UITestCase):
         cls.rhev_img_user = settings.rhev.image_username
         cls.rhev_img_pass = settings.rhev.image_password
         cls.rhev_vm_name = settings.rhev.vm_name
+        cls.rhev_storage_domain = settings.rhev.storage_domain
 
     @run_only_on('sat')
     @tier1
@@ -446,7 +451,6 @@ class RhevComputeResourceTestCase(UITestCase):
                 '3-Large', name, 'RHEV'))
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_access_rhev_with_custom_profile(self):
         """Associate custom default (3-Large) compute profile to rhev compute resource
@@ -465,8 +469,98 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Compute Resource created and opened successfully
 
+        :Caseautomation: Automated
+        """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.compute_resource.set_profile_values(
+                name, COMPUTE_PROFILE_LARGE,
+                cluster=self.rhev_datacenter,
+                cores=2,
+                memory=1024,
+                network_interfaces=[
+                    dict(
+                        name='nic1',
+                        network=settings.vlan_networking.bridge
+                    ),
+                    dict(
+                        name='nic2',
+                        network=settings.vlan_networking.bridge
+                    ),
+                ],
+                storage=[
+                    dict(
+                        size='10',
+                        storage_domain=self.rhev_storage_domain,
+                        bootable=True,
+                        preallocate_disk=True
+                    ),
+                    dict(
+                        size='20',
+                        storage_domain=self.rhev_storage_domain,
+                        bootable=False,
+                        preallocate_disk=False
+                    )
+                ]
+            )
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1452534)
+    @tier2
+    def test_positive_access_rhev_with_custom_profile_with_template(self):
+        """Associate custom default (3-Large) compute profile to rhev compute
+         resource, with template
+
+        :id: bb9794cc-6335-4621-92fd-fdc815f23263
+
+        :setup: rhev hostname and credentials.
+
+        :steps:
+
+            1. Create a compute resource of type rhev.
+            2. Provide it with the valid hostname, username and password.
+            3. Select the created rhev CR.
+            4. Click Compute Profile tab.
+            5. Edit (3-Large) with valid configuration and template and submit.
+
+        :expectedresults: The Compute Resource created and opened successfully
+
+        :BZ: 1452534
         :Caseautomation: notautomated
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.compute_resource.set_profile_values(
+                name, COMPUTE_PROFILE_LARGE,
+                cluster=self.rhev_datacenter,
+                template=self.rhev_img_name,
+                cores=2,
+                memory=1024
+            )
 
     @run_only_on('sat')
     @tier2

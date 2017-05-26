@@ -92,7 +92,7 @@ common_locators = LocatorDict({
     "submit": (By.NAME, "commit"),
     "filter": (By.XPATH,
                ("//div[@id='ms-%s_ids']"
-                "//input[contains(@class,'ms-filter')]")),
+                "//input[@class='ms-filter']")),
     "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
     "add_parameter": (
         By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),

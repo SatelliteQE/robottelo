@@ -1,8 +1,164 @@
 # -*- encoding: utf-8 -*-
-from robottelo.constants import FILTER
+from robottelo.constants import FILTER, FOREMAN_PROVIDERS
 from robottelo.ui.base import Base, UINoSuchElementError, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
+
+
+class ResourceProfileFormBase(object):
+    """Base class for compute resources profiles forms"""
+    _page = None
+    # some fields are like two panel and to select from the left one to the
+    # right as users groups and roles
+    # please see how implemented in ResourceProfileFormEC2 for security_groups
+    selector_fields = []
+    # some fields can be part of sections that can be added
+    # like storage and networks, please how implemented in
+    # ResourceProfileFormRHEV (implement network_interfaces and storage)
+    group_fields_locators = {}
+
+    def __init__(self, page):
+        """Initiate compute resource profile form
+
+        :type page: ComputeProfile
+        :param page: The compute profile object ComputeProfile or
+            ComputeResource
+        """
+        self._page = page
+
+    @property
+    def page(self):
+        """Return the current page ComputeResource or ComputeProfile"""
+        return self._page
+
+    def _clean_value(self, name, value):
+        """Check some values and correct them accordingly"""
+        if name in self.selector_fields:
+            if not isinstance(value, (list, tuple)):
+                value = [value]
+        return value
+
+    def set_value(self, name, value):
+        """Set the value of the corresponding field in UI"""
+        locator_attr = '{0}_locator'.format(name)
+        locator = getattr(self, locator_attr, None)
+        if locator is None and name not in self.group_fields_locators:
+            raise UIError('Field name: {0} not supported'.format(name))
+        value = self._clean_value(name, value)
+        if name in self.selector_fields:
+            self.page.configure_entity(value, locator)
+        elif name in self.group_fields_locators:
+            field_index = 0
+            group_fields_locators = self.group_fields_locators[name]
+            add_node_locator = group_fields_locators['_add_node']
+            for group_field in value:
+                if group_field is not None:
+                    for field_key, field_value in group_field.items():
+                        field_locator = group_fields_locators.get(field_key)
+                        available_fields = self.page.find_elements(
+                            field_locator)
+                        if len(available_fields)-1 < field_index:
+                            self.page.click(add_node_locator)
+                            available_fields = self.page.find_elements(
+                                field_locator)
+                        self.page.assign_value(
+                            available_fields[field_index], field_value)
+
+                field_index += 1
+        else:
+            self.page.assign_value(locator, value)
+
+    def set_values(self, **kwargs):
+        """Set the values of the corresponding fields in UI"""
+        for key, value in kwargs.items():
+            self.set_value(key, value)
+
+    def submit(self):
+        """Press the submit form button"""
+        self.page.click(common_locators['submit'])
+
+
+class ResourceProfileFormEC2(ResourceProfileFormBase):
+    """Implement EC2 compute resource profile form"""
+
+    flavor_locator = locators["resource.compute_profile.ec2_flavor"]
+    image_locator = locators["resource.compute_profile.ec2_image"]
+    subnet_locator = locators["resource.compute_profile.ec2_subnet"]
+    managed_ip_locator = locators["resource.compute_profile.ec2_managed_ip"]
+    availability_zone_locator = locators[
+        "resource.compute_profile.ec2_availability_zone"]
+    security_groups_locator = FILTER['ec2_security_groups']
+    selector_fields = ['security_groups']
+
+    def _clean_value(self, name, value):
+        """Check some values and correct them accordingly"""
+        value = ResourceProfileFormBase._clean_value(self, name, value)
+        if not value:
+            if name == 'availability_zone':
+                value = 'No preference'
+            elif name == 'subnet':
+                value = 'EC2'
+            elif name == 'security_groups':
+                value = []
+        return value
+
+
+class ResourceProfileFormRHEV(ResourceProfileFormBase):
+    """Implement RHEV compute resource profile form"""
+
+    cluster_locator = locators["resource.compute_profile.rhev_cluster"]
+    template_locator = locators["resource.compute_profile.rhev_template"]
+    cores_locator = locators["resource.compute_profile.rhev_cores"]
+    memory_locator = locators["resource.compute_profile.rhev_memory"]
+    image_locator = locators["resource.compute_profile.rhev_image"]
+    group_fields_locators = dict(
+        network_interfaces=dict(
+            _add_node=locators[
+                "resource.compute_profile.rhev_interface_add_node"],
+            name=locators["resource.compute_profile.rhev_interface_name"],
+            network=locators["resource.compute_profile.rhev_interface_network"]
+        ),
+        storage=dict(
+            _add_node=locators[
+                "resource.compute_profile.rhev_storage_add_node"],
+            size=locators["resource.compute_profile.rhev_storage_size"],
+            storage_domain=locators[
+                "resource.compute_profile.rhev_storage_domain"],
+            preallocate_disk=locators[
+                "resource.compute_profile.rhev_storage_preallocate"],
+            bootable=locators["resource.compute_profile.rhev_storage_bootable"]
+        )
+    )
+
+    def set_values(self, **kwargs):
+        """Set the values of the corresponding fields in UI"""
+        # if template is the fields to set, it set in priority as, when
+        # selecting a template, configuration data is loaded in UI
+        template_key = 'template'
+        template = kwargs.get(template_key)
+        if template is not None:
+            self.set_value(template_key, template)
+            del kwargs[template_key]
+        ResourceProfileFormBase.set_values(self, **kwargs)
+
+
+_compute_resource_profiles = {
+    FOREMAN_PROVIDERS['ec2']: ResourceProfileFormEC2,
+    FOREMAN_PROVIDERS['rhev']: ResourceProfileFormRHEV,
+}
+
+
+def get_compute_resource_profile(page, res_type=None):
+    """Return the corresponding instance compute resource profile form object
+    """
+    resource_profile_class = _compute_resource_profiles.get(res_type)
+    if not resource_profile_class:
+        raise UIError(
+            'Resource profile for resource type: {0}'
+            ' not supported'.format(res_type)
+        )
+
+    return resource_profile_class(page)
 
 
 class ComputeResource(Base):
@@ -244,3 +400,37 @@ class ComputeResource(Base):
             self.search_vm(resource_name, vm_name)
             status = self.wait_until_element(locator_status).text
         return status
+
+    def select_profile(self, resource_name, profile_name):
+        """Select the compute profile of a specific compute resource
+
+        :param resource_name: Name of compute resource to select from the list
+        :param profile_name: Name of profile that contains required compute
+            resource (e.g. '2-Medium' or '1-Small')
+        :return: resource type and the resource profile form element
+        :returns: tuple
+        """
+        resource_element = self.search(resource_name)
+        resource_type = self.wait_until_element(
+            locators['resource.resource_type'] % resource_name).text
+        self.click(resource_element)
+        self.click(tab_locators['resource.tab_compute_profiles'])
+        self.click(locators["resource.compute_profile"] % profile_name)
+        return (resource_type,
+                self.wait_until_element(locators['profile.resource_form']))
+
+    def set_profile_values(self, resource_name, profile_name, **kwargs):
+        """Fill and Submit the compute resource profile form configuration
+        properties
+
+        :param resource_name: Name of compute resource to select from the list
+        :param profile_name: Name of profile that contains required compute
+            resource (e.g. '2-Medium' or '1-Small')
+        :param kwargs: the compute resource profile configuration properties
+            fields to be set
+        """
+        resource_type, _ = self.select_profile(resource_name, profile_name)
+        resource_profile_form = get_compute_resource_profile(
+            self, resource_type)
+        resource_profile_form.set_values(**kwargs)
+        resource_profile_form.submit()

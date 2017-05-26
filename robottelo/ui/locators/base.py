@@ -296,12 +296,13 @@ locators = LocatorDict({
     "profile.delete": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
-         "/following::td/div/ul/li/a[@class='delete']")),
+         "/following::td/div/ul/li/a[@data-method='delete']")),
     "profile.resource_name": (
         By.XPATH,
-        ("//a[contains(@href,'compute_resources')"
+        ("//a[contains(@href,'compute_attributes')"
             "and normalize-space(.)='%s']")),
-    "profile.resource_form": (By.XPATH, "//form[@id='new_compute_attribute']"),
+    "profile.resource_form": (
+        By.XPATH, "//form[contains(@action,'compute_attributes')]"),
 
     # Compute Resource
     "resource.new": (
@@ -336,10 +337,12 @@ locators = LocatorDict({
         By.ID, "compute_resource_public_key"),
     "resource.access_key": (By.ID, "compute_resource_user"),
     "resource.secret_key": (By.ID, "compute_resource_password"),
-    "resource.region": (By.ID, "compute_resource_region"),
-    "resource.region.button": (
+    "resource.region": (
         By.XPATH,
-        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+        ("//div[contains(@id, 's2id_compute_resource_region')]"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.region.button": (By.ID, "test_connection_button"),
     "resource.vcenterserver": (By.ID, "compute_resource_server"),
     "resource.tenant": (By.ID, "compute_resource_tenant"),
     "resource.tenant.button": (
@@ -358,6 +361,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@href,'compute_resources')"
             "and normalize-space(.)='%s']")),
+    "resource.resource_type": (
+        By.XPATH,
+        ("//a[contains(@href,'compute_resources')and normalize-space(.)='%s']"
+         "/../following-sibling::td[@class='ellipsis']")),
     "resource.dropdown": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
@@ -365,7 +372,7 @@ locators = LocatorDict({
     "resource.delete": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
-         "/following::td/div/ul/li/a[@class='delete']")),
+         "/following::td/div/ul/li/a[@data-method='delete']")),
     "resource.edit": (
         By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
     "resource.filter_containers": (
@@ -420,6 +427,103 @@ locators = LocatorDict({
     "resource.image_list": (
         By.XPATH,
         "//div[@id='images_list']//tbody/tr/td[1]"),
+
+    # locators under compute-resources compute resources tab.
+    "resource.compute_profile": (
+        By.XPATH,
+        ("//a[contains(@href,'compute_profiles')"
+         "and normalize-space(.)='%s']")
+    ),
+    "resource.compute_profile.ec2_flavor": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_flavor_id']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+
+    "resource.compute_profile.ec2_image": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_image_id']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.ec2_subnet": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_subnet_id']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.ec2_managed_ip": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_managed_ip']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.ec2_availability_zone": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_availability_zone']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.rhev_cluster": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_cluster']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.rhev_template": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_template']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.rhev_cores": (
+        By.XPATH,
+        "//div/span/input[@id='compute_attribute_vm_attrs_cores']"
+    ),
+    "resource.compute_profile.rhev_memory": (
+        By.XPATH,
+        "//div/span/input[@id='compute_attribute_vm_attrs_memory']"
+    ),
+    "resource.compute_profile.rhev_image": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_image_id']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.rhev_interface_add_node": (
+        By.XPATH,
+        ("//div/fieldset[@id='network_interfaces']"
+         "/a[@data-association='interfaces']")
+    ),
+    "resource.compute_profile.rhev_interface_name": (
+        By.XPATH,
+        ("//div/fieldset[@id='network_interfaces']"
+         "//div/input[contains(@id, 'name')]")
+    ),
+    "resource.compute_profile.rhev_interface_network": (
+        By.XPATH,
+        ("//div/fieldset[@id='network_interfaces']"
+         "//div[contains(@id, 'network')]/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.rhev_storage_add_node": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "/a[@data-association='volumes']")
+    ),
+    "resource.compute_profile.rhev_storage_size": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div/input[contains(@id,'size_gb')]")
+    ),
+    "resource.compute_profile.rhev_storage_domain": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div[contains(@id, 'storage_domain')]"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.rhev_storage_preallocate": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div/input[contains(@id, 'preallocate')]")
+    ),
+    "resource.compute_profile.rhev_storage_bootable": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div/label/input[contains(@id, 'bootable_true')]")
+    ),
 
     # Content Hosts
     "contenthost.page_title": (
