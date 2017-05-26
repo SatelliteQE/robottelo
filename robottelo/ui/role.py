@@ -64,6 +64,21 @@ class Role(Base):
                 self.configure_entity(organization, FILTER['role_org'])
         self.click(common_locators['submit'])
 
+    def add_permission(self, role_name, resource_type=None,
+                       permission_list=None):
+        """Add new permission to Role Filter"""
+        self.search(role_name)
+        strategy, value = locators['roles.dropdown']
+        self.click((strategy, value % role_name))
+        self.click(locators['roles.add_permission'])
+        if resource_type:
+            self.assign_value(
+                locators['roles.select_resource_type'], resource_type)
+        if permission_list:
+            self.configure_entity(
+                permission_list, FILTER['filter_permission'])
+        self.click(common_locators['submit'])
+
     def get_resources(self, role_name):
         """Fetch resources from role filters.
 

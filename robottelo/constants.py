@@ -74,6 +74,7 @@ FILTER = {
     'discovery_rule_loc': 'discovery_rule_location',
     'discovery_rule_org': 'discovery_rule_organization',
     'env_org': 'environment_organization',
+    'filter_permission': 'filter_permission',
     'loc_capsules': 'location_smart_proxy',
     'loc_domain': 'location_domain',
     'loc_envs': 'location_environment',
