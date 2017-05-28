@@ -30,14 +30,6 @@ class Domain(Base):
         self.assign_value(locators['domain.name'], name)
         self._configure_domain(description, dns_proxy)
 
-    def delete(self, description, really=True):
-        """Delete existing domain from UI"""
-        self.delete_entity(
-            description,
-            really,
-            locators['domain.delete'],
-        )
-
     def update(self, old_description, new_name=None, description=None,
                dns_proxy=None):
         """Update an existing domain's name, description and dns_proxy."""

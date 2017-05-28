@@ -196,7 +196,7 @@ class SubnetTestCase(UITestCase):
                         subnet_network=gen_ipaddr(ip3=True),
                         subnet_mask=gen_netmask(),
                     )
-                    self.subnet.delete(name)
+                    self.subnet.delete_entity(name)
 
     @run_only_on('sat')
     @tier1
@@ -218,7 +218,7 @@ class SubnetTestCase(UITestCase):
                 subnet_network=gen_ipaddr(ip3=True),
                 subnet_mask=gen_netmask(),
             )
-            self.subnet.delete(name, really=False)
+            self.subnet.delete_entity(name, really=False)
 
     @run_only_on('sat')
     @tier1

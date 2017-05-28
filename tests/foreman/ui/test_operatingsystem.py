@@ -276,7 +276,7 @@ class OperatingSystemTestCase(UITestCase):
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
-            self.operatingsys.delete(os_name)
+            self.operatingsys.delete_entity(os_name)
 
     @run_only_on('sat')
     @tier1

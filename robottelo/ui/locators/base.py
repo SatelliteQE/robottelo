@@ -33,9 +33,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//td[following-sibling::td[text()='%s']]"
          "/a[span[@data-original-title='%s']]")),
-    "bookmark.delete": (
-        By.XPATH,
-        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     # Locations
     "location.new": (By.XPATH, "//a[@data-id='aid_locations_new']"),
@@ -52,9 +49,6 @@ locators = LocatorDict({
     "location.select_name": (
         By.XPATH,
         "//td/a[contains(@href,'locations')]/span[contains(.,'%s')]"),
-    "location.delete": (
-        By.XPATH,
-        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "location.dropdown": (
         By.XPATH,
         ("//a[normalize-space(.)='%s' and contains(@href,'locations')]"
@@ -150,9 +144,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[normalize-space(.)='%s' and contains(@href,'organizations')]"
             "/../../td/div/a[@data-toggle='dropdown']")),
-    "org.delete": (
-        By.XPATH,
-        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "org.name_value": (
         By.XPATH,
         "//input[@id='organization_name' and @value='%s']"),
@@ -179,9 +170,6 @@ locators = LocatorDict({
     "trend.dropdown": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
-    "trend.delete": (
-        By.XPATH,
-        "//a[contains(@href,'%s') and contains(.,'Delete')]"),
 
     # Jobs invocation
 
@@ -261,8 +249,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'operatingsystem_family')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "operatingsys.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.operatingsys_name": (By.XPATH, "//a[contains(., '%s')]"),
     "operatingsys.template": (
         By.XPATH,
@@ -293,10 +279,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//td/a[contains(., '%s')]"
          "/following::td/div/span/a[text()='Rename']")),
-    "profile.delete": (
-        By.XPATH,
-        ("//td/a[contains(., '%s')]"
-         "/following::td/div/ul/li/a[@data-method='delete']")),
     "profile.resource_name": (
         By.XPATH,
         ("//a[contains(@href,'compute_attributes')"
@@ -369,10 +351,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//td/a[contains(., '%s')]"
          "/following::td/div/a[@data-toggle='dropdown']")),
-    "resource.delete": (
-        By.XPATH,
-        ("//td/a[contains(., '%s')]"
-         "/following::td/div/ul/li/a[@data-method='delete']")),
     "resource.edit": (
         By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
     "resource.filter_containers": (
@@ -660,8 +638,6 @@ locators = LocatorDict({
                            "contains(@class, 'btn')]"),
     "host.clone": (
         By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
-    "host.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "host.dropdown": (
         By.XPATH,
         ("//a[contains(@href,'%s')]"
@@ -924,8 +900,6 @@ locators = LocatorDict({
         By.ID, "provisioning_template_audit_comment"),
     "provision.template_template": (
         By.XPATH, "//input[@id='template_file']"),
-    "provision.template_delete": (
-        By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "provision.template_dropdown": (
         By.XPATH,
         ("//td/a[normalize-space(.)='%s']"
@@ -989,8 +963,6 @@ locators = LocatorDict({
         By.XPATH,
         "//input[@id='job_template_effective_user_attributes_overridable']"),
     "job.template_snippet": (By.XPATH, "//input[@id='job_template_snippet']"),
-    "job.template_delete": (
-        By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "job.template_dropdown": (
         By.XPATH,
         ("//td/a[normalize-space(.)='%s']"
@@ -1031,10 +1003,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//td/a/span[contains(., '%s')]"
          "/following::td/div/a[@data-toggle='dropdown']")),
-    "hostgroups.delete": (
-        By.XPATH,
-        ("//td/a/span[contains(., '%s')]"
-         "/following::td/div/ul/li[2]/a[@class='delete']")),
     "hostgroups.content_source": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_content_source')]/a"
@@ -1113,8 +1081,7 @@ locators = LocatorDict({
          "/span[contains(@id, 'chosen')]")),
     "users.delete": (
         By.XPATH,
-        ("//td/a[contains(., '%s')]"
-         "/following::td/span/a[@class='delete']")),
+        "//a[contains(@data-id, '%s') and @data-method='delete']"),
 
     # users.roles
     "users.admin_role": (By.ID, "user_admin"),
@@ -1123,8 +1090,6 @@ locators = LocatorDict({
     "usergroups.new": (By.XPATH, "//a[contains(@href, '/usergroups/new')]"),
     "usergroups.name": (By.ID, "usergroup_name"),
     "usergroups.usergroup": (By.XPATH, "//a[contains(., '%s')]"),
-    "usergroups.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "usergroups.admin": (
         By.ID, "usergroup_admin"),
     "usergroups.addexternal_usergrp": (
@@ -1150,8 +1115,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//td/span/a[normalize-space(.)='%s']"
          "/following::td/div/a[@data-toggle='dropdown']")),
-    "roles.delete": (By.XPATH,
-                     "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "roles.add_permission": (
         By.XPATH, "//a[@data-id='aid_filters_new']"),
     "roles.select_resource_type": (
@@ -1179,9 +1142,6 @@ locators = LocatorDict({
     # Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),
     "arch.name": (By.ID, "architecture_name"),
-    "arch.delete": (
-        By.XPATH,
-        "//a[contains(@data-confirm, '%s') and @class='delete']"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
 
     # Medium
@@ -1192,7 +1152,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'medium_os_family')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "medium.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "medium.medium_name": (By.XPATH, "//a[contains(., '%s')]"),
 
     # Domain
@@ -1203,15 +1162,11 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'domain_dns_id')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "domain.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "domain.domain_description": (By.XPATH, "//a[contains(., '%s')]"),
 
     # Environment
     "env.new": (By.XPATH, "//a[contains(@href, '/environments/new')]"),
     "env.name": (By.ID, "environment_name"),
-    "env.delete": (
-        By.XPATH,
-        "//a[contains(@href,'%s') and contains(.,'Delete')]"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
     "env.dropdown": (
         By.XPATH,
@@ -1229,7 +1184,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'ptable_os_family')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "ptable.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "ptable.ptable_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
     "ptable.dropdown": (
         By.XPATH,
@@ -1245,9 +1199,6 @@ locators = LocatorDict({
     "subnet.primarydns": (By.ID, "subnet_dns_primary"),
     "subnet.secondarydns": (By.ID, "subnet_dns_secondary"),
     "subnet.display_name": (By.XPATH, "//a[contains(., '%s')]"),
-    "subnet.delete": (
-        By.XPATH,
-        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "subnet.proxies_tab": (By.XPATH, "//a[@href='#proxies']"),
     "subnet.network_haserror": (
         By.XPATH,
@@ -1286,7 +1237,6 @@ locators = LocatorDict({
         By.XPATH, "//a[@ui-sref='products.new.sync-plan']"),
     "prd.close": (
         By.XPATH, "//button[@ui-sref='products.index']"),
-    "prd.remove": (By.XPATH, "//button[contains(., 'Remove Product')]"),
     "prd.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'product')]")),
@@ -1327,8 +1277,6 @@ locators = LocatorDict({
     "puppetclass.select_name": (
         By.XPATH, ("//a[contains(@href, 'puppetclasses')"
                    " and contains(.,'%s')]")),
-    "puppetclass.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "puppetclass.import": (
         By.XPATH, "//a[contains(@href,'import')]"),
     "puppetclass.environment_default_check": (
@@ -1349,8 +1297,6 @@ locators = LocatorDict({
     "repo.checksum": (By.ID, "checksum_type"),
     "repo.via_http": (By.ID, "unprotected"),
     "repo.search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
-    "repo.remove": (
-        By.XPATH, "//button[contains(@ng-show, 'canRemove')]"),
     "repo.sync_now": (
         By.XPATH, "//button[contains(@ng-click, 'syncSelectedRepositories')]"),
     "repo.select_checkbox": (
@@ -1530,8 +1476,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//form[@bst-edit-select='activationKey.content_view.name']"
          "/div/select")),
-    "ak.remove": (
-        By.XPATH, "//button[@ng-click='openModal()']"),
     "ak.copy": (
         By.XPATH, "//button[@ng-click='showCopy = true']"),
     "ak.copy_name": (
@@ -1602,7 +1546,7 @@ locators = LocatorDict({
     "sp.new": (By.XPATH, "//button[@ui-sref='sync-plans.new']"),
     "sp.select": (
         By.XPATH,
-        "//a[contains(@href,'info') and contains(.,'%s')]"),
+        "//a[contains(@ui-sref,'info') and contains(.,'%s')]"),
     "sp.prd_select": (
         By.XPATH,
         ("//a[contains(@ui-sref,'info') and contains(.,'%s')]"
@@ -1611,7 +1555,6 @@ locators = LocatorDict({
     "sp.start_date": (By.ID, "startDate"),
     "sp.start_hour": (By.XPATH, "//input[@ng-model='hours']"),
     "sp.start_minutes": (By.XPATH, "//input[@ng-model='minutes']"),
-    "sp.remove": (By.XPATH, "//button[contains(@ng-click,'openModal')]"),
     "sp.name_edit": (
         By.XPATH,
         ("//form[@bst-edit-text='syncPlan.name']"
@@ -2199,8 +2142,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//td/a[normalize-space(.)='%s']"
          "/following::td/div/a[@data-toggle='dropdown']")),
-    "config_groups.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     # Hardware Models
     "hwmodels.new": (
@@ -2215,9 +2156,7 @@ locators = LocatorDict({
         By.XPATH, "//textarea[@id='model_info']"),
     "hwmodels.select_name": (
         By.XPATH, "//a[contains(@href,'models') and contains(.,'%s')]"),
-    "hwmodels.delete": (
-        By.XPATH, ("//a[contains(@data-confirm,'%s')"
-                   " and @class='delete']")),
+
     # Discovery Rules
     "discoveryrules.new": (
         By.XPATH, "//a[@data-id='aid_discovery_rules_new']"),
@@ -2246,8 +2185,6 @@ locators = LocatorDict({
     "discoveryrules.rule_name": (
         By.XPATH, ("//a[contains(@href, 'discovery_rules')"
                    " and contains(., '%s')]")),
-    "discoveryrules.rule_delete": (
-        By.XPATH, "//a[contains(@data-confirm, '%s') and @class='delete']"),
     "discoveryrules.dropdown": (
         By.XPATH,
         ("//td/a[normalize-space(.)='%s']"
@@ -2269,8 +2206,6 @@ locators = LocatorDict({
     "discoveredhosts.auto_provision": (
         By.XPATH, ("//a[contains(@href,'%s') and "
                    "contains(@data-id,'auto_provision')]")),
-    "discoveredhosts.delete": (
-        By.XPATH, ("//a[@class='delete' and contains(@data-confirm, '%s')]")),
     "discoveredhosts.delete_from_facts": (
         By.XPATH, ("//a[contains(@href,'%s') and contains(.,'Delete')]")),
     "discoveredhosts.select_all": (By.ID, "check_all"),
@@ -2335,7 +2270,7 @@ locators = LocatorDict({
 
     # LDAP Authentication
     "ldapsource.new": (
-        By.XPATH, "//a[@href='/auth_source_ldaps/new']"),
+        By.XPATH, "//a[contains(@href, '/auth_source_ldaps/new')]"),
     "ldapserver.name": (
         By.ID, "auth_source_ldap_name"),
     "ldapserver.server": (
@@ -2370,8 +2305,6 @@ locators = LocatorDict({
         By.ID, "auth_source_ldap_ldap_filter"),
     "ldapserver.otf_register": (
         By.ID, "auth_source_ldap_onthefly_register"),
-    "ldapserver.ldap_delete": (
-        By.XPATH, "//a[@data-confirm='Delete %s?']"),
     "ldapserver.ldap_servername": (
         By.XPATH,
         ("//span[contains(.,'%s') or "
@@ -2473,8 +2406,6 @@ locators = LocatorDict({
 
     # oscap reports
     "oscap.report_select": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "oscap.report_delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     # Registries
     "registry.new": (By.XPATH, "//a[contains(@href, '/registries/new')]"),
@@ -2483,9 +2414,6 @@ locators = LocatorDict({
     "registry.description": (By.ID, "docker_registry_description"),
     "registry.username": (By.ID, "docker_registry_username"),
     "registry.password": (By.ID, "docker_registry_password"),
-    "registry.delete": (
-        By.XPATH,
-        "//a[contains(@data-confirm, '%s') and @class='delete']"),
     "registry.select_name": (
         By.XPATH, ("//a[contains(@href, 'registries')"
                    " and contains(.,'%s')]")),
@@ -2587,7 +2515,7 @@ locators = LocatorDict({
 
     # Host Collections
     "hostcollection.new": (
-        By.XPATH, "//button[@ui-sref='host-collections.new.form']"),
+        By.XPATH, "//button[@ui-sref='host-collections.new']"),
     "hostcollection.select_name": (
         By.XPATH,
         "//tr[contains(@ng-repeat, 'hostCollection')]"
@@ -2827,8 +2755,6 @@ locators = LocatorDict({
         "contains(@id, 'variable_')) and contains(@name, '[value]')])[%i]"
     ),
     "smart_variable.matcher_error": (By.XPATH, "//tr[@class='has-error']"),
-    "smart_variable.delete": (
-        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "smart_variable.table_value": (By.XPATH, "//td[contains(., '%s')]"),
 
     # Smart Class Parameters

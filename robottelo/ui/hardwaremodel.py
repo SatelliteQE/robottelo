@@ -43,15 +43,3 @@ class HardwareModel(Base):
         self.search_and_click(old_name)
         self.assign_value(locators['hwmodels.name'], new_name)
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Deletes the Hardware-Models.
-
-        :param str name: Hardware-Model's name to search.
-        :param bool really: Value required for negative tests.
-        """
-        self.delete_entity(
-            name,
-            really,
-            locators['hwmodels.delete'],
-        )

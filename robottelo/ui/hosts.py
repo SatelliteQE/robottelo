@@ -175,7 +175,7 @@ class Hosts(Base):
         self.delete_entity(
             name,
             really,
-            locators['host.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['host.dropdown'],
         )
 

@@ -74,7 +74,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             if self.user.search(self.ldap_user_name):
                 self.user.delete(self.ldap_user_name)
             if self.usergroup.search(self.usergroup_name):
-                self.usergroup.delete(self.usergroup_name, True)
+                self.usergroup.delete_entity(self.usergroup_name)
         super(ActiveDirectoryUserGroupTestCase, self).tearDown()
 
     def check_external_user(self):

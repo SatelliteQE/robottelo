@@ -51,30 +51,6 @@ class EnvironmentTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_with_long_name(self):
-        """Create new environment with 255 chars
-
-        :id: 37a57326-debf-498f-96f8-8f9d518817aa
-
-        :expectedresults: Environment is created
-
-        :CaseImportance: Critical
-        """
-        # TODO: This test can be removed by adding the value
-        # gen_string('alphanumeric', 255) to valid_env_names().  But since
-        # valid_env_names() is being used by the delete tests too, this value
-        # will fail since environment.delete() uses base.delete_entity() which
-        # uses base.search_entity().  environment.search() specifically
-        # overrides this logic to make longer strings searchable.  Once the
-        # UI search improvements are done, this problem should go away and at
-        # that point, this test can be merged to the previous one.
-        name = gen_string('alphanumeric', 255)
-        with Session(self.browser) as session:
-            make_env(session, name=name)
-            self.assertIsNotNone(self.environment.search(name))
-
-    @run_only_on('sat')
-    @tier1
     def test_negative_create(self):
         """Try to create environment and use whitespace, blank, tab
         symbol or too long string of different types as its name value

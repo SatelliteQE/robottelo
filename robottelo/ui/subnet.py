@@ -59,14 +59,6 @@ class Subnet(Base):
             )
         self.click(common_locators['submit'])
 
-    def delete(self, subnet_name, really=True):
-        """Remove subnet from UI."""
-        self.delete_entity(
-            subnet_name,
-            really,
-            locators['subnet.delete'],
-        )
-
     def search_and_validate(self, subnet_name):
         """Search Subnet name, network and mask to validate results."""
         result = None

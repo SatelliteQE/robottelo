@@ -102,4 +102,4 @@ class HardwareModelTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     make_hw_model(session, name=name)
-                    self.hardwaremodel.delete(name)
+                    self.hardwaremodel.delete_entity(name)

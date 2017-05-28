@@ -57,6 +57,6 @@ class Trend(Base):
         self.delete_entity(
             name,
             really,
-            locators['trend.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['trend.dropdown'],
         )

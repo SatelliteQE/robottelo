@@ -37,7 +37,7 @@ class Role(Base):
         self.delete_entity(
             name,
             really,
-            locators['roles.delete'],
+            common_locators['delete_button'],
             locators['roles.dropdown'],
         )
 

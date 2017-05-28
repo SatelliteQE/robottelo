@@ -58,11 +58,3 @@ class Products(Base):
             self.click(locators['prd.sync_plan_edit'])
             self.select(locators['prd.sync_plan_update'], new_sync_plan)
             self.click(common_locators['save'])
-
-    def delete(self, name, really=True):
-        """Delete a product from UI"""
-        self.delete_entity(
-            name,
-            really,
-            locators['prd.remove'],
-        )

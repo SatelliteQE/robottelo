@@ -958,11 +958,10 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        user_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            for user_name in valid_strings():
-                with self.subTest(user_name):
-                    make_user(session, username=user_name)
-                    self.user.delete(user_name)
+            make_user(session, username=user_name)
+            self.user.delete(user_name)
 
     @tier1
     def test_positive_delete_admin(self):

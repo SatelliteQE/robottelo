@@ -323,7 +323,7 @@ class HostCollectionTestCase(UITestCase):
                     make_host_collection(
                         session, name=name, org=self.organization.name)
                     self.assertIsNotNone(self.hostcollection.search(name))
-                    self.hostcollection.delete(name)
+                    self.hostcollection.delete_entity(name)
 
     @tier1
     def test_positive_copy(self):

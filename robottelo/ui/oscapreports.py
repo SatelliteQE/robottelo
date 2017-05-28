@@ -16,11 +16,3 @@ class OpenScapReports(Base):
     def _search_locator(self):
         """Specify locator for OpenScap Reports entity search procedure"""
         return locators['oscap.report_select']
-
-    def delete(self, name, really=True):
-        """Delete existing oscap reports from UI"""
-        self.delete_entity(
-            name,
-            really,
-            locators['oscap.report_delete'],
-        )

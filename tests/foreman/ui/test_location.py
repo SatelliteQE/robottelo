@@ -248,11 +248,10 @@ class LocationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
-            for loc_name in generate_strings_list():
-                with self.subTest(loc_name):
-                    entities.Location(name=loc_name).create()
-                    session.nav.go_to_loc()
+        for loc_name in generate_strings_list():
+            with self.subTest(loc_name):
+                entities.Location(name=loc_name).create()
+                with Session(self.browser):
                     self.location.delete(loc_name)
 
     @run_only_on('sat')

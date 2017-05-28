@@ -261,11 +261,10 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
-            for org_name in generate_strings_list():
-                with self.subTest(org_name):
-                    # Use nailgun to create org
-                    entities.Organization(name=org_name).create()
+        for org_name in generate_strings_list():
+            with self.subTest(org_name):
+                entities.Organization(name=org_name).create()
+                with Session(self.browser):
                     self.org.delete(org_name)
 
     @run_in_one_thread

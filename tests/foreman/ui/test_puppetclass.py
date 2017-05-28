@@ -67,8 +67,8 @@ class PuppetClassTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
-            for name in valid_data_list():
-                with self.subTest(name):
-                    entities.PuppetClass(name=name).create()
-                    self.puppetclasses.delete(name)
+        for name in valid_data_list():
+            with self.subTest(name):
+                entities.PuppetClass(name=name).create()
+                with Session(self.browser):
+                    self.puppetclasses.delete_entity(name)

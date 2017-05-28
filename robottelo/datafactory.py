@@ -186,6 +186,7 @@ def valid_environments_list():
         gen_string('alpha'),
         gen_string('numeric'),
         gen_string('alphanumeric'),
+        gen_string('alphanumeric', 255)
     ]
 
 

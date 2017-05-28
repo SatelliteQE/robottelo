@@ -55,8 +55,8 @@ class Bookmark(Base):
         searched = self.search(controller, name)
         if not searched:
             raise UIError(u'Could not find the bookmark "{0}"'.format(name))
-        strategy, value = locators['bookmark.delete']
-        self.click((strategy, value % name), wait_for_ajax=False)
+        self.click(
+            common_locators['delete_button'] % name, wait_for_ajax=False)
         self.handle_alert(really)
         # Verify the bookmark was deleted
         for _ in range(3):

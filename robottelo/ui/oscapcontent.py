@@ -37,7 +37,7 @@ class OpenScapContent(Base):
         self.delete_entity(
             name,
             really,
-            locators['oscap.content_delete'],
+            common_locators['delete_button'],
             drop_locator=locators['oscap.content_dropdown'],
         )
 

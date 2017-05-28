@@ -283,7 +283,7 @@ class OpenScapTestCase(UITestCase):
                     period=OSCAP_PERIOD['weekly'],
                     period_value=OSCAP_WEEKDAY['friday'],
                 )
-                self.oscapreports.delete(host, really=True)
+                self.oscapreports.delete_entity(host, really=True)
                 for _ in range(2):
                     vm.run(u'puppet agent -t 2> /dev/null')
                 updated_result = vm.run(

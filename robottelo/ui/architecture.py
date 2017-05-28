@@ -25,14 +25,6 @@ class Architecture(Base):
         self.configure_entity(os_names, FILTER['arch_os'])
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Delete existing architecture from UI"""
-        self.delete_entity(
-            name,
-            really,
-            locators['arch.delete'],
-        )
-
     def update(self, old_name, new_name=None, os_names=None,
                new_os_names=None):
         """Update existing arch's name and OS"""
