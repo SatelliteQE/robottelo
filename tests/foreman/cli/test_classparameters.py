@@ -1159,6 +1159,11 @@ class SmartClassParametersTestCase(CLITestCase):
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'override-value-order': 'is_virtual',
+        })
         SmartClassParameter.add_override_value({
             'smart-class-parameter-id': sc_param_id,
             'match': 'is_virtual=true',
@@ -1194,6 +1199,11 @@ class SmartClassParametersTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'override-value-order': 'is_virtual',
+        })
         with self.assertRaises(CLIReturnCodeError):
             SmartClassParameter.add_override_value({
                 'smart-class-parameter-id': sc_param_id,
@@ -1588,6 +1598,11 @@ class SmartClassParametersTestCase(CLITestCase):
         """
         sc_param_id = self.sc_params_ids_list.pop()
         value = gen_string('alpha')
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'override-value-order': 'is_virtual',
+        })
         SmartClassParameter.add_override_value({
             'smart-class-parameter-id': sc_param_id,
             'match': 'is_virtual=true',
@@ -1711,6 +1726,7 @@ class SmartClassParametersTestCase(CLITestCase):
         sc_param = SmartClassParameter.info({
             'puppet-class': self.puppet_class['name'],
             'id': sc_param_id,
+            'show-hidden': 1,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
         self.assertEqual(sc_param['default-value'], old_value)
@@ -1721,6 +1737,7 @@ class SmartClassParametersTestCase(CLITestCase):
         sc_param = SmartClassParameter.info({
             'puppet-class': self.puppet_class['name'],
             'id': sc_param_id,
+            'show-hidden': 1,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
         self.assertEqual(sc_param['default-value'], new_value)
@@ -1755,6 +1772,7 @@ class SmartClassParametersTestCase(CLITestCase):
         sc_param = SmartClassParameter.info({
             'puppet-class': self.puppet_class['name'],
             'id': sc_param_id,
+            'show-hidden': 1,
         })
         self.assertFalse(sc_param['default-value'])
         self.assertEqual(sc_param['hidden-value?'], True)

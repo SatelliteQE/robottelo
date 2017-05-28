@@ -450,6 +450,7 @@ class SmartVariablesTestCase(APITestCase):
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
             variable_type='string',
+            override_value_order='is_virtual',
         ).create()
         entities.OverrideValue(
             smart_variable=smart_variable,
@@ -480,6 +481,7 @@ class SmartVariablesTestCase(APITestCase):
             puppetclass=self.puppet_class,
             default_value=gen_integer(),
             variable_type='integer',
+            override_value_order='is_virtual',
         ).create()
         with self.assertRaises(HTTPError) as context:
             entities.OverrideValue(
@@ -854,6 +856,7 @@ class SmartVariablesTestCase(APITestCase):
             puppetclass=self.puppet_class,
             default_value=True,
             variable_type='boolean',
+            override_value_order='is_virtual',
         ).create()
         entities.OverrideValue(
             smart_variable=smart_variable,
@@ -1345,6 +1348,7 @@ class SmartVariablesTestCase(APITestCase):
         value = gen_string('alpha')
         smart_variable = entities.SmartVariable(
             puppetclass=self.puppet_class,
+            override_value_order='is_virtual',
         ).create()
         matcher = entities.OverrideValue(
             smart_variable=smart_variable,
@@ -1438,7 +1442,7 @@ class SmartVariablesTestCase(APITestCase):
             hidden_value=True,
         ).create()
         self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
-        self.assertEqual(smart_variable.hidden_value, u'*****')
+        self.assertEqual(smart_variable.default_value, u'*****')
 
     @run_only_on('sat')
     @tier1
