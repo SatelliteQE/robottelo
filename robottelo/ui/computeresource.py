@@ -287,7 +287,7 @@ class ComputeResource(Base):
         self.delete_entity(
             name,
             really,
-            locators['resource.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['resource.dropdown'],
         )
 

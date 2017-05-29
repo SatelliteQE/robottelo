@@ -63,11 +63,3 @@ class LdapAuthSource(Base):
         """
         self.navigate_to_entity()
         return self.wait_until_element(self._search_locator() % (name, name))
-
-    def delete(self, name, really=True):
-        """Deletes existing ldap auth source from UI."""
-        self.delete_entity(
-            name,
-            really,
-            locators['ldapserver.ldap_delete'],
-        )

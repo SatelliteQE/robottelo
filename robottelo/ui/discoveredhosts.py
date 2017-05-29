@@ -23,7 +23,7 @@ class DiscoveredHosts(Base):
         self.delete_entity(
             hostname,
             really,
-            locators['discoveredhosts.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['discoveredhosts.dropdown'],
         )
 

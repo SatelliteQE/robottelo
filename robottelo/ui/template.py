@@ -153,6 +153,6 @@ class Template(Base):
         self.delete_entity(
             name,
             really,
-            locators['provision.template_delete'],
+            common_locators['delete_button'],
             drop_locator=locators['provision.template_dropdown'],
         )

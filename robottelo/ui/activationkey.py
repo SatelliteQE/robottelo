@@ -95,14 +95,6 @@ class ActivationKey(Base):
                 locators['ak.edit_content_view_select'], content_view)
             self.click(locators['ak.save_cv'])
 
-    def delete(self, name, really=True):
-        """Deletes an existing activation key."""
-        self.delete_entity(
-            name,
-            really,
-            locators['ak.remove'],
-        )
-
     def associate_product(self, name, products):
         """Associate an existing product with activation key."""
         self.search_and_click(name)

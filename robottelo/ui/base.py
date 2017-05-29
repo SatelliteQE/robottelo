@@ -274,7 +274,8 @@ class Base(object):
             self.select_deselect_entity(
                 filter_key, entity_locator, new_entity_list)
 
-    def delete_entity(self, name, really, del_locator, drop_locator=None):
+    def delete_entity(
+            self, name, really=True, del_locator=None, drop_locator=None):
         """Delete an added entity, handles both with and without dropdown."""
         self.logger.debug(u'Deleting entity %s', name)
         searched = self.search(name)
@@ -282,7 +283,10 @@ class Base(object):
             raise UIError(u'Could not search the entity "{0}"'.format(name))
         if self.is_katello:
             self.click(searched)
-            self.click(del_locator)
+            if del_locator:
+                self.click(del_locator)
+            else:
+                self.perform_entity_action('Remove')
             if really:
                 self.click(common_locators['confirm_remove'])
             else:
@@ -290,7 +294,13 @@ class Base(object):
         else:
             if drop_locator:
                 self.click(drop_locator % name)
-            self.click(del_locator % name, wait_for_ajax=False)
+            if del_locator:
+                self.click(del_locator % name, wait_for_ajax=False)
+            else:
+                self.click(
+                    common_locators['delete_button'] % name,
+                    wait_for_ajax=False
+                )
             self.handle_alert(really)
         # Make sure that element is really removed from UI. It is necessary to
         # verify that fact few times as sometimes 1 second is not enough for
@@ -779,3 +789,13 @@ class Base(object):
             element = target
         selected_option = Select(element).first_selected_option
         return selected_option.text
+
+    def perform_entity_action(self, action_name):
+        """Execute specified action from katello entity 'Select Action'
+        dropdown
+
+        :param action_name: Name of action to be executed (e.g.
+            'Remove Product')
+        """
+        self.click(common_locators['select_action_dropdown'])
+        self.click(common_locators['select_action'] % action_name)

@@ -72,14 +72,6 @@ class HostCollection(Base):
         loc = locators['hostcollection.{0}_field'.format(field_name)]
         return self.wait_until_element(loc % field_value)
 
-    def delete(self, name, really=True):
-        """Deletes an existing Host Collection entity."""
-        self.delete_entity(
-            name,
-            really,
-            locators['hostcollection.remove'],
-        )
-
     def copy(self, name, new_name):
         """Copies an existing Host Collection entity"""
         self.search_and_click(name)

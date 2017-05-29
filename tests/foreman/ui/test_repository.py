@@ -445,7 +445,7 @@ class RepositoryTestCase(UITestCase):
                         url=FAKE_1_YUM_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
-                    self.repository.delete(repo_name)
+                    self.repository.delete_entity(repo_name)
 
     @run_only_on('sat')
     @stubbed
@@ -757,7 +757,7 @@ class RepositoryTestCase(UITestCase):
             session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.click(self.products.search(prod.name))
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.delete(repo_name)
+            self.repository.delete_entity(repo_name)
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')

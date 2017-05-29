@@ -236,4 +236,4 @@ class ProductTestCase(UITestCase):
                         description=gen_string('alphanumeric'),
                     )
                     self.assertIsNotNone(self.products.search(prd_name))
-                    self.products.delete(prd_name)
+                    self.products.delete_entity(prd_name)

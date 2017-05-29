@@ -40,14 +40,6 @@ class UserGroup(Base):
                 locators['usergroups.ext_authsource_id'], ext_authsourceid)
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Delete existing usergroup."""
-        self.delete_entity(
-            name,
-            really,
-            locators['usergroups.delete'],
-        )
-
     def update(self, old_name, new_name=None, users=None, new_users=None,
                roles=None, new_roles=None, entity_select=None):
         """Update usergroup name and its users."""

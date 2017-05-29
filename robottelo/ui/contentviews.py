@@ -58,14 +58,6 @@ class ContentViews(Base):
             self.click(locators['contentviews.composite'])
         self.click(common_locators['create'])
 
-    def delete(self, name, really=True):
-        """Deletes an existing content view."""
-        self.delete_entity(
-            name,
-            really,
-            locators['contentviews.remove'],
-        )
-
     def move_affected_components(self, env, cv):
         """Move affected components to another environment or content view.
         Activation keys and content hosts are examples of affected components.

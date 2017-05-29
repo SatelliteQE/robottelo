@@ -106,4 +106,4 @@ class ConfigGroupTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     make_config_groups(session, name=name)
-                    self.configgroups.delete(name)
+                    self.configgroups.delete_entity(name)

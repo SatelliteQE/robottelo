@@ -30,14 +30,6 @@ class Medium(Base):
         self._configure_medium(os_family)
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Delete Installation media."""
-        self.delete_entity(
-            name,
-            really,
-            locators['medium.delete'],
-        )
-
     def update(self, old_name, new_name=None, new_path=None, os_family=None):
         """Update installation media name, media path and OS family."""
         self.search_and_click(old_name)

@@ -1050,7 +1050,7 @@ class ContentViewTestCase(UITestCase):
                         'Failed to find content view %s from %s org' % (
                             name, self.organization.name)
                     )
-                    self.content_views.delete(name)
+                    self.content_views.delete_entity(name)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -2703,7 +2703,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
             # assert that the user can delete a content view
             try:
-                self.content_views.delete(cv_copy_name)
+                self.content_views.delete_entity(cv_copy_name)
             except UINoSuchElementError as err:
                 if locators.contentviews.remove[1] in err.message:
                     self.fail(
@@ -3118,7 +3118,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # assert that the user cannot delete the content view
             with self.assertRaises(UINoSuchElementError) as context:
-                self.content_views.delete(cv_name)
+                self.content_views.delete_entity(cv_name)
             # ensure that the delete locator is in the exception message
             _, locator = locators.contentviews.remove
             self.assertIn(locator, context.exception.message)
@@ -5007,8 +5007,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.remove_version_from_environments(
                 cv_name, version, list(all_env_names_set))
             # delete content view
-            self.content_views.delete(cv_name)
-            self.assertIsNone(self.content_views.search(cv_name))
+            self.content_views.delete_entity(cv_name)
 
     @stubbed()
     @run_only_on('sat')

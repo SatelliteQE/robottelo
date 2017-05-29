@@ -51,7 +51,7 @@ class Hostgroup(Base):
         self.delete_entity(
             name,
             really,
-            locators['hostgroups.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['hostgroups.dropdown'],
         )
 

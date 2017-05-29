@@ -32,14 +32,6 @@ class PuppetClasses(Base):
             self.assign_value(locators['puppetclass.environments'], new_env)
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Deletes the puppet-classes."""
-        self.delete_entity(
-            name,
-            really,
-            locators['puppetclass.delete'],
-        )
-
     def import_scap_client_puppet_classes(self):
         """Imports puppet-foreman_scap_client puppet classes."""
         Navigator(self.browser).go_to_puppet_classes()

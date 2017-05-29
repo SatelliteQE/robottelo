@@ -127,7 +127,7 @@ class JobTemplate(Base):
         self.delete_entity(
             name,
             really,
-            locators['job.template_delete'],
+            common_locators['delete_button'],
             drop_locator=locators['job.template_dropdown'],
         )
 

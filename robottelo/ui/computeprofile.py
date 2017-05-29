@@ -33,7 +33,7 @@ class ComputeProfile(Base):
         self.delete_entity(
             name,
             really,
-            locators['profile.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['profile.dropdown'],
         )
 

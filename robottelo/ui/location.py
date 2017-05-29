@@ -150,6 +150,6 @@ class Location(Base):
         self.delete_entity(
             name,
             really,
-            locators['location.delete'],
+            common_locators['delete_button'],
             locators['location.dropdown'],
         )

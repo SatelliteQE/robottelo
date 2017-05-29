@@ -264,7 +264,6 @@ class OrganizationTestCase(UITestCase):
         with Session(self.browser):
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
-                    # Use nailgun to create org
                     entities.Organization(name=org_name).create()
                     self.org.delete(org_name)
 

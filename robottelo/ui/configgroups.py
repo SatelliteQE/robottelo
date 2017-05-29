@@ -28,11 +28,3 @@ class ConfigGroups(Base):
         if new_name:
             self.assign_value(locators['config_groups.name'], new_name)
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Deletes the config-groups."""
-        self.delete_entity(
-            name,
-            really,
-            locators['config_groups.delete'],
-        )

@@ -51,7 +51,7 @@ class PartitionTable(Base):
         self.delete_entity(
             name,
             really,
-            locators['ptable.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['ptable.dropdown'],
         )
 

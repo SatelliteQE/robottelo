@@ -79,11 +79,3 @@ class Syncplan(Base):
                 tab_locator=tab_loc,
                 select_locator=select_loc
             )
-
-    def delete(self, name, really=True):
-        """Deletes a sync_plan from UI."""
-        self.delete_entity(
-            name,
-            really,
-            locators['sp.remove'],
-        )

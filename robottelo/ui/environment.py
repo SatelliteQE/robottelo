@@ -51,6 +51,6 @@ class Environment(Base):
         self.delete_entity(
             name,
             really,
-            locators['env.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['env.dropdown'],
         )

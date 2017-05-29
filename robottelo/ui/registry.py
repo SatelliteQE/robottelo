@@ -75,11 +75,3 @@ class Registry(Base):
             entity_select=loc_select,
         )
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Deletes the registry"""
-        self.delete_entity(
-            name,
-            really,
-            locators['registry.delete'],
-        )

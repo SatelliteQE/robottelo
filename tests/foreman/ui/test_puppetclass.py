@@ -71,4 +71,4 @@ class PuppetClassTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     entities.PuppetClass(name=name).create()
-                    self.puppetclasses.delete(name)
+                    self.puppetclasses.delete_entity(name)

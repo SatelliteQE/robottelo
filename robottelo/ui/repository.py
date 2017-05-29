@@ -83,14 +83,6 @@ class Repos(Base):
             )
             self.click(common_locators['save'])
 
-    def delete(self, name, really=True):
-        """Delete a repository from UI."""
-        self.delete_entity(
-            name,
-            really,
-            locators['repo.remove'],
-        )
-
     def search(self, element_name):
         """Uses the search box to locate an element from a list of elements.
         Repository entity is located inside of Product entity and has another

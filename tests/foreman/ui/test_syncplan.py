@@ -428,7 +428,7 @@ class SyncPlanTestCase(UITestCase):
                         organization=self.organization,
                     ).create()
                     session.nav.go_to_select_org(self.organization.name)
-                    self.syncplan.delete(plan_name)
+                    self.syncplan.delete_entity(plan_name)
 
     @run_only_on('sat')
     @stubbed()

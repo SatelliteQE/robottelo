@@ -118,7 +118,7 @@ class DomainTestCase(UITestCase):
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            self.domain.delete(domain_name)
+            self.domain.delete_entity(domain_name)
 
     @run_only_on('sat')
     @tier1

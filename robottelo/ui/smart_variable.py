@@ -112,14 +112,6 @@ class SmartVariable(Base):
         )
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Deletes smart variable from UI"""
-        self.delete_entity(
-            name,
-            really,
-            locators['smart_variable.delete'],
-        )
-
     def validate_smart_variable(self, name, field_name, field_value):
         """Checks if selected smart variable has necessary field value on the
         index pages

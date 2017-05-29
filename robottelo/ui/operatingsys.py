@@ -86,14 +86,6 @@ class OperatingSys(Base):
         )
         self.click(common_locators['submit'])
 
-    def delete(self, os_name, really=True):
-        """Delete operating system from UI."""
-        self.delete_entity(
-            os_name,
-            really,
-            locators['operatingsys.delete']
-        )
-
     def update(self, os_name, new_name=None,
                major_version=None, minor_version=None,
                description=None, os_family=None, archs=None,

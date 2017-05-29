@@ -264,6 +264,6 @@ class Org(Base):
         self.delete_entity(
             org_name,
             really,
-            locators['org.delete'],
+            common_locators['delete_button'],
             drop_locator=locators['org.dropdown'],
         )

@@ -29,7 +29,6 @@ from robottelo.datafactory import filtered_datapoint, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -366,7 +365,7 @@ class DockerRepositoryTestCase(UITestCase):
                         product=product.name,
                     )
                     self.assertIsNotNone(self.repository.search(name))
-                    self.repository.delete(name)
+                    self.repository.delete_entity(name)
                     self.assertIsNone(self.repository.search(name))
 
     @run_only_on('sat')
@@ -405,7 +404,7 @@ class DockerRepositoryTestCase(UITestCase):
             del_entity = entities_list.pop()
             self.navigator.go_to_products()
             self.products.search_and_click(del_entity[0])
-            self.repository.delete(del_entity[1])
+            self.repository.delete_entity(del_entity[1])
             self.assertIsNone(self.repository.search(del_entity[1]))
 
             # Check if others repositories are not touched
@@ -1502,7 +1501,6 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_create_with_name(self):
         """Create an external docker registry
 
@@ -1528,7 +1526,6 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_name(self):
         """Create an external docker registry and update its name
 
@@ -1559,7 +1556,6 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_url(self):
         """Create an external docker registry and update its URL
 
@@ -1589,7 +1585,6 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_description(self):
         """Create an external docker registry and update its description
 
@@ -1621,7 +1616,6 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_username(self):
         """Create an external docker registry and update its username
 
@@ -1653,7 +1647,6 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_delete(self):
         """Create an external docker registry and then delete it
 
@@ -1672,4 +1665,4 @@ class DockerRegistryTestCase(UITestCase):
                         url=self.url,
                         description=gen_string('utf8'),
                     )
-                    self.registry.delete(name)
+                    self.registry.delete_entity(name)

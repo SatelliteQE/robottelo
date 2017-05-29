@@ -90,6 +90,9 @@ common_locators = LocatorDict({
          "[@data-toggle='dropdown']")),
     "cancel_form": (By.XPATH, "//a[text()='Cancel']"),
     "submit": (By.NAME, "commit"),
+    "delete_button": (
+        By.XPATH,
+        "//a[contains(@data-confirm, '%s') and @data-method='delete']"),
     "filter": (By.XPATH,
                ("//div[@id='ms-%s_ids']"
                 "//input[@class='ms-filter']")),
@@ -117,6 +120,13 @@ common_locators = LocatorDict({
     "name": (By.ID, "name"),
     "label": (By.ID, "label"),
     "description": (By.ID, "description"),
+    "select_action_dropdown": (
+        By.XPATH,
+        ("//button[contains(@class, 'dropdown')]"
+         "[descendant::span[text()='Select Action']]")),
+    "select_action": (
+        By.XPATH,
+        "//li/a/span[@class='ng-scope' and contains(., '%s')]"),
     "kt_search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
     "kt_clear_search": (
         By.XPATH, "//button[contains(@ng-click, 'searchCompleted = false')]"),
