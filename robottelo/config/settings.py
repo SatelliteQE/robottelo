@@ -836,7 +836,7 @@ class Settings(object):
         self.rhel7_os = self.reader.get('robottelo', 'rhel7_os', None)
         self.rhel6_os = self.reader.get('robottelo', 'rhel6_os', None)
         self.sattools_repo = self.reader.get(
-            'robottelo', 'sattools_repo', None)
+            'robottelo', 'sattools_repo', None, dict)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.run_one_datapoint = self.reader.get(
