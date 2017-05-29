@@ -2585,13 +2585,13 @@ def _get_capsule_vm_distro_repos(distro):
     rh_repos = []
     if distro == DISTRO_RHEL7:
         # Red Hat Enterprise Linux 7 Server
-        rh_product_arch = PRD_SETS['rhel_72']['arch']
-        rh_product_releasever = PRD_SETS['rhel_72']['releasever']
+        rh_product_arch = PRD_SETS['rhel_73']['arch']
+        rh_product_releasever = PRD_SETS['rhel_73']['releasever']
         rh_repos.append({
-            'product': PRD_SETS['rhel_72']['product'],
-            'repository-set': PRD_SETS['rhel_72']['reposet'],
-            'repository': PRD_SETS['rhel_72']['reponame'],
-            'repository-id': PRD_SETS['rhel_72']['label'],
+            'product': PRD_SETS['rhel_73']['product'],
+            'repository-set': PRD_SETS['rhel_73']['reposet'],
+            'repository': PRD_SETS['rhel_73']['reponame'],
+            'repository-id': PRD_SETS['rhel_73']['label'],
             'releasever': rh_product_releasever,
             'arch': rh_product_arch
         })
