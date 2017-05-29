@@ -87,6 +87,7 @@ class HotBackupTestCase(TestCase):
         """
         with _get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
+            connection.run('katello-service start')
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(dir_name),
                 output_format='plain'
@@ -122,7 +123,8 @@ class HotBackupTestCase(TestCase):
         """
         with _get_connection() as connection:
             dir_name = gen_string('alpha')
-            connection.run('rm -rf /tmp/{0}'.format(dir_name))
+            tmp_directory_cleanup(connection, dir_name)
+            connection.run('katello-service start')
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(dir_name),
                 output_format='plain'
@@ -159,10 +161,11 @@ class HotBackupTestCase(TestCase):
 
         """
         with _get_connection() as connection:
+            connection.run('katello-service start')
             dir_name = gen_string('alpha')
             dead_service = 'postgresql'
             connection.run('service {0} stop'.format(dead_service))
-            connection.run('rm -rf /tmp/{0}'.format(dir_name))
+            tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(dir_name)
             )
@@ -185,6 +188,7 @@ class HotBackupTestCase(TestCase):
 
         """
         with _get_connection() as connection:
+            connection.run('katello-service start')
             result = connection.run(
                 'katello-backup --online-backup',
                 output_format='plain'
@@ -234,6 +238,7 @@ class HotBackupTestCase(TestCase):
         """
         with _get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
+            connection.run('katello-service start')
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup '
                 '--skip-pulp-content'.format(dir_name),
@@ -405,7 +410,7 @@ class HotBackupTestCase(TestCase):
         """
         with _get_connection() as connection:
             dir_name = gen_string('alpha')
-            connection.run('rm -rf /tmp/{0}'.format(dir_name))
+            tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
                 'katello-backup /tmp --incremental {0}'.format(dir_name),
                 output_format='plain'
@@ -434,6 +439,7 @@ class HotBackupTestCase(TestCase):
         """
         with _get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
+            connection.run('katello-service start')
             # run full backup
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
@@ -556,6 +562,7 @@ class HotBackupTestCase(TestCase):
         """
         with _get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
+            connection.run('katello-service start')
             # run full backup
             result = connection.run(
                 'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
