@@ -275,6 +275,14 @@ PRD_SETS = {
         'releasever': u'7.2',
         'label': u'rhel-7-server-rpms'
     },
+    'rhel_73': {
+        'product': u'Red Hat Enterprise Linux Server',
+        'reposet': u'Red Hat Enterprise Linux 7 Server (RPMs)',
+        'reponame': u'Red Hat Enterprise Linux 7 Server RPMs x86_64 7.3',
+        'arch': u'x86_64',
+        'releasever': u'7.3',
+        'label': u'rhel-7-server-rpms'
+    },
 }
 
 RHEL_6_MAJOR_VERSION = 6

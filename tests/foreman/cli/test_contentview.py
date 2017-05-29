@@ -3163,6 +3163,8 @@ class ContentViewTestCase(CLITestCase):
 
         @caseautomation: notautomated
 
+        @BZ: 1456446, 1456559
+
         @CaseLevel: System
         """
         # Note: This test case requires complete external capsule

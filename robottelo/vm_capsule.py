@@ -151,7 +151,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         self.run('echo "{0} {1} {2}" >> /etc/hosts'.format(
             self.ip_addr, self._capsule_hostname, self._capsule_instance_name))
 
-        if self.distro == DISTRO_RHEL7:
+        if self.capsule_distro == DISTRO_RHEL7:
             self.run('hostnamectl set-hostname {}'.format(
                 self._capsule_hostname))
 
@@ -191,7 +191,7 @@ class CapsuleVirtualMachine(VirtualMachine):
             raise CapsuleVirtualMachineError(
                 'Failed to resolver the capsule hostname from capsule')
 
-        if self.distro == DISTRO_RHEL7:
+        if self.capsule_distro == DISTRO_RHEL7:
             # Add RH-Satellite-6 service to firewall public zone
             self.run('firewall-cmd --zone=public --add-service={}'.format(
                 SATELLITE_FIREWALL_SERVICE_NAME))
