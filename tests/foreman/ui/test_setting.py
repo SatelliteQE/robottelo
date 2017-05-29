@@ -314,7 +314,7 @@ class SettingTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        self.tab_locator = tab_locators['settings.tab_general']
+        self.tab_locator = tab_locators['settings.tab_email']
         self.param_name = 'email_reply_address'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(

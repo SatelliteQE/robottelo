@@ -2126,7 +2126,9 @@ locators = LocatorDict({
          "span[contains(@class, 'editable')]")),
     "settings.edit_value": (
         By.XPATH,
-        "//td[@class='setting_value']//form//*[@name='setting[value]']"),
+        ("//td[@class='setting_value']"
+         "//form//*[contains(@class, 'form-control')]")
+    ),
     "settings.save": (
         By.XPATH,
         "//td[@class='setting_value']//form//button[@type='submit']"),
