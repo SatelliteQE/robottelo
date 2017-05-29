@@ -51,12 +51,12 @@ class LifecycleEnvironment(Base):
                 locators['content_env.edit_name'],
                 locators['content_env.edit_name_text'],
                 new_name,
-                locators['content_env.edit_name_text.save']
+                common_locators['save']
             )
         if description:
             self.edit_entity(
                 locators['content_env.edit_description'],
                 locators['content_env.edit_description_textarea'],
                 description,
-                locators['content_env.edit_description_textarea.save']
+                common_locators['save']
             )

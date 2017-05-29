@@ -41,7 +41,7 @@ class ContentHost(Base):
                 locators['contenthost.edit_name'],
                 locators['contenthost.edit_name_text'],
                 new_name,
-                locators['contenthost.save_name'],
+                common_locators['save'],
             )
         if add_subscriptions:
             self.add_subscriptions(

@@ -63,21 +63,21 @@ class ActivationKey(Base):
                 locators['ak.edit_name'],
                 locators['ak.edit_name_text'],
                 new_name,
-                locators['ak.save_name']
+                common_locators['save']
             )
         if description:
             self.edit_entity(
                 locators['ak.edit_description'],
                 locators['ak.edit_description_text'],
                 description,
-                locators['ak.save_description']
+                common_locators['save']
             )
         if limit:
             self.click(locators['ak.edit_limit'])
             self.set_limit(limit)
             if self.wait_until_element(
                     locators['ak.save_limit']).is_enabled():
-                self.click(locators['ak.save_limit'])
+                self.click(common_locators['save'])
             else:
                 raise ValueError(
                     'Please update content host limit with valid integer '
@@ -93,7 +93,7 @@ class ActivationKey(Base):
                 self.click(locators['ak.edit_content_view'])
             self.select(
                 locators['ak.edit_content_view_select'], content_view)
-            self.click(locators['ak.save_cv'])
+            self.click(common_locators['save'])
 
     def associate_product(self, name, products):
         """Associate an existing product with activation key."""

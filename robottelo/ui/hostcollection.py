@@ -36,21 +36,20 @@ class HostCollection(Base):
                 locators['hostcollection.edit_name'],
                 locators['hostcollection.edit_name_text'],
                 new_name,
-                locators['hostcollection.save_name'],
+                common_locators['save']
             )
         if description:
             self.edit_entity(
                 locators['hostcollection.edit_description'],
                 locators['hostcollection.edit_description_text'],
                 description,
-                locators['hostcollection.save_description']
+                common_locators['save']
             )
         if limit:
             self.click(locators['hostcollection.edit_limit'])
             self.set_limit(limit)
-            if self.wait_until_element(
-                    locators['hostcollection.save_limit']).is_enabled():
-                self.click(locators['hostcollection.save_limit'])
+            if self.wait_until_element(common_locators['save']).is_enabled():
+                self.click(common_locators['save'])
             else:
                 raise ValueError(
                     'Please update content host limit with valid integer '

@@ -518,13 +518,11 @@ locators = LocatorDict({
         By.XPATH, "//a[contains(@href, 'errata') and @class='ng-binding']"),
     "contenthost.errata_counts_icon": (By.XPATH, "i"),
     "contenthost.edit_name": (
-        By.XPATH, "//form[@bst-edit-text='host.name']//div/span/i"),
+        By.XPATH,
+        "//dd[@bst-edit-text='host.name']//i[contains(@class, 'fa-edit')]"),
     "contenthost.edit_name_text": (
         By.XPATH,
-        "//form[@bst-edit-text='host.name']/div/input"),
-    "contenthost.save_name": (
-        By.XPATH,
-        "//form[@bst-edit-text='host.name']//button[@ng-click='save()']"),
+        "//dd[@bst-edit-text='host.name']//input"),
     "contenthost.unregister": (
         By.XPATH, "//button[@ng-disabled='host.deleting']"),
     "contenthost.confirm_deletion": (
@@ -1332,31 +1330,30 @@ locators = LocatorDict({
     "repo.new_discover_name": (
         By.XPATH, "//input[@ng-model='repo.name']"),
     "repo.name_edit": (
-        By.XPATH, ("//form[@bst-edit-text='repository.name']"
-                   "//i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-text='repository.name']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "repo.name_update": (
-        By.XPATH, "//form[@bst-edit-text='repository.name']/div/input"),
+        By.XPATH, "//dd[@bst-edit-text='repository.name']//input"),
     "repo.url_edit": (
-        By.XPATH, ("//form[@bst-edit-text='repository.url']"
-                   "//i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-text='repository.url']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "repo.url_update": (
-        By.XPATH, "//form[@bst-edit-text='repository.url']/div/input"),
+        By.XPATH, "//dd[@bst-edit-text='repository.url']//input"),
     "repo.via_http_edit": (
-        By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
-                   "//i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-checkbox='repository.unprotected']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "repo.via_http_toggle": (
-        By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
-                   "/div/input")),
+        By.XPATH, "//dd[@bst-edit-checkbox='repository.unprotected']//input"),
     "repo.gpg_key_edit": (
         By.XPATH, ("//dd[@selector='repository.gpg_key_id']"
-                   "//i[contains(@class, 'edit')]")),
+                   "//i[contains(@class, 'fa-edit')]")),
     "repo.gpg_key_update": (
         By.XPATH, "//dd[@selector='repository.gpg_key_id']//select"),
     "repo.gpg_key": (
         By.XPATH, "//dd[@selector='repository.gpg_key_id']//div/span"),
     "repo.download_policy_edit": (
         By.XPATH, ("//dd[@selector='repository.download_policy']"
-                   "//i[contains(@class, 'edit')]")),
+                   "//i[contains(@class, 'fa-edit')]")),
     "repo.download_policy_update": (
         By.XPATH, "//dd[@selector='repository.download_policy']//div/select"),
     "repo.download_policy": (By.ID, "download_policy"),
@@ -1442,50 +1439,31 @@ locators = LocatorDict({
         By.XPATH,
         "//input[@ng-model='activationKey.selected']"),
     "ak.edit_name": (
-        By.XPATH, "//form[@bst-edit-text='activationKey.name']//div/span/i"),
+        By.XPATH, ("//dd[@bst-edit-text='activationKey.name']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "ak.edit_name_text": (
-        By.XPATH,
-        "//form[@bst-edit-text='activationKey.name']/div/input"),
-    "ak.save_name": (
-        By.XPATH,
-        ("//form[@bst-edit-text='activationKey.name']"
-         "//button[@ng-click='save()']")),
+        By.XPATH, "//dd[@bst-edit-text='activationKey.name']//input"),
     "ak.edit_description": (
-        By.XPATH,
-        "//form[@bst-edit-textarea='activationKey.description']//div/span/i"),
+        By.XPATH, ("//dd[@bst-edit-textarea='activationKey.description']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "ak.edit_description_text": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='activationKey.description']"
-         "/div/textarea")),
-    "ak.save_description": (
-        By.XPATH,
-        ("//form[@bst-edit-textarea='activationKey.description']"
-         "//button[@ng-click='save()']")),
+        "//dd[@bst-edit-textarea='activationKey.description']//textarea"),
     "ak.edit_limit": (
-        By.XPATH,
-        "//div[@bst-edit-custom='activationKey.max_hosts']//div/span/i"),
-    "ak.save_limit": (
-        By.XPATH,
-        ("//div[@bst-edit-custom='activationKey.max_hosts']"
-         "//button[@ng-click='save()']")),
+        By.XPATH, ("//dd[@bst-edit-custom='activationKey.max_hosts']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "ak.edit_content_view": (
-        By.XPATH,
-        ("//form[@bst-edit-select='activationKey.content_view.name']"
-         "//div//span/i")),
+        By.XPATH, ("//div[@bst-edit-select='activationKey.content_view.name']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "ak.edit_content_view_select": (
         By.XPATH,
-        ("//form[@bst-edit-select='activationKey.content_view.name']"
-         "/div/select")),
+        "//div[@bst-edit-select='activationKey.content_view.name']//select"),
     "ak.copy": (
         By.XPATH, "//button[@ng-click='showCopy = true']"),
     "ak.copy_name": (
         By.XPATH, "//input[@ng-model='copyName']"),
     "ak.copy_create": (
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
-    "ak.save_cv": (
-        By.XPATH,
-        ("//form[@bst-edit-select='activationKey.content_view.name']"
-         "//button[@ng-click='save()']")),
     "ak.select_subscription": (
         By.XPATH,
         ("//tr/td/a[contains(., '%s')]"
@@ -1497,8 +1475,8 @@ locators = LocatorDict({
         By.XPATH, "//tr/td/a[contains(., '%s')]"),
     "ak.selected_cv": (
         By.XPATH,
-        ("//form[@bst-edit-select='activationKey.content_view.name']"
-         "//div[@class='bst-edit']/div/span[2]")),
+        ("//div[@bst-edit-select='activationKey.content_view.name']"
+         "//span[contains(@class, 'editable-value')]")),
     "ak.content_hosts": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'content-hosts')]"),
@@ -1557,37 +1535,28 @@ locators = LocatorDict({
     "sp.start_minutes": (By.XPATH, "//input[@ng-model='minutes']"),
     "sp.name_edit": (
         By.XPATH,
-        ("//form[@bst-edit-text='syncPlan.name']"
+        ("//dd[@bst-edit-text='syncPlan.name']"
          "//i[contains(@class,'fa-edit')]")),
     "sp.name_update": (
-        By.XPATH,
-        ("//form[@bst-edit-text='syncPlan.name']"
-         "/div/input")),
+        By.XPATH, "//dd[@bst-edit-text='syncPlan.name']//input"),
     "sp.desc_edit": (
-        By.XPATH,
-        ("//form[@bst-edit-textarea='syncPlan.description']"
-         "//i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-textarea='syncPlan.description']"
+                   "//i[contains(@class,'fa-edit')]")),
     "sp.desc_update": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='syncPlan.description']"
-         "/div/input")),
+        "//dd[@bst-edit-textarea='syncPlan.description']//textarea"),
     "sp.sync_interval_edit": (
-        By.XPATH,
-        ("//form[@bst-edit-select='syncPlan.interval']"
-         "//i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-select='syncPlan.interval']"
+                   "//i[contains(@class,'fa-edit')]")),
     "sp.sync_interval_update": (
-        By.XPATH,
-        ("//form[@bst-edit-select='syncPlan.interval']"
-         "/div/select")),
+        By.XPATH, ("//dd[@bst-edit-select='syncPlan.interval']//div/select")),
     "sp.add_selected": (
         By.XPATH, "//button[contains(@ng-click, 'addProducts')]"),
     "sp.remove_selected": (
         By.XPATH, "//button[contains(@ng-click, 'removeProducts')]"),
     "sp.fetch_interval": (
-        By.XPATH,
-        ("//form[@bst-edit-select='syncPlan.interval']"
-         "/div[@class='bst-edit']/div/"
-         "span[contains(@class,'editable-value')]")),
+        By.XPATH, ("//dd[@bst-edit-select='syncPlan.interval']"
+                   "//span[contains(@class,'editable-value')]")),
     "sp.fetch_startdate": (
         By.XPATH,
         ("//span[contains(.,'Start Date')]/../"
@@ -1639,29 +1608,18 @@ locators = LocatorDict({
         ("//a[contains(@ui-sref, 'environment.details') and contains(.,'%s')]"
          "/../../../../../div/div/a[contains(@href, 'new')]")),
     "content_env.edit_name": (
-        By.XPATH,
-        ("//form[@bst-edit-text='environment.name']"
-         "//i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-text='environment.name']"
+                   "//i[contains(@class,'fa-edit')]")),
     "content_env.edit_name_text": (
-        By.XPATH,
-        "//form[@bst-edit-text='environment.name']/div/input"),
-    "content_env.edit_name_text.save": (
-        By.XPATH,
-        "//form[@bst-edit-text='environment.name']//button"),
+        By.XPATH, "//dd[@bst-edit-text='environment.name']//input"),
     "content_env.edit_description": (
-        By.XPATH,
-        ("//form[@bst-edit-textarea='environment.description']"
-         "//i[contains(@class,'fa-edit')]")),
+        By.XPATH, ("//dd[@bst-edit-textarea='environment.description']"
+                   "//i[contains(@class,'fa-edit')]")),
     "content_env.edit_description_textarea": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='environment.description']"
-         "/div/textarea")),
-    "content_env.edit_description_textarea.save": (
-        By.XPATH,
-        "//form[@bst-edit-textarea='environment.description']//button"),
+        "//dd[@bst-edit-textarea='environment.description']//textarea"),
     "content_env.table": (
-        By.XPATH,
-        "//table[contains(@class,'environment-table')]"),
+        By.XPATH, "//table[contains(@class,'environment-table')]"),
 
     # GPG Key
     "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpg-keys.new']"),
@@ -2100,7 +2058,7 @@ locators = LocatorDict({
     "subs.manage_manifest": (
         By.XPATH, "//button[contains(@ui-sref,'manifest.import')]"),
     "subs.repo_url_edit": (
-        By.XPATH, ("//form[contains(@bst-edit-text,'redhat_repository_url')]"
+        By.XPATH, ("//dd[contains(@bst-edit-text,'redhat_repository_url')]"
                    "//i[contains(@class,'icon-edit')]")),
     "subs.file_path": (
         By.XPATH, ("//input[@name='content']")),
@@ -2108,7 +2066,7 @@ locators = LocatorDict({
         By.XPATH, ("//div[@class='form-group']"
                    "/button[contains(@class, 'primary')]")),
     "subs.repo_url_update": (
-        By.XPATH, ("//form[contains(@bst-edit-text,'redhat_repository_url')]"
+        By.XPATH, ("//dd[contains(@bst-edit-text,'redhat_repository_url')]"
                    "//div/input")),
     "subs.manifest_exists": (
         By.XPATH, "//a[contains(@href,'distributors')]"),
@@ -2523,44 +2481,31 @@ locators = LocatorDict({
         "//tr[contains(@ng-repeat, 'hostCollection')]"
         "/td/a[contains(., '%s')]"),
     "hostcollection.edit_name": (
-        By.XPATH, "//form[@bst-edit-text='hostCollection.name']//div/span/i"),
+        By.XPATH, ("//dd[@bst-edit-text='hostCollection.name']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "hostcollection.edit_name_text": (
         By.XPATH,
-        "//form[@bst-edit-text='hostCollection.name']/div/input"),
-    "hostcollection.save_name": (
-        By.XPATH,
-        ("//form[@bst-edit-text='hostCollection.name']"
-         "//button[@ng-click='save()']")),
+        "//dd[@bst-edit-text='hostCollection.name']//input"),
     "hostcollection.name_field": (
         By.XPATH,
-        "//form[@bst-edit-text='hostCollection.name']//div"
+        "//dd[@bst-edit-text='hostCollection.name']//div"
         "/span[contains(., '%s')]"),
     "hostcollection.edit_description": (
-        By.XPATH,
-        "//form[@bst-edit-textarea='hostCollection.description']//div/span/i"),
+        By.XPATH, ("//dd[@bst-edit-textarea='hostCollection.description']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "hostcollection.edit_description_text": (
         By.XPATH,
-        ("//form[@bst-edit-textarea='hostCollection.description']"
-         "/div/textarea")),
-    "hostcollection.save_description": (
-        By.XPATH,
-        ("//form[@bst-edit-textarea='hostCollection.description']"
-         "//button[@ng-click='save()']")),
+        "//dd[@bst-edit-textarea='hostCollection.description']//textarea"),
     "hostcollection.description_field": (
         By.XPATH,
-        "//form[@bst-edit-textarea='hostCollection.description']//div"
+        "//dd[@bst-edit-textarea='hostCollection.description']//div"
         "/span[contains(., '%s')]"),
     "hostcollection.edit_limit": (
-        By.XPATH,
-        ("//div[@bst-edit-custom='hostCollection.max_hosts']"
-         "//div/span/i")),
-    "hostcollection.save_limit": (
-        By.XPATH,
-        ("//div[@bst-edit-custom='hostCollection.max_hosts']"
-         "//button[@ng-click='save()']")),
+        By.XPATH, ("//dd[@bst-edit-custom='hostCollection.max_hosts']"
+                   "//i[contains(@class, 'fa-edit')]")),
     "hostcollection.limit_field": (
         By.XPATH,
-        "//div[@bst-edit-custom='hostCollection.max_hosts']"
+        "//dd[@bst-edit-custom='hostCollection.max_hosts']"
         "//span[text()='%s']"),
     "hostcollection.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
