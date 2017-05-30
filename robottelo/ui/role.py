@@ -130,7 +130,10 @@ class Role(Base):
     def clone(self, name, new_name, locations=None, organizations=None):
         """Clone role with name/location/organization."""
         self.search(name)
-        self.click(locators['roles.dropdown'] % name)
+        if self.find_element(locators['roles.locked'] % name):
+            self.click(locators['roles.locked_dropdown'] % name)
+        else:
+            self.click(locators['roles.dropdown'] % name)
         self.click(locators['roles.clone'])
         self.assign_value(locators['roles.name'], new_name)
         if locations or organizations:
