@@ -2,7 +2,7 @@
 # Version updates managed by pyup.io
 
 cachetools==2.0.0
-cryptography==1.8.1
+cryptography==1.9
 fauxfactory==2.1.0
 Inflector==2.0.11
 mock==2.0.0
