@@ -114,6 +114,12 @@ ssh_key=
 # password used when accessing Bugzilla's API
 # bz_password=changeme
 
+# if wontfix_lookup is enabled all decorated BZs found with WONTFIX resolution
+# will be fetched from Bugzilla API and those tests deselected
+# you may want to set to false to save time when running local tests
+# default is true.
+# wontfix_lookup = false
+
 # For LDAP Authentication.
 # [ldap]
 # hostname=

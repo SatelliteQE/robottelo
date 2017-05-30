@@ -80,6 +80,14 @@ def pytest_collection_modifyitems(items, config):
 
     Deselecting all tests skipped due to WONTFIX BZ.
     """
+    if not settings.configured:
+        settings.configure()
+
+    if settings.bugzilla.wontfix_lookup is not True:
+        # if lookup is disable return all collection unmodified
+        log('Deselect of WONTFIX BZs is disabled in settings')
+        return items
+
     deselected_items = []
     wontfix_ids = pytest.bugzilla.wontfix_ids
     decorated_functions = group_by_key(pytest.bugzilla.decorated_functions)
