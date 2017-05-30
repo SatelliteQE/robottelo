@@ -238,11 +238,6 @@
 
 .. automodule:: robottelo.ui.syncplan
 
-:mod:`robottelo.ui.systemgroup`
--------------------------------
-
-.. automodule:: robottelo.ui.systemgroup
-
 :mod:`robottelo.ui.task`
 ------------------------
 
