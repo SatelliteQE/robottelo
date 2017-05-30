@@ -75,6 +75,7 @@ class BookmarkTestCase(UITestCase):
                 elif entity['name'] in (
                         'Compute_Profile',
                         'ConfigGroups',
+                        'GlobalParameters',
                         'HardwareModel',
                         'PuppetClasses',
                         'UserGroup'):

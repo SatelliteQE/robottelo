@@ -1006,7 +1006,7 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'GlobalParameter', 'controller': 'common_parameters',
-        'setup': entities.CommonParameter, 'skip_for_ui': True
+        'setup': entities.CommonParameter, 'skip_for_ui': 1456833
     },
     {
         'name': 'ConfigGroups', 'controller': 'config_groups',
