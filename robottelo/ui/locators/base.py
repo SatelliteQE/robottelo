@@ -2002,50 +2002,6 @@ locators = LocatorDict({
                   "following-sibling::p[contains(@class, 'info-paragraph')][1]"
     ),
 
-    # System Groups
-    "system-groups.new": (
-        By.XPATH, "//button[@ui-sref='system-groups.new.form']"),
-    "system-groups.name": (By.ID, "name"),
-    "system-groups.description": (By.ID, "description"),
-    "system-groups.unlimited": (By.NAME, "limit"),
-    "system-groups.limit": (By.ID, "max_systems"),
-
-    "system-groups.remove": (
-        By.XPATH, "//button[@ng-disabled='!group.permissions.deletable']"),
-
-    "system-groups.search": (
-        By.XPATH, "//a[contains(@href,'system-groups') and contains(.,'%s')]"),
-
-    "system-groups.update_name": (
-        By.XPATH, "//form[@bst-edit-text='group.name']//div/span/i"),
-    "system-groups.update_name_field": (
-        By.XPATH, "//form[@bst-edit-text='group.name']/div/input"),
-    "system-groups.update_name_save": (
-        By.XPATH, "//form[@bst-edit-text='group.name']"
-                  "//button[@ng-click='save()']"),
-
-    "system-groups.update_description": (
-        By.XPATH, "//form[@bst-edit-textarea='group.description']"
-                  "//div/span/i"),
-    "system-groups.update_description_field": (
-        By.XPATH, "//form[@bst-edit-textarea='group.description']"
-                  "//div/textarea"),
-    "system-groups.update_description_save": (
-        By.XPATH, "//form[@bst-edit-textarea='group.description']"
-                  "//button[@ng-click='save()']"),
-
-    "system-groups.update_limit": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']//div/span/i"),
-    "system-groups.update_limit_checkbox": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
-                  "//div/input[@type='checkbox']"),
-    "system-groups.update_limit_field": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
-                  "//div/input[@type='number']"),
-    "system-groups.update_limit_save": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
-                  "//button[@ng-click='save()']"),
-
     # Manifests / subscriptions
     "subs.select": (
         By.XPATH, ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions') "

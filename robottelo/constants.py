@@ -1107,7 +1107,6 @@ UI_CRUD = [
     'subscription.Subscriptions',
     'sync.Sync',
     'syncplan.Syncplan',
-    'systemgroup.SystemGroup',
     'template.Template',
     'trend.Trend',
     'usergroup.UserGroup',
