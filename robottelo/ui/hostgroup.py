@@ -46,15 +46,6 @@ class Hostgroup(Base):
         """Specify locator for HostGroups entity search procedure"""
         return locators['hostgroups.hostgroup']
 
-    def delete(self, name, really=True):
-        """Deletes existing hostgroup from UI."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['hostgroups.dropdown'],
-        )
-
     def update(self, name, new_name=None, parent=None, environment=None):
         """Updates existing hostgroup from UI."""
         self.search_and_click(name)

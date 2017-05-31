@@ -353,7 +353,7 @@ class PartitionTableTestCase(UITestCase):
                         template_path=PARTITION_SCRIPT_DATA_FILE,
                         os_family='Red Hat',
                     )
-                    self.partitiontable.delete(name)
+                    self.partitiontable.delete_entity(name, dropdown=True)
 
     @run_only_on('sat')
     @tier1

@@ -122,20 +122,11 @@ class JobTemplate(Base):
             self.assign_value(locators['job.input_description'], description)
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Deletes job template."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['job.template_dropdown'],
-        )
-
     def clone(
             self, name, clone_name, template_content=None, template_type=None):
         """Clones a given job template."""
         self.search(name)
-        self.click(locators['job.template_dropdown'] % name)
+        self.click(common_locators['select_action_dropdown'] % name)
         self.click(locators['job.template_clone'])
         self.assign_value(locators['job.template_name'], clone_name)
         if template_content:

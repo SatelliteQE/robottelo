@@ -308,7 +308,7 @@ class RhevComputeResourceTestCase(UITestCase):
                     parameter_list=parameter_list
                 )
                 self.assertIsNotNone(self.compute_resource.search(name))
-                self.compute_resource.delete(name)
+                self.compute_resource.delete_entity(name, dropdown=True)
 
     @run_only_on('sat')
     @tier2

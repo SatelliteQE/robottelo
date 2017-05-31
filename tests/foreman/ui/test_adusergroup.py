@@ -72,7 +72,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             if self.user.search(self.ldap_user_name):
-                self.user.delete(self.ldap_user_name)
+                self.user.delete_entity(self.ldap_user_name)
             if self.usergroup.search(self.usergroup_name):
                 self.usergroup.delete_entity(self.usergroup_name)
         super(ActiveDirectoryUserGroupTestCase, self).tearDown()

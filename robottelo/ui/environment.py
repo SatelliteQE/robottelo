@@ -45,12 +45,3 @@ class Environment(Base):
             entity_select=org_select
         )
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Deletes the environment"""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['env.dropdown'],
-        )

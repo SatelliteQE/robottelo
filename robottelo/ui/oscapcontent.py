@@ -9,6 +9,7 @@ from robottelo.ui.navigator import Navigator
 class OpenScapContent(Base):
     """Manipulates OpenScap content from UI"""
     search_key = 'title'
+    drop_locator = locators['oscap.content_dropdown']
 
     def navigate_to_entity(self):
         """Navigate to OpenScap content entity page"""
@@ -31,15 +32,6 @@ class OpenScapContent(Base):
             self.click(tab_locators['tab_loc'])
             self.configure_entity([content_org], FILTER['oscap_loc'])
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Delete existing oscap content from UI"""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['oscap.content_dropdown'],
-        )
 
     def update(self, name, new_name=None, content_org=None, content_loc=None):
         """Updates existing oscap content from UI"""

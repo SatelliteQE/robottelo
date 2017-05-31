@@ -265,7 +265,7 @@ class GPGKey(UITestCase):
                         upload_key=True,
                     )
                     self.assertIsNotNone(self.gpgkey.search(name))
-                    self.gpgkey.delete(name)
+                    self.gpgkey.delete_entity(name)
 
     @run_only_on('sat')
     @tier1
@@ -289,7 +289,7 @@ class GPGKey(UITestCase):
                         org=self.organization.name,
                     )
                     self.assertIsNotNone(self.gpgkey.search(name))
-                    self.gpgkey.delete(name)
+                    self.gpgkey.delete_entity(name)
 
     # Positive Update
 
@@ -1330,7 +1330,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             self.assertIsNotNone(
                 self.gpgkey.get_product_repo(name, product.name)
             )
-            self.gpgkey.delete(name)
+            self.gpgkey.delete_entity(name)
             # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
@@ -1378,7 +1378,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                     name, repo.name, entity_type='Repository'
                 )
             )
-            self.gpgkey.delete(name)
+            self.gpgkey.delete_entity(name)
             # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
@@ -1429,7 +1429,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            self.gpgkey.delete(name)
+            self.gpgkey.delete_entity(name)
             # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
@@ -1469,7 +1469,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 new_product=True,
                 product=product_name,
             )
-            self.gpgkey.delete(name)
+            self.gpgkey.delete_entity(name)
             prd_element = self.products.search(product_name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
@@ -1508,7 +1508,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            self.gpgkey.delete(name)
+            self.gpgkey.delete_entity(name)
             # Assert that after deletion GPGKey is not associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(self.gpgkey.assert_key_from_product(
@@ -1556,7 +1556,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            self.gpgkey.delete(name)
+            self.gpgkey.delete_entity(name)
             # Assert key shouldn't be associated with product or repository
             # after deletion
             prd_element = self.products.search(product.name)

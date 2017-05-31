@@ -94,12 +94,3 @@ class OpenScapPolicy(Base):
             self.click(tab_locators['context.tab_hostgrps'])
             self.configure_entity([host_group], FILTER['policy_hgrp'])
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Delete existing oscap policy from UI"""
-        self.delete_entity(
-            name,
-            really,
-            locators['oscap.delete_policy'],
-            locators['oscap.dropdown_policy'],
-        )

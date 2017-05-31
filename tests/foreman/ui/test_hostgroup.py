@@ -120,7 +120,7 @@ class HostgroupTestCase(UITestCase):
             for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
-                    self.hostgroup.delete(name)
+                    self.hostgroup.delete_entity(name, dropdown=True)
 
     @run_only_on('sat')
     @tier1

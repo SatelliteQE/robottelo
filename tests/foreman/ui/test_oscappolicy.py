@@ -116,7 +116,7 @@ class OpenScapPolicy(UITestCase):
                     )
                     self.assertIsNotNone(
                         self.oscappolicy.search(policy_name))
-                    self.oscappolicy.delete(policy_name)
+                    self.oscappolicy.delete_entity(policy_name, dropdown=True)
 
     @skip_if_bug_open('bugzilla', 1293296)
     @tier1

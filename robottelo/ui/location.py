@@ -144,12 +144,3 @@ class Location(Base):
                                  new_hostgroups=new_hostgroups,
                                  select=select)
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Deletes a location."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            locators['location.dropdown'],
-        )

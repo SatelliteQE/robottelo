@@ -118,4 +118,4 @@ class ComputeProfileTestCase(UITestCase):
             for name in generate_strings_list(length=7):
                 with self.subTest(name):
                     make_compute_profile(session, name=name)
-                    self.compute_profile.delete(name)
+                    self.compute_profile.delete_entity(name, dropdown=True)

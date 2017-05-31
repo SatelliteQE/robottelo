@@ -252,7 +252,7 @@ class LocationTestCase(UITestCase):
             for loc_name in generate_strings_list():
                 with self.subTest(loc_name):
                     entities.Location(name=loc_name).create()
-                    self.location.delete(loc_name)
+                    self.location.delete_entity(loc_name, dropdown=True)
 
     @run_only_on('sat')
     @tier2
@@ -789,7 +789,7 @@ class LocationTestCase(UITestCase):
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
-                    self.hostgroup.delete(host_grp_name)
+                    self.hostgroup.delete_entity(host_grp_name, dropdown=True)
                     self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
@@ -929,7 +929,7 @@ class LocationTestCase(UITestCase):
                     # Item is listed in 'Selected Items' list and not
                     # 'All Items' list.
                     self.assertIsNotNone(element)
-                    self.template.delete(template_name)
+                    self.template.delete_entity(template_name, dropdown=True)
                     self.location.search_and_click(loc_name)
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(

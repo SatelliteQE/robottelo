@@ -46,15 +46,6 @@ class PartitionTable(Base):
         )
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Removes existing partition table from UI."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['ptable.dropdown'],
-        )
-
     def update(self, old_name, new_name=None, new_template_path=None,
                new_os_family=None, audit_comment=None, default=None,
                snippet=None):
