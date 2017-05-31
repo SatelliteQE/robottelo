@@ -37,6 +37,7 @@ from robottelo.datafactory import (
     valid_emails_list,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -471,6 +472,9 @@ class UserTestCase(UITestCase):
         """
         with Session(self.browser) as session:
             for email in invalid_emails_list():
+                # Skip if email contains successive dots (affected by BZ)
+                if bz_bug_is_open(1455501) and '..' in email:
+                    continue
                 with self.subTest(email):
                     name = gen_string('alpha')
                     make_user(session, username=name, email=email)
