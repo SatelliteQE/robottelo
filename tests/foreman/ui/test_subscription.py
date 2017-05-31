@@ -17,10 +17,10 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
+from robottelo.api.utils import create_role_permissions
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -91,7 +91,6 @@ class SubscriptionTestCase(UITestCase):
             self.assertIsNotNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
 
-    @skip_if_bug_open('bugzilla', 1399725)
     @tier2
     def test_positive_access_with_non_admin_user(self):
         """Access subscription page with user that has viewer permissions
@@ -122,3 +121,75 @@ class SubscriptionTestCase(UITestCase):
             self.assertIsNotNone(self.subscriptions.wait_until_element(
                 locators['subs.no_manifests_title']))
             self.assertFalse(self.browser.current_url.endswith('katello/403'))
+
+    @tier2
+    def test_positive_access_with_non_admin_user_without_manifest(self):
+        """Access subscription page with user that has only view_subscriptions
+        permission and organization that has no manifest uploaded.
+
+        @id: dab9dc15-39a8-4105-b7ff-ecef909dc6e6
+
+        @expectedresults: Subscription page is rendered properly without errors
+
+        @BZ: 1333219
+
+        @CaseLevel: Integration
+
+        @CaseImportance: Critical
+        """
+        org = entities.Organization().create()
+        role = entities.Role().create()
+        create_role_permissions(
+            role,
+            {'Katello::Subscription': ['view_subscriptions']}
+        )
+        password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=False,
+            role=[role],
+            password=password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        with Session(self.browser, user.login, password):
+            self.subscriptions.navigate_to_entity()
+            self.assertIsNotNone(self.subscriptions.wait_until_element(
+                locators['subs.no_manifests_title']))
+            self.assertFalse(self.browser.current_url.endswith('katello/403'))
+
+    @tier2
+    def test_positive_access_with_non_admin_user_with_manifest(self):
+        """Access subscription page with user that has only view_subscriptions
+        permission and organization that has a manifest uploaded.
+
+        @id: 9184fcf6-36be-42c8-984c-3c5d7834b3b4
+
+        @expectedresults: Subscription page is rendered properly without errors
+            and the default subscription is visible
+
+        @BZ: 1333219
+
+        @CaseLevel: Integration
+
+        @CaseImportance: Critical
+        """
+        org = entities.Organization().create()
+        self.upload_manifest(org.id, manifests.clone())
+        role = entities.Role().create()
+        create_role_permissions(
+            role,
+            {'Katello::Subscription': ['view_subscriptions']}
+        )
+        password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=False,
+            role=[role],
+            password=password,
+            organization=[org],
+            default_organization=org,
+        ).create()
+        with Session(self.browser, user.login, password):
+            self.subscriptions.navigate_to_entity()
+            self.assertFalse(self.browser.current_url.endswith('katello/403'))
+            self.assertIsNotNone(
+                self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
