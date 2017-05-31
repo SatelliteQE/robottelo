@@ -204,7 +204,6 @@ class ConfigTemplateTestCase(APITestCase):
                     id=c_temp.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
-    @skip_if_bug_open('bugzilla', 1446523)
     @tier1
     def test_positive_update_with_manager_role(self):
         """Create template providing the initial name, then update its name
@@ -222,7 +221,10 @@ class ConfigTemplateTestCase(APITestCase):
         user_login = gen_string('alpha')
         user_password = gen_string('alpha')
         new_name = gen_string('alpha')
-        template = entities.ProvisioningTemplate().create()
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        template = entities.ProvisioningTemplate(
+            organization=[org], location=[loc]).create()
         # Create user with Manager role
         role = entities.Role().search(query={'search': 'name="Manager"'})[0]
         entities.User(
@@ -230,6 +232,8 @@ class ConfigTemplateTestCase(APITestCase):
             admin=False,
             login=user_login,
             password=user_password,
+            organization=[org],
+            location=[loc],
         ).create()
         # Update template name with that user
         cfg = get_nailgun_config()

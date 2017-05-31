@@ -69,7 +69,6 @@ class TemplateTestCase(CLITestCase):
         template = Template.info({'id': template['id']})
         self.assertEqual(updated_name, template['name'])
 
-    @skip_if_bug_open('bugzilla', 1446523)
     @tier1
     def test_positive_update_with_manager_role(self):
         """Create template providing the initial name, then update its name
@@ -87,12 +86,17 @@ class TemplateTestCase(CLITestCase):
         new_name = gen_string('alpha')
         username = gen_string('alpha')
         password = gen_string('alpha')
-        template = make_template()
+        org = make_org()
+        loc = make_location()
+        template = make_template({
+            'organization-ids': org['id'], 'location-ids': loc['id']})
         # Create user with Manager role
         user = make_user({
             'login': username,
             'password': password,
             'admin': False,
+            'organization-ids': org['id'],
+            'location-ids': loc['id'],
         })
         User.add_role({'id': user['id'], 'role': "Manager"})
         # Update template name with that user
