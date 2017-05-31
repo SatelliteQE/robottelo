@@ -782,7 +782,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1328092)
+    @skip_if_bug_open('bugzilla', 1405503)
     @tier2
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
@@ -815,7 +815,7 @@ class RepositoryTestCase(CLITestCase):
                 )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1328092)
+    @skip_if_bug_open('bugzilla', 1405503)
     @tier2
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
