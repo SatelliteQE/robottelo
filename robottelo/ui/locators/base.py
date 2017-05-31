@@ -49,11 +49,6 @@ locators = LocatorDict({
     "location.select_name": (
         By.XPATH,
         "//td/a[contains(@href,'locations')]/span[contains(.,'%s')]"),
-    "location.dropdown": (
-        By.XPATH,
-        ("//a[normalize-space(.)='%s' and contains(@href,'locations')]"
-         "/../../td/div/a[@data-toggle='dropdown']")),
-
 
     # Login
     "login.username": (By.ID, "login_login"),
@@ -140,10 +135,6 @@ locators = LocatorDict({
     "org.org_name": (
         By.XPATH,
         "//td/a[contains(@href,'organizations')]/span[contains(.,'%s')]"),
-    "org.dropdown": (
-        By.XPATH,
-        ("//a[normalize-space(.)='%s' and contains(@href,'organizations')]"
-            "/../../td/div/a[@data-toggle='dropdown']")),
     "org.name_value": (
         By.XPATH,
         "//input[@id='organization_name' and @value='%s']"),
@@ -167,9 +158,6 @@ locators = LocatorDict({
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Edit')]"),
     "trend.edit_entity": (By.XPATH, "//td[contains(., '%s')]/../td[2]/input"),
-    "trend.dropdown": (
-        By.XPATH,
-        "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
 
     # Jobs invocation
 
@@ -271,10 +259,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@href,'compute_profiles')"
             "and normalize-space(.)='%s']")),
-    "profile.dropdown": (
-        By.XPATH,
-        ("//td/a[contains(., '%s')]"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "profile.rename": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
@@ -347,10 +331,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@href,'compute_resources')and normalize-space(.)='%s']"
          "/../following-sibling::td[@class='ellipsis']")),
-    "resource.dropdown": (
-        By.XPATH,
-        ("//td/a[contains(., '%s')]"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "resource.edit": (
         By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
     "resource.filter_containers": (
@@ -636,10 +616,6 @@ locators = LocatorDict({
                            "contains(@class, 'btn')]"),
     "host.clone": (
         By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
-    "host.dropdown": (
-        By.XPATH,
-        ("//a[contains(@href,'%s')]"
-         "/../../a[contains(@data-toggle,'dropdown')]")),
     "host.edit": (By.XPATH,
                   "//a[@class='btn btn-default' and contains(@href,'edit')]"),
     "host.select_name": (
@@ -898,10 +874,6 @@ locators = LocatorDict({
         By.ID, "provisioning_template_audit_comment"),
     "provision.template_template": (
         By.XPATH, "//input[@id='template_file']"),
-    "provision.template_dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "provision.template_clone": (
         By.XPATH, "//a[contains(@href,'clone')]"),
 
@@ -961,10 +933,6 @@ locators = LocatorDict({
         By.XPATH,
         "//input[@id='job_template_effective_user_attributes_overridable']"),
     "job.template_snippet": (By.XPATH, "//input[@id='job_template_snippet']"),
-    "job.template_dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "job.template_clone": (
         By.XPATH, "//a[contains(@href,'clone_template')]"),
     "job.add_new_input": (By.XPATH, "//a[text()='+ Add Input']"),
@@ -997,10 +965,6 @@ locators = LocatorDict({
         ("//div[contains(@id, 'hostgroup_lifecycle_environment')]/a"
          "/span[contains(@class, 'arrow')]")),
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
-    "hostgroups.dropdown": (
-        By.XPATH,
-        ("//td/a/span[contains(., '%s')]"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "hostgroups.content_source": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_content_source')]/a"
@@ -1114,10 +1078,6 @@ locators = LocatorDict({
         ("//td/em[normalize-space(.)='%s']"
          "/following::td/span[contains(@class, 'lock')]")
     ),
-    "roles.dropdown": (
-        By.XPATH,
-        ("//td/span/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "roles.locked_dropdown": (
         By.XPATH,
         ("//td/em[normalize-space(.)='%s']"
@@ -1175,9 +1135,6 @@ locators = LocatorDict({
     "env.new": (By.XPATH, "//a[contains(@href, '/environments/new')]"),
     "env.name": (By.ID, "environment_name"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "env.dropdown": (
-        By.XPATH,
-        "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
 
     # Partition Table
     "ptable.new": (By.XPATH, "//a[contains(@href, '/ptables/new')]"),
@@ -1192,10 +1149,6 @@ locators = LocatorDict({
         ("//div[contains(@id, 'ptable_os_family')]/a"
          "/span[contains(@class, 'arrow')]")),
     "ptable.ptable_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "ptable.dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
 
     # Subnet Page
     "subnet.new": (By.XPATH, "//a[contains(@href, '/subnets/new')]"),
@@ -2110,10 +2063,6 @@ locators = LocatorDict({
     "discoveryrules.rule_name": (
         By.XPATH, ("//a[contains(@href, 'discovery_rules')"
                    " and contains(., '%s')]")),
-    "discoveryrules.dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
 
     # Discovered Hosts
     "discoveredhosts.hostname": (
@@ -2293,10 +2242,6 @@ locators = LocatorDict({
     "oscap.select_policy": (
         By.XPATH,
         "//a[contains(@href,'policies') and contains(.,'%s')]"),
-    "oscap.delete_policy": (
-        By.XPATH,
-        ("//a[contains(@href,'policies') and contains(.,'%s')]/../../"
-         "td/div/ul/li/a[@class='delete']")),
     "oscap.edit_policy": (
         By.XPATH,
         ("//a[contains(@href,'policies') and contains(.,'%s')]"

@@ -28,15 +28,6 @@ class ComputeProfile(Base):
         self.assign_value(locators['profile.name'], new_name)
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Deletes existing compute profile entity"""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['profile.dropdown'],
-        )
-
     def select_resource(self, profile_name, res_name, res_type):
         """Select necessary compute resource from specific compute profile
 

@@ -1271,7 +1271,8 @@ class DockerComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
-                    self.compute_resource.delete(comp_name)
+                    self.compute_resource.delete_entity(
+                        comp_name, dropdown=True)
 
 
 class DockerContainerTestCase(UITestCase):

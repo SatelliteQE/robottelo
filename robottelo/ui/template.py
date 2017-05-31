@@ -147,12 +147,3 @@ class Template(Base):
             self.select(locators['provision.template_type'], template_type)
         self._configure_template(os_list=os_list)
         self.click(common_locators['submit'])
-
-    def delete(self, name, really=True):
-        """Deletes a template."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['provision.template_dropdown'],
-        )

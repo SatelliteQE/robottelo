@@ -78,15 +78,6 @@ class DiscoveryRules(Base):
             strategy, value = common_locators['select_filtered_entity']
         return self.wait_until_element((strategy, value % name))
 
-    def delete(self, name, really=True):
-        """Delete existing discovery rule from UI"""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['discoveryrules.dropdown'],
-        )
-
     def update(self, name, new_name=None, search_rule=None, hostgroup=None,
                hostname=None, host_limit=None, priority=None, enabled=True):
         """Update an existing discovery rule from UI."""

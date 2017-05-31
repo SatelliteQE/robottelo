@@ -51,12 +51,3 @@ class Trend(Base):
         """
         self.navigate_to_entity()
         return self.wait_until_element(self._search_locator() % tr_type)
-
-    def delete(self, name, really=True):
-        """Deletes the trend."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['trend.dropdown'],
-        )

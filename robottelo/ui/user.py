@@ -10,6 +10,7 @@ class User(Base):
     """Implements CRUD functions from UI."""
 
     search_key = 'login'
+    del_locator = locators['users.delete']
 
     def navigate_to_entity(self):
         """Navigate to User entity page"""
@@ -97,14 +98,6 @@ class User(Base):
             self.click(common_locators['submit'])
         else:
             self.click(common_locators['cancel_form'])
-
-    def delete(self, name, really=True):
-        """Deletes existing user from UI."""
-        self.delete_entity(
-            name,
-            really,
-            locators['users.delete'],
-        )
 
     def update(self, username, new_username=None, email=None,
                new_password=None, password_confirmation=None, first_name=None,

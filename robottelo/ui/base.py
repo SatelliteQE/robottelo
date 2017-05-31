@@ -39,6 +39,8 @@ class Base(object):
     is_katello = False
     button_timeout = 15
     result_timeout = 15
+    del_locator = None
+    drop_locator = None
 
     def __init__(self, browser):
         """Sets up the browser object."""
@@ -275,7 +277,7 @@ class Base(object):
                 filter_key, entity_locator, new_entity_list)
 
     def delete_entity(
-            self, name, really=True, del_locator=None, drop_locator=None):
+            self, name, really=True, dropdown=False):
         """Delete an added entity, handles both with and without dropdown."""
         self.logger.debug(u'Deleting entity %s', name)
         searched = self.search(name)
@@ -283,8 +285,8 @@ class Base(object):
             raise UIError(u'Could not search the entity "{0}"'.format(name))
         if self.is_katello:
             self.click(searched)
-            if del_locator:
-                self.click(del_locator)
+            if self.del_locator:
+                self.click(self.del_locator)
             else:
                 self.perform_entity_action('Remove')
             if really:
@@ -292,10 +294,14 @@ class Base(object):
             else:
                 self.click(common_locators['cancel'])
         else:
-            if drop_locator:
-                self.click(drop_locator % name)
-            if del_locator:
-                self.click(del_locator % name, wait_for_ajax=False)
+            if dropdown:
+                if self.drop_locator:
+                    self.click(self.drop_locator % name)
+                else:
+                    self.click(
+                        common_locators['select_action_dropdown'] % name)
+            if self.del_locator:
+                self.click(self.del_locator % name, wait_for_ajax=False)
             else:
                 self.click(
                     common_locators['delete_button'] % name,
@@ -797,5 +803,5 @@ class Base(object):
         :param action_name: Name of action to be executed (e.g.
             'Remove Product')
         """
-        self.click(common_locators['select_action_dropdown'])
+        self.click(common_locators['kt_select_action_dropdown'])
         self.click(common_locators['select_action'] % action_name)

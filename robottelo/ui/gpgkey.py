@@ -9,6 +9,7 @@ from robottelo.ui.navigator import Navigator
 class GPGKey(Base):
     """Manipulates GPG keys from UI."""
     is_katello = True
+    del_locator = locators['gpgkey.remove']
 
     def navigate_to_entity(self):
         """Navigate to GPG key entity page"""
@@ -29,14 +30,6 @@ class GPGKey(Base):
             self.assign_value(locators['gpgkey.content'], key_content)
         self.click(common_locators['create'])
         self.wait_until_element_is_not_visible(locators['gpgkey.new_form'])
-
-    def delete(self, name, really=True):
-        """Deletes an existing gpg key."""
-        self.delete_entity(
-            name,
-            really,
-            locators['gpgkey.remove'],
-        )
 
     def update(self, name, new_name=None, new_key=None):
         """Updates an existing GPG key."""

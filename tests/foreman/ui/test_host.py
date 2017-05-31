@@ -327,10 +327,9 @@ class LibvirtHostTestCase(UITestCase):
         """Delete the host to free the resources"""
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
-            session.nav.go_to_hosts()
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
-                self.hosts.delete(host_name, True)
+                self.hosts.delete_entity(host_name, dropdown=True)
         super(LibvirtHostTestCase, self).tearDown()
 
     @run_only_on('sat')
@@ -700,8 +699,8 @@ class HostTestCase(UITestCase):
                 ],
             )
             # Delete host
-            self.hosts.delete(
-                u'{0}.{1}'.format(host.name, host.domain.name))
+            self.hosts.delete_entity(
+                u'{0}.{1}'.format(host.name, host.domain.name), dropdown=True)
 
     @run_only_on('sat')
     @tier2
@@ -1225,10 +1224,9 @@ class AtomicHostTestCase(UITestCase):
         """Delete the host to free the resources"""
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
-            session.nav.go_to_hosts()
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
-                self.hosts.delete(host_name, True)
+                self.hosts.delete_entity(host_name, dropdown=True)
         super(AtomicHostTestCase, self).tearDown()
 
     @tier3
@@ -1335,8 +1333,10 @@ class AtomicHostTestCase(UITestCase):
                 ],
             )
             # Delete host
-            self.hosts.delete(
-                u'{0}.{1}'.format(self.hostname, self.domain_name))
+            self.hosts.delete_entity(
+                u'{0}.{1}'.format(self.hostname, self.domain_name),
+                dropdown=True
+            )
 
     @stubbed()
     @tier3

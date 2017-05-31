@@ -403,7 +403,7 @@ class DiscoveryRuleTestCase(UITestCase):
                     make_discoveryrule(
                         session, name=name, hostgroup=self.host_group.name)
                     self.assertIsNotNone(self.discoveryrules.search(name))
-                    self.discoveryrules.delete(name)
+                    self.discoveryrules.delete_entity(name, dropdown=True)
 
     @run_only_on('sat')
     @tier1
@@ -831,7 +831,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
             )
-            self.discoveryrules.delete(name)
+            self.discoveryrules.delete_entity(name, dropdown=True)
 
     @run_only_on('sat')
     @tier2
@@ -881,9 +881,9 @@ class DiscoveryRuleRoleTestCase(UITestCase):
             # With non-admin user, delete button won't be visible on webUI
             with self.assertRaises(UINoSuchElementError):
                 self.discoveryrules.click(
-                    locators['discoveryrules.dropdown'] % self.rule_name)
+                    common_locators['select_action_dropdown'] % self.rule_name)
                 self.discoveryrules.click(
-                    locators['discoveryrules.rule_delete'] % self.rule_name,
+                    common_locators['delete_button'] % self.rule_name,
                     wait_for_ajax=False
                 )
                 self.handle_alert(really=True)
