@@ -18,6 +18,7 @@ import os
 
 from fauxfactory import gen_string
 from nailgun import entities
+from nailgun.entity_mixins import TaskFailedError
 from robottelo import ssh
 from robottelo.api.utils import promote
 from robottelo.config import settings
@@ -28,12 +29,15 @@ from robottelo.constants import (
     FAKE_1_YUM_REPOS_COUNT,
     FAKE_3_YUM_REPO,
     FAKE_3_YUM_REPOS_COUNT,
+    FAKE_7_YUM_REPO,
     PULP_PUBLISHED_YUM_REPOS_PATH,
 )
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
+    skip_if_bug_open,
     skip_if_not_set,
+    tier2,
     tier4,
 )
 from robottelo.helpers import create_repo, form_repo_path, md5_by_url
@@ -43,17 +47,47 @@ from robottelo.vm_capsule import CapsuleVirtualMachine
 from robottelo.test import APITestCase
 
 
-@run_in_one_thread
 class ContentManagementTestCase(APITestCase):
     """Content Management related tests, which exercise katello with pulp
     interactions.
+    """
+
+    @skip_if_bug_open('bugzilla', 1437150)
+    @tier2
+    def test_positive_sync_repos_with_large_errata(self):
+        """Attempt to synchronize 2 repositories containing large (or lots of)
+        errata.
+
+        @id: d6680b9f-4c88-40b4-8b96-3d170664cb28
+
+        @BZ: 1437150
+
+        @CaseLevel: Integration
+
+        @expectedresults: both repositories were successfully synchronized
+        """
+        org = entities.Organization().create()
+        for _ in range(2):
+            product = entities.Product(organization=org).create()
+            repo = entities.Repository(
+                product=product,
+                url=FAKE_7_YUM_REPO,
+            ).create()
+            with self.assertNotRaises(TaskFailedError):
+                repo.sync()
+
+
+@run_in_one_thread
+class CapsuleContentManagementTestCase(APITestCase):
+    """Content Management related tests, which exercise katello with pulp
+    interactions and use capsule.
     """
 
     @classmethod
     @skip_if_not_set('capsule', 'clients', 'fake_manifest')
     def setUpClass(cls):
         """Create a separate capsule for tests"""
-        super(ContentManagementTestCase, cls).setUpClass()
+        super(CapsuleContentManagementTestCase, cls).setUpClass()
         cls.capsule_vm = CapsuleVirtualMachine()
         cls.capsule_vm.create()
         # for debugging purposes. you may replace these 2 variables with your
@@ -65,7 +99,7 @@ class ContentManagementTestCase(APITestCase):
     def tearDownClass(cls):
         """Destroy the capsule"""
         cls.capsule_vm.destroy()
-        super(ContentManagementTestCase, cls).tearDownClass()
+        super(CapsuleContentManagementTestCase, cls).tearDownClass()
 
     @tier4
     def test_positive_capsule_sync(self):
@@ -88,6 +122,7 @@ class ContentManagementTestCase(APITestCase):
         5. Syncing repository which was updated will update the content on
            capsule
 
+        @CaseLevel: System
         """
         repo_name = gen_string('alphanumeric')
         # Create and publish custom repository with 2 packages in it
@@ -292,6 +327,7 @@ class ContentManagementTestCase(APITestCase):
         3. Attempt to download package is successful
         4. Downloaded package checksum matches checksum of the source package
 
+        @CaseLevel: System
         """
         repo_url = FAKE_3_YUM_REPO
         packages_count = FAKE_3_YUM_REPOS_COUNT
@@ -317,7 +353,7 @@ class ContentManagementTestCase(APITestCase):
         self.assertIn(
             lce.id,
             [capsule_lce['id'] for capsule_lce in result['results']]
-        ),
+        )
         # Create a content view with the repository
         cv = entities.ContentView(
             organization=org,
@@ -421,6 +457,8 @@ class ContentManagementTestCase(APITestCase):
 
         @expectedresults: host, subscribed to second repo only, can
             successfully install package
+
+        @CaseLevel: System
         """
         repo1_name = gen_string('alphanumeric')
         repo2_name = gen_string('alphanumeric')
@@ -541,8 +579,8 @@ class ContentManagementTestCase(APITestCase):
             organization=org,
         ).create()
         subscription = entities.Subscription(organization=org).search(query={
-            'search': 'name={}'.format(prod2.name)}
-        )[0]
+            'search': 'name={}'.format(prod2.name)
+        })[0]
         activation_key.add_subscriptions(data={
             'subscription_id': subscription.id})
         # Subscribe a host with activation key
@@ -573,6 +611,8 @@ class ContentManagementTestCase(APITestCase):
 
         @expectedresults: content was successfully synchronized - capsule
             filesystem contains valid links to packages
+
+        @CaseLevel: System
         """
         repo_url = FAKE_1_YUM_REPO
         packages_count = FAKE_1_YUM_REPOS_COUNT
@@ -597,7 +637,7 @@ class ContentManagementTestCase(APITestCase):
         self.assertIn(
             lce.id,
             [capsule_lce['id'] for capsule_lce in result['results']]
-        ),
+        )
         # Create a content view with the repository
         cv = entities.ContentView(
             organization=org,
