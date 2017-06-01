@@ -37,7 +37,6 @@ from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
-    stubbed,
     tier1,
     tier2,
     tier4
@@ -610,8 +609,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             raise AssertionError(
                 'Repository contains invalid number of content entities')
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_negative_synchronize_custom_product_current_sync_date(self):
         """Verify product won't get synced immediately after adding association
@@ -645,7 +642,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                 max_attempts=5,
             )
 
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_custom_product_current_sync_date(self):
         """Create a sync plan with current datetime as a sync date, add a
@@ -770,7 +766,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                 repo, ['erratum', 'package', 'package_group'])
 
     @run_in_one_thread
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_rh_product_current_sync_date(self):
         """Create a sync plan with current datetime as a sync date, add a
