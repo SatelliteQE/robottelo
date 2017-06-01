@@ -23,7 +23,7 @@ from robottelo.decorators import (
         skip_if_bug_open,
 )
 from robottelo.helpers import get_services_status
-from robottelo.ssh import get_connection
+from robottelo.ssh import _get_connection
 from robottelo.test import TestCase
 
 NOVALID_MSG = '**** Given directory is not valid ****'
@@ -61,7 +61,7 @@ class RestoreTestCase(TestCase):
         stopped
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             result = connection.run(
                 'katello-restore',
                 output_format='plain'
@@ -84,7 +84,7 @@ class RestoreTestCase(TestCase):
         stopped
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             name = gen_string('alpha')
             result = connection.run(
                 'katello-restore {}'.format(name),
@@ -108,7 +108,7 @@ class RestoreTestCase(TestCase):
         stopped
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
                 'katello-restore -y /tmp/{}'.format(dir_name),
@@ -135,7 +135,7 @@ class RestoreTestCase(TestCase):
         present after restoring, User 2 is not
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             username1 = gen_string('alpha')
             username2 = gen_string('alpha')
             dir_name = make_random_tmp_directory(connection)
@@ -179,7 +179,7 @@ class RestoreTestCase(TestCase):
         incremental.
 
         """
-        with get_connection() as connection:
+        with _get_connection() as connection:
             b1 = make_random_tmp_directory(connection)
             b2 = make_random_tmp_directory(connection)
             username1 = gen_string('alpha')
