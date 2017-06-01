@@ -429,8 +429,6 @@ class SyncPlanTestCase(UITestCase):
         @CaseLevel: Integration
         """
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_negative_synchronize_custom_product_current_sync_date(self):
         """Verify product won't get synced immediately after adding association
@@ -466,8 +464,6 @@ class SyncPlanTestCase(UITestCase):
                     max_attempts=5,
                 )
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_custom_product_current_sync_date(self):
         """Create a sync plan with current datetime as a sync date, add a
@@ -633,9 +629,7 @@ class SyncPlanTestCase(UITestCase):
                     ['errata', 'package_groups', 'packages'],
                 )
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
     @run_in_one_thread
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_rh_product_current_sync_date(self):
         """Create a sync plan with current datetime as a sync date, add a

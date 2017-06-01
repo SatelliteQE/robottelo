@@ -42,7 +42,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
-    stubbed,
     tier1,
     tier4,
 )
@@ -345,8 +344,6 @@ class SyncPlanTestCase(CLITestCase):
         result = SyncPlan.info({'id': new_sync_plan['id']})
         self.assertIsNotNone(result.get('enabled'))
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_negative_synchronize_custom_product_current_sync_date(self):
         """Verify product won't get synced immediately after adding association
@@ -378,8 +375,6 @@ class SyncPlanTestCase(CLITestCase):
                 max_attempts=5,
             )
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_custom_product_current_sync_date(self):
         """Create a sync plan with current datetime as a sync date, add a
@@ -508,9 +503,7 @@ class SyncPlanTestCase(CLITestCase):
             self.validate_repo_content(
                 repo, ['errata', 'package-groups', 'packages'])
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
     @run_in_one_thread
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_rh_product_current_sync_date(self):
         """Create a sync plan with current datetime as a sync date, add a
