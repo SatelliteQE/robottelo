@@ -205,14 +205,14 @@ class OrganizationTestCase(APITestCase):
         """Attempt to create an organization using foreman API path
         (``api/v2/organizations``)
 
-        :id: 499ae5ef-b1e4-4fb8-967a-57d525e06326
+        @id: 499ae5ef-b1e4-4fb8-967a-57d525e06326
 
-        :BZ: 1241068
+        @BZ: 1241068
 
-        :expectedresults: API returns 404 error with 'Route overriden by
+        @expectedresults: API returns 404 error with 'Route overriden by
             Katello' message
 
-        :CaseImportance: Critical
+        @CaseImportance: Critical
         """
         org = entities.Organization()
         org._meta['api_path'] = 'api/v2/organizations'
