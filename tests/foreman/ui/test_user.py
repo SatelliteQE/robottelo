@@ -965,7 +965,7 @@ class UserTestCase(UITestCase):
         user_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
             make_user(session, username=user_name)
-            self.user.delete_entity(user_name)
+            self.user.delete(user_name)
 
     @tier1
     def test_positive_delete_admin(self):
@@ -981,7 +981,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=user_name, admin=True)
             self.assertIsNotNone(self.user.search(user_name))
-            self.user.delete_entity(user_name)
+            self.user.delete(user_name)
 
     @tier1
     def test_negative_delete_user(self):
@@ -997,7 +997,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=user_name)
             self.assertIsNotNone(self.user.search(user_name))
-            self.user.delete_entity(user_name, really=False)
+            self.user.delete(user_name, really=False)
 
     @stubbed()
     @tier3

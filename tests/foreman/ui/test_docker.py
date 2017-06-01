@@ -365,7 +365,7 @@ class DockerRepositoryTestCase(UITestCase):
                         product=product.name,
                     )
                     self.assertIsNotNone(self.repository.search(name))
-                    self.repository.delete_entity(name)
+                    self.repository.delete(name)
                     self.assertIsNone(self.repository.search(name))
 
     @run_only_on('sat')
@@ -404,7 +404,7 @@ class DockerRepositoryTestCase(UITestCase):
             del_entity = entities_list.pop()
             self.navigator.go_to_products()
             self.products.search_and_click(del_entity[0])
-            self.repository.delete_entity(del_entity[1])
+            self.repository.delete(del_entity[1])
             self.assertIsNone(self.repository.search(del_entity[1]))
 
             # Check if others repositories are not touched
@@ -1271,8 +1271,8 @@ class DockerComputeResourceTestCase(UITestCase):
                     )
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
-                    self.compute_resource.delete_entity(
-                        comp_name, dropdown=True)
+                    self.compute_resource.delete(
+                        comp_name, dropdown_present=True)
 
 
 class DockerContainerTestCase(UITestCase):
@@ -1666,4 +1666,4 @@ class DockerRegistryTestCase(UITestCase):
                         url=self.url,
                         description=gen_string('utf8'),
                     )
-                    self.registry.delete_entity(name)
+                    self.registry.delete(name)

@@ -300,7 +300,7 @@ class SmartVariablesTestCase(UITestCase):
                 default_value=value,
             )
             self.assertIsNotNone(self.smart_variable.search(name))
-            self.smart_variable.delete_entity(name)
+            self.smart_variable.delete(name)
             # Verify that corresponding entry is not present in YAML output
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             self.assertNotIn(name, output['parameters'])

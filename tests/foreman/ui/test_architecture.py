@@ -141,7 +141,7 @@ class ArchitectureTestCase(UITestCase):
                 with self.subTest(name):
                     entities.Architecture(
                         name=name, operatingsystem=[os]).create()
-                    self.architecture.delete_entity(name)
+                    self.architecture.delete(name)
 
     @run_only_on('sat')
     @tier1

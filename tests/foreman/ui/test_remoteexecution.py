@@ -245,7 +245,7 @@ class JobsTemplateTestCase(UITestCase):
                 template_type='input',
                 template_content=gen_string('alphanumeric', 20),
             )
-            self.jobtemplate.delete_entity(name, dropdown=True)
+            self.jobtemplate.delete(name, dropdown_present=True)
 
     @tier1
     def test_positive_clone_job_template(self):

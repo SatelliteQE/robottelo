@@ -9,7 +9,7 @@ from robottelo.ui.navigator import Navigator
 class GPGKey(Base):
     """Manipulates GPG keys from UI."""
     is_katello = True
-    del_locator = locators['gpgkey.remove']
+    delete_locator = locators['gpgkey.remove']
 
     def navigate_to_entity(self):
         """Navigate to GPG key entity page"""

@@ -329,7 +329,7 @@ class LibvirtHostTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
-                self.hosts.delete_entity(host_name, dropdown=True)
+                self.hosts.delete(host_name, dropdown_present=True)
         super(LibvirtHostTestCase, self).tearDown()
 
     @run_only_on('sat')
@@ -699,8 +699,10 @@ class HostTestCase(UITestCase):
                 ],
             )
             # Delete host
-            self.hosts.delete_entity(
-                u'{0}.{1}'.format(host.name, host.domain.name), dropdown=True)
+            self.hosts.delete(
+                u'{0}.{1}'.format(host.name, host.domain.name),
+                dropdown_present=True
+            )
 
     @run_only_on('sat')
     @tier2
@@ -1226,7 +1228,7 @@ class AtomicHostTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
-                self.hosts.delete_entity(host_name, dropdown=True)
+                self.hosts.delete(host_name, dropdown_present=True)
         super(AtomicHostTestCase, self).tearDown()
 
     @tier3
@@ -1333,9 +1335,9 @@ class AtomicHostTestCase(UITestCase):
                 ],
             )
             # Delete host
-            self.hosts.delete_entity(
+            self.hosts.delete(
                 u'{0}.{1}'.format(self.hostname, self.domain_name),
-                dropdown=True
+                dropdown_present=True,
             )
 
     @stubbed()

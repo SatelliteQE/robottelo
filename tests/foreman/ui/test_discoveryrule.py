@@ -403,7 +403,7 @@ class DiscoveryRuleTestCase(UITestCase):
                     make_discoveryrule(
                         session, name=name, hostgroup=self.host_group.name)
                     self.assertIsNotNone(self.discoveryrules.search(name))
-                    self.discoveryrules.delete_entity(name, dropdown=True)
+                    self.discoveryrules.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier1
@@ -831,7 +831,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
             )
-            self.discoveryrules.delete_entity(name, dropdown=True)
+            self.discoveryrules.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier2

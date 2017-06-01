@@ -236,7 +236,7 @@ class TemplateTestCase(UITestCase):
                         name=template_name,
                         organization=[self.organization],
                     ).create()
-                    self.template.delete_entity(template_name, dropdown=True)
+                    self.template.delete(template_name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier1

@@ -115,7 +115,7 @@ class UserGroupTestCase(UITestCase):
                 with self.subTest(group_name):
                     make_usergroup(
                         session, org=self.organization.name, name=group_name)
-                    self.usergroup.delete_entity(group_name)
+                    self.usergroup.delete(group_name)
 
     @tier2
     def test_positive_delete_with_user(self):
@@ -143,7 +143,7 @@ class UserGroupTestCase(UITestCase):
                 users=[user_name],
                 org=self.organization.name,
             )
-            self.usergroup.delete_entity(group_name)
+            self.usergroup.delete(group_name)
             self.assertIsNotNone(self.user.search(user_name))
 
     @tier1
