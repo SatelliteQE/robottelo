@@ -17,6 +17,7 @@
 from operator import itemgetter
 from fauxfactory import gen_string
 from robottelo import manifests, ssh
+from robottelo.cli.task import Task
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.factory import (
     make_activation_key,
@@ -92,11 +93,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
     VIRTUAL_MACHINES_COUNT = 2
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1405428)
+    @skip_if_bug_open('bugzilla', 1457938)
     @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key,
         Host, Host-Collection
+
+        @BZ: 1405428, 1418026, 1457938
         """
         super(HostCollectionErrataInstallTestCase, cls).setUpClass()
         cls.org = make_org()
@@ -163,18 +166,13 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
             'host-collection-id': self.host_collection['id'],
             'organization-id': self.org['id']
         })
-        if bz_bug_is_open('1405434'):
-            # install the custom package for each host
-            for virtual_machine in self.virtual_machines:
-                virtual_machine.run(
-                    'yum install -y {0}'.format(self.CUSTOM_PACKAGE)
-                )
-        else:
-            HostCollection.package_install({
-                'id': self.host_collection['id'],
-                'organization-id': self.org['id'],
-                'packages': [self.CUSTOM_PACKAGE]
-            })
+        for virtual_machine in self.virtual_machines:
+            virtual_machine.run(
+                'yum install -y {0}'.format(self.CUSTOM_PACKAGE)
+            )
+            result = virtual_machine.run(
+                'rpm -q {0}'.format(self.CUSTOM_PACKAGE))
+            self.assertEqual(result.return_code, 0)
 
     def _is_errata_package_installed(self, virtual_machine):
         """Check whether errata package is installed.
@@ -203,11 +201,12 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         @expectedresults: Erratum is installed.
 
         """
-        HostCollection.erratum_install({
+        install_task = HostCollection.erratum_install({
             'id': self.host_collection['id'],
             'organization-id': self.org['id'],
             'errata': [self.CUSTOM_ERRATA_ID]
         })
+        Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
@@ -228,11 +227,12 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         @expectedresults: Erratum is installed.
 
         """
-        HostCollection.erratum_install({
+        install_task = HostCollection.erratum_install({
             'id': self.host_collection['id'],
             'organization': self.org['name'],
             'errata': [self.CUSTOM_ERRATA_ID]
         })
+        Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
@@ -253,11 +253,12 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         @expectedresults: Errata is installed.
 
         """
-        HostCollection.erratum_install({
+        install_task = HostCollection.erratum_install({
             'id': self.host_collection['id'],
             'organization-label': self.org['label'],
             'errata': [self.CUSTOM_ERRATA_ID]
         })
+        Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
@@ -278,11 +279,12 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         @expectedresults: Erratum is installed.
 
         """
-        HostCollection.erratum_install({
+        install_task = HostCollection.erratum_install({
             'name': self.host_collection['name'],
             'organization-id': self.org['id'],
             'errata': [self.CUSTOM_ERRATA_ID]
         })
+        Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
@@ -303,11 +305,12 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         @expectedresults: Erratum is installed.
 
         """
-        HostCollection.erratum_install({
+        install_task = HostCollection.erratum_install({
             'name': self.host_collection['name'],
             'organization': self.org['name'],
             'errata': [self.CUSTOM_ERRATA_ID]
         })
+        Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
@@ -328,11 +331,12 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
         @expectedresults: Erratum is installed.
 
         """
-        HostCollection.erratum_install({
+        install_task = HostCollection.erratum_install({
             'name': self.host_collection['name'],
             'organization-label': self.org['label'],
             'errata': [self.CUSTOM_ERRATA_ID]
         })
+        Task.progress({'id': install_task[0]['id']})
         for virtual_machine in self.virtual_machines:
             self.assertTrue(self._is_errata_package_installed(virtual_machine))
 
