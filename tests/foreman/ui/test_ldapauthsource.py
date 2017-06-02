@@ -107,4 +107,4 @@ class LDAPAuthSourceTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.ldapauthsource.search(server_name)
                     )
-                    self.ldapauthsource.delete_entity(server_name)
+                    self.ldapauthsource.delete(server_name)

@@ -251,7 +251,7 @@ class ComputeResourceTestCase(UITestCase):
                         ],
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
-                    self.compute_resource.delete_entity(name, dropdown=True)
+                    self.compute_resource.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier1

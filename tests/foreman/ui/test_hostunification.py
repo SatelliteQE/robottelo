@@ -277,7 +277,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             self.assertTrue(vm.subscribed)
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(self.org_.name)
-                self.hosts.delete_entity(vm.hostname, dropdown=True)
+                self.hosts.delete(vm.hostname, dropdown_present=True)
                 self.assertIsNone(self.contenthost.search(vm.hostname))
 
     @run_in_one_thread

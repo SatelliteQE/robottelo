@@ -265,7 +265,7 @@ class OrganizationTestCase(UITestCase):
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     entities.Organization(name=org_name).create()
-                    self.org.delete_entity(org_name, dropdown=True)
+                    self.org.delete(org_name, dropdown_present=True)
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
@@ -294,7 +294,7 @@ class OrganizationTestCase(UITestCase):
             # Org cannot be deleted when selected,
             # So switching to Default Org and then deleting.
             session.nav.go_to_select_org('Default Organization')
-            self.org.delete_entity(org_name, dropdown=True)
+            self.org.delete(org_name, dropdown_present=True)
             for _ in range(10):
                 status = self.org.search(org_name)
                 if status is None:

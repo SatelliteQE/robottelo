@@ -501,7 +501,7 @@ class DiscoveryTestCase(UITestCase):
                 self.assertTrue(
                     self.discoveredhosts.waitfordiscoveredhost(hostname)
                 )
-                self.discoveredhosts.delete_entity(hostname, dropdown=True)
+                self.discoveredhosts.delete(hostname, dropdown_present=True)
 
     @run_only_on('sat')
     @tier3

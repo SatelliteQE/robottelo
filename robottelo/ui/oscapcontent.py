@@ -9,7 +9,7 @@ from robottelo.ui.navigator import Navigator
 class OpenScapContent(Base):
     """Manipulates OpenScap content from UI"""
     search_key = 'title'
-    drop_locator = locators['oscap.content_dropdown']
+    actions_dropdown_locator = locators['oscap.content_dropdown']
 
     def navigate_to_entity(self):
         """Navigate to OpenScap content entity page"""

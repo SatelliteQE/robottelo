@@ -10,7 +10,7 @@ class User(Base):
     """Implements CRUD functions from UI."""
 
     search_key = 'login'
-    del_locator = locators['users.delete']
+    delete_locator = locators['users.delete']
 
     def navigate_to_entity(self):
         """Navigate to User entity page"""

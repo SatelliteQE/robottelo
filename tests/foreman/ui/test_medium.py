@@ -166,7 +166,7 @@ class MediumTestCase(UITestCase):
         path = INSTALL_MEDIUM_URL % name
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family='Red Hat')
-            self.medium.delete_entity(name)
+            self.medium.delete(name)
 
     @run_only_on('sat')
     @tier1

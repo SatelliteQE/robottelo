@@ -469,7 +469,7 @@ class ActivationKeyTestCase(UITestCase):
                         description=gen_string('utf8'),
                     )
                     self.assertIsNotNone(self.activationkey.search(name))
-                    self.activationkey.delete_entity(name)
+                    self.activationkey.delete(name)
 
     @run_only_on('sat')
     @tier2
@@ -497,7 +497,7 @@ class ActivationKeyTestCase(UITestCase):
                 content_view=cv_name,
             )
             self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.delete_entity(name)
+            self.activationkey.delete(name)
 
     @run_only_on('sat')
     @tier2
@@ -525,7 +525,7 @@ class ActivationKeyTestCase(UITestCase):
                 content_view=cv_name,
             )
             self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.delete_entity(name)
+            self.activationkey.delete(name)
 
     @skip_if_not_set('clients')
     @tier3
@@ -566,7 +566,7 @@ class ActivationKeyTestCase(UITestCase):
                 vm.install_katello_ca()
                 vm.register_contenthost(self.organization.label, name)
                 self.assertTrue(vm.subscribed)
-                self.activationkey.delete_entity(name)
+                self.activationkey.delete(name)
 
     @tier1
     def test_negative_delete(self):
@@ -592,7 +592,7 @@ class ActivationKeyTestCase(UITestCase):
                 env=ENVIRONMENT,
             )
             self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.delete_entity(name, really=False)
+            self.activationkey.delete(name, really=False)
 
     @tier1
     def test_positive_update_name(self):

@@ -39,8 +39,8 @@ class Base(object):
     is_katello = False
     button_timeout = 15
     result_timeout = 15
-    del_locator = None
-    drop_locator = None
+    delete_locator = None
+    actions_dropdown_locator = None
 
     def __init__(self, browser):
         """Sets up the browser object."""
@@ -190,6 +190,56 @@ class Base(object):
             time.sleep(1)
         return None
 
+    def delete(self, name, really=True, dropdown_present=False):
+        """Delete an added entity, handles both with and without dropdown."""
+        self.logger.debug(u'Deleting entity %s', name)
+        searched = self.search(name)
+        if not searched:
+            raise UIError(u'Could not search the entity "{0}"'.format(name))
+        if self.is_katello:
+            self.click(searched)
+            if self.delete_locator:
+                self.click(self.delete_locator)
+            else:
+                self.perform_entity_action('Remove')
+            if really:
+                self.click(common_locators['confirm_remove'])
+            else:
+                self.click(common_locators['cancel'])
+        else:
+            if dropdown_present:
+                if self.actions_dropdown_locator:
+                    self.click(self.actions_dropdown_locator % name)
+                else:
+                    self.click(
+                        common_locators['select_action_dropdown'] % name)
+            if self.delete_locator:
+                self.click(self.delete_locator % name, wait_for_ajax=False)
+            else:
+                self.click(
+                    common_locators['delete_button'] % name,
+                    wait_for_ajax=False
+                )
+            self.handle_alert(really)
+        # Make sure that element is really removed from UI. It is necessary to
+        # verify that fact few times as sometimes 1 second is not enough for
+        # element to be actually deleted from DB
+        self.button_timeout = 3
+        self.result_timeout = 1
+        try:
+            for _ in range(3):
+                searched = self.search(name)
+                if bool(searched) != really:
+                    break
+                self.browser.refresh()
+            if bool(searched) == really:
+                raise UIError(
+                    u'Delete functionality works improperly for "{0}" entity'
+                    .format(name))
+        finally:
+            self.button_timeout = 15
+            self.result_timeout = 15
+
     def clear_search_box(self):
         """Helper to clear text that was inputted into search box using
         application button
@@ -275,57 +325,6 @@ class Base(object):
             entity_locator = common_locators['entity_select']
             self.select_deselect_entity(
                 filter_key, entity_locator, new_entity_list)
-
-    def delete_entity(
-            self, name, really=True, dropdown=False):
-        """Delete an added entity, handles both with and without dropdown."""
-        self.logger.debug(u'Deleting entity %s', name)
-        searched = self.search(name)
-        if not searched:
-            raise UIError(u'Could not search the entity "{0}"'.format(name))
-        if self.is_katello:
-            self.click(searched)
-            if self.del_locator:
-                self.click(self.del_locator)
-            else:
-                self.perform_entity_action('Remove')
-            if really:
-                self.click(common_locators['confirm_remove'])
-            else:
-                self.click(common_locators['cancel'])
-        else:
-            if dropdown:
-                if self.drop_locator:
-                    self.click(self.drop_locator % name)
-                else:
-                    self.click(
-                        common_locators['select_action_dropdown'] % name)
-            if self.del_locator:
-                self.click(self.del_locator % name, wait_for_ajax=False)
-            else:
-                self.click(
-                    common_locators['delete_button'] % name,
-                    wait_for_ajax=False
-                )
-            self.handle_alert(really)
-        # Make sure that element is really removed from UI. It is necessary to
-        # verify that fact few times as sometimes 1 second is not enough for
-        # element to be actually deleted from DB
-        self.button_timeout = 3
-        self.result_timeout = 1
-        try:
-            for _ in range(3):
-                searched = self.search(name)
-                if bool(searched) != really:
-                    break
-                self.browser.refresh()
-            if bool(searched) == really:
-                raise UIError(
-                    u'Delete functionality works improperly for "{0}" entity'
-                    .format(name))
-        finally:
-            self.button_timeout = 15
-            self.result_timeout = 15
 
     def wait_until_element_exists(self, locator, timeout=12,
                                   poll_frequency=0.5):
