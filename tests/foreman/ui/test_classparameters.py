@@ -300,7 +300,7 @@ class SmartClassParametersTestCase(UITestCase):
             self.sc_parameters.click(
                 locators['sc_parameters.optional_expander'])
             locators_list = [
-                'sc_parameters.puppet_default',
+                'sc_parameters.omit',
                 'sc_parameters.hidden_value',
                 'sc_parameters.validator_type',
                 'sc_parameters.matcher_priority',
@@ -336,7 +336,7 @@ class SmartClassParametersTestCase(UITestCase):
                 locators['sc_parameters.optional_expander'])
             locators_list = [
                 'sc_parameters.default_value',
-                'sc_parameters.puppet_default',
+                'sc_parameters.omit',
                 'sc_parameters.hidden_value',
                 'sc_parameters.validator_type',
                 'sc_parameters.matcher_priority',
@@ -445,14 +445,14 @@ class SmartClassParametersTestCase(UITestCase):
                 sc_param.parameter,
                 self.puppet_class.name,
                 override=True,
-                puppet_default=True,
+                omit=True,
                 validator_type='list',
                 validator_rule='45, test, 75',
             )
             self.sc_parameters.click(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
             self.assertTrue(self.sc_parameters.wait_until_element(
-                locators['sc_parameters.puppet_default']).is_selected())
+                locators['sc_parameters.omit']).is_selected())
             self.assertFalse(self.sc_parameters.is_element_enabled(
                 locators['sc_parameters.default_value']))
             self.sc_parameters.click(
@@ -1000,7 +1000,7 @@ class SmartClassParametersTestCase(UITestCase):
                 matcher=[{
                     'matcher_attribute': 'os=rhel6',
                     'matcher_value': '',
-                    'matcher_puppet_default': True
+                    'matcher_omit': True
                 }]
             )
             self.assertIsNone(
@@ -1061,7 +1061,8 @@ class SmartClassParametersTestCase(UITestCase):
             )
             matchers_list = self.sc_parameters.fetch_matcher_values(
                 sc_param.parameter, self.puppet_class.name, 2)
-            self.assertEqual(matchers_list, [override_value, override_value2])
+            self.assertEqual(
+                set(matchers_list), set([override_value, override_value2]))
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, override_value)
@@ -1120,7 +1121,8 @@ class SmartClassParametersTestCase(UITestCase):
             )
             matchers_list = self.sc_parameters.fetch_matcher_values(
                 sc_param.parameter, self.puppet_class.name, 2)
-            self.assertEqual(matchers_list, [override_value, override_value2])
+            self.assertEqual(
+                set(matchers_list), set([override_value, override_value2]))
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, override_value2)
@@ -1183,7 +1185,8 @@ class SmartClassParametersTestCase(UITestCase):
             )
             matchers_list = self.sc_parameters.fetch_matcher_values(
                 sc_param.parameter, self.puppet_class.name, 2)
-            self.assertEqual(matchers_list, [override_value, override_value2])
+            self.assertEqual(
+                set(matchers_list), set([override_value, override_value2]))
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, [80, 90, 90, 100])
@@ -1343,7 +1346,8 @@ class SmartClassParametersTestCase(UITestCase):
             )
             matchers_list = self.sc_parameters.fetch_matcher_values(
                 sc_param.parameter, self.puppet_class.name, 2)
-            self.assertEqual(matchers_list, [override_value, override_value2])
+            self.assertEqual(
+                set(matchers_list), set([override_value, override_value2]))
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, ['example', 80, 90, 90, 100])
@@ -1502,7 +1506,8 @@ class SmartClassParametersTestCase(UITestCase):
             )
             matchers_list = self.sc_parameters.fetch_matcher_values(
                 sc_param.parameter, self.puppet_class.name, 2)
-            self.assertEqual(matchers_list, [override_value, override_value2])
+            self.assertEqual(
+                set(matchers_list), set([override_value, override_value2]))
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, [80, 90, 100])
@@ -1565,7 +1570,8 @@ class SmartClassParametersTestCase(UITestCase):
             )
             matchers_list = self.sc_parameters.fetch_matcher_values(
                 sc_param.parameter, self.puppet_class.name, 2)
-            self.assertEqual(matchers_list, [override_value, override_value2])
+            self.assertEqual(
+                set(matchers_list), set([override_value, override_value2]))
             output = yaml.load(self.hosts.get_yaml_output(self.host.name))
             output_scp = output['classes'][self.pm_name][sc_param.parameter]
             self.assertEqual(output_scp, [70, 80, 90, 100])
