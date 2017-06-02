@@ -26,10 +26,10 @@ from robottelo.cli.factory import (
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
 from robottelo.decorators import skip_if_bug_open, tier1
-from robottelo.test import APITestCase
+from robottelo.test import CLITestCase
 
 
-class FilterTestCase(APITestCase):
+class FilterTestCase(CLITestCase):
 
     @classmethod
     def setUpClass(cls):
