@@ -593,6 +593,11 @@ PERMISSIONS = {
         'view_recurring_logics',
         'edit_recurring_logics',
     ],
+    'ForemanOpenscap::ArfReport': [
+        'create_arf_reports',
+        'view_arf_reports',
+        'destroy_arf_reports',
+    ],
     'ForemanOpenscap::Policy': [
         'assign_policies',
         'create_policies',
