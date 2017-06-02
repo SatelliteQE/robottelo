@@ -147,6 +147,35 @@ class HostTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
+    def test_positive_update_owner_type(self):
+        """Update a host's ``owner_type``.
+
+        :id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
+
+        :expectedresults: The host's ``owner_type`` attribute is updated as
+            requested.
+
+        :CaseImportance: Critical
+        """
+        owners = {
+            'User': entities.User(
+                organization=[self.org], location=[self.loc]).create(),
+            'Usergroup': entities.UserGroup().create(),
+        }
+        host = entities.Host(
+            organization=self.org, location=self.loc).create()
+        for owner_type in owners:
+            with self.subTest(owner_type):
+                if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
+                    continue  # instead of skip for compatibility with py.test
+                host.owner_type = owner_type
+                host.owner = owners[owner_type]
+                host = host.update(['owner_type', 'owner'])
+                self.assertEqual(host.owner_type, owner_type)
+                self.assertEqual(host.owner.read(), owners[owner_type])
+
+    @run_only_on('sat')
+    @tier1
     def test_positive_create_with_name(self):
         """Create a host with different names and minimal input parameters
 
