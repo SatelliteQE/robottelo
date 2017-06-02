@@ -100,7 +100,12 @@ class DiscoveryRules(Base):
         if hostgroup:
             self.select(
                 locators['discoveryrules.hostgroup_dropdown'], hostgroup)
-        self._configure_discovery(hostname, host_limit, priority, enabled)
+        self._configure_discovery(
+            hostname=hostname,
+            host_limit=host_limit,
+            priority=priority,
+            enabled=enabled,
+        )
         self.click(common_locators['submit'])
 
     def get_attribute_value(self, name, attribute_name, element_type='field'):
