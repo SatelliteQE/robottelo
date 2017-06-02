@@ -45,7 +45,7 @@ class DiscoveryRules(Base):
 
     def create(self, name, search_rule, hostgroup, hostname=None,
                host_limit=None, priority=None, locations=None,
-               organizations=None, select=True, enabled=True):
+               organizations=None, enabled=True):
         """Creates new discovery rule from UI"""
         self.click(locators['discoveryrules.new'])
         self.assign_value(locators['discoveryrules.name'], name)
@@ -53,7 +53,13 @@ class DiscoveryRules(Base):
         self.assign_value(
             locators['discoveryrules.hostgroup_dropdown'], hostgroup)
         self._configure_discovery(
-            hostname, host_limit, priority, locations, organizations)
+            hostname,
+            host_limit,
+            priority,
+            locations,
+            organizations,
+            enabled,
+        )
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):
@@ -89,7 +95,12 @@ class DiscoveryRules(Base):
         if hostgroup:
             self.assign_value(
                 locators['discoveryrules.hostgroup_dropdown'], hostgroup)
-        self._configure_discovery(hostname, host_limit, priority, enabled)
+        self._configure_discovery(
+            hostname=hostname,
+            host_limit=host_limit,
+            priority=priority,
+            enabled=enabled,
+        )
         self.click(common_locators['submit'])
 
     def get_attribute_value(self, name, attribute_name, element_type='field'):
