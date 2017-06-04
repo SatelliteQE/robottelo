@@ -19,6 +19,7 @@ import random
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo import manifests, ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.capsule import Capsule
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -75,6 +76,7 @@ from robottelo.decorators.host import skip_if_os
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
+from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
 class ContentViewTestCase(CLITestCase):
@@ -3717,7 +3719,7 @@ class ContentViewTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed()
+    @run_in_one_thread
     @run_only_on('sat')
     @tier3
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
@@ -3749,12 +3751,180 @@ class ContentViewTestCase(CLITestCase):
         :expectedresults: content view version in capsule is removed from
             Library and DEV and exists only in QE and PROD
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseLevel: System
         """
         # Note: This test case requires complete external capsule
         #  configuration.
+        org = make_org()
+        dev_env = make_lifecycle_environment({
+            'organization-id': org['id']
+        })
+        qe_env = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': dev_env['name'],
+        })
+        prod_env = make_lifecycle_environment({
+            'organization-id': org['id'],
+            'prior': qe_env['name'],
+        })
+        with CapsuleVirtualMachine(organization_ids=[org['id']]) as capsule_vm:
+            capsule = capsule_vm.capsule
+            # Add all environments to capsule
+            environments = {ENVIRONMENT, dev_env['name'], qe_env['name'],
+                            prod_env['name']}
+            for env_name in environments:
+                Capsule.content_add_lifecycle_environment({
+                    'id': capsule['id'],
+                    'organization-id': org['id'],
+                    'environment': env_name
+                })
+            capsule_environments = Capsule.content_lifecycle_environments({
+                'id': capsule['id'],
+                'organization-id': org['id']
+            })
+            capsule_environments_names = {
+                env['name'] for env in capsule_environments}
+            self.assertEqual(environments, capsule_environments_names)
+            # Setup a yum repo
+            custom_yum_product = make_product({'organization-id': org['id']})
+            custom_yum_repo = make_repository({
+                'content-type': 'yum',
+                'product-id': custom_yum_product['id'],
+                'url': FAKE_1_YUM_REPO,
+            })
+            Repository.synchronize({'id': custom_yum_repo['id']})
+            # Setup a puppet repo
+            puppet_product = make_product({'organization-id': org['id']})
+            puppet_repository = make_repository({
+                'content-type': 'puppet',
+                'product-id': puppet_product['id'],
+                'url': FAKE_0_PUPPET_REPO,
+            })
+            Repository.synchronize({'id': puppet_repository['id']})
+            puppet_modules = PuppetModule.list({
+                'repository-id': puppet_repository['id'],
+                'per-page': False,
+            })
+            self.assertGreater(len(puppet_modules), 0)
+            puppet_module = puppet_modules[0]
+            # Setup a docker repo
+            docker_product = make_product({'organization-id': org['id']})
+            docker_repository = make_repository({
+                'content-type': 'docker',
+                'docker-upstream-name': 'busybox',
+                'name': gen_string('alpha', 20),
+                'product-id': docker_product['id'],
+                'url': DOCKER_REGISTRY_HUB,
+            })
+            content_view = make_content_view({'organization-id': org['id']})
+            # Associate the yum repository to content view
+            ContentView.add_repository({
+                'id': content_view['id'],
+                'organization-id': org['id'],
+                'repository-id': custom_yum_repo['id'],
+            })
+            # Associate the puppet module to content view
+            ContentView.puppet_module_add({
+                'content-view-id': content_view['id'],
+                'uuid': puppet_module['uuid'],
+            })
+            # Associate the docker repository to content view
+            ContentView.add_repository({
+                'id': content_view['id'],
+                'repository-id': docker_repository['id'],
+            })
+            # Publish the content view
+            ContentView.publish({'id': content_view['id']})
+            content_view_version = ContentView.info(
+                {'id': content_view['id']}
+            )['versions'][-1]
+            # Promote the content view to DEV, QE, PROD
+            for env in [dev_env, qe_env, prod_env]:
+                ContentView.version_promote({
+                    'id': content_view_version['id'],
+                    'organization-id': org['id'],
+                    'to-lifecycle-environment-id': env['id'],
+                })
+            # Synchronize the capsule content
+            Capsule.content_synchronize({
+                'id': capsule['id'],
+                'organization-id': org['id'],
+            })
+            capsule_content_info = Capsule.content_info({
+                'id': capsule['id'],
+                'organization-id': org['id']
+            })
+            # Ensure that all environments exists in capsule content
+            capsule_content_info_lces = capsule_content_info[
+                'lifecycle-environments']
+            capsule_content_lce_names = {
+                lce['name']
+                for lce in capsule_content_info_lces.values()
+                }
+            self.assertEqual(environments, capsule_content_lce_names)
+            # Ensure first that the content view exit in all capsule
+            # environments
+            for capsule_content_info_lce in capsule_content_info_lces.values():
+                self.assertIn('content-views', capsule_content_info_lce)
+                # Retrieve the content views info of this lce
+                capsule_content_info_lce_cvs = list(capsule_content_info_lce[
+                    'content-views'].values())
+                # Get the content views names of this lce
+                capsule_content_info_lce_cvs_names = [
+                    cv['name']['name'] for cv in capsule_content_info_lce_cvs]
+                cv_count = 1
+                if capsule_content_info_lce['name'] == ENVIRONMENT:
+                    # There is a Default Organization View in addition
+                    cv_count = 2
+                self.assertEqual(len(capsule_content_info_lce_cvs), cv_count)
+                self.assertIn(content_view['name'],
+                              capsule_content_info_lce_cvs_names)
+            # Suspend the capsule with ensure True to ping the virtual machine
+            suspended = capsule_vm.suspend(ensure=True)
+            self.assertTrue(suspended)
+            # Remove the content view version from Library and DEV environments
+            for lce_name in [ENVIRONMENT, dev_env['name']]:
+                ContentView.remove_from_environment({
+                    'id': content_view['id'],
+                    'organization-id': org['id'],
+                    'lifecycle-environment': lce_name
+                })
+            # Assert that the content view version does not exit in Library and
+            # DEV and exist only in QE and PROD
+            environments_with_cv = {qe_env['name'], prod_env['name']}
+            self.assertEqual(
+                environments_with_cv,
+                self._get_content_view_version_lce_names_set(
+                    content_view['id'],
+                    content_view_version['id']
+                )
+            )
+            # Resume the capsule with ensure True to ping the virtual machine
+            resumed = capsule_vm.resume(ensure=True)
+            self.assertTrue(resumed)
+            # Assert that in capsule content the content view version
+            # does not exit in Library and DEV and exist only in QE and PROD
+            capsule_content_info = Capsule.content_info({
+                'id': capsule['id'],
+                'organization-id': org['id']
+            })
+            capsule_content_info_lces = capsule_content_info[
+                'lifecycle-environments']
+            for capsule_content_info_lce in capsule_content_info_lces.values():
+                # retrieve the content views info of this lce
+                capsule_content_info_lce_cvs = capsule_content_info_lce.get(
+                    'content-views', {}).values()
+                # get the content views names of this lce
+                capsule_content_info_lce_cvs_names = [
+                    cv['name']['name'] for cv in capsule_content_info_lce_cvs]
+                if capsule_content_info_lce['name'] in environments_with_cv:
+                    self.assertIn(content_view['name'],
+                                  capsule_content_info_lce_cvs_names)
+                else:
+                    self.assertNotIn(content_view['name'],
+                                     capsule_content_info_lce_cvs_names)
 
     # ROLES TESTING
 
