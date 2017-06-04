@@ -210,6 +210,7 @@ PRDS = {
 REPOSET = {
     'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
+    'rhel7': 'Red Hat Enterprise Linux 7 Server (RPMs)',
     'rhva6': (
         'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
     ),
@@ -221,6 +222,12 @@ REPOSET = {
 }
 
 REPOS = {
+    'rhel7': {
+        'id': 'rhel-7-server-rpms',
+        'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7.3',
+        'releasever': '7.3',
+        'arch': 'x86_64'
+    },
     'rhsc7': {
         'id': 'rhel-7-server-satellite-capsule-6.2-rpms',
         'name': (
@@ -344,6 +351,7 @@ LANGUAGES = {
 }
 
 SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
+SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 
 TIMEZONES = [
     u'(GMT+00:00) UTC',
