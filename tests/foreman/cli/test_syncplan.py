@@ -366,7 +366,7 @@ class SyncPlanTestCase(CLITestCase):
         self.assertIsNotNone(result.get('enabled'))
 
     @tier4
-    def test_negative_synchronize_custom_product_current_sync_date(self):
+    def test_negative_synchronize_custom_product_past_sync_date(self):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
@@ -398,8 +398,8 @@ class SyncPlanTestCase(CLITestCase):
             # validate the error message once unstubbed (#3611)
 
     @tier4
-    def test_positive_synchronize_custom_product_current_sync_date(self):
-        """Create a sync plan with current datetime as a sync date, add a
+    def test_positive_synchronize_custom_product_past_sync_date(self):
+        """Create a sync plan with a past datetime as a sync date, add a
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
@@ -412,26 +412,28 @@ class SyncPlanTestCase(CLITestCase):
         :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
+        delay = 80
+        product = make_product({'organization-id': self.org['id']})
+        repo = make_repository({'product-id': product['id']})
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
             'interval': 'hourly',
             'organization-id': self.org['id'],
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': (
+              datetime.utcnow() - timedelta(interval - delay/2)
+            ).strftime("%Y-%m-%d %H:%M:%S"),
         })
-        product = make_product({'organization-id': self.org['id']})
-        repo = make_repository({'product-id': product['id']})
         # Associate sync plan with product
         Product.set_sync_plan({
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Wait half of expected time
-        sleep(interval / 2)
         # Verify product has not been synced yet
+        sleep(delay/4)
         self.validate_repo_content(
             repo, ['errata', 'packages'], after_sync=False)
-        # Wait the rest of expected time
-        sleep(interval / 2)
+        # Wait until the first recurrence
+        sleep(delay)
         # Verify product was synced successfully
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
@@ -527,8 +529,8 @@ class SyncPlanTestCase(CLITestCase):
 
     @run_in_one_thread
     @tier4
-    def test_positive_synchronize_rh_product_current_sync_date(self):
-        """Create a sync plan with current datetime as a sync date, add a
+    def test_positive_synchronize_rh_product_past_sync_date(self):
+        """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
@@ -541,6 +543,7 @@ class SyncPlanTestCase(CLITestCase):
         :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
+        delay = 80
         org = make_org()
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
@@ -552,7 +555,9 @@ class SyncPlanTestCase(CLITestCase):
             'enabled': 'true',
             'interval': 'hourly',
             'organization-id': org['id'],
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': (
+              datetime.utcnow() - timedelta(interval - delay/2)
+            ).strftime("%Y-%m-%d %H:%M:%S"),
         })
         RepositorySet.enable({
             'name': REPOSET['rhva6'],
@@ -575,13 +580,12 @@ class SyncPlanTestCase(CLITestCase):
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Wait half of expected time
-        sleep(interval / 2)
         # Verify product has not been synced yet
+        sleep(delay/4)
         self.validate_repo_content(
             repo, ['errata', 'packages'], after_sync=False)
         # Wait the rest of expected time
-        sleep(interval / 2)
+        sleep(delay)
         # Verify product was synced successfully
         self.validate_repo_content(repo, ['errata', 'packages'])
 
