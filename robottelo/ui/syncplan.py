@@ -64,6 +64,7 @@ class Syncplan(Base):
                 locators['sp.sync_interval_update'], new_sync_interval)
             self.click(common_locators['save'])
         if add_products:
+            self.click(tab_locators['sp.tab_products'])
             tab_loc = tab_locators['sp.add_prd']
             select_loc = locators['sp.add_selected']
             self.add_remove_products(
@@ -72,6 +73,7 @@ class Syncplan(Base):
                 select_locator=select_loc
             )
         if rm_products:
+            self.click(tab_locators['sp.tab_products'])
             tab_loc = tab_locators['sp.list_prd']
             select_loc = locators['sp.remove_selected']
             self.add_remove_products(
