@@ -38,6 +38,7 @@ class TemplateTestCase(UITestCase):
     def setUpClass(cls):
         super(TemplateTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
+        cls.loc = entities.Location().create()
 
     @run_only_on('sat')
     @tier1
@@ -293,6 +294,42 @@ class TemplateTestCase(UITestCase):
             )
             self.assertIsNotNone(self.template.search(name))
             self.template.update(name, False, new_name, new_os_list=os_list)
+            self.assertIsNotNone(self.template.search(new_name))
+
+    @tier1
+    def test_positive_update_with_manager_role(self):
+        """Create template providing the initial name, then update its name
+        with manager user role.
+
+        :id: 463790a2-c384-4851-99d2-78777762b6df
+
+        :expectedresults: Provisioning Template is created, and its name can
+            be updated.
+
+        :CaseImportance: Critical
+
+        :BZ: 1277308
+        """
+        new_name = gen_string('alpha')
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        template = entities.ProvisioningTemplate(
+            organization=[self.organization],
+            location=[self.loc]
+        ).create()
+        # Create user with Manager role
+        role = entities.Role().search(query={'search': 'name="Manager"'})[0]
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[self.organization],
+            default_organization=self.organization,
+            location=[self.loc],
+        ).create()
+        with Session(self.browser, user=user_login, password=user_password):
+            self.template.update(name=template.name, new_name=new_name)
             self.assertIsNotNone(self.template.search(new_name))
 
     @run_only_on('sat')
