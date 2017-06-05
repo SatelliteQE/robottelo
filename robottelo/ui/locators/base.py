@@ -1344,16 +1344,23 @@ locators = LocatorDict({
         By.XPATH, ("//dd[@bst-edit-text='repository.docker_upstream_name']"
                    "//div[@class='bst-edit']/div/span[2]")),
     "repo.fetch_packages": (
-        By.XPATH, "//td[span[text()='Packages']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding'"
+        "and contains(@ui-sref, 'manage-content.packages')]",
     ),
     "repo.fetch_errata": (
-        By.XPATH, "//td[span[text()='Errata']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding' and contains(@ui-sref, 'errata')]",
     ),
     "repo.fetch_package_groups": (
-        By.XPATH, "//td[span[text()='Package Groups']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding'"
+        " and contains(@ui-sref, 'manage-content.package-groups')]",
     ),
     "repo.fetch_puppet_modules": (
-        By.XPATH, "//td[span[text()='Puppet Modules']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding'"
+        " and contains(@ui-sref, 'manage-content.puppet-modules')]",
     ),
     "repo.result_spinner": (
         By.XPATH,

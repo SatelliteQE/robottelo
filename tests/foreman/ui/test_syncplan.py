@@ -77,16 +77,16 @@ class SyncPlanTestCase(UITestCase):
             attempts.
         """
         self.products.search_and_click(product)
+        self.repository.search_and_click(repo)
         for _ in range(max_attempts):
             try:
                 for content in content_types:
+                    content_count = self.syncplan.wait_until_element(
+                        locators['repo.fetch_' + content]).text
                     if after_sync:
-                        self.assertFalse(
-                            self.repository.validate_field(repo, content, '0'))
-
+                        self.assertNotEqual(content_count, '0')
                     else:
-                        self.assertTrue(
-                            self.repository.validate_field(repo, content, '0'))
+                        self.assertEqual(content_count, '0')
                 break
             except AssertionError:
                 sleep(30)
@@ -459,7 +459,7 @@ class SyncPlanTestCase(UITestCase):
         """
 
     @tier4
-    def test_negative_synchronize_custom_product_current_sync_date(self):
+    def test_negative_synchronize_custom_product_past_sync_date(self):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
@@ -480,6 +480,7 @@ class SyncPlanTestCase(UITestCase):
                 session,
                 org=self.organization.name,
                 name=plan_name,
+                startdate=startdate.strftime('%Y-%m-%d'),
                 start_hour=startdate.strftime('%H'),
                 start_minute=startdate.strftime('%M'),
             )
@@ -494,8 +495,8 @@ class SyncPlanTestCase(UITestCase):
                 )
 
     @tier4
-    def test_positive_synchronize_custom_product_current_sync_date(self):
-        """Create a sync plan with current datetime as a sync date, add a
+    def test_positive_synchronize_custom_product_past_sync_date(self):
+        """Create a sync plan with past datetime as a sync date, add a
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
@@ -508,16 +509,19 @@ class SyncPlanTestCase(UITestCase):
         :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
+        delay = 80
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = self.get_client_datetime()
+        startdate = self.get_client_datetime() - timedelta(
+                seconds=(interval - delay/2))
         with Session(self.browser) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
                 name=plan_name,
                 description='sync plan create with start time',
+                startdate=startdate.strftime('%Y-%m-%d'),
                 start_hour=startdate.strftime('%H'),
                 start_minute=startdate.strftime('%M'),
                 sync_interval='hourly',
@@ -525,16 +529,15 @@ class SyncPlanTestCase(UITestCase):
             # Associate sync plan with product
             self.syncplan.update(
                 plan_name, add_products=[product.name])
-            # Wait half of expected time
-            sleep(interval / 2)
             # Verify product has not been synced yet
+            sleep(delay/4)
             self.validate_repo_content(
                 product.name, repo.name,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
-            # Wait the rest of expected time
-            sleep(interval / 2)
+            # Wait until the next recurrence
+            sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
                 product.name,
@@ -660,8 +663,8 @@ class SyncPlanTestCase(UITestCase):
 
     @run_in_one_thread
     @tier4
-    def test_positive_synchronize_rh_product_current_sync_date(self):
-        """Create a sync plan with current datetime as a sync date, add a
+    def test_positive_synchronize_rh_product_past_sync_date(self):
+        """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
@@ -674,6 +677,7 @@ class SyncPlanTestCase(UITestCase):
         :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
+        delay = 80
         plan_name = gen_string('alpha')
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -690,7 +694,8 @@ class SyncPlanTestCase(UITestCase):
             releasever=None,
         )
         repo = entities.Repository(id=repo_id).read()
-        startdate = self.get_client_datetime()
+        startdate = self.get_client_datetime() - timedelta(
+                seconds=(interval - delay/2))
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -704,17 +709,16 @@ class SyncPlanTestCase(UITestCase):
             # Associate sync plan with product
             self.syncplan.update(
                 plan_name, add_products=[PRDS['rhel']])
-            # Wait half of expected time
-            sleep(interval / 2)
             # Verify product has not been synced yet
+            sleep(delay/4)
             self.validate_repo_content(
                 PRDS['rhel'],
                 repo.name,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
-            # Wait the rest of expected time
-            sleep(interval / 2)
+            # Wait until the first recurrence
+            sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
                 PRDS['rhel'],
