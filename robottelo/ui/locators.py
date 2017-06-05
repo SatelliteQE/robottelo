@@ -2818,7 +2818,9 @@ locators = LocatorDict({
                    "and contains(., '%s')]/following-sibling::tr[1]/td/"
                    "a[contains(@href, '/info')]")),
     "subs.delete_manifest": (
-        By.XPATH, "//button[contains(@ng-click,'deleteManifest')]"),
+        By.XPATH,
+        ("//button[contains(@ng-click,'openModal()')]"
+         "[span[@bst-modal='deleteManifest()']]")),
     "subs.refresh_manifest": (
         By.XPATH, "//button[contains(@ng-click,'refreshManifest')]"),
     "subs.manage_manifest": (
