@@ -55,3 +55,31 @@ class SubscriptionTestCase(UITestCase):
                 tab_locators['subs.import_history.deleted']))
             self.assertIsNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
+
+    @skip_if_not_set('fake_manifest')
+    @tier1
+    def test_negative_delete(self):
+        """Upload a manifest with minimal input parameters and attempt to
+        delete it but hit 'Cancel' button on confirmation screen
+
+        @id: dbb68a99-2935-4124-8927-e6385e7eecd6
+
+        @BZ: 1266827
+
+        @expectedresults: Manifest was not deleted
+
+        @CaseImportance: Critical
+        """
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            session.nav.go_to_red_hat_subscriptions()
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
+            self.assertTrue(self.subscriptions.wait_until_element_exists(
+                tab_locators['subs.import_history.imported.success']))
+            self.subscriptions.delete(really=False)
+            self.assertIsNone(self.subscriptions.wait_until_element(
+                tab_locators['subs.import_history.deleted'], timeout=3))
+            self.assertIsNotNone(
+                self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
