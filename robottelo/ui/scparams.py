@@ -33,7 +33,7 @@ class SmartClassParameter(Base):
 
     def update(self, name, puppet_class, change_puppet_class=False,
                description=None, override=None, key_type=None,
-               default_value=None, puppet_default=None, hidden_value=None,
+               default_value=None, omit=None, hidden_value=None,
                validator_type=None, validator_rule=None, matcher=None,
                matcher_priority=None, matcher_merge_overrides=None,
                matcher_merge_default=None, matcher_merge_avoid=None):
@@ -48,9 +48,9 @@ class SmartClassParameter(Base):
         if override is not None:
             self.assign_value(
                 locators['sc_parameters.override'], override)
-        if puppet_default is not None:
+        if omit is not None:
             self.assign_value(
-                locators['sc_parameters.puppet_default'], puppet_default)
+                locators['sc_parameters.omit'], omit)
         if key_type:
             self.assign_value(
                 locators['sc_parameters.key_type'], key_type)
@@ -98,7 +98,7 @@ class SmartClassParameter(Base):
             {
             'matcher_attribute': 'attr_type=attr_value',
             'matcher_value': 'value',
-            (optional) 'matcher_puppet_default': True
+            (optional) 'matcher_omit': True
             }
 
         """
@@ -117,10 +117,10 @@ class SmartClassParameter(Base):
                 locators['sc_parameters.matcher_value'] % i,
                 matcher['matcher_value']
             )
-            if 'matcher_puppet_default' in matcher.keys():
+            if 'matcher_omit' in matcher.keys():
                 self.assign_value(
-                    locators['sc_parameters.matcher_puppet_default'] % i,
-                    matcher['matcher_puppet_default']
+                    locators['sc_parameters.matcher_omit'] % i,
+                    matcher['matcher_omit']
                 )
 
     def validate_smart_class_parameter(

@@ -2609,7 +2609,7 @@ locators = LocatorDict({
     "smart_variable.matcher_value": (
         By.XPATH,
         "(//textarea[(ancestor::div[@class='tab-pane fields active'] or "
-        "contains(@id, 'variable_')) and contains(@name, '[value]')])[%i]"
+        "contains(@name, 'variable_')) and contains(@name, '[value]')])[%i]"
     ),
     "smart_variable.matcher_error": (By.XPATH, "//tr[@class='has-error']"),
     "smart_variable.table_value": (By.XPATH, "//td[contains(., '%s')]"),
@@ -2640,11 +2640,11 @@ locators = LocatorDict({
         "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
         "contains(@id, 'puppetclass_lookup_key_')) and "
         "contains(@name, '[default_value]')]"),
-    "sc_parameters.puppet_default": (
+    "sc_parameters.omit": (
         By.XPATH,
         "//input[(ancestor::div[@class='tab-pane fields active'] or "
         "contains(@id, 'puppetclass_lookup_key_')) and "
-        "contains(@id, 'use_puppet_default')]"),
+        "contains(@id, 'omit')]"),
     "sc_parameters.hidden_value": (
         By.XPATH,
         "//input[(ancestor::div[@class='tab-pane fields active'] or "
@@ -2714,11 +2714,11 @@ locators = LocatorDict({
         "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
         "contains(@name, '[value]')])[%i]"
     ),
-    "sc_parameters.matcher_puppet_default": (
+    "sc_parameters.matcher_omit": (
         By.XPATH,
         "(//input[(ancestor::div[@class='tab-pane fields active'] or "
         "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
-        "contains(@name, '[use_puppet_default]') and @type='checkbox' and "
+        "contains(@name, '[omit]') and @type='checkbox' and "
         "contains(@name, '[lookup_values_attributes]')])[%i]"
     ),
 
