@@ -205,7 +205,8 @@ INSTALLER_OPTIONS = set([
     u'--foreman-proxy-dns-managed', u'--katello-max-tasks-per-pulp-worker',
     u'--foreman-group', u'--foreman-proxy-ssldir', u'--upgrade',
     u'--certs-regenerate', u'--capsule-puppet',
-    u'--foreman-plugin-discovery-install-images'
+    u'--foreman-plugin-discovery-install-images',
+    u'--disable-resolve-mismatches'
 ])
 
 
