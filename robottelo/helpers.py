@@ -373,17 +373,16 @@ def get_available_capsule_port(port_pool=None):
 
 def check_port_open(port):
     """Checks the state of a specified tcp port on the specified host by
-    running nmap via ssh.
+    running nc via ssh.
 
     :param int port: Port to be checked
 
     :return: boolean: True if port is opened, False otherwise
     """
-    domain = settings.server.hostname
-    nmap_cmd = ssh.command(
-        u'nmap --open -p {0} {1} | grep {0}'.format(port, domain)
+    nc_cmd = ssh.command(
+        u'nc {0} {1} <<< \'\''.format(settings.server.hostname, port)
     )
-    if nmap_cmd.return_code == 0:
+    if nc_cmd.return_code == 0:
         return True
     return False
 
