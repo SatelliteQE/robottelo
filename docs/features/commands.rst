@@ -128,4 +128,45 @@ It is also possible to open the `browse` session in specific page if you specify
     # create user using factory
     In [1]:  session.ui.make_user(username="my_username")
 
+data
+----
+In the subgroup `data` you can find the `populate` and `validate` commands.
+That commands are used to read data description from YAML file and
+populate the system or validate populated entities.
 
+Read more in specific documentation found in
+:doc:`populate </features/populate>` and :doc:`populate </api/robottelo.populate>`
+sections to learn more.
+
+Having '/tmp/test_data.yaml' with
+
+.. code-block:: console
+
+    vars:
+      org_label_suffix = inc
+    actions:
+      - model: Organization
+        log: The first organization...
+        register: org_1
+        data:
+          name: MyOrg
+          label: MyOrg{{org_label_suffix}}
+
+
+To populate the system
+
+.. code-block:: console
+
+    (robottelo_env)[you@host robottelo]$ manage data populate /tmp/test_data.yaml -v
+    2017-01-04 04:31:17 - robottelo.populate.base - INFO - CREATE: The first organization...
+    2017-01-04 04:31:19 - robottelo.populate.base - INFO - search: Organization {'query': {'search': 'name=MyOrg,label=MyOrg'}} found unique item
+    2017-01-04 04:31:19 - robottelo.populate.base - INFO - create: Entity already exists: Organization 36
+    2017-01-04 04:31:19 - robottelo.populate.base - INFO - registry: org_1 registered
+
+To validate the system
+
+.. code-block:: console
+
+    (robottelo_env)[you@host robottelo]$ manage data validate /tmp/test_data.yaml
+    (robottelo_env)[you@host robottelo]$ echo $?
+    0  # system validated else 1

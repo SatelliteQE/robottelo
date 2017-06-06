@@ -7,3 +7,9 @@
 --------------------------------
 
 .. automodule:: robottelo.commands.ui
+
+
+:mod:`robottelo.commands.data`
+--------------------------------
+
+.. automodule:: robottelo.commands.data

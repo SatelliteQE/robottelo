@@ -1,0 +1,258 @@
+config:
+  populator: api
+  populators:
+    api:
+      module: robottelo.populate.api.APIPopulator
+    cli:
+      module: robottelo.populate.cli.CLIPopulator
+
+vars:
+  admin_username: admin
+  admin_password: changeme
+  org_list:
+    - company7
+    - company8
+
+actions:
+
+# CREATE ACTIONS
+
+  - model: Organization
+    log: The first organization...
+    register: org_1
+    data:
+      name: MyOrg
+      label: MyOrg
+#    search_options:
+#      force_raw: true
+
+  - model: Organization
+    register: default_orgs
+    # via: api # TODO:
+    data:
+      name: Org{{item}}
+      label: Org{{item}}
+    with_items: org_list
+    search_query:
+      name: Org{{item}}
+      label: Org{{item}}
+
+  - model: User
+    register: default_users
+    data:
+      firstname: user{{item}}
+      login: user{{item}}
+      mail: user{{item}}@acme.com
+      password: "123456"
+      organization:
+          from_registry: default_orgs
+      default_organization:
+          from_registry: default_orgs[loop_index]
+    with_items:
+      - user7
+      - user8
+
+  - model: User
+    register: my_user
+    data:
+      firstname: McLovin
+      login: mclovin
+      mail: mc@lovin.com
+      password: "123456"
+      organization:
+        from_search:
+          model: Organization
+          all: true
+          search_options:
+            per_page: 40
+            # filters: {}
+          register: mc_orgs
+      default_organization:
+        from_search:
+          model: Organization
+          data:
+            name: Orgcompany5
+
+  - model: Product
+    log: Creating product
+    register: product
+    data:
+      name: a_simple_product
+      organization:
+        from_registry: default_orgs[0]
+
+  - model: Repository
+    register: reps_{{ product.name }}
+    data:
+      name: reps_{{ product.name }}
+      product:
+        from_registry: product
+
+
+  - model: Repository
+    register: yum_reps_{{ product.name }}
+    data:
+      name: yum_reps_{{ product.name }}
+      product:
+        from_registry: product
+      content_type: yum
+      url:
+        from_object:
+          name: robottelo.constants.FAKE_2_YUM_REPO
+
+
+  - model: Repository
+    register: yum_reps_dp_{{ product.name }}
+    data:
+      name: yum_reps_dp_{{ product.name }}
+      product:
+        from_registry: product
+      content_type: yum
+      download_policy: on_demand
+      url:
+        from_object:
+          name: robottelo.constants.FAKE_0_YUM_REPO
+
+  # A TEST CASE USING SPECIAL ACTIONS
+  # Create a plain vanilla activation key
+  # Check that activation key is created and its "unlimited_hosts"
+  # attribute defaults to true
+  # in the end of the validation the return code will be 0
+  # and validation_errors will have the data to report
+  # create is always the default action if not specified
+  - action: create
+    log: Create a plain vanilla activation key
+    model: ActivationKey
+    register: vanilla_key
+    data:
+       name: vanilla
+       organization:
+         from_registry: default_orgs[0]
+  - action: assertion
+    log: |
+      Check that activation key is created and its "unlimited_hosts"
+      attribute defaults to true
+    operation: eq
+    register: vanilla_key_unlimited_hosts
+    data:
+      - from_registry: vanilla_key.unlimited_hosts
+      - false
+  - action: echo
+    log: Vanilla Key Unlimited Host is False!!!!
+    level: error
+    print: true
+    when: vanilla_key_unlimited_hosts == False
+  - action: echo
+    log: Vanilla Key Unlimited Host is True!!!!
+    level: info
+    print: true
+    when: vanilla_key_unlimited_hosts
+  - action: register
+    data:
+      you_must_update_vanilla_key: true
+    when: vanilla_key_unlimited_hosts == False
+
+# SPECIAL ACTIONS
+
+  - action: register
+    data:
+       organization_bla:
+         from_registry: default_orgs[0]
+       organization_5:
+         from_search:
+           model: Organization
+           data:
+             name: Orgcompany5
+       fake_repo:
+         from_object:
+           name: robottelo.constants.FAKE_0_YUM_REPO
+       random: "{{ fauxfactory.gen_string('alpha') }}"
+       current_user: "{{ env.USER }}"
+       current_dir: "{{ env.PWD }}"
+       default_organization:
+         from_read:
+           model: Organization
+           data:
+             id: 1
+
+  - action: unregister
+    data:
+      - you_must_update_vanilla_key
+      - random
+
+  - action: assertion
+    operator: eq  # eq, ne, gt, lt, gte, lte, identity
+    data:
+      - from_registry: default_orgs[0].name
+      - Orgcompany7
+
+  - action: assertion
+    log: Hey Ho Lets Go!
+    operator: eq  # eq, ne, gt, lt, gte, lte, identity
+    data:
+      - from_object:
+          name: robottelo.constants.FAKE_0_YUM_REPO
+      - http://inecas.fedorapeople.org/fakerepos/zoo/
+
+  - action: assertion
+    operator: ne
+    data:
+      - OrgAnything_{{item}}
+      - from_search:
+          model: Organization
+          data:
+            name: Orgcompany7
+          attr: name
+    with_items:
+      - a
+      - b
+
+# DANGER:
+
+# update and delete actions can break validation
+# validation uses entity 'create' description and if
+# entity is updated or deleted it will break validation.
+
+
+#  - action: update
+#    model: Product
+#    data:
+#      name: new_prodtest
+#    search_query:
+#      name: new_prodtest
+#      organization:
+#        from_registry: default_orgs[0]
+#    silent_errors: true
+
+#  - action: delete
+#    model: Product
+#    search_query:
+#      name: new_prodtest
+#      organization:
+#        from_registry: default_orgs[0]
+
+# TODOC:
+#  - model: Repository
+#    data:
+#      url:
+#        from_object:
+#          name: robottelo.constants.FAKE_REPO_1
+#      thing: "{{ fauxfactory.gen_string() }}"
+#      # Save last generated strings in a file
+#      # for validation.
+
+#      organization:
+#        from_search:
+#          model: Organization
+#          data:
+#            name: Orgcompany7
+#          all: true
+#          silent_errors: true
+
+#      product:
+#        from_search:
+#          model: Product
+#          data:
+#            organization:
+#              from_registry: default_orgs[0]
+#          all: false  # default

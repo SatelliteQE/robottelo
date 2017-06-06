@@ -10,3 +10,4 @@ about its capabilities.
     commands
     decorators
     ssh
+    populate
