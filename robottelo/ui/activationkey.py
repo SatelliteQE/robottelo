@@ -75,8 +75,7 @@ class ActivationKey(Base):
         if limit:
             self.click(locators['ak.edit_limit'])
             self.set_limit(limit)
-            if self.wait_until_element(
-                    locators['ak.save_limit']).is_enabled():
+            if self.wait_until_element(common_locators['save']).is_enabled():
                 self.click(common_locators['save'])
             else:
                 raise ValueError(
