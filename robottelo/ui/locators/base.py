@@ -1267,8 +1267,8 @@ locators = LocatorDict({
     "repo.select_event": (
         By.XPATH, "//a[contains(., 'Synchronize') and contains(., '%s')]"),
     "repo.result_event": (
-        By.XPATH, ("//span[@class='ng-scope' and contains(., 'Result')]"
-                   "/../../span[contains(@class, 'info-value')]")),
+        By.XPATH, ("//dt[span[@class='ng-scope' and contains(., 'Result')]]"
+                   "/following-sibling::dd[i]")),
     "repo.repo_discover": (
         By.XPATH, "//button[@ui-sref='product-discovery.scan']"),
     "repo.discover_url": (By.XPATH, "//input[@ng-model='discovery.url']"),
@@ -1359,7 +1359,8 @@ locators = LocatorDict({
     ),
     "repo.result_spinner": (
         By.XPATH,
-        "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
+        ("//i[@ng-show='task.pending' and contains(@class, 'fa-spinner') and "
+         "not(contains(@class, 'ng-hide'))]")),
     "repo.manage_content": (
         By.XPATH,
         "//button[contains(@ui-sref,"
