@@ -27,7 +27,7 @@ from robottelo.api.utils import (
     delete_puppet_class,
     publish_puppet_module,
 )
-from robottelo.constants import ANY_CONTEXT, CUSTOM_PUPPET_REPO
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint, generate_strings_list
 from robottelo.decorators import (
     run_in_one_thread,
@@ -39,7 +39,6 @@ from robottelo.decorators import (
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import UITestCase
-from robottelo.ui.factory import set_context
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -1037,8 +1036,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1097,8 +1095,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1161,8 +1158,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1225,8 +1221,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1321,8 +1316,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1387,8 +1381,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1481,8 +1474,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1545,8 +1537,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[70,80]'
         override_value2 = '[90,100]'
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
+        with Session(self.browser):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
