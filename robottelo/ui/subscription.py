@@ -2,7 +2,8 @@
 import os
 
 from robottelo.decorators import bz_bug_is_open
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UIError, UINoSuchElementError
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
@@ -26,7 +27,9 @@ class Subscriptions(Base):
         :param str repo_url: The RedHat URL to sync content from.
 
         """
-        self.click(locators['subs.manage_manifest'])
+        self.navigate_to_entity()
+        if not self.wait_until_element(locators.subs.upload, timeout=1):
+            self.click(locators.base.locators.subs.manage_manifest)
         if repo_url:
             self.click(locators['subs.repo_url_edit'])
             self.assign_value(locators['subs.repo_url_update'], repo_url)
@@ -44,21 +47,35 @@ class Subscriptions(Base):
         self.wait_until_element(locators['subs.manifest_exists'], timeout)
         os.remove(manifest.filename)
 
-    def delete(self, really=True):
+    def delete(self, name=DEFAULT_SUBSCRIPTION_NAME, really=True):
         """Deletes Manifest/subscriptions via UI."""
-        self.click(locators['subs.manage_manifest'])
+        self.navigate_to_entity()
+        if not self.wait_until_element(locators.subs.upload, timeout=1):
+            self.click(locators.subs.manage_manifest)
         self.click(locators['subs.delete_manifest'])
         if really:
             self.click(common_locators['confirm_remove'])
             timeout = 300
             if bz_bug_is_open(1339696):
                 timeout = 900
-            self.wait_until_element_is_not_visible(
-                locators['subs.manifest_exists'], timeout)
+            self.wait_until_element(common_locators['alert.success'], timeout)
         else:
             self.click(common_locators['cancel'])
+        # if no subscriptions are present, user is automatically redirected to
+        # manifest upload page, meaning search will fail with
+        # UINoSuchElementError as searchbox can't be found there
+        searched = None
+        try:
+            searched = self.search(name)
+        except UINoSuchElementError:
+            pass
+        if bool(searched) == really:
+            raise UIError(
+                'An error occurred while attempting to delete {}'.format(name))
 
     def refresh(self):
         """Refreshes Manifest/subscriptions via UI."""
-        self.click(locators['subs.manage_manifest'])
+        self.navigate_to_entity()
+        if not self.wait_until_element(locators.subs.upload, timeout=1):
+            self.click(locators.subs.manage_manifest)
         self.click(locators['subs.refresh_manifest'])

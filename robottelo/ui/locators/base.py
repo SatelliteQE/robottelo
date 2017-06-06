@@ -1968,7 +1968,7 @@ locators = LocatorDict({
     "subs.select": (
         By.XPATH, ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions') "
                    "and contains(., '%s')]/following-sibling::tr[1]/td/"
-                   "a[contains(@href, '/info')]")),
+                   "a[contains(@href, '/subscriptions/')]")),
     "subs.delete_manifest": (
         By.XPATH,
         ("//button[contains(@ng-click,'openModal()')]"
@@ -1993,6 +1993,12 @@ locators = LocatorDict({
     "subs.subscription_search": (
         By.XPATH,
         "//input[@class='form-control ng-scope ng-pristine ng-valid']"),
+    "subs.subscriptions_list": (
+        By.XPATH, "//a[@href='/subscriptions'][contains(@class, 'ng-scope')]"),
+    "subs.import_history.imported": (
+        By.XPATH, "//td[text()[contains(.,'imported successfully')]]"),
+    "subs.import_history.deleted": (
+        By.XPATH, "//td[text()[contains(., 'deleted')]]"),
 
     # Settings
     "settings.param": (
