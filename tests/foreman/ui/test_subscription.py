@@ -19,7 +19,7 @@ from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1
 from robottelo.test import UITestCase
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import locators
 from robottelo.ui.session import Session
 
 
@@ -42,19 +42,16 @@ class SubscriptionTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
-            session.nav.go_to_red_hat_subscriptions()
+        with Session(self.browser):
             # Step 1: Attempt to upload a manifest
             with manifests.clone() as manifest:
                 self.subscriptions.upload(manifest)
             self.assertTrue(self.subscriptions.wait_until_element_exists(
-                tab_locators['subs.import_history.imported.success']))
+                locators['subs.import_history.imported']))
+            self.assertIsNotNone(
+                self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
             # Step 2: Attempt to delete the manifest
             self.subscriptions.delete()
-            self.assertTrue(self.subscriptions.wait_until_element_exists(
-                tab_locators['subs.import_history.deleted']))
-            self.assertIsNone(
-                self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
 
     @skip_if_not_set('fake_manifest')
     @tier1
@@ -62,24 +59,21 @@ class SubscriptionTestCase(UITestCase):
         """Upload a manifest with minimal input parameters and attempt to
         delete it but hit 'Cancel' button on confirmation screen
 
-        @id: dbb68a99-2935-4124-8927-e6385e7eecd6
+        :id: dbb68a99-2935-4124-8927-e6385e7eecd6
 
-        @BZ: 1266827
+        :BZ: 1266827
 
-        @expectedresults: Manifest was not deleted
+        :expectedresults: Manifest was not deleted
 
-        @CaseImportance: Critical
+        :CaseImportance: Critical
         """
         org = entities.Organization().create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            session.nav.go_to_red_hat_subscriptions()
             with manifests.clone() as manifest:
                 self.subscriptions.upload(manifest)
             self.assertTrue(self.subscriptions.wait_until_element_exists(
-                tab_locators['subs.import_history.imported.success']))
+                locators['subs.import_history.imported']))
             self.subscriptions.delete(really=False)
-            self.assertIsNone(self.subscriptions.wait_until_element(
-                tab_locators['subs.import_history.deleted'], timeout=3))
             self.assertIsNotNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
