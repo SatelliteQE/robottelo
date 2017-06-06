@@ -126,13 +126,12 @@ class HostTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_with_owner_type(self):
-        """Create a host and specify an ``owner_type``.
+    def test_negative_create_with_owner_type(self):
+        """Create a host and specify only ``owner_type``.
 
-        :id: 9f486875-1f30-4dcb-b7ce-b2cf515c413b
+        :id: cdf9d16f-1c47-498a-be48-901355385dde
 
-        :expectedresults: The host can be read back, and the ``owner_type``
-            attribute is correct.
+        :expectedresults: The host can't be created as ``owner`` is required.
 
         :CaseImportance: Critical
         """
@@ -140,8 +139,11 @@ class HostTestCase(APITestCase):
             with self.subTest(owner_type):
                 if owner_type == 'Usergroup' and bz_bug_is_open(1203865):
                     continue  # instead of skip for compatibility with py.test
-                host = entities.Host(owner_type=owner_type).create()
-                self.assertEqual(host.owner_type, owner_type)
+                with self.assertRaises(HTTPError) as context:
+                    entities.Host(owner_type=owner_type).create()
+                self.assertEqual(context.exception.response.status_code, 422)
+                self.assertRegexpMatches(
+                    context.exception.response.text, "owner must be specified")
 
     @run_only_on('sat')
     @tier1
@@ -155,14 +157,22 @@ class HostTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        host = entities.Host().create()
-        for owner_type in ('User', 'Usergroup'):
+        owners = {
+            'User': entities.User(
+                organization=[self.org], location=[self.loc]).create(),
+            'Usergroup': entities.UserGroup().create(),
+        }
+        host = entities.Host(
+            organization=self.org, location=self.loc).create()
+        for owner_type in owners:
             with self.subTest(owner_type):
                 if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
                     continue  # instead of skip for compatibility with py.test
                 host.owner_type = owner_type
-                host = host.update(['owner_type'])
+                host.owner = owners[owner_type]
+                host = host.update(['owner_type', 'owner'])
                 self.assertEqual(host.owner_type, owner_type)
+                self.assertEqual(host.owner.read(), owners[owner_type])
 
     @run_only_on('sat')
     @tier1
@@ -385,12 +395,15 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
-        user = entities.User().create()
+        user = entities.User(
+            organization=[self.org], location=[self.loc]).create()
         host = entities.Host(
             owner=user,
             owner_type='User',
+            organization=self.org,
+            location=self.loc,
         ).create()
-        self.assertEqual(host.owner.read().login, user.login)
+        self.assertEqual(host.owner.read(), user)
 
     @run_only_on('sat')
     @tier2
@@ -954,14 +967,19 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        user = entities.User(
+            organization=[self.org], location=[self.loc]).create()
         host = entities.Host(
-            owner=entities.User().create(),
+            owner=user,
             owner_type='User',
+            organization=self.org,
+            location=self.loc,
         ).create()
-        new_user = entities.User().create()
+        new_user = entities.User(
+            organization=[self.org], location=[self.loc]).create()
         host.owner = new_user
         host = host.update(['owner'])
-        self.assertEqual(host.owner.read().login, new_user.login)
+        self.assertEqual(host.owner.read(), new_user)
 
     @run_only_on('sat')
     @tier2
