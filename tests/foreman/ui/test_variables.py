@@ -23,7 +23,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import ANY_CONTEXT, CUSTOM_PUPPET_REPO
+from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -32,7 +32,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_smart_variable, set_context
+from robottelo.ui.factory import make_smart_variable
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -132,6 +132,13 @@ class SmartVariablesTestCase(UITestCase):
     """Implements Smart Variables tests in UI"""
 
     @classmethod
+    def set_session_org(cls):
+        """Creates new organization to be used for current session the
+        session_user will login automatically with this org in context
+        """
+        cls.session_org = entities.Organization().create()
+
+    @classmethod
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have data to be able to perform interactions with smart
@@ -141,9 +148,8 @@ class SmartVariablesTestCase(UITestCase):
         cls.puppet_modules = [
             {'author': 'robottelo', 'name': 'ui_test_variables'},
         ]
-        cls.org = entities.Organization().create()
         cv = publish_puppet_module(
-           cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.org)
+           cls.puppet_modules, CUSTOM_PUPPET_REPO, cls.session_org)
         cls.env = entities.Environment().search(
            query={'search': u'content_view="{0}"'.format(cv.name)}
         )[0]
@@ -158,7 +164,7 @@ class SmartVariablesTestCase(UITestCase):
                 cls.puppet_modules[0]['name'], cls.env.name)
         })
 
-        cls.host = entities.Host(organization=cls.org).create()
+        cls.host = entities.Host(organization=cls.session_org).create()
         cls.host.environment = cls.env
         cls.host.update(['environment'])
         cls.host.add_puppetclass(data={'puppetclass_id': cls.puppet_class.id})
@@ -219,7 +225,6 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         value = gen_string('alpha')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -292,7 +297,6 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         value = gen_string('alpha')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -947,7 +951,6 @@ class SmartVariablesTestCase(UITestCase):
         default_value = gen_string('alpha')
         override_value = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -994,7 +997,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1048,7 +1050,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1105,7 +1106,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1163,7 +1163,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1220,7 +1219,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1281,7 +1279,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1340,7 +1337,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1398,7 +1394,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = '[70, 80]'
         override_value2 = '[90, 100]'
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1557,7 +1552,6 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1595,7 +1589,6 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         default_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1638,7 +1631,6 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         host_override_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1690,7 +1682,6 @@ class SmartVariablesTestCase(UITestCase):
         override_value = gen_string('numeric').lstrip('0')
         host_override_value = gen_string('alpha')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1818,7 +1809,6 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         default_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1870,7 +1860,6 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         default_value = gen_string('numeric').lstrip('0')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
@@ -1969,7 +1958,6 @@ class SmartVariablesTestCase(UITestCase):
         default_value = gen_string('numeric').lstrip('0')
         host_override_value = gen_string('alpha')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_smart_variable(
                 session,
                 name=name,
