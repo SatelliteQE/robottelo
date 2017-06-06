@@ -16,7 +16,7 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.base import CLIDataBaseError, CLIReturnCodeError
 from robottelo.cli.factory import make_filter, make_role
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
@@ -133,6 +133,74 @@ class RoleTestCase(CLITestCase):
                 })
                 role = Role.info({'id': role['id']})
                 self.assertEqual(role['name'], new_name)
+
+    @tier1
+    def test_positive_list_filters_by_id(self):
+        """Create new role with a filter and list it by role id
+
+        :id: 6979ad8d-629b-481e-9d3a-8f3b3bca53f9
+
+        :expectedresults: Filter is listed for specified role
+
+        :CaseImportance: Critical
+        """
+        role = make_role()
+        # Pick permissions by its resource type
+        permissions = [
+            permission['name']
+            for permission in Filter.available_permissions(
+                {'resource-type': 'Organization'})
+            ]
+        # Assign filter to created role
+        filter_ = make_filter({
+            'role-id': role['id'],
+            'permissions': permissions,
+        })
+        self.assertEqual(role['name'], filter_['role'])
+        self.assertEqual(
+            Role.filters({'id': role['id']})[0]['id'], filter_['id'])
+
+    def test_positive_list_filters_by_name(self):
+        """Create new role with a filter and list it by role name
+
+        :id: bbcb3982-f484-4dde-a3ea-7145fd28ab1f
+
+        :expectedresults: Filter is listed for specified role
+
+        :CaseImportance: Critical
+        """
+        role = make_role()
+        # Pick permissions by its resource type
+        permissions = [
+            permission['name']
+            for permission in Filter.available_permissions(
+                {'resource-type': 'Organization'})
+            ]
+        # Assign filter to created role
+        filter_ = make_filter({
+            'role': role['name'],
+            'permissions': permissions,
+        })
+        self.assertEqual(role['name'], filter_['role'])
+        self.assertEqual(
+            Role.filters({'name': role['name']})[0]['id'], filter_['id'])
+
+    def test_negative_list_filters_without_parameters(self):
+        """Try to list filter without specifying role id or name
+
+        :id: 56cafbe0-d1cb-413e-8eac-0e01a3590fd2
+
+        :expectedresults: Proper error message is shown instead of SQL error
+
+        :CaseImportance: Critical
+
+        :BZ: 1296782
+        """
+        with self.assertRaises(CLIReturnCodeError) as err:
+            with self.assertNotRaises(CLIDataBaseError):
+                Role.filters()
+        self.assertRegex(
+            err.exception.msg, 'At least one of options .* is required')
 
 
 class CannedRoleTestCases(CLITestCase):
