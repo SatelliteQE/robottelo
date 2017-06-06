@@ -452,6 +452,22 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         composite_cv = composite_cv.update(['component'])
         self.assertEqual(len(composite_cv.component), cv_amount)
 
+    @tier1
+    def test_positive_publish_with_long_name(self):
+        """Publish a content view that has at least 255 characters in its name
+
+        :id: 1c786756-266d-49b2-912f-7808096f5cc0
+
+        :expectedresults: Content view has been published and has one version
+            populated
+
+        :BZ: 1365312
+        """
+        name = gen_string('alpha', 255)
+        content_view = entities.ContentView(name=name).create()
+        content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
+
     @tier2
     def test_positive_publish_multiple(self):
         """Publish a content view several times.
