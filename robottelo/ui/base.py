@@ -190,10 +190,11 @@ class Base(object):
             time.sleep(1)
         return None
 
-    def delete(self, name, really=True, dropdown_present=False):
+    def delete(self, name, really=True, dropdown_present=False,
+               search_query=None):
         """Delete an added entity, handles both with and without dropdown."""
         self.logger.debug(u'Deleting entity %s', name)
-        searched = self.search(name)
+        searched = self.search(name, _raw_query=search_query)
         if not searched:
             raise UIError(u'Could not search the entity "{0}"'.format(name))
         if self.is_katello:
@@ -228,7 +229,7 @@ class Base(object):
         self.result_timeout = 1
         try:
             for _ in range(3):
-                searched = self.search(name)
+                searched = self.search(name, _raw_query=search_query)
                 if bool(searched) != really:
                     break
                 self.browser.refresh()
