@@ -957,7 +957,10 @@ BOOKMARK_ENTITIES = [
     {'name': 'Audit', 'controller': 'audits', 'skip_for_ui': True},
     {'name': 'Report', 'controller': 'config_reports', 'skip_for_ui': True},
     {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'skip_for_ui': True},
-    {'name': 'Subscriptions', 'controller': 'katello_subscriptions'},
+    {
+        'name': 'Subscriptions', 'controller': 'katello_subscriptions',
+        'skip_for_ui': True,
+    },
     {'name': 'Products', 'controller': 'katello_products'},
     {
         'name': 'Repository', 'controller': 'katello_repositories',

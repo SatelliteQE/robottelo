@@ -9,9 +9,7 @@ locators = LocatorDict({
 
     # Bookmarks
     "bookmark.select_name": (
-        By.XPATH,
-        ("//td[following-sibling::td[text()='%s']]"
-         "/a[span[contains(.,'%s')]]")),
+        By.XPATH, "//a[span[contains(.,'%s')]]"),
     "bookmark.new": (
         By.XPATH,
         ("//ul[contains(@class, 'dropdown-menu')]"
@@ -27,7 +25,7 @@ locators = LocatorDict({
         "//input[@type='checkbox'][@id='public' or @id='bookmark_public']"),
     "bookmark.create": (
         By.XPATH,
-        ("//button[(contains(@class, 'btn-primary') and @type='button') or "
+        ("//button[(contains(@class, 'btn-primary')) or "
          "(contains(@class, 'btn-danger') and @ng-click='ok()')]")),
     "bookmark.select_long_name": (
         By.XPATH,
