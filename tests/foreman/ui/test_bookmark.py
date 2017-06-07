@@ -23,7 +23,6 @@ from robottelo.constants import BOOKMARK_ENTITIES, STRING_TYPES
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     tier2,
 )
@@ -43,11 +42,6 @@ class BookmarkTestCase(UITestCase):
         for testing.
         """
         super(BookmarkTestCase, cls).setUpClass()
-        cls.per_page = entities.Setting().search(
-            query={'search': 'name="entries_per_page"'})[0]
-        cls.saved_per_page = str(cls.per_page.value)
-        cls.per_page.value = '100000'
-        cls.per_page.update({'value'})
         cls.entities = []
 
         # Custom user for bookmark visibility testing
@@ -90,13 +84,6 @@ class BookmarkTestCase(UITestCase):
             name=gen_string('alphanumeric')).create()
 
     @classmethod
-    def tearDownClass(cls):
-        """Restore previous 'entries_per_page' value"""
-        cls.per_page.value = cls.saved_per_page
-        cls.per_page.update({'value'})
-        super(BookmarkTestCase, cls).tearDownClass()
-
-    @classmethod
     def getOneEntity(cls):
         """Return 1 entity to test"""
         return [cls.entities[random.randint(0, len(cls.entities)-1)]]
@@ -137,8 +124,7 @@ class BookmarkTestCase(UITestCase):
                             random.choice(STRING_TYPES)
                         ),
                     )
-                    self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                    self.assertIsNotNone(self.bookmark.search(name))
 
     @tier1
     def test_positive_create_bookmark_populate_manual(self):
@@ -171,8 +157,7 @@ class BookmarkTestCase(UITestCase):
                         public=True,
                         query=gen_string(random.choice(STRING_TYPES)),
                     )
-                    self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                    self.assertIsNotNone(self.bookmark.search(name))
 
     @tier2
     def test_positive_create_bookmark_public(self):
@@ -220,14 +205,11 @@ class BookmarkTestCase(UITestCase):
                             random.choice(STRING_TYPES)
                         ),
                     )
-                    self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                    self.assertIsNotNone(self.bookmark.search(name))
                 with Session(self.browser, user=self.custom_user.login,
                              password=self.custom_password):
-                    self.assertIsNone(
-                        self.bookmark.search(entity['controller'], name))
+                    self.assertIsNone(self.bookmark.search(name))
 
-    @skip_if_bug_open('bugzilla', 1326633)
     @tier1
     def test_negative_create_bookmark_no_name(self):
         """Create a bookmark with empty name
@@ -258,12 +240,14 @@ class BookmarkTestCase(UITestCase):
                         public=True,
                         query=gen_string(random.choice(STRING_TYPES)),
                     )
-                    # Not sure what kind of validation will be added when
-                    # BZ1326633 is fixed. Need to double check that when BZ is
-                    # closed.
-                    self.assertIsNotNone(
+                    # Foreman and Katello entities return different kinds of
+                    # errors, try to catch both.
+                    self.assertTrue(
                         session.nav.wait_until_element(
-                            common_locators['notif.error'])
+                            common_locators['alert.error'], timeout=1)
+                        or
+                        session.nav.wait_until_element(
+                            common_locators['haserror'], timeout=1)
                     )
 
     @tier1
@@ -296,8 +280,7 @@ class BookmarkTestCase(UITestCase):
                         public=True,
                         query='',
                     )
-                    self.assertIsNone(
-                        self.bookmark.search(entity['controller'], name))
+                    self.assertIsNone(self.bookmark.search(name))
 
     @tier1
     def test_negative_create_bookmark_same_name(self):
@@ -332,10 +315,12 @@ class BookmarkTestCase(UITestCase):
                             public=True,
                             query=gen_string(random.choice(STRING_TYPES)),
                         )
-                    self.bookmark.navigate_to_entity()
-                    strategy, value = locators['bookmark.select_name']
-                    bms = self.browser.find_elements(
-                        strategy, value % (entity['controller'], name))
+                    self.bookmark.search(
+                        name,
+                        _raw_query='controller={}'.format(entity['controller'])
+                    )
+                    bms = self.bookmark.find_elements(
+                        locators['bookmark.select_name'] % name)
                     self.assertEqual(len(bms), 1)
 
     # UPDATE TESTS
@@ -372,10 +357,8 @@ class BookmarkTestCase(UITestCase):
                         query=query,
                     )
                     new_name = gen_string(random.choice(STRING_TYPES))
-                    self.bookmark.update(
-                        entity['controller'], name, new_name, query)
-                    self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], new_name))
+                    self.bookmark.update(name, new_name, query)
+                    self.assertIsNotNone(self.bookmark.search(new_name))
 
     @tier1
     def test_negative_update_bookmark_name(self):
@@ -409,15 +392,13 @@ class BookmarkTestCase(UITestCase):
                             query=gen_string(random.choice(STRING_TYPES)),
                         )
                     self.bookmark.update(
-                        entity['controller'],
                         bm2_name,
                         bm1_name,
                         gen_string(random.choice(STRING_TYPES)),
                     )
                     self.assertTrue(self.bookmark.wait_until_element(
                         common_locators['name_haserror']))
-                    self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], bm2_name))
+                    self.assertIsNotNone(self.bookmark.search(bm2_name))
 
     @tier1
     def test_negative_update_bookmark_name_empty(self):
@@ -451,14 +432,11 @@ class BookmarkTestCase(UITestCase):
                         public=True,
                         query=query,
                     )
-                    self.bookmark.update(
-                        entity['controller'], name, '', query)
+                    self.bookmark.update(name, '', query)
                     self.assertTrue(self.bookmark.wait_until_element(
                         common_locators['name_haserror']))
-                    self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
+                    self.assertIsNotNone(self.bookmark.search(name))
 
-    @skip_if_bug_open('bugzilla', 1324484)
     @tier1
     def test_positive_update_bookmark_query(self):
         """Update and save a bookmark query
@@ -491,14 +469,10 @@ class BookmarkTestCase(UITestCase):
                         query=gen_string(random.choice(STRING_TYPES)),
                     )
                     new_query = gen_string(random.choice(STRING_TYPES))
-                    self.bookmark.update(
-                        entity['controller'], name, new_query=new_query)
+                    self.bookmark.update(name, new_query=new_query)
                     self.assertTrue(
-                        self.bookmark.validate_field(
-                            entity['controller'], name, 'query', new_query)
-                    )
+                        self.bookmark.validate_field(name, 'query', new_query))
 
-    @skip_if_bug_open('bugzilla', 1324484)
     @tier1
     def test_negative_update_bookmark_query_empty(self):
         """Update and save a bookmark with an empty query
@@ -532,14 +506,11 @@ class BookmarkTestCase(UITestCase):
                         public=True,
                         query=query,
                     )
-                    self.bookmark.update(
-                        entity['controller'], name, new_query='')
+                    self.bookmark.update(name, new_query='')
                     self.assertTrue(self.bookmark.wait_until_element(
                         common_locators['haserror']))
                     self.assertTrue(
-                        self.bookmark.validate_field(
-                            entity['controller'], name, 'query', query)
-                    )
+                        self.bookmark.validate_field(name, 'query', query))
 
     @tier2
     def test_positive_update_bookmark_public(self):
@@ -600,21 +571,15 @@ class BookmarkTestCase(UITestCase):
             )
         with Session(self.browser, user=self.custom_user.login,
                      password=self.custom_password):
-            self.assertIsNotNone(
-                self.bookmark.search(bm1_entity['controller'], bm1_name))
-            self.assertIsNone(
-                self.bookmark.search(bm2_entity['controller'], bm2_name))
+            self.assertIsNotNone(self.bookmark.search(bm1_name))
+            self.assertIsNone(self.bookmark.search(bm2_name))
         with Session(self.browser):
-            self.bookmark.update(
-                bm1_entity['controller'], bm1_name, new_public=False)
-            self.bookmark.update(
-                bm2_entity['controller'], bm2_name, new_public=True)
+            self.bookmark.update(bm1_name, new_public=False)
+            self.bookmark.update(bm2_name, new_public=True)
         with Session(self.browser, user=self.custom_user.login,
                      password=self.custom_password):
-            self.assertIsNone(
-                self.bookmark.search(bm1_entity['controller'], bm1_name))
-            self.assertIsNotNone(
-                self.bookmark.search(bm2_entity['controller'], bm2_name))
+            self.assertIsNone(self.bookmark.search(bm1_name))
+            self.assertIsNotNone(self.bookmark.search(bm2_name))
 
     # DELETE TESTS
     @tier1
@@ -635,7 +600,7 @@ class BookmarkTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(self.browser):
                     name = gen_string(random.choice(STRING_TYPES))
@@ -645,9 +610,8 @@ class BookmarkTestCase(UITestCase):
                         public=True,
                         query=gen_string(random.choice(STRING_TYPES)),
                     )
-                    self.assertIsNotNone(
-                        self.bookmark.search(entity['controller'], name))
-                    self.bookmark.delete(entity['controller'], name)
+                    self.assertIsNotNone(self.bookmark.search(name))
+                    self.bookmark.delete(name)
 
     @tier2
     def test_negative_delete_bookmark(self):
@@ -678,4 +642,4 @@ class BookmarkTestCase(UITestCase):
         with Session(self.browser, user=self.custom_user.login,
                      password=self.custom_password):
             with self.assertRaises(UIError):
-                self.bookmark.delete(bm.controller, bm.name)
+                self.bookmark.delete(bm.name)
