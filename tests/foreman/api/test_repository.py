@@ -764,6 +764,7 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.read().content_counts['rpm'], 1)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1459845)
     @tier1
     def test_positive_remove_contents(self):
         """Synchronize a repository and remove rpm content.
@@ -772,6 +773,8 @@ class RepositoryTestCase(APITestCase):
 
         :expectedresults: The repository's content is removed and content count
             shows zero packages
+
+        :BZ: 1459845
 
         :CaseImportance: Critical
         """
@@ -977,6 +980,7 @@ class RepositoryTestCase(APITestCase):
                     repo.read().content_counts['puppet_module'], 1)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1459845)
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
@@ -985,6 +989,8 @@ class RepositoryTestCase(APITestCase):
         :id: e3a62529-edbd-4062-9246-bef5f33bdcf0
 
         :expectedresults: Repository has updated non-zero packages count
+
+        :BZ: 1459845
 
         :CaseLevel: Integration
 

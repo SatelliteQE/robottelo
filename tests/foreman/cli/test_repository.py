@@ -868,6 +868,8 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1459845)
+    @skip_if_bug_open('bugzilla', 1459874)
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
@@ -876,6 +878,8 @@ class RepositoryTestCase(CLITestCase):
         :id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
 
         :expectedresults: Repository has updated non-zero packages count
+
+        :BZ: 1459845, 1459874
 
         :CaseLevel: Integration
 
@@ -905,6 +909,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['content-counts']['packages'], '32')
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1459845)
     @tier2
     def test_positive_resynchronize_puppet_repo(self):
         """Check that repository content is resynced after puppet modules
@@ -913,6 +918,8 @@ class RepositoryTestCase(CLITestCase):
         :id: 9e28f0ae-3875-4c1e-ad8b-d068f4409fe3
 
         :expectedresults: Repository has updated non-zero puppet modules count
+
+        :BZ: 1459845
 
         :CaseLevel: Integration
 
@@ -1192,6 +1199,8 @@ class RepositoryTestCase(CLITestCase):
             Repository.info({u'id': new_repo['id']})
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1459845)
+    @skip_if_bug_open('bugzilla', 1459874)
     @tier1
     def test_positive_remove_content_by_repo_name(self):
         """Synchronize repository and remove rpm content from using repo name
@@ -1200,7 +1209,7 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: Content Counts shows zero packages
 
-        :BZ: 1349646, 1413145
+        :BZ: 1349646, 1413145, 1459845, 1459874
 
         :CaseImportance: Critical
         """
@@ -1237,6 +1246,8 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['content-counts']['packages'], '0')
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1459845)
+    @skip_if_bug_open('bugzilla', 1459874)
     @tier1
     def test_positive_remove_content_rpm(self):
         """Synchronize repository and remove rpm content from it
@@ -1244,6 +1255,8 @@ class RepositoryTestCase(CLITestCase):
         :id: c4bcda0e-c0d6-424c-840d-26684ca7c9f1
 
         :expectedresults: Content Counts shows zero packages
+
+        :BZ: 1459845, 1459874
 
         :CaseImportance: Critical
         """
@@ -1266,6 +1279,7 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['content-counts']['packages'], '0')
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1459845)
     @tier1
     def test_positive_remove_content_puppet(self):
         """Synchronize repository and remove puppet content from it
@@ -1273,6 +1287,8 @@ class RepositoryTestCase(CLITestCase):
         :id: b025ccd0-9beb-4ac0-9fbf-21340c90650e
 
         :expectedresults: Content Counts shows zero puppet modules
+
+        :BZ: 1459845
 
         :CaseImportance: Critical
         """
