@@ -19,7 +19,7 @@ from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -77,3 +77,46 @@ class SubscriptionTestCase(UITestCase):
             self.subscriptions.delete(really=False)
             self.assertIsNotNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
+
+    @tier1
+    def test_positive_delete_confirmation(self):
+        """Upload a manifest with minimal input parameters, press 'Delete'
+        button and check warning message on confirmation screen
+
+        :id: 16160ee9-f818-447d-b7ab-d04d396d50c5
+
+        :BZ: 1266827
+
+        :expectedresults: confirmation dialog contains informative message
+            which warns user about downsides and consequences of manifest
+            deletion
+
+        :CaseImportance: Critical
+        """
+        expected_message = [
+            'Are you sure you want to delete the manifest?',
+            'Note: Deleting a subscription manifest is STRONGLY discouraged. '
+            'Deleting a manifest will:',
+            'Delete all subscriptions that are attached to running hosts.',
+            'Delete all subscriptions attached to activation keys.',
+            'Disable Red Hat Insights',
+            'Require you to upload the subscription-manifest and re-attach '
+            'subscriptions to hosts and activation keys.',
+            'This action should only be taken in extreme circumstances or for '
+            'debugging purposes.',
+        ]
+        org = entities.Organization().create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
+            self.assertTrue(self.subscriptions.wait_until_element_exists(
+                locators['subs.import_history.imported']))
+            self.subscriptions.click(locators['subs.delete_manifest'])
+            actual_message = self.subscriptions.find_element(
+                locators['subs.delete_confirmation_message']).text
+            try:
+                for line in expected_message:
+                    self.assertIn(line, actual_message)
+            finally:
+                self.subscriptions.click(common_locators['cancel'])
