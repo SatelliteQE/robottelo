@@ -1460,10 +1460,6 @@ def make_host_collection(options=None):
          -h, --help                                print help
 
     """
-    # Organization ID is required
-    if not options or not options.get('organization-id'):
-        raise CLIFactoryError('Please provide a valid ORGANIZATION_ID.')
-
     # Assigning default values for attributes
     args = {
         u'description': None,

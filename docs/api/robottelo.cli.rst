@@ -30,6 +30,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.contentview
 
+:mod:`robottelo.cli.defaults`
+-----------------------------
+
+.. automodule:: robottelo.cli.defaults
+
 :mod:`robottelo.cli.discoveredhost`
 -----------------------------------
 
