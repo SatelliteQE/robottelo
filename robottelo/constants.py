@@ -984,7 +984,7 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'Registry', 'controller': 'docker_registries',
-        'skip_for_ui': 1302724
+        'skip_for_ui': ('redmine', 13436)
     },
     {'name': 'Hosts', 'controller': 'hosts', 'setup': entities.Host},
     {
@@ -1010,15 +1010,15 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'DiscoveryRules', 'controller': 'discovery_rules',
-        'skip_for_ui': 1387569, 'setup': entities.DiscoveryRule
+        'skip_for_ui': ('bugzilla', 1387569), 'setup': entities.DiscoveryRule
     },
     {
         'name': 'GlobalParameter', 'controller': 'common_parameters',
-        'setup': entities.CommonParameter, 'skip_for_ui': 1456833
+        'setup': entities.CommonParameter, 'skip_for_ui': ('bugzilla', 1456833)
     },
     {
         'name': 'ConfigGroups', 'controller': 'config_groups',
-        'setup': entities.ConfigGroup, 'skip_for_ui': 1378084
+        'setup': entities.ConfigGroup, 'skip_for_ui': ('bugzilla', 1378084)
     },
     {
         'name': 'PuppetEnv', 'controller': 'environments',

@@ -22,7 +22,7 @@ from nailgun import entities
 from robottelo.constants import BOOKMARK_ENTITIES, STRING_TYPES
 from robottelo.decorators import (
     bz_bug_is_open,
-    run_in_one_thread,
+    rm_bug_is_open,
     tier1,
     tier2,
 )
@@ -32,7 +32,6 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
-@run_in_one_thread
 class BookmarkTestCase(UITestCase):
     """Test for common Bookmark operations in UI"""
 
@@ -56,7 +55,11 @@ class BookmarkTestCase(UITestCase):
             # Skip the entities, which can't be tested ATM (require framework
             # update)
             skip = entity.get('skip_for_ui')
-            if skip and (skip is True or bz_bug_is_open(skip)):
+            if isinstance(skip, tuple):
+                if (skip[0] == 'bugzilla' and bz_bug_is_open(skip[1])
+                        or skip[0] == 'redmine' and rm_bug_is_open(skip[1])):
+                    skip = True
+            if skip is True:
                 continue
             cls.entities.append(entity)
             # Some pages require at least 1 existing entity for search bar to
@@ -600,7 +603,7 @@ class BookmarkTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        for entity in self.getOneEntity():
+        for entity in self.entities:
             with self.subTest(entity):
                 with Session(self.browser):
                     name = gen_string(random.choice(STRING_TYPES))
