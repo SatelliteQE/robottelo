@@ -66,8 +66,6 @@ locators = LocatorDict({
         By.XPATH, "//li[@data-name='%s']"),
     "dashboard.remove_widget": (
         By.XPATH, "//li[@data-name='%s']/div/a[@class='remove']"),
-    "dashboard.minimize_widget": (
-        By.XPATH, "//li[@data-name='%s']/div/a[@class='minimize']"),
     "dashboard.restore_widget": (
         By.XPATH,
         "//a[contains(., '%s') and contains(@onclick, 'show_widget')]"),
@@ -77,15 +75,16 @@ locators = LocatorDict({
     "dashboard.manage_widget": (
         By.XPATH, "//div[@id='main']//a[contains(., 'Manage')]"),
     "dashboard.save_dashboard": (
-        By.XPATH, "//li/a[text()='Save dashboard']"),
+        By.XPATH, "//li/a[contains(@onclick, 'save_position')]"),
     "dashboard.reset_dashboard": (
         By.XPATH, "//li/a[contains(@href, 'reset_default')]"),
     "dashboard.hcs.search_criteria": (
         By.XPATH,
-        "//li[@data-name='Status table']//li/a[contains(., '%s')]"),
+        "//li[@data-name='Host Configuration Status']"
+        "//li/a[contains(., '%s')]"),
     "dashboard.hcs.hosts_count": (
         By.XPATH,
-        "//li[@data-name='Status table']//li/a[contains(., '%s')]"
+        "//li[@data-name='Host Configuration Status']//li/a[contains(., '%s')]"
         "/following-sibling::h4"),
     "dashboard.hcc.hosts_percentage": (
         By.XPATH,
@@ -95,28 +94,28 @@ locators = LocatorDict({
         "//td[text()='%s']/following-sibling::td/a"),
     "dashboard.lwe_task.name": (
         By.XPATH,
-        "//li[@data-name='Tasks in Error/Warning']//a[contains(., '%s')]"),
+        "//li[@data-name='Latest Warning/Error Tasks']//a[contains(., '%s')]"),
     "dashboard.cvh.tasks_statuses": (
         By.XPATH,
-        "//li[@data-name='Content Views Widget']//a[contains(., '%s')]/.."
+        "//li[@data-name='Content Views']//a[contains(., '%s')]/.."
         "/following-sibling::td"
     ),
     "dashboard.hc.hosts_count": (
         By.XPATH,
-        "//li[@data-name='Host Collection Widget']//td[text()='%s']"
+        "//li[@data-name='Host Collections']//td[text()='%s']"
         "/following-sibling::td"),
     "dashboard.so.product_status": (
         By.XPATH,
-        "//li[@data-name='Sync Widget']//td[text()='%s']"
+        "//li[@data-name='Sync Overview']//td[text()='%s']"
         "/following-sibling::td"),
     "dashboard.cst.subs_count": (
         By.XPATH,
-        "//li[@data-name='Subscription Status Widget']//td[text()='%s']"
+        "//li[@data-name='Subscription Status']//td[text()='%s']"
         "/following-sibling::td"),
     "dashboard.chss.search_criteria": (By.XPATH, "//td/a[contains(., '%s')]"),
     "dashboard.latest_errata.empty": (
         By.XPATH,
-        "//li[@data-name='Errata Widget']//p[contains(., 'There are no errata "
+        "//li[@data-name='Latest Errata']//p[contains(., 'There are no errata "
         "that need to be applied')]"),
 
     # Organizations
@@ -485,7 +484,7 @@ locators = LocatorDict({
 
     # Content Hosts
     "contenthost.page_title": (
-        By.XPATH, "//h2/div[contains(., 'Content Hosts')]"),
+        By.XPATH, "//h2/span[contains(., 'Content Hosts')]"),
     "contenthost.select_name": (
         By.XPATH,
         "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),

@@ -233,57 +233,11 @@ class DashboardTestCase(UITestCase):
         :CaseImportance: Critical
         """
         with Session(self.browser):
-            for widget in ['Discovered Hosts', 'Content View History']:
+            for widget in ['Discovered Hosts', 'Content Views']:
                 self.dashboard.remove_widget(widget)
                 self.dashboard.manage_widget('Save Dashboard')
                 self.dashboard.manage_widget('Add Widget', widget)
                 self.assertIsNotNone(self.dashboard.get_widget(widget))
-
-    @run_in_one_thread
-    @tier1
-    def test_positive_minimize_widget(self):
-        """Check if the user is able to minimize the widget
-        in the Dashboard UI
-
-        :id: 21f10b30-b121-4347-807d-7b949a3f0e4f
-
-        :Steps:
-
-            1. Navigate to Monitor -> Dashboard
-            2. Try to minimize some widget
-
-        :expectedresults: Widget is minimized and is not present on Dashboard
-
-        :CaseImportance: Critical
-        """
-        with Session(self.browser):
-            for widget in ['Sync Overview', 'Compliance Reports Breakdown']:
-                self.dashboard.minimize_widget(widget)
-
-    @run_in_one_thread
-    @tier1
-    def test_positive_restore_minimize_widget(self):
-        """Check if the user is able to restoring the minimized
-        widget in the Dashboard UI
-
-        :id: f42fdcce-26fb-4c56-ac4e-1e00b077bd78
-
-        :Steps:
-
-            1. Navigate to Monitor -> Dashboard
-            2. Try to minimize some widget
-            3. Widget is minimized
-            4. The widget is listed under Manage -> Restore Widget
-            5. Click to add the widget back
-
-        :expectedresults: The widget is added back to the Dashboard
-
-        :CaseImportance: Critical
-        """
-        with Session(self.browser):
-            self.dashboard.minimize_widget('Latest Errata')
-            self.dashboard.manage_widget('Restore Widget', 'Latest Errata')
-            self.assertIsNotNone(self.dashboard.get_widget('Latest Errata'))
 
     @tier1
     def test_positive_toggle_auto_refresh(self):
@@ -442,7 +396,7 @@ class DashboardTestCase(UITestCase):
         with Session(self.browser) as session:
             set_context(session, org=org.name)
             self.assertTrue(self.dashboard.validate_task_navigation(
-                'pending', 'state=running&result=pending'))
+                'running', 'state=running&result=pending'))
             self.assertTrue(self.dashboard.validate_task_navigation(
                 'success',
                 'state=stopped&result=success',
@@ -450,8 +404,9 @@ class DashboardTestCase(UITestCase):
                     content_view.name, org.name)
             ))
             self.assertTrue(self.dashboard.validate_task_navigation(
-                'error', 'state=stopped&result=error'))
+                'warning', 'state=stopped&result=warning'))
 
+    @skip_if_bug_open('bugzilla', 1460240)
     @tier2
     def test_positive_latest_warning_error_tasks(self):
         """Check if the Latest Warning/Error
@@ -547,7 +502,7 @@ class DashboardTestCase(UITestCase):
             self.assertIsNotNone(
                 self.dashboard.search(lc_env.name, 'lifecycle_environment'))
             self.assertIsNotNone(
-                self.dashboard.get_widget('Content View History'))
+                self.dashboard.get_widget('Content Views'))
 
     @stubbed()
     @tier2
@@ -675,15 +630,15 @@ class DashboardTestCase(UITestCase):
             with Session(self.browser) as session:
                 set_context(session, org=org.name)
                 self.assertTrue(self.dashboard.validate_chss_navigation(
-                    'Invalid', u'subscription_status=invalid'))
+                    'Invalid', u'subscription_status = invalid'))
                 self.assertIsNotNone(self.dashboard.wait_until_element(
                     common_locators['kt_search_no_results']))
                 self.assertTrue(self.dashboard.validate_chss_navigation(
-                    'Partial', u'subscription_status=partial'))
+                    'Partial', u'subscription_status = partial'))
                 self.assertIsNotNone(self.dashboard.wait_until_element(
                     common_locators['kt_search_no_results']))
                 self.assertTrue(self.dashboard.validate_chss_navigation(
-                    'Valid', u'subscription_status=valid', client.hostname))
+                    'Valid', u'subscription_status = valid', client.hostname))
 
     @tier1
     def test_positive_current_subscription_totals(self):
