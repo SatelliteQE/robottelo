@@ -199,15 +199,15 @@ class SubscriptionTestCase(UITestCase):
         """Upload a manifest with minimal input parameters, press 'Delete'
         button and check warning message on confirmation screen
 
-        :id: 16160ee9-f818-447d-b7ab-d04d396d50c5
+        @id: 16160ee9-f818-447d-b7ab-d04d396d50c5
 
-        :BZ: 1266827
+        @BZ: 1266827
 
-        :expectedresults: confirmation dialog contains informative message
+        @expectedresults: confirmation dialog contains informative message
             which warns user about downsides and consequences of manifest
             deletion
 
-        :CaseImportance: Critical
+        @CaseImportance: Critical
         """
         expected_message = [
             'Are you sure you want to delete the manifest?',
@@ -224,10 +224,11 @@ class SubscriptionTestCase(UITestCase):
         org = entities.Organization().create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
+            session.nav.go_to_red_hat_subscriptions()
             with manifests.clone() as manifest:
                 self.subscriptions.upload(manifest)
             self.assertTrue(self.subscriptions.wait_until_element_exists(
-                locators['subs.import_history.imported']))
+                tab_locators['subs.import_history.imported.success']))
             self.subscriptions.click(locators['subs.delete_manifest'])
             actual_message = self.subscriptions.find_element(
                 locators['subs.delete_confirmation_message']).text
