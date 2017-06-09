@@ -254,9 +254,9 @@ tab_locators = LocatorDict({
     # Sync Plans
     # Third level UI
     "sp.tab_details": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+        By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'info')]"),
     "sp.tab_products": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'products')]"),
+        By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'products')]"),
     # Fourth level UI
     "sp.list_prd": (
         By.XPATH, "//a[contains(@ui-sref,'list')]/span[@class='ng-scope']"),

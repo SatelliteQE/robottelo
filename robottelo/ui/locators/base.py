@@ -1522,8 +1522,9 @@ locators = LocatorDict({
                    "//span[contains(@class,'editable-value')]")),
     "sp.fetch_startdate": (
         By.XPATH,
-        ("//span[contains(.,'Start Date')]/../"
-         "div/form/div[2]/div/span[contains(@class,'editable')]")),
+        ("//dd[contains(@bst-edit-custom, 'sync_date')]"
+         "/div/form//span[contains(@class,'editable')]")
+    ),
 
     # Enable RH Repos expander
     "rh.rpms_prd_expander": (

@@ -30,6 +30,7 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -185,6 +186,7 @@ class SyncPlanTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
+    @skip_if_bug_open('bugzilla', 1460146)
     @tier2
     def test_positive_create_with_start_time(self):
         """Create Sync plan with specified start time
@@ -192,6 +194,8 @@ class SyncPlanTestCase(UITestCase):
         :id: a4709229-325c-4027-b4dc-10a226c4d7bf
 
         :expectedresults: Sync Plan is created with the specified time.
+
+        :BZ: 1460146
 
         :CaseLevel: Integration
         """
@@ -217,6 +221,7 @@ class SyncPlanTestCase(UITestCase):
                 startdate.strftime("%Y/%m/%d %H:%M")
             )
 
+    @skip_if_bug_open('bugzilla', 1460146)
     @tier2
     def test_positive_create_with_start_date(self):
         """Create Sync plan with specified start date
@@ -224,6 +229,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 020b3aff-7216-4ad6-b95e-8ffaf68cba20
 
         :expectedresults: Sync Plan is created with the specified date
+
+        :BZ: 1460146
 
         :CaseLevel: Integration
         """
@@ -291,6 +298,7 @@ class SyncPlanTestCase(UITestCase):
             self.assertIsNotNone(self.syncplan.wait_until_element(
                 common_locators['common_invalid']))
 
+    @skip_if_bug_open('bugzilla', 1460146)
     @tier1
     def test_positive_update_name(self):
         """Update Sync plan's name
@@ -298,6 +306,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 6b22468f-6abc-4a63-b283-28c7816a5e86
 
         :expectedresults: Sync Plan's name is updated
+
+        :BZ: 1460146
 
         :CaseImportance: Critical
         """
@@ -315,6 +325,7 @@ class SyncPlanTestCase(UITestCase):
                     self.assertIsNotNone(self.syncplan.search(new_plan_name))
                     plan_name = new_plan_name  # for next iteration
 
+    @skip_if_bug_open('bugzilla', 1460146)
     @tier1
     def test_positive_update_interval(self):
         """Update Sync plan's interval
@@ -322,6 +333,8 @@ class SyncPlanTestCase(UITestCase):
         :id: 35820efd-099e-45dd-8298-77d5f35c26db
 
         :expectedresults: Sync Plan's interval is updated
+
+        :BZ: 1460146
 
         :CaseImportance: Critical
         """

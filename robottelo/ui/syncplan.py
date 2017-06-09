@@ -1,4 +1,6 @@
 """Implements Sync Plans for UI."""
+import datetime
+
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -39,8 +41,10 @@ class Syncplan(Base):
         if start_hour and start_minute:
             self.assign_value(locators['sp.start_hour'], start_hour)
             self.assign_value(locators['sp.start_minutes'], start_minute)
-        if startdate:
-            self.assign_value(locators['sp.start_date'], startdate)
+        if not startdate:
+            # start date is mandatory
+            startdate = datetime.datetime.utcnow().strftime('%Y-%m-%d')
+        self.assign_value(locators['sp.start_date'], startdate)
         self.click(common_locators['name'])
         self.click(common_locators['create'])
 
