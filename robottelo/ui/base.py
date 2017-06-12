@@ -194,7 +194,12 @@ class Base(object):
                search_query=None):
         """Delete an added entity, handles both with and without dropdown."""
         self.logger.debug(u'Deleting entity %s', name)
-        searched = self.search(name, _raw_query=search_query)
+        # Some overridden search methods do not support search queries,
+        # e.g. when page does not have search field. Skip search_query then.
+        if search_query:
+            searched = self.search(name, _raw_query=search_query)
+        else:
+            searched = self.search(name)
         if not searched:
             raise UIError(u'Could not search the entity "{0}"'.format(name))
         if self.is_katello:
@@ -229,7 +234,10 @@ class Base(object):
         self.result_timeout = 1
         try:
             for _ in range(3):
-                searched = self.search(name, _raw_query=search_query)
+                if search_query:
+                    searched = self.search(name, _raw_query=search_query)
+                else:
+                    searched = self.search(name)
                 if bool(searched) != really:
                     break
                 self.browser.refresh()
