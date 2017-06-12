@@ -1760,8 +1760,8 @@ locators = LocatorDict({
         By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]"),
     "contentviews.select_cv": (
         By.XPATH,
-        ("//div[@bst-table='detailsTable']"
-         "//tr[contains(@row-select, 'contentView')]"
+        ("//div[@bst-table='table']"
+         "//tr[contains(@row-select, 'View')]"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
