@@ -935,6 +935,7 @@ class RepositoryTestCase(UITestCase):
         with Session(self.browser):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='On Demand')
+            self.products.search_and_click(self.session_prod.name)
             self.assertTrue(
                 self.repository.validate_field(
                     repo_name, 'download_policy', 'On Demand'
@@ -957,6 +958,7 @@ class RepositoryTestCase(UITestCase):
         with Session(self.browser):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Background')
+            self.products.search_and_click(self.session_prod.name)
             self.assertTrue(
                 self.repository.validate_field(
                     repo_name, 'download_policy', 'Background'
@@ -979,6 +981,7 @@ class RepositoryTestCase(UITestCase):
         with Session(self.browser):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Immediate')
+            self.products.search_and_click(self.session_prod.name)
             self.assertTrue(
                 self.repository.validate_field(
                     repo_name, 'download_policy', 'Immediate'
@@ -1001,6 +1004,7 @@ class RepositoryTestCase(UITestCase):
         with Session(self.browser):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Background')
+            self.products.search_and_click(self.session_prod.name)
             self.assertTrue(
                 self.repository.validate_field(
                     repo_name, 'download_policy', 'Background'
@@ -1023,6 +1027,7 @@ class RepositoryTestCase(UITestCase):
         with Session(self.browser):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Immediate')
+            self.products.search_and_click(self.session_prod.name)
             self.assertTrue(
                 self.repository.validate_field(
                     repo_name, 'download_policy', 'Immediate'
@@ -1045,6 +1050,7 @@ class RepositoryTestCase(UITestCase):
         with Session(self.browser):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='On Demand')
+            self.products.search_and_click(self.session_prod.name)
             self.assertTrue(
                 self.repository.validate_field(
                     repo_name, 'download_policy', 'On Demand'
@@ -1599,6 +1605,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(alert)
             self.assertIn(PUPPET_MODULE_NTP_PUPPETLABS, alert.text)
             # Check packages count
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo_name, 'puppet')
             self.assertGreaterEqual(count, 1)
             # Check packages list
@@ -1634,6 +1641,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error_sub_form']))
             # Check packages number
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo_name, 'puppet')
             self.assertEqual(count, 0)
 
@@ -1661,12 +1669,13 @@ class RepositoryTestCase(UITestCase):
             )
             self.assertTrue(self.prd_sync_is_ok(repo.name))
             # Check packages count
-            self.repository.search_and_click(repo.name)
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo.name, 'packages')
             self.assertGreaterEqual(count, 1)
             # Remove packages
+            self.products.search_and_click(self.session_prod.name)
             self.repository.remove_content(repo.name)
-            self.repository.search_and_click(repo.name)
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo.name, 'packages')
             self.assertEqual(count, 0)
 
@@ -1695,8 +1704,9 @@ class RepositoryTestCase(UITestCase):
             count = self.repository.fetch_content_count(repo.name, 'puppet')
             self.assertGreaterEqual(count, 1)
             # Remove packages
+            self.products.search_and_click(self.session_prod.name)
             self.repository.remove_content(repo.name)
-            self.repository.search_and_click(repo.name)
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo.name, 'puppet')
             self.assertEqual(count, 0)
 
