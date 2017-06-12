@@ -1361,14 +1361,14 @@ locators = LocatorDict({
          "not(contains(@class, 'ng-hide'))]")),
     "repo.manage_content": (
         By.XPATH,
-        "//button[contains(@ui-sref,"
-        " 'products.details.repositories.manage-content')"
-        " and not(contains(@class, 'ng-hide'))]"),
+        "//tr[not(contains(@class, 'ng-hide'))]//a[contains(@ui-sref,"
+        " 'product.repository.manage-content')]"
+    ),
     "repo.content.packages": (By.XPATH, "//tr[@row-select='package']"),
     "repo.content.puppet_modules": (By.XPATH, "//tr[@row-select='item']"),
     "repo.content.select_all": (
         By.XPATH,
-        "//div[@bst-table='detailsTable']"
+        "//div[@data-block='table']"
         "//input[@type='checkbox'and @ng-model='selection.allSelected']"
     ),
     "repo.content.remove": (
