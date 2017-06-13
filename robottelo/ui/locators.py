@@ -2821,6 +2821,9 @@ locators = LocatorDict({
         By.XPATH,
         ("//button[contains(@ng-click,'openModal()')]"
          "[span[@bst-modal='deleteManifest()']]")),
+    "subs.delete_confirmation_message": (
+        By.XPATH, "//div[@data-block='modal-body']",
+    ),
     "subs.refresh_manifest": (
         By.XPATH, "//button[contains(@ng-click,'refreshManifest')]"),
     "subs.manage_manifest": (
