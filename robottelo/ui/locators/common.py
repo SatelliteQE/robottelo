@@ -97,6 +97,8 @@ common_locators = LocatorDict({
     "delete_button": (
         By.XPATH,
         "//a[contains(@data-confirm, '%s') and @data-method='delete']"),
+    "copy_name_input": (By.XPATH, "//input[@ng-model='copyName']"),
+    "copy_create_button": (By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "filter": (By.XPATH,
                ("//div[@id='ms-%s_ids']"
                 "//input[@class='ms-filter']")),
