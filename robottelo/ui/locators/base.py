@@ -1877,10 +1877,6 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='filterTerm']"),
     "contentviews.filter_name": (
         By.XPATH, "//tr[@row-select='filter']/td[2]/a[contains(., '%s')]"),
-    "contentviews.copy": (
-        By.XPATH, "//button[@ng-click='showCopy = true']"),
-    "contentviews.copy_name": (
-        By.XPATH, "//input[@ng-model='copyName']"),
     "contentviews.copy_create": (
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "contentviews.yum_repositories": (

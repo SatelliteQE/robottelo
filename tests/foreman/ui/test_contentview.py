@@ -59,6 +59,7 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -2214,6 +2215,7 @@ class ContentViewTestCase(UITestCase):
                 precedent_version_name = current_version_name
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1461017)
     @tier2
     def test_positive_clone_within_same_env(self):
         """attempt to create new content view based on existing
@@ -2222,6 +2224,8 @@ class ContentViewTestCase(UITestCase):
         :id: 862c385b-d98c-4c29-8345-fd7a5900483a
 
         :expectedresults: Content view can be cloned
+
+        :BZ: 1461017
 
         :CaseLevel: Integration
         """
@@ -2254,6 +2258,7 @@ class ContentViewTestCase(UITestCase):
             )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1461017)
     @tier2
     def test_positive_clone_within_diff_env(self):
         """attempt to create new content view based on existing
@@ -2262,6 +2267,8 @@ class ContentViewTestCase(UITestCase):
         :id: 09b9307f-91de-4d3d-a6af-31c526ea816f
 
         :expectedresults: Content view can be published
+
+        :BZ: 1461017
 
         :CaseLevel: Integration
         """
@@ -2589,6 +2596,7 @@ class ContentViewTestCase(UITestCase):
     # All this stuff is speculative at best.
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1461017)
     @tier2
     def test_positive_admin_user_actions(self):
         """Attempt to manage content views
@@ -2605,6 +2613,8 @@ class ContentViewTestCase(UITestCase):
 
         :expectedresults: The user can Read, Modify, Delete, Publish, Promote
             the content views
+
+        :BZ: 1461017
 
         :CaseLevel: Integration
         """

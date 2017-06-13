@@ -540,12 +540,9 @@ class ContentViews(Base):
     def copy_view(self, name, new_name):
         """Copies an existing Content View."""
         self.search_and_click(name)
-        self.edit_entity(
-            locators['contentviews.copy'],
-            locators['contentviews.copy_name'],
-            new_name,
-            locators['ak.copy_create']
-        )
+        self.perform_entity_action('Copy')
+        self.assign_value(common_locators['copy_name_input'], new_name)
+        self.click(common_locators['copy_create_button'])
 
     def fetch_yum_content_repo_name(self, cv_name):
         """Fetch associated yum repository info from selected content view."""
