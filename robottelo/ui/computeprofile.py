@@ -33,7 +33,7 @@ class ComputeProfile(Base):
             self.click((strategy, value % old_name))
             strategy, value = locators['profile.rename']
             self.click((strategy, value % old_name))
-            self.field_update('profile.name', new_name)
+            self.text_field_update(locators['profile.name'], new_name)
             self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
