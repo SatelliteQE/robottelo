@@ -28,7 +28,7 @@ from robottelo.datafactory import (
     invalid_usernames_list,
     invalid_names_list
 )
-from robottelo.decorators import bz_bug_is_open, tier1
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
@@ -157,9 +157,6 @@ class UserTestCase(APITestCase):
         :CaseImportance: Critical
         """
         for mail in invalid_emails_list():
-            # Skip if email contains successive dots (affected by BZ)
-            if bz_bug_is_open(1455501) and '..' in mail:
-                continue
             with self.subTest(mail):
                 with self.assertRaises(HTTPError):
                     entities.User(mail=mail).create()

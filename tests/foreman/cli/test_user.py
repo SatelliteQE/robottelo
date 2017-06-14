@@ -35,14 +35,7 @@ from robottelo.datafactory import (
     valid_emails_list,
     valid_usernames_list,
 )
-from robottelo.decorators import (
-    bz_bug_is_open,
-    stubbed,
-    skip_if_bug_open,
-    tier1,
-    tier2,
-    tier3,
-)
+from robottelo.decorators import stubbed, skip_if_bug_open, tier1, tier2, tier3
 from robottelo.test import CLITestCase
 
 
@@ -324,9 +317,6 @@ class UserTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         for email in invalid_emails_list():
-            # Skip if email contains successive dots (affected by BZ)
-            if bz_bug_is_open(1455501) and '..' in email:
-                continue
             with self.subTest(email):
                 options = {
                     'auth-source-id': 1,
