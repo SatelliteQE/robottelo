@@ -1550,7 +1550,58 @@ class RepositoryTestCase(UITestCase):
                 package.text for package in
                 self.repository.find_elements(
                     locators['repo.content.packages'])
-            ]
+                ]
+            self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
+
+    @tier1
+    def test_positive_upload_rpm_non_admin(self):
+        """Create yum repository, then upload rpm package via UI by non-admin
+        user.
+
+        @id: ac230198-1256-4b9b-9f0f-391064bbc5df
+
+        @expectedresults: Upload form is visible, upload is successful and
+            package is listed
+
+        @BZ: 1429624
+
+        @CaseImportance: Critical
+        """
+        role = entities.Role().create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Katello::Product').search(),
+            role=role,
+        ).create()
+        password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=False,
+            default_organization=self.session_org,
+            location=[self.session_loc],
+            organization=[self.session_org],
+            password=password,
+            role=[role],
+        ).create()
+        repo = entities.Repository(product=self.session_prod).create()
+        with Session(self.browser, user=user.login, password=password):
+            self.products.search_and_click(self.session_prod.name)
+            self.assertIsNotNone(self.repository.search(repo.name))
+            self.repository.upload_content(
+                repo.name, get_data_file(RPM_TO_UPLOAD))
+            # Check alert
+            self.assertIsNotNone(self.repository.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Check packages count
+            packages_count = self.repository.find_element(
+                locators['repo.fetch_packages'])
+            self.assertGreater(int(packages_count.text), 0)
+            # Check packages list
+            self.repository.click(locators['repo.manage_content'])
+            packages = [
+                package.text for package in
+                self.repository.find_elements(
+                    locators['repo.content.packages'])
+                ]
             self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
 
     @tier1
