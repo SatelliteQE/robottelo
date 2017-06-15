@@ -645,7 +645,9 @@ class RepositoryTestCase(UITestCase):
             count = self.repository.fetch_content_count(repo.name, 'packages')
             self.assertGreaterEqual(count, 1)
             # Remove packages
+            self.products.search_and_click(self.session_prod.name)
             self.repository.remove_content(repo.name)
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo.name, 'packages')
             self.assertEqual(count, 0)
             # Sync it again
@@ -689,8 +691,9 @@ class RepositoryTestCase(UITestCase):
             count = self.repository.fetch_content_count(repo.name, 'puppet')
             self.assertGreaterEqual(count, 1)
             # Remove packages
+            self.products.search_and_click(self.session_prod.name)
             self.repository.remove_content(repo.name)
-            self.repository.search_and_click(repo.name)
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo.name, 'puppet')
             self.assertEqual(count, 0)
             # Sync repo again
@@ -1542,6 +1545,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(alert)
             self.assertIn(RPM_TO_UPLOAD, alert.text)
             # Check packages count
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo_name, 'packages')
             self.assertGreaterEqual(count, 1)
             # Check packages list
@@ -1553,19 +1557,20 @@ class RepositoryTestCase(UITestCase):
                 ]
             self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
 
+    @skip_if_bug_open('bugzilla', 1461831)
     @tier1
     def test_positive_upload_rpm_non_admin(self):
         """Create yum repository, then upload rpm package via UI by non-admin
         user.
 
-        @id: ac230198-1256-4b9b-9f0f-391064bbc5df
+        :id: ac230198-1256-4b9b-9f0f-391064bbc5df
 
-        @expectedresults: Upload form is visible, upload is successful and
+        :expectedresults: Upload form is visible, upload is successful and
             package is listed
 
-        @BZ: 1429624
+        :BZ: 1429624, 1461831
 
-        @CaseImportance: Critical
+        :CaseImportance: Critical
         """
         role = entities.Role().create()
         entities.Filter(
@@ -1588,13 +1593,15 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo.name))
             self.repository.upload_content(
                 repo.name, get_data_file(RPM_TO_UPLOAD))
-            # Check alert
-            self.assertIsNotNone(self.repository.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            # Check alert, its message should contain file name
+            alert = self.activationkey.wait_until_element(
+                common_locators['alert.success_sub_form'])
+            self.assertIsNotNone(alert)
+            self.assertIn(RPM_TO_UPLOAD, alert.text)
             # Check packages count
-            packages_count = self.repository.find_element(
-                locators['repo.fetch_packages'])
-            self.assertGreater(int(packages_count.text), 0)
+            self.products.search_and_click(self.session_prod.name)
+            count = self.repository.fetch_content_count(repo.name, 'packages')
+            self.assertGreaterEqual(count, 1)
             # Check packages list
             self.repository.click(locators['repo.manage_content'])
             packages = [
@@ -1626,6 +1633,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error_sub_form']))
             # Check packages count
+            self.products.search_and_click(self.session_prod.name)
             count = self.repository.fetch_content_count(repo_name, 'packages')
             self.assertEqual(count, 0)
 
