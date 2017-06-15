@@ -39,6 +39,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    tier3,
     tier4
 )
 from robottelo.test import APITestCase
@@ -869,6 +870,81 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         sleep(delay/2)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'])
+
+    @tier3
+    def test_positive_synchronize_custom_product_daily_recurrence(self):
+        """Create a daily sync plan with current datetime as a sync date,
+        add a custom product and verify the product gets synchronized on
+        the next sync occurrence
+
+        :id: d60e33a0-f75c-498e-9e6f-0a2025295a9d
+
+        :expectedresults: Product is synchronized successfully.
+
+        :CaseLevel: System
+        """
+        delay = 300
+        start_date = datetime.utcnow() - timedelta(days=1)\
+            + timedelta(seconds=delay/2)
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            interval=u'hourly',
+            sync_date=start_date,
+        ).create()
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Associate sync plan with product
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        # Verify product is not synced and doesn't have any content
+        sleep(delay/4)
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+
+        # Wait the rest of expected time
+        sleep(delay)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'])
+
+    @skip_if_bug_open('bugzilla', '1463301')
+    @tier3
+    def test_positive_synchronize_custom_product_weekly_recurrence(self):
+        """Create a weekly sync plan with a past datetime as a sync date,
+        add a custom product and verify the product gets synchronized on
+        the next sync occurrence
+
+        :id: ef52dd8e-756e-429c-8c30-b3e7db2b6d61
+
+        :expectedresults: Product is synchronized successfully.
+
+        :BZ: 1463301
+
+        :CaseLevel: System
+        """
+        delay = 300
+        start_date = datetime.utcnow() - timedelta(weeks=1)\
+            + timedelta(seconds=delay/2)
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            interval=u'weekly',
+            sync_date=start_date,
+        ).create()
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Associate sync plan with product
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        # Verify product is not synced and doesn't have any content
+        sleep(delay/4)
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+
+        # Wait the rest of expected time
+        sleep(delay)
         # Verify product was synced successfully
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
