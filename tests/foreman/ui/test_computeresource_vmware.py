@@ -12,16 +12,44 @@
 
 :Upstream: No
 """
-
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from fauxfactory import gen_string
+from nailgun import entities
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.datafactory import invalid_names_list, valid_data_list
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.test import UITestCase
+from robottelo.ui.factory import make_resource
+from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 
 
 class VmwareComputeResourceTestCase(UITestCase):
     """Implement vmware compute resource tests in UI"""
 
+    @classmethod
+    @skip_if_not_set('vmware')
+    def setUpClass(cls):
+        super(VmwareComputeResourceTestCase, cls).setUpClass()
+        cls.vmware_url = settings.vmware.vcenter
+        cls.vmware_password = settings.vmware.password
+        cls.vmware_username = settings.vmware.username
+        cls.vmware_datacenter = settings.vmware.datacenter
+        cls.vmware_img_name = settings.vmware.image_name
+        cls.vmware_img_arch = settings.vmware.image_arch
+        cls.vmware_img_os = settings.vmware.image_os
+        cls.vmware_img_user = settings.vmware.image_username
+        cls.vmware_img_pass = settings.vmware.image_password
+        cls.vmware_vm_name = settings.vmware.vm_name
+
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_vmware_with_name(self):
         """Create a new vmware compute resource using valid name.
@@ -42,9 +70,24 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        with Session(self.browser) as session:
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['vmware'],
+                        parameter_list=parameter_list
+                    )
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_vmware_with_description(self):
         """Create vmware compute resource with valid description.
@@ -65,9 +108,25 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for description in valid_data_list():
+                with self.subTest(description):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['vmware'],
+                        parameter_list=parameter_list
+                    )
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_vmware_with_invalid_name(self):
         """Create a new vmware compute resource with invalid names.
@@ -88,9 +147,28 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        with Session(self.browser) as session:
+            for name in invalid_names_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['vmware'],
+                        parameter_list=parameter_list
+                    )
+                    self.assertIsNotNone(
+                        self.compute_resource.wait_until_element(
+                            common_locators["name_haserror"]
+                        )
+                    )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_vmware_name(self):
         """Update a vmware compute resource name
@@ -112,9 +190,27 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        newname = gen_string('alpha')
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            with self.subTest(newname):
+                make_resource(
+                    session,
+                    name=name,
+                    provider_type=FOREMAN_PROVIDERS['vmware'],
+                    parameter_list=parameter_list
+                )
+                self.assertIsNotNone(self.compute_resource.search(name))
+                self.compute_resource.update(name=name, newname=newname)
+                self.assertIsNotNone(self.compute_resource.search(newname))
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_update_vmware_organization(self):
         """Update a vmware compute resource organization
@@ -137,9 +233,30 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                parameter_list=parameter_list,
+                orgs=[entities.Organization().create().name],
+                org_select=True
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            self.compute_resource.update(
+                name=name,
+                orgs=[entities.Organization().create().name],
+                org_select=True
+            )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_delete_vmware(self):
         """Delete a vmware compute resource
@@ -161,9 +278,25 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            with self.subTest(name):
+                make_resource(
+                    session,
+                    name=name,
+                    provider_type=FOREMAN_PROVIDERS['vmware'],
+                    parameter_list=parameter_list
+                )
+                self.assertIsNotNone(self.compute_resource.search(name))
+                self.compute_resource.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_add_image_vmware_with_name(self):
         """Add images to the vmware compute resource
@@ -188,9 +321,36 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for img_name in valid_data_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['vmware'],
+                        parameter_list=parameter_list
+                    )
+                parameter_list_img = [
+                    ['Name', img_name],
+                    ['Operatingsystem', self.vmware_img_os],
+                    ['Architecture', self.vmware_img_arch],
+                    ['Username', self.vmware_img_user],
+                    ['Password', self.vmware_img_pass],
+                    ['uuid', self.vmware_img_name],
+                ]
+                self.compute_resource.add_image(name, parameter_list_img)
+                self.assertIsNotNone(self.compute_resource.search(name))
+                imgs = self.compute_resource.list_images(name)
+                self.assertIn(img_name, imgs)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_negative_add_image_vmware_with_invalid_name(self):
         """Add images to the vmware compute resource
@@ -216,9 +376,37 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for img_name in invalid_names_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['vmware'],
+                        parameter_list=parameter_list
+                    )
+                parameter_list_img = [
+                    ['Name', img_name],
+                    ['Operatingsystem', self.vmware_img_os],
+                    ['Architecture', self.vmware_img_arch],
+                    ['Username', self.vmware_img_user],
+                    ['Password', self.vmware_img_pass],
+                    ['uuid', self.vmware_img_name],
+                ]
+                self.compute_resource.add_image(name, parameter_list_img)
+                self.assertIsNotNone(
+                    self.compute_resource.wait_until_element(
+                        common_locators["name_haserror"]
+                    ))
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_access_vmware_with_default_profile(self):
         """Associate default (3-Large) compute profile
@@ -241,6 +429,22 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_profile.select_resource(
+                '3-Large', name, 'VMware'))
 
     @run_only_on('sat')
     @stubbed()
@@ -268,7 +472,6 @@ class VmwareComputeResourceTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_retrieve_vmware_vm_list(self):
         """List the virtual machine list from vmware compute resource
@@ -288,6 +491,23 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            vms = self.compute_resource.list_vms(name)
+            self.assertIn(self.vmware_vm_name, vms)
 
     @run_only_on('sat')
     @stubbed()
@@ -412,7 +632,6 @@ class VmwareComputeResourceTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_poweroff_vmware_vms(self):
         """Poweroff the vmware virtual machine
@@ -436,9 +655,24 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :Caselevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                parameter_list=parameter_list
+            )
+            self.assertEqual(self.compute_resource.set_power_status(
+                name, self.vmware_vm_name, False), u'Off')
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_poweron_vmware_vms(self):
         """Power on the vmware virtual machine
@@ -462,3 +696,19 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :Caselevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                parameter_list=parameter_list
+            )
+            self.assertEqual(self.compute_resource.set_power_status(
+                name, self.vmware_vm_name, True), u'On')
