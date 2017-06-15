@@ -986,6 +986,41 @@ class ActivationKeyTestCase(UITestCase):
                 self.assertEqual(len(hostnames), 1)
                 self.assertEqual(vm.hostname, hostnames[0])
 
+    @skip_if_not_set('clients')
+    @tier3
+    def test_positive_open_associated_host(self):
+        """Associate content host with activation key, open activation key's
+        associated hosts, click on content host link
+
+        :id: 3dbe8370-f85b-416f-847f-7b7d81585bfc
+
+        :expectedresults: Redirected to specific content host page
+
+        :BZ: 1405166
+
+        :CaseLevel: System
+        """
+        ak = entities.ActivationKey(
+            environment=entities.LifecycleEnvironment(
+                name=ENVIRONMENT,
+                organization=self.organization,
+            ).search()[0],
+            organization=self.organization,
+        ).create()
+        with VirtualMachine(distro=self.vm_distro) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.organization.label, ak.name)
+            self.assertTrue(vm.subscribed)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.organization.name)
+                host = self.activationkey.search_content_host(
+                    ak.name, vm.hostname)
+                self.activationkey.click(host)
+                chost_name = self.activationkey.wait_until_element(
+                    locators['contenthost.details_page.name'])
+                self.assertIsNotNone(chost_name)
+                self.assertEqual(chost_name.text, vm.hostname)
+
     @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
