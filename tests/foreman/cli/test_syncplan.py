@@ -44,6 +44,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     stubbed,
     tier1,
+    tier3,
     tier4,
 )
 from robottelo.ssh import upload_file
@@ -629,3 +630,82 @@ class SyncPlanTestCase(CLITestCase):
         sleep(delay/2)
         # Verify product was synced successfully
         self.validate_repo_content(repo, ['errata', 'packages'])
+
+    @tier3
+    def test_positive_synchronize_custom_product_daily_recurrence(self):
+        """Create a daily sync plan with a past datetime as a sync date,
+        add a custom product and verify the product gets synchronized on
+        the next sync occurrence
+
+        @id: 8d882e8b-b5c1-4449-81c6-0efd31ad75a7
+
+        @expectedresults: Product is synchronized successfully.
+
+        @CaseLevel: System
+        """
+        delay = 300
+        product = make_product({'organization-id': self.org['id']})
+        repo = make_repository({'product-id': product['id']})
+        start_date = datetime.utcnow() - timedelta(days=1)\
+            + timedelta(seconds=delay/2)
+        sync_plan = self._make_sync_plan({
+            'enabled': 'true',
+            'interval': 'daily',
+            'organization-id': self.org['id'],
+            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        # Associate sync plan with product
+        Product.set_sync_plan({
+            'id': product['id'],
+            'sync-plan-id': sync_plan['id'],
+        })
+        # Verify product has not been synced yet
+        sleep(delay/4)
+        self.validate_repo_content(
+            repo, ['errata', 'packages'], after_sync=False)
+        # Wait until the first recurrence
+        sleep(delay)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['errata', 'package-groups', 'packages'])
+
+    @skip_if_bug_open('bugzilla', '1463696')
+    @tier3
+    def test_positive_synchronize_custom_product_weekly_recurrence(self):
+        """Create a weekly sync plan with a past datetime as a sync date,
+        add a custom product and verify the product gets synchronized
+        on the next sync occurrence
+
+        @id: 1079a66d-7c23-44f6-a4a0-47f4c74d92a4
+
+        @expectedresults: Product is synchronized successfully.
+
+        @BZ: 1463696
+
+        @CaseLevel: System
+        """
+        delay = 300
+        product = make_product({'organization-id': self.org['id']})
+        repo = make_repository({'product-id': product['id']})
+        start_date = datetime.utcnow() - timedelta(weeks=1)\
+            + timedelta(seconds=delay/2)
+        sync_plan = self._make_sync_plan({
+            'enabled': 'true',
+            'interval': 'weekly',
+            'organization-id': self.org['id'],
+            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        # Associate sync plan with product
+        Product.set_sync_plan({
+            'id': product['id'],
+            'sync-plan-id': sync_plan['id'],
+        })
+        # Verify product has not been synced yet
+        sleep(delay/4)
+        self.validate_repo_content(
+            repo, ['errata', 'packages'], after_sync=False)
+        # Wait until the first recurrence
+        sleep(delay)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['errata', 'package-groups', 'packages'])
