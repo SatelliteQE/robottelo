@@ -453,3 +453,25 @@ class Host(Base):
         cls.command_sub = 'smart-variables'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+
+class HostInterface(Base):
+    """Manages interface functionality for hosts.
+
+    Usage::
+        hammer host interface [OPTIONS] SUBCOMMAND [ARG] ...
+
+    Subcommands::
+        create         Create an interface on a host
+        delete         Delete a host's interface
+        info           Show an interface for host
+        list           List all interfaces for host
+        update         Update a host's interface
+    """
+    command_base = 'host interface'
+
+    @classmethod
+    def create(cls, options=None):
+        """Create new network interface for host"""
+        cls.command_sub = 'create'
+        cls.execute(cls._construct_command(options), output_format='csv')

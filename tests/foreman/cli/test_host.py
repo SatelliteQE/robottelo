@@ -16,7 +16,7 @@
 """
 from random import choice
 
-from fauxfactory import gen_mac, gen_string
+from fauxfactory import gen_ipaddr, gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
 from robottelo.cleanup import vm_cleanup
@@ -32,6 +32,7 @@ from robottelo.cli.factory import (
     make_domain,
     make_environment,
     make_fake_host,
+    make_host,
     make_host_collection,
     make_hostgroup,
     make_lifecycle_environment,
@@ -43,7 +44,7 @@ from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
-from robottelo.cli.host import Host
+from robottelo.cli.host import Host, HostInterface
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
@@ -161,17 +162,15 @@ class HostCreateTestCase(CLITestCase):
             with self.subTest(name):
                 host = entities.Host()
                 host.create_missing()
-                result = Host.create({
+                result = make_host({
                     u'architecture-id': host.architecture.id,
                     u'domain-id': host.domain.id,
                     u'environment-id': host.environment.id,
-                    # pylint:disable=no-member
                     u'location-id': host.location.id,
                     u'mac': host.mac,
                     u'medium-id': host.medium.id,
                     u'name': name,
                     u'operatingsystem-id': host.operatingsystem.id,
-                    # pylint:disable=no-member
                     u'organization-id': host.organization.id,
                     u'partition-table-id': host.ptable.id,
                     u'puppet-proxy-id': self.puppet_proxy['id'],
@@ -181,6 +180,133 @@ class HostCreateTestCase(CLITestCase):
                     '{0}.{1}'.format(name, host.domain.read().name),
                     result['name'],
                 )
+
+    @tier1
+    def test_positive_add_interface_by_id(self):
+        """New network interface can be added to existing host
+
+        :id: e97dba92-61eb-47ad-a7d7-5f989292b12a
+
+        :expectedresults: Interface added to host correctly and has proper
+            domain and mac address
+
+        :CaseImportance: Critical
+        """
+        domain = make_domain()
+        mac = gen_mac(multicast=False)
+        host = make_fake_host({
+            u'domain-id': domain['id'],
+        })
+        HostInterface.create({
+            u'host-id': host['id'],
+            u'domain-id': domain['id'],
+            u'mac': mac,
+        })
+        host = Host.info({u'id': host['id']})
+        host_interface = HostInterface.info({
+            u'host-id': host['id'],
+            u'id': host['network-interfaces'][-1]['id']
+        })
+        self.assertEqual(host_interface['domain'], domain['name'])
+        self.assertEqual(host_interface['mac-address'], mac)
+
+    @tier2
+    def test_positive_create_with_interface_by_id(self):
+        """A host with defined interface can be created. Use domain id as one
+        of the interface keys
+
+        :id: 5455632c-ec87-4b45-ad88-cc8b4b1167c2
+
+        :expectedresults: A host is created and has proper name. Assigned
+            interface has correct domain name
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('alpha').lower()
+        hostgroup = make_hostgroup({
+            'content-view-id': self.new_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-ids': self.new_org['id'],
+        })
+        host = entities.Host()
+        host.create_missing()
+        interface = (
+            "type=interface,mac={0},identifier=eth0,name={1},domain_id={2},"
+            "ip={3},primary=true,provision=true"
+        ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
+        result = make_host({
+            u'architecture-id': host.architecture.id,
+            u'hostgroup-id': hostgroup['id'],
+            u'location-id': host.location.id,
+            u'medium-id': host.medium.id,
+            u'name': name,
+            u'operatingsystem-id': host.operatingsystem.id,
+            u'organization-id': host.organization.id,
+            u'partition-table-id': host.ptable.id,
+            u'root-password': host.root_pass,
+            u'interface': interface,
+        })
+        self.assertEqual(
+            '{0}.{1}'.format(name, host.domain.read().name),
+            result['name'],
+        )
+        host_interface = HostInterface.info({
+            u'host-id': result['id'],
+            u'id': result['network-interfaces'][0]['id']
+        })
+        self.assertEqual(host_interface['domain'], host.domain.read().name)
+
+    @tier2
+    def test_positive_create_with_interface_by_name(self):
+        """A host with defined interface can be created. Use domain name as one
+        of the interface keys
+
+        :id: 6185f8d7-fdb5-4749-ad82-91ff471f91b8
+
+        :expectedresults: A host is created and has proper name. Assigned
+            interface has correct domain name
+
+        :BZ: 1384497
+
+        :CaseLevel: Integration
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('alpha').lower()
+        hostgroup = make_hostgroup({
+            'content-view-id': self.new_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-ids': self.new_org['id'],
+        })
+        host = entities.Host()
+        host.create_missing()
+        interface = (
+            "type=interface,mac={0},identifier=eth0,name={1},domain={2},"
+            "ip={3},primary=true,provision=true"
+        ).format(host.mac, gen_string('alpha'), host.domain.name, gen_ipaddr())
+        result = make_host({
+            u'architecture-id': host.architecture.id,
+            u'hostgroup-id': hostgroup['id'],
+            u'location-id': host.location.id,
+            u'medium-id': host.medium.id,
+            u'name': name,
+            u'operatingsystem-id': host.operatingsystem.id,
+            u'organization-id': host.organization.id,
+            u'partition-table-id': host.ptable.id,
+            u'root-password': host.root_pass,
+            u'interface': interface,
+        })
+        self.assertEqual(
+            '{0}.{1}'.format(name, host.domain.read().name),
+            result['name'],
+        )
+        host_interface = HostInterface.info({
+            u'host-id': result['id'],
+            u'id': result['network-interfaces'][0]['id']
+        })
+        self.assertEqual(host_interface['domain'], host.domain.read().name)
 
     @tier1
     def test_positive_create_with_org_name(self):
@@ -427,7 +553,7 @@ class HostCreateTestCase(CLITestCase):
 
         :expectedresults: Overridden sc-param from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -454,7 +580,7 @@ class HostCreateTestCase(CLITestCase):
 
         :expectedresults: Overridden sc-param from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -481,7 +607,7 @@ class HostCreateTestCase(CLITestCase):
 
         :expectedresults: Smart variable from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -505,7 +631,7 @@ class HostCreateTestCase(CLITestCase):
 
         :expectedresults: Smart variable from puppet class is listed
 
-        :Caselevel: Integration
+        :CaseLevel: Integration
         """
         # Create hostgroup with associated puppet class
         host = make_fake_host({
@@ -605,16 +731,15 @@ class HostCreateTestCase(CLITestCase):
         ).create()
         host = entities.Host()
         host.create_missing()
-        result = Host.create({
+        result = make_host({
             u'architecture-id': host.architecture.id,
             u'compute-resource-id': compute_resource.id,
             u'domain-id': host.domain.id,
             u'environment-id': host.environment.id,
-            u'location-id': host.location.id,  # pylint:disable=no-member
+            u'location-id': host.location.id,
             u'medium-id': host.medium.id,
             u'name': host.name,
             u'operatingsystem-id': host.operatingsystem.id,
-            # pylint:disable=no-member
             u'organization-id': host.organization.id,
             u'partition-table-id': host.ptable.id,
             u'puppet-proxy-id': self.puppet_proxy['id'],
@@ -673,7 +798,7 @@ class HostCreateTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -694,7 +819,7 @@ class HostCreateTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -726,7 +851,7 @@ class HostCreateTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -759,7 +884,7 @@ class HostCreateTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -792,7 +917,7 @@ class HostCreateTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -825,7 +950,7 @@ class HostCreateTestCase(CLITestCase):
 
         :caseautomation: notautomated
 
-        :caselevel: System
+        :CaseLevel: System
         """
 
 
@@ -841,7 +966,7 @@ class HostDeleteTestCase(CLITestCase):
         })[0]
         self.host = entities.Host()
         self.host.create_missing()
-        self.host = Host.create({
+        self.host = make_host({
             u'architecture-id': self.host.architecture.id,
             u'domain-id': self.host.domain.id,
             u'environment-id': self.host.environment.id,
@@ -900,17 +1025,15 @@ class HostUpdateTestCase(CLITestCase):
         self.host_args = entities.Host()
         self.host_args.create_missing()
         # using CLI to create host
-        self.host = Host.create({
+        self.host = make_host({
             u'architecture-id': self.host_args.architecture.id,
             u'domain-id': self.host_args.domain.id,
             u'environment-id': self.host_args.environment.id,
-            # pylint:disable=no-member
             u'location-id': self.host_args.location.id,
             u'mac': self.host_args.mac,
             u'medium-id': self.host_args.medium.id,
             u'name': self.host_args.name,
             u'operatingsystem-id': self.host_args.operatingsystem.id,
-            # pylint:disable=no-member
             u'organization-id': self.host_args.organization.id,
             u'partition-table-id': self.host_args.ptable.id,
             u'puppet-proxy-id': self.puppet_proxy['id'],
@@ -1380,16 +1503,15 @@ class HostParameterTestCase(CLITestCase):
         cls.host = entities.Host()
         cls.host.create_missing()
         # using CLI to create host
-        cls.host = Host.create({
+        cls.host = make_host({
             u'architecture-id': cls.host.architecture.id,
             u'domain-id': cls.host.domain.id,
             u'environment-id': cls.host.environment.id,
-            u'location-id': cls.host.location.id,  # pylint:disable=no-member
+            u'location-id': cls.host.location.id,
             u'mac': cls.host.mac,
             u'medium-id': cls.host.medium.id,
             u'name': cls.host.name,
             u'operatingsystem-id': cls.host.operatingsystem.id,
-            # pylint:disable=no-member
             u'organization-id': cls.host.organization.id,
             u'partition-table-id': cls.host.ptable.id,
             u'puppet-proxy-id': cls.puppet_proxy['id'],
