@@ -176,6 +176,8 @@ common_locators = LocatorDict({
         "//*[@class='modal-backdrop fade in']",
     ),
     "select_repo": (By.XPATH, "//select[@ng-model='repository']"),
+    "table_per_page": (
+        By.XPATH, "//select[@ng-model='table.params.per_page']"),
 
     # ace editor
     "ace.input": (By.XPATH, "//label[contains(., 'Input') and"

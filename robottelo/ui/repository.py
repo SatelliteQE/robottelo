@@ -169,6 +169,8 @@ class Repos(Base):
         """Remove content from a repository."""
         self.search_and_click(repo_name)
         self.click(locators['repo.manage_content'])
+        # fixme: Should be replaced with conditional loop for >100 packages
+        self.assign_value(common_locators['table_per_page'], '100')
         self.click(locators['repo.content.select_all'])
         self.click(locators['repo.content.remove'])
         self.click(locators['repo.content.confirm_remove'])
