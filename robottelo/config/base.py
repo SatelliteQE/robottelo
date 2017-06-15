@@ -561,7 +561,7 @@ class VmWareSettings(FeatureSettings):
     def read(self, reader):
         """Read vmware settings."""
         # Compute Resource Information
-        self.vcenter = reader.get('vmware', 'hostname')
+        self.vcenter = reader.get('vmware', 'vcenter')
         self.username = reader.get('vmware', 'username')
         self.password = reader.get('vmware', 'password')
         self.datacenter = reader.get('vmware', 'datacenter')

@@ -360,8 +360,8 @@ port_range=9091, 14999
 
 # [vmware]
 # Vmware to be added as a compute resource
-# hostname: vmware vcenter URL
-# hostname=
+# vcenter: vmware vcenter URL
+# vcenter=
 # username: Login for vmware
 # username=
 # password: Password for vmware

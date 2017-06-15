@@ -34,7 +34,7 @@ FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',
     'rhev': 'RHEV',
     'ec2': 'EC2',
-    'vmware': 'VMWare',
+    'vmware': 'VMware',
     'openstack': 'RHEL OpenStack Platform',
     'rackspace': 'Rackspace',
     'google': 'Google',

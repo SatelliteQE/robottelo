@@ -280,6 +280,7 @@ locators = LocatorDict({
     "resource.provider_type": (By.ID, "s2id_compute_resource_provider"),
     "resource.description": (By.ID, "compute_resource_description"),
     "resource.url": (By.XPATH, "//input[@id='compute_resource_url']"),
+    "resource.server": (By.XPATH, "//input[@id='compute_resource_server']"),
     "resource.display_type": (By.ID, "compute_resource_display_type"),
     "resource.console_passwords": (
         By.ID, "compute_resource_set_console_password"),
@@ -289,9 +290,9 @@ locators = LocatorDict({
     "resource.username": (By.ID, "compute_resource_user"),
     "resource.password": (By.ID, "compute_resource_password"),
     "resource.datacenter": (
-        By.XPATH,
-        ("//div[contains(@id, 's2id_compute_resource_uuid')]"
-         "/a/span[contains(@class, 'arrow')]")),
+          By.XPATH,
+          ("(//div[contains(@id, 's2id_compute_resource')])[2]"
+           "/a/span[contains(@class, 'arrow')]")),
     "resource.datacenter_vsphere": (
         By.XPATH, "//select[@id='compute_resource_datacenter']"),
     "resource.datacenter.button": (
@@ -353,7 +354,8 @@ locators = LocatorDict({
         "input[contains(@aria-controls, 'DataTables_Table')]"),
     "resource.power_status": (
         By.XPATH,
-        ".//*[@id='DataTables_Table_0']/tbody/tr/td[4]/span"),
+        ".//*[contains(@id, 'DataTables_Table')]/tbody/tr/td"
+        "[position() = (last()-1)]/span"),
     "resource.vm_power_button": (
         By.XPATH,
         "//a[contains(@href,'power')]"),
@@ -370,7 +372,7 @@ locators = LocatorDict({
         "//div[@id='vms']//tbody/tr/td/a"),
 
     # Locators under compute-resources image tab.
-    "resource.image_add": (By.XPATH, "//a[.='New Image']"),
+    "resource.image_add": (By.XPATH, "//a[.='Create Image']"),
     "resource.image_name": (By.XPATH, "//input[@id='image_name']"),
     "resource.image_operatingsystem": (
         By.XPATH, "//div[@id='s2id_image_operatingsystem_id']"
@@ -382,7 +384,8 @@ locators = LocatorDict({
     "resource.image_password": (By.ID, "image_password"),
     "resource.image_uuid": (
         By.XPATH,
-        "//div[@id='s2id_image_uuid']/a/span[contains(@class, 'arrow')]"),
+        "//*[@id='image_uuid'] | //div[@id='s2id_image_uuid']"
+        "/a/span[contains(@class, 'arrow')]"),
     "resource.image_submit": (
         By.XPATH, "//input[@data-id='aid_create_image']"),
     "resource.image_list": (

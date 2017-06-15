@@ -206,6 +206,8 @@ class ComputeResource(Base):
         if parameter_list is None:
             return
         for parameter_name, parameter_value, parameter_type in parameter_list:
+            if parameter_name.find('/') >= 0:
+                _, parameter_name = parameter_name.split('/')
             param_locator = '.'.join((
                 'resource',
                 (parameter_name.lower()).replace(' ', '_')
