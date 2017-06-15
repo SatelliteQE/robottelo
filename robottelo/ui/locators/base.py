@@ -1273,7 +1273,8 @@ locators = LocatorDict({
     "repo.discovered_url_checkbox": (
         By.XPATH, "//td[contains(., '%s')]/../td/input[@type='checkbox']"),
     "repo.cancel_discover": (
-        By.XPATH, "//button[@ng-show='discovery.pending']"),
+        By.XPATH, "//button[@ng-click='cancelDiscovery()' "
+                  "and not(contains(@class, 'ng-hide'))]"),
     "repo.create_selected": (
         By.XPATH, "//button[@ng-click='setupSelected()']"),
     "repo.create": (By.XPATH, "//button[@ng-click='createRepos()']"),
