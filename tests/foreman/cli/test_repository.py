@@ -64,6 +64,7 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -700,6 +701,8 @@ class RepositoryTestCase(CLITestCase):
         :expectedresults: Non-YUM repository is not created with a download
             policy
 
+        :BZ: 1439835
+
         :CaseImportance: Critical
         """
         os_version = get_host_os_version()
@@ -713,6 +716,8 @@ class RepositoryTestCase(CLITestCase):
             non_yum_repo_types = [
                  item for item in REPO_TYPE.keys() if item != 'yum'
             ]
+        if bz_bug_is_open(1439835):
+            non_yum_repo_types.remove('ostree')
         for content_type in non_yum_repo_types:
             with self.subTest(content_type):
                 with self.assertRaisesRegex(
