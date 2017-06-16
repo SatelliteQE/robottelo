@@ -964,7 +964,7 @@ locators = LocatorDict({
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
     "hostgroups.content_source": (
         By.XPATH,
-        ("//div[contains(@id, 'hostgroup_content_source')]/a"
+        ("//div[contains(@id, 'content_source')]/a"
          "/span[contains(@class, 'arrow')]")),
     "hostgroups.content_view": (
         By.XPATH,
