@@ -430,6 +430,7 @@ def valid_http_credentials(url_encoded=False):
             u'pass': gen_string('utf8'),
             u'quote': True,
             u'http_valid': False,
+            u'encoding': 'utf8'
         },
     ]
     if url_encoded:
@@ -437,6 +438,7 @@ def valid_http_credentials(url_encoded=False):
                 u'login': quote_plus(cred['login'].encode('utf-8'), ''),
                 u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
                 u'http_valid': cred['http_valid'],
+                u'original_encoding': cred.get('encoding', 'latin-1'),
                 } for cred in credentials]
     else:
         return credentials
