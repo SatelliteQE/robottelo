@@ -1427,7 +1427,7 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "ak.select_subscription": (
         By.XPATH,
-        ("//tr/td/a[contains(., '%s')]"
+        ("//tr/td/b[contains(., '%s')]"
          "/following::tr[@row-select='subscription']"
          "/td/input[@ng-model='subscription.selected']")),
     "ak.add_selected_subscription": (
