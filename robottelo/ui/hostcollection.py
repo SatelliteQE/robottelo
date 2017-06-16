@@ -74,12 +74,9 @@ class HostCollection(Base):
     def copy(self, name, new_name):
         """Copies an existing Host Collection entity"""
         self.search_and_click(name)
-        self.edit_entity(
-            locators['hostcollection.copy'],
-            locators['hostcollection.copy_name'],
-            new_name,
-            locators['hostcollection.copy_create'],
-        )
+        self.perform_entity_action('Copy Host Collection')
+        self.assign_value(common_locators['copy_name_input'], new_name)
+        self.click(common_locators['copy_create_button'])
 
     def add_host(self, name, host_name):
         """Add content host to existing Host Collection entity."""

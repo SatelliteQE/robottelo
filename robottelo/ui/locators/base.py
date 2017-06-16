@@ -2415,11 +2415,6 @@ locators = LocatorDict({
         "//span[text()='%s']"),
     "hostcollection.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
-    "hostcollection.copy": (
-        By.XPATH, "//button[@ng-click='showCopy = true']"),
-    "hostcollection.copy_name": (By.ID, "copy_name"),
-    "hostcollection.copy_create": (
-        By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "hostcollection.select_host": (
         By.XPATH,
         ("//div[contains(@bst-table, 'detailsTable')]"
