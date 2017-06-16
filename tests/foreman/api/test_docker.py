@@ -612,13 +612,13 @@ class DockerContentViewTestCase(APITestCase):
         # Not published yet?
         content_view = content_view.read()
         self.assertIsNone(content_view.last_published)
-        self.assertEqual(content_view.next_version, 1)
+        self.assertEqual(float(content_view.next_version), 1.0)
 
         # Publish it and check that it was indeed published.
         content_view.publish()
         content_view = content_view.read()
         self.assertIsNotNone(content_view.last_published)
-        self.assertGreater(content_view.next_version, 1)
+        self.assertGreater(float(content_view.next_version), 1.0)
 
     @tier2
     @run_only_on('sat')
