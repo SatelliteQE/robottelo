@@ -234,6 +234,61 @@ class ContentViewTestCase(UITestCase):
                 common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1431778)
+    @tier2
+    def test_positive_repo_count_for_composite_cv(self):
+        """Create some content views with synchronized repositories. Add them
+        to composite content view and check repo count for it
+
+        :id: 4b8d5def-a593-4f6c-9856-e5f32fb80164
+
+        :expectedresults: repository count for composite content view should
+            not be higher than count of unique repositories for each content
+            view from composite one
+
+        :BZ: 1431778
+
+        :CaseLevel: Integration
+        """
+        ccv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            # Creates a composite CV along with product and sync'ed repository
+            make_contentview(
+                session,
+                name=ccv_name,
+                org=self.organization.name,
+                is_composite=True,
+            )
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create three content-views and add synced repo to them
+            for _ in range(3):
+                cv_name = entities.ContentView(
+                    organization=self.organization).create().name
+                self.assertIsNotNone(self.content_views.search(cv_name))
+                # Add repository to selected CV
+                self.content_views.add_remove_repos(cv_name, [repo_name])
+                # Publish content view
+                self.content_views.publish(cv_name)
+                # Check that repo count for cv is equal to 1
+                self.assertEqual(
+                    self.content_views.get_cv_table_value(
+                        cv_name, 'Repositories'),
+                    '1'
+                )
+                # Add content view to composite one
+                self.content_views.add_remove_cv(ccv_name, [cv_name])
+            # Publish composite content view
+            self.content_views.publish(ccv_name)
+            # Check that composite cv has one repository in the table as we
+            # were using one unique repository for whole flow
+            self.assertEqual(
+                self.content_views.get_cv_table_value(
+                    ccv_name, 'Repositories'),
+                '1'
+            )
+
+    @run_only_on('sat')
     @tier2
     def test_positive_add_puppet_module(self):
         """create content view with puppet repository

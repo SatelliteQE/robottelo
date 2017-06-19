@@ -233,12 +233,11 @@ def make_repository(session, org=None, loc=None,
     Repos(session.browser).create(**create_args)
 
 
-def make_contentview(session, org=None, loc=None,
-                     force_context=True, **kwargs):
+def make_contentview(
+        session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a content-view"""
-
     create_args = {
-        u'name': None,
+        u'name': gen_string('alpha'),
         u'label': None,
         u'description': None,
         u'is_composite': False,

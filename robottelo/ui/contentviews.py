@@ -656,3 +656,18 @@ class ContentViews(Base):
         self.click(locators.contentviews.next_button)
         self.click(locators.contentviews.confirm_remove_ver)
         self.check_progress_bar_status(version)
+
+    def get_cv_table_value(self, cv_name, column_name):
+        """Get value for specific table cell
+
+        :param str cv_name: Name of content view to be fetched
+        :param str column_name: Name of table column that needs to be fetched
+        :return str: Cell value text
+        """
+        element = self.search(cv_name)
+        if element is None:
+            raise UINoSuchElementError(
+                'Unable to find necessary cv "{0}".'.format(cv_name)
+            )
+        return self.wait_until_element(
+            common_locators['table_cell_value'] % (cv_name, column_name)).text
