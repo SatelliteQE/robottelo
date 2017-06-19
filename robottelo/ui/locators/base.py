@@ -9,9 +9,7 @@ locators = LocatorDict({
 
     # Bookmarks
     "bookmark.select_name": (
-        By.XPATH,
-        ("//td[following-sibling::td[text()='%s']]"
-         "/a[span[contains(.,'%s')]]")),
+        By.XPATH, "//a[span[contains(.,'%s')]]"),
     "bookmark.new": (
         By.XPATH,
         ("//ul[contains(@class, 'dropdown-menu')]"
@@ -27,7 +25,7 @@ locators = LocatorDict({
         "//input[@type='checkbox'][@id='public' or @id='bookmark_public']"),
     "bookmark.create": (
         By.XPATH,
-        ("//button[(contains(@class, 'btn-primary') and @type='button') or "
+        ("//button[(contains(@class, 'btn-primary')) or "
          "(contains(@class, 'btn-danger') and @ng-click='ok()')]")),
     "bookmark.select_long_name": (
         By.XPATH,
@@ -49,11 +47,6 @@ locators = LocatorDict({
     "location.select_name": (
         By.XPATH,
         "//td/a[contains(@href,'locations')]/span[contains(.,'%s')]"),
-    "location.dropdown": (
-        By.XPATH,
-        ("//a[normalize-space(.)='%s' and contains(@href,'locations')]"
-         "/../../td/div/a[@data-toggle='dropdown']")),
-
 
     # Login
     "login.username": (By.ID, "login_login"),
@@ -71,8 +64,6 @@ locators = LocatorDict({
         By.XPATH, "//li[@data-name='%s']"),
     "dashboard.remove_widget": (
         By.XPATH, "//li[@data-name='%s']/div/a[@class='remove']"),
-    "dashboard.minimize_widget": (
-        By.XPATH, "//li[@data-name='%s']/div/a[@class='minimize']"),
     "dashboard.restore_widget": (
         By.XPATH,
         "//a[contains(., '%s') and contains(@onclick, 'show_widget')]"),
@@ -82,15 +73,16 @@ locators = LocatorDict({
     "dashboard.manage_widget": (
         By.XPATH, "//div[@id='main']//a[contains(., 'Manage')]"),
     "dashboard.save_dashboard": (
-        By.XPATH, "//li/a[text()='Save dashboard']"),
+        By.XPATH, "//li/a[contains(@onclick, 'save_position')]"),
     "dashboard.reset_dashboard": (
         By.XPATH, "//li/a[contains(@href, 'reset_default')]"),
     "dashboard.hcs.search_criteria": (
         By.XPATH,
-        "//li[@data-name='Status table']//li/a[contains(., '%s')]"),
+        "//li[@data-name='Host Configuration Status']"
+        "//li/a[contains(., '%s')]"),
     "dashboard.hcs.hosts_count": (
         By.XPATH,
-        "//li[@data-name='Status table']//li/a[contains(., '%s')]"
+        "//li[@data-name='Host Configuration Status']//li/a[contains(., '%s')]"
         "/following-sibling::h4"),
     "dashboard.hcc.hosts_percentage": (
         By.XPATH,
@@ -100,28 +92,28 @@ locators = LocatorDict({
         "//td[text()='%s']/following-sibling::td/a"),
     "dashboard.lwe_task.name": (
         By.XPATH,
-        "//li[@data-name='Tasks in Error/Warning']//a[contains(., '%s')]"),
+        "//li[@data-name='Latest Warning/Error Tasks']//a[contains(., '%s')]"),
     "dashboard.cvh.tasks_statuses": (
         By.XPATH,
-        "//li[@data-name='Content Views Widget']//a[contains(., '%s')]/.."
+        "//li[@data-name='Content Views']//a[contains(., '%s')]/.."
         "/following-sibling::td"
     ),
     "dashboard.hc.hosts_count": (
         By.XPATH,
-        "//li[@data-name='Host Collection Widget']//td[text()='%s']"
+        "//li[@data-name='Host Collections']//td[text()='%s']"
         "/following-sibling::td"),
     "dashboard.so.product_status": (
         By.XPATH,
-        "//li[@data-name='Sync Widget']//td[text()='%s']"
+        "//li[@data-name='Sync Overview']//td[text()='%s']"
         "/following-sibling::td"),
     "dashboard.cst.subs_count": (
         By.XPATH,
-        "//li[@data-name='Subscription Status Widget']//td[text()='%s']"
+        "//li[@data-name='Subscription Status']//td[text()='%s']"
         "/following-sibling::td"),
     "dashboard.chss.search_criteria": (By.XPATH, "//td/a[contains(., '%s')]"),
     "dashboard.latest_errata.empty": (
         By.XPATH,
-        "//li[@data-name='Errata Widget']//p[contains(., 'There are no errata "
+        "//li[@data-name='Latest Errata']//p[contains(., 'There are no errata "
         "that need to be applied')]"),
 
     # Organizations
@@ -140,10 +132,6 @@ locators = LocatorDict({
     "org.org_name": (
         By.XPATH,
         "//td/a[contains(@href,'organizations')]/span[contains(.,'%s')]"),
-    "org.dropdown": (
-        By.XPATH,
-        ("//a[normalize-space(.)='%s' and contains(@href,'organizations')]"
-            "/../../td/div/a[@data-toggle='dropdown']")),
     "org.name_value": (
         By.XPATH,
         "//input[@id='organization_name' and @value='%s']"),
@@ -167,9 +155,6 @@ locators = LocatorDict({
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Edit')]"),
     "trend.edit_entity": (By.XPATH, "//td[contains(., '%s')]/../td[2]/input"),
-    "trend.dropdown": (
-        By.XPATH,
-        "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
 
     # Jobs invocation
 
@@ -271,10 +256,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@href,'compute_profiles')"
             "and normalize-space(.)='%s']")),
-    "profile.dropdown": (
-        By.XPATH,
-        ("//td/a[contains(., '%s')]"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "profile.rename": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
@@ -347,10 +328,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@href,'compute_resources')and normalize-space(.)='%s']"
          "/../following-sibling::td[@class='ellipsis']")),
-    "resource.dropdown": (
-        By.XPATH,
-        ("//td/a[contains(., '%s')]"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "resource.edit": (
         By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
     "resource.filter_containers": (
@@ -505,7 +482,7 @@ locators = LocatorDict({
 
     # Content Hosts
     "contenthost.page_title": (
-        By.XPATH, "//h2/div[contains(., 'Content Hosts')]"),
+        By.XPATH, "//h2/span[contains(., 'Content Hosts')]"),
     "contenthost.select_name": (
         By.XPATH,
         "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),
@@ -636,10 +613,6 @@ locators = LocatorDict({
                            "contains(@class, 'btn')]"),
     "host.clone": (
         By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
-    "host.dropdown": (
-        By.XPATH,
-        ("//a[contains(@href,'%s')]"
-         "/../../a[contains(@data-toggle,'dropdown')]")),
     "host.edit": (By.XPATH,
                   "//a[@class='btn btn-default' and contains(@href,'edit')]"),
     "host.select_name": (
@@ -898,10 +871,6 @@ locators = LocatorDict({
         By.ID, "provisioning_template_audit_comment"),
     "provision.template_template": (
         By.XPATH, "//input[@id='template_file']"),
-    "provision.template_dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "provision.template_clone": (
         By.XPATH, "//a[contains(@href,'clone')]"),
 
@@ -961,10 +930,6 @@ locators = LocatorDict({
         By.XPATH,
         "//input[@id='job_template_effective_user_attributes_overridable']"),
     "job.template_snippet": (By.XPATH, "//input[@id='job_template_snippet']"),
-    "job.template_dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "job.template_clone": (
         By.XPATH, "//a[contains(@href,'clone_template')]"),
     "job.add_new_input": (By.XPATH, "//a[text()='+ Add Input']"),
@@ -997,13 +962,9 @@ locators = LocatorDict({
         ("//div[contains(@id, 'hostgroup_lifecycle_environment')]/a"
          "/span[contains(@class, 'arrow')]")),
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
-    "hostgroups.dropdown": (
-        By.XPATH,
-        ("//td/a/span[contains(., '%s')]"
-         "/following::td/div/a[@data-toggle='dropdown']")),
     "hostgroups.content_source": (
         By.XPATH,
-        ("//div[contains(@id, 'hostgroup_content_source')]/a"
+        ("//div[contains(@id, 'content_source')]/a"
          "/span[contains(@class, 'arrow')]")),
     "hostgroups.content_view": (
         By.XPATH,
@@ -1109,9 +1070,14 @@ locators = LocatorDict({
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
     "roles.clone": (By.XPATH, "//a[contains(@data-id, 'clone')]"),
     "roles.name": (By.ID, "role_name"),
-    "roles.dropdown": (
+    "roles.locked": (
         By.XPATH,
-        ("//td/span/a[normalize-space(.)='%s']"
+        ("//td/em[normalize-space(.)='%s']"
+         "/following::td/span[contains(@class, 'lock')]")
+    ),
+    "roles.locked_dropdown": (
+        By.XPATH,
+        ("//td/em[normalize-space(.)='%s']"
          "/following::td/div/a[@data-toggle='dropdown']")),
     "roles.add_permission": (
         By.XPATH, "//a[@data-id='aid_filters_new']"),
@@ -1166,9 +1132,6 @@ locators = LocatorDict({
     "env.new": (By.XPATH, "//a[contains(@href, '/environments/new')]"),
     "env.name": (By.ID, "environment_name"),
     "env.env_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "env.dropdown": (
-        By.XPATH,
-        "//a[contains(@href,'%s') and contains(.,'Classes')]/../../a"),
 
     # Partition Table
     "ptable.new": (By.XPATH, "//a[contains(@href, '/ptables/new')]"),
@@ -1183,10 +1146,6 @@ locators = LocatorDict({
         ("//div[contains(@id, 'ptable_os_family')]/a"
          "/span[contains(@class, 'arrow')]")),
     "ptable.ptable_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
-    "ptable.dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
 
     # Subnet Page
     "subnet.new": (By.XPATH, "//a[contains(@href, '/subnets/new')]"),
@@ -1305,8 +1264,8 @@ locators = LocatorDict({
     "repo.select_event": (
         By.XPATH, "//a[contains(., 'Synchronize') and contains(., '%s')]"),
     "repo.result_event": (
-        By.XPATH, ("//span[@class='ng-scope' and contains(., 'Result')]"
-                   "/../../span[contains(@class, 'info-value')]")),
+        By.XPATH, ("//dt[span[@class='ng-scope' and contains(., 'Result')]]"
+                   "/following-sibling::dd[i]")),
     "repo.repo_discover": (
         By.XPATH, "//button[@ui-sref='product-discovery.scan']"),
     "repo.discover_url": (By.XPATH, "//input[@ng-model='discovery.url']"),
@@ -1314,7 +1273,8 @@ locators = LocatorDict({
     "repo.discovered_url_checkbox": (
         By.XPATH, "//td[contains(., '%s')]/../td/input[@type='checkbox']"),
     "repo.cancel_discover": (
-        By.XPATH, "//button[@ng-show='discovery.pending']"),
+        By.XPATH, "//button[@ng-click='cancelDiscovery()' "
+                  "and not(contains(@class, 'ng-hide'))]"),
     "repo.create_selected": (
         By.XPATH, "//button[@ng-click='setupSelected()']"),
     "repo.create": (By.XPATH, "//button[@ng-click='createRepos()']"),
@@ -1397,17 +1357,18 @@ locators = LocatorDict({
     ),
     "repo.result_spinner": (
         By.XPATH,
-        "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
+        ("//i[@ng-show='task.pending' and contains(@class, 'fa-spinner') and "
+         "not(contains(@class, 'ng-hide'))]")),
     "repo.manage_content": (
         By.XPATH,
-        "//button[contains(@ui-sref,"
-        " 'products.details.repositories.manage-content')"
-        " and not(contains(@class, 'ng-hide'))]"),
+        "//tr[not(contains(@class, 'ng-hide'))]//a[contains(@ui-sref,"
+        " 'product.repository.manage-content')]"
+    ),
     "repo.content.packages": (By.XPATH, "//tr[@row-select='package']"),
     "repo.content.puppet_modules": (By.XPATH, "//tr[@row-select='item']"),
     "repo.content.select_all": (
         By.XPATH,
-        "//div[@bst-table='detailsTable']"
+        "//div[@data-block='table']"
         "//input[@type='checkbox'and @ng-model='selection.allSelected']"
     ),
     "repo.content.remove": (
@@ -1466,7 +1427,7 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "ak.select_subscription": (
         By.XPATH,
-        ("//tr/td/a[contains(., '%s')]"
+        ("//tr/td/b[contains(., '%s')]"
          "/following::tr[@row-select='subscription']"
          "/td/input[@ng-model='subscription.selected']")),
     "ak.add_selected_subscription": (
@@ -1559,8 +1520,9 @@ locators = LocatorDict({
                    "//span[contains(@class,'editable-value')]")),
     "sp.fetch_startdate": (
         By.XPATH,
-        ("//span[contains(.,'Start Date')]/../"
-         "div/form/div[2]/div/span[contains(@class,'editable')]")),
+        ("//dd[contains(@bst-edit-custom, 'sync_date')]"
+         "/div/form//span[contains(@class,'editable')]")
+    ),
 
     # Enable RH Repos expander
     "rh.rpms_prd_expander": (
@@ -1916,10 +1878,6 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='filterTerm']"),
     "contentviews.filter_name": (
         By.XPATH, "//tr[@row-select='filter']/td[2]/a[contains(., '%s')]"),
-    "contentviews.copy": (
-        By.XPATH, "//button[@ng-click='showCopy = true']"),
-    "contentviews.copy_name": (
-        By.XPATH, "//input[@ng-model='copyName']"),
     "contentviews.copy_create": (
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "contentviews.yum_repositories": (
@@ -1973,86 +1931,33 @@ locators = LocatorDict({
     # Puppet Module
     "puppet.module_name": (By.XPATH, "//a[contains(., '%s')]"),
     "puppet.author": (
-        By.XPATH, "//span[text()='Author']/../"
-                  "following-sibling::span[contains(@class, 'info-value')][1]"
-    ),
+        By.XPATH, "//span[text()='Author']/../following-sibling::dd[1]"),
     "puppet.version": (
-        By.XPATH, "//span[text()='Version']/../"
-                  "following-sibling::span[contains(@class, 'info-value')][1]"
-    ),
+        By.XPATH, "//span[text()='Version']/../following-sibling::dd[1]"),
     "puppet.source": (
-        By.XPATH, "//span[text()='Source']/../"
-                  "following-sibling::span[contains(@class, 'info-value')][1]"
-    ),
+        By.XPATH, "//span[text()='Source']/../following-sibling::dd[1]"),
     "puppet.project_page": (
-        By.XPATH, "//span[text()='Project Page']/../"
-                  "following-sibling::span[contains(@class, 'info-value')][1]/"
-                  "a"
+        By.XPATH, "//span[text()='Project Page']/../following-sibling::dd[1]/a"
     ),
     "puppet.license": (
-        By.XPATH, "//span[text()='License']/../"
-                  "following-sibling::span[contains(@class, 'info-value')][1]"
-    ),
+        By.XPATH, "//span[text()='License']/../following-sibling::dd[1]"),
     "puppet.description": (
-        By.XPATH, "//span[text()='Description']/../"
-                  "following-sibling::p[contains(@class, 'info-paragraph')][1]"
-    ),
+        By.XPATH, "//span[text()='Description']/../following-sibling::dd[1]"),
     "puppet.summary": (
-        By.XPATH, "//span[text()='Summary']/../"
-                  "following-sibling::p[contains(@class, 'info-paragraph')][1]"
-    ),
-
-    # System Groups
-    "system-groups.new": (
-        By.XPATH, "//button[@ui-sref='system-groups.new.form']"),
-    "system-groups.name": (By.ID, "name"),
-    "system-groups.description": (By.ID, "description"),
-    "system-groups.unlimited": (By.NAME, "limit"),
-    "system-groups.limit": (By.ID, "max_systems"),
-
-    "system-groups.remove": (
-        By.XPATH, "//button[@ng-disabled='!group.permissions.deletable']"),
-
-    "system-groups.search": (
-        By.XPATH, "//a[contains(@href,'system-groups') and contains(.,'%s')]"),
-
-    "system-groups.update_name": (
-        By.XPATH, "//form[@bst-edit-text='group.name']//div/span/i"),
-    "system-groups.update_name_field": (
-        By.XPATH, "//form[@bst-edit-text='group.name']/div/input"),
-    "system-groups.update_name_save": (
-        By.XPATH, "//form[@bst-edit-text='group.name']"
-                  "//button[@ng-click='save()']"),
-
-    "system-groups.update_description": (
-        By.XPATH, "//form[@bst-edit-textarea='group.description']"
-                  "//div/span/i"),
-    "system-groups.update_description_field": (
-        By.XPATH, "//form[@bst-edit-textarea='group.description']"
-                  "//div/textarea"),
-    "system-groups.update_description_save": (
-        By.XPATH, "//form[@bst-edit-textarea='group.description']"
-                  "//button[@ng-click='save()']"),
-
-    "system-groups.update_limit": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']//div/span/i"),
-    "system-groups.update_limit_checkbox": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
-                  "//div/input[@type='checkbox']"),
-    "system-groups.update_limit_field": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
-                  "//div/input[@type='number']"),
-    "system-groups.update_limit_save": (
-        By.XPATH, "//div[@bst-edit-custom='group.max_systems']"
-                  "//button[@ng-click='save()']"),
+        By.XPATH, "//span[text()='Summary']/../following-sibling::dd[1]"),
 
     # Manifests / subscriptions
     "subs.select": (
         By.XPATH, ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions') "
                    "and contains(., '%s')]/following-sibling::tr[1]/td/"
-                   "a[contains(@href, '/info')]")),
+                   "a[contains(@href, '/subscriptions/')]")),
     "subs.delete_manifest": (
-        By.XPATH, "//button[contains(@ng-click,'deleteManifest')]"),
+        By.XPATH,
+        ("//button[contains(@ng-click,'openModal()')]"
+         "[span[@bst-modal='deleteManifest()']]")),
+    "subs.delete_confirmation_message": (
+        By.XPATH, "//div[@data-block='modal-body']",
+    ),
     "subs.refresh_manifest": (
         By.XPATH, "//button[contains(@ng-click,'refreshManifest')]"),
     "subs.manage_manifest": (
@@ -2073,6 +1978,15 @@ locators = LocatorDict({
     "subs.subscription_search": (
         By.XPATH,
         "//input[@class='form-control ng-scope ng-pristine ng-valid']"),
+    "subs.no_manifests_title": (
+        By.XPATH,
+        '//span[contains(., "You currently don\'t have any Subscriptions")]'),
+    "subs.subscriptions_list": (
+        By.XPATH, "//a[@href='/subscriptions'][contains(@class, 'ng-scope')]"),
+    "subs.import_history.imported": (
+        By.XPATH, "//td[text()[contains(.,'imported successfully')]]"),
+    "subs.import_history.deleted": (
+        By.XPATH, "//td[text()[contains(., 'deleted')]]"),
 
     # Settings
     "settings.param": (
@@ -2145,10 +2059,6 @@ locators = LocatorDict({
     "discoveryrules.rule_name": (
         By.XPATH, ("//a[contains(@href, 'discovery_rules')"
                    " and contains(., '%s')]")),
-    "discoveryrules.dropdown": (
-        By.XPATH,
-        ("//td/a[normalize-space(.)='%s']"
-         "/following::td/div/a[@data-toggle='dropdown']")),
 
     # Discovered Hosts
     "discoveredhosts.hostname": (
@@ -2328,10 +2238,6 @@ locators = LocatorDict({
     "oscap.select_policy": (
         By.XPATH,
         "//a[contains(@href,'policies') and contains(.,'%s')]"),
-    "oscap.delete_policy": (
-        By.XPATH,
-        ("//a[contains(@href,'policies') and contains(.,'%s')]/../../"
-         "td/div/ul/li/a[@class='delete']")),
     "oscap.edit_policy": (
         By.XPATH,
         ("//a[contains(@href,'policies') and contains(.,'%s')]"
@@ -2509,11 +2415,6 @@ locators = LocatorDict({
         "//span[text()='%s']"),
     "hostcollection.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),
-    "hostcollection.copy": (
-        By.XPATH, "//button[@ng-click='showCopy = true']"),
-    "hostcollection.copy_name": (By.ID, "copy_name"),
-    "hostcollection.copy_create": (
-        By.XPATH, "//button[@ng-click='copy(copyName)']"),
     "hostcollection.select_host": (
         By.XPATH,
         ("//div[contains(@bst-table, 'detailsTable')]"
@@ -2699,7 +2600,7 @@ locators = LocatorDict({
     "smart_variable.matcher_value": (
         By.XPATH,
         "(//textarea[(ancestor::div[@class='tab-pane fields active'] or "
-        "contains(@id, 'variable_')) and contains(@name, '[value]')])[%i]"
+        "contains(@name, 'variable_')) and contains(@name, '[value]')])[%i]"
     ),
     "smart_variable.matcher_error": (By.XPATH, "//tr[@class='has-error']"),
     "smart_variable.table_value": (By.XPATH, "//td[contains(., '%s')]"),
@@ -2730,11 +2631,11 @@ locators = LocatorDict({
         "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
         "contains(@id, 'puppetclass_lookup_key_')) and "
         "contains(@name, '[default_value]')]"),
-    "sc_parameters.puppet_default": (
+    "sc_parameters.omit": (
         By.XPATH,
         "//input[(ancestor::div[@class='tab-pane fields active'] or "
         "contains(@id, 'puppetclass_lookup_key_')) and "
-        "contains(@id, 'use_puppet_default')]"),
+        "contains(@id, 'omit')]"),
     "sc_parameters.hidden_value": (
         By.XPATH,
         "//input[(ancestor::div[@class='tab-pane fields active'] or "
@@ -2804,11 +2705,11 @@ locators = LocatorDict({
         "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
         "contains(@name, '[value]')])[%i]"
     ),
-    "sc_parameters.matcher_puppet_default": (
+    "sc_parameters.matcher_omit": (
         By.XPATH,
         "(//input[(ancestor::div[@class='tab-pane fields active'] or "
         "ancestor::form[contains(@id, 'edit_puppetclass_lookup_key_')]) and "
-        "contains(@name, '[use_puppet_default]') and @type='checkbox' and "
+        "contains(@name, '[omit]') and @type='checkbox' and "
         "contains(@name, '[lookup_values_attributes]')])[%i]"
     ),
 

@@ -224,7 +224,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
                 parameter_list=parameter_list
             )
             self.assertIsNotNone(self.compute_resource.search(name))
-            self.compute_resource.delete(name)
+            self.compute_resource.delete(name, dropdown_present=True)
             self.assertIsNone(self.compute_resource.search(name))
 
     @run_only_on('sat')

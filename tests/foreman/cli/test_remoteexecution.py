@@ -22,6 +22,7 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_activation_key,
@@ -29,6 +30,7 @@ from robottelo.cli.factory import (
     make_job_invocation,
     make_job_template,
     make_lifecycle_environment,
+    make_location,
     make_org,
     make_subnet,
     setup_org_for_a_custom_repo,
@@ -48,6 +50,7 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import (
     bz_bug_is_open,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -188,6 +191,44 @@ class JobTemplateTestCase(CLITestCase):
             JobTemplate.info({u'name': template_name})
 
     @tier1
+    def test_positive_list_job_template_with_saved_org_and_loc(self):
+        """List available job templates with saved default organization and
+        location in config
+
+        :id: 4fd05dd7-53e3-41ba-ba90-6181a7190ad8
+
+        :expectedresults: The Job Template can be listed without errors
+
+        :BZ: 1368173
+
+        :CaseImportance: Critical
+        """
+        template_name = gen_string('alpha')
+        location = make_location()
+        make_job_template({
+            u'organizations': self.organization['name'],
+            u'name': template_name,
+            u'file': TEMPLATE_FILE,
+        })
+        templates = JobTemplate.list({
+            'organization-id': self.organization['id']})
+        self.assertGreaterEqual(len(templates), 1)
+        Defaults.add({
+            u'param-name': 'organization_id',
+            u'param-value': self.organization['id'],
+        })
+        Defaults.add({
+            u'param-name': 'location_id',
+            u'param-value': location['id'],
+        })
+        try:
+            templates = JobTemplate.list()
+            self.assertGreaterEqual(len(templates), 1)
+        finally:
+            Defaults.delete({u'param-name': 'organization_id'})
+            Defaults.delete({u'param-name': 'location_id'})
+
+    @tier1
     def test_positive_view_dump(self):
         """Export contents of a job template
 
@@ -248,8 +289,9 @@ class RemoteExecutionTestCase(CLITestCase):
         super(RemoteExecutionTestCase, self).setUp()
         # Create VM and register content host
         self.client = VirtualMachine(
-                distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge)
+            distro=DISTRO_RHEL7,
+            provisioning_server=settings.compute_resources.libvirt_hostname,
+            bridge=settings.vlan_networking.bridge)
         self.addCleanup(vm_cleanup, self.client)
         self.client.create()
         self.client.install_katello_ca()
@@ -307,6 +349,7 @@ class RemoteExecutionTestCase(CLITestCase):
             )
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1451675)
     def test_positive_run_job_effective_user(self):
         """Run default job template as effective user against a single host
 
@@ -436,7 +479,11 @@ class RemoteExecutionTestCase(CLITestCase):
 
         :expectedresults: Verify the job was successfully ran against all hosts
         """
-        with VirtualMachine(distro=DISTRO_RHEL7) as client2:
+        with VirtualMachine(
+              distro=DISTRO_RHEL7,
+              provisioning_server=settings.compute_resources.libvirt_hostname,
+              bridge=settings.vlan_networking.bridge,
+              ) as client2:
             client2.install_katello_ca()
             client2.register_contenthost(
                     self.org['label'], lce='Library')
@@ -458,7 +505,7 @@ class RemoteExecutionTestCase(CLITestCase):
                         )
                     )
                 )
-            self.assertEqual(invocation_command['success'], u'1', output_msgs)
+            self.assertEqual(invocation_command['success'], u'2', output_msgs)
 
     @tier3
     def test_positive_install_multiple_packages_with_a_job(self):
@@ -561,3 +608,262 @@ class RemoteExecutionTestCase(CLITestCase):
         """
         # currently it is not possible to get subtasks from
         # a task other than via UI
+
+    @tier2
+    def test_positive_run_default_job_template_by_ip(self):
+        """Run default template on host connected by ip
+
+        :id: 811c7747-bec6-4a2d-8e5c-b5045d3fbc0d
+
+        :expectedresults: Verify the job was successfully ran against the host
+        """
+        # set connecting to host via ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': 'command="ls"',
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1451675)
+    def test_positive_run_job_effective_user_by_ip(self):
+        """Run default job template as effective user on a host by ip
+
+        :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
+
+        :expectedresults: Verify the job was successfully run under the
+            effective user identity on host
+        """
+        # set connecting to host via ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        # create a user on client via remote job
+        username = gen_string('alpha')
+        filename = gen_string('alpha')
+        make_user_job = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': "command='useradd {0}'".format(username),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(
+                make_user_job[u'success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': make_user_job[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+        # create a file as new user
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': "command='touch /home/{0}/{1}'".format(
+                username, filename),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+            'effective-user': '{0}'.format(username),
+        })
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+        # check the file owner
+        result = ssh.command(
+            '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
+            hostname=self.client.ip_addr
+        )
+        # assert the file is owned by the effective user
+        self.assertEqual(username, result.stdout[0])
+
+    @tier2
+    def test_positive_run_custom_job_template_by_ip(self):
+        """Run custom template on host connected by ip
+
+        :id: 9740eb1d-59f5-42b2-b3ab-659ca0202c74
+
+        :expectedresults: Verify the job was successfully ran against the host
+        """
+        # set connecting to host via ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        template_name = gen_string('alpha', 7)
+        make_job_template({
+            u'organizations': self.org[u'name'],
+            u'name': template_name,
+            u'file': TEMPLATE_FILE
+        })
+        invocation_command = make_job_invocation({
+            'job-template': template_name,
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+
+    @tier3
+    def test_positive_run_default_job_template_multiple_hosts_by_ip(self):
+        """Run default job template against multiple hosts by ip
+
+        :id: 694a21d3-243b-4296-8bd0-4bad9663af15
+
+        :expectedresults: Verify the job was successfully ran against all hosts
+        """
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        with VirtualMachine(
+              distro=DISTRO_RHEL7,
+              provisioning_server=settings.compute_resources.libvirt_hostname,
+              bridge=settings.vlan_networking.bridge,
+              ) as client2:
+            client2.install_katello_ca()
+            client2.register_contenthost(
+                    self.org['label'], lce='Library')
+            add_remote_execution_ssh_key(client2.ip_addr)
+            Host.set_parameter({
+                'host': client2.hostname,
+                'name': 'remote_execution_connect_by_ip',
+                'value': 'True',
+            })
+            invocation_command = make_job_invocation({
+                'job-template': 'Run Command - SSH Default',
+                'inputs': 'command="ls"',
+                'search-query': "name ~ {0} or name ~ {1}".format(
+                    self.client.hostname, client2.hostname),
+            })
+            # collect output messages from clients
+            output_msgs = []
+            for vm in self.client, client2:
+                output_msgs.append('host output from {0}: {1}'.format(
+                        vm.hostname,
+                        ' '.join(JobInvocation.get_output({
+                            'id': invocation_command[u'id'],
+                            'host': vm.hostname})
+                        )
+                    )
+                )
+            self.assertEqual(invocation_command['success'], u'2', output_msgs)
+
+    @tier3
+    def test_positive_install_multiple_packages_with_a_job_by_ip(self):
+        """Run job to install several packages on host by ip
+
+        :id: 8b73033f-83c9-4024-83c3-5e442a79d320
+
+        :expectedresults: Verify the packages were successfully installed
+            on host
+        """
+        # set connecting to host by ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        packages = ["cow", "dog", "lion"]
+        # Create a custom repo
+        setup_org_for_a_custom_repo({
+            u'url': FAKE_0_YUM_REPO,
+            u'organization-id': self.org['id'],
+            u'content-view-id': self.content_view['id'],
+            u'lifecycle-environment-id': self.env['id'],
+            u'activationkey-id': self.activation_key['id'],
+        })
+        invocation_command = make_job_invocation({
+            'job-template': 'Install Package - Katello SSH Default',
+            'inputs': 'package={0} {1} {2}'.format(*packages),
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(
+                invocation_command['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
+        result = ssh.command(
+                "rpm -q {0}".format(" ".join(packages)),
+                hostname=self.client.ip_addr
+                )
+        self.assertEqual(result.return_code, 0)
+
+    @tier3
+    def test_positive_run_recurring_job_with_max_iterations_by_ip(self):
+        """Run default job template multiple times with max iteration by ip
+
+        :id: 0a3d1627-95d9-42ab-9478-a908f2a7c509
+
+        :expectedresults: Verify the job was run not more than the specified
+            number of times.
+        """
+        # set connecting to host by ip
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': 'command="ls"',
+            'search-query': "name ~ {0}".format(self.client.hostname),
+            'cron-line': '* * * * *',  # every minute
+            'max-iteration': 2,  # just two runs
+        })
+        if not bz_bug_is_open(1431190):
+            JobInvocation.get_output({
+                 'id': invocation_command[u'id'],
+                 'host': self.client.hostname
+            })
+            self.assertEqual(
+                    invocation_command['status'],
+                    u'queued',
+                    'host output: {0}'.format(
+                        ' '.join(JobInvocation.get_output({
+                            'id': invocation_command[u'id'],
+                            'host': self.client.hostname})
+                        )
+                    )
+                )
+        sleep(150)
+        rec_logic = RecurringLogic.info({
+                'id': invocation_command['recurring-logic-id']})
+        self.assertEqual(rec_logic['state'], u'finished')
+        self.assertEqual(rec_logic['iteration'], u'2')

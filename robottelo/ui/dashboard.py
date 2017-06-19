@@ -10,21 +10,6 @@ from robottelo.ui.navigator import Navigator
 class Dashboard(Base):
     """Manipulates dashboard from UI"""
 
-    widgets_locators = {
-        'Host Configuration Status': 'Status table',
-        'Host Configuration Chart': 'Status chart',
-        'Task Status': 'Tasks Status table',
-        'Latest Warning/Error Tasks': 'Tasks in Error/Warning',
-        'Discovered Hosts': 'Discovery widget',
-        'Run distribution in the last 30 minutes': 'Distribution chart',
-        'Content View History': 'Content Views Widget',
-        'Sync Overview': 'Sync Widget',
-        'Latest Events': 'Report summary',
-        'Latest Compliance Reports': 'Latest Compliance Reports',
-        'Compliance Reports Breakdown': 'Compliance Reports Breakdown',
-        'Latest Errata': 'Errata Widget',
-    }
-
     def navigate_to_entity(self):
         """Navigate to Dashboard entity page and make it static"""
         Navigator(self.browser).go_to_dashboard()
@@ -65,29 +50,12 @@ class Dashboard(Base):
         """
         self.navigate_to_entity()
         self.click(
-            locators['dashboard.remove_widget'] %
-            self.widgets_locators[widget_name],
+            locators['dashboard.remove_widget'] % widget_name,
             wait_for_ajax=False
         )
         self.handle_alert(True)
         self.wait_until_element_is_not_visible(
-            locators['dashboard.remove_widget'] %
-            self.widgets_locators[widget_name]
-        )
-
-    def minimize_widget(self, widget_name):
-        """Minimize specified widget on dashboard. Name for each widget should
-        be the same as on UI(e.g. 'Task Status')
-        """
-        self.navigate_to_entity()
-        self.click(
-            locators['dashboard.minimize_widget'] %
-            self.widgets_locators[widget_name],
-        )
-        self.wait_until_element_is_not_visible(
-            locators['dashboard.minimize_widget'] %
-            self.widgets_locators[widget_name]
-        )
+            locators['dashboard.remove_widget'] % widget_name)
 
     def manage_widget(self, action_name, widget_name=None):
         """Execute specified action from Dashboard Manage dropdown"""
@@ -98,22 +66,16 @@ class Dashboard(Base):
             self.click(locators['dashboard.reset_dashboard'])
         elif action_name == 'Restore Widget':
             self.click(
-                locators['dashboard.restore_widget'] %
-                self.widgets_locators[widget_name]
-            )
+                locators['dashboard.restore_widget'] % widget_name)
         elif action_name == 'Add Widget':
             self.click(
-                locators['dashboard.add_widget'] %
-                self.widgets_locators[widget_name]
-            )
+                locators['dashboard.add_widget'] % widget_name)
 
     def get_widget(self, widget_name):
         """Get widget element from dashboard"""
         self.navigate_to_entity()
         return self.wait_until_element(
-            locators['dashboard.widget_element'] %
-            self.widgets_locators[widget_name]
-        )
+            locators['dashboard.widget_element'] % widget_name)
 
     def get_hcs_host_count(self, criteria_name):
         """Get information about hosts count per specific criteria for Host

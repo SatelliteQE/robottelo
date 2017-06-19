@@ -31,9 +31,8 @@ class SmartClassParameter(Base):
     @classmethod
     def info(cls, options=None):
         """Gets information for smart class parameter"""
-        cls.command_sub = 'info'
-        return cls.execute(
-            cls._construct_command(options), output_format='json')
+        return super(SmartClassParameter, cls).info(
+            options=options, output_format='json')
 
     @classmethod
     def add_override_value(cls, options=None):

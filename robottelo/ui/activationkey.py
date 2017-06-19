@@ -75,8 +75,7 @@ class ActivationKey(Base):
         if limit:
             self.click(locators['ak.edit_limit'])
             self.set_limit(limit)
-            if self.wait_until_element(
-                    locators['ak.save_limit']).is_enabled():
+            if self.wait_until_element(common_locators['save']).is_enabled():
                 self.click(common_locators['save'])
             else:
                 raise ValueError(
@@ -185,9 +184,6 @@ class ActivationKey(Base):
     def copy(self, name, new_name=None):
         """Copies an existing activation key"""
         self.search_and_click(name)
-        self.edit_entity(
-            locators['ak.copy'],
-            locators['ak.copy_name'],
-            new_name,
-            locators['ak.copy_create'],
-        )
+        self.perform_entity_action('Copy')
+        self.assign_value(locators['ak.copy_name'], new_name)
+        self.click(locators['ak.copy_create'])

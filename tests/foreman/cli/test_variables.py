@@ -476,6 +476,7 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': gen_string('alpha'),
+            'override-value-order': 'is_virtual',
         })
         SmartVariable.add_override_value({
             'smart-variable-id': smart_variable['id'],
@@ -507,7 +508,8 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': '20',
-            'variable-type': 'integer'
+            'variable-type': 'integer',
+            'override-value-order': 'is_virtual',
         })
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.add_override_value({
@@ -806,7 +808,8 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': 'true',
-            'variable-type': 'boolean'
+            'variable-type': 'boolean',
+            'override-value-order': 'is_virtual',
         })
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.add_override_value({
@@ -834,7 +837,8 @@ class SmartVariablesTestCase(CLITestCase):
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],
             'default-value': 'true',
-            'variable-type': 'boolean'
+            'variable-type': 'boolean',
+            'override-value-order': 'is_virtual',
         })
         SmartVariable.add_override_value({
             'smart-variable-id': smart_variable['id'],
@@ -887,7 +891,9 @@ class SmartVariablesTestCase(CLITestCase):
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name']})
+            'puppet-class': self.puppet_class['name'],
+            'override-value-order': 'is_virtual',
+        })
         SmartVariable.add_override_value({
             'smart-variable-id': smart_variable['id'],
             'match': 'is_virtual=true',
@@ -925,7 +931,9 @@ class SmartVariablesTestCase(CLITestCase):
         """
         value = gen_string('alpha')
         smart_variable = make_smart_variable({
-            'puppet-class': self.puppet_class['name']})
+            'puppet-class': self.puppet_class['name'],
+            'override-value-order': 'is_virtual',
+        })
         SmartVariable.add_override_value({
             'smart-variable-id': smart_variable['id'],
             'match': 'is_virtual=true',
@@ -1494,8 +1502,10 @@ class SmartVariablesTestCase(CLITestCase):
             'variable': smart_variable['variable'],
             'default-value': value,
         })
-        updated_sv = SmartVariable.info(
-            {'variable': smart_variable['variable']})
+        updated_sv = SmartVariable.info({
+            'variable': smart_variable['variable'],
+            'show-hidden': 'true',
+        })
         self.assertEqual(updated_sv['default-value'], value)
 
     @run_only_on('sat')
@@ -1521,6 +1531,10 @@ class SmartVariablesTestCase(CLITestCase):
             'puppet-class': self.puppet_class['name'],
             'default-value': '',
             'hidden-value': 1,
+        })
+        smart_variable = SmartVariable.info({
+            'variable': smart_variable['variable'],
+            'show-hidden': 'true',
         })
         self.assertEqual(smart_variable['hidden-value?'], True)
         self.assertEqual(smart_variable['default-value'], '')

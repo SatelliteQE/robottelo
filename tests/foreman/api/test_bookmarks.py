@@ -20,12 +20,25 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import BOOKMARK_ENTITIES
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1
+from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, tier1
 from robottelo.test import APITestCase
+
+# Create a new list reference to prevent constant modification
+BOOKMARK_ENTITIES = list(BOOKMARK_ENTITIES)
 
 
 class BookmarkTestCase(APITestCase):
     """Test for common Bookmark operations via API"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Filter entities list if affected by BZ"""
+        super(BookmarkTestCase, cls).setUpClass()
+        if bz_bug_is_open(1456833):
+            BOOKMARK_ENTITIES[:] = [
+                entity for entity in BOOKMARK_ENTITIES
+                if entity.get('controller') != 'common_parameters'
+            ]
 
     # CREATE TESTS
     @tier1

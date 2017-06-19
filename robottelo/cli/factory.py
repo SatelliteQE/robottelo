@@ -1305,7 +1305,7 @@ def make_host(options=None):
         u'lifecycle-environment-id': None,
         u'location': None,
         u'location-id': None,
-        u'mac': gen_mac(),
+        u'mac': gen_mac(multicast=False),
         u'managed': None,
         u'medium': None,
         u'medium-id': None,
@@ -1460,10 +1460,6 @@ def make_host_collection(options=None):
          -h, --help                                print help
 
     """
-    # Organization ID is required
-    if not options or not options.get('organization-id'):
-        raise CLIFactoryError('Please provide a valid ORGANIZATION_ID.')
-
     # Assigning default values for attributes
     args = {
         u'description': None,

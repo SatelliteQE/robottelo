@@ -32,15 +32,6 @@ class Role(Base):
             self._configure_taxonomies(locations, organizations)
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Delete existing role."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            locators['roles.dropdown'],
-        )
-
     def update(self, name, new_name=None, locations=None, organizations=None):
         """Update role name/location/organization."""
         self.click(self.search(name))
@@ -56,7 +47,7 @@ class Role(Base):
                        organization=None, location=None):
         """Add new permission to Role Filter"""
         self.search(role_name)
-        self.click(locators['roles.dropdown'] % role_name)
+        self.click(common_locators['select_action_dropdown'] % role_name)
         self.click(locators['roles.add_permission'])
         if resource_type:
             self.assign_value(
@@ -130,7 +121,10 @@ class Role(Base):
     def clone(self, name, new_name, locations=None, organizations=None):
         """Clone role with name/location/organization."""
         self.search(name)
-        self.click(locators['roles.dropdown'] % name)
+        if self.find_element(locators['roles.locked'] % name):
+            self.click(locators['roles.locked_dropdown'] % name)
+        else:
+            self.click(common_locators['select_action_dropdown'] % name)
         self.click(locators['roles.clone'])
         self.assign_value(locators['roles.name'], new_name)
         if locations or organizations:

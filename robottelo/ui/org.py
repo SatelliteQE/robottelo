@@ -258,12 +258,3 @@ class Org(Base):
             select=select,
         )
         self.click(common_locators['submit'])
-
-    def delete(self, org_name, really=True):
-        """Remove Organization in UI."""
-        self.delete_entity(
-            org_name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['org.dropdown'],
-        )

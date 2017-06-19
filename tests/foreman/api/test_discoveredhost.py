@@ -43,7 +43,7 @@ def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
     if ipaddress is None:
         ipaddress = gen_ipaddr()
     if macaddress is None:
-        macaddress = gen_mac()
+        macaddress = gen_mac(multicast=False)
     return entities.DiscoveredHost().facts(json={
         u'facts': {
             u'name': name,

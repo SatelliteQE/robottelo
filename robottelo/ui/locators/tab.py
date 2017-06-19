@@ -254,9 +254,9 @@ tab_locators = LocatorDict({
     # Sync Plans
     # Third level UI
     "sp.tab_details": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+        By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'info')]"),
     "sp.tab_products": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'products')]"),
+        By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'products')]"),
     # Fourth level UI
     "sp.list_prd": (
         By.XPATH, "//a[contains(@ui-sref,'list')]/span[@class='ng-scope']"),
@@ -294,26 +294,22 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@ui-sref, 'details.products')]/span/span"),
 
     # Manifest / subscriptions
-    "manifest.rpms_tab": (
+    "manifest.tab_rpms": (
         By.XPATH,
         "//div[@id='content_tabs']/ul/li/a[contains(@href, 'rpms')]"),
-    "manifest.kickstarts_tab": (
+    "manifest.tab_kickstarts": (
         By.XPATH,
         "//div[@id='content_tabs']/ul/li/a[contains(@href, 'kickstarts')]"),
-    "manifest.isos_tab": (
+    "manifest.tab_isos": (
         By.XPATH,
         "//div[@id='content_tabs']/ul/li/a[contains(@href, 'isos')]"),
-    "manifest.ostree_tab": (
+    "manifest.tab_ostree": (
         By.XPATH,
         "//div[@id='content_tabs']/ul/li/a[contains(@href, 'ostree')]"),
     "subs.tab_details": (
         By.XPATH, "//a[contains(@ui-sref,'manifest.details')]"),
-    "subs.import_history": (
+    "subs.tab_import_history": (
         By.XPATH, "//a[contains(@ui-sref,'manifest.history')]"),
-    "subs.import_history.imported.success": (
-        By.XPATH, "//td[text()[contains(.,'imported successfully')]]"),
-    "subs.import_history.deleted": (
-        By.XPATH, "//td[text()[contains(., 'deleted')]]"),
 
     # Oscap Policy
     "oscap.content": (

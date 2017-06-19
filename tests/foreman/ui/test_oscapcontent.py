@@ -191,4 +191,5 @@ class OpenScapContentTestCase(UITestCase):
                     )
                     self.assertIsNotNone(
                         self.oscapcontent.search(content_name))
-                    self.oscapcontent.delete(content_name)
+                    self.oscapcontent.delete(
+                        content_name, dropdown_present=True)

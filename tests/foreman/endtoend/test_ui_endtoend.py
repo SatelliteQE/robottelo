@@ -177,7 +177,6 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             # step 2.2: Clone and upload manifest
             if self.fake_manifest_is_set:
                 session.nav.go_to_select_org(org_name)
-                session.nav.go_to_red_hat_subscriptions()
                 with manifests.clone() as manifest:
                     self.subscriptions.upload(manifest)
                 self.assertTrue(session.nav.wait_until_element(
@@ -353,7 +352,6 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             # Create New Lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=env_name)
             self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
-            session.nav.go_to_red_hat_subscriptions()
             # Upload manifest from webui
             with manifests.clone() as manifest:
                 self.subscriptions.upload(manifest)

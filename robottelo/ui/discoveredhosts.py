@@ -17,16 +17,6 @@ class DiscoveredHosts(Base):
         """Specify locator for Discovered Hosts entity search procedure"""
         return locators["discoveredhosts.hostname"]
 
-    def delete(self, hostname, really=True):
-        """Delete existing discovered hosts from UI"""
-        Navigator(self.browser).go_to_discovered_hosts()
-        self.delete_entity(
-            hostname,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['discoveredhosts.dropdown'],
-        )
-
     def delete_from_facts(self, hostname, really=True):
         """Delete existing discovered host from facts page"""
         host = self.search(hostname)

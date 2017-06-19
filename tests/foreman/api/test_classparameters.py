@@ -1032,6 +1032,9 @@ class SmartClassParametersTestCase(APITestCase):
         :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.override_value_order = 'is_virtual'
+        sc_param.update(['override', 'override_value_order'])
         value = gen_string('alpha')
         entities.OverrideValue(
             smart_class_parameter=sc_param,
@@ -1574,6 +1577,9 @@ class SmartClassParametersTestCase(APITestCase):
         :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.override_value_order = 'is_virtual'
+        sc_param.update(['override', 'override_value_order'])
         value = gen_string('alpha')
         override = entities.OverrideValue(
             smart_class_parameter=sc_param,
@@ -1659,7 +1665,7 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.update(['override', 'default_value', 'hidden_value'])
         sc_param = sc_param.read()
         self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
-        self.assertEqual(sc_param.hidden_value, u'*****')
+        self.assertEqual(sc_param.default_value, u'*****')
 
     @run_only_on('sat')
     @tier1

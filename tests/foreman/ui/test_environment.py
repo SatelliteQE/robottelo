@@ -105,4 +105,4 @@ class EnvironmentTestCase(UITestCase):
             for name in valid_environments_list():
                 with self.subTest(name):
                     make_env(session, name=name)
-                    self.environment.delete(name)
+                    self.environment.delete(name, dropdown_present=True)

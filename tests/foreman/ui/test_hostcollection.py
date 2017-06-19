@@ -323,7 +323,7 @@ class HostCollectionTestCase(UITestCase):
                     make_host_collection(
                         session, name=name, org=self.organization.name)
                     self.assertIsNotNone(self.hostcollection.search(name))
-                    self.hostcollection.delete_entity(name)
+                    self.hostcollection.delete(name)
 
     @tier1
     def test_positive_copy(self):
@@ -346,6 +346,7 @@ class HostCollectionTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.hostcollection.search(new_name))
 
+    @skip_if_bug_open('bugzilla', 1461016)
     @tier1
     def test_negative_copy(self):
         """Create Host Collection and copy it. Use invalid values for copy name

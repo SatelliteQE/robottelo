@@ -98,7 +98,11 @@ class DiscoveryRuleTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     make_discoveryrule(
-                        session, name=name, hostgroup=self.host_group.name)
+                        session,
+                        name=name,
+                        hostgroup=self.host_group.name,
+                        locations=[self.session_loc.name],
+                    )
                     self.assertIsNotNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
@@ -122,6 +126,7 @@ class DiscoveryRuleTestCase(UITestCase):
                         name=name,
                         hostgroup=self.host_group.name,
                         search_rule=query,
+                        locations=[self.session_loc.name],
                     )
                     self.assertIsNotNone(self.discoveryrules.search(name))
                     self.assertEqual(
@@ -179,6 +184,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
                 host_limit=limit,
+                locations=[self.session_loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.assertEqual(
@@ -207,6 +213,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
                 priority=priority,
+                locations=[self.session_loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.assertEqual(
@@ -232,6 +239,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
                 enabled=False,
+                locations=[self.session_loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.assertEqual(
@@ -308,10 +316,16 @@ class DiscoveryRuleTestCase(UITestCase):
                         host_limit=limit,
                         hostgroup=self.host_group.name,
                     )
-                    self.assertIsNotNone(
-                        self.discoveryrules.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    msg = self.discoveryrules.find_element(
+                        locators['discoveryrules.host_limit']
+                    ).get_attribute("validationMessage")
+                    if limit == '-1':
+                        self.assertEqual(
+                            msg,
+                            u'Please select a value that is no less than 0.'
+                        )
+                    else:
+                        self.assertEqual(msg, u'Please enter a number.')
                     self.assertIsNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
@@ -335,9 +349,11 @@ class DiscoveryRuleTestCase(UITestCase):
                 host_limit=gen_string('numeric', 50),
                 hostgroup=self.host_group.name,
             )
-            self.assertIsNotNone(self.discoveryrules.wait_until_element(
-                common_locators['haserror']
-            ))
+            msg = self.discoveryrules.find_element(
+                locators['discoveryrules.host_limit']
+            ).get_attribute("validationMessage")
+            self.assertEqual(
+                msg, u'Please select a value that is no more than 2147483647.')
             self.assertIsNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
@@ -354,10 +370,18 @@ class DiscoveryRuleTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['name_haserror']
             ))
@@ -381,9 +405,10 @@ class DiscoveryRuleTestCase(UITestCase):
                 hostgroup=self.host_group.name,
                 priority=gen_string('alpha'),
             )
-            self.assertIsNotNone(self.discoveryrules.wait_until_element(
-                common_locators['haserror']
-            ))
+            msg = self.discoveryrules.find_element(
+                locators['discoveryrules.priority']
+            ).get_attribute("validationMessage")
+            self.assertEqual(msg, u'Please enter a number.')
             self.assertIsNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
@@ -401,9 +426,13 @@ class DiscoveryRuleTestCase(UITestCase):
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_discoveryrule(
-                        session, name=name, hostgroup=self.host_group.name)
+                        session,
+                        name=name,
+                        hostgroup=self.host_group.name,
+                        locations=[self.session_loc.name],
+                    )
                     self.assertIsNotNone(self.discoveryrules.search(name))
-                    self.discoveryrules.delete(name)
+                    self.discoveryrules.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier1
@@ -419,7 +448,11 @@ class DiscoveryRuleTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             for new_name in valid_data_list():
                 with self.subTest(new_name):
@@ -441,7 +474,11 @@ class DiscoveryRuleTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             for new_query in valid_search_queries():
                 with self.subTest(new_query):
@@ -469,7 +506,11 @@ class DiscoveryRuleTestCase(UITestCase):
             organization=[self.session_org]).create().name
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(
@@ -498,7 +539,11 @@ class DiscoveryRuleTestCase(UITestCase):
         hostname = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.discoveryrules.update(name=name, hostname=hostname)
             self.assertEqual(
@@ -521,7 +566,11 @@ class DiscoveryRuleTestCase(UITestCase):
         limit = str(gen_integer(1, 100))
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.discoveryrules.update(name=name, host_limit=limit)
             self.assertEqual(
@@ -544,7 +593,11 @@ class DiscoveryRuleTestCase(UITestCase):
         priority = str(gen_integer(1, 100))
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.discoveryrules.update(name=name, priority=priority)
             self.assertEqual(
@@ -569,6 +622,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 session,
                 name=name,
                 hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
                 enabled=False,
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
@@ -594,7 +648,11 @@ class DiscoveryRuleTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(
-                session, name=name, hostgroup=self.host_group.name)
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+                locations=[self.session_loc.name],
+            )
             self.assertIsNotNone(self.discoveryrules.search(name))
             for new_name in invalid_values_list(interface='ui'):
                 with self.subTest(new_name):
@@ -624,6 +682,7 @@ class DiscoveryRuleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
                 hostname=hostname,
+                locations=[self.session_loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.discoveryrules.update(
@@ -655,16 +714,23 @@ class DiscoveryRuleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
                 host_limit=limit,
+                locations=[self.session_loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
             for new_limit in '-1', gen_string('alpha'):
                 with self.subTest(new_limit):
                     self.discoveryrules.update(
                         name=name, host_limit=new_limit)
-                    self.assertIsNotNone(
-                        self.discoveryrules.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    msg = self.discoveryrules.find_element(
+                        locators['discoveryrules.host_limit']
+                    ).get_attribute("validationMessage")
+                    if new_limit == '-1':
+                        self.assertEqual(
+                            msg,
+                            u'Please select a value that is no less than 0.'
+                        )
+                    else:
+                        self.assertEqual(msg, u'Please enter a number.')
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'host_limit'),
                 limit
@@ -689,16 +755,23 @@ class DiscoveryRuleTestCase(UITestCase):
                 name=name,
                 hostgroup=self.host_group.name,
                 priority=priority,
+                locations=[self.session_loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
             for new_priority in '-1', gen_string('alpha'):
                 with self.subTest(new_priority):
                     self.discoveryrules.update(
                         name=name, priority=new_priority)
-                    self.assertIsNotNone(
-                        self.discoveryrules.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    msg = self.discoveryrules.find_element(
+                        locators['discoveryrules.priority']
+                    ).get_attribute("validationMessage")
+                    if new_priority == '-1':
+                        self.assertEqual(
+                            msg,
+                            u'Please select a value that is no less than 0.'
+                        )
+                    else:
+                        self.assertEqual(msg, u'Please enter a number.')
             self.assertEqual(
                 self.discoveryrules.get_attribute_value(name, 'priority'),
                 priority
@@ -808,6 +881,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
                 session,
                 name=name,
                 hostgroup=self.host_group.name,
+                locations=[self.loc.name],
             )
             self.assertIsNotNone(self.discoveryrules.search(name))
 
@@ -830,8 +904,9 @@ class DiscoveryRuleRoleTestCase(UITestCase):
                 session,
                 name=name,
                 hostgroup=self.host_group.name,
+                locations=[self.loc.name],
             )
-            self.discoveryrules.delete(name)
+            self.discoveryrules.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier2
@@ -881,9 +956,9 @@ class DiscoveryRuleRoleTestCase(UITestCase):
             # With non-admin user, delete button won't be visible on webUI
             with self.assertRaises(UINoSuchElementError):
                 self.discoveryrules.click(
-                    locators['discoveryrules.dropdown'] % self.rule_name)
+                    common_locators['select_action_dropdown'] % self.rule_name)
                 self.discoveryrules.click(
-                    locators['discoveryrules.rule_delete'] % self.rule_name,
+                    common_locators['delete_button'] % self.rule_name,
                     wait_for_ajax=False
                 )
                 self.handle_alert(really=True)

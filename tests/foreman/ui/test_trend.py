@@ -88,4 +88,5 @@ class TrendTest(UITestCase):
         """
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['environment'])
-            self.trend.delete(TREND_TYPES['environment'])
+            self.trend.delete(
+                TREND_TYPES['environment'], dropdown_present=True)

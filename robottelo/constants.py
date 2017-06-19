@@ -585,6 +585,11 @@ PERMISSIONS = {
         'view_recurring_logics',
         'edit_recurring_logics',
     ],
+    'ForemanOpenscap::ArfReport': [
+        'create_arf_reports',
+        'view_arf_reports',
+        'destroy_arf_reports',
+    ],
     'ForemanOpenscap::Policy': [
         'assign_policies',
         'create_policies',
@@ -952,7 +957,10 @@ BOOKMARK_ENTITIES = [
     {'name': 'Audit', 'controller': 'audits', 'skip_for_ui': True},
     {'name': 'Report', 'controller': 'config_reports', 'skip_for_ui': True},
     {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'skip_for_ui': True},
-    {'name': 'Subscriptions', 'controller': 'katello_subscriptions'},
+    {
+        'name': 'Subscriptions', 'controller': 'katello_subscriptions',
+        'skip_for_ui': True,
+    },
     {'name': 'Products', 'controller': 'katello_products'},
     {
         'name': 'Repository', 'controller': 'katello_repositories',
@@ -976,7 +984,7 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'Registry', 'controller': 'docker_registries',
-        'skip_for_ui': 1302724
+        'skip_for_ui': ('redmine', 13436)
     },
     {'name': 'Hosts', 'controller': 'hosts', 'setup': entities.Host},
     {
@@ -1002,15 +1010,15 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'DiscoveryRules', 'controller': 'discovery_rules',
-        'skip_for_ui': 1387569, 'setup': entities.DiscoveryRule
+        'skip_for_ui': ('bugzilla', 1387569), 'setup': entities.DiscoveryRule
     },
     {
         'name': 'GlobalParameter', 'controller': 'common_parameters',
-        'setup': entities.CommonParameter, 'skip_for_ui': True
+        'setup': entities.CommonParameter, 'skip_for_ui': ('bugzilla', 1456833)
     },
     {
         'name': 'ConfigGroups', 'controller': 'config_groups',
-        'setup': entities.ConfigGroup, 'skip_for_ui': 1378084
+        'setup': entities.ConfigGroup, 'skip_for_ui': ('bugzilla', 1378084)
     },
     {
         'name': 'PuppetEnv', 'controller': 'environments',
@@ -1107,7 +1115,6 @@ UI_CRUD = [
     'subscription.Subscriptions',
     'sync.Sync',
     'syncplan.Syncplan',
-    'systemgroup.SystemGroup',
     'template.Template',
     'trend.Trend',
     'usergroup.UserGroup',

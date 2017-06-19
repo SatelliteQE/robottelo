@@ -282,15 +282,6 @@ class ComputeResource(Base):
             self._configure_orgs(orgs, org_select)
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Removes the compute resource entity."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['resource.dropdown'],
-        )
-
     def search_container(self, cr_name, container_name):
         """Searches for specific container located in compute resource under
         'Containers' tab

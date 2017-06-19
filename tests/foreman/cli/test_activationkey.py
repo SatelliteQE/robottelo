@@ -23,6 +23,7 @@ from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_activation_key,
@@ -655,17 +656,17 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertEqual(result.return_code, 70)
                 self.assertGreater(len(result.stderr), 0)
 
-    @skip_if_bug_open('bugzilla', 1110476)
     @tier2
     def test_positive_update_host_collection(self):
-        """Test that host collection can be associated to Activation
+        """Test that host collections can be associated to Activation
         Keys
 
         :id: 2114132a-fede-4791-98e7-a463ad79f398
 
         :BZ: 1110476
 
-        :expectedresults: Hosts are successfully associated to Activation key
+        :expectedresults: Host collections are successfully associated to
+            Activation key
 
         :CaseLevel: Integration
         """
@@ -673,7 +674,8 @@ class ActivationKeyTestCase(CLITestCase):
             with self.subTest(host_col_name):
                 activation_key = self._make_activation_key()
                 new_host_col_name = make_host_collection({
-                    'name': host_col_name,
+                    u'name': host_col_name,
+                    u'organization-id': self.org['id'],
                 })['name']
                 # Assert that name matches data passed
                 self.assertEqual(new_host_col_name, host_col_name)
@@ -686,7 +688,42 @@ class ActivationKeyTestCase(CLITestCase):
                     u'id': activation_key['id'],
                 })
                 self.assertEqual(
-                    activation_key['host-collection'], host_col_name)
+                    activation_key['host-collections'][0]['name'],
+                    host_col_name
+                )
+
+    @tier2
+    def test_positive_update_host_collection_with_default_org(self):
+        """Test that host collection can be associated to Activation
+        Keys with specified default organization setting in config
+
+        :id: 01e830e9-91fd-4e45-9aaf-862e1fe134df
+
+        :expectedresults: Host collection is successfully associated to
+            Activation key
+
+        :BZ: 1364876
+        """
+        Defaults.add({
+            u'param-name': 'organization_id',
+            u'param-value': self.org['id'],
+        })
+        try:
+            activation_key = self._make_activation_key()
+            host_col = make_host_collection()
+            ActivationKey.add_host_collection({
+                u'host-collection': host_col['name'],
+                u'name': activation_key['name'],
+            })
+            activation_key = ActivationKey.info({
+                u'id': activation_key['id'],
+            })
+            self.assertEqual(
+                activation_key['host-collections'][0]['name'],
+                host_col['name']
+            )
+        finally:
+            Defaults.delete({u'param-name': 'organization_id'})
 
     @run_in_one_thread
     @run_only_on('sat')

@@ -78,7 +78,7 @@ class RoleTestCase(UITestCase):
             for name in generate_strings_list(length=10):
                 with self.subTest(name):
                     make_role(session, name=name)
-                    self.role.delete(name)
+                    self.role.delete(name, dropdown_present=True)
 
     @tier1
     def test_positive_update_name(self):
@@ -246,7 +246,7 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
             self.assertIsNotNone(self.role.search(new_name))
-            self.role.delete(new_name)
+            self.role.delete(new_name, dropdown_present=True)
 
     @tier1
     def test_positive_create_filter_admin_user_with_locs(self):

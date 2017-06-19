@@ -27,6 +27,7 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 
@@ -202,6 +203,44 @@ class ConfigTemplateTestCase(APITestCase):
                 updated = entities.ConfigTemplate(
                     id=c_temp.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
+
+    @tier1
+    def test_positive_update_with_manager_role(self):
+        """Create template providing the initial name, then update its name
+        with manager user role.
+
+        :id: 0aed79f0-7c9a-4789-99ba-56f2db82f097
+
+        :expectedresults: Provisioning Template is created, and its name can
+            be updated.
+
+        :CaseImportance: Critical
+
+        :BZ: 1277308
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        new_name = gen_string('alpha')
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        template = entities.ProvisioningTemplate(
+            organization=[org], location=[loc]).create()
+        # Create user with Manager role
+        role = entities.Role().search(query={'search': 'name="Manager"'})[0]
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[org],
+            location=[loc],
+        ).create()
+        # Update template name with that user
+        cfg = get_nailgun_config()
+        cfg.auth = (user_login, user_password)
+        updated = entities.ProvisioningTemplate(
+            cfg, id=template.id, name=new_name).update(['name'])
+        self.assertEqual(updated.name, new_name)
 
     @tier1
     def test_negative_update_name(self):

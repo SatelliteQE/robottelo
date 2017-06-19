@@ -170,15 +170,6 @@ class Hosts(Base):
             common_locators['modal_background'])
         self.click(common_locators['submit'])
 
-    def delete(self, name, really=True):
-        """Deletes a host."""
-        self.delete_entity(
-            name,
-            really,
-            common_locators['delete_button'],
-            drop_locator=locators['host.dropdown'],
-        )
-
     def update_host_bulkactions(
             self, hosts=None, action=None, parameters_list=None):
         """Updates host via bulkactions
