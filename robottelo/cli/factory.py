@@ -1121,7 +1121,6 @@ def make_host(options=None):
 
     Options::
 
-        --architecture ARCHITECTURE_NAME Architecture name
         --architecture ARCHITECTURE_NAME            Architecture name
         --architecture-id ARCHITECTURE_ID
         --ask-root-password ASK_ROOT_PW             One of true/false, yes/no,
@@ -1143,6 +1142,12 @@ def make_host(options=None):
         --compute-profile-id COMPUTE_PROFILE_ID
         --compute-resource COMPUTE_RESOURCE_NAME    Compute resource name
         --compute-resource-id COMPUTE_RESOURCE_ID
+        --config-group-ids CONFIG_GROUP_IDS         IDs of associated config
+                                                    groups. Comma separated
+                                                    list of values
+        --config-groups CONFIG_GROUP_NAMES          Comma separated list of
+                                                    values.
+        --content-source-id CONTENT_SOURCE_ID
         --content-view CONTENT_VIEW_NAME            Name to search by
         --content-view-id CONTENT_VIEW_ID           content view numeric
                                                     identifier
@@ -1235,11 +1240,10 @@ def make_host(options=None):
         --release-version RELEASE_VERSION           Release version for this
                                                     Host to use (7Server, 7.1,
                                                     etc)
-        --root-pass ROOT_PASS                       required if host is managed
+        --root-password ROOT_PW                     required if host is managed
                                                     and value is not inherited
                                                     from host group or default
                                                     password in settings
-        --root-password ROOT_PW
         --service-level SERVICE_LEVEL               Service level to be used
                                                     for autoheal.
         --subnet SUBNET_NAME                        Subnet name
@@ -1249,11 +1253,27 @@ def make_host(options=None):
                                                     key=value.
                                                     Can be specified multiple
                                                     times.
+
+    Available keys for --interface::
+
+        mac
+        ip
+        type                                        Possible values: interface,
+                                                    bmc, bond, bridge
+        name
+        subnet_id
+        domain_id
+        identifier
+        managed                                     true/false
+        primary                                     true/false, each managed
+                                                    hosts needs to have one
+                                                    primary interface.
+        provision                                   true/false
+        virtual                                     true/false
     """
     # Check for required options
     required_options = (
         'architecture-id',
-        'domain-id',
         'medium-id',
         'operatingsystem-id',
         'partition-table-id',
