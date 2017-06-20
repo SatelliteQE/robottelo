@@ -149,7 +149,7 @@ class UserTestCase(UITestCase):
         @expectedresults: User is created successfully
         """
         with Session(self.browser) as session:
-            for language in LANGUAGES.values():
+            for language in LANGUAGES:
                 with self.subTest(language):
                     name = gen_string('alpha')
                     make_user(session, username=name, locale=language)
