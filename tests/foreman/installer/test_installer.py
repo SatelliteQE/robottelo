@@ -325,13 +325,18 @@ class SELinuxTestCase(TestCase):
         )
 
         for logfile in logfiles:
+            remote_file = logfile['path']
             try:
-                log = LogFile(logfile['path'], logfile['pattern'])
+                log = LogFile(remote_file, logfile['pattern'])
             except IOError:
                 self.fail(
-                    'Could not find {0} file on server'.format(logfile['path'])
+                    'Could not find {0} file on server'.format(remote_file)
                 )
-            self.assertEqual(len(log.filter()), 0)
+            else:
+                errors = log.filter()
+                self.assertEqual(
+                    len(errors), 0,
+                    msg='Errors found in {}: {}'.format(remote_file, errors))
 
 
 def extract_params(lst):
