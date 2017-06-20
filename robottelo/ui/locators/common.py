@@ -133,7 +133,7 @@ common_locators = LocatorDict({
     "description": (By.ID, "description"),
     "kt_select_action_dropdown": (
         By.XPATH,
-        ("//button[contains(@class, 'dropdown')]"
+        ("//button[contains(@ng-click, 'toggleDropdown')]"
          "[descendant::span[text()='Select Action']]")),
     "select_action": (
         By.XPATH,
