@@ -215,7 +215,7 @@ tab_locators = LocatorDict({
     # Content Hosts
     # Third level UI
     "contenthost.tab_details": (
-        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+        By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref, 'info')]"),
     "contenthost.tab_provisioning_details": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href,'provisioning')]"),
