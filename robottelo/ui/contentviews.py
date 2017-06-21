@@ -528,6 +528,33 @@ class ContentViews(Base):
             self.set_calendar_date_value('end_date', end_date)
         self.click(locators.contentviews.save_erratum)
 
+    def fetch_erratum_date_range_filter_values(self, cv_name, filter_name):
+        """Fetch Content View Erratum Date Range Filter values"""
+        self.go_to_filter_page(cv_name, filter_name)
+        result = {
+            'date_type': None,
+            'end_date': None,
+            'start_date': None,
+            'types': [],
+        }
+        for errata_type in FILTER_ERRATA_TYPE.values():
+            if self.wait_until_element(
+                locators['contentviews.erratum_type_checkbox'] % errata_type
+            ).is_selected():
+                result['types'].append(errata_type)
+        for date_type in FILTER_ERRATA_DATE.values():
+            if self.wait_until_element(
+                locators['contentviews.erratum_date_type'] % date_type
+            ).is_selected():
+                result['date_type'] = date_type
+        result['start_date'] = self.wait_until_element(
+            locators['contentviews.calendar_date_input'] % 'start_date'
+        ).get_attribute('value')
+        result['end_date'] = self.wait_until_element(
+            locators['contentviews.calendar_date_input'] % 'end_date'
+        ).get_attribute('value')
+        return result
+
     def fetch_puppet_module(self, cv_name, module_name):
         """Get added puppet module name from selected content-view"""
         self.search_and_click(cv_name)
