@@ -781,8 +781,13 @@ class Base(object):
             if value != state:
                 self.click(target)
         elif element_type == 'ace_editor':
+            if isinstance(target, (tuple, Locator)):
+                ace_edit_element = self.wait_until_element(target)
+            else:
+                ace_edit_element = target
+            ace_edit_id = ace_edit_element.get_attribute("id")
             self.browser.execute_script(
-                "Editor.setValue('{0}');".format(value))
+                "ace.edit('{0}').setValue('{1}');".format(ace_edit_id, value))
         else:
             raise ValueError(
                 u'Provided target {0} is not supported by framework'
