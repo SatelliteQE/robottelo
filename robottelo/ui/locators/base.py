@@ -959,29 +959,18 @@ locators = LocatorDict({
     "hostgroups.name": (By.ID, "hostgroup_name"),
     "hostgroups.environment": (
         By.XPATH,
-        ("//div[contains(@id, 'hostgroup_lifecycle_environment')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        "//select[contains(@id, 'hostgroup_lifecycle_environment')]"),
     "hostgroups.hostgroup": (By.XPATH, "//a[contains(.,'%s')]"),
     "hostgroups.content_source": (
-        By.XPATH,
-        ("//div[contains(@id, 'content_source')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        By.XPATH, "//select[contains(@id, 'content_source')]"),
     "hostgroups.content_view": (
-        By.XPATH,
-        ("//div[contains(@id, 'hostgroup_content_view')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        By.XPATH, "//select[contains(@id, 'hostgroup_content_view')]"),
     "hostgroups.puppet_ca": (
-        By.XPATH,
-        ("//div[contains(@id, 'hostgroup_puppet_ca_proxy_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        By.XPATH, "//select[contains(@id, 'hostgroup_puppet_ca_proxy')]"),
     "hostgroups.puppet_master": (
-        By.XPATH,
-        ("//div[contains(@id, 'hostgroup_puppet_proxy')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        By.XPATH, "//select[contains(@id, 'hostgroup_puppet_proxy')]"),
     "hostgroups.oscap_capsule": (
-        By.XPATH,
-        ("//div[contains(@id, 'hostgroup_openscap_proxy_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        By.XPATH, "//select[contains(@id, 'hostgroup_openscap_proxy')]"),
     "hostgroups.activation_keys": (
         By.XPATH, "//input[contains(@id, 'activation_keys')]"),
     "hostgroups.ak_autocomplete": (
