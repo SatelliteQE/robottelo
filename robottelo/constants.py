@@ -1573,7 +1573,7 @@ PERMISSIONS_WITH_BZ = {
 BACKUP_FILES = [
     u'config_files.tar.gz',
     u'.config.snar',
-    u'metadata',
+    u'metadata.yml',
     u'mongo_data.tar.gz',
     u'.mongo.snar',
     u'pgsql_data.tar.gz',
@@ -1587,8 +1587,9 @@ HOT_BACKUP_FILES = [
     u'config_files.tar.gz',
     u'.config.snar',
     u'foreman.dump',
-    u'metadata',
+    u'metadata.yml',
     u'mongo_dump',
     u'pulp_data.tar',
     u'.pulp.snar',
+    u'pg_globals.dump',
 ]
