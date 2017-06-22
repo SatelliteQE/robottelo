@@ -66,7 +66,6 @@ class FilterTestCase(CLITestCase):
             set(self.perms)
         )
 
-    @skip_if_bug_open('bugzilla', 1401469)
     @tier1
     def test_positive_create_with_org(self):
         """Create a filter and assign it some permissions.
@@ -74,6 +73,8 @@ class FilterTestCase(CLITestCase):
         :id: f6308192-0e1f-427b-a296-b285f6684691
 
         :expectedresults: The created filter has the assigned permissions.
+
+        :BZ: 1401469
 
         :CaseImportance: Critical
         """
@@ -83,11 +84,11 @@ class FilterTestCase(CLITestCase):
             'role-id': self.role['id'],
             'permissions': self.perms,
             'organization-ids': org['id'],
+            'override': 1,
         })
         # we expect here only only one organization, i.e. first element
         self.assertEqual(filter_['organizations'][0], org['name'])
 
-    @skip_if_bug_open('bugzilla', 1401469)
     @tier1
     def test_positive_create_with_loc(self):
         """Create a filter and assign it some permissions.
@@ -95,6 +96,8 @@ class FilterTestCase(CLITestCase):
         :id: d7d1969a-cb30-4e97-a9a3-3a4aaf608795
 
         :expectedresults: The created filter has the assigned permissions.
+
+        :BZ: 1401469
 
         :CaseImportance: Critical
         """
@@ -104,6 +107,7 @@ class FilterTestCase(CLITestCase):
             'role-id': self.role['id'],
             'permissions': self.perms,
             'location-ids': loc['id'],
+            'override': 1,
         })
         # we expect here only only one location, i.e. first element
         self.assertEqual(filter_['locations'][0], loc['name'])
@@ -210,6 +214,8 @@ class FilterTestCase(CLITestCase):
 
          :expectedresults: Filter is created and assigned to new org and loc.
 
+         :BZ: 1401469
+
          :CaseImportance: Critical
          """
         org = make_org()
@@ -218,7 +224,8 @@ class FilterTestCase(CLITestCase):
             'role-id': self.role['id'],
             'permissions': self.perms,
             'organization-ids': org['id'],
-            'location-ids': loc['id']
+            'location-ids': loc['id'],
+            'override': 1,
         })
         # Update org and loc
         new_org = make_org()
@@ -227,7 +234,8 @@ class FilterTestCase(CLITestCase):
             'id': filter_['id'],
             'permissions': self.perms,
             'organization-ids': new_org['id'],
-            'location-ids': new_loc['id']
+            'location-ids': new_loc['id'],
+            'override': 1,
         })
         filter_ = Filter.info({'id': filter_['id']})
         # We expect here only one organization and location
