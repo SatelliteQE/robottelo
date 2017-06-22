@@ -47,6 +47,9 @@ locators = LocatorDict({
     "location.select_name": (
         By.XPATH,
         "//td/a[contains(@href,'locations')]/span[contains(.,'%s')]"),
+    "location.all_capsules": (
+        By.XPATH,
+        "//input[@id='location_ignore_types_smartproxy']"),
 
     # Login
     "login.username": (By.ID, "login_login"),
@@ -138,6 +141,9 @@ locators = LocatorDict({
     "org.label_value": (
         By.XPATH,
         "//input[@id='organization_label' and @value='%s']"),
+    "org.all_capsules": (
+        By.XPATH,
+        "//input[@id='organization_ignore_types_smartproxy']"),
 
     # Trends
     "trend.new": (By.XPATH, "//a[contains(@href, '/trends/new')]"),

@@ -46,7 +46,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.factory import make_host, set_context
 from robottelo.ui.session import Session
 
@@ -864,6 +864,39 @@ class HostTestCase(UITestCase):
             strategy, value = locators['host.select_name']
             self.assertIsNotNone(self.hosts.wait_until_element(
                 (strategy, value % additional_host.name)))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_search_with_org_and_loc_context(self):
+        """Perform usual search for host, but organization and location used
+        for host create procedure should have 'All capsules' checkbox selected
+
+        :id: 2ce50df0-2b30-42cc-a40b-0e1f4fde3c6f
+
+        :expectedresults: Search functionality works as expected and correct
+            result is returned
+
+        :BZ: 1405496
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        host = entities.Host(organization=org, location=loc).create()
+        with Session(self.browser) as session:
+            self.org.search_and_click(org.name)
+            self.org.click(tab_locators['context.tab_capsules'])
+            self.org.assign_value(locators['org.all_capsules'], True)
+            self.org.click(common_locators['submit'])
+            self.location.search_and_click(loc.name)
+            self.location.click(tab_locators['context.tab_capsules'])
+            self.location.assign_value(locators['location.all_capsules'], True)
+            self.location.click(common_locators['submit'])
+            set_context(session, org=org.name, loc=loc.name)
+            # Check that host present in the system
+            self.assertIsNotNone(self.hosts.search(host.name))
+            self.assertIsNotNone(
+                self.hosts.search(host.name, _raw_query=host.name))
 
     @tier2
     def test_positive_validate_inherited_cv_lce(self):
