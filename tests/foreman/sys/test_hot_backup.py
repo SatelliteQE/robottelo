@@ -332,6 +332,45 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
+    def test_positive_logical_db_backup(self):
+        """Katello-backup with --logical-db-backup option should
+        dump full database schema during offline backup
+
+        :id: a1386cfa-cd7e-4f22-9ebc-7c908d514ad4
+
+        :Steps:
+
+            1. Run online backup with --logical-db-backup option
+            2. List contents of the destination
+
+        :expectedresults: Backup is created and additional files are
+            not present. Services are started back again.
+
+        """
+        with get_connection() as connection:
+            dir_name = make_random_tmp_directory(connection)
+            result = connection.run(
+                'katello-backup /tmp/{0} '
+                '--logical-db-backup'.format(dir_name),
+                output_format='plain'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(BCK_MSG.format(dir_name), result.stdout)
+            files = connection.run(
+                    'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                    'list'
+                    )
+            self.assertTrue(set(files.stdout).issuperset(
+                set(BACKUP_FILES)))
+            self.assertIn(u'candlepin.dump', files.stdout)
+            self.assertIn(u'foreman.dump', files.stdout)
+            self.assertIn(u'mongo_dump', files.stdout)
+            self.assertIn(u'pg_globals.dump', files.stdout)
+            # check if services are running correctly
+            self.assertTrue(get_services_status())
+            tmp_directory_cleanup(connection, dir_name)
+
+    @destructive
     def test_positive_incremental(self):
         """Katello-backup with --incremental option
 
