@@ -25,10 +25,11 @@ import re
 from fauxfactory import gen_alphanumeric
 from itertools import chain
 from nailgun import entities
+from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import bz_bug_is_open, run_only_on, tier1
 from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
@@ -188,7 +189,9 @@ def _permission_name(entity, which_perm):
         'update': '^edit_',
     }[which_perm]
     perm_names = []
-    for permission in PERMISSIONS[entity.__name__]:
+    permissions = (PERMISSIONS.get(entity.__name__) or
+                   PERMISSIONS.get('Katello::{0}'.format(entity.__name__)))
+    for permission in permissions:
         match = re.match(pattern, permission)
         if match is not None:
             perm_names.append(permission)
@@ -204,6 +207,13 @@ def _permission_name(entity, which_perm):
 class UserRoleTestCase(APITestCase):
     """Give a user various permissions and see if they are enforced."""
 
+    @classmethod
+    def setUpClass(cls):
+        """Create common entities"""
+        super(UserRoleTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.loc = entities.Location().create()
+
     def setUp(self):  # noqa
         """Create a set of credentials and a user."""
         super(UserRoleTestCase, self).setUp()
@@ -212,6 +222,8 @@ class UserRoleTestCase(APITestCase):
         self.user = entities.User(
             login=self.cfg.auth[0],
             password=self.cfg.auth[1],
+            organization=[self.org],
+            location=[self.loc],
         ).create()
 
     def give_user_permission(self, perm_name):
@@ -248,16 +260,35 @@ class UserRoleTestCase(APITestCase):
             "create_*" role.
 
         :CaseImportance: Critical
+
+        :BZ: 1464137
         """
-        for entity_cls in (entities.Architecture, entities.Domain):
+        for entity_cls in (
+                entities.Architecture,
+                entities.Domain,
+                entities.ActivationKey):
             with self.subTest(entity_cls):
                 with self.assertRaises(HTTPError):
                     entity_cls(self.cfg).create()
                 self.give_user_permission(
                     _permission_name(entity_cls, 'create')
                 )
-                entity_id = entity_cls(self.cfg).create_json()['id']
-                entity_cls(id=entity_id).read()  # As admin user.
+                entity = entity_cls(self.cfg)
+                entity_fields = entity.get_fields()
+                if 'organization' in entity_fields:
+                    if isinstance(
+                            entity_fields['organization'], OneToManyField):
+                        entity.organization = [self.org]
+                    else:
+                        entity.organization = self.org
+                if 'location' in entity_fields:
+                    # Currently entities with both org and loc are affected by
+                    # bug. Skip to the next entity
+                    if bz_bug_is_open('1464137'):
+                        continue
+                    entity.location = [self.loc]
+                entity = entity.create_json()
+                entity_cls(id=entity['id']).read()  # As admin user.
 
     @tier1
     def test_positive_check_read(self):
@@ -272,13 +303,21 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (entities.Architecture, entities.Domain):
+        for entity_cls in (
+                entities.Architecture,
+                entities.Domain,
+                entities.ActivationKey):
             with self.subTest(entity_cls):
-                entity_id = entity_cls().create().id
+                entity = entity_cls()
+                if ('organization' in entity.get_fields()
+                        and 'location' in entity.get_fields()):
+                    entity.organization = [self.org]
+                    entity.location = [self.loc]
+                entity = entity.create()
                 with self.assertRaises(HTTPError):
-                    entity_cls(self.cfg, id=entity_id).read()
+                    entity_cls(self.cfg, id=entity.id).read()
                 self.give_user_permission(_permission_name(entity_cls, 'read'))
-                entity_cls(self.cfg, id=entity_id).read()
+                entity_cls(self.cfg, id=entity.id).read()
 
     @tier1
     def test_positive_check_delete(self):
@@ -293,9 +332,17 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (entities.Architecture, entities.Domain):
+        for entity_cls in (
+                entities.Architecture,
+                entities.Domain,
+                entities.ActivationKey):
             with self.subTest(entity_cls):
-                entity = entity_cls().create()
+                entity = entity_cls()
+                if ('organization' in entity.get_fields()
+                        and 'location' in entity.get_fields()):
+                    entity.organization = [self.org]
+                    entity.location = [self.loc]
+                entity = entity.create()
                 with self.assertRaises(HTTPError):
                     entity_cls(self.cfg, id=entity.id).delete()
                 self.give_user_permission(
@@ -320,9 +367,18 @@ class UserRoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for entity_cls in (entities.Architecture, entities.Domain):
+        for entity_cls in (
+                entities.Architecture,
+                entities.Domain,
+                entities.ActivationKey
+        ):
             with self.subTest(entity_cls):
-                entity = entity_cls().create()
+                entity = entity_cls()
+                if ('organization' in entity.get_fields()
+                        and 'location' in entity.get_fields()):
+                    entity.organization = [self.org]
+                    entity.location = [self.loc]
+                entity = entity.create()
                 name = entity.get_fields()['name'].gen_value()
                 with self.assertRaises(HTTPError):
                     entity_cls(self.cfg, id=entity.id, name=name).update(
