@@ -15,7 +15,6 @@ import os
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
-from robottelo.decorators import bz_bug_is_open
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 
 logger = logging.getLogger(__name__)
@@ -257,9 +256,10 @@ class VirtualMachine(object):
         if force or settings.cdn or not downstream_repo:
             self.run(u'subscription-manager repos --enable {0}'.format(repo))
 
-    def install_katello_agent(self):
+    def install_katello_agent(self, start_goferd=True):
         """Installs katello agent on the virtual machine.
 
+        :param start_goferd: whether to start the goferd service
         :return: None.
         :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
             installed.
@@ -269,13 +269,13 @@ class VirtualMachine(object):
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
-        if bz_bug_is_open('1431747'):
+        if start_goferd:
             gofer_start = self.run('service goferd start')
             if gofer_start.return_code != 0:
                 raise VirtualMachineError('Failed to start katello-agent')
-        gofer_check = self.run('service goferd status')
-        if gofer_check.return_code != 0:
-            raise VirtualMachineError('katello-agent is not running')
+            gofer_check = self.run('service goferd status')
+            if gofer_check.return_code != 0:
+                raise VirtualMachineError('katello-agent is not running')
 
     def install_katello_ca(self):
         """Downloads and installs katello-ca rpm on the virtual machine.
