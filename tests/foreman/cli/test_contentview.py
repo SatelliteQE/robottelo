@@ -2643,7 +2643,7 @@ class ContentViewTestCase(CLITestCase):
         })
         new_cv = ContentView.copy({
             u'id': content_view['id'],
-            u'name': cloned_cv_name,
+            u'new-name': cloned_cv_name,
         })[0]
         ContentView.publish({u'id': new_cv['id']})
         new_cv = ContentView.info({u'id': new_cv['id']})
@@ -2686,7 +2686,7 @@ class ContentViewTestCase(CLITestCase):
         })
         new_cv = ContentView.copy({
             u'id': content_view['id'],
-            u'name': cloned_cv_name,
+            u'new-name': cloned_cv_name,
         })[0]
         ContentView.publish({u'id': new_cv['id']})
         new_cv = ContentView.info({u'id': new_cv['id']})
