@@ -1438,7 +1438,7 @@ class SmartVariablesTestCase(CLITestCase):
             'hidden-value': 1,
         })
         self.assertEqual(smart_variable['hidden-value?'], True)
-        self.assertEqual(smart_variable['default-value'], '**********')
+        self.assertEqual(smart_variable['default-value'], '*****')
 
     @run_only_on('sat')
     @tier1

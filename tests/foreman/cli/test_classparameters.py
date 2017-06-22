@@ -1652,6 +1652,7 @@ class SmartClassParametersTestCase(CLITestCase):
             'id': sc_param_id,
         })
         self.assertEqual(sc_param['hidden-value?'], True)
+        self.assertEqual(sc_param['default-value'], '*****')
 
     @run_only_on('sat')
     @tier1
