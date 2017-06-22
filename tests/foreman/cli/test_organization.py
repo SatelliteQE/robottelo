@@ -1245,6 +1245,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1395229)
+    @skip_if_bug_open('bugzilla', 1473387)
     @tier2
     def test_positive_remove_location_by_id(self):
         """Remove a location from organization by its id
@@ -1252,6 +1253,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 37b63e5c-8fd5-439c-9540-972b597b590a
 
         :expectedresults: Location is removed from the org
+
+        :BZ: 1395229, 1473387
 
         :CaseLevel: Integration
         """
@@ -1273,6 +1276,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1395229)
+    @skip_if_bug_open('bugzilla', 1473387)
     @tier2
     def test_positive_remove_location_by_name(self):
         """Remove a location from organization by its name
@@ -1280,6 +1284,8 @@ class OrganizationTestCase(CLITestCase):
         :id: 35770afa-1623-448c-af4f-a702851063db
 
         :expectedresults: Location is removed from the org
+
+        :BZ: 1395229, 1473387
 
         :CaseLevel: Integration
         """
