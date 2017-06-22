@@ -345,19 +345,26 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule was updated and with given org & location.
 
+        :BZ: 1377990
+
         :CaseLevel: Integration
         """
         new_org = make_org()
         new_loc = make_location()
+        new_hostgroup = make_hostgroup({
+            'organization-ids': new_org['id'],
+            'location-ids': new_loc['id'],
+        })
         rule = self._make_discoveryrule()
         DiscoveryRule.update({
             'id': rule['id'],
             'organization-ids': new_org['id'],
             'location-ids': new_loc['id'],
+            'hostgroup-id': new_hostgroup['id'],
         })
         rule = DiscoveryRule.info({'id': rule['id']})
-        self.assertIn(rule['organizations'], new_org['name'])
-        self.assertIn(rule['locations'], new_loc['name'])
+        self.assertIn(new_org['name'], rule['organizations'])
+        self.assertIn(new_loc['name'], rule['locations'])
 
     @run_only_on('sat')
     @tier1
