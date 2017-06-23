@@ -66,23 +66,25 @@ class FilteredDataPointTestCase(unittest2.TestCase):
 
     def test_filtered_datapoint_False(self):
         """Tests if run_one_datapoint=True returns one data point"""
-        settings.run_one_datapoint = True
-        self.assertEqual(len(generate_strings_list()), 1)
-        self.assertEqual(len(invalid_emails_list()), 1)
-        self.assertEqual(len(invalid_id_list()), 1)
-        self.assertEqual(len(invalid_interfaces_list()), 1)
-        self.assertEqual(len(invalid_names_list()), 1)
-        self.assertEqual(len(invalid_values_list()), 1)
-        self.assertEqual(len(valid_data_list()), 1)
-        self.assertEqual(len(valid_emails_list()), 1)
-        self.assertEqual(len(valid_environments_list()), 1)
-        self.assertEqual(len(valid_hosts_list()), 1)
-        self.assertEqual(len(valid_hostgroups_list()), 1)
-        self.assertEqual(len(valid_interfaces_list()), 1)
-        self.assertEqual(len(valid_labels_list()), 1)
-        self.assertEqual(len(valid_names_list()), 1)
-        self.assertEqual(len(valid_org_names_list()), 1)
-        self.assertEqual(len(valid_usernames_list()), 1)
+        with mock.patch('robottelo.datafactory.bz_bug_is_open',
+                        return_value=False):
+            settings.run_one_datapoint = True
+            self.assertEqual(len(generate_strings_list()), 1)
+            self.assertEqual(len(invalid_emails_list()), 1)
+            self.assertEqual(len(invalid_id_list()), 1)
+            self.assertEqual(len(invalid_interfaces_list()), 1)
+            self.assertEqual(len(invalid_names_list()), 1)
+            self.assertEqual(len(invalid_values_list()), 1)
+            self.assertEqual(len(valid_data_list()), 1)
+            self.assertEqual(len(valid_emails_list()), 1)
+            self.assertEqual(len(valid_environments_list()), 1)
+            self.assertEqual(len(valid_hosts_list()), 1)
+            self.assertEqual(len(valid_hostgroups_list()), 1)
+            self.assertEqual(len(valid_interfaces_list()), 1)
+            self.assertEqual(len(valid_labels_list()), 1)
+            self.assertEqual(len(valid_names_list()), 1)
+            self.assertEqual(len(valid_org_names_list()), 1)
+            self.assertEqual(len(valid_usernames_list()), 1)
 
     @mock.patch('robottelo.datafactory.gen_string')
     def test_generate_strings_list_remove_str(self, gen_string):
@@ -125,25 +127,29 @@ class TestReturnTypes(unittest2.TestCase):
         15. :meth:`robottelo.datafactory.valid_interfaces_list`
 
         """
-        for item in itertools.chain(
-                generate_strings_list(),
-                invalid_emails_list(),
-                invalid_interfaces_list(),
-                invalid_names_list(),
-                valid_data_list(),
-                valid_emails_list(),
-                valid_environments_list(),
-                valid_hosts_list(),
-                valid_hostgroups_list(),
-                valid_interfaces_list(),
-                valid_labels_list(),
-                valid_names_list(),
-                valid_org_names_list(),
-                valid_usernames_list()):
-            self.assertIsInstance(item, six.text_type)
-        for item in invalid_id_list():
-            if not (isinstance(item, (six.text_type, int)) or item is None):
-                self.fail('Unexpected data type')
+        with mock.patch('robottelo.datafactory.bz_bug_is_open',
+                        return_value=False):
+            for item in itertools.chain(
+                    generate_strings_list(),
+                    invalid_emails_list(),
+                    invalid_interfaces_list(),
+                    invalid_names_list(),
+                    valid_data_list(),
+                    valid_emails_list(),
+                    valid_environments_list(),
+                    valid_hosts_list(),
+                    valid_hostgroups_list(),
+                    valid_interfaces_list(),
+                    valid_labels_list(),
+                    valid_names_list(),
+                    valid_org_names_list(),
+                    valid_usernames_list()):
+                self.assertIsInstance(item, six.text_type)
+            for item in invalid_id_list():
+                if not (
+                        isinstance(item, (six.text_type, int)) or item is None
+                        ):
+                    self.fail('Unexpected data type')
 
 
 class InvalidValuesListTestCase(unittest2.TestCase):
