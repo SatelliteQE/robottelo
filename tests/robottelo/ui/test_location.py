@@ -35,9 +35,10 @@ class LocationTestCase(unittest2.TestCase):
         # not called if parent is None
         location.select.assert_not_called()
         location._configure_location.assert_called_once_with(
-            capsules=None, domains=None, envs=None, hostgroups=None,
-            medias=None, organizations=None, ptables=None, resources=None,
-            select=True, subnets=None, templates=None, users=None
+            capsules=None, all_capsules=None, domains=None, envs=None,
+            hostgroups=None, medias=None, organizations=None, ptables=None,
+            resources=None, select=True, subnets=None, templates=None,
+            users=None
         )
 
     def test_creation_with_parent_and_unassigned_host(self):
@@ -49,8 +50,9 @@ class LocationTestCase(unittest2.TestCase):
         location.select = mock.Mock()
         configure_arguments = {
             arg: arg for arg in
-            'capsules domains envs hostgroups medias organizations ptables '
-            'resources select subnets templates users select'.split()
+            'capsules all_capsules domains hostgroups medias organizations '
+            'envs ptables resources select subnets templates users '
+            'select'.split()
         }
         location.create('foo', 'parent', **configure_arguments)
         click_calls = [

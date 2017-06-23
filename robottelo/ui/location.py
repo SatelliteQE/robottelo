@@ -17,10 +17,10 @@ class Location(Base):
         """Specify locator for Locations entity search procedure"""
         return locators['location.select_name']
 
-    def _configure_location(self, users=None, capsules=None, subnets=None,
-                            resources=None, medias=None, templates=None,
-                            ptables=None, domains=None, envs=None,
-                            hostgroups=None, organizations=None,
+    def _configure_location(self, users=None, capsules=None, all_capsules=None,
+                            subnets=None, resources=None, medias=None,
+                            templates=None, ptables=None, domains=None,
+                            envs=None, hostgroups=None, organizations=None,
                             new_users=None, new_capsules=None,
                             new_subnets=None, new_resources=None,
                             new_medias=None, new_templates=None,
@@ -41,6 +41,9 @@ class Location(Base):
                                   tab_locator=loc['context.tab_capsules'],
                                   new_entity_list=new_capsules,
                                   entity_select=select)
+        if all_capsules is not None:
+            self.click(loc['context.tab_capsules'])
+            self.assign_value(locators['location.all_capsules'], all_capsules)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['loc_subnet'],
                                   tab_locator=loc['context.tab_subnets'],
@@ -88,9 +91,9 @@ class Location(Base):
                                   entity_select=select)
 
     def create(self, name, parent=None, users=None, capsules=None,
-               subnets=None, resources=None, medias=None, templates=None,
-               ptables=None, domains=None, envs=None, hostgroups=None,
-               organizations=None, select=True):
+               all_capsules=None, subnets=None, resources=None, medias=None,
+               templates=None, ptables=None, domains=None, envs=None,
+               hostgroups=None, organizations=None, select=True):
         """Creates new Location from UI."""
         self.click(locators['location.new'])
         self.assign_value(locators['location.name'], name)
@@ -103,7 +106,7 @@ class Location(Base):
             # "2 Select Hosts"
             self.click(to_edit_locator)
         self._configure_location(
-            users=users, capsules=capsules,
+            users=users, capsules=capsules, all_capsules=all_capsules,
             subnets=subnets, resources=resources,
             medias=medias, templates=templates,
             ptables=ptables, domains=domains, envs=envs,
@@ -113,8 +116,8 @@ class Location(Base):
         )
         self.click(common_locators['submit'])
 
-    def update(self, loc_name, new_name=None, users=None,
-               capsules=None, subnets=None, resources=None, medias=None,
+    def update(self, loc_name, new_name=None, users=None, capsules=None,
+               all_capsules=None, subnets=None, resources=None, medias=None,
                templates=None, ptables=None, domains=None, envs=None,
                hostgroups=None, organizations=None, new_organizations=None,
                new_users=None, new_capsules=None, new_subnets=None,
@@ -125,22 +128,24 @@ class Location(Base):
         self.search_and_click(loc_name)
         if new_name:
             self.assign_value(locators['location.name'], new_name)
-        self._configure_location(users=users, capsules=capsules,
-                                 subnets=subnets, resources=resources,
-                                 medias=medias, templates=templates,
-                                 ptables=ptables, domains=domains, envs=envs,
-                                 hostgroups=hostgroups,
-                                 organizations=organizations,
-                                 new_organizations=new_organizations,
-                                 new_users=new_users,
-                                 new_capsules=new_capsules,
-                                 new_subnets=new_subnets,
-                                 new_resources=new_resources,
-                                 new_medias=new_medias,
-                                 new_templates=new_templates,
-                                 new_ptables=new_ptables,
-                                 new_domains=new_domains,
-                                 new_envs=new_envs,
-                                 new_hostgroups=new_hostgroups,
-                                 select=select)
+        self._configure_location(
+            users=users, capsules=capsules,
+            all_capsules=all_capsules, subnets=subnets,
+            resources=resources, medias=medias,
+            templates=templates, ptables=ptables,
+            domains=domains, envs=envs, hostgroups=hostgroups,
+            organizations=organizations,
+            new_organizations=new_organizations,
+            new_users=new_users,
+            new_capsules=new_capsules,
+            new_subnets=new_subnets,
+            new_resources=new_resources,
+            new_medias=new_medias,
+            new_templates=new_templates,
+            new_ptables=new_ptables,
+            new_domains=new_domains,
+            new_envs=new_envs,
+            new_hostgroups=new_hostgroups,
+            select=select
+        )
         self.click(common_locators['submit'])

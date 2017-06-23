@@ -46,7 +46,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
-from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.locators import locators
 from robottelo.ui.factory import make_host, set_context
 from robottelo.ui.session import Session
 
@@ -884,14 +884,8 @@ class HostTestCase(UITestCase):
         loc = entities.Location().create()
         host = entities.Host(organization=org, location=loc).create()
         with Session(self.browser) as session:
-            self.org.search_and_click(org.name)
-            self.org.click(tab_locators['context.tab_capsules'])
-            self.org.assign_value(locators['org.all_capsules'], True)
-            self.org.click(common_locators['submit'])
-            self.location.search_and_click(loc.name)
-            self.location.click(tab_locators['context.tab_capsules'])
-            self.location.assign_value(locators['location.all_capsules'], True)
-            self.location.click(common_locators['submit'])
+            self.org.update(org.name, all_capsules=True)
+            self.location.update(loc.name, all_capsules=True)
             set_context(session, org=org.name, loc=loc.name)
             # Check that host present in the system
             self.assertIsNotNone(self.hosts.search(host.name))
