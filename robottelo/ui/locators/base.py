@@ -1659,9 +1659,6 @@ locators = LocatorDict({
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
-    "contentviews.remove": (
-        By.XPATH,
-        "//button[contains(@ng-click, 'content-views.details.deletion')]"),
     "contentviews.version_dropdown": (
         By.XPATH, "//td/a[contains(., '%s')]/following::td/div/"
                   "button[contains(@class, 'dropdown-toggle')]"),
@@ -1702,12 +1699,8 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@class, 'alert-success')]"
          "/div/span[contains(., 'Successfully removed')]")),
-    "contentviews.select_action_dropdown": (
-        By.XPATH,
-        ("//button[contains(@class, 'dropdown')]"
-         "[descendant::span[text()='Select Action']]")),
     "contentviews.publish": (
-        By.XPATH, "//a[contains(@ui-sref, 'content-view.publish')]"),
+        By.XPATH, "//button[@ui-sref='content-view.publish']"),
     "contentviews.publish_description": (By.ID, "description"),
     "contentviews.publish_progress": (
         By.XPATH,
@@ -1717,6 +1710,9 @@ locators = LocatorDict({
         By.XPATH, "//div[@label='Version']/label"),
     "contentviews.ver_num": (
         By.XPATH, "//div[@label='Version']/div/span"),
+    "contentviews.docker_repo": (
+        By.XPATH, "//a[@class='ng-scope' and "
+                  "contains(@ui-sref, 'repositories.docker.list')]"),
     "contentviews.content_repo": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'repositories')]"),
@@ -1795,12 +1791,14 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='removeFilters()']"),
     "contentviews.select_filter_name": (
         By.XPATH, "//div[@data-block='table']//td/a[contains(., '%s')]"),
+    "contentviews.add_rule": (
+        By.XPATH, "//button[@ng-click='addRule()']"),
     "contentviews.input_pkg_name": (
         By.XPATH, "//input[@ng-model='rule.name']"),
     "contentviews.select_pkg_version": (
         By.XPATH, "//select[@ng-model='rule.type']"),
     "contentviews.add_pkg_button": (
-        By.XPATH, "//button[@ng-click='addRule(rule, filter)']"),
+        By.XPATH, "//button[contains(@ng-click, 'handleSave()')]"),
     "contentviews.equal_value": (
         By.XPATH, "//input[@ng-model='rule.version']"),
     "contentviews.greater_min_value": (
@@ -1891,17 +1889,14 @@ locators = LocatorDict({
         By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'yum.list')]"),
     "contentviews.version.package_name": (
         By.XPATH,
-        ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
-         "/td[1][contains(., '%s')]")),
+        "//tr[contains(@ng-repeat,'package')]/td[1][contains(., '%s')]"),
     "contentviews.version.package_version": (
         By.XPATH,
-        ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
-         "/td[2][contains(., '%s')]")),
+        "//tr[contains(@ng-repeat,'package')]/td[2][contains(., '%s')]"),
     "contentviews.version.puppet_module_name": (
         By.XPATH,
-        ("//table[@data-block='table']"
-         "//tr[contains(@ng-repeat, 'puppetModule in detailsTable.rows')]"
-         "/td/a[contains(., '%s')]")),
+        ("//tr[contains(@ng-repeat, 'contentViewPuppetModule')]"
+         "/td[contains(., '%s')]")),
 
     # Packages
     "package.rpm_name": (By.XPATH, "//a[contains(., '%s')]"),

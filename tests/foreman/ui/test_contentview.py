@@ -2784,13 +2784,14 @@ class ContentViewTestCase(UITestCase):
             # assert the user can access all the content view tabs
             tabs_locators = [
                 tab_locators.contentviews.tab_versions,
-                (tab_locators.contentviews.tab_content,
+                (tab_locators.contentviews.tab_yum_content,
                  locators.contentviews.content_repo),
-                (tab_locators.contentviews.tab_content,
+                (tab_locators.contentviews.tab_yum_content,
                  locators.contentviews.content_filters),
                 tab_locators.contentviews.tab_file_repositories,
                 tab_locators.contentviews.tab_puppet_modules,
-                tab_locators.contentviews.tab_docker_content,
+                (tab_locators.contentviews.tab_docker_content,
+                 locators.contentviews.docker_repo),
                 tab_locators.contentviews.tab_ostree_content,
                 tab_locators.contentviews.tab_history,
                 tab_locators.contentviews.tab_details,
@@ -2961,13 +2962,14 @@ class ContentViewTestCase(UITestCase):
             # assert the user can access all the content view tabs
             tabs_locators = [
                 tab_locators.contentviews.tab_versions,
-                (tab_locators.contentviews.tab_content,
+                (tab_locators.contentviews.tab_yum_content,
                  locators.contentviews.content_repo),
-                (tab_locators.contentviews.tab_content,
+                (tab_locators.contentviews.tab_yum_content,
                  locators.contentviews.content_filters),
                 tab_locators.contentviews.tab_file_repositories,
                 tab_locators.contentviews.tab_puppet_modules,
-                tab_locators.contentviews.tab_docker_content,
+                (tab_locators.contentviews.tab_docker_content,
+                 locators.contentviews.docker_repo),
                 tab_locators.contentviews.tab_ostree_content,
                 tab_locators.contentviews.tab_history,
                 tab_locators.contentviews.tab_details,
@@ -2986,7 +2988,7 @@ class ContentViewTestCase(UITestCase):
                         ' a content view tab: {0}'.format(err.message)
                     )
             # assert that the user can view the repo in content view
-            self.content_views.click(tab_locators.contentviews.tab_content)
+            self.content_views.click(tab_locators.contentviews.tab_yum_content)
             self.content_views.click(locators.contentviews.content_repo)
             self.content_views.assign_value(
                 locators.contentviews.repo_search, repo_name)
@@ -3073,9 +3075,11 @@ class ContentViewTestCase(UITestCase):
                     if tab == 'docker':
                         self.content_views.click(
                             tab_locators['contentviews.tab_docker_content'])
+                        self.content_views.click(
+                            locators['contentviews.docker_repo'])
                     elif tab == 'yum':
                         self.content_views.click(
-                            tab_locators['contentviews.tab_content'])
+                            tab_locators['contentviews.tab_yum_content'])
                         self.content_views.click(
                             locators['contentviews.content_repo'])
 
@@ -3185,7 +3189,7 @@ class ContentViewTestCase(UITestCase):
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.delete(cv_name)
             # ensure that the delete locator is in the exception message
-            _, locator = locators.contentviews.remove
+            _, locator = common_locators['select_action'] % 'Remove'
             self.assertIn(locator, context.exception.message)
             # ensure the user cannot edit the content view
             with self.assertRaises(UINoSuchElementError) as context:

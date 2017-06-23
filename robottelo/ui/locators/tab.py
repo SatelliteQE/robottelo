@@ -157,20 +157,22 @@ tab_locators = LocatorDict({
         By.XPATH,
         "//a[@class='ng-scope' and "
         "contains(@ui-sref, 'content-view.versions')]"),
-    "contentviews.tab_content": (
-        By.XPATH, "//ul/li/a[@class='dropdown-toggle']/i"),
+    "contentviews.tab_yum_content": (
+        By.XPATH, "//ul/li/a[@class='dropdown-toggle']"
+                  "/i[preceding-sibling::span[contains(., 'Yum Content')]]"),
+    "contentviews.tab_docker_content": (
+        By.XPATH,
+        "//ul/li/a[@class='dropdown-toggle']"
+        "/i[preceding-sibling::span[contains(., 'Docker Content')]]"),
     "contentviews.tab_content_views": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'content-views')]"),
     "contentviews.tab_file_repositories": (
         By.XPATH,
-        "//a[@ui-sref='content-views.details.repositories.file.list']"),
+        "//a[@ui-sref='content-view.repositories.file.list']"),
     "contentviews.tab_puppet_modules": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'puppet_modules')]"),
-    "contentviews.tab_docker_content": (
-        By.XPATH,
-        "//a[@class='ng-scope' and contains(@href, 'docker')]"),
     "contentviews.tab_ostree_content": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'ostree')]"),
@@ -202,15 +204,14 @@ tab_locators = LocatorDict({
     # Fourth level UI
     "contentviews.tab_filter_affected_repos": (
         By.XPATH,
-        ("//a[contains(@ui-sref, 'content-views.details.filters.details.rpm."
-         "repositories')]")),
+        "//a[contains(@ui-sref, 'content-view.yum.filter.rpm.repositories')]"),
     "contentviews.tab_version_packages": (
         By.XPATH,
-        "//a[contains(@ui-sref, 'content-views.details.version.packages')]"),
+        "//a[contains(@ui-sref, 'content-view.version.packages')]"),
     "contentviews.tab_version_puppet_modules": (
         By.XPATH,
         "//a[contains(@ui-sref, "
-        "'content-views.details.version.puppet-modules')]"),
+        "'content-view.version.puppet-modules')]"),
 
     # Content Hosts
     # Third level UI

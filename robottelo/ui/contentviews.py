@@ -25,7 +25,7 @@ class ContentViews(Base):
     def go_to_filter_page(self, cv_name, filter_name):
         """Navigates UI to selected Filter page"""
         self.search_and_click(cv_name)
-        self.click(tab_locators['contentviews.tab_content'])
+        self.click(tab_locators['contentviews.tab_yum_content'])
         self.click(locators['contentviews.content_filters'])
         self.assign_value(
             locators['contentviews.search_filters'], filter_name)
@@ -79,7 +79,7 @@ class ContentViews(Base):
     def search_filter(self, cv_name, filter_name):
         """Uses search box to locate the filters"""
         self.search_and_click(cv_name)
-        self.click(tab_locators['contentviews.tab_content'])
+        self.click(tab_locators['contentviews.tab_yum_content'])
         self.click(locators['contentviews.content_filters'])
         self.assign_value(
             locators['contentviews.search_filters'], filter_name)
@@ -115,10 +115,11 @@ class ContentViews(Base):
         """
         self.search_and_click(cv_name)
         if repo_type == 'yum':
-            self.click(tab_locators['contentviews.tab_content'])
+            self.click(tab_locators['contentviews.tab_yum_content'])
             self.click(locators['contentviews.content_repo'])
         elif repo_type == 'docker':
             self.click(tab_locators['contentviews.tab_docker_content'])
+            self.click(locators['contentviews.docker_repo'])
         elif repo_type == 'ostree':
             self.click(tab_locators['contentviews.tab_ostree_content'])
         locator = locators['contentviews.select_repo']
@@ -174,7 +175,6 @@ class ContentViews(Base):
         'Library' environment
         """
         self.search_and_click(cv_name)
-        self.click(locators['contentviews.select_action_dropdown'])
         self.click(locators['contentviews.publish'])
         version_label = self.wait_until_element(
             locators['contentviews.ver_label'])
@@ -263,7 +263,7 @@ class ContentViews(Base):
         'content-type'(package/package-group/errata)
         """
         self.search_and_click(cv_name)
-        self.click(tab_locators['contentviews.tab_content'])
+        self.click(tab_locators['contentviews.tab_yum_content'])
         self.click(locators['contentviews.content_filters'])
         self.click(locators['contentviews.new_filter'])
         self.assign_value(common_locators['name'], filter_name)
@@ -287,7 +287,7 @@ class ContentViews(Base):
     def remove_filter(self, cv_name, filter_names):
         """Removes selected filter from selected content-view."""
         self.search_and_click(cv_name)
-        self.click(tab_locators['contentviews.tab_content'])
+        self.click(tab_locators['contentviews.tab_yum_content'])
         self.click(locators['contentviews.content_filters'])
 
         # Workaround to remove previously used search string
@@ -333,6 +333,7 @@ class ContentViews(Base):
         self.go_to_filter_page(cv_name, filter_name)
         for package_name, version_type, value, max_value in zip(
                 package_names, version_types, values, max_values):
+            self.click(locators['contentviews.add_rule'])
             self.assign_value(
                 locators['contentviews.input_pkg_name'], package_name)
             self.select(
@@ -548,7 +549,7 @@ class ContentViews(Base):
         """Fetch associated yum repository info from selected content view."""
         # find content_view
         self.search_and_click(cv_name)
-        self.click(tab_locators['contentviews.tab_content'])
+        self.click(tab_locators['contentviews.tab_yum_content'])
         self.click(locators['contentviews.yum_repositories'])
         if self.wait_until_element(locators['contentviews.repo_name']):
             return self.find_element(locators['contentviews.repo_name']).text
@@ -603,14 +604,14 @@ class ContentViews(Base):
         # type package version alongside with package name into search field if
         # it was passed
         self.assign_value(
-            common_locators['kt_table_search'],
+            common_locators.kt_search,
             package_name if not package_version else
             'name = "{}" and version = "{}"'.format(
                 package_name,
                 package_version,
             )
         )
-        self.click(common_locators['kt_table_search_button'])
+        self.click(common_locators.kt_search_button)
         return self.wait_until_element(
             locators['contentviews.version.package_name'] % package_name)
 
@@ -619,10 +620,10 @@ class ContentViews(Base):
         self.click(self.version_search(name, version))
         self.click(tab_locators.contentviews.tab_version_puppet_modules)
         self.assign_value(
-            common_locators.kt_table_search,
+            common_locators.kt_search,
             module_name
         )
-        self.click(common_locators.kt_table_search_button)
+        self.click(common_locators.kt_search_button)
         return self.wait_until_element(
             locators.contentviews.version.puppet_module_name % module_name)
 
