@@ -3639,6 +3639,7 @@ class ContentViewTestCase(CLITestCase):
             })
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1464414)
     @tier2
     def test_positive_user_with_all_cv_permissions(self):
         """A user with all content view permissions is able to create,
@@ -3655,15 +3656,17 @@ class ContentViewTestCase(CLITestCase):
         """
         cv = make_content_view({'organization-id': self.org['id']})
         password = gen_string('alphanumeric')
-        user = make_user({'password': password})
-        role = make_role()
+        user = make_user({
+            'password': password,
+            'organization-ids': self.org['id']
+        })
+        role = make_role({'organization-ids': self.org['id']})
+        # note: the filters inherit role organizations
         make_filter({
-            'organization-ids': self.org['id'],
             'permissions': PERMISSIONS['Katello::ContentView'],
             'role-id': role['id'],
         })
         make_filter({
-            'organization-ids': self.org['id'],
             'permissions': PERMISSIONS['Katello::KTEnvironment'],
             'role-id': role['id'],
         })
