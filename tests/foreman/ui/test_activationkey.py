@@ -17,6 +17,7 @@
 """
 
 import random
+import re
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
@@ -1020,6 +1021,13 @@ class ActivationKeyTestCase(UITestCase):
                     locators['contenthost.details_page.name'])
                 self.assertIsNotNone(chost_name)
                 self.assertEqual(chost_name.text, vm.hostname)
+                # Ensure content host id is present in URL
+                chost_id = entities.Host().search(query={
+                    'search': 'name={}'.format(vm.hostname)})[0].id
+                chost_url_id = re.search(
+                    '(?<=content_hosts/)([0-9])+', self.browser.current_url)
+                self.assertIsNotNone(chost_url_id)
+                self.assertEqual(int(chost_url_id.group(0)), chost_id)
 
     @run_in_one_thread
     @run_only_on('sat')
