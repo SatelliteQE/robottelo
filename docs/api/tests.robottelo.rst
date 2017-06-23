@@ -15,11 +15,6 @@ Submodules:
 
 .. automodule:: tests.robottelo.test_datafactory
 
-:mod:`tests.robottelo.test_decorators`
---------------------------------------
-
-.. automodule:: tests.robottelo.test_decorators
-
 :mod:`tests.robottelo.test_helpers`
 -----------------------------------
 

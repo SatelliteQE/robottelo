@@ -6,6 +6,7 @@ from fauxfactory import gen_integer
 from unittest2 import SkipTest, TestCase
 
 from robottelo import decorators
+from robozilla import decorators as robozilla_decorators
 from robottelo.config.base import BugzillaSettings
 from robottelo.constants import BZ_CLOSED_STATUSES, BZ_OPEN_STATUSES
 
@@ -24,7 +25,7 @@ class BzBugIsOpenTestCase(TestCase):
     # (test names are long to make it readable) pylint:disable=C0103
     def setUp(self):
         """Back up objects and generate common values."""
-        self.backup = decorators._get_bugzilla_bug
+        self.backup = robozilla_decorators._get_bugzilla_bug
         self.bug_id = gen_integer()
         self._get_host_sat_version_patcher = mock.patch(
             'robottelo.decorators.get_host_sat_version')
@@ -46,7 +47,7 @@ class BzBugIsOpenTestCase(TestCase):
 
     def tearDown(self):
         """Restore backed-up objects."""
-        decorators._get_bugzilla_bug = self.backup
+        robozilla_decorators._get_bugzilla_bug = self.backup
         self._get_host_sat_version_patcher.stop()
 
     def test_bug_is_open(self):
@@ -58,10 +59,14 @@ class BzBugIsOpenTestCase(TestCase):
             'whiteboard': ''
         }
 
-        decorators._get_bugzilla_bug = lambda bug_id: original_bug
-        self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+        robozilla_decorators._get_bugzilla_bug = (
+            lambda bug_id, **_: original_bug
+        )
+        self.assertTrue(decorators.bz_bug_is_open(self.bug_id,
+                                                  sat_version_picker=None))
         original_bug['status'] = 'ASSIGNED'
-        self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+        self.assertTrue(decorators.bz_bug_is_open(self.bug_id,
+                                                  sat_version_picker=None))
 
     def test_bug_is_closed(self):
         """Assert ``False`` is returned if the bug is not open."""
@@ -73,17 +78,23 @@ class BzBugIsOpenTestCase(TestCase):
             'flags': {'sat-6.2.z': '', 'sat-6.3.0': '+'}
         }
 
-        decorators._get_bugzilla_bug = lambda bug_id: original_bug
-        self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+        robozilla_decorators._get_bugzilla_bug = (
+            lambda bug_id, **_: original_bug
+        )
+        self.assertFalse(decorators.bz_bug_is_open(self.bug_id,
+                                                   sat_version_picker=None))
         original_bug['status'] = 'ON_QA'
-        self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+        self.assertFalse(decorators.bz_bug_is_open(self.bug_id,
+                                                   sat_version_picker=None))
         original_bug['status'] = 'SLOWLY DRIVING A DEV INSANE'
-        self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+        self.assertFalse(decorators.bz_bug_is_open(self.bug_id,
+                                                   sat_version_picker=None))
 
     def test_bug_lookup_fails(self):
         """Assert ``False`` is returned if the bug cannot be found."""
-        decorators._get_bugzilla_bug = lambda _: None
-        self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+        robozilla_decorators._get_bugzilla_bug = lambda _, **__: None
+        self.assertFalse(decorators.bz_bug_is_open(self.bug_id,
+                                                   sat_version_picker=None))
 
     @mock.patch('robottelo.decorators.settings')
     def test_upstream_with_whiteboard(self, dec_settings):
@@ -96,18 +107,22 @@ class BzBugIsOpenTestCase(TestCase):
         }
 
         dec_settings.upstream = True
-        decorators._get_bugzilla_bug = lambda bug_id: original_bug
+        robozilla_decorators._get_bugzilla_bug = (
+            lambda bug_id, **_: original_bug
+        )
         # Assert bug is really closed with valid/invalid whiteboard texts
         white_board_data = (
             self.valid_whiteboard_data + self.invalid_whiteboard_data)
         for original_bug['status'], original_bug['whiteboard'] in \
                 product(BZ_CLOSED_STATUSES, white_board_data):
-            self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+            self.assertFalse(decorators.bz_bug_is_open(
+                self.bug_id, sat_version_picker=None))
 
         # Assert bug is really open with valid/invalid whiteboard texts
         for original_bug['status'], original_bug['whiteboard'] in \
                 product(BZ_OPEN_STATUSES, white_board_data):
-            self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+            self.assertTrue(decorators.bz_bug_is_open(
+                self.bug_id, sat_version_picker=None))
 
     @mock.patch('robottelo.decorators.settings')
     def test_downstream_valid_whiteboard(self, dec_settings):
@@ -127,14 +142,18 @@ class BzBugIsOpenTestCase(TestCase):
         }
 
         dec_settings.upstream = False
-        decorators._get_bugzilla_bug = lambda bug_id: original_bug
+        robozilla_decorators._get_bugzilla_bug = (
+            lambda bug_id, **_: original_bug
+        )
         all_statuses = chain(BZ_OPEN_STATUSES, BZ_CLOSED_STATUSES)
         for original_bug['status'], original_bug['whiteboard'] in \
                 product(all_statuses, self.valid_whiteboard_data):
             if original_bug['status'] == 'CLOSED':
-                self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+                self.assertFalse(decorators.bz_bug_is_open(
+                    self.bug_id, sat_version_picker=None))
             else:
-                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+                self.assertTrue(decorators.bz_bug_is_open(
+                    self.bug_id, sat_version_picker=None))
 
     @mock.patch('robottelo.decorators.settings')
     def test_downstream_closedbug_invalid_whiteboard(self, dec_settings):
@@ -154,10 +173,13 @@ class BzBugIsOpenTestCase(TestCase):
         }
 
         dec_settings.upstream = False
-        decorators._get_bugzilla_bug = lambda bug_id: original_bug
+        robozilla_decorators._get_bugzilla_bug = (
+            lambda bug_id, **_: original_bug
+        )
         for original_bug['status'], original_bug['whiteboard'] in \
                 product(BZ_CLOSED_STATUSES, self.invalid_whiteboard_data):
-            self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+            self.assertFalse(decorators.bz_bug_is_open(
+                self.bug_id, sat_version_picker=None))
 
     @mock.patch('robottelo.decorators.settings')
     def test_downstream_openbug_whiteboard(self, dec_settings):
@@ -175,14 +197,18 @@ class BzBugIsOpenTestCase(TestCase):
         }
 
         dec_settings.upstream = False
-        decorators._get_bugzilla_bug = lambda bug_id: original_bug
+        robozilla_decorators._get_bugzilla_bug = (
+            lambda bug_id, **_: original_bug
+        )
         all_whiteboard_data = chain(
             self.valid_whiteboard_data, self.invalid_whiteboard_data)
         for original_bug['status'], original_bug['whiteboard'] in \
                 product(BZ_OPEN_STATUSES, all_whiteboard_data):
-            self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+            self.assertTrue(decorators.bz_bug_is_open(
+                self.bug_id, sat_version_picker=None)
+            )
 
-    @mock.patch('robottelo.decorators.BZReader')
+    @mock.patch('robozilla.decorators.BZReader')
     @mock.patch('robottelo.decorators.settings')
     def test_unauthenticated_bz_call(self, dec_settings, BZReader):
         """Assert flags are not taken into account if bz credentials section is
@@ -205,7 +231,8 @@ class BzBugIsOpenTestCase(TestCase):
         BZReader.return_value = bz_reader
         bz_reader.get_bug_data.return_value = original_bug
 
-        self.assertFalse(decorators.bz_bug_is_open(original_bug['id']))
+        self.assertFalse(decorators.bz_bug_is_open(
+            original_bug['id'], sat_version_picker=None))
         BZReader.assert_called_once_with(
             {},
             include_fields=[
@@ -219,7 +246,8 @@ class BzBugIsOpenTestCase(TestCase):
         # Missing user
         bz_credentials.update({'user': None, 'password': 'foo'})
         # avoiding cache adding 1 to id
-        self.assertTrue(decorators.bz_bug_is_open(original_bug['id'] + 1))
+        self.assertTrue(decorators.bz_bug_is_open(
+            original_bug['id'] + 1, sat_version_picker=None))
 
     @mock.patch('robottelo.decorators.settings')
     def test_complete_bug_workflow(self, dec_settings):
@@ -248,14 +276,17 @@ class BzBugIsOpenTestCase(TestCase):
         def add_bug_on_server(bug):
             bugzilla_server[bug['id']] = bug
 
-        decorators._get_bugzilla_bug = lambda bug_id: bugzilla_server[bug_id]
+        robozilla_decorators._get_bugzilla_bug = (
+            lambda bug_id, **_: bugzilla_server[bug_id]
+        )
 
         add_bug_on_server(original_bug)
 
         for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'], sat_version_picker=lambda: v),
                 'Should be open for all version because of status NEW'
             )
 
@@ -266,7 +297,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertTrue(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=lambda: v,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be open because of status NEW'
         )
 
@@ -280,7 +315,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=lambda: v,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -290,7 +329,9 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'], sat_version_picker=lambda: v
+                ),
                 'Should be open for all versions because it is not on '
                 'downstream'
             )
@@ -303,7 +344,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -313,7 +358,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'], sat_version_picker=lambda: v),
                 'Should be closed for all versions greater or equals to 6.3, '
                 'version present on flags'
             )
@@ -328,7 +374,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -338,7 +388,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.1', '6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'], sat_version_picker=lambda: v),
                 'Should be open for all versions because bug has 2 '
                 'positive sat version flags and no defined target milestone'
             )
@@ -350,7 +401,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -360,7 +415,10 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'],
+                    sat_version_picker=lambda: v
+                ),
                 'Should be False for all versions greater than 6.3'
                 'because target_milestone is GA and non zstream flag is 6.3'
             )
@@ -368,7 +426,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.1', '6.2']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be True for all versions less than 6.3'
             )
 
@@ -379,7 +438,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -389,7 +452,10 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'],
+                    sat_version_picker=lambda: v
+                ),
                 'Should be False for all versions greater than 6.3'
                 'because target_milestone is GA and non zstrem flag '
                 'is 6.3'
@@ -398,7 +464,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.1', '6.2']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be True for all versions less than 6.3'
             )
 
@@ -409,7 +476,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -419,14 +490,17 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'], sat_version_picker=lambda: v
+                ),
                 'Should be False for all versions greater than 6.2'
             )
 
         for v in ['6.1']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be True for all versions less than 6.2'
             )
 
@@ -437,7 +511,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -447,14 +525,17 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(
+                    original_bug['id'], sat_version_picker=lambda: v
+                ),
                 'Should be False for all versions greater than 6.3'
             )
 
         for v in ['6.2', '6.1']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be True for all versions less than 6.3'
             )
 
@@ -477,7 +558,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -487,7 +572,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.1', '6.2']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be open for all versions less or equals to 6.3, '
                 'version present on flags'
             )
@@ -495,7 +581,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be closed for all versions greater or equals to 6.3, '
                 'version present on flags'
             )
@@ -508,7 +595,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -518,7 +609,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.0', '6.1']:
             self.get_sat_versions_mock.return_value = v
             self.assertTrue(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be open for all versions less or equals to 6.2, minor'
                 ' version present on flags for orignal_bug + clones'
             )
@@ -526,7 +618,8 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be closed for all versions greater or equals to '
                 '6.2, minor version present on flags for orignal_bug + clones'
             )
@@ -539,7 +632,11 @@ class BzBugIsOpenTestCase(TestCase):
         self.get_sat_versions_mock.return_value = 'Does not apply'
 
         self.assertFalse(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(
+                original_bug['id'],
+                sat_version_picker=None,
+                config_picker=lambda: {'upstream': True}
+            ),
             'Should be closed for testing on upstream'
         )
 
@@ -549,14 +646,16 @@ class BzBugIsOpenTestCase(TestCase):
         for v in ['6.2', '6.3', '6.4', '6.5']:
             self.get_sat_versions_mock.return_value = v
             self.assertFalse(
-                decorators.bz_bug_is_open(original_bug['id']),
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
                 'Should be closed for all versions greater or equals to to '
                 '6.2, minor version present on flags for orignal_bug + clones'
             )
 
         self.get_sat_versions_mock.return_value = '6.1'
         self.assertTrue(
-            decorators.bz_bug_is_open(original_bug['id']),
+            decorators.bz_bug_is_open(original_bug['id'],
+                                      sat_version_picker=lambda: '6.1'),
             'Should be open because 6.1 is less than 6.2, the minor version '
             'on flags with +'
         )
@@ -604,28 +703,28 @@ class RmBugIsOpenTestCase(TestCase):
     # (protected-access) pylint:disable=W0212
     def setUp(self):  # noqa pylint:disable=C0103
         """Back up objects and generate common values."""
-        self.rm_backup = decorators._get_redmine_bug_status_id
-        self.stat_backup = decorators._redmine_closed_issue_statuses
-        decorators._redmine_closed_issue_statuses = lambda: [1, 2]
+        self.rm_backup = robozilla_decorators._get_redmine_bug_status_id
+        self.stat_backup = robozilla_decorators._redmine_closed_issue_statuses
+        robozilla_decorators._redmine_closed_issue_statuses = lambda: [1, 2]
         self.bug_id = gen_integer()
 
     def tearDown(self):  # noqa pylint:disable=C0103
         """Restore backed-up objects."""
-        decorators._get_redmine_bug_status_id = self.rm_backup
-        decorators._redmine_closed_issue_statuses = self.stat_backup
+        robozilla_decorators._get_redmine_bug_status_id = self.rm_backup
+        robozilla_decorators._redmine_closed_issue_statuses = self.stat_backup
 
     def test_bug_is_open(self):
         """Assert ``True`` is returned if the bug is open."""
-        decorators._get_redmine_bug_status_id = lambda bug_id: 0
+        robozilla_decorators._get_redmine_bug_status_id = lambda bug_id: 0
         self.assertTrue(decorators.rm_bug_is_open(self.bug_id))
-        decorators._get_redmine_bug_status_id = lambda bug_id: 3
+        robozilla_decorators._get_redmine_bug_status_id = lambda bug_id: 3
         self.assertTrue(decorators.rm_bug_is_open(self.bug_id))
 
     def test_bug_is_closed(self):
         """Assert ``False`` is returned if the bug is closed."""
-        decorators._get_redmine_bug_status_id = lambda bug_id: 1
+        robozilla_decorators._get_redmine_bug_status_id = lambda bug_id: 1
         self.assertFalse(decorators.rm_bug_is_open(self.bug_id))
-        decorators._get_redmine_bug_status_id = lambda bug_id: 2
+        robozilla_decorators._get_redmine_bug_status_id = lambda bug_id: 2
         self.assertFalse(decorators.rm_bug_is_open(self.bug_id))
 
     def test_bug_lookup_fails(self):
@@ -633,17 +732,17 @@ class RmBugIsOpenTestCase(TestCase):
 
         def bomb(_):
             """A function that mocks a failure to fetch a bug."""
-            raise decorators.BugFetchError
+            raise robozilla_decorators.BugFetchError
 
-        decorators._get_redmine_bug_status_id = bomb
+        robozilla_decorators._get_redmine_bug_status_id = bomb
         self.assertFalse(decorators.rm_bug_is_open(self.bug_id))
 
 
 class GetBugzillaBugStatusIdTestCase(TestCase):
-    """Tests for ``robottelo.decorators._get_bugzilla_bug``."""
+    """Tests for ``robottelo.robozilla_decorators._get_bugzilla_bug``."""
 
     def setUp(self):
-        self.robozilla_patcher = mock.patch('robottelo.decorators.BZReader')
+        self.robozilla_patcher = mock.patch('robozilla.decorators.BZReader')
         self.settings_patcher = mock.patch(
             'robottelo.decorators.settings')
         self.settings = BugzillaSettings()
@@ -659,8 +758,9 @@ class GetBugzillaBugStatusIdTestCase(TestCase):
 
     def test_cached(self):
         """Return bug information from the cache."""
-        with mock.patch.dict('robottelo.decorators._bugzilla', {'4242': 42}):
-            self.assertEqual(decorators._get_bugzilla_bug('4242'), 42)
+        with mock.patch.dict('robozilla.decorators._bugzilla', {'4242': 42}):
+            self.assertEqual(
+                robozilla_decorators._get_bugzilla_bug('4242'), 42)
 
     def test_not_cached_bug(self):
         """Fetch bug information and cache it."""
@@ -668,10 +768,18 @@ class GetBugzillaBugStatusIdTestCase(TestCase):
         get_bug_data = self.BZReader.return_value.get_bug_data
         get_bug_data.return_value = bug
 
-        with mock.patch.dict('robottelo.decorators._bugzilla', {}):
-            self.assertIs(decorators._get_bugzilla_bug(bug['id']), bug)
         credentials = {
             'user': self.settings.username, 'password': self.settings.password}
+
+        with mock.patch.dict('robozilla.decorators._bugzilla', {}):
+            self.assertIs(
+                robozilla_decorators._get_bugzilla_bug(
+                    bug['id'],
+                    bz_credentials=credentials
+                ),
+                bug
+            )
+
         self.BZReader.assert_called_once_with(
             credentials,
             include_fields=[
@@ -685,15 +793,17 @@ class GetBugzillaBugStatusIdTestCase(TestCase):
 
 
 class GetRedmineBugStatusIdTestCase(TestCase):
-    """Tests for ``robottelo.decorators._get_redmine_bug_status_id``."""
+    """Tests for ``robottelo.robozilla_decorators._get_redmine_bug_status_id``.
+    """
 
     def test_cached_bug(self):
         """Return bug status from the cache."""
-        with mock.patch.dict('robottelo.decorators._redmine',
+        with mock.patch.dict('robozilla.decorators._redmine',
                              issues={'4242': 42}):
-            self.assertEqual(decorators._get_redmine_bug_status_id('4242'), 42)
+            self.assertEqual(
+                robozilla_decorators._get_redmine_bug_status_id('4242'), 42)
 
-    @mock.patch('robottelo.decorators.requests')
+    @mock.patch('robozilla.decorators.requests')
     def test_not_cached_bug(self, requests):
         """Return bug status."""
         bug_id = '4242'
@@ -701,22 +811,24 @@ class GetRedmineBugStatusIdTestCase(TestCase):
         result.json.side_effect = [{'issue': {'status': {'id': 42}}}]
         result.status_code = 200
         requests.get.side_effect = [result]
-        with mock.patch.dict('robottelo.decorators._redmine', issues={}):
-            self.assertEqual(decorators._get_redmine_bug_status_id('4242'), 42)
+        with mock.patch.dict('robozilla.decorators._redmine', issues={}):
+            self.assertEqual(
+                robozilla_decorators._get_redmine_bug_status_id('4242'), 42)
             requests.get.assert_called_once_with(
-                '{0}/issues/{1}.json'.format(decorators.REDMINE_URL, bug_id))
+                '{0}/issues/{1}.json'.format(
+                    robozilla_decorators.REDMINE_URL, bug_id))
 
-    @mock.patch('robottelo.decorators.requests')
+    @mock.patch('robozilla.decorators.requests')
     def test_raise_bug_fetch_error_status_code(self, requests):
         """Return bug status."""
         result = mock.MagicMock()
         result.status_code = 404
         requests.get.side_effect = [result]
-        with mock.patch.dict('robottelo.decorators._redmine', issues={}):
-            with self.assertRaises(decorators.BugFetchError):
-                decorators._get_redmine_bug_status_id('4242')
+        with mock.patch.dict('robozilla.decorators._redmine', issues={}):
+            with self.assertRaises(robozilla_decorators.BugFetchError):
+                robozilla_decorators._get_redmine_bug_status_id('4242')
 
-    @mock.patch('robottelo.decorators.requests')
+    @mock.patch('robozilla.decorators.requests')
     def test_raise_bug_fetch_error_key_error(self, requests):
         """Return bug status."""
         bug_id = '4242'
@@ -724,17 +836,19 @@ class GetRedmineBugStatusIdTestCase(TestCase):
         result.json.side_effect = [{'issue': {'status': {}}}]
         result.status_code = 200
         requests.get.side_effect = [result]
-        with mock.patch.dict('robottelo.decorators._redmine', issues={}):
-            with self.assertRaises(decorators.BugFetchError):
-                decorators._get_redmine_bug_status_id('4242')
+        with mock.patch.dict('robozilla.decorators._redmine', issues={}):
+            with self.assertRaises(robozilla_decorators.BugFetchError):
+                robozilla_decorators._get_redmine_bug_status_id('4242')
         requests.get.assert_called_once_with(
-            '{0}/issues/{1}.json'.format(decorators.REDMINE_URL, bug_id))
+            '{0}/issues/{1}.json'.format(
+                robozilla_decorators.REDMINE_URL, bug_id))
 
 
 class RedmineClosedIssueStatusesTestCase(TestCase):
-    """Tests for ``robottelo.decorators._redmine_closed_issue_statuses``."""
+    """Tests for
+    ``robottelo.decorators._redmine_closed_issue_statuses``."""
 
-    @mock.patch('robottelo.decorators.requests')
+    @mock.patch('robozilla.decorators.requests')
     def test_build_cache(self, requests):
         """Build closed issue statuses cache."""
         result = mock.MagicMock()
@@ -750,21 +864,21 @@ class RedmineClosedIssueStatusesTestCase(TestCase):
         result.status_code = 200
         requests.get.side_effect = [result]
         with mock.patch.dict(
-                'robottelo.decorators._redmine', closed_statuses=None):
+                'robozilla.decorators._redmine', closed_statuses=None):
             self.assertEqual(
-                decorators._redmine_closed_issue_statuses(),
+                robozilla_decorators._redmine_closed_issue_statuses(),
                 [42]
             )
         requests.get.assert_called_once_with(
-            '{0}/issue_statuses.json'.format(decorators.REDMINE_URL))
+            '{0}/issue_statuses.json'.format(robozilla_decorators.REDMINE_URL))
 
-    @mock.patch('robottelo.decorators.requests')
+    @mock.patch('robozilla.decorators.requests')
     def test_return_cache(self, requests):
         """Return the cache if already built."""
         with mock.patch.dict(
-                'robottelo.decorators._redmine', closed_statuses=[42]):
+                'robozilla.decorators._redmine', closed_statuses=[42]):
             self.assertEqual(
-                decorators._redmine_closed_issue_statuses(),
+                robozilla_decorators._redmine_closed_issue_statuses(),
                 [42]
             )
         requests.get.assert_not_called()
@@ -897,12 +1011,12 @@ class SkipIfBugOpen(TestCase):
     """Tests for :func:`robottelo.decorators.skip_if_bug_open`."""
 
     def test_raise_bug_type_error(self):
-        with self.assertRaises(decorators.BugTypeError):
+        with self.assertRaises(robozilla_decorators.BugTypeError):
             @decorators.skip_if_bug_open('notvalid', 123456)
             def foo():
                 pass
 
-    @mock.patch('robottelo.decorators.bz_bug_is_open')
+    @mock.patch('robozilla.decorators.bz_bug_is_open')
     def test_skip_bugzilla_bug(self, bz_bug_is_open):
         bz_bug_is_open.side_effect = [True]
 
@@ -913,7 +1027,7 @@ class SkipIfBugOpen(TestCase):
         with self.assertRaises(SkipTest):
             foo()
 
-    @mock.patch('robottelo.decorators.bz_bug_is_open')
+    @mock.patch('robozilla.decorators.bz_bug_is_open')
     def test_not_skip_bugzilla_bug(self, bz_bug_is_open):
         bz_bug_is_open.side_effect = [False]
 
@@ -923,7 +1037,7 @@ class SkipIfBugOpen(TestCase):
 
         self.assertEqual(foo(), 42)
 
-    @mock.patch('robottelo.decorators.rm_bug_is_open')
+    @mock.patch('robozilla.decorators.rm_bug_is_open')
     def test_skip_redmine_bug(self, rm_bug_is_open):
         rm_bug_is_open.side_effect = [True]
 
@@ -934,7 +1048,7 @@ class SkipIfBugOpen(TestCase):
         with self.assertRaises(SkipTest):
             foo()
 
-    @mock.patch('robottelo.decorators.rm_bug_is_open')
+    @mock.patch('robozilla.decorators.rm_bug_is_open')
     def test_not_skip_redmine_bug(self, rm_bug_is_open):
         rm_bug_is_open.side_effect = [False]
 
