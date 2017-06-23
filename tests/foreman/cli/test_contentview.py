@@ -3607,6 +3607,7 @@ class ContentViewTestCase(CLITestCase):
             'organization-ids': self.org['id'],
             'permissions': 'view_content_views',
             'role-id': role['id'],
+            'override': 1,
         })
         User.add_role({
             'id': user['id'],

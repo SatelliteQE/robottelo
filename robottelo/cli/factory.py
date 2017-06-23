@@ -968,6 +968,7 @@ def make_filter(options=None):
         --locations LOCATION_NAMES          Comma separated list of values.
         --organization-ids ORGANIZATION_IDS Comma separated list of values.
         --organizations ORGANIZATION_NAMES  Comma separated list of values.
+        --override OVERRIDE                 One of true/false, yes/no, 1/0.
         --permission-ids PERMISSION_IDS     Comma separated list of values.
         --permissions PERMISSION_NAMES      Comma separated list of values.
         --role ROLE_NAME                    User role name
@@ -980,6 +981,7 @@ def make_filter(options=None):
         u'locations': None,
         u'organization-ids': None,
         u'organizations': None,
+        u'override': None,
         u'permission-ids': None,
         u'permissions': None,
         u'role': None,
