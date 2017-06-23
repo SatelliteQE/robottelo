@@ -765,7 +765,7 @@ class ContentViewTestCase(UITestCase):
         start_date = date.today().strftime('%Y-%m-%d')
         end_date = (date.today() + timedelta(days=5)).strftime('%Y-%m-%d')
         # default date type on UI is 'updated', so we'll use different one
-        date_type = 'issued'
+        date_type = FILTER_ERRATA_DATE['issued']
         content_view = entities.ContentView(
             organization=self.organization).create()
         cvf = entities.ErratumContentViewFilter(

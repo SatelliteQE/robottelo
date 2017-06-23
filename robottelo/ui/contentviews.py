@@ -547,6 +547,7 @@ class ContentViews(Base):
                 locators['contentviews.erratum_date_type'] % date_type
             ).is_selected():
                 result['date_type'] = date_type
+                break
         result['start_date'] = self.wait_until_element(
             locators['contentviews.calendar_date_input'] % 'start_date'
         ).get_attribute('value')
