@@ -1811,25 +1811,26 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='rule.max_version']"),
     "contentviews.packages": (
         By.XPATH,
-        "//tr[@row-select='rule']/td/input[@ng-model='rule.name']"
+        "//tr[@row-select='rule']/td/div/input[@ng-model='rule.name']"
     ),
     "contentviews.package_checkbox": (
         By.XPATH,
-        ("../preceding-sibling::td[@class='row-select']"
+        ("../../preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
     "contentviews.package_edit": (
         By.XPATH,
-        ("../following-sibling::td/button[contains(@class, 'btn') and "
+        ("../../following-sibling::td/button[contains(@class, 'btn') and "
          "contains(@ng-click, 'rule.editMode = true')]")),
     "contentviews.package_version_type": (
         By.XPATH,
-        "../following-sibling::td/span/select[@ng-model='rule.type']"),
+        "../../following-sibling::td/span/select[@ng-model='rule.type']"),
     "contentviews.package_version_value": (
         By.XPATH,
-        "../following-sibling::td/span/span/input[@ng-model='rule.version']"),
+        ("../../following-sibling::td/span/span"
+         "/input[@ng-model='rule.version']")),
     "contentviews.package_save": (
         By.XPATH,
-        ("../following-sibling::td/div/"
+        ("../../following-sibling::td/div/"
          "button[contains(@ng-click, 'handleSave')]")),
     "contentviews.remove_packages": (
         By.XPATH, "//button[@ng-click='removeRules(filter)']"),

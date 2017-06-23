@@ -20,6 +20,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 """
 import random
 
+from datetime import date, timedelta
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo import manifests
@@ -745,6 +746,46 @@ class ContentViewTestCase(UITestCase):
                     '5.21'
                 )
             )
+
+    @tier1
+    def test_positive_create_date_filter_rule_without_type(self):
+        """Create content view erratum filter rule with start/end date and
+        without type specified via API and make sure it's accessible via UI
+
+        :id: 5a5cd6e7-8711-47c2-878d-4c0a18bf3b0e
+
+        :BZ: 1386688
+
+        :CaseImportance: Critical
+
+        :expectedresults: filter rule is accessible via UI, type is set to all
+            possible errata types and all the rest fields are correctly
+            populated
+        """
+        start_date = date.today().strftime('%Y-%m-%d')
+        end_date = (date.today() + timedelta(days=5)).strftime('%Y-%m-%d')
+        # default date type on UI is 'updated', so we'll use different one
+        date_type = FILTER_ERRATA_DATE['issued']
+        content_view = entities.ContentView(
+            organization=self.organization).create()
+        cvf = entities.ErratumContentViewFilter(
+            content_view=content_view).create()
+        cvfr = entities.ContentViewFilterRule(
+            end_date=end_date,
+            content_view_filter=cvf,
+            date_type=date_type,
+            start_date=start_date,
+        ).create()
+        self.assertEqual(set(cvfr.types), set(FILTER_ERRATA_TYPE.values()))
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            result = self.content_views.fetch_erratum_date_range_filter_values(
+                content_view.name, cvf.name)
+            self.assertEqual(
+                set(result['types']), set(FILTER_ERRATA_TYPE.values()))
+            self.assertEqual(result['date_type'], date_type)
+            self.assertEqual(result['start_date'], start_date)
+            self.assertEqual(result['end_date'], end_date)
 
     @run_only_on('sat')
     @tier2
