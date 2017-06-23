@@ -1427,12 +1427,11 @@ class ContentViewTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             ContentView.add_version({
                 'id': composite_cv['id'],
-                'content-view-version-content-view-id': content_view['id'],
+                'content-view-id': content_view['id'],
             })
-        self.assertRegexpMatches(
-            context.exception.message,
-            "Could not add version:\s*"
-            "Error: one of content_view_versions not found"
+        self.assertIn(
+            'Error: content_view_version not found',
+            context.exception.message
         )
 
     @tier2
@@ -1475,7 +1474,7 @@ class ContentViewTestCase(CLITestCase):
         # Add published CV
         ContentView.add_version({
             'id': composite_cv['id'],
-            'content-view-version-content-view-id': published_cv['id']
+            'content-view-id': published_cv['id']
         })
         published_cv = ContentView.info({'id': published_cv['id']})
         composite_cv = ContentView.info({'id': composite_cv['id']})
@@ -1487,12 +1486,11 @@ class ContentViewTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError) as context:
             ContentView.add_version({
                 'id': composite_cv['id'],
-                'content-view-version-content-view-id': unpublished_cv['id'],
+                'content-view-id': unpublished_cv['id'],
             })
-        self.assertRegexpMatches(
-            context.exception.message,
-            "Could not add version:\s*"
-            "Error: one of content_view_versions not found"
+        self.assertIn(
+            'Error: content_view_version not found',
+            context.exception.message
         )
 
     # Content View: promotions
