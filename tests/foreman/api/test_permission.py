@@ -249,6 +249,31 @@ class UserRoleTestCase(APITestCase):
         self.user.role = [role]
         self.user = self.user.update(['role'])
 
+    def set_taxonomies(self, entity, organization=None, location=None):
+        """Set organization and location for entity if it supports them.
+
+        Only administrator can choose empty taxonomies or taxonomies that
+        they aren't assigned to, other users can select only taxonomies they
+        are granted to assign and they can't leave the selection empty.
+
+        :param entity: Initialised nailgun's Entity object
+        :param organization: Organization object or id
+        :param location: Location object or id
+        :return: nailgun's Entity object with updated fields
+        """
+        entity_fields = entity.get_fields()
+        if 'organization' in entity_fields:
+            if isinstance(entity_fields['organization'], OneToManyField):
+                entity.organization = [organization]
+            else:
+                entity.organization = organization
+        if 'location' in entity_fields:
+            if isinstance(entity_fields['location'], OneToManyField):
+                entity.location = [location]
+            else:
+                entity.location = location
+        return entity
+
     @tier1
     def test_positive_check_create(self):
         """Check whether the "create_*" role has an effect.
@@ -273,20 +298,14 @@ class UserRoleTestCase(APITestCase):
                 self.give_user_permission(
                     _permission_name(entity_cls, 'create')
                 )
-                entity = entity_cls(self.cfg)
-                entity_fields = entity.get_fields()
-                if 'organization' in entity_fields:
-                    if isinstance(
-                            entity_fields['organization'], OneToManyField):
-                        entity.organization = [self.org]
-                    else:
-                        entity.organization = self.org
-                if 'location' in entity_fields:
-                    # Currently entities with both org and loc are affected by
-                    # bug. Skip to the next entity
-                    if bz_bug_is_open('1464137'):
-                        continue
-                    entity.location = [self.loc]
+                entity = self.set_taxonomies(
+                    entity_cls(self.cfg), self.org, self.loc)
+                # Currently entities with both org and loc are affected by
+                # bug. Skip to the next entity
+                fields = set(['organization', 'location'])
+                if (fields.issubset(set(entity.get_fields()))
+                        and bz_bug_is_open('1464137')):
+                    continue
                 entity = entity.create_json()
                 entity_cls(id=entity['id']).read()  # As admin user.
 
@@ -308,11 +327,7 @@ class UserRoleTestCase(APITestCase):
                 entities.Domain,
                 entities.ActivationKey):
             with self.subTest(entity_cls):
-                entity = entity_cls()
-                if ('organization' in entity.get_fields()
-                        and 'location' in entity.get_fields()):
-                    entity.organization = [self.org]
-                    entity.location = [self.loc]
+                entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
                 entity = entity.create()
                 with self.assertRaises(HTTPError):
                     entity_cls(self.cfg, id=entity.id).read()
@@ -337,11 +352,7 @@ class UserRoleTestCase(APITestCase):
                 entities.Domain,
                 entities.ActivationKey):
             with self.subTest(entity_cls):
-                entity = entity_cls()
-                if ('organization' in entity.get_fields()
-                        and 'location' in entity.get_fields()):
-                    entity.organization = [self.org]
-                    entity.location = [self.loc]
+                entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
                 entity = entity.create()
                 with self.assertRaises(HTTPError):
                     entity_cls(self.cfg, id=entity.id).delete()
@@ -373,11 +384,7 @@ class UserRoleTestCase(APITestCase):
                 entities.ActivationKey
         ):
             with self.subTest(entity_cls):
-                entity = entity_cls()
-                if ('organization' in entity.get_fields()
-                        and 'location' in entity.get_fields()):
-                    entity.organization = [self.org]
-                    entity.location = [self.loc]
+                entity = self.set_taxonomies(entity_cls(), self.org, self.loc)
                 entity = entity.create()
                 name = entity.get_fields()['name'].gen_value()
                 with self.assertRaises(HTTPError):
