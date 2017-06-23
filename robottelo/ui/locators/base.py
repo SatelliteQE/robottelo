@@ -494,6 +494,10 @@ locators = LocatorDict({
     "contenthost.details_page_errata_counts": (
         By.XPATH, "//a[contains(@href, 'errata') and @class='ng-binding']"),
     "contenthost.errata_counts_icon": (By.XPATH, "i"),
+    "contenthost.details_page.name": (
+        By.XPATH,
+        ("//dd[@bst-edit-text='host.name']"
+         "//span[contains(@class, 'editable-value')]")),
     "contenthost.edit_name": (
         By.XPATH,
         "//dd[@bst-edit-text='host.name']//i[contains(@class, 'fa-edit')]"),

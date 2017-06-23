@@ -172,6 +172,17 @@ class ActivationKey(Base):
             in self.find_elements(locators['ak.content_host_name'])
         ]
 
+    def search_content_host(self, name, content_host_name):
+        """Search for associated content host for activation key."""
+        self.click(self.search(name))
+        self.click(tab_locators['ak.associations'])
+        self.click(locators['ak.content_hosts'])
+        self.assign_value(
+            common_locators['kt_search'], content_host_name)
+        self.click(common_locators['kt_search_button'])
+        return self.wait_until_element(
+            locators['ak.content_host_select'] % content_host_name)
+
     def fetch_product_contents(self, name):
         """Fetch associated product content from selected activation key."""
         self.search_and_click(name)
