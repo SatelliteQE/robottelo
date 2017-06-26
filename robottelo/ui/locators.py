@@ -968,6 +968,9 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[normalize-space(.)='%s' and contains(@href,'locations')]"
          "/../../td/div/a[@data-toggle='dropdown']")),
+    "location.all_capsules": (
+        By.XPATH,
+        "//input[@id='location_ignore_types_smartproxy']"),
 
 
     # Login
@@ -1069,6 +1072,9 @@ locators = LocatorDict({
     "org.label_value": (
         By.XPATH,
         "//input[@id='organization_label' and @value='%s']"),
+    "org.all_capsules": (
+        By.XPATH,
+        "//input[@id='organization_ignore_types_smartproxy']"),
 
     # Trends
     "trend.new": (By.XPATH, "//a[contains(@href, '/trends/new')]"),
