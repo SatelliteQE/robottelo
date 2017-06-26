@@ -205,7 +205,8 @@ class HostCreateTestCase(CLITestCase):
         host = Host.info({u'id': host['id']})
         host_interface = HostInterface.info({
             u'host-id': host['id'],
-            u'id': host['network-interfaces'][-1]['id']
+            u'id': [ni for ni in host['network-interfaces']
+                    if ni['mac-address'] == mac][0]['id']
         })
         self.assertEqual(host_interface['domain'], domain['name'])
         self.assertEqual(host_interface['mac-address'], mac)
