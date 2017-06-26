@@ -247,7 +247,7 @@ class RoleTestCase(CLITestCase):
                 })
                 self.assertEqual(len(filters), per_page)
                 # Verify pagination and total amount of pages by checking the
-                # items on the last page
+                # items count on the last page
                 last_page = (len(permissions) / per_page
                              + int(len(permissions) % per_page != 0))
                 filters = Role.filters({
