@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -166,6 +166,7 @@ class HostgroupTestCase(UITestCase):
                 )
             self.assertIsNotNone(self.hostgroup.search(name))
 
+    @skip_if_bug_open('bugzilla', 1464003)
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_activation_keys(self):
@@ -188,6 +189,7 @@ class HostgroupTestCase(UITestCase):
             )
             self.assertIsNotNone(self.hostgroup.search(name))
 
+    @skip_if_bug_open('bugzilla', 1464003)
     @run_only_on('sat')
     @tier1
     def test_positive_check_activation_keys_autocomplete(self):
