@@ -1116,6 +1116,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
+    @skip_if_bug_open('bugzilla', 1463685)
     @tier2
     def test_positive_add_subscription_by_id(self):
         """Test that subscription can be added to activation key
@@ -1129,6 +1130,8 @@ class ActivationKeyTestCase(CLITestCase):
             3. Associate the activation key to subscription
 
         :expectedresults: Subscription successfully added to activation key
+
+        :BZ: 1463685
 
         :CaseLevel: Integration
         """
