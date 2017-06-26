@@ -38,7 +38,6 @@ from robottelo.decorators import (
     run_only_on,
     tier1,
     tier2,
-    skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
 
@@ -152,7 +151,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['hostname-template'], host_name)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1377990)
     @tier1
     def test_positive_create_with_org_loc_name(self):
         """Create discovery rule by associating org and location names
@@ -161,6 +159,8 @@ class DiscoveryRuleTestCase(CLITestCase):
 
         :expectedresults: Rule was created and with given org & location names.
 
+        :BZ: 1377990
+
         :CaseImportance: Critical
         """
         rule = self._make_discoveryrule({
@@ -168,8 +168,8 @@ class DiscoveryRuleTestCase(CLITestCase):
             u'organizations': self.org['name'],
             u'locations': self.loc['name'],
         })
-        self.assertIn(rule['organizations'], self.org['name'])
-        self.assertIn(rule['locations'], self.loc['name'])
+        self.assertIn(self.org['name'], rule['organizations'])
+        self.assertIn(self.loc['name'], rule['locations'])
 
     @run_only_on('sat')
     @tier1
@@ -336,7 +336,6 @@ class DiscoveryRuleTestCase(CLITestCase):
         self.assertEqual(rule['name'], new_name)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1377990)
     @tier2
     def test_positive_update_org_loc(self):
         """Update org and location of selected discovery rule
@@ -552,6 +551,7 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         cls.password = gen_alphanumeric()
         cls.user = make_user({
             'organization-ids': cls.org['id'],
+            'location-ids': cls.loc['id'],
             'password': cls.password,
         })
         cls.user['password'] = cls.password
@@ -561,6 +561,7 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         })
         cls.user_reader = make_user({
             'organization-ids': cls.org['id'],
+            'location-ids': cls.loc['id'],
             'password': cls.password,
         })
         cls.user_reader['password'] = cls.password
