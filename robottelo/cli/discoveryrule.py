@@ -2,7 +2,7 @@
 """
 Usage::
 
-    hammer discovery_rule [OPTIONS] SUBCOMMAND [ARG] ...
+    hammer discovery-rule [OPTIONS] SUBCOMMAND [ARG] ...
 
 Parameters::
 
@@ -25,4 +25,4 @@ from robottelo.cli.base import Base
 class DiscoveryRule(Base):
     """Manipulates Discovery Rules"""
 
-    command_base = 'discovery_rule'
+    command_base = 'discovery-rule'
