@@ -1069,13 +1069,13 @@ class SRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
-    @skip_if_bug_open('bugzilla', 1378442)
     @run_only_on('sat')
     @tier1
     def test_positive_upload_contents_srpm(self):
