@@ -149,7 +149,7 @@ class PackagesTestCase(UITestCase):
 
         :CaseLevel: Integration
 
-        :BZ: 1384673
+        :BZ: 1387766
         """
         with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
             self.yum_repo.upload_content(files={'content': handle})

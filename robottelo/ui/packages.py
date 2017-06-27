@@ -34,11 +34,9 @@ class Package(Base):
         """
         self.click(self.search(name))
         for parameter_name, parameter_value in parameter_list:
-            param_locator = '.'.join((
-                'package',
-                (parameter_name.lower()).replace(' ', '_')
-            ))
-            actual_text = self.wait_until_element(locators[param_locator]).text
+            actual_text = self.wait_until_element(
+                locators['package.field_value'] % parameter_name
+            ).text
             if actual_text != parameter_value:
                 raise UIError(
                     'Actual text for "{0}" parameter is "{1}", but it is'
