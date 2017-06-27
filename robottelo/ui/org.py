@@ -18,14 +18,14 @@ class Org(Base):
         """Specify locator for org entity search procedure"""
         return locators['org.org_name']
 
-    def _configure_org(self, users=None, capsules=None, subnets=None,
-                       resources=None, medias=None, templates=None,
-                       ptables=None, domains=None, envs=None, hostgroups=None,
-                       locations=None, new_users=None, new_capsules=None,
-                       new_subnets=None, new_resources=None, new_medias=None,
-                       new_templates=None, new_ptables=None, new_domains=None,
-                       new_envs=None, new_hostgroups=None, new_locations=None,
-                       select=None):
+    def _configure_org(self, users=None, capsules=None, all_capsules=None,
+                       subnets=None, resources=None, medias=None,
+                       templates=None, ptables=None, domains=None, envs=None,
+                       hostgroups=None, locations=None, new_users=None,
+                       new_capsules=None, new_subnets=None, new_resources=None,
+                       new_medias=None, new_templates=None, new_ptables=None,
+                       new_domains=None, new_envs=None, new_hostgroups=None,
+                       new_locations=None, select=None):
         """Configures different entities of selected organization."""
 
         loc = tab_locators
@@ -40,6 +40,9 @@ class Org(Base):
                                   tab_locator=loc['context.tab_capsules'],
                                   new_entity_list=new_capsules,
                                   entity_select=select)
+        if all_capsules is not None:
+            self.click(tab_locators['context.tab_capsules'])
+            self.assign_value(locators['org.all_capsules'], all_capsules)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['org_subnet'],
                                   tab_locator=loc['context.tab_subnets'],
@@ -87,49 +90,48 @@ class Org(Base):
                                   entity_select=select)
 
     def create(self, org_name=None, label=None, desc=None, users=None,
-               capsules=None, subnets=None, resources=None, medias=None,
-               templates=None, ptables=None, domains=None, envs=None,
-               hostgroups=None, locations=None, select=True):
+               capsules=None, all_capsules=None, subnets=None, resources=None,
+               medias=None, templates=None, ptables=None, domains=None,
+               envs=None, hostgroups=None, locations=None, select=True):
         """Create Organization in UI."""
         self.click(locators['org.new'])
-        if self.wait_until_element(locators['org.name']):
-            self.field_update('org.name', org_name)
+        self.assign_value(locators['org.name'], org_name)
         if label:
-            self.field_update('org.label', label)
+            self.assign_value(locators['org.label'], label)
         if desc:
-            self.field_update('org.desc', desc)
+            self.assign_value(locators['org.desc'], desc)
         self.click(common_locators['submit'])
         edit_locator = self.wait_until_element(locators['org.proceed_to_edit'])
         if edit_locator:
-            edit_locator.click()
+            self.click(edit_locator)
             self._configure_org(
-                users=users, capsules=capsules, subnets=subnets,
-                resources=resources, medias=medias, templates=templates,
-                ptables=ptables, domains=domains, envs=envs,
-                hostgroups=hostgroups, locations=locations, select=select,
+                users=users, capsules=capsules, all_capsules=all_capsules,
+                subnets=subnets, resources=resources, medias=medias,
+                templates=templates, ptables=ptables, domains=domains,
+                envs=envs, hostgroups=hostgroups, locations=locations,
+                select=select,
             )
             self.click(common_locators['submit'])
 
     def update(self, org_name, new_name=None, users=None, capsules=None,
-               subnets=None, resources=None, medias=None, templates=None,
-               ptables=None, domains=None, envs=None, hostgroups=None,
-               locations=None, new_locations=None, new_users=None,
-               new_capsules=None, new_subnets=None, new_resources=None,
-               new_medias=None, new_templates=None, new_ptables=None,
-               new_domains=None, new_envs=None, new_hostgroups=None,
-               select=False, new_desc=None):
+               all_capsules=None, subnets=None, resources=None, medias=None,
+               templates=None, ptables=None, domains=None, envs=None,
+               hostgroups=None, locations=None, new_locations=None,
+               new_users=None, new_capsules=None, new_subnets=None,
+               new_resources=None, new_medias=None, new_templates=None,
+               new_ptables=None, new_domains=None, new_envs=None,
+               new_hostgroups=None, select=False, new_desc=None):
         """Update Organization in UI."""
         self.click(self.search(org_name))
         if new_name:
-            if self.wait_until_element(locators['org.name']):
-                self.field_update('org.name', new_name)
+            self.assign_value(locators['org.name'], new_name)
         if new_desc:
-            self.field_update('org.desc', new_desc)
+            self.assign_value(locators['org.desc'], new_desc)
         self._configure_org(
             users=users, capsules=capsules,
-            subnets=subnets, resources=resources,
-            medias=medias, templates=templates,
-            ptables=ptables,
+            all_capsules=all_capsules, subnets=subnets,
+            resources=resources, medias=medias,
+            templates=templates, ptables=ptables,
             domains=domains, envs=envs,
             hostgroups=hostgroups,
             locations=locations,
