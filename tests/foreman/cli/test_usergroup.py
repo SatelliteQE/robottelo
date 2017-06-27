@@ -492,7 +492,8 @@ class UserGroupTestCase(CLITestCase):
             'user-group-id': sub_user_group['id'],
         })
         user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['user-groups'][0], sub_user_group['name'])
+        self.assertEqual(
+            user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
     @tier2
     def test_positive_add_user_group_by_name(self):
@@ -513,7 +514,8 @@ class UserGroupTestCase(CLITestCase):
             'user-group': sub_user_group['name'],
         })
         user_group = UserGroup.info({'id': user_group['id']})
-        self.assertEqual(user_group['user-groups'][0], sub_user_group['name'])
+        self.assertEqual(
+            user_group['user-groups'][0]['usergroup'], sub_user_group['name'])
 
     @skip_if_bug_open('bugzilla', 1395229)
     @tier2
