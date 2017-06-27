@@ -1219,13 +1219,13 @@ class SRPMRepositoryTestCase(CLITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
         cls.org = make_org()
         cls.product = make_product({'organization-id': cls.org['id']})
 
-    @skip_if_bug_open('bugzilla', 1378442)
     @tier1
     def test_positive_upload_content_srpm(self):
         """Create repository and upload a SRPM content
