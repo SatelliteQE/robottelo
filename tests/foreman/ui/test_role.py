@@ -290,6 +290,54 @@ class RoleTestCase(UITestCase):
             self.assertEqual(
                 set(permissions), set(assigned_permissions[resource_type]))
 
+    @tier1
+    def test_positive_create_filter_admin_user_with_orgs(self):
+        """Attempt to create a role filter by admin user, who has 10
+        organizations assigned
+
+        :id: 04208e17-34b5-46b1-84dd-b8a973521d30
+
+        :expectedresults: filter was successfully created
+
+        :BZ: 1389795
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('alpha')
+        password = gen_string('alpha')
+        org_names = [
+            entities.Organization().create().name
+            for _ in range(10)
+        ]
+        with Session(self.browser) as session:
+            make_user(
+                session,
+                username=name,
+                password1=password,
+                password2=password,
+                admin=True
+            )
+            self.user.update(name, new_organizations=org_names)
+            self.assertIsNotNone(self.user.search(name))
+        resource_type = 'Architecture'
+        permissions = ['view_architectures', 'edit_architectures']
+        role_name = gen_string('alphanumeric')
+        with Session(self.browser, name, password) as session:
+            make_role(session, name=role_name)
+            self.assertIsNotNone(self.role.search(role_name))
+            self.role.add_permission(
+                role_name,
+                resource_type=resource_type,
+                permission_list=permissions,
+            )
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            assigned_permissions = self.role.get_permissions(
+                role_name, [resource_type])
+            self.assertIsNotNone(assigned_permissions)
+            self.assertEqual(
+                set(permissions), set(assigned_permissions[resource_type]))
+
 
 class CannedRoleTestCases(UITestCase):
     """Implements Canned Roles tests from UI"""
