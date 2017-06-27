@@ -1693,3 +1693,34 @@ class OrganizationTestCase(CLITestCase):
         org = make_org()
         result = Org.info({'name': org['name']})
         self.assertEqual(org['id'], result['id'])
+
+    @tier1
+    def test_positive_multibyte_latin1_org_names(self):
+        """Hammer Multibyte and Latin-1 Org names break list pagination
+
+        :id: 35840da7-668e-4f78-990a-738aa688d586
+
+        :BZ: 1418412
+
+        :expectedresults: List of organization names should have consistent spacing
+
+        :CaseImportance: Critical
+        """
+        lat = gen_string('latin1', random.randint(1, 100))
+        utf = gen_string('utf8', random.randint(1, 100))
+        num = gen_string('numeric', random.randint(1, 100))
+        abc = gen_string('alpha', random.randint(1, 100))
+        cjk = gen_string('cjk', random.randint(1, 100))
+        make_org({'name':lat})
+        make_org({'name':utf})
+        make_org({'name':num})
+        make_org({'name':abc})
+        make_org({'name':cjk})
+        org_list = Org.list(output_format='table')
+        Org.delete({'name':lat})
+        Org.delete({'name':utf})
+        Org.delete({'name':num})
+        Org.delete({'name':abc})
+        Org.delete({'name':cjk})
+        for o in org_list:
+            print o, len(o.decode('ascii'))

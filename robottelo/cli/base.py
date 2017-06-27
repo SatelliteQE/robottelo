@@ -354,7 +354,7 @@ class Base(object):
         return result
 
     @classmethod
-    def list(cls, options=None, per_page=True):
+    def list(cls, options=None, per_page=True, output_format='csv'):
         """
         List information.
         @param options: ID (sometimes name works as well) to retrieve info.
@@ -376,7 +376,7 @@ class Base(object):
             )
 
         result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+            cls._construct_command(options), output_format=output_format)
 
         return result
 
