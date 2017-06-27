@@ -20,6 +20,7 @@ from robottelo.cli.base import CLIDataBaseError, CLIReturnCodeError
 from robottelo.cli.factory import make_filter, make_role
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
+from robottelo.constants import PERMISSIONS
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import CLITestCase
@@ -160,6 +161,7 @@ class RoleTestCase(CLITestCase):
         self.assertEqual(
             Role.filters({'id': role['id']})[0]['id'], filter_['id'])
 
+    @tier1
     def test_positive_list_filters_by_name(self):
         """Create new role with a filter and list it by role name
 
@@ -185,6 +187,7 @@ class RoleTestCase(CLITestCase):
         self.assertEqual(
             Role.filters({'name': role['name']})[0]['id'], filter_['id'])
 
+    @tier1
     def test_negative_list_filters_without_parameters(self):
         """Try to list filter without specifying role id or name
 
@@ -201,6 +204,59 @@ class RoleTestCase(CLITestCase):
                 Role.filters()
         self.assertRegex(
             err.exception.msg, 'At least one of options .* is required')
+
+    @tier1
+    def test_positive_list_filters_with_pagination(self):
+        """Make sure filters list can be displayed with different items per
+        page value
+
+        :id: b9c7c6c1-70c2-4d7f-8d36-fa8613acc865
+
+        :BZ: 1428516
+
+        :expectedresults: `per-page` correctly sets amount of items displayed
+            per page, different `per-page` values divide a list into correct
+            number of pages
+
+        :CaseImportance: Critical
+        """
+        role = make_role()
+        res_types = iter(PERMISSIONS.keys())
+        permissions = []
+        # Collect more than 20 different permissions
+        while len(permissions) <= 20:
+            permissions += [
+                permission['name']
+                for permission in Filter.available_permissions(
+                    {'resource-type': next(res_types)})
+            ]
+        # Create a filter for each permission
+        for perm in permissions:
+            make_filter({
+                'role': role['name'],
+                'permissions': perm,
+            })
+        # Test different `per-page` values
+        for per_page in (1, 5, 20):
+            with self.subTest(per_page):
+                # Verify the first page contains exactly the same items count
+                # as `per-page` value
+                filters = Role.filters({
+                    'name': role['name'],
+                    'per-page': per_page,
+                })
+                self.assertEqual(len(filters), per_page)
+                # Verify pagination and total amount of pages by checking the
+                # items count on the last page
+                last_page = (len(permissions) / per_page
+                             + int(len(permissions) % per_page != 0))
+                filters = Role.filters({
+                    'name': role['name'],
+                    'page': last_page,
+                    'per-page': per_page,
+                })
+                self.assertEqual(
+                    len(filters), len(permissions) % per_page or per_page)
 
 
 class CannedRoleTestCases(CLITestCase):
