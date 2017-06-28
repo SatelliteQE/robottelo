@@ -578,7 +578,7 @@ class VmWareSettings(FeatureSettings):
         validation_errors = []
         if not all(vars(self).values()):
             validation_errors.append(
-                'All [vmware] hostname, username, password, datacenter, '
+                'All [vmware] vcenter, username, password, datacenter, '
                 'vm_name, image_name, image_os, image_arch, image_usernam, '
                 'image_name options must be provided.'
             )
