@@ -15,6 +15,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.architecture
 
+:mod:`robottelo.cli.auth`
+---------------------------------
+
+.. automodule:: robottelo.cli.auth
+
 :mod:`robottelo.cli.base`
 -------------------------
 

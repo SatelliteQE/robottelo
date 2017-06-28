@@ -2193,3 +2193,5 @@ VMWARE_CONSTANTS = {
                  'total: 2.72 TB)',
     'network_interfaces': 'qe_%s'
 }
+
+HAMMER_CONFIG = "~/.hammer/cli.modules.d/foreman.yml"
