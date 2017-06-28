@@ -279,6 +279,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.org_.label, lce='Library')
             self.assertTrue(vm.subscribed)
+            host = Host.info({'name': vm.hostname})
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(self.org_.name)
                 self.contenthost.update(
@@ -286,7 +287,7 @@ class HostContentHostUnificationTestCase(UITestCase):
                     new_name=new_name,
                 )
                 self.assertIsNotNone(self.contenthost.search(new_name))
-            self.assertIsNotNone(Host.info({'name': new_name}))
+            self.assertEqual(Host.info({'id': host['id']})['name'], new_name)
 
     @run_only_on('sat')
     @tier3
