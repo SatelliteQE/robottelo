@@ -18,6 +18,11 @@
 
 .. automodule:: tests.foreman.cli.test_architecture
 
+:mod:`tests.foreman.cli.test_auth`
+----------------------------------
+
+.. automodule:: tests.foreman.cli.test_auth
+
 :mod:`tests.foreman.cli.test_bootstrap_script`
 ----------------------------------------------
 

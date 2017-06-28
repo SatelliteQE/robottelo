@@ -276,7 +276,7 @@ class Base(object):
     @classmethod
     def execute(cls, command, user=None, password=None, output_format=None,
                 timeout=None, ignore_stderr=None, return_raw_response=None,
-                connection_timeout=None):
+                connection_timeout=None, pass_credentials=True):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
         time_hammer = False
@@ -284,11 +284,12 @@ class Base(object):
             time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
-        cmd = u'LANG={0} {1} hammer -v -u {2} -p {3} {4} {5}'.format(
+        cmd = u'LANG={0} {1} hammer -v {2} {3} {4} {5}'.format(
             settings.locale,
             u'time -p' if time_hammer else '',
-            user,
-            password,
+            u'-u {0}'.format(user) if pass_credentials
+            else u'--interactive no',
+            u'-p {0}'.format(password) if pass_credentials else '',
             u'--output={0}'.format(output_format) if output_format else u'',
             command,
         )
@@ -356,7 +357,8 @@ class Base(object):
         return result
 
     @classmethod
-    def list(cls, options=None, per_page=True, output_format='csv'):
+    def list(cls, options=None, per_page=True,  pass_credentials=True,
+             output_format='csv'):
         """
         List information.
         @param options: ID (sometimes name works as well) to retrieve info.
@@ -378,7 +380,8 @@ class Base(object):
             )
 
         result = cls.execute(
-            cls._construct_command(options), output_format=output_format)
+            cls._construct_command(options), output_format=output_format,
+            pass_credentials=pass_credentials)
 
         return result
 
@@ -433,7 +436,8 @@ class Base(object):
         return result
 
     @classmethod
-    def update(cls, options=None):
+    def update(cls, options=None, pass_credentials=True,
+               return_raw_response=None):
         """
         Updates existing record.
         """
@@ -442,7 +446,9 @@ class Base(object):
 
         result = cls.execute(
             cls._construct_command(options),
-            output_format='csv'
+            output_format='csv',
+            pass_credentials=pass_credentials,
+            return_raw_response=return_raw_response,
         )
 
         return result
