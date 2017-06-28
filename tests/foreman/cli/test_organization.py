@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import random
+import unicodedata
 
 from fauxfactory import gen_string
 from itertools import cycle
@@ -1695,32 +1696,34 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(org['id'], result['id'])
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1418412)
     def test_positive_multibyte_latin1_org_names(self):
         """Hammer Multibyte and Latin-1 Org names break list pagination
 
-        :id: 35840da7-668e-4f78-990a-738aa688d586
+        :id: 4fa0afe7-6d0a-4c3e-a0fc-4ecb95c50fc9
 
         :BZ: 1418412
 
-        :expectedresults: List of organization names should have consistent spacing
+        :expectedresults: Multibyte and latin1 names need to be
+            displayed with consistent spacing
 
         :CaseImportance: Critical
         """
-        lat = gen_string('latin1', random.randint(1, 100))
-        utf = gen_string('utf8', random.randint(1, 100))
-        num = gen_string('numeric', random.randint(1, 100))
-        abc = gen_string('alpha', random.randint(1, 100))
-        cjk = gen_string('cjk', random.randint(1, 100))
-        make_org({'name':lat})
-        make_org({'name':utf})
-        make_org({'name':num})
-        make_org({'name':abc})
-        make_org({'name':cjk})
+        org_names = valid_org_names_list()
+        for org in org_names:
+            make_org({'name': org})
         org_list = Org.list(output_format='table')
-        Org.delete({'name':lat})
-        Org.delete({'name':utf})
-        Org.delete({'name':num})
-        Org.delete({'name':abc})
-        Org.delete({'name':cjk})
-        for o in org_list:
-            print o, len(o.decode('ascii'))
+        for org in org_names:
+            Org.delete({'name': org})
+        if org_list:
+            width = len(org_list[0])
+            for org_str in org_list:
+                if org_str:
+                    n = 0
+                    for c in org_str:
+                        eaw = unicodedata.east_asian_width(c)
+                        if eaw in ["Na", "N", "A", "H"]:  # Narrow, neutral,...
+                            n += 1
+                        else:  # Wide
+                            n += 2
+                    self.assertEqual(n, width)
