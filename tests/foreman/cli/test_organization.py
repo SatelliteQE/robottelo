@@ -1706,24 +1706,21 @@ class OrganizationTestCase(CLITestCase):
 
         :expectedresults: Multibyte and latin1 names need to be
             displayed with consistent spacing
-
-        :CaseImportance: Critical
         """
         org_names = valid_org_names_list()
         for org in org_names:
             make_org({'name': org})
-        org_list = Org.list(output_format='table')
+        org_list = Org.list(output_format='table').remove('')
         for org in org_names:
             Org.delete({'name': org})
         if org_list:
             width = len(org_list[0])
             for org_str in org_list:
-                if org_str:
-                    n = 0
-                    for c in org_str:
-                        eaw = unicodedata.east_asian_width(c)
-                        if eaw in ["Na", "N", "A", "H"]:  # Narrow, neutral,...
-                            n += 1
-                        else:  # Wide
-                            n += 2
-                    self.assertEqual(n, width)
+                n = 0
+                for c in org_str:
+                    eaw = unicodedata.east_asian_width(c)
+                    if eaw in ["Na", "N", "A", "H"]:  # Narrow, neutral,...
+                        n += 1
+                    else:  # Wide
+                        n += 2
+                self.assertEqual(n, width)
