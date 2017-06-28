@@ -1714,13 +1714,12 @@ class OrganizationTestCase(CLITestCase):
         for org in org_names:
             Org.delete({'name': org})
         if org_list:
-            width = len(org_list[0])
             for org_str in org_list:
-                n = 0
-                for c in org_str:
-                    eaw = unicodedata.east_asian_width(c)
+                width = 0
+                for char in org_str:
+                    eaw = unicodedata.east_asian_width(char)
                     if eaw in ["Na", "N", "A", "H"]:  # Narrow, neutral,...
-                        n += 1
+                        width += 1
                     else:  # Wide
-                        n += 2
-                self.assertEqual(n, width)
+                        width += 2
+                self.assertEqual(len(org_list[0]), width)
