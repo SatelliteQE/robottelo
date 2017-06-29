@@ -1321,6 +1321,12 @@ locators = LocatorDict({
         By.XPATH,
         ("//tr[//a[contains(@href,'info') and contains(.,'%s')]]"
          "/following-sibling::tr[1]/td/input[@type='checkbox']")),
+    "contenthost.attached_subscription": (
+        By.XPATH,
+        ("//tr[td/a[contains(@href,'info') and contains(.,'%s')]]"
+         "/following-sibling::tr[1]/td/a[contains(@ui-sref, "
+         "'subscriptions.details.info')]"),
+    ),
     "contenthost.errata_select": (
         By.XPATH,
         ("//tr[td/a[@ng-click='transitionToErratum(erratum)' and "
@@ -2860,6 +2866,10 @@ locators = LocatorDict({
     "subs.no_manifests_title": (
         By.XPATH,
         '//span[contains(., "You currently don\'t have any Subscriptions")]'),
+    "subs.details_field_value": (
+        By.XPATH,
+        ("//span[contains(@class, 'info-label')][span[text()='%s']]"
+         "/following-sibling::span[contains(@class, 'info-value')]")),
 
     # Settings
     "settings.param": (
