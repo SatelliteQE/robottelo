@@ -25,6 +25,7 @@ from robottelo.decorators import (
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
+from time import sleep
 
 NOVALID_MSG = '**** Given directory is not valid ****'
 NOFILES_MSG = '**** Given directory does not contain necessary files ****'
@@ -45,6 +46,20 @@ def tmp_directory_cleanup(connection, *args):
 @destructive
 class RestoreTestCase(TestCase):
     """Implements ``katello-restore`` tests"""
+
+    def check_services_status(self, max_attempts=5):
+        for _ in range(max_attempts):
+            try:
+                result = get_services_status()
+                self.assertEquals(result[0], 0)
+            except AssertionError:
+                sleep(30)
+            else:
+                break
+        else:
+            raise AssertionError(
+                u'Some services failed to start:\
+                \n{0}'.format('\n'.join(result[1])))
 
     @destructive
     @skip_if_bug_open('bugzilla', 1451833)
@@ -68,7 +83,7 @@ class RestoreTestCase(TestCase):
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(NOVALID_MSG, result.stdout)
-            self.assertTrue(get_services_status())
+            self.check_services_status()
 
     @destructive
     def test_negative_restore_nonexistent_directory(self):
@@ -92,7 +107,7 @@ class RestoreTestCase(TestCase):
             )
             self.assertEqual(result.return_code, 255)
             self.assertIn(NOVALID_MSG, result.stdout)
-            self.assertTrue(get_services_status())
+            self.check_services_status()
 
     @destructive
     def test_negative_restore_with_empty_directory(self):
@@ -116,7 +131,7 @@ class RestoreTestCase(TestCase):
             )
             self.assertEqual(result.return_code, 255)
             self.assertIn(NOFILES_MSG, result.stdout)
-            self.assertTrue(get_services_status())
+            self.check_services_status()
 
     @destructive
     def test_positive_restore_from_offline_backup(self):
