@@ -1494,8 +1494,9 @@ class SmartVariablesTestCase(APITestCase):
             hidden_value=True,
         ).create()
         self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
+        self.assertEqual(smart_variable.default_value, u'*****')
         smart_variable.default_value = value
         smart_variable.update(['default_value'])
-        smart_variable = smart_variable.read()
+        smart_variable = smart_variable.read(params={'show_hidden': 'true'})
         self.assertEqual(smart_variable.default_value, value)
         self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
