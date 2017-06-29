@@ -2474,7 +2474,8 @@ class ContentViewTestCase(CLITestCase):
 
                 - (Miscellaneous) [my_organizations]
                 - Environment [view_environments]
-                - Organization [view_organizations,
+                - Organization [view_organizations],
+                - Katello::Subscription: [
                     view_subscriptions,
                     attach_subscriptions,
                     unattach_subscriptions,
@@ -2502,6 +2503,8 @@ class ContentViewTestCase(CLITestCase):
             'Environment': ['view_environments'],
             'Organization': [
                 'view_organizations',
+            ],
+            'Katello::Subscription': [
                 'view_subscriptions',
                 'attach_subscriptions',
                 'unattach_subscriptions',

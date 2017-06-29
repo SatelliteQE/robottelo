@@ -48,7 +48,6 @@ class PermissionTestCase(APITestCase):
             cls.permissions[None].remove('logs')
             cls.permissions[None].remove('view_cases')
             cls.permissions[None].remove('view_log_viewer')
-            cls.permissions[None].remove('view_search')
 
         result = ssh.command('rpm -qa | grep rubygem-foreman_openscap')
         if result.return_code != 0:
