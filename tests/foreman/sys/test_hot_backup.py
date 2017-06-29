@@ -28,6 +28,7 @@ from robottelo.decorators import (
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
+from time import sleep
 
 BCK_MSG = 'BACKUP Complete, contents can be found in: /tmp/{0}'
 NODIR_MSG = 'ERROR: Please specify an export directory'
@@ -69,6 +70,20 @@ class HotBackupTestCase(TestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
+    def check_services_status(self, max_attempts=5):
+        for _ in range(max_attempts):
+            try:
+                result = get_services_status()
+                self.assertEquals(result[0], 0)
+            except AssertionError:
+                sleep(30)
+            else:
+                break
+        else:
+            raise AssertionError(
+                u'Some services failed to start:\
+                \n{0}'.format('\n'.join(result[1])))
+
     @destructive
     def test_positive_online_backup_with_existing_directory(self):
         """katello-backup --online-backup with existing directory
@@ -101,7 +116,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(set(files.stdout).issuperset(
                 set(HOT_BACKUP_FILES)))
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
@@ -138,7 +153,7 @@ class HotBackupTestCase(TestCase):
             self.assertTrue(set(files.stdout).issuperset(
                 set(HOT_BACKUP_FILES)))
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
@@ -195,7 +210,7 @@ class HotBackupTestCase(TestCase):
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(NODIR_MSG, result.stderr)
-            self.assertTrue(get_services_status())
+            self.check_services_status()
 
     @destructive
     def test_negative_backup_with_no_directory(self):
@@ -257,7 +272,7 @@ class HotBackupTestCase(TestCase):
             self.assertIn(u'foreman.dump', files.stdout)
             self.assertNotIn(u'pulp_data.tar', files.stdout)
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             connection.run('rm -rf {0}'.format(dir_name))
 
     @destructive
@@ -293,7 +308,7 @@ class HotBackupTestCase(TestCase):
             self.assertNotIn(u'pulp_data.tar', files.stdout)
             self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
@@ -328,7 +343,7 @@ class HotBackupTestCase(TestCase):
             self.assertNotIn(u'pulp_data.tar', files.stdout)
             self.assertNotIn(u'.pulp.snar', files.stdout)
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
@@ -382,7 +397,7 @@ class HotBackupTestCase(TestCase):
                     )
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             self.assertTrue(
                     directory_size_compare(connection, b1_dir, b1_dest))
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
@@ -411,7 +426,7 @@ class HotBackupTestCase(TestCase):
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(NOPREV_MSG, result.stderr)
-            self.assertTrue(get_services_status())
+            self.check_services_status()
 
     @destructive
     def test_negative_incremental_with_no_dest_directory(self):
@@ -434,7 +449,7 @@ class HotBackupTestCase(TestCase):
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(NODIR_MSG, result.stderr)
-            self.assertTrue(get_services_status())
+            self.check_services_status()
 
     @destructive
     def test_negative_incremental_with_invalid_dest_directory(self):
@@ -459,7 +474,7 @@ class HotBackupTestCase(TestCase):
             )
             self.assertEqual(result.return_code, 1)
             self.assertIn(BADPREV_MSG.format(dir_name), result.stderr)
-            self.assertTrue(get_services_status())
+            self.check_services_status()
 
     @destructive
     def test_positive_online_incremental_skip_pulp(self):
@@ -518,7 +533,7 @@ class HotBackupTestCase(TestCase):
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             self.assertTrue(
                     directory_size_compare(connection, b1_dir, b1_dest))
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
@@ -579,7 +594,7 @@ class HotBackupTestCase(TestCase):
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
             # check if services are running correctly
-            self.assertTrue(get_services_status())
+            self.check_services_status()
             self.assertTrue(
                     directory_size_compare(connection, b1_dir, b1_dest))
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
