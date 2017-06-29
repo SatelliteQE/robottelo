@@ -142,7 +142,7 @@ common_locators = LocatorDict({
     "kt_clear_search": (
         By.XPATH, "//button[contains(@ng-click, 'searchCompleted = false')]"),
     "kt_search_no_results": (
-        By.XPATH, "//span[@data-block='no-search-results-message']"),
+        By.XPATH, "//table//span[@data-block='no-search-results-message']"),
     "kt_search_button": (
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),

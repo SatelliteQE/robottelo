@@ -94,12 +94,20 @@ class PackagesTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             self.assertIsNotNone(self.package.search('tiger'))
             self.assertIsNotNone(self.package.search('Lizard'))
-            self.package.select_repo(self.yum_repo.name)
-            self.assertIsNotNone(self.package.search('tiger'))
-            self.assertIsNone(self.package.search('Lizard'))
-            self.package.select_repo(self.yum_repo2.name)
-            self.assertIsNotNone(self.package.search('Lizard'))
-            self.assertIsNone(self.package.search('tiger'))
+            self.assertIsNotNone(
+                self.package.search('tiger', repository=self.yum_repo.name))
+            self.assertIsNotNone(self.package.search(
+                'Lizard',
+                repository=self.yum_repo.name,
+                expecting_results=False
+            ))
+            self.assertIsNotNone(
+                self.package.search('Lizard', repository=self.yum_repo2.name))
+            self.assertIsNotNone(self.package.search(
+                'tiger',
+                repository=self.yum_repo2.name,
+                expecting_results=False
+            ))
 
     @tier2
     def test_positive_check_package_details(self):
