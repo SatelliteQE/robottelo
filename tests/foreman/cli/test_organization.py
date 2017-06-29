@@ -1706,11 +1706,17 @@ class OrganizationTestCase(CLITestCase):
         :expectedresults: Multibyte and latin1 names need to be
             displayed with consistent spacing
         """
-        org_names = valid_org_names_list()
+        org_names = [
+            gen_string('alpha', random.randint(1, 50)),
+            gen_string('latin1', random.randint(1, 50)),
+            gen_string('utf8', random.randint(1, 50))
+        ]
         for org in org_names:
             make_org({'name': org})
         org_list = [line for line in Org.list(output_format='table') if line]
         self.assertGreaterEqual(len(org_list), len(org_names))
+        for name in org_names:
+            self.assertTrue(any(name in line for line in org_list))
         for org_str in org_list:
             width = sum(
                 1 if unicodedata.east_asian_width(char)
