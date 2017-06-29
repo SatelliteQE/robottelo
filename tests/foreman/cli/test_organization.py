@@ -1707,9 +1707,9 @@ class OrganizationTestCase(CLITestCase):
             displayed with consistent spacing
         """
         org_names = [
-            gen_string('alpha', random.randint(1, 50)),
-            gen_string('latin1', random.randint(1, 50)),
-            gen_string('utf8', random.randint(1, 50))
+            gen_string('alpha', random.randint(1, 30)),
+            gen_string('latin1', random.randint(1, 30)),
+            gen_string('utf8', random.randint(1, 30))
         ]
         for org in org_names:
             make_org({'name': org})
