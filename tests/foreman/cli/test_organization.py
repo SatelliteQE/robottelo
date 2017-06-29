@@ -1696,7 +1696,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertEqual(org['id'], result['id'])
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1418412)
     def test_positive_multibyte_latin1_org_names(self):
         """Hammer Multibyte and Latin-1 Org names break list pagination
 
@@ -1710,16 +1709,14 @@ class OrganizationTestCase(CLITestCase):
         org_names = valid_org_names_list()
         for org in org_names:
             make_org({'name': org})
-        org_list = Org.list(output_format='table').remove('')
-        for org in org_names:
-            Org.delete({'name': org})
-        if org_list:
-            for org_str in org_list:
-                width = 0
-                for char in org_str:
-                    eaw = unicodedata.east_asian_width(char)
-                    if eaw in ["Na", "N", "A", "H"]:  # Narrow, neutral,...
-                        width += 1
-                    else:  # Wide
-                        width += 2
-                self.assertEqual(len(org_list[0]), width)
+        org_list = [line for line in Org.list(output_format='table') if line]
+        self.assertGreaterEqual(len(org_list), len(org_names))
+        for org_str in org_list:
+            width = 0
+            for char in org_str:
+                width = sum(
+                    1 if unicodedata.east_asian_width(char)
+                    in ["Na", "N", "A", "H"]
+                    else 2 for char in org_str
+                )
+            self.assertEqual(len(org_list[0]), width)
