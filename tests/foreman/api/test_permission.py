@@ -29,7 +29,7 @@ from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1
 from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
@@ -246,7 +246,7 @@ class UserRoleTestCase(APITestCase):
         permissions = entities.Permission(name=perm_name).search()
         self.assertEqual(len(permissions), 1)
         entities.Filter(permission=permissions, role=role).create()
-        self.user.role = [role]
+        self.user.role += [role]
         self.user = self.user.update(['role'])
 
     def set_taxonomies(self, entity, organization=None, location=None):
@@ -300,12 +300,12 @@ class UserRoleTestCase(APITestCase):
                 )
                 entity = self.set_taxonomies(
                     entity_cls(self.cfg), self.org, self.loc)
-                # Currently entities with both org and loc are affected by
-                # bug. Skip to the next entity
+                # Entities with both org and loc require
+                # additional permissions to set them.
                 fields = set(['organization', 'location'])
-                if (fields.issubset(set(entity.get_fields()))
-                        and bz_bug_is_open('1464137')):
-                    continue
+                if fields.issubset(set(entity.get_fields())):
+                    self.give_user_permission('assign_organizations')
+                    self.give_user_permission('assign_locations')
                 entity = entity.create_json()
                 entity_cls(id=entity['id']).read()  # As admin user.
 
