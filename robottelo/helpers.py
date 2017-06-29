@@ -420,13 +420,11 @@ def get_services_status():
 
     # check `services` status using service command
     if major_version >= RHEL_7_MAJOR_VERSION:
-        status_format = '''(for i in {0}; do systemctl status $i; rc=$?;
-                if [[ $rc != 0 ]]; then exit $rc; fi; done);'''
+        status_format = '''(for i in {0}; do systemctl is-active $i -q; rc=$?;
+        if [[ $rc != 0 ]]; then systemctl status $i; exit $rc; fi; done);'''
     else:
-        status_format = '''(for i in {0}; do service $i status; rc=$?;
-                if [[ $rc != 0 ]]; then exit $rc; fi; done);'''
+        status_format = '''(for i in {0}; do service $i status &>/dev/null; rc=$?;
+        if [[ $rc != 0 ]]; then service $i status; exit $rc; fi; done);'''
 
     result = ssh.command(status_format.format(' '.join(services)))
-    if (result.return_code != 0):
-        return False
-    return True
+    return[result.return_code, result.stdout]
