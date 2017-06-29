@@ -44,7 +44,7 @@ from robottelo.decorators import (
     tier3,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_user, set_context
+from robottelo.ui.factory import make_user, make_usergroup, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -511,6 +511,45 @@ class UserTestCase(UITestCase):
             )
             self.assertIsNotNone(
                 self.user.wait_until_element(common_locators['haserror']))
+
+    @tier1
+    def test_positive_search_by_usergroup(self):
+        """Create few users and assign them to usergroup. Perform search for
+        users by usergroup they are assigned to
+
+        :id: dceebf68-8d82-4214-9829-350830a78cdd
+
+        :expectedresults: Necessary users can be found and no error raised
+
+        :BZ: 1395667
+
+        :CaseImportance: Critical
+        """
+        group_name = gen_string('alpha')
+        org = entities.Organization().create()
+        # Create new users
+        user_names = [
+            entities.User(organization=[org]).create().login
+            for _ in range(2)
+        ]
+        with Session(self.browser) as session:
+            make_usergroup(
+                session,
+                name=group_name,
+                users=user_names,
+                org=org.name,
+            )
+            for user_name in user_names:
+                self.assertIsNotNone(
+                    self.user.search(
+                        user_name,
+                        _raw_query='usergroup = {}'.format(group_name)
+                    )
+                )
+                self.assertIsNone(
+                    self.user.wait_until_element(
+                        common_locators['haserror'], timeout=3)
+                )
 
     @tier1
     def test_positive_update_username(self):
