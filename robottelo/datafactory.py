@@ -166,7 +166,7 @@ def valid_data_list():
 @filtered_datapoint
 def valid_emails_list():
     """Returns a list of valid emails."""
-    return [
+    email_list = [
         u'{0}@example.com'.format(gen_string('alpha')),
         u'{0}@example.com'.format(gen_string('alphanumeric')),
         u'{0}@example.com'.format(gen_string('numeric')),
@@ -179,9 +179,9 @@ def valid_emails_list():
             gen_string('alphanumeric'),
             gen_string('alphanumeric'),
         ),
-        u'"():;"@example.com',
         u'!#$%&*+-/=?^`{|}~@example.com',
     ]
+    return [email.replace('"', '').replace('`', '') for email in email_list]
 
 
 @filtered_datapoint

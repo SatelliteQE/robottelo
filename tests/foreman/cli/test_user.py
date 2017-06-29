@@ -104,10 +104,7 @@ class UserTestCase(CLITestCase):
         """
         for email in valid_emails_list():
             with self.subTest(email):
-                # The email must be escaped because some characters to not fail
-                # the parsing of the generated shell command
-                escaped_email = email.replace('"', r'\"').replace('`', r'\`')
-                user = make_user({'mail': escaped_email})
+                user = make_user({'mail': email})
                 self.assertEqual(user['email'], email)
 
     @tier1
@@ -806,8 +803,7 @@ class UserWithCleanUpTestCase(CLITestCase):
             with self.subTest(email):
                 User.update({
                     'id': user['id'],
-                    # escape to avoid bash syntax error
-                    'mail': email.replace('"', r'\"').replace('`', r'\`'),
+                    'mail': email,
                 })
                 result = User.info({'id': user['id']})
                 self.assertEqual(result['email'], email)

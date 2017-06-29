@@ -55,7 +55,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
             self.assertEqual(len(invalid_usernames_list()), 4)
             self.assertEqual(len(valid_labels_list()), 2)
             self.assertEqual(len(valid_data_list()), 7)
-            self.assertEqual(len(valid_emails_list()), 8)
+            self.assertEqual(len(valid_emails_list()), 7)
             self.assertEqual(len(valid_environments_list()), 4)
             self.assertEqual(len(valid_hosts_list()), 3)
             self.assertEqual(len(valid_hostgroups_list()), 7)
