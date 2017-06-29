@@ -1712,7 +1712,6 @@ class OrganizationTestCase(CLITestCase):
         org_list = [line for line in Org.list(output_format='table') if line]
         self.assertGreaterEqual(len(org_list), len(org_names))
         for org_str in org_list:
-            width = 0
             for char in org_str:
                 width = sum(
                     1 if unicodedata.east_asian_width(char)
