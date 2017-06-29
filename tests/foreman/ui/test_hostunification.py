@@ -19,6 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.host import Host
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
@@ -253,6 +254,40 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.contenthost.search(new_name))
                 self.assertIsNone(self.hosts.search(vm.hostname))
                 self.assertIsNotNone(self.hosts.search(new_name))
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_rename_content_host_cli(self):
+        """Content Hosts renamed in UI affects entity in the application
+        entirely, so name looks different through CLI too
+
+        :id: a64c7815-269b-45d0-9032-38df550d6cd9
+
+        :steps:
+            1.  Rename a host from 'Content-hosts' page
+            2.  View host under content-hosts
+            3.  View host using command line interface
+
+        :expectedresults: Host changed its name both in UI and CLI
+
+        :BZ: 1417953
+
+        :CaseLevel: System
+        """
+        new_name = gen_string('alphanumeric').lower()
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org_.label, lce='Library')
+            self.assertTrue(vm.subscribed)
+            host = Host.info({'name': vm.hostname})
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.org_.name)
+                self.contenthost.update(
+                    vm.hostname,
+                    new_name=new_name,
+                )
+                self.assertIsNotNone(self.contenthost.search(new_name))
+            self.assertEqual(Host.info({'id': host['id']})['name'], new_name)
 
     @run_only_on('sat')
     @tier3
