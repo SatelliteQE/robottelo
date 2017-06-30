@@ -809,6 +809,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
         cls.per_page.update({'value'})
         cls.org = entities.Organization().create()
         cls.loc = entities.Location().create()
+        cls.manager_loc = entities.Location().create()
         cls.host_group = entities.HostGroup(
             organization=[cls.org]).create()
 
@@ -849,9 +850,8 @@ class DiscoveryRuleRoleTestCase(UITestCase):
             role=[manager_role],
             password=cls.manager_user_password,
             organization=[cls.org],
-            location=[cls.loc],
+            location=[cls.loc, cls.manager_loc],
             default_organization=cls.org,
-            default_location=cls.loc,
         ).create()
 
     @classmethod
