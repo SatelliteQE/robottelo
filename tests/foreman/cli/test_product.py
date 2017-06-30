@@ -27,7 +27,10 @@ from robottelo.cli.factory import (
     make_repository,
     make_sync_plan,
 )
+from robottelo.cli.package import Package
 from robottelo.cli.product import Product
+from robottelo.cli.repository import Repository
+from robottelo.constants import FAKE_0_YUM_REPO, FAKE_0_YUM_REPO_PACKAGES_COUNT
 from robottelo.datafactory import (
     generate_strings_list,
     valid_data_list,
@@ -467,3 +470,34 @@ class ProductTestCase(CLITestCase):
             'organization-id': org['id'],
         })
         self.assertEqual(u'Syncing Complete.', product['sync-state'])
+
+    @tier2
+    def test_positive_package_count(self):
+        """Check that packages count is correctly filtered by product id
+
+        :id: 151f60a3-0b94-4658-8b0d-0d022f4f1d8f
+
+        :expectedresults: Packages only from synced product returned
+
+        :BZ: 1422552
+
+        :CaseLevel: Integration
+        """
+        org = make_org()
+        for _ in range(3):
+            product = make_product({'organization-id': org['id']})
+            repo = make_repository({
+                'product-id': product['id'],
+                'url': FAKE_0_YUM_REPO,
+            })
+            Product.synchronize({
+                'id': product['id'],
+                'organization-id': org['id'],
+            })
+            packages = Package.list({'product-id': product['id']})
+            repo = Repository.info({'id': repo['id']})
+            self.assertEqual(
+                int(repo['content-counts']['packages']),
+                len(packages)
+            )
+            self.assertEqual(len(packages), FAKE_0_YUM_REPO_PACKAGES_COUNT)
