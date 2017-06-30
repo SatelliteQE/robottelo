@@ -787,7 +787,6 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1405503)
     @tier2
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
@@ -795,6 +794,8 @@ class RepositoryTestCase(CLITestCase):
         :id: 809905ae-fb76-465d-9468-1f99c4274aeb
 
         :expectedresults: Repository is created but synchronization fails
+
+        :BZ: 1405503, 1453118
 
         :CaseLevel: Integration
         """
@@ -813,11 +814,19 @@ class RepositoryTestCase(CLITestCase):
                 repo_sync = Repository.synchronize(
                     {'id': new_repo['id'], u'async': True}
                 )
-                Task.progress({u'id': repo_sync[0]['id']})
-                self.assertEqual(
-                    Task.progress({u'id': repo_sync[0]['id']})[0],
-                    u'Yum Metadata: Unauthorized'
-                )
+                response = Task.progress(
+                    {u'id': repo_sync[0]['id']}, return_raw_response=True)
+                if creds['original_encoding'] == 'utf8':
+                    self.assertIn(
+                        (u"Error retrieving metadata: 'latin-1' codec can't"
+                         u" encode characters"),
+                        ''.join(response.stderr)
+                    )
+                else:
+                    self.assertIn(
+                        u'Error retrieving metadata: Unauthorized',
+                        ''.join(response.stderr)
+                    )
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1405503)
