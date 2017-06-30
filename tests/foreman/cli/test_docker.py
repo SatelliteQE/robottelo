@@ -37,7 +37,10 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import (
+    DOCKER_REGISTRY_HUB,
+    DOCKER_RH_REGISTRY_UPSTREAM_NAME,
+)
 from robottelo.datafactory import generate_strings_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
@@ -56,7 +59,7 @@ REPO_CONTENT_TYPE = 'docker'
 REPO_UPSTREAM_NAME = 'busybox'
 
 
-def _make_docker_repo(product_id, name=None, upstream_name=None):
+def _make_docker_repo(product_id, name=None, upstream_name=None, url=None):
     """Creates a Docker-based repository.
 
     :param product_id: ID of the ``Product``.
@@ -64,6 +67,8 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
         value will be generated.
     :param str upstream_name: A valid name of an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
+    :param str url: URL of repository. If ``None`` then defaults to
+        DOCKER_REGISTRY_HUB constant.
     :return: A ``Repository`` object.
 
     """
@@ -72,7 +77,7 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
         'docker-upstream-name': upstream_name or REPO_UPSTREAM_NAME,
         'name': name or choice(generate_strings_list(15, ['numeric', 'html'])),
         'product-id': product_id,
-        'url': DOCKER_REGISTRY_HUB,
+        'url': url or DOCKER_REGISTRY_HUB,
     })
 
 
@@ -284,6 +289,53 @@ class DockerRepositoryTestCase(CLITestCase):
         })
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['upstream-repository-name'], new_upstream_name)
+
+    @skip_if_not_set('docker')
+    @tier1
+    def test_positive_create_with_long_upstream_name(self):
+        """Create a docker repository with upstream name longer than 30
+        characters
+
+        :id: 4fe47c02-a8bd-4630-9102-189a9d268b83
+
+        :BZ: 1424689
+
+        :expectedresults: docker repository is successfully created
+
+        :CaseImportance: Critical
+        """
+        repo = _make_docker_repo(
+            make_product_wait({'organization-id': self.org_id})['id'],
+            upstream_name=DOCKER_RH_REGISTRY_UPSTREAM_NAME,
+            url=settings.docker.external_registry_1,
+        )
+        self.assertEqual(
+            repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
+
+    @skip_if_not_set('docker')
+    @tier1
+    def test_positive_update_with_long_upstream_name(self):
+        """Create a docker repository and update its upstream name with longer
+        than 30 characters value
+
+        :id: 97260cce-9677-4a3e-942b-e95e2714500a
+
+        :BZ: 1424689
+
+        :expectedresults: docker repository is successfully updated
+
+        :CaseImportance: Critical
+        """
+        repo = _make_docker_repo(
+            make_product_wait({'organization-id': self.org_id})['id'])
+        Repository.update({
+            'docker-upstream-name': DOCKER_RH_REGISTRY_UPSTREAM_NAME,
+            'id': repo['id'],
+            'url': settings.docker.external_registry_1,
+        })
+        repo = Repository.info({'id': repo['id']})
+        self.assertEqual(
+            repo['upstream-repository-name'], DOCKER_RH_REGISTRY_UPSTREAM_NAME)
 
     @tier1
     @run_only_on('sat')
