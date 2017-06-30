@@ -669,6 +669,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_compute_resource_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "host.compute_profile": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_profile_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.lifecycle_environment": (
         By.XPATH,
         ("//div[contains(@id, 'host_lifecycle_environment_id')]/a"
@@ -692,6 +696,10 @@ locators = LocatorDict({
     "host.inherit_puppet_environment": (
         By.XPATH,
         ("//div[contains(@id, 'host_environment_id')]/following-sibling::"
+         "span/button[contains(@class, 'btn-can-disable')]")),
+    "host.inherit_compute_profile": (
+        By.XPATH,
+        (".//*[contains(@id,'host_compute_profile_id')]/following-sibling::"
          "span/button[contains(@class, 'btn-can-disable')]")),
     "host.reset_puppet_environment": (By.ID, "reset_puppet_environment"),
     "host.content_source": (
@@ -806,6 +814,11 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_ptable_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "host.pxe_loader": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_pxe_loader')]/a"
+         "/span[contains(@class, 'arrow')]")
+    ),
     "host.custom_partition_table": (By.ID, "host_disk"),
     "host.root_password": (By.ID, "host_root_pass"),
     "host.provisioning_templates": (

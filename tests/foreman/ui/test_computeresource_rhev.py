@@ -15,11 +15,12 @@
 
 from fauxfactory import gen_string
 from nailgun import entities
-
 from robottelo.config import settings
 from robottelo.constants import (
+    ANY_CONTEXT,
     COMPUTE_PROFILE_LARGE,
     FOREMAN_PROVIDERS
+
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
@@ -31,8 +32,10 @@ from robottelo.decorators import (
     tier2,
     tier3,
 )
+from robottelo.api.utils import configure_provisioning
+from robottelo.helpers import ProvisioningCheckError
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_resource
+from robottelo.ui.factory import make_resource, make_host
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -679,109 +682,6 @@ class RhevComputeResourceTestCase(UITestCase):
             self.assertTrue(self.rhev_vm_name in vms)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_rhev_with_image(self):
-        """ Provision a host on rhev compute resource with image based
-
-        :id: 80abd6b1-31cd-4f3e-949c-f1ca608d0bbb
-
-        :setup: rhev hostname and credentials.
-
-            1. Configured subnet for provisioning of the host.
-            2. Configured domains for the host.
-            3. Population of images into satellite from rhev templates.
-            4. Activation key and CV for the host.
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Fill in the required details.(eg name,loc, org).
-            3. Select rhev compute resource from "Deploy on" drop down.
-            4. Associate appropriate feature capsules.
-            5. Go to "operating system tab".
-            6. Edit Provisioning Method to image based.
-            7. Select the appropriate image .
-            8. Associate the activation key and submit.
-
-        :expectedresults: The host should be provisioned successfully
-
-        :Caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_rhev_with_compute_profile(self):
-        """ Provision a host on rhev compute resource with compute profile
-        default (3-Large)
-
-        :id: fe4a05ef-d548-4c28-80d0-d17851fb4b03
-
-        :setup: rhev hostname ,credentials and provisioning setup.
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Fill in the required details.(eg name,loc, org).
-            3. Select rhev compute resource from "Deploy on" drop down.
-            4. Select the "Compute profile" from the drop down.
-            5. Provision the host using the compute profile.
-
-        :expectedresults: The host should be provisioned successfully
-
-        :Caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_rhev_with_custom_compute_settings(self):
-        """ Provision a host on rhev compute resource with
-         custom disk, cpu count and memory
-
-        :id: a972c095-7567-4bb0-86cb-9bd835fed7b7
-
-        :setup: rhev hostname ,credentials and provisioning setup.
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Fill in the required details.(eg name,loc, org).
-            3. Select rhev custom compute resource from "Deploy on" drop down.
-            4. Select the custom compute profile" with custom disk size, cpu
-               count and memory.
-            5. Provision the host using the compute profile.
-
-        :expectedresults: The host should be provisioned with custom settings
-
-        :Caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_provision_rhev_with_host_group(self):
-        """ Provision a host on rhev compute resource with
-        the help of hostgroup.
-
-        :id: e02fae7d-ac39-4068-ba82-ec0cf110aae8
-
-        :setup: rhev hostname ,credentials provisioning setup and hostgroup
-
-        :steps:
-
-            1. Go to "Hosts --> New host".
-            2. Assign the host group to the host.
-            3. Select the Deploy on as rhev Compute Resource.
-            4. Provision the host.
-
-        :expectedresults: The host should be provisioned with host group
-
-        :Caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
     @tier2
     def test_positive_rhev_vm_power_on_off(self):
         """The virtual machine in rhev cr should be powered on and off.
@@ -814,3 +714,388 @@ class RhevComputeResourceTestCase(UITestCase):
                 cr_name, self.rhev_vm_name, True), u'On')
             self.assertEqual(self.compute_resource.set_power_status(
                 cr_name, self.rhev_vm_name, False), u'Off')
+
+
+class RhevComputeResourceHostTestCase(UITestCase):
+    """Implements Compute Resource tests in UI"""
+
+    @classmethod
+    @skip_if_not_set('rhev')
+    def setUpClass(cls):
+        super(RhevComputeResourceHostTestCase, cls).setUpClass()
+        cls.rhev_url = settings.rhev.hostname
+        cls.rhev_password = settings.rhev.password
+        cls.rhev_username = settings.rhev.username
+        cls.rhev_datacenter = settings.rhev.datacenter
+        cls.rhev_img_name = settings.rhev.image_name
+        cls.rhev_img_arch = settings.rhev.image_arch
+        cls.rhev_img_os = settings.rhev.image_os
+        cls.rhev_img_user = settings.rhev.image_username
+        cls.rhev_img_pass = settings.rhev.image_password
+        cls.rhev_vm_name = settings.rhev.vm_name
+        cls.rhev_storage_domain = settings.rhev.storage_domain
+
+        cls.org = entities.Organization(name=gen_string('alpha')).create()
+        cls.org_name = cls.org.name
+        cls.loc = entities.Location(
+            name=gen_string('alpha'),
+            organization=[cls.org],
+        ).create()
+        cls.loc_name = cls.loc.name
+        cls.config_env = configure_provisioning(compute=True,
+                                                org=cls.org,
+                                                loc=cls.loc
+                                                )
+
+    def tearDown(self):
+        """Delete the host to free the resources"""
+        super(RhevComputeResourceHostTestCase, self).tearDown()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            hosts = entities.Host().search(
+                query={u'search': u'organization={0}'.format(self.org_name)})
+            for host in hosts:
+                host.delete()
+
+    @skip_if_bug_open('bugzilla', 1467925)
+    @skip_if_bug_open('bugzilla', 1467828)
+    @skip_if_bug_open('bugzilla', 1466645)
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_rhev_with_image(self):
+        """ Provision a host on rhev compute resource with image based
+
+        :id: 80abd6b1-31cd-4f3e-949c-f1ca608d0bbb
+
+        :setup: rhev hostname and credentials.
+
+            1. Configured subnet for provisioning of the host.
+            2. Configured domains for the host.
+            3. Population of images into satellite from rhev templates.
+            4. Activation key and CV for the host.
+
+        :steps:
+
+            1. Go to "Hosts --> New host".
+            2. Fill in the required details.(eg name,loc, org).
+            3. Select rhev compute resource from "Deploy on" drop down.
+            4. Associate appropriate feature capsules.
+            5. Go to "operating system tab".
+            6. Edit Provisioning Method to image based.
+            7. Select the appropriate image .
+            8. Associate the activation key and submit.
+
+        :expectedresults: The host should be provisioned successfully
+
+        :Caseautomation: notautomated
+        """
+        hostname = gen_string('alpha', 9)
+        cr_name = gen_string('alpha', 9)
+        img_name = gen_string('alpha', 5)
+        root_pwd = gen_string('alpha', 15)
+        with Session(self.browser) as session:
+            parameter_list = [
+                ['URL', self.rhev_url, 'field'],
+                ['Username', self.rhev_username, 'field'],
+                ['Password', self.rhev_password, 'field'],
+                ['Datacenter', self.rhev_datacenter, 'special select'],
+            ]
+            make_resource(
+                session,
+                name=cr_name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list,
+                orgs=[self.org_name], org_select=True,
+                locations=[self.loc_name], loc_select=True
+            )
+            parameter_list_img = [
+                ['Name', img_name],
+                ['Operatingsystem', self.rhev_img_os],
+                ['Architecture', self.rhev_img_arch],
+                ['Username', self.rhev_img_user],
+                ['Password', self.rhev_img_pass],
+                ['uuid', self.rhev_img_name],
+            ]
+            self.compute_resource.add_image(cr_name, parameter_list_img)
+            imgs = self.compute_resource.list_images(cr_name)
+            self.assertTrue(img_name in imgs)
+            self.compute_resource.set_profile_values(
+                cr_name, COMPUTE_PROFILE_LARGE,
+                cluster=self.rhev_datacenter,
+                cores=2,
+                memory=1024,
+                image=self.rhev_img_name,
+                network_interfaces=[
+                    dict(
+                        name='nic1',
+                        network=settings.vlan_networking.bridge
+                    ),
+                ],
+                storage=[
+                    dict(
+                        size='10',
+                        storage_domain=self.rhev_storage_domain,
+                        bootable=True,
+                        preallocate_disk=False
+                    ),
+                ]
+            )
+            make_host(
+                session,
+                name=hostname,
+                org=ANY_CONTEXT['org'],
+                loc=self.loc_name,
+                parameters_list=[
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', self.config_env['host_group']],
+                    ['Host', 'Deploy on', cr_name],
+                    ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
+                    ['Host', 'Puppet Environment',
+                        self.config_env['environment']],
+                    ['Operating System', 'Operating System', self.rhev_img_os],
+                    ['Operating System', 'Partition table',
+                        self.config_env['ptable']],
+                    ['Operating System', 'PXE loader', 'PXELinux BIOS'],
+                    ['Operating System', 'Root password', root_pwd],
+                ],
+                provisioning_method='network'
+            )
+            self.assertIsNotNone(self.hosts.search(
+                u'{0}.{1}'.format(hostname.lower(),
+                                  self.config_env['domain']
+                                  )))
+            host_ip = entities.Host().search(query={
+                'search': 'name={0}.{1} and organization="{3}"'.format(
+                    hostname.lower(),
+                    self.config_env['domain'],
+                    self.org_name)
+                    })[0].read().ip
+            with self.assertNotRaises(ProvisioningCheckError):
+                self.compute_resource.host_provisioning_check(host_ip)
+
+    @skip_if_bug_open('bugzilla', 1467925)
+    @skip_if_bug_open('bugzilla', 1467828)
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_rhev_with_compute_profile(self):
+        """ Provision a host on rhev compute resource with compute profile
+        default (3-Large)
+
+        :id: fe4a05ef-d548-4c28-80d0-d17851fb4b03
+
+        :setup: rhev hostname ,credentials and provisioning setup.
+
+        :steps:
+
+            1. Go to "Hosts --> New host".
+            2. Fill in the required details.(eg name,loc, org).
+            3. Select rhev compute resource from "Deploy on" drop down.
+            4. Select the "Compute profile" from the drop down.
+            5. Provision the host using the compute profile.
+
+        :expectedresults: The host should be provisioned successfully
+
+        :Caseautomation: notautomated
+        """
+        hostname = gen_string('alpha', 9)
+        cr_name = gen_string('alpha', 9)
+        root_pwd = gen_string('alpha', 15)
+        with Session(self.browser) as session:
+            parameter_list = [
+                ['URL', self.rhev_url, 'field'],
+                ['Username', self.rhev_username, 'field'],
+                ['Password', self.rhev_password, 'field'],
+                ['Datacenter', self.rhev_datacenter, 'special select'],
+            ]
+            make_resource(
+                session,
+                name=cr_name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list,
+                orgs=[self.org_name], org_select=True,
+                locations=[self.loc_name], loc_select=True
+            )
+            self.compute_resource.set_profile_values(
+                cr_name, COMPUTE_PROFILE_LARGE,
+                cluster=self.rhev_datacenter,
+                cores=2,
+                memory=1024,
+                network_interfaces=[
+                    dict(
+                        name='nic1',
+                        network=settings.vlan_networking.bridge
+                    ),
+                ],
+                storage=[
+                    dict(
+                        size='10',
+                        storage_domain=self.rhev_storage_domain,
+                        bootable=True,
+                        preallocate_disk=False
+                    ),
+                ]
+            )
+            make_host(
+                session,
+                name=hostname,
+                org=ANY_CONTEXT['org'],
+                loc=self.loc_name,
+                parameters_list=[
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', self.config_env['host_group']],
+                    ['Host', 'Deploy on', cr_name],
+                    ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
+                    ['Host', 'Puppet Environment',
+                        self.config_env['environment']],
+                    ['Operating System', 'Operating System', self.rhev_img_os],
+                    ['Operating System', 'Partition table',
+                        self.config_env['ptable']],
+                    ['Operating System', 'PXE loader', 'PXELinux BIOS'],
+                    ['Operating System', 'Root password', root_pwd],
+                ],
+                provisioning_method='network'
+            )
+            self.assertIsNotNone(self.hosts.search(
+                u'{0}.{1}'.format(hostname.lower(),
+                                  self.config_env['domain']
+                                  )))
+            host_ip = entities.Host().search(query={
+                'search': 'name={0}.{1} and organization="{3}"'.format(
+                    hostname.lower(),
+                    self.config_env['domain'],
+                    self.org_name)
+                    })[0].read().ip
+            with self.assertNotRaises(ProvisioningCheckError):
+                self.compute_resource.host_provisioning_check(host_ip)
+
+    @skip_if_bug_open('bugzilla', 1467925)
+    @skip_if_bug_open('bugzilla', 1467828)
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_rhev_with_custom_compute_settings(self):
+        """ Provision a host on rhev compute resource with
+         custom disk, cpu count and memory
+
+        :id: a972c095-7567-4bb0-86cb-9bd835fed7b7
+
+        :setup: rhev hostname ,credentials and provisioning setup.
+
+        :steps:
+
+            1. Go to "Hosts --> New host".
+            2. Fill in the required details.(eg name,loc, org).
+            3. Select rhev custom compute resource from "Deploy on" drop down.
+            4. Select the custom compute profile" with custom disk size, cpu
+               count and memory.
+            5. Provision the host using the compute profile.
+
+        :expectedresults: The host should be provisioned with custom settings
+
+        :Caseautomation: notautomated
+        """
+        hostname = gen_string('alpha', 9)
+        cr_name = gen_string('alpha', 9)
+        root_pwd = gen_string('alpha', 15)
+        with Session(self.browser) as session:
+            parameter_list = [
+                ['URL', self.rhev_url, 'field'],
+                ['Username', self.rhev_username, 'field'],
+                ['Password', self.rhev_password, 'field'],
+                ['Datacenter', self.rhev_datacenter, 'special select'],
+            ]
+            make_resource(
+                session,
+                name=cr_name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list,
+                orgs=[self.org_name], org_select=True,
+                locations=[self.loc_name], loc_select=True
+            )
+            self.compute_resource.set_profile_values(
+                cr_name, COMPUTE_PROFILE_LARGE,
+                cluster=self.rhev_datacenter,
+                cores=2,
+                memory=2024,
+                network_interfaces=[
+                    dict(
+                        name='nic1',
+                        network=settings.vlan_networking.bridge
+                    ),
+                    dict(
+                        name='nic2',
+                        network=settings.vlan_networking.bridge
+                    ),
+                ],
+                storage=[
+                    dict(
+                        size='10',
+                        storage_domain=self.rhev_storage_domain,
+                        bootable=False,
+                        preallocate_disk=True
+                    ),
+                    dict(
+                        size='20',
+                        storage_domain=self.rhev_storage_domain,
+                        bootable=False,
+                        preallocate_disk=False
+                    )
+                ]
+            )
+            make_host(
+                session,
+                name=hostname,
+                org=ANY_CONTEXT['org'],
+                loc=self.loc_name,
+                parameters_list=[
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', self.config_env['host_group']],
+                    ['Host', 'Deploy on', cr_name],
+                    ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
+                    ['Host', 'Puppet Environment',
+                        self.config_env['environment']],
+                    ['Operating System', 'Operating System', self.rhev_img_os],
+                    ['Operating System', 'Partition table',
+                        self.config_env['ptable']],
+                    ['Operating System', 'PXE loader', 'PXELinux BIOS'],
+                    ['Operating System', 'Root password', root_pwd],
+                ],
+                provisioning_method='network'
+            )
+            self.assertIsNotNone(self.hosts.search(
+                u'{0}.{1}'.format(hostname.lower(),
+                                  self.config_env['domain']
+                                  )))
+            host_ip = entities.Host().search(query={
+                'search': 'name={0}.{1} and organization="{3}"'.format(
+                    hostname.lower(),
+                    self.config_env['domain'],
+                    self.org_name)
+                    })[0].read().ip
+            with self.assertNotRaises(ProvisioningCheckError):
+                self.compute_resource.host_provisioning_check(host_ip)
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_provision_rhev_with_host_group(self):
+        """ Provision a host on rhev compute resource with
+        the help of hostgroup.
+
+        :id: e02fae7d-ac39-4068-ba82-ec0cf110aae8
+
+        :setup: rhev hostname ,credentials provisioning setup and hostgroup
+
+        :steps:
+
+            1. Go to "Hosts --> New host".
+            2. Assign the host group to the host.
+            3. Select the Deploy on as rhev Compute Resource.
+            4. Provision the host.
+
+        :expectedresults: The host should be provisioned with host group
+
+        :Caseautomation: notautomated
+        """

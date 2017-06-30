@@ -20,6 +20,12 @@ tab_locators = LocatorDict({
     "operatingsys.tab_medium": (By.XPATH, "//a[@href='#media']"),
     "operatingsys.tab_templates": (By.XPATH, "//a[@href='#templates']"),
     "operatingsys.tab_parameters": (By.XPATH, "//a[@href='#params']"),
+    "operatingsys.tab_provision_bootdisk": (
+        By.XPATH, ".//*[@id='host_provision_method_bootdisk']"),
+    "operatingsys.tab_provision_network": (
+        By.XPATH, ".//*[@id='host_provision_method_build']"),
+    "operatingsys.tab_provision_image": (
+        By.XPATH, ".//*[@id='host_provision_method_image']"),
 
     # Host
     # Third level UI

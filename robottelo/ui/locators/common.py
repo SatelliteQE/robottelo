@@ -51,7 +51,7 @@ common_locators = LocatorDict({
         "//label[normalize-space(.)='%s']/input[@type='checkbox']"),
     "entity_select_list": (
         By.XPATH,
-        "//ul/li/div[normalize-space(.)='%s']"),
+        "//ul/li/div[contains(normalize-space(.),'%s')]"),
     "select_list_search_box": (
         By.XPATH, "//div[@id='select2-drop']//input"),
     "name_haserror": (
