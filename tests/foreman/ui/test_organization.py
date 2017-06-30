@@ -527,7 +527,6 @@ class OrganizationTestCase(UITestCase):
                         'org_name': org_name,
                         'entity_type': 'hostgroups',
                         'entity_name': hostgroup_name,
-                        'tab_locator': 'context.tab_hostgrps'
                     }
                     self.assertIsNotNone(self.org.add_entity(**kwargs))
                     self.assertIsNotNone(self.org.remove_entity(**kwargs))
