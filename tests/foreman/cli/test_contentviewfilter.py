@@ -19,9 +19,11 @@
 from fauxfactory import gen_choice, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import (
     make_content_view,
     make_content_view_filter,
+    make_location,
     make_org,
     make_product_wait,  # workaround for BZ 1332650
     make_repository,
@@ -171,6 +173,48 @@ class ContentViewFilterTestCase(CLITestCase):
             u'name': cvf_name,
         })
         self.assertEqual(cvf['description'], description)
+
+    @tier1
+    def test_positive_create_with_default_taxonomies(self):
+        """Create new content view filter and assign it to existing content
+        view by name. Use default organization and location to find necessary
+        content view
+
+        :id: 5fd6db3f-5723-44a9-a138-864693680a2f
+
+        :expectedresults: Content view filter created successfully and has
+            correct and expected name
+
+        :BZ: 1369609
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('alpha')
+        location = make_location()
+        Defaults.add({
+            u'param-name': 'organization_id',
+            u'param-value': self.org['id'],
+        })
+        Defaults.add({
+            u'param-name': 'location_id',
+            u'param-value': location['id'],
+        })
+        try:
+            ContentView.filter.create({
+                'content-view': self.content_view['name'],
+                'name': name,
+                'type': 'erratum',
+                'inclusion': 'true',
+
+            })
+            cvf = ContentView.filter.info({
+                u'content-view': self.content_view['name'],
+                u'name': name,
+            })
+            self.assertEqual(cvf['name'], name)
+        finally:
+            Defaults.delete({u'param-name': 'organization_id'})
+            Defaults.delete({u'param-name': 'location_id'})
 
     @tier1
     def test_positive_list_by_name_and_org(self):
