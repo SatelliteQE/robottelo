@@ -23,6 +23,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
+    create_role_permissions,
     promote,
     upload_manifest,
 )
@@ -35,6 +36,7 @@ from robottelo.constants import (
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
+    PERMISSIONS,
     PRDS,
     REPOSET,
     REPOS,
@@ -42,6 +44,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_not_set,
@@ -275,6 +278,8 @@ class ActivationKeyTestCase(UITestCase):
         :expectedresults: Activation key is created, added host collection is
             listed
 
+        :BZ: 1473212
+
         :CaseLevel: Integration
         """
         ak_name = gen_string('alpha')
@@ -284,17 +289,25 @@ class ActivationKeyTestCase(UITestCase):
             name=gen_string('alpha'),
         ).create()
         # Create non-admin user with specified permissions
-        role = entities.Role().create()
-        for res_type in ['Katello::ActivationKey', 'Katello::HostCollection']:
-            permission = entities.Permission(resource_type=res_type).search()
-            entities.Filter(permission=permission, role=role).create()
-        # Add 'Viewer' role to be able to read default environment and
-        # content view while creating AK
-        role2 = entities.Role().search(query={'search': 'name="Viewer"'})[0]
+        roles = [entities.Role().create()]
+        user_permissions = {
+            'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
+            'Katello::HostCollection': PERMISSIONS['Katello::HostCollection'],
+        }
+        if bz_bug_is_open(1473212):
+            user_permissions['Katello::KTEnvironment'] = [
+                'view_lifecycle_environments']
+            user_permissions['Katello::ContentView'] = ['view_content_views']
+        else:
+            viewer_role = entities.Role().search(
+                query={'search': 'name="Viewer"'})[0]
+            roles.append(viewer_role)
+
+        create_role_permissions(roles[0], user_permissions)
         password = gen_string('alphanumeric')
         user = entities.User(
             admin=False,
-            role=[role, role2],
+            role=roles,
             password=password,
             organization=[self.organization],
         ).create()
@@ -331,17 +344,25 @@ class ActivationKeyTestCase(UITestCase):
             name=gen_string('alpha'),
         ).create()
         # Create non-admin user with specified permissions
-        role = entities.Role().create()
-        for res_type in ['Katello::ActivationKey', 'Katello::HostCollection']:
-            permission = entities.Permission(resource_type=res_type).search()
-            entities.Filter(permission=permission, role=role).create()
-        # Add 'Viewer' role to be able to read default environment and
-        # content view while creating AK
-        role2 = entities.Role().search(query={'search': 'name="Viewer"'})[0]
+        roles = [entities.Role().create()]
+        user_permissions = {
+            'Katello::ActivationKey': PERMISSIONS['Katello::ActivationKey'],
+            'Katello::HostCollection': PERMISSIONS['Katello::HostCollection'],
+        }
+        if bz_bug_is_open(1473212):
+            user_permissions['Katello::KTEnvironment'] = [
+                'view_lifecycle_environments']
+            user_permissions['Katello::ContentView'] = ['view_content_views']
+        else:
+            viewer_role = entities.Role().search(
+                query={'search': 'name="Viewer"'})[0]
+            roles.append(viewer_role)
+
+        create_role_permissions(roles[0], user_permissions)
         password = gen_string('alphanumeric')
         user = entities.User(
             admin=False,
-            role=[role, role2],
+            role=roles,
             password=password,
             organization=[self.organization],
         ).create()
