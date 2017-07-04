@@ -467,7 +467,7 @@ class OperatingSystemTestCase(UITestCase):
             except UIError as err:
                 self.fail(err)
             self.assertIsNotNone(self.operatingsys.wait_until_element(
-                common_locators['common_param_error']
+                common_locators['table_haserror']
             ))
 
     @run_only_on('sat')
@@ -489,7 +489,7 @@ class OperatingSystemTestCase(UITestCase):
             except UIError as err:
                 self.fail(err)
             self.assertIsNotNone(self.operatingsys.wait_until_element(
-                common_locators['common_param_error']
+                common_locators['table_haserror']
             ))
 
     @run_only_on('sat')
@@ -514,4 +514,4 @@ class OperatingSystemTestCase(UITestCase):
                     except UIError as err:
                         self.fail(err)
                     self.assertIsNotNone(self.operatingsys.wait_until_element(
-                        common_locators['common_param_error']))
+                        common_locators['table_haserror']))
