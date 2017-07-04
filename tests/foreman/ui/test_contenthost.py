@@ -15,6 +15,7 @@
 
 @Upstream: No
 """
+import re
 from six.moves.urllib.parse import urljoin
 
 from nailgun import entities
@@ -45,7 +46,7 @@ from robottelo.decorators import (
     tier3,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -83,13 +84,14 @@ class ContentHostTestCase(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
-        setup_org_for_a_custom_repo({
+        cls.entities = setup_org_for_a_custom_repo({
             'url': FAKE_0_YUM_REPO,
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
+        cls.product = entities.Product(id=cls.entities['product-id']).read()
 
     def setUp(self):
         """Create a VM, subscribe it to satellite-tools repo, install
@@ -324,3 +326,40 @@ class ContentHostTestCase(UITestCase):
             host_url = urljoin(settings.server.get_url(),
                                'hosts/{0}'.format(self.client.hostname))
             self.assertEqual(self.browser.current_url, host_url)
+
+    @tier3
+    def test_positive_attached_subscription_link(self):
+        """Check that the attached subscriptions link on subscriptions tab
+        points to the subscription details page
+
+        @id: bea394a9-b7c9-4128-8803-af5fe698152b
+
+        @expectedresults: Attached subscriptions link points to specific
+        subscription details page
+
+        @BZ: 1391200
+
+        @CaseLevel: System
+        """
+        with Session(self.browser):
+            self.contenthost.search_and_click(self.client.hostname)
+            self.contenthost.click(
+                tab_locators['contenthost.tab_subscriptions'])
+            self.contenthost.click(
+                tab_locators['contenthost.tab_subscriptions_subscriptions'])
+            strategy, value = locators['contenthost.attached_subscription']
+            self.contenthost.click((strategy, value % self.product.name))
+            # fetch subscription id
+            subscription = entities.Subscription().search(query={
+                'search': 'name={}'.format(self.product.name)})[0]
+            # ensure subscription id is present in current URL
+            subs_url_id = re.search(
+                '(?<=subscriptions/)([0-9])+', self.browser.current_url)
+            self.assertIsNotNone(subs_url_id)
+            self.assertEqual(int(subs_url_id.group(0)), subscription.id)
+            # ensure subscription details page is displayed by fetching
+            # subscription name
+            strategy, value = locators['subs.details_field_value']
+            name = self.subscriptions.wait_until_element((
+                strategy, value % 'Name')).text
+            self.assertEqual(name, subscription.name)
