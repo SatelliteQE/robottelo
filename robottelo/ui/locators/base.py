@@ -1414,7 +1414,7 @@ locators = LocatorDict({
     "repo.fetch_packages": (
         By.XPATH,
         "//a[@class='ng-binding'"
-        "and contains(@ui-sref, 'manage-content.packages')]",
+        "and contains(@ui-sref, 'packages')]",
     ),
     "repo.fetch_errata": (
         By.XPATH,
@@ -1423,7 +1423,7 @@ locators = LocatorDict({
     "repo.fetch_package_groups": (
         By.XPATH,
         "//a[@class='ng-binding'"
-        " and contains(@ui-sref, 'manage-content.package-groups')]",
+        " and contains(@ui-sref, 'package-groups')]",
     ),
     "repo.fetch_puppet_modules": (
         By.XPATH,
