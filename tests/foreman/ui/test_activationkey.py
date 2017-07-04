@@ -1402,7 +1402,7 @@ class ActivationKeyTestCase(UITestCase):
         @expectedresults: Only hosts, registered by specific AK are shown under
             Associations > Content Hosts tab
 
-        @BZ: 1344033
+        @BZ: 1344033, 1372826, 1394388
 
         @CaseLevel: System
         """
