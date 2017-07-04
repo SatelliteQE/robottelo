@@ -26,15 +26,7 @@ from robottelo.api.utils import (
     promote,
     upload_manifest,
 )
-from robottelo.cli.factory import (
-    activationkey_add_subscription_to_repo,
-    make_activation_key,
-    make_content_view,
-    make_lifecycle_environment,
-    make_org,
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
-)
+from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
@@ -1370,76 +1362,6 @@ class ActivationKeyTestCase(UITestCase):
                     self.activationkey.copy(self.base_key_name, new_name)
                     self.assertIsNone(self.activationkey.search(new_name))
 
-    @run_in_one_thread
-    @tier3
-    def test_positive_list_hosts(self):
-        """Verify only hosts registered by specific activation key are listed
-        on Activation Key -> Associations -> Content Hosts page
-
-        :id: 9364bfcc-ef69-4183-9ca8-e2904b3f4068
-
-        :Steps:
-            1. Create 2 activation keys
-            2. Register 2 hosts, one for each activation key
-
-        :expectedresults: Activation Key -> Associations -> Content Hosts page
-            should show only hosts registered via the key
-
-        :BZ: 1372826
-        """
-        org = make_org()
-        env = make_lifecycle_environment({'organization-id': org['id']})
-        content_view = make_content_view({'organization-id': org['id']})
-        activation_key = make_activation_key({
-            'lifecycle-environment-id': env['id'],
-            'organization-id': org['id'],
-        })
-        setup_org_for_a_rh_repo({
-            'product': PRDS['rhel'],
-            'repository-set': REPOSET['rhst7'],
-            'repository': REPOS['rhst7']['name'],
-            'organization-id': org['id'],
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': env['id'],
-            'activationkey-id': activation_key['id'],
-        }, force_manifest_upload=True)
-        another_ak = make_activation_key({
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': env['id'],
-            'organization-id': org['id'],
-        })
-        activationkey_add_subscription_to_repo({
-            'activationkey-id': another_ak['id'],
-            'organization-id': org['id'],
-            'subscription': DEFAULT_SUBSCRIPTION_NAME,
-        })
-        with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
-                distro=DISTRO_RHEL7) as client2:
-            client1.install_katello_ca()
-            client2.install_katello_ca()
-            client1.register_contenthost(org['label'], activation_key['name'])
-            self.assertTrue(client1.subscribed)
-            client2.register_contenthost(org['label'], another_ak['name'])
-            self.assertTrue(client2.subscribed)
-            with Session(self.browser) as session:
-                set_context(session, org=org['name'])
-                self.assertIsNotNone(
-                    self.activationkey.search_host(
-                        activation_key['name'], client1.hostname)
-                )
-                self.assertIsNone(
-                    self.activationkey.search_host(
-                        activation_key['name'], client2.hostname)
-                )
-                self.assertIsNotNone(
-                    self.activationkey.search_host(
-                        another_ak['name'], client2.hostname)
-                )
-                self.assertIsNone(
-                    self.activationkey.search_host(
-                        another_ak['name'], client1.hostname)
-                )
-
     @tier2
     def test_positive_remove_user(self):
         """Delete any user who has previously created an activation key
@@ -1536,7 +1458,7 @@ class ActivationKeyTestCase(UITestCase):
         :expectedresults: Only hosts, registered by specific AK are shown under
             Associations > Content Hosts tab
 
-        :BZ: 1344033
+        :BZ: 1344033, 1372826, 1394388
 
         :CaseLevel: System
         """
