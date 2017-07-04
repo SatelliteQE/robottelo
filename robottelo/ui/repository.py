@@ -90,6 +90,7 @@ class Repos(Base):
         """
         self.navigate_to_entity()
         self.assign_value(locators['repo.search'], element_name)
+        self.click(common_locators['kt_search_button'])
         return self.wait_until_element(self._search_locator() % element_name)
 
     def discover_repo(self, url_to_discover, discovered_urls,
