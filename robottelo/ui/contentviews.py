@@ -160,7 +160,7 @@ class ContentViews(Base):
         strategy, value = locators['contentviews.publish_progress']
         check_progress = self.wait_until_element(
             (strategy, value % version),
-            timeout=6,
+            timeout=12,
             poll_frequency=2,
         )
         while check_progress and time.time() <= timer:

@@ -1832,11 +1832,10 @@ locators = LocatorDict({
          "contains(@ng-click, 'rule.editMode = true')]")),
     "contentviews.package_version_type": (
         By.XPATH,
-        "../../following-sibling::td/span/select[@ng-model='rule.type']"),
+        "../../following-sibling::td/div//select[@ng-model='rule.type']"),
     "contentviews.package_version_value": (
         By.XPATH,
-        ("../../following-sibling::td/span/span"
-         "/input[@ng-model='rule.version']")),
+        "../../following-sibling::td/div//input[@ng-model='rule.version']"),
     "contentviews.package_save": (
         By.XPATH,
         ("../../following-sibling::td/div/"
