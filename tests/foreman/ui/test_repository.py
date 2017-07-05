@@ -1576,6 +1576,43 @@ class RepositoryTestCase(UITestCase):
             self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
 
     @tier1
+    def test_positive_create_non_admin(self):
+        """Create yum repository via UI by non-admin user
+
+        @id: 6af5357e-d200-49e0-bf41-6d977b732810
+
+        @expectedresults: repository is successfully created
+
+        @BZ: 1398574
+
+        @CaseImportance: Critical
+        """
+        role = entities.Role().create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Katello::Product').search(),
+            role=role,
+        ).create()
+        password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=False,
+            default_organization=self.session_org,
+            organization=[self.session_org],
+            password=password,
+            role=[role],
+        ).create()
+        with Session(
+                self.browser, user=user.login, password=password) as session:
+            self.products.search_and_click(self.session_prod.name)
+            repo_name = gen_string('alphanumeric')
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_1_YUM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+
+    @tier1
     def test_negative_upload_rpm(self):
         """Create yum repository but upload any content except rpm
 
