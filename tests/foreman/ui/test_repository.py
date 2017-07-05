@@ -51,6 +51,7 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -165,7 +166,8 @@ class RepositoryTestCase(UITestCase):
         product_1 = entities.Product(organization=self.session_org).create()
         product_2 = entities.Product(organization=org_2).create()
         with Session(self.browser) as session:
-            for repo_name in generate_strings_list():
+            for repo_name in generate_strings_list(
+                    exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
                     self.products.search_and_click(product_1.name)
@@ -245,7 +247,8 @@ class RepositoryTestCase(UITestCase):
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            for repo_name in generate_strings_list():
+            for repo_name in generate_strings_list(
+                    exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
                     self.products.search_and_click(product.name)
@@ -329,7 +332,8 @@ class RepositoryTestCase(UITestCase):
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            for repo_name in generate_strings_list():
+            for repo_name in generate_strings_list(
+                    exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
                     self.products.search_and_click(product.name)
@@ -435,7 +439,8 @@ class RepositoryTestCase(UITestCase):
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            for repo_name in generate_strings_list():
+            for repo_name in generate_strings_list(
+                    exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
                     self.products.search_and_click(product.name)
@@ -537,7 +542,8 @@ class RepositoryTestCase(UITestCase):
         """
         product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            for repo_name in generate_strings_list():
+            for repo_name in generate_strings_list(
+                    exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
                     # Creates new yum repository using api
                     entities.Repository(
@@ -721,7 +727,8 @@ class RepositoryTestCase(UITestCase):
         """
         prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            for repo_name in generate_strings_list():
+            for repo_name in generate_strings_list(
+                    exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
                     session.nav.go_to_select_org(
                         self.session_org.name, force=False)
@@ -778,7 +785,10 @@ class RepositoryTestCase(UITestCase):
         """
         prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
-        new_repo_name = gen_string('numeric')
+        new_repo_name_length = None
+        if bz_bug_is_open(1467722):
+            new_repo_name_length = 9
+        new_repo_name = gen_string('numeric', length=new_repo_name_length)
         # Creates new ostree repository using api
         entities.Repository(
             name=repo_name,
