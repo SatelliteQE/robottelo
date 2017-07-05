@@ -17,6 +17,7 @@
 :Upstream: No
 """
 import random
+import unicodedata
 
 from fauxfactory import gen_string
 from itertools import cycle
@@ -1693,3 +1694,33 @@ class OrganizationTestCase(CLITestCase):
         org = make_org()
         result = Org.info({'name': org['name']})
         self.assertEqual(org['id'], result['id'])
+
+    @tier1
+    def test_positive_multibyte_latin1_org_names(self):
+        """Hammer Multibyte and Latin-1 Org names break list pagination
+
+        :id: 4fa0afe7-6d0a-4c3e-a0fc-4ecb95c50fc9
+
+        :BZ: 1418412
+
+        :expectedresults: Multibyte and latin1 names need to be
+            displayed with consistent spacing
+        """
+        org_names = [
+            gen_string('alpha', random.randint(1, 30)),
+            gen_string('latin1', random.randint(1, 30)),
+            gen_string('utf8', random.randint(1, 30))
+        ]
+        for org in org_names:
+            make_org({'name': org})
+        org_list = [line for line in Org.list(output_format='table') if line]
+        self.assertGreaterEqual(len(org_list), len(org_names))
+        for name in org_names:
+            self.assertTrue(any(name in line for line in org_list))
+        for org_str in org_list:
+            width = sum(
+                1 if unicodedata.east_asian_width(char)
+                in ["Na", "N", "A", "H"]
+                else 2 for char in org_str
+            )
+            self.assertEqual(len(org_list[0]), width)
