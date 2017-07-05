@@ -657,6 +657,63 @@ class HostTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    def test_positive_update_name_with_prefix(self):
+        """Create a new Host and update its name to valid one. Host should
+        contain word 'new' in its name
+
+        :id: b08cb5c9-bd2c-4dc7-97b1-d1f20d1373d7
+
+        :expectedresults: Host is updated successfully
+
+        :BZ: 1419161
+
+        :CaseLevel: System
+        """
+        current_name = 'new{0}'.format(gen_string('alpha'), 6).lower()
+        new_name = 'new{0}'.format(gen_string('alpha')).lower()
+        host = entities.Host(name=current_name)
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=current_name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            # confirm the Host appears in the UI
+            search = self.hosts.search(
+                u'{0}.{1}'.format(current_name, host.domain.name)
+            )
+            self.assertIsNotNone(search)
+            self.hosts.update(current_name, host.domain.name, new_name)
+            new_host_name = (
+                u'{0}.{1}'.format(new_name, host.domain.name)).lower()
+            self.assertIsNotNone(self.hosts.search(new_host_name))
+
+    @run_only_on('sat')
+    @tier3
     def test_positive_delete(self):
         """Delete a Host
 
