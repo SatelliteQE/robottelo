@@ -22,12 +22,7 @@ from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    run_only_on,
-    skip_if_bug_open,
-    tier1,
-    tier2
-)
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
@@ -314,9 +309,34 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
             u''.join(result)
         )
 
-    @skip_if_bug_open('bugzilla', 1425053)
+
+class LifeCycleEnvironmentPaginationTestCase(CLITestCase):
+    """Test class for LifeCycle Environment pagination tests"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create organization and lifecycle environments to reuse in tests
+        """
+        super(LifeCycleEnvironmentPaginationTestCase, cls).setUpClass()
+        cls.lces_count = 25
+        cls.org = make_org()
+        env_base_name = gen_string('alpha')
+        last_env_name = ENVIRONMENT
+        cls.env_names = [last_env_name]
+        for env_index in range(cls.lces_count):
+            env_name = '{0}-{1}'.format(env_base_name, env_index)
+            make_lifecycle_environment({
+                'name': env_name,
+                'organization-id': cls.org['id'],
+                'prior': last_env_name
+            })
+            last_env_name = env_name
+            cls.env_names.append(env_name)
+
+        cls.lces_count += 1  # include default 'Library' lce
+
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_positive_list_all_with_per_page(self):
         """Attempt to list more than 20 lifecycle environment with per-page
         option.
@@ -326,29 +346,54 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         :BZ: 1420503
 
         :expectedresults: all the Lifecycle environments are listed
+
+        :CaseImportance: Critical
         """
-        org = make_org()
-        lifecycle_environments_count = 25
-        per_page_count = lifecycle_environments_count + 5
-        env_base_name = gen_string('alpha')
-        last_env_name = ENVIRONMENT
-        env_names = [last_env_name]
-        for env_index in range(lifecycle_environments_count):
-            env_name = '{0}-{1}'.format(env_base_name, env_index)
-            make_lifecycle_environment({
-                'name': env_name,
-                'organization-id': org['id'],
-                'prior': last_env_name
-            })
-            last_env_name = env_name
-            env_names.append(env_name)
+        per_page_count = self.lces_count + 5
 
         lifecycle_environments = LifecycleEnvironment.list({
-            'organization-id': org['id'],
-            'per_page': per_page_count
+            'organization-id': self.org['id'],
+            'per-page': per_page_count
         })
 
-        self.assertEqual(len(lifecycle_environments),
-                         lifecycle_environments_count + 1)
+        self.assertEqual(len(lifecycle_environments), self.lces_count)
         env_name_set = {env['name'] for env in lifecycle_environments}
-        self.assertEqual(env_name_set, set(env_names))
+        self.assertEqual(env_name_set, set(self.env_names))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_list_with_pagination(self):
+        """Make sure lces list can be displayed with different items per page
+        value
+
+        :id: 28ecbc1f-bb5c-49df-a586-8cfdc0dd57df
+
+        :BZ: 1368590
+
+        :expectedresults: `per-page` correctly sets amount of items displayed
+            per page, different `per-page` values divide a list into correct
+            number of pages
+
+        :CaseImportance: Critical
+        """
+        # Test different `per-page` values
+        for per_page in (1, 5, 20):
+            with self.subTest(per_page):
+                # Verify the first page contains exactly the same items count
+                # as `per-page` value
+                lces = LifecycleEnvironment.list({
+                    'organization-id': self.org['id'],
+                    'per-page': per_page,
+                })
+                self.assertEqual(len(lces), per_page)
+                # Verify pagination and total amount of pages by checking the
+                # items count on the last page
+                last_page = (self.lces_count / per_page
+                             + int(self.lces_count % per_page != 0))
+                lces = LifecycleEnvironment.list({
+                    'organization-id': self.org['id'],
+                    'page': last_page,
+                    'per-page': per_page,
+                })
+                self.assertEqual(
+                    len(lces), self.lces_count % per_page or per_page)
