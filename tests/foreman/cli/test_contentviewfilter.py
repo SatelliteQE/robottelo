@@ -236,12 +236,12 @@ class ContentViewFilterTestCase(CLITestCase):
             'organization-id': self.org['id'],
             'type': 'package_group',
         })
-        cvf = ContentView.filter.list({
+        cv_filters = ContentView.filter.list({
             u'content-view': self.content_view['name'],
             u'organization': self.org['name'],
         })
-        self.assertEqual(len(cvf), 1)
-        self.assertEqual(cvf[0]['name'], cvf_name)
+        self.assertGreaterEqual(len(cv_filters), 1)
+        self.assertIn(cvf_name, [cvf['name'] for cvf in cv_filters])
 
     @skip_if_bug_open('bugzilla', 1356906)
     @tier1
