@@ -337,28 +337,33 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        name = gen_string('alpha')
         with Session(self.browser) as session:
             for img_name in valid_data_list():
-                with self.subTest(name):
+                with self.subTest(img_name):
+                    # Note: create a new compute resource for each sub test
+                    # as using the same uuid image
+                    cr_name = gen_string('alpha')
                     make_resource(
                         session,
-                        name=name,
+                        name=cr_name,
                         provider_type=FOREMAN_PROVIDERS['rhev'],
                         parameter_list=parameter_list
                     )
-                parameter_list_img = [
-                    ['Name', img_name],
-                    ['Operatingsystem', self.rhev_img_os],
-                    ['Architecture', self.rhev_img_arch],
-                    ['Username', self.rhev_img_user],
-                    ['Password', self.rhev_img_pass],
-                    ['uuid', self.rhev_img_name],
-                ]
-                self.compute_resource.add_image(name, parameter_list_img)
-                self.assertIsNotNone(self.compute_resource.search(name))
-                imgs = self.compute_resource.list_images(name)
-                self.assertTrue(img_name in imgs)
+                    self.assertIsNotNone(self.compute_resource.search(cr_name))
+                    parameter_list_img = [
+                        ['Name', img_name],
+                        ['Operatingsystem', self.rhev_img_os],
+                        ['Architecture', self.rhev_img_arch],
+                        ['Username', self.rhev_img_user],
+                        ['Password', self.rhev_img_pass],
+                        ['uuid', self.rhev_img_name],
+                    ]
+                    self.compute_resource.add_image(
+                        cr_name, parameter_list_img)
+                    self.assertIn(
+                        img_name,
+                        self.compute_resource.list_images(cr_name)
+                    )
 
     @run_only_on('sat')
     @tier2
@@ -388,29 +393,40 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        name = gen_string('alpha')
         with Session(self.browser) as session:
             for img_name in invalid_names_list():
-                with self.subTest(name):
+                with self.subTest(img_name):
+                    # Note: create a new compute resource for each sub test as
+                    # using the same uuid image.
+                    # the images should not be created, but we need to have the
+                    # sub tests isolated, and use the same scenario as positive
+                    # test
+                    cr_name = gen_string('alpha')
                     make_resource(
                         session,
-                        name=name,
+                        name=cr_name,
                         provider_type=FOREMAN_PROVIDERS['rhev'],
                         parameter_list=parameter_list
                     )
-                parameter_list_img = [
-                    ['Name', img_name],
-                    ['Operatingsystem', self.rhev_img_os],
-                    ['Architecture', self.rhev_img_arch],
-                    ['Username', self.rhev_img_user],
-                    ['Password', self.rhev_img_pass],
-                    ['uuid', self.rhev_img_name],
-                ]
-                self.compute_resource.add_image(name, parameter_list_img)
-                self.assertIsNotNone(
-                    self.compute_resource.wait_until_element(
-                        common_locators["name_haserror"]
-                    ))
+                    self.assertIsNotNone(self.compute_resource.search(cr_name))
+                    parameter_list_img = [
+                        ['Name', img_name],
+                        ['Operatingsystem', self.rhev_img_os],
+                        ['Architecture', self.rhev_img_arch],
+                        ['Username', self.rhev_img_user],
+                        ['Password', self.rhev_img_pass],
+                        ['uuid', self.rhev_img_name],
+                    ]
+                    self.compute_resource.add_image(
+                        cr_name, parameter_list_img)
+                    self.assertIsNotNone(
+                        self.compute_resource.wait_until_element(
+                            common_locators["name_haserror"])
+                    )
+                    self.assertNotIn(
+                        img_name,
+                        self.compute_resource.list_images(cr_name)
+                    )
 
     @run_only_on('sat')
     @tier2
@@ -703,12 +719,12 @@ class RhevComputeResourceTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_rhev_vm_power_on(self):
-        """The virtual machine in rhev cr should be powered on.
+    def test_positive_rhev_vm_power_on_off(self):
+        """The virtual machine in rhev cr should be powered on and off.
 
         :id: fb42e739-c35b-4c6f-a727-b99a4d695191
 
-        :expectedresults: The virtual machine is switched on
+        :expectedresults: The virtual machine is switched on and switched off
 
         :CaseAutomation: Automated
         """
@@ -718,41 +734,19 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        name = gen_string('alpha')
+        cr_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_resource(
                 session,
-                name=name,
+                name=cr_name,
                 provider_type=FOREMAN_PROVIDERS['rhev'],
                 parameter_list=parameter_list
             )
+            if self.compute_resource.power_on_status(
+                    cr_name, self.rhev_vm_name) == 'on':
+                self.compute_resource.set_power_status(
+                    cr_name, self.rhev_vm_name, False)
             self.assertEqual(self.compute_resource.set_power_status(
-                name, self.rhev_vm_name, True), u'On')
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_rhev_vm_power_off(self):
-        """The virtual machine in rhev cr should be powered Off.
-
-        :id: e2996210-7f49-4de4-a298-4a142506ed48
-
-        :expectedresults: The virtual machine is switched Off
-
-        :CaseAutomation: Automated
-        """
-        parameter_list = [
-            ['URL', self.rhev_url, 'field'],
-            ['Username', self.rhev_username, 'field'],
-            ['Password', self.rhev_password, 'field'],
-            ['Datacenter', self.rhev_datacenter, 'special select'],
-        ]
-        name = gen_string('alpha')
-        with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['rhev'],
-                parameter_list=parameter_list
-            )
+                cr_name, self.rhev_vm_name, True), u'On')
             self.assertEqual(self.compute_resource.set_power_status(
-                name, self.rhev_vm_name, False), u'Off')
+                cr_name, self.rhev_vm_name, False), u'Off')

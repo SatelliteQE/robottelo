@@ -361,6 +361,20 @@ class ComputeResource(Base):
         strategy, value = self._search_locator()
         return self.wait_until_element((strategy, value % vm_name))
 
+    def power_on_status(self, resource_name, vm_name):
+        """Return the compute resource virtual machine power status
+
+        :param resource_name: The compute resource name
+        :param vm_name: the virtual machine name
+        :return: on or off
+        """
+        element = self.search_vm(resource_name, vm_name)
+        if element is None:
+            raise UIError(
+                'Could not find Virtual machine "{0}"'.format(vm_name))
+        return self.wait_until_element(
+            locators['resource.power_status']).text.lower()
+
     def set_power_status(self, resource_name, vm_name, power_on=None):
         """Perform power on or power off for VM's
 
