@@ -1725,12 +1725,12 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.default_value = old_value
         sc_param.hidden_value = True
         sc_param.update(['override', 'default_value', 'hidden_value'])
-        sc_param = sc_param.read()
+        sc_param = sc_param.read(params={'show_hidden': 'true'})
         self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
         self.assertEqual(sc_param.default_value, old_value)
         sc_param.default_value = new_value
         sc_param.update(['default_value'])
-        sc_param = sc_param.read()
+        sc_param = sc_param.read(params={'show_hidden': 'true'})
         self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
         self.assertEqual(sc_param.default_value, new_value)
 
@@ -1761,4 +1761,6 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param.update(['override', 'default_value', 'hidden_value'])
         sc_param = sc_param.read()
         self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
-        self.assertFalse(sc_param.default_value)
+        self.assertEqual(sc_param.default_value, u'*****')
+        sc_param = sc_param.read(params={'show_hidden': 'true'})
+        self.assertEqual(sc_param.default_value, u'')
