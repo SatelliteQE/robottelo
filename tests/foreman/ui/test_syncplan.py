@@ -333,30 +333,40 @@ class SyncPlanTestCase(UITestCase):
 
         :id: 35820efd-099e-45dd-8298-77d5f35c26db
 
-        :expectedresults: Sync Plan's interval is updated
+        :expectedresults: Sync Plan's interval is updated and no error raised
 
-        :BZ: 1460146
+        :BZ: 1460146, 1387543
 
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
+        start_date = datetime.utcnow() + timedelta(days=1)
         entities.SyncPlan(
             name=name,
             interval=SYNC_INTERVAL['day'],
             organization=self.organization,
             enabled=True,
+            sync_date=start_date,
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             for new_interval in valid_sync_intervals():
                 with self.subTest(new_interval):
                     self.syncplan.update(name, new_sync_interval=new_interval)
+                    self.assertIsNone(self.user.wait_until_element(
+                        common_locators['haserror'], timeout=3))
                     self.syncplan.click(self.syncplan.search(name))
                     # Assert updated sync interval
                     interval_text = self.syncplan.wait_until_element(
-                        locators['sp.fetch_interval']
-                    ).text
+                        locators['sp.fetch_interval']).text
                     self.assertEqual(interval_text, new_interval)
+                    # Assert that start date was not changed after interval
+                    # changed
+                    startdate_text = self.syncplan.wait_until_element(
+                        locators['sp.fetch_startdate']).text
+                    self.assertNotEqual(startdate_text, 'Invalid Date')
+                    self.assertIn(
+                        start_date.strftime("%Y/%m/%d"), startdate_text)
 
     @tier2
     def test_positive_update_product(self):
