@@ -111,10 +111,12 @@ common_locators = LocatorDict({
         By.XPATH, "//textarea[@placeholder='Value' and not(text())]"),
     "parameter_remove": (
         By.XPATH, "//tr/td/input[@value='%s']/following::td/a"),
-    "table_cell_value": (
+    "table_cell_link": (
         By.XPATH,
-        "//table[@bst-table='table']//td[contains(normalize-space(.), '%s')]"
-        "/parent::tr/td[count(//thead//tr/th[.='%s']/preceding-sibling::*)+1]"
+        "//table[contains(@class, 'table')]"
+        "//td[contains(normalize-space(.), '%s')]"
+        "/parent::tr"
+        "/td[count(//thead//tr/th[.='%s']/preceding-sibling::*)+1]/a"
     ),
 
     "application_logo": (
@@ -151,6 +153,11 @@ common_locators = LocatorDict({
     "kt_table_search_button": (
         By.XPATH,
         "//button[@ng-click='detailsTable.search(detailsTable.searchTerm)']"),
+    "kt_table_cell_value": (
+        By.XPATH,
+        "//table[@bst-table='table']//td[contains(normalize-space(.), '%s')]"
+        "/parent::tr/td[count(//thead//tr/th[.='%s']/preceding-sibling::*)+1]"
+    ),
     # Katello common Product and Repo locators
     "gpg_key": (By.ID, "gpg_key_id"),
     "all_values": (By.XPATH,
