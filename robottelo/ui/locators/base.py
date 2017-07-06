@@ -2406,7 +2406,7 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='openModal()']"),
     "hostcollection.select_host": (
         By.XPATH,
-        ("//div[contains(@bst-table, 'detailsTable')]"
+        ("//div[@data-block='table']"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),

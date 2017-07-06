@@ -367,11 +367,11 @@ tab_locators = LocatorDict({
     "hostcollection.tab_host_add": (
         By.XPATH,
         "//a[contains(@href, 'add-hosts') and "
-        "contains(@ui-sref, 'host-collections.details.hosts.add')]"),
+        "contains(@ui-sref, 'host-collection.hosts.add')]"),
     "hostcollection.tab_host_remove": (
         By.XPATH,
         "//a[contains(@href, 'hosts') and "
-        "contains(@ui-sref, 'host-collections.details.hosts.list')]"),
+        "contains(@ui-sref, 'host-collection.hosts.list')]"),
     "hostcollection.collection_actions": (
         By.XPATH, "//a[contains(@href, 'actions')]/span"),
 
