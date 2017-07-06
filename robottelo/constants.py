@@ -450,7 +450,6 @@ FAKE_0_PUPPET_MODULE = 'httpd'
 PERMISSIONS = {
     None: [
         'access_dashboard',
-        'access_settings',
         'app_root',
         'attachments',
         'commit_containers',
@@ -480,14 +479,9 @@ PERMISSIONS = {
         'view_plugins',
         'view_recurring_logics',
         'view_registries',
-        'view_search',
         'view_statistics',
+        'view_rh_search',
         'view_tasks',
-    ],
-    'AnsibleRole': [
-        'destroy_ansible_roles',
-        'import_ansible_roles',
-        'view_ansible_roles',
     ],
     'Architecture': [
         'view_architectures',
@@ -568,7 +562,7 @@ PERMISSIONS = {
         'destroy_environments',
         'import_environments',
     ],
-    'ExternalUsergroups': [
+    'ExternalUsergroup': [
         'view_external_usergroups',
         'create_external_usergroups',
         'edit_external_usergroups',
@@ -622,16 +616,23 @@ PERMISSIONS = {
         'create_job_templates',
         'lock_job_templates',
     ],
-    'CommonParameter': [
-        'view_globals',
-        'create_globals',
-        'edit_globals',
-        'destroy_globals',
-    ],
     'ConfigReport': [
         'destroy_config_reports',
         'view_config_reports',
         'upload_config_reports',
+    ],
+    'ForemanVirtWhoConfigure::Config': [
+        "view_virt_who_config",
+        "create_virt_who_config",
+        "edit_virt_who_config",
+        "destroy_virt_who_config"
+    ],
+    "ForemanOpenscap::TailoringFile": [
+        "create_tailoring_files",
+        "view_tailoring_files",
+        "edit_tailoring_files",
+        "destroy_tailoring_files",
+
     ],
     'HostClass': [
         'edit_classes',
@@ -647,6 +648,10 @@ PERMISSIONS = {
         'create_images',
         'edit_images',
         'destroy_images',
+    ],
+    'KeyPair': [
+        "view_keypairs",
+        "destroy_keypairs",
     ],
     'Location': [
         'view_locations',
@@ -742,7 +747,13 @@ PERMISSIONS = {
         'edit_smart_proxies_puppetca',
         'destroy_smart_proxies_puppetca',
         'manage_capsule_content',
-        'view_capsule_content'
+        'view_capsule_content',
+        'view_openscap_proxies',
+    ],
+    'SshKey': [
+        "view_ssh_keys",
+        "create_ssh_keys",
+        "destroy_ssh_keys",
     ],
     'Subnet': [
         'view_subnets',
@@ -789,11 +800,10 @@ PERMISSIONS = {
         'destroy_hosts',
         'edit_discovered_hosts',
         'edit_hosts',
-        'ipmi_boot',
+        'ipmi_boot_hosts',
         'power_hosts',
         'provision_discovered_hosts',
         'puppetrun_hosts',
-        'play_roles',
         'submit_discovered_hosts',
         'view_discovered_hosts',
         'view_hosts',
@@ -840,17 +850,19 @@ PERMISSIONS = {
         'sync_products',
         'export_products',
     ],
+    'Katello::Subscription': [
+        'view_subscriptions',
+        'attach_subscriptions',
+        'unattach_subscriptions',
+        'import_manifest',
+        'delete_manifest',
+    ],
     'Organization': [
         'view_organizations',
         'create_organizations',
         'edit_organizations',
         'destroy_organizations',
         'assign_organizations',
-        'view_subscriptions',
-        'attach_subscriptions',
-        'unattach_subscriptions',
-        'import_manifest',
-        'delete_manifest',
     ],
     'Katello::SyncPlan': [
         'view_sync_plans',
@@ -1168,7 +1180,6 @@ TOOLS_ERRATA_TABLE_DETAILS = [
 PERMISSIONS_WITH_BZ = {
     None: [
         {'name': 'access_dashboard', 'bz': [1306359]},
-        {'name': 'access_settings', 'bz': [1306359]},
         {'name': 'app_root'},
         {'name': 'attachments'},
         {'name': 'commit_containers'},
@@ -1198,14 +1209,9 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'view_plugins', 'bz': [1306359]},
         {'name': 'view_recurring_logics'},
         {'name': 'view_registries'},
-        {'name': 'view_search', 'bz': [1306359]},
         {'name': 'view_statistics', 'bz': [1306359]},
+        {'name': 'view_rh_search'},
         {'name': 'view_tasks', 'bz': [1306359]},
-    ],
-    'AnsibleRole': [
-        {'name': 'destroy_ansible_roles'},
-        {'name': 'import_ansible_roles'},
-        {'name': 'view_ansible_roles'},
     ],
     'Architecture': [
         {'name': 'view_architectures', 'bz': [1306359]},
@@ -1286,7 +1292,7 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'destroy_environments', 'bz': [1306359]},
         {'name': 'import_environments', 'bz': [1306359]},
     ],
-    'ExternalUsergroups': [
+    'ExternalUsergroup': [
         {'name': 'view_external_usergroups'},
         {'name': 'create_external_usergroups'},
         {'name': 'edit_external_usergroups'},
@@ -1320,9 +1326,21 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'edit_scap_contents'},
         {'name': 'view_scap_contents'},
     ],
+    'ForemanOpenscap::TailoringFile': [
+        {'name': 'create_tailoring_files'},
+        {'name': 'view_tailoring_files'},
+        {'name': 'edit_tailoring_files'},
+        {'name': 'destroy_tailoring_files'},
+    ],
     'ForemanTasks::Task': [
         {'name': u'edit_foreman_tasks'},
         {'name': u'view_foreman_tasks'},
+    ],
+    'ForemanVirtWhoConfigure::Config': [
+        {'name': 'view_virt_who_config'},
+        {'name': 'create_virt_who_config'},
+        {'name': 'edit_virt_who_config'},
+        {'name': 'destroy_virt_who_config'}
     ],
     'JobInvocation': [
         {'name': 'view_job_invocations'},
@@ -1335,11 +1353,9 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'create_job_templates'},
         {'name': 'lock_job_templates'},
     ],
-    'CommonParameter': [
-        {'name': 'view_globals', 'bz': [1306359]},
-        {'name': 'create_globals'},
-        {'name': 'edit_globals'},
-        {'name': 'destroy_globals'},
+    'KeyPair': [
+        {'name': 'view_keypairs'},
+        {'name': 'destroy_keypairs'},
     ],
     'ConfigReport': [
         {'name': 'destroy_config_reports'},
@@ -1456,6 +1472,12 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'destroy_smart_proxies_puppetca'},
         {'name': 'manage_capsule_content'},
         {'name': 'view_capsule_content'},
+        {'name': 'view_openscap_proxies'},
+    ],
+    'SshKey': [
+        {'name': 'view_ssh_keys'},
+        {'name': 'create_ssh_keys'},
+        {'name': 'destroy_ssh_keys'},
     ],
     'Subnet': [
         {'name': 'view_subnets', 'bz': [1306359]},
@@ -1502,11 +1524,10 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'destroy_hosts'},
         {'name': 'edit_discovered_hosts'},
         {'name': 'edit_hosts'},
-        {'name': 'ipmi_boot'},
+        {'name': 'ipmi_boot_hosts'},
         {'name': 'power_hosts'},
         {'name': 'provision_discovered_hosts'},
         {'name': 'puppetrun_hosts'},
-        {'name': 'play_roles'},
         {'name': 'submit_discovered_hosts'},
         {'name': 'view_discovered_hosts'},
         {'name': 'view_hosts'},
@@ -1554,17 +1575,19 @@ PERMISSIONS_WITH_BZ = {
         {'name': 'sync_products', 'bz': [1306359]},
         {'name': 'export_products'},
     ],
+    'Katello::Subscription': [
+        {'name': 'view_subscriptions'},
+        {'name': 'attach_subscriptions'},
+        {'name': 'unattach_subscriptions'},
+        {'name': 'import_manifest'},
+        {'name': 'delete_manifest'},
+    ],
     'Organization': [
         {'name': 'view_organizations', 'bz': [1306359]},
         {'name': 'create_organizations'},
         {'name': 'edit_organizations'},
         {'name': 'destroy_organizations'},
         {'name': 'assign_organizations'},
-        {'name': 'view_subscriptions', 'bz': [1306359]},
-        {'name': 'attach_subscriptions', 'bz': [1306359]},
-        {'name': 'unattach_subscriptions', 'bz': [1306359]},
-        {'name': 'import_manifest', 'bz': [1306359]},
-        {'name': 'delete_manifest', 'bz': [1306359]},
     ],
     'Katello::SyncPlan': [
         {'name': 'view_sync_plans', 'bz': [1306359]},
