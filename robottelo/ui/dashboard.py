@@ -3,7 +3,7 @@
 
 from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -183,18 +183,22 @@ class Dashboard(Base):
         """
         self.navigate_to_entity()
         self.click(locators['dashboard.lwe_task.name'] % task_name)
-        if self.wait_until_element(locators['task.selected.id']) is None:
+        task_tab_element = self.wait_until_element(
+            tab_locators['task.tab_task'])
+        if task_tab_element is None:
             raise UIError(
                 'Redirection to task details page does not work properly')
+        self.click(task_tab_element)
         if expected_result:
             actual_result = self.wait_until_element(
-                locators['task.selected.result']).text
+                locators['task.selected.result']).text.strip()
             if actual_result != expected_result:
                 raise UIError(
                     'Task finished with unexpected result')
         if summary_message:
             actual_value = self.wait_until_element(
                 locators['task.selected.summary']).text
+
             if actual_value != summary_message:
                 raise UIError(
                     'Task summary message has wrong value')

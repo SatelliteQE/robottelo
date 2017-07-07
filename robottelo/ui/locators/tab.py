@@ -406,4 +406,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@href, 'repositories')]/span"),
     "puppet_module.tab_content_views": (
         By.XPATH, "//a[contains(@href, 'content_views')]/span"),
+
+    # Task
+    "task.tab_task": (
+        By.XPATH, "//a[@data-toggle='tab' and @href='#primary']"),
 })
