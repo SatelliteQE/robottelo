@@ -132,7 +132,7 @@ class Sync(Base):
         Navigator(self.browser).go_to_red_hat_repositories()
         # Locator to select content tabs from Red Hat repositories page
         # e.g. 'RPMs', 'KIckstarts', 'ISOs', 'OSTree'
-        repo_tab_locator = 'manifest.{0}_tab'.format(repo_tab.lower())
+        repo_tab_locator = 'manifest.tab_{0}'.format(repo_tab.lower())
         self.click(tab_locators[repo_tab_locator])
         # Locator to select product expander from Red Hat repositories page,
         # its based on content tabs
