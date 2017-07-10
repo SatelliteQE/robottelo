@@ -16,11 +16,12 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
+from random import choice
 from robottelo.cli.base import CLIDataBaseError, CLIReturnCodeError
 from robottelo.cli.factory import make_filter, make_role
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
-from robottelo.constants import PERMISSIONS
+from robottelo.constants import PERMISSIONS, ROLES
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import CLITestCase
@@ -257,6 +258,30 @@ class RoleTestCase(CLITestCase):
                 })
                 self.assertEqual(
                     len(filters), len(permissions) % per_page or per_page)
+
+    @tier1
+    def test_positive_delete_cloned_builtin(self):
+        """Clone a builtin role and attempt to delete it
+
+        :id: 1fd9c636-596a-4cb2-b100-de19238042cc
+
+        :BZ: 1426672
+
+        :expectedresults: role was successfully deleted
+
+        :CaseImportance: Critical
+
+        """
+        role_list = Role.list({
+            'search': 'name=\\"{}\\"'.format(choice(ROLES))})
+        self.assertEqual(len(role_list), 1)
+        cloned_role = Role.clone({
+            'id': role_list[0]['id'],
+            'new-name': gen_string('alphanumeric'),
+        })
+        Role.delete({'id': cloned_role['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Role.info({'id': cloned_role['id']})
 
 
 class CannedRoleTestCases(CLITestCase):

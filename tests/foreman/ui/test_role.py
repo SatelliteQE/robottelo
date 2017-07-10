@@ -229,14 +229,14 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(element)
 
     @tier1
-    def test_positive_delete_cloned(self):
-        """Delete cloned role
+    def test_positive_delete_cloned_builtin(self):
+        """Delete cloned builtin role
 
         :id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
 
         :expectedresults: Role is deleted
 
-        :BZ: 1353788
+        :BZ: 1353788, 1426672
 
         :CaseImportance: Critical
         """
