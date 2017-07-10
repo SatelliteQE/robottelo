@@ -15,7 +15,11 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import (
+    COMPUTE_PROFILE_LARGE,
+    FOREMAN_PROVIDERS,
+    VMWARE_CONSTANTS
+)
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
@@ -48,6 +52,10 @@ class VmwareComputeResourceTestCase(UITestCase):
         cls.vmware_img_user = settings.vmware.image_username
         cls.vmware_img_pass = settings.vmware.image_password
         cls.vmware_vm_name = settings.vmware.vm_name
+        cls.current_interface = (
+            VMWARE_CONSTANTS.get(
+                'network_interfaces') % settings.vlan_networking.bridge
+        )
 
     @run_only_on('sat')
     @tier1
@@ -447,7 +455,6 @@ class VmwareComputeResourceTestCase(UITestCase):
                 '3-Large', name, 'VMware'))
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_access_vmware_with_custom_profile(self):
         """Associate custom default (3-Large) compute profile
@@ -470,6 +477,61 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                parameter_list=parameter_list
+            )
+            self.compute_resource.set_profile_values(
+                name, COMPUTE_PROFILE_LARGE,
+                cpus=2,
+                corespersocket=2,
+                memory=1024,
+                cluster=VMWARE_CONSTANTS.get('cluster'),
+                folder=VMWARE_CONSTANTS.get('folder'),
+                guest_os=VMWARE_CONSTANTS.get('guest_os'),
+                scsicontroller=VMWARE_CONSTANTS.get('scsicontroller'),
+                virtualhw_version=VMWARE_CONSTANTS.get('virtualhw_version'),
+                memory_hotadd=True,
+                cpu_hotadd=True,
+                cdrom_drive=False,
+                annotation_notes=gen_string('alpha'),
+                pool=VMWARE_CONSTANTS.get('pool'),
+                network_interfaces=[
+                    dict(
+                        name=VMWARE_CONSTANTS.get('network_interface_name'),
+                        network=self.current_interface
+                    ),
+                    dict(
+                        name=VMWARE_CONSTANTS.get('network_interface_name'),
+                        network=self.current_interface
+                    ),
+                ],
+                storage=[
+                    dict(
+                        datastore=VMWARE_CONSTANTS.get('datastore'),
+                        size='10',
+                        thin_provision=True,
+                        eager_zero=True,
+                    ),
+                    dict(
+                        datastore=VMWARE_CONSTANTS.get('datastore'),
+                        size='10',
+                        thin_provision=False,
+                        eager_zero=False,
+                    )
+                ]
+                )
+            self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @tier2
