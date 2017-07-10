@@ -699,4 +699,5 @@ class ContentViews(Base):
                 'Unable to find necessary cv "{0}".'.format(cv_name)
             )
         return self.wait_until_element(
-            common_locators['table_cell_value'] % (cv_name, column_name)).text
+            common_locators['kt_table_cell_value'] % (cv_name, column_name)
+        ).text

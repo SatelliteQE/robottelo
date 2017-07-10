@@ -22,7 +22,7 @@ from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_hostgroup
+from robottelo.ui.factory import make_hostgroup, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.config import settings
@@ -187,6 +187,47 @@ class HostgroupTestCase(UITestCase):
                 activation_key=self.ak.name,
             )
             self.assertIsNotNone(self.hostgroup.search(name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_redirection_for_multiple_hosts(self):
+        """Create new hostgroup with whitespaces in its name for specific
+        organization and location. After that create some hosts using already
+        created hostgroup
+
+        :id: f301ec2f-1e9b-4e34-8c87-4d0b3381d9e1
+
+        :expectedresults: Hostgroup hosts count can be successfully observed
+            in a table and redirection to these hosts works properly
+
+        :BZ: 1402390
+
+        :CaseImportance: Critical
+        """
+        name = '{0} {1}'.format(gen_string('alpha'), gen_string('numeric'))
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        hostgroup = entities.HostGroup(
+            location=[loc],
+            organization=[org],
+            name=name,
+        ).create()
+        host_names = [
+            entities.Host(
+                hostgroup=hostgroup,
+                location=loc,
+                organization=org,
+            ).create().name
+            for _ in range(3)
+        ]
+        with Session(self.browser) as session:
+            set_context(session, org=org.name, loc=loc.name)
+            self.assertIsNotNone(self.hostgroup.search(name))
+            self.hostgroup.click(
+                common_locators['table_cell_link'] % (name, 'Hosts'))
+            for host_name in host_names:
+                self.hosts.wait_until_element(
+                    locators['host.select_name'] % host_name)
 
     @run_only_on('sat')
     @tier1
