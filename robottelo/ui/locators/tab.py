@@ -39,12 +39,12 @@ tab_locators = LocatorDict({
     # Hostgroup
     # Third level UI
 
-    "hostgroup.tab_hostgroup": (By.XPATH, "//a[@href='#primary']"),
+    "hostgroup.tab_host_group": (By.XPATH, "//a[@href='#primary']"),
     "hostgroup.tab_ansible_roles": (By.XPATH, "//a[@href='#ansible_roles']"),
     "hostgroup.tab_puppet_classes": (By.XPATH, "//a[@href='#puppet_klasses']"),
     "hostgroup.tab_network": (By.XPATH, "//a[@href='#network']"),
     "hostgroup.tab_operating_system": (By.XPATH, ("//a[@href='#os']")),
-    "hostgroup.tab_params": (By.XPATH, "//a[@href='#params']"),
+    "hostgroup.tab_parameters": (By.XPATH, "//a[@href='#params']"),
     "hostgroup.tab_locations": (By.XPATH, "//a[@href='#locations']"),
     "hostgroup.tab_organizations": (By.XPATH, "//a[@href='#organizations']"),
     "hostgroup.tab_activation_keys": (

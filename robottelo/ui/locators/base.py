@@ -983,7 +983,7 @@ locators = LocatorDict({
 
     "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
     "hostgroups.name": (By.ID, "hostgroup_name"),
-    "hostgroups.environment": (
+    "hostgroups.lifecycle_environment": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_lifecycle_environment')]/a"
          "/span[contains(@class, 'arrow')]")),
@@ -1004,7 +1004,7 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_puppet_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "hostgroups.oscap_capsule": (
+    "hostgroups.openscap_capsule": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_openscap_proxy_id')]/a"
          "/span[contains(@class, 'arrow')]")),
