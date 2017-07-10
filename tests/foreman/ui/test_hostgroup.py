@@ -157,13 +157,15 @@ class HostgroupTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_hostgroup(
-                    session,
-                    content_source=self.sat6_hostname,
-                    name=name,
-                    puppet_ca=self.sat6_hostname,
-                    puppet_master=self.sat6_hostname,
-                    oscap_capsule=self.sat6_hostname,
-                )
+                session,
+                name=name,
+                parameters_list=[
+                    ['Host Group', 'Content Source', self.sat6_hostname],
+                    ['Host Group', 'Puppet CA', self.sat6_hostname],
+                    ['Host Group', 'Puppet Master', self.sat6_hostname],
+                    ['Host Group', 'Openscap Capsule', self.sat6_hostname],
+                ],
+            )
             self.assertIsNotNone(self.hostgroup.search(name))
 
     @run_only_on('sat')
@@ -182,9 +184,12 @@ class HostgroupTestCase(UITestCase):
             make_hostgroup(
                 session,
                 name=name,
-                environment=self.env.name,
-                content_view=self.cv.name,
-                activation_key=self.ak.name,
+                org=self.organization.name,
+                parameters_list=[
+                    ['Host Group', 'Lifecycle Environment', self.env.name],
+                    ['Host Group', 'Content View', self.cv.name],
+                    ['Activation Keys', 'Activation Keys', self.ak.name],
+                ],
             )
             self.assertIsNotNone(self.hostgroup.search(name))
 
@@ -265,7 +270,7 @@ class HostgroupTestCase(UITestCase):
             session.nav.go_to_host_groups()
             self.hostgroup.click(locators['hostgroups.new'])
             self.hostgroup.assign_value(
-                locators['hostgroups.environment'], self.env.name)
+                locators['hostgroups.lifecycle_environment'], self.env.name)
             self.hostgroup.assign_value(
                 locators['hostgroups.content_view'], cv_b.name)
             # Switch to Activation Keys tab and click on input
