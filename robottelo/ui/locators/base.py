@@ -1007,6 +1007,7 @@ locators = LocatorDict({
     "users.firstname": (By.ID, "user_firstname"),
     "users.lastname": (By.ID, "user_lastname"),
     "users.email": (By.ID, "user_mail"),
+    "users.description": (By.ID, "user_description"),
     "users.language": (
         By.XPATH,
         ("//div[contains(@id, 'user_locale')]/a"
