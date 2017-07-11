@@ -995,6 +995,33 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_openscap_proxy_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "hostgroups.architecture": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_architecture_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.architecture_clear": (
+        By.XPATH,
+        "//div[contains(@id, 'hostgroup_architecture_id')]/a/abbr"),
+    "hostgroups.architecture_value": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_architecture_id')]/a"
+         "/span[contains(@class, 'select2-chosen')]")),
+    "hostgroups.operating_system": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_operatingsystem_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.operating_system_clear": (
+        By.XPATH,
+        "//div[contains(@id, 'hostgroup_operatingsystem_id')]/a/abbr"),
+    "hostgroups.media": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_medium_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.partition_table": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_ptable_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.root_password": (By.ID, "hostgroup_root_pass"),
     "hostgroups.activation_keys": (
         By.XPATH, "//input[contains(@id, 'activation_keys')]"),
     "hostgroups.ak_autocomplete": (

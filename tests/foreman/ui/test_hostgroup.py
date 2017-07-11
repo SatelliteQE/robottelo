@@ -107,41 +107,34 @@ class HostgroupTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete(self):
-        """Delete a hostgroup
+    def test_positive_create_with_arch_and_os(self):
+        """Create new hostgroup with architecture and operating system assigned
 
-        :id: f118532b-ca9b-4bf4-b53b-9573abcb347a
+        :id: eaa91ddb-fce0-4284-88f8-c4d4367086c5
 
-        :expectedresults: Hostgroup is deleted
-
-        :CaseImportance: Critical
-        """
-        with Session(self.browser) as session:
-            for name in generate_strings_list(length=4):
-                with self.subTest(name):
-                    make_hostgroup(session, name=name)
-                    self.hostgroup.delete(name, dropdown_present=True)
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_update(self):
-        """Update hostgroup with a new name
-
-        :id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
-
-        :expectedresults: Hostgroup is updated
+        :expectedresults: Hostgroup is created
 
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
+        arch = entities.Architecture().create()
+        custom_os = entities.OperatingSystem(
+            architecture=[arch]).create()
         with Session(self.browser) as session:
-            make_hostgroup(session, name=name)
+            make_hostgroup(
+                session,
+                name=name,
+                org=self.organization.name,
+                parameters_list=[
+                    ['Operating System', 'Architecture', arch.name],
+                    [
+                        'Operating System',
+                        'Operating system',
+                        '{0} {1}'.format(custom_os.name, custom_os.major)
+                    ],
+                ],
+            )
             self.assertIsNotNone(self.hostgroup.search(name))
-            for new_name in generate_strings_list(length=4):
-                with self.subTest(new_name):
-                    self.hostgroup.update(name, new_name=new_name)
-                    self.assertIsNotNone(self.hostgroup.search(new_name))
-                    name = new_name  # for next iteration
 
     @run_only_on('sat')
     @tier1
@@ -192,6 +185,101 @@ class HostgroupTestCase(UITestCase):
                 ],
             )
             self.assertIsNotNone(self.hostgroup.search(name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update(self):
+        """Update hostgroup with a new name
+
+        :id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
+
+        :expectedresults: Hostgroup is updated
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_hostgroup(session, name=name)
+            self.assertIsNotNone(self.hostgroup.search(name))
+            for new_name in generate_strings_list(length=4):
+                with self.subTest(new_name):
+                    self.hostgroup.update(name, new_name=new_name)
+                    self.assertIsNotNone(self.hostgroup.search(new_name))
+                    name = new_name  # for next iteration
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update_with_removed_arch(self):
+        """Create new hostgroup with content view, architecture and os
+        assigned. Then remove these attributes from the hostgroup. Attempt to
+        update hostgroup with the same architecture
+
+        :id: 431d88a3-590e-42cf-b45d-09b1d8a62b30
+
+        :expectedresults: Hostgroup is updated and no error is raised
+
+        :BZ: 1372917
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('alpha')
+        arch = entities.Architecture().create()
+        custom_os = entities.OperatingSystem(
+            architecture=[arch]).create()
+        with Session(self.browser) as session:
+            make_hostgroup(
+                session,
+                name=name,
+                org=self.organization.name,
+                parameters_list=[
+                    ['Host Group', 'Lifecycle Environment', self.env.name],
+                    ['Host Group', 'Content View', self.cv.name],
+                    ['Operating System', 'Architecture', arch.name],
+                    [
+                        'Operating System',
+                        'Operating system',
+                        '{0} {1}'.format(custom_os.name, custom_os.major)
+                    ],
+                ],
+            )
+            self.hostgroup.search_and_click(name)
+            self.hostgroup.click(
+                tab_locators['hostgroup.tab_operating_system'])
+            self.assertEqual(
+                self.hostgroup.wait_until_element(
+                    locators['hostgroups.architecture_value']).text,
+                arch.name
+            )
+            self.hostgroup.click(locators['hostgroups.operating_system_clear'])
+            self.hostgroup.click(locators['hostgroups.architecture_clear'])
+            self.assertIsNone(self.hostgroup.wait_until_element(
+                locators['hostgroups.architecture_value'], timeout=5))
+            self.hostgroup.click(common_locators['submit'])
+            self.hostgroup.update(
+                name,
+                parameters_list=[
+                    ['Operating System', 'Architecture', arch.name]
+                ],
+            )
+            self.assertIsNone(self.hostgroup.wait_until_element(
+                common_locators['haserror'], timeout=3))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_delete(self):
+        """Delete a hostgroup
+
+        :id: f118532b-ca9b-4bf4-b53b-9573abcb347a
+
+        :expectedresults: Hostgroup is deleted
+
+        :CaseImportance: Critical
+        """
+        with Session(self.browser) as session:
+            for name in generate_strings_list(length=4):
+                with self.subTest(name):
+                    make_hostgroup(session, name=name)
+                    self.hostgroup.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier1
