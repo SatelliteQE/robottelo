@@ -1,7 +1,7 @@
 # coding=utf-8
 """Smoke tests for the ``CLI`` end-to-end scenario.
 
-:Requirement: Cli endtoend
+:Requirement: Cli Endtoend
 
 :CaseAutomation: Automated
 

@@ -1,6 +1,6 @@
 """Test class for concurrent subscription deletion
 
-:Requirement: Candlepin concurrent delete
+:Requirement: Candlepin Concurrent Delete
 
 :CaseAutomation: Automated
 

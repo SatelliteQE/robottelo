@@ -1,6 +1,6 @@
 """Test class for concurrent subscription by Activation Key
 
-:Requirement: Candlepin concurrent subscription ak
+:Requirement: Candlepin Concurrent Subscription Ak
 
 :CaseAutomation: Automated
 

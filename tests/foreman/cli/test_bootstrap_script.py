@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test for bootstrap script
 
-:Requirement: Bootstrap script
+:Requirement: Bootstrap Script
 
 :CaseAutomation: Automated
 

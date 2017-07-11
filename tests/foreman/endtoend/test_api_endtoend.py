@@ -1,7 +1,7 @@
 # coding=utf-8
 """Smoke tests for the ``API`` end-to-end scenario.
 
-:Requirement: Api endtoend
+:Requirement: Api Endtoend
 
 :CaseAutomation: Automated
 

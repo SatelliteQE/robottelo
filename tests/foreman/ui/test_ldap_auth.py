@@ -1,6 +1,6 @@
 """Test class for installer (UI)
 
-:Requirement: Ldap auth
+:Requirement: Ldap Auth
 
 :CaseAutomation: Automated
 

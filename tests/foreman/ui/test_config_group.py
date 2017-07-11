@@ -1,6 +1,6 @@
 """Test class for Config Groups UI
 
-:Requirement: Config group
+:Requirement: Config Group
 
 :CaseAutomation: Automated
 
