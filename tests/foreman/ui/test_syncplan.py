@@ -836,7 +836,7 @@ class SyncPlanTestCase(UITestCase):
                 ['errata', 'package_groups', 'packages'],
             )
 
-    @skip_if_bug_open('bugzilla', '1463301')
+    @skip_if_bug_open('bugzilla', '1396647')
     @tier3
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
         """Create a daily sync plan with past datetime as a sync date,
@@ -847,7 +847,7 @@ class SyncPlanTestCase(UITestCase):
 
         :expectedresults: Product is synchronized successfully.
 
-        :BZ: 1463301
+        :BZ: 1396647
 
         :CaseLevel: System
         """
