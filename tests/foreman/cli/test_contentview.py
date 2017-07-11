@@ -3719,6 +3719,7 @@ class OstreeContentViewTestCase(CLITestCase):
     """Tests for custom ostree contents in content views."""
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1439835)
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization, product, and repo with all content-types."""
