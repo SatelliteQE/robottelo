@@ -1006,6 +1006,7 @@ locators = LocatorDict({
     "users.username": (By.ID, "user_login"),
     "users.firstname": (By.ID, "user_firstname"),
     "users.lastname": (By.ID, "user_lastname"),
+    "users.description": (By.ID, "user_description"),
     "users.email": (By.ID, "user_mail"),
     "users.language": (
         By.XPATH,
