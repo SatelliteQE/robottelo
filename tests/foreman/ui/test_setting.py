@@ -18,10 +18,11 @@
 
 from fauxfactory import gen_email, gen_string, gen_url
 from random import choice, randint
-from robottelo.datafactory import filtered_datapoint
+from robottelo.datafactory import filtered_datapoint, valid_data_list
 from robottelo.decorators import (
     run_only_on,
     tier1,
+    stubbed,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
@@ -554,6 +555,52 @@ class SettingTestCase(UITestCase):
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
+
+    @tier1
+    def test_positive_update_login_page_footer_text(self):
+        """Updates parameter "Login_page_footer_text" under General tab
+
+        :id: 56a983c4-925f-4cbe-8fdb-ce344219d739
+
+        :expectedresults: Parameter is updated successfully
+
+        :CaseImportance: Critical
+        """
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'login_text'
+        with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            for param_value in valid_data_list():
+                with self.subTest(param_value):
+                    edit_param(
+                        session,
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        param_value=param_value,
+                    )
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
+
+    @stubbed
+    @tier1
+    def test_negative_update_login_page_footer_text(self):
+        """Attempt to update parameter "Login_page_footer_text"
+            with invalid value(long length) under General tab
+
+        :id: c76d91e8-a207-43c6-904c-7ca2dae7cd16
+
+        :steps:
+
+            1. Navigate to Administer -> settings
+            2. Click on general tab
+            3. Input invalid data into login page footer field
+
+        :expectedresults: Parameter is not updated
+
+        :CaseImportance: Critical
+        """
 
     @tier1
     def test_positive_update_dynflow_enable_console_param(self):
