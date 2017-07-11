@@ -70,24 +70,17 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
 @filtered_datapoint
 def invalid_emails_list():
     """Returns a list of invalid emails."""
-    data = [
+    return [
         u'foreman@',
         u'@foreman',
         u'@',
         u'Abc.example.com',
         u'A@b@c@example.com',
-        u'email@example..c',
         # total length 255:
         u'{0}@example.com'.format(gen_string('alpha', 243)),
         u'{0}@example.com'.format(gen_string('html')),
         u's p a c e s@example.com',
-        u'dot..dot@example.com'
     ]
-    # Skip successive dots (not valid by RFC 5322) if bug is open
-    if bz_bug_is_open(1455501):
-        data.remove(u'email@example..c')
-        data.remove(u'dot..dot@example.com')
-    return data
 
 
 @filtered_datapoint

@@ -47,7 +47,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
                         return_value=False):
             settings.run_one_datapoint = False
             self.assertEqual(len(generate_strings_list()), 7)
-            self.assertEqual(len(invalid_emails_list()), 10)
+            self.assertEqual(len(invalid_emails_list()), 8)
             self.assertEqual(len(invalid_id_list()), 4)
             self.assertEqual(len(invalid_interfaces_list()), 8)
             self.assertEqual(len(invalid_names_list()), 7)
