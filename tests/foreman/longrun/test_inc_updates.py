@@ -1,6 +1,6 @@
 """Tests for the Incremental Update feature
 
-:Requirement: Inc updates
+:Requirement: Inc Updates
 
 :CaseAutomation: Automated
 

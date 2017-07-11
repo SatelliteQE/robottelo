@@ -1,6 +1,6 @@
 """Test class for Config Groups UI
 
-:Requirement: Hw model
+:Requirement: Hw Model
 
 :CaseAutomation: Automated
 

@@ -1,6 +1,6 @@
 """Test class for Environment Preparation after a fresh installation
 
-:Requirement: Standard prep
+:Requirement: Standard Prep
 
 :CaseAutomation: Automated
 

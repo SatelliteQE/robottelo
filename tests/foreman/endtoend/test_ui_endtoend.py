@@ -1,7 +1,7 @@
 # coding=utf-8
 """Smoke tests for the ``UI`` end-to-end scenario.
 
-:Requirement: Ui endtoend
+:Requirement: Ui Endtoend
 
 :CaseAutomation: Automated
 

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test for capsule installer CLI
 
-:Requirement: Capsule installer
+:Requirement: Capsule Installer
 
 :CaseAutomation: Automated
 

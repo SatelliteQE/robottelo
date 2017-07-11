@@ -1,6 +1,6 @@
 """Test module for System Registration UI
 
-:Requirement: System registration
+:Requirement: System Registration
 
 :CaseAutomation: Automated
 

@@ -1,6 +1,6 @@
 """Data-driven unit tests for multiple paths.
 
-:Requirement: Multiple paths
+:Requirement: Multiple Paths
 
 :CaseAutomation: Automated
 

@@ -1,6 +1,6 @@
 """Tests for cli repository set
 
-:Requirement: Repository set
+:Requirement: Repository Set
 
 :CaseAutomation: Automated
 

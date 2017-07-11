@@ -1,6 +1,6 @@
 """Tests for Red Hat Access Insights Client rpm
 
-:Requirement: Rhai client
+:Requirement: Rhai Client
 
 :CaseAutomation: Automated
 

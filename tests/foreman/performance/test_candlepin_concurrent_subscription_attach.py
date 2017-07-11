@@ -1,6 +1,6 @@
 """Test class for concurrent subscription by register and attach
 
-:Requirement: Candlepin concurrent subscription attach
+:Requirement: Candlepin Concurrent Subscription Attach
 
 :CaseAutomation: Automated
 

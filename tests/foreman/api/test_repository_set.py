@@ -5,7 +5,7 @@ A full API reference for products can be found here:
 http://www.katello.org/docs/api/apidoc/repository_sets.html
 
 
-:Requirement: Repository set
+:Requirement: Repository Set
 
 :CaseAutomation: Automated
 
