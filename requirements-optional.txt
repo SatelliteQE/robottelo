@@ -15,9 +15,6 @@ sphinx
 # For running UI tests within a docker browser
 docker-py
 
-# For reporting test results on SauceLabs
-sauceclient
-
 # For 'manage' interactive shell
 manage>=0.1.13
 
