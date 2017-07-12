@@ -13,7 +13,7 @@ pytest-services==1.2.1
 pytest-mock==1.6.0
 requests==2.18.1
 # For reporting test results on SauceLabs
-sauceclient
+sauceclient==1.0.0
 selenium==2.48.0  # pyup: ignore
 six==1.10.0
 testimony==1.6.0
