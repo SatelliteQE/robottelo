@@ -1538,6 +1538,7 @@ class OstreeRepositoryTestCase(CLITestCase):
     """Ostree Repository CLI tests."""
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1439835)
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""

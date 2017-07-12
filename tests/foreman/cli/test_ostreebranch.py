@@ -27,7 +27,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.constants import FEDORA23_OSTREE_REPO
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
 
@@ -36,6 +36,7 @@ class OstreeBranchTestCase(CLITestCase):
     """Test class for Ostree Branch CLI. """
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1439835)
     @skip_if_os('RHEL6')
     def setUpClass(cls):
         """Create an organization, product and ostree repo."""
