@@ -688,7 +688,7 @@ class SyncPlanTestCase(CLITestCase):
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
-    @skip_if_bug_open('bugzilla', '1463301')
+    @skip_if_bug_open('bugzilla', '1396647')
     @tier3
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
         """Create a weekly sync plan with a past datetime as a sync date,
@@ -699,7 +699,7 @@ class SyncPlanTestCase(CLITestCase):
 
         :expectedresults: Product is synchronized successfully.
 
-        :BZ: 1463301
+        :BZ: 1396647
 
         :CaseLevel: System
         """
