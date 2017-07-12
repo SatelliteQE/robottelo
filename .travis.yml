@@ -11,8 +11,8 @@ install:
 script:
     - flake8 .
     - make test-docstrings
-    - make docs
     - cp robottelo.properties.sample robottelo.properties
+    - make docs
     - tox
     # The `test-foreman-*` recipes require the presence of a Foreman
     # deployment, and they are lengthy. Don't run them on Travis.

@@ -12,7 +12,8 @@ from robottelo.host_info import get_host_sat_version
 from robozilla.decorators import (  # noqa
     bz_bug_is_open, rm_bug_is_open,  # noqa
     skip_if_bug_open, _get_bugzilla_bug, _get_redmine_bug_status_id,  # noqa
-    _redmine_closed_issue_statuses  # noqa
+    _redmine_closed_issue_statuses,  # noqa
+    BugTypeError
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -280,7 +281,46 @@ def config_picker():
     return config
 
 
+class run_in_one_thread_if_bug_open(skip_if_bug_open, object):
+    """A decorator that sets pytest marker and allows to select test that
+    should be run sequentially only if bug is open.
+    """
+
+    _wrapper = run_in_one_thread
+
+    def __call__(self, func):
+        """Return unchanged function or function decorated with
+        `pytest.mark.run_in_one_thread` marker decorator if bug is open.
+
+        :param func: The function being decorated.
+
+        :return: The return value of test method ``func``.
+        :raises BugTypeError: If ``bug_type`` is not recognized.
+        """
+        self.register_bug_id(func)
+
+        if self.bug_type not in ('bugzilla', 'redmine'):
+            raise BugTypeError(
+                '"{0}" is not a recognized bug type. Did you mean '
+                '"bugzilla" or "redmine"?'.format(self.bug_type)
+            )
+
+        if (self.bug_type == 'bugzilla' and bz_bug_is_open(
+                self.bug_id,
+                sat_version_picker=self.sat_version_picker,
+                config_picker=self.config_picker
+        )) or (self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id)):
+            func = self._wrapper(func)
+        return func
+
+
 # Set the optional version and config pickers for robozilla decorators
+run_in_one_thread_if_bug_open = partial(
+    run_in_one_thread_if_bug_open,
+    sat_version_picker=get_host_sat_version,
+    config_picker=config_picker
+)
+
 bz_bug_is_open = partial(
     bz_bug_is_open,
     sat_version_picker=get_host_sat_version,
