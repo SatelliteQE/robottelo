@@ -1726,11 +1726,10 @@ class ErrataTestCase(CLITestCase):
         ]
         self.assertGreater(user_required_permissions_ids, 0)
         # create a role
-        role = make_role()
+        role = make_role({'organization-ids': org['id']})
         # create a filter with the required permissions for role with product
         # one only
         make_filter({
-            'organization-ids': org['id'],
             'permission-ids': user_required_permissions_ids,
             'role-id': role['id'],
             'search': 'name = {0}'.format(product['name'])
