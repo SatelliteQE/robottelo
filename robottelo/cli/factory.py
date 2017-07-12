@@ -2020,7 +2020,7 @@ def make_hostgroup(options=None):
         --environment-id ENVIRONMENT_ID
         --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME   Name to search by
         --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
-
+        --locations LOCATION_NAMES  Comma separated list of values
         --location-ids LOCATION_IDS   REPLACE locations with given ids
                                       Comma separated list of values.
         --medium MEDIUM_NAME          Medium name
@@ -2028,12 +2028,13 @@ def make_hostgroup(options=None):
         --name NAME
         --operatingsystem OPERATINGSYSTEM_TITLE Operating system title
         --operatingsystem-id OPERATINGSYSTEM_ID
+        --organizations ORGANIZATION_NAMES   Comma separated list of values
         --organization-ids ORGANIZATION_IDS     REPLACE organizations with
                                                 given ids.
                                                 Comma separated list of values.
         --parent-id PARENT_ID
-        --ptable PTABLE_NAME                    Partition table name
-        --ptable-id PTABLE_ID
+        --partition-table PTABLE_NAME                    Partition table name
+        --partition-table-id PTABLE_ID
         --puppet-ca-proxy PUPPET_CA_PROXY_NAME  Name of puppet CA proxy
         --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
         --puppet-class-ids PUPPETCLASS_IDS      List of puppetclass ids
@@ -2059,6 +2060,7 @@ def make_hostgroup(options=None):
         u'domain-id': None,
         u'environment': None,
         u'environment-id': None,
+        u'locations': None,
         u'location-ids': None,
         u'lifecycle-environment': None,
         u'lifecycle-environment-id': None,
@@ -2068,7 +2070,7 @@ def make_hostgroup(options=None):
         u'name': gen_alphanumeric(6),
         u'operatingsystem': None,
         u'operatingsystem-id': None,
-        u'organization-id': None,
+        u'organizations': None,
         u'organization-ids': None,
         u'parent-id': None,
         u'partition-table': None,
