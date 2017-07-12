@@ -633,49 +633,8 @@ class VmwareComputeResourceTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_poweroff_vmware_vms(self):
-        """Poweroff the vmware virtual machine
-
-        :id: cc5e1957-ebd6-4621-9451-99607da76aeb
-
-        :setup:
-
-            1. Valid vmware hostname, credentials.
-            2. Virtual machine in vmware.
-
-        :steps:
-
-            1. Select the created compute resource.
-            2. Go to "Virtual Machines" tab.
-            3. Click "Poweroff" button associated with the vm.
-
-        :expectedresults: The Virtual machine should be switched off
-
-        :Caseautomation: notautomated
-
-        :Caselevel: Integration
-        """
-        parameter_list = [
-            ['VCenter/Server', self.vmware_url, 'field'],
-            ['Username', self.vmware_username, 'field'],
-            ['Password', self.vmware_password, 'field'],
-            ['Datacenter', self.vmware_datacenter, 'special select'],
-        ]
-        name = gen_string('alpha')
-        with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['vmware'],
-                parameter_list=parameter_list
-            )
-            self.assertEqual(self.compute_resource.set_power_status(
-                name, self.vmware_vm_name, False), u'Off')
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_poweron_vmware_vms(self):
-        """Power on the vmware virtual machine
+    def test_positive_power_on_off_vmware_vms(self):
+        """Power on and off the vmware virtual machine
 
         :id: 846318e9-8b95-46ea-b7bc-26689064f80c
 
@@ -689,8 +648,10 @@ class VmwareComputeResourceTestCase(UITestCase):
             1. Select the created compute resource.
             2. Go to "Virtual Machines" tab.
             3. Click "Power on" button associated with the vm.
+            4. Go to "Virtual Machines" tab.
+            5. Click "Power off" button associated with the vm.
 
-        :expectedresults: The Virtual machine should be switched on
+        :expectedresults: The Virtual machine is switched on and switched off
 
         :Caseautomation: notautomated
 
@@ -702,13 +663,19 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Password', self.vmware_password, 'field'],
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
-        name = gen_string('alpha')
+        cr_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_resource(
                 session,
-                name=name,
+                name=cr_name,
                 provider_type=FOREMAN_PROVIDERS['vmware'],
                 parameter_list=parameter_list
             )
+            if self.compute_resource.power_on_status(
+                    cr_name, self.vmware_vm_name) == 'on':
+                self.compute_resource.set_power_status(
+                    cr_name, self.vmware_vm_name, False)
             self.assertEqual(self.compute_resource.set_power_status(
-                name, self.vmware_vm_name, True), u'On')
+                cr_name, self.vmware_vm_name, True), u'On')
+            self.assertEqual(self.compute_resource.set_power_status(
+                cr_name, self.vmware_vm_name, False), u'Off')
