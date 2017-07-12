@@ -9,6 +9,7 @@ from robottelo.ui.navigator import Navigator
 class DockerTag(Base):
     """Manipulates Docker Tags from UI"""
 
+    search_key = 'tag'
     is_katello = True
 
     def navigate_to_entity(self):
