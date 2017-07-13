@@ -35,12 +35,16 @@ class Hostgroup(Base):
                 'hostgroup',
                 (tab_name.lower()).replace(' ', '_')
             ))]
-            param_locator = locators['.'.join((
+            self.click(tab_locator)
+            locator_name = '.'.join((
                 'hostgroups',
                 (parameter_name.lower()).replace(' ', '_')
-            ))]
-            self.click(tab_locator)
-            self.assign_value(param_locator, parameter_value)
+            ))
+            if parameter_value is None:
+                self.clear_entity_value(
+                    locators['{}_clear'.format(locator_name)])
+            else:
+                self.assign_value(locators[locator_name], parameter_value)
 
     def create(self, name, parameters_list=None):
         """Creates a new hostgroup from UI."""

@@ -795,6 +795,19 @@ class Base(object):
             )
         self.logger.debug(u'Assigned value %s to %s', value, str(target))
 
+    def clear_entity_value(self, target):
+        """Clear current value for provided page element
+
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
+
+        """
+        element_type = self.element_type(target)
+        if element_type == 'input' or element_type == 'textarea':
+            self.input(target, '')
+        elif element_type == 'abbr':
+            self.click(target)
+
     def get_selected_value(self, target):
         """Get currently selected value for select list
 
