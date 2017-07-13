@@ -577,6 +577,9 @@ locators = LocatorDict({
         ("//div[@class='detail']/span[contains(@translate-plural, 'Activation "
          "Keys')]/following-sibling::span"
          "//a[contains(@href, 'activation_keys')]")),
+    "contenthost.subscription_message": (
+        By.XPATH,
+        "//div[contains(@data-extend-template, 'registration')]/span/span[1]"),
 
     # Content Host - Bulk Actions
 
