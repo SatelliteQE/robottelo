@@ -25,7 +25,8 @@ Subcommands::
                                   content view and reassign systems and keys
     remove-from-environment       Remove a content view from an environment
     remove-repository             Disassociate a resource
-    remove-version                Disassociate a resource
+    remove-version                Remove a content view version from a
+                                  composite view
     update                        Update a content view
     version                       View and manage content view versions
 
@@ -204,10 +205,16 @@ class ContentView(Base):
     def remove(cls, options=None):
         """Remove versions and/or environments from a content view and
         reassign content hosts and keys
-
         """
         cls.command_sub = 'remove'
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,
         )
+
+    @classmethod
+    def remove_version(cls, options=None):
+        """Remove a content view version from a composite view"""
+        cls.command_sub = 'remove-version'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
