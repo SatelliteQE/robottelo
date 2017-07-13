@@ -250,11 +250,18 @@ class HostgroupTestCase(UITestCase):
                     locators['hostgroups.architecture_value']).text,
                 arch.name
             )
-            self.hostgroup.click(locators['hostgroups.operating_system_clear'])
-            self.hostgroup.click(locators['hostgroups.architecture_clear'])
+            self.hostgroup.update(
+                name,
+                parameters_list=[
+                    ['Operating System', 'Operating system', None],
+                    ['Operating System', 'Architecture', None],
+                ],
+            )
+            self.hostgroup.search_and_click(name)
+            self.hostgroup.click(
+                tab_locators['hostgroup.tab_operating_system'])
             self.assertIsNone(self.hostgroup.wait_until_element(
                 locators['hostgroups.architecture_value'], timeout=5))
-            self.hostgroup.click(common_locators['submit'])
             self.hostgroup.update(
                 name,
                 parameters_list=[
