@@ -39,6 +39,7 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
     make_container,
+    make_contentview,
     make_registry,
     make_repository,
     make_resource,
@@ -588,7 +589,7 @@ class DockerContentViewTestCase(UITestCase):
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
-            self.content_views.create(composite_name, is_composite=True)
+            make_contentview(session, name=composite_name, is_composite=True)
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
 
@@ -621,14 +622,13 @@ class DockerContentViewTestCase(UITestCase):
                     composite=False,
                     organization=self.organization,
                 ).create()
-                self.navigator.go_to_content_views()
                 self.content_views.add_remove_repos(
                     content_view.name, [repo_name], repo_type='docker')
                 self.content_views.publish(content_view.name)
                 cvs.append(content_view.name)
 
             composite_name = gen_string('alpha')
-            self.content_views.create(composite_name, is_composite=True)
+            make_contentview(session, name=composite_name, is_composite=True)
             self.content_views.add_remove_cv(composite_name, cvs)
 
     @run_only_on('sat')
@@ -699,7 +699,7 @@ class DockerContentViewTestCase(UITestCase):
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
-            self.content_views.create(composite_name, is_composite=True)
+            make_contentview(session, name=composite_name, is_composite=True)
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
@@ -774,7 +774,7 @@ class DockerContentViewTestCase(UITestCase):
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
-            self.content_views.create(composite_name, is_composite=True)
+            make_contentview(session, name=composite_name, is_composite=True)
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             for _ in range(randint(2, 5)):
@@ -894,7 +894,7 @@ class DockerContentViewTestCase(UITestCase):
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
-            self.content_views.create(composite_name, is_composite=True)
+            make_contentview(session, name=composite_name, is_composite=True)
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
@@ -936,7 +936,7 @@ class DockerContentViewTestCase(UITestCase):
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
-            self.content_views.create(composite_name, is_composite=True)
+            make_contentview(session, name=composite_name, is_composite=True)
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
