@@ -170,6 +170,58 @@ class Hosts(Base):
             common_locators['modal_background'])
         self.click(common_locators['submit'])
 
+    def add_interface(self, name, domain_name, interface_parameters):
+        """Adds an interface to host.
+
+        :param name: host's name (without domain part)
+        :param domain_name: host's domain name
+        :param interface_parameters: A list of interface parameters. Each
+            parameter should be a separate list containing tab name and
+            parameter name in absolute correspondence to UI (Similar to
+            interface parameters list passed to create a host). Example::
+
+                [
+                    ['Domain', host.domain.name],
+                    ['MAC address', '16:76:20:06:d4:c0'],
+                ]
+        """
+        self.search_and_click(u'{0}.{1}'.format(name, domain_name))
+        self.click(locators['host.edit'])
+        self.click(tab_locators['host.tab_interfaces'])
+        self.click(locators['host.add_interface'])
+        self._configure_interface_parameters(interface_parameters)
+        self.click(common_locators['submit'])
+
+    def delete_interface(self, name, domain_name, interface_id=None,
+                         interface_mac=None):
+        """Deletes interface from host.
+
+        As there's no required unique parameter for interface identification,
+        either interface identifier or MAC address should be specified to
+        locate the interface.
+
+        Note that there's no confirmation dialog and in case interface can't be
+        deleted no exception will be risen.
+
+        :param name: host's name (without domain part)
+        :param domain_name: host's domain name
+        :param str optional interface_id: interface identifier
+        :param str optional interface_mac: interface MAC address
+        :raises TypeError: in case neither `interface_id` nor `interface_mac`
+            were passed
+        """
+        identifier = interface_id or interface_mac
+        if identifier is None:
+            raise TypeError(
+                'Either `interface_id` or `interface_mac` argument is required'
+                ' to locate the interface'
+            )
+        self.search_and_click(u'{0}.{1}'.format(name, domain_name))
+        self.click(locators['host.edit'])
+        self.click(tab_locators['host.tab_interfaces'])
+        self.click(locators['host.delete_interface'] % identifier)
+        self.click(common_locators['submit'])
+
     def update_host_bulkactions(
             self, hosts=None, action=None, parameters_list=None):
         """Updates host via bulkactions

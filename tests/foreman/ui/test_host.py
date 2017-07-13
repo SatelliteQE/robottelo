@@ -602,6 +602,68 @@ class HostTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    def test_negative_delete_primary_interface(self):
+        """Attempt to delete primary interface of a host
+
+        :id: bc747e2c-38d9-4920-b4ae-6010851f704e
+
+        :BZ: 1417119
+
+        :expectedresults: Interface was not deleted
+
+        :CaseLevel: System
+        """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        interface_id = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=host.name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['Device Identifier', interface_id],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            search = self.hosts.search(
+                u'{0}.{1}'.format(host.name, host.domain.name)
+            )
+            self.assertIsNotNone(search)
+            self.hosts.delete_interface(
+                host.name, host.domain.name, interface_id)
+            # Verify interface wasn't deleted by fetching one of its parameters
+            # (e.g., MAC address)
+            results = self.hosts.fetch_host_parameters(
+                host.name,
+                host.domain.name,
+                [['Interfaces', 'Primary Interface MAC']],
+            )
+            self.assertEqual(results['Primary Interface MAC'], host.mac)
+
+    @run_only_on('sat')
+    @tier3
     def test_positive_update_name(self):
         """Create a new Host and update its name to valid one
 
