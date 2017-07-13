@@ -58,7 +58,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-)
+    tier4)
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.host_info import get_host_os_version
@@ -2161,6 +2161,289 @@ class GitPuppetMirrorTestCase(UITestCase):
 
         :expectedresults: Spot-checked items (filenames, dates, perhaps
             checksums?) are correct.
+
+        :CaseAutomation: notautomated
+        """
+
+
+class FileRepositoryTestCase(UITestCase):
+    """Implements File Repo tests in UI"""
+
+    @stubbed
+    @tier1
+    def test_positive_create_with_name(self):
+        """Check File Repository creation
+
+        :id: 9f90c42e-a077-4f0a-b5ec-2b342ff2d9fe
+
+        :Setup:
+            1. Navigate to Content -> Products
+            2. Create a Product
+
+        :Steps:
+            1. Click "New Repository" button
+            2. Define a valid name and choose type "file" repo
+            3. Check repo is listed under "Repositories" product's tab
+
+        :expectedresults: File Repository is created and listed as product's
+            repository
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_upload_file(self):
+        """Check arbitrary file can be uploaded to File Repository
+
+        :id: 2a9b74a4-cba8-430d-a699-fea543496466
+
+        :Setup:
+            1. Navigate to Content -> Products
+            2. Create a Product
+            3. Create a File Repository without specifying repo url
+            4. Click on the created repository
+
+        :Steps:
+            1. Click "Browse" button and select a file
+            2. Click Upload
+            3. Click the link in "Files" on "Content Type" table
+
+        :expectedresults: uploaded file is available under File Repository
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier4
+    def test_positive_upload_large_file(self):
+        """Check large file can be handled by File Repository
+
+        :id: 750b9190-d064-4b84-8527-d8367dafd4ab
+
+        :Setup:
+            1. Navigate to Content -> Products
+            2. Create a Product
+            3. Create a File Repository
+            4. Click on the created repository
+
+        :Steps:
+            1. Click "Browse" button and select a large file
+                (3GB - can use a Sallite ISO)
+            2. Click Upload
+            3. Click the link in "Files" on "Content Type" table
+
+        :expectedresults: uploaded file is available under File Repository
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier4
+    def test_positive_upload_0_byte_file(self):
+        """Check 0 byte file can be handled by File Repository
+
+        :id: c1891368-5e55-4e52-84a9-944e1c2af8e9
+
+        :Setup:
+            1. Navigate to Content -> Products
+            2. Create a Product
+            3. Create a File Repository without specifying repo url
+            4. Click on the created repository
+
+        :Steps:
+            1. Click "Browse" button and select a o byte file (create it
+                with touch "file_name"
+            2. Click Upload
+            3. Click the link in "Files" on "Content Type" table
+
+        :expectedresults: uploaded file is available under File Repository
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_filer_permissions(self):
+        """Check file permissions after file upload to File Repository
+
+        :id: f6771475-19bd-47ce-9f55-432d62e1dfa4
+
+        :Setup:
+            1. Navigate to Content -> Products
+            2. Create a Product
+            3. Create a File Repository without specifying repo url
+            4. Click on the created repository
+
+        :Steps:
+            1. Click "Browse" button and select a file
+            2. Click Upload
+            3. Click the link in "Files" on "Content Type" table
+
+        :expectedresults: uploaded file permissions are kept after upload
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_remove_file(self):
+        """Check arbitrary file can be removed from File Repository
+
+        :id: 3f2b08dd-2aa1-4ac9-8bdf-f604f47eec2a
+
+        :Setup:
+            1. Navigate to Content -> Products
+            2. Create a Product
+            3. Create a File Repository without specifying repo url
+            4. Click on the created repository
+            5. Click "Browse" button and select a file
+            6. Click Upload
+            7. Click the link in "Files" on "Content Type" table
+
+        :Steps:
+            1. Select arbitrary file
+            2. Click "Remove Files" button
+            3. Click "Remove" on modal
+
+        :expectedresults: file is not listed under File Repository after
+            removal
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier4
+    def test_positive_remote_directory_sync(self):
+        """Check an entire remote directory can be synced to File Repository
+        through http
+
+        :id: 7e25bb59-08b6-4b22-9040-396af3a1202a
+
+        :Setup:
+            1. Create a directory to be synced with a pulp manifest on its root
+            2. Made the directory available through http
+            3. Navigate to Content -> Products
+            4. Create a Product
+            5. Create a File Repository without specifying repo url
+
+        :Steps:
+            1. Fill url with directory http url to be synced
+            2. Click "Save" button
+            3. Select create repository
+            4. Click "Sync Now"
+
+
+        :expectedresults: entire directory is synced over http
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_local_directory_sync(self):
+        """Check an entire local directory can be synced to File Repository
+
+        :id: a561fd42-709c-4427-b27b-2c871e0bcfdf
+
+        :Setup:
+            1. Create a local (on Satellite/Foreman itself) directory to be
+                synced with a pulp manifest on its root
+            2. Navigate to Content -> Products
+            3. Create a Product
+            4. Create a File Repository without specifying repo url
+
+        :Steps:
+            1. Fill url with directory file:///path_to_directory url to be
+                synced
+            2. Click "Save" button
+            3. Select create repository
+            4. Click "Sync Now"
+
+        :expectedresults: entire local directory is synced
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_symlink_sync(self):
+        """Check symlinks are synced to File Repository
+
+        :id: 928c840d-94d0-4b8e-9a2f-e4581126611e
+
+        :Setup:
+            1. Create a local (on Satellite/Foreman itself) directory
+            2. Add symlinks to directory
+            3. Add a pulp manifest on its root
+            4. Navigate to Content -> Products
+            5. Create a Product
+            6. Create a File Repository without specifying repo url
+
+        :Steps:
+            1. Fill url with directory file:///path_to_directory url to be
+                synced
+            2. Click "Save" button
+            3. Select create repository
+            4. Click "Sync Now"
+
+        :expectedresults: directory synchronization follow symlinks
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_hidden_files_sync(self):
+        """Check hidden files are synced accordingly to pulp manifest
+
+        :id: da1fba32-b77f-43b2-b7a0-7c2e650a939b
+
+        :Setup:
+            1. Create a local (on Satellite/Foreman itself) directory
+            2. Add hidden files to directory
+            3. Add a pulp manifest on its root which include hidden files
+            4. Navigate to Content -> Products
+            5. Create a Product
+            6. Create a File Repository without specifying repo url
+
+        :Steps:
+            1. Fill url with directory file:///path_to_directory url to be
+                synced
+            2. Click "Save" button
+            3. Select create repository
+            4. Click "Sync Now"
+
+        :expectedresults: directory synchronization includes hidden files as
+            configured on pulp manifest
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_hidden_files_sync(self):
+        """Check hidden files aren't synced accordingly to pulp manifest
+
+        :id: 82963ee9-6166-4671-ba87-54666496c5e8
+
+        :Setup:
+            1. Create a local (on Satellite/Foreman itself) directory
+            2. Add hidden files to directory
+            3. Add a pulp manifest on its root which does include hidden files
+            4. Navigate to Content -> Products
+            5. Create a Product
+            6. Create a File Repository without specifying repo url
+
+        :Steps:
+            1. Fill url with directory file:///path_to_directory url to be
+                synced
+            2. Click "Save" button
+            3. Select create repository
+            4. Click "Sync Now"
+
+        :expectedresults: directory synchronization does not include hidden
+            files as configured on pulp manifest
 
         :CaseAutomation: notautomated
         """
