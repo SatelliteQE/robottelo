@@ -2456,14 +2456,15 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
-    @tier3
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1470765)
+    @tier3
     def test_positive_subscribe_host_with_restricted_user_permissions(self):
         """Attempt to subscribe a host with restricted user permissions.
 
         :id: 7b5ec90b-3942-48a9-9cc1-a361e698d16d
 
-        :BZ: 1379856
+        :BZ: 1379856, 1470765
 
         :steps:
 
