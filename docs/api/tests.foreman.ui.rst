@@ -228,6 +228,11 @@
 
 .. automodule:: tests.foreman.ui.test_organization
 
+:mod:`tests.foreman.ui.test_oscap_tailoringfiles`
+-----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_oscap_tailoringfiles
+
 :mod:`tests.foreman.ui.test_oscapcontent`
 -----------------------------------------
 
