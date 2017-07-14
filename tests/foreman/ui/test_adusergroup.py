@@ -612,3 +612,72 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+
+    @stubbed()
+    @tier2
+    def test_positive_add_admin_role_with_org_loc(self):
+        """Associate Admin role to User Group with org and loc set.
+        [belonging to external AD User Group.]
+
+        :id: 00841778-f89e-4445-a6c6-f1470b6da32e
+
+        :setup: LDAP Auth Source should be created with Org and Location
+                Associated.
+
+        :Steps:
+            1. Create an UserGroup.
+            2. Assign admin role to UserGroup.
+            3. Create and associate an External AD UserGroup.
+
+        :expectedresults: Whether a User belonging to User Group is able to
+            access some of the pages, with the associated org and loc
+            in LDAP Auth source page as the context set.
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_add_foreman_role_with_org_loc(self):
+        """Associate foreman roles to User Group with org and loc set.
+        [belonging to external AD User Group.]
+
+        :id: b39d7b2a-6d78-4c35-969a-37c8317ce64f
+
+        :setup: LDAP Auth Source should be created with Org and Location
+                Associated.
+
+        :Steps:
+            1. Create an UserGroup.
+            2. Assign some foreman roles to UserGroup.
+            3. Create and associate an External AD UserGroup.
+
+        :expectedresults: Whether a User belonging to User Group is able to
+            access foreman entities as per roles, with the associated org and
+            loc in LDAP Auth source page as the context set.
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_add_katello_role_with_org_loc(self):
+        """Associate katello roles to User Group with org and loc set.
+        [belonging to external AD User Group.]
+
+        :id: a2ebd4de-eb0a-47da-81e8-00942eedcbf6
+
+        :setup: LDAP Auth Source should be created with Org and Location
+                Associated.
+
+        :Steps:
+            1. Create an UserGroup.
+            2. Assign some foreman roles to UserGroup.
+            3. Create and associate an External AD UserGroup.
+
+        :expectedresults: Whether a User belonging to User Group is able to
+            access katello entities as per roles, with the associated org and
+            loc in LDAP Auth source page as the context set.
+
+        :CaseLevel: Integration
+        """

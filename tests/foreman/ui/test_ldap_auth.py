@@ -15,7 +15,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import skip_if_not_set, stubbed, tier3
+from robottelo.decorators import skip_if_not_set, stubbed, tier1, tier3
 from robottelo.test import UITestCase
 
 
@@ -443,4 +443,113 @@ class LDAPAuthTestCase(UITestCase):
         :caseautomation: notautomated
 
         :CaseLevel: System
+        """
+
+    @skip_if_not_set('ldap')
+    @stubbed()
+    @tier1
+    def test_positive_ipa_basic_roles_with_context(self):
+        """Login with LDAP - IPA user with org and loc context set.
+
+        :id: 03f75f54-3c60-4b05-b692-d3796ed46796
+
+        :setup:
+            1. Assure properly functioning IPA server for authentication.
+
+        :steps:
+            1. Ensure the LDAP - IPA Auth source is created with org and loc.
+            2. Provide all the values needed in the fields of LDAP Auth Source.
+            3. Login to sat6 with IPA User
+
+        :expectedresults: Log in to UI successfully and can access
+            appropriate functional areas in UI, with the org and loc context
+            set.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @skip_if_not_set('ldap')
+    @stubbed()
+    @tier1
+    def test_positive_ad_basic_roles_with_context(self):
+        """Login with LDAP - AD user with org and loc context set.
+
+        :id: 36447f1f-6fd9-4858-bf98-0022b79e95b4
+
+        :setup:
+            1. Assure properly functioning AD server for authentication.
+
+        :steps:
+            1. Ensure the LDAP - AD Auth source is created with org and loc.
+            2. Provide all the values needed in the fields of LDAP Auth Source.
+            3. Login to sat6 with IPA User
+
+        :expectedresults: Log in to UI successfully and can access
+            appropriate functional areas in UI, with the org and loc context
+            set.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @skip_if_not_set('ldap')
+    @stubbed()
+    @tier1
+    def test_positive_ad_with_context_multi_org_loc(self):
+        """Login with LDAP - AD user with org and loc context set from
+           multi org and loc stuff.
+
+        :id: d1d7d55b-617f-4798-a070-2bf02c606ef5
+
+        :setup:
+            1. Assure properly functioning AD server for authentication.
+
+        :steps:
+            1. Create and/or ensure there are multiple organizations and
+               locations.
+            2. Ensure the LDAP - AD Auth source is created with org and loc.
+            3. Provide all the values needed in the fields of LDAP Auth Source
+               locations.
+            4. Login to sat6 with AD User
+
+        :expectedresults: Log in to UI successfully and can access
+            appropriate functional areas in UI, with the ability to select
+            org and loc context from the list.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @skip_if_not_set('ldap')
+    @stubbed()
+    @tier1
+    def test_positive_ad_with_context_change_org_loc(self):
+        """Login with LDAP - AD user with updated org and loc context
+           from that set in Auth source.
+
+        :id: 58039aaa-d65c-45ea-8a63-16e3cbb702d7
+
+        :setup:
+            1. Assure properly functioning AD server for authentication.
+
+        :steps:
+            1. Create and/or ensure there are multiple organizations and
+               locations.
+            2. Ensure the LDAP - AD Auth source is created with org and loc.
+            3. Provide all the values needed in the fields of LDAP Auth Source
+               locations.
+            4. Login to sat6 with AD User
+            5. Login back as Admin user and change the default org and loc
+               for the AD user.
+            6. Login to sat6 with AD User.
+
+        :expectedresults: Log in to UI successfully and can access
+            appropriate functional areas in UI, with the org and
+            loc context, which was overriden.
+
+        :caseautomation: notautomated
         """
