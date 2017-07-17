@@ -1149,3 +1149,80 @@ class SettingTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_negative_update_hostname_with_empty_fact(self):
+        """Update the Hostname_facts settings without any string(empty values)
+
+        :id: 13dbb5d2-f052-42fe-8cbc-9b58fa6553e7
+
+        :Steps:
+
+            1. Goto settings ->Discovered tab -> Hostname_facts
+            2. Set empty hostname_facts (without any value)
+
+        :expectedresults: Error should be raised on setting empty value for
+            hostname_facts setting
+
+        :caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_remove_hostname_default_prefix(self):
+        """Remove the set(default) prefix from hostname_prefix setting
+
+        :id: c609dd46-6104-4710-8171-966d7195674f
+
+        :Steps:
+
+            1. Goto settings -> Discovered tab -> Hostname_prefix
+            2. Click on 'X' sign to remove the text and save
+
+        :expectedresults: Default set prefix should be removed
+
+        :caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_remove_hostname_default_facts(self):
+        """Remove the set(default) fact from hostname_facts setting and
+        update w/ new fact
+
+        :id: 250b8bf4-eca1-44d4-8154-7ec94a5fb16a
+
+        :Steps:
+
+            1. Goto settings ->Discovered tab -> Hostname_facts
+            2. Click on 'X' sign to remove the text and update w/ fact UUID
+
+        :expectedresults: Default set fact should be removed and a new fact
+            should be set
+
+        :caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_negative_discover_host_with_invalid_prefix(self):
+        """Update the hostname_prefix with invalid string like
+        -mac, 1mac or ^%$
+
+        :id: 46c1c383-8ee7-4152-a6ca-0a049f3f70b0
+
+        :Steps:
+
+            1. Goto settings -> Discovered tab -> Hostname_prefix
+            2. Update hostname_prefix starting with '-' or ^&$
+
+        :expectedresults: Validation error should be raised on updating
+            hostname_prefix with invalid string, should start w/ letter
+
+        :caseautomation: notautomated
+        """

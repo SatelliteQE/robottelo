@@ -1504,3 +1504,118 @@ class DiscoveryPrefixTestCase(UITestCase):
                     self.discoveredhosts.waitfordiscoveredhost(host_name)
                 )
                 self.assertIsNotNone(self.discoveredhosts.search(host_name))
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_update_hostname_settings(self):
+        """Update the hostname_prefix and Hostname_facts settings
+        and discover a host
+
+        :id: e53fa8a9-baf9-4019-83f3-64949461b892
+
+        :Steps:
+
+            1. Goto settings -> Discovered tab -> Hostname_prefix
+            2. Edit hostname_prefix using any text that must start with a
+               letter e.g. 'discover'
+            3. Goto settings ->Discovered tab -> Hostname_facts
+            4. Edit hostname_facts using 'discovery_bootif'
+
+        :expectedresults: Host should be discovered with name as
+            'Hostname_prefix + hostname_facts'.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_update_hostname_with_empty_prefix(self):
+        """Update the hostname_prefix to empty and Hostname_facts settings
+        with 'UUID'
+
+        :id: 537a616f-3b29-4fae-98a2-e27114bea14a
+
+        :Steps:
+
+            1. Goto settings -> Discovered tab -> Hostname_prefix
+            2. Set empty hostname_prefix
+            3. Goto settings ->Discovered tab -> Hostname_facts
+            4. Edit hostname_facts using 'UUID'
+
+        :expectedresults: Host should be discovered with UUID in name
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_update_hostname_with_facts_list(self):
+        """Update the Hostname_facts settings with list of hostname_facts
+
+        :id: e0d2791d-d106-491a-a8fd-bf42c8f411d4
+
+        :Steps:
+
+            1. Goto settings ->Discovered tab -> Hostname_facts
+            2. Edit hostname_facts using 'bios_vendor', uuid'
+
+        :expectedresults: Host should be discovered with first available fact
+            bios_vendor
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_update_hostname_with_unknown_fact(self):
+        """Update the Hostname_facts settings with list of hostname_facts
+        where the first available fact doesn't exist
+
+        :id: a7f64c8a-42dc-459d-8de0-f4d6b878c731
+
+        :Steps:
+
+            1. Goto settings ->Discovered tab -> Hostname_facts
+            2. Edit hostname_facts using 'bios', uuid'
+
+        :expectedresults: Host should be discovered with second fact uuid as
+            bios fact doesn't exist
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_negative_discover_host_with_existing_hostname(self):
+        """Discover a host with similar to hostname which already exists
+
+        :id: ea9a9a11-a02a-408e-86fe-ab5d0b0a94fe
+
+        :Steps:
+
+            1. Goto settings -> Discovered tab -> Hostname_prefix
+            2. Set empty hostname_prefix (without any value)
+            3. Goto settings ->Discovered tab -> Hostname_facts
+            4. update hostname_facts with 'bios_vendor'
+            5. Discover two host
+
+        :expectedresults: Error should be raised on discovering second host
+            like: Name has already been taken
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """

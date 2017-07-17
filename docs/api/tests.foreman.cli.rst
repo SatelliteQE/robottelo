@@ -238,6 +238,11 @@
 
 .. automodule:: tests.foreman.cli.test_satellitesync
 
+:mod:`tests.foreman.cli.test_setting`
+-------------------------------------
+
+.. automodule:: tests.foreman.cli.test_setting
+
 :mod:`tests.foreman.cli.test_sso`
 ---------------------------------
 
