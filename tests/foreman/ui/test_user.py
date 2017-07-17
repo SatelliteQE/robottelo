@@ -34,6 +34,7 @@ from robottelo.datafactory import (
     invalid_emails_list,
     invalid_names_list,
     invalid_values_list,
+    valid_data_list,
     valid_emails_list,
 )
 from robottelo.decorators import (
@@ -147,6 +148,25 @@ class UserTestCase(UITestCase):
                     name = gen_string('alpha')
                     make_user(session, username=name, email=email)
                     self.user.validate_user(name, 'email', email)
+
+    @tier1
+    def test_positive_create_with_description(self):
+        """Create User for all variations of Description
+
+        :id: eebeb6d3-c99f-4dc2-991c-0e8268187110
+
+        :expectedresults: User is created successfully
+
+        :CaseImportance: Critical
+        """
+        with Session(self.browser) as session:
+            for description in valid_data_list():
+                with self.subTest(description):
+                    name = gen_string('alpha')
+                    make_user(session, username=name, description=description)
+                    self.user.validate_user(
+                        name, 'description', description, False
+                    )
 
     @tier1
     def test_positive_create_with_language(self):
@@ -637,6 +657,27 @@ class UserTestCase(UITestCase):
             make_user(session, username=username, email=email)
             self.user.update(username, email=new_email)
             self.user.validate_user(username, 'email', new_email)
+
+    @tier1
+    def test_positive_update_description(self):
+        """Update Description in User
+
+        :id: f08ee305-0e0b-4df0-82d9-d10edcfa66c0
+
+        :expectedresults: User is updated successfully
+
+        :CaseImportance: Critical
+        """
+        username = gen_string('alpha')
+        description = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_user(session, username=username, description=description)
+            for new_description in valid_data_list():
+                with self.subTest(new_description):
+                    self.user.update(username, description=new_description)
+                    self.user.validate_user(
+                        username, 'description', new_description, False
+                    )
 
     @tier1
     def test_positive_update_language(self):

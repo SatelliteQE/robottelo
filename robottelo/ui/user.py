@@ -56,7 +56,8 @@ class User(Base):
             if default_org:
                 self.select(locators['users.default_org'], default_org)
 
-    def create(self, username=None, email=None, timezone=None, password1=None,
+    def create(self, username=None, email=None, timezone=None,
+               description=None, password1=None,
                password2=None, authorized_by='INTERNAL', locale=None,
                first_name=None, last_name=None, roles=None, admin=False,
                locations=None, organizations=None, edit=False,
@@ -70,6 +71,8 @@ class User(Base):
             self.assign_value(locators['users.lastname'], last_name)
         if email:
             self.assign_value(locators['users.email'], email)
+        if description:
+            self.assign_value(locators['users.description'], description)
         if timezone:
             self.select(locators['users.timezone_dropdown'], timezone)
         if locale:
@@ -99,7 +102,7 @@ class User(Base):
         else:
             self.click(common_locators['cancel_form'])
 
-    def update(self, username, new_username=None, email=None,
+    def update(self, username, new_username=None, email=None, description=None,
                new_password=None, password_confirmation=None, first_name=None,
                last_name=None, locale=None, roles=None, timezone=None,
                new_roles=None, locations=None, new_locations=None,
@@ -112,6 +115,8 @@ class User(Base):
             self.assign_value(locators['users.username'], new_username)
         if email:
             self.assign_value(locators['users.email'], email)
+        if description:
+            self.assign_value(locators['users.description'], description)
         if first_name:
             self.assign_value(locators['users.firstname'], first_name)
         if last_name:
