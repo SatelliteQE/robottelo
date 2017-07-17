@@ -38,7 +38,7 @@ from robottelo.decorators import (
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_host
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -565,7 +565,9 @@ class HostContentHostUnificationTestCase(UITestCase):
                     'busybox',
                     timeout=5,
                 )
-            self.assertIsNotNone(
+            self.assertIn(
+                ('This Host is not currently registered with'
+                 ' subscription-manager'),
                 self.contenthost.wait_until_element(
-                    common_locators['alert.error'])
+                    locators['contenthost.subscription_message']).text
             )
