@@ -1509,6 +1509,16 @@ locators = LocatorDict({
          "/a[not(contains(@data-original-title, '::'))]")),
 
     # host.interface
+    "host.add_interface": (By.ID, 'addInterface'),
+    "host.delete_interface": (
+        By.XPATH,
+        ("//button[contains(@class, 'removeInterface')]"
+         "[../preceding-sibling::td[contains(@class, 'identifier') "
+         "or contains(@class, 'mac')][contains(., '%s')]]")),
+    "host.fetch_primary_interface_mac": (
+        By.XPATH,
+        ("//table[@id='interfaceList']/tbody/tr[1]"
+         "/td[contains(@class, 'mac')]")),
     "host.edit_default_interface": (
         By.XPATH,
         "//table[@id='interfaceList']/tbody/tr[1]/td"
