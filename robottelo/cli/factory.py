@@ -902,14 +902,33 @@ def make_repository(options=None):
         --gpg-key GPG_KEY_NAME                  Name to search by
         --gpg-key-id GPG_KEY_ID                 gpg key numeric identifier
         --label LABEL
+        --mirror-on-sync MIRROR_ON_SYNC         true if this repository when
+                                                synced has to be mirrored from
+                                                the source and stale rpms
+                                                removed.
         --name NAME
         --organization ORGANIZATION_NAME        Organization name to search by
         --organization-id ORGANIZATION_ID       organization ID
         --organization-label ORGANIZATION_LABEL Organization label to search by
+        --ostree-upstream-sync-depth OSTREE_UPSTREAM_SYNC_DEPTH if a custom
+                                                sync policy is chosen for
+                                                ostree repositories then a
+                                                'depth' value must be provided.
+        --ostree-upstream-sync-policy OSTREE_UPSTREAM_SYNC_POLICY policies for
+                                                syncing upstream ostree
+                                                repositories. Possible
+                                                value(s): 'latest', 'all',
+                                                'custom'
         --product PRODUCT_NAME                  Product name to search by
         --product-id PRODUCT_ID                 product numeric identifier
         --publish-via-http ENABLE               Publish Via HTTP
                                                 One of true/false, yes/no, 1/0.
+        --upstream-password UPSTREAM_PASSWORD   Password of the upstream
+                                                repository user used for
+                                                authentication
+        --upstream-username UPSTREAM_USERNAME   Username of the upstream
+                                                repository user used for
+                                                authentication
         --url URL                               repository source url
         -h, --help                              print help
 
@@ -926,6 +945,7 @@ def make_repository(options=None):
         u'gpg-key': None,
         u'gpg-key-id': None,
         u'label': None,
+        u'mirror-on-sync': None,
         u'name': gen_string('alpha', 15),
         u'organization': None,
         u'organization-id': None,
