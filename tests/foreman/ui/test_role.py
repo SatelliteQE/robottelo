@@ -220,16 +220,17 @@ class RoleTestCase(UITestCase):
                 (strategy, value % role_name))
             self.assertIsNotNone(element)
 
-    @skip_if_bug_open('bugzilla', 1353788)
     @tier1
-    def test_positive_delete_cloned(self):
-        """Delete cloned role
+    def test_positive_delete_cloned_builtin(self):
+        """Delete cloned builtin role
 
         @id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
 
         @expectedresults: Role is deleted
 
-        @BZ: 1353788
+        @BZ: 1353788, 1378544
+
+        @CaseImportance: Critical
         """
         new_name = gen_string('alpha')
         with Session(self.browser):
