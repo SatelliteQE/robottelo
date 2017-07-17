@@ -19,7 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -407,3 +407,108 @@ class TemplateTestCase(UITestCase):
                     _raw_query='hostgroup = {}'.format(hostgroup.name)
                 )
             )
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_export_unlocked(self):
+        """Assure ability to export a unlocked template
+
+        :id: 178c3583-1724-4eb0-ae5d-699368d4d8c2
+
+        :Steps:
+            1. Go to Provisioning template UI
+            2. Choose an unlocked template and attempt to export it.
+
+        :expectedresults: The template is exported successfully.
+
+        :CaseImportance: Critical
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_export_locked(self):
+        """Assure ability to export a locked template
+
+        :id: c044ffb2-5928-4415-9332-28d6b9eeb634
+
+        :Steps:
+            1. Go to Provisioning template UI
+            2. Choose a locked template and attempt to export it.
+
+        :expectedresults: The template is exported successfully.
+
+        :CaseImportance: Critical
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_display_help(self):
+        """Assure template screen shows a Help Tab
+
+        :id: 6ec548d9-da98-4649-861a-22e4b23bdb48
+
+        :Steps:
+            1. Go to Provisioning template UI
+            2. Choose a template and click the Help Tab
+
+        :expectedresults: The template Help should be shown.
+
+        :CaseImportance: Critical
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_display_cloned_help(self):
+        """Assure cloned template screen shows a Help Tab
+
+        :id: e24650fe-68d9-4752-bd13-977cb09e7009
+
+        :Steps:
+            1. Go to Provisioning template UI
+            2. Choose a template, clone it and click the Help Tab.
+
+        :expectedresults: The cloned template Help should be shown.
+
+        :CaseImportance: Critical
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_export_cloned_and_edited(self):
+        """Assure cloned and edited template can be exported.
+
+        :id: 93e0ebe4-fa00-4251-8429-ee85ff67b444
+
+        :Steps:
+            1. Go to Provisioning template UI
+            2. Choose a template, clone it, edit it and export it.
+
+        :expectedresults: The cloned and edited template can be exported
+                          successfully.
+
+        :CaseImportance: Critical
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_export_template_disable_safe_render(self):
+        """Assure templates can be exported after disabling safe render.
+
+        :id: c4c05c13-1ea3-4963-b2dc-ec826b77c9cb
+
+        :Steps:
+            1. Go to Provisioning template UI
+            2. Set Safe mode Rendering to No, from settings.
+            3. The template is exported successfully.
+
+        :expectedresults: The templates can be exported successfully
+                          even after disabling safe render option.
+
+        :CaseImportance: Critical
+        """
