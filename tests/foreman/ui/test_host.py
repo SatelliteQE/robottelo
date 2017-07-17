@@ -46,7 +46,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.factory import make_host, set_context
 from robottelo.ui.session import Session
 
@@ -647,10 +647,19 @@ class HostTestCase(UITestCase):
                     ['Primary', True],
                 ],
             )
-            search = self.hosts.search(
+            host_el = self.hosts.search(
                 u'{0}.{1}'.format(host.name, host.domain.name)
             )
-            self.assertIsNotNone(search)
+            self.assertIsNotNone(host_el)
+            self.hosts.click(host_el)
+            self.hosts.click(locators['host.edit'])
+            self.hosts.click(tab_locators['host.tab_interfaces'])
+            delete_button = self.hosts.wait_until_element(
+                locators['host.delete_interface'] % interface_id)
+            # Verify the button is disabled
+            self.assertFalse(delete_button.is_enabled())
+            self.assertEqual(delete_button.get_attribute('disabled'), 'true')
+            # Attempt to delete the interface
             self.hosts.delete_interface(
                 host.name, host.domain.name, interface_id)
             # Verify interface wasn't deleted by fetching one of its parameters
