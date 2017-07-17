@@ -46,7 +46,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.factory import make_host, set_context
 from robottelo.ui.session import Session
 
@@ -599,6 +599,77 @@ class HostTestCase(UITestCase):
                 u'{0}.{1}'.format(host.name, host.domain.name)
             )
             self.assertIsNotNone(search)
+
+    @run_only_on('sat')
+    @tier3
+    def test_negative_delete_primary_interface(self):
+        """Attempt to delete primary interface of a host
+
+        :id: bc747e2c-38d9-4920-b4ae-6010851f704e
+
+        :BZ: 1417119
+
+        :expectedresults: Interface was not deleted
+
+        :CaseLevel: System
+        """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        interface_id = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=host.name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['Device Identifier', interface_id],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            host_el = self.hosts.search(
+                u'{0}.{1}'.format(host.name, host.domain.name)
+            )
+            self.assertIsNotNone(host_el)
+            self.hosts.click(host_el)
+            self.hosts.click(locators['host.edit'])
+            self.hosts.click(tab_locators['host.tab_interfaces'])
+            delete_button = self.hosts.wait_until_element(
+                locators['host.delete_interface'] % interface_id)
+            # Verify the button is disabled
+            self.assertFalse(delete_button.is_enabled())
+            self.assertEqual(delete_button.get_attribute('disabled'), 'true')
+            # Attempt to delete the interface
+            self.hosts.delete_interface(
+                host.name, host.domain.name, interface_id)
+            # Verify interface wasn't deleted by fetching one of its parameters
+            # (e.g., MAC address)
+            results = self.hosts.fetch_host_parameters(
+                host.name,
+                host.domain.name,
+                [['Interfaces', 'Primary Interface MAC']],
+            )
+            self.assertEqual(results['Primary Interface MAC'], host.mac)
 
     @run_only_on('sat')
     @tier3
