@@ -494,3 +494,20 @@ class DiscoveredTestCase(CLITestCase):
 
         :CaseLevel: System
         """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_update_discover_hostname_settings(self):
+        """Update the hostname_prefix and Hostname_facts settings and
+        discover a host.
+
+        :id: 10071eb1-ec2a-4061-b798-480643d8f4ed
+
+        :expectedresults: Host should be discovered with name as
+            'Hostname_prefix + hostname_facts'.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
