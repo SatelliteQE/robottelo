@@ -33,7 +33,7 @@ from robottelo.decorators import (
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -96,6 +96,70 @@ class RhevComputeResourceTestCase(UITestCase):
                         parameter_list=parameter_list
                     )
                     self.assertIsNotNone(self.compute_resource.search(name))
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1467664)
+    @tier1
+    def test_positive_create_rhev_with_same_name(self):
+        """Create a new rhev Compute Resource with existing name correction
+
+        :id: b9499d65-ef70-48b7-854a-f4cf740fbf9c
+
+        :setup: rhev hostname and credentials.
+
+        :steps:
+
+            1. Create a compute resource of type rhev.
+            2. Provide it with the valid hostname, username and password.
+            3. Provide a valid name to rhev Compute Resource.
+            4. Test the connection using Load Datacenter and submit.
+            5. Create again a compute resource with same name.
+            6. After error of name already taken,
+               update with different name
+            7. Click submit
+
+        :CaseAutomation: Automated
+
+        :expectedresults: A rhev CR is created successfully with proper
+            connection.
+
+        :CaseImportance: Critical
+
+        :BZ: 1467664
+        """
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.compute_resource.assign_value(
+                locators['resource.name'],
+                new_name
+            )
+            self.compute_resource.click(common_locators['submit'])
+            self.assertIsNone(
+                self.compute_resource.wait_until_element(
+                    common_locators["alert.error"],
+                    timeout=2,
+                )
+            )
 
     @run_only_on('sat')
     @tier1
