@@ -51,6 +51,7 @@ from robottelo.cli.proxy import CapsuleTunnelError, Proxy
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
+from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
@@ -1960,6 +1961,50 @@ def make_os(options=None):
     }
 
     return create_object(OperatingSys, args, options)
+
+
+@cacheable
+def make_scapcontent(options=None):
+    """
+    Usage::
+
+         scap-content create [OPTIONS]
+
+    Options::
+
+         --location-ids LOCATION_IDS           REPLACE locations with given ids
+                                               Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted
+         --locations LOCATION_NAMES            Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted
+         --organization-ids ORGANIZATION_IDS   REPLACE organizations with given
+                                               ids.
+                                               Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted
+         --organizations ORGANIZATION_NAMES    Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted
+         --original-filename ORIGINAL_FILENAME Original file name of the XML
+                                               file
+         --scap-file SCAP_FILE                 Scap content file
+         --title TITLE                         SCAP content name
+         -h, --help                            print help
+    """
+    # Assigning default values for attributes
+    args = {
+        u'scap-file': None,
+        u'original-filename': None,
+        u'location-ids': None,
+        u'locations': None,
+        u'title': gen_alphanumeric().lower(),
+        u'organization-ids': None,
+        u'organizations': None,
+    }
+
+    return create_object(Scapcontent, args, options)
 
 
 @cacheable

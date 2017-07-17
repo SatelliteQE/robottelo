@@ -12,13 +12,47 @@
 
 :Upstream: No
 """
-
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier4
+from fauxfactory import gen_string
+from robottelo import ssh
+from robottelo.cli.factory import make_scapcontent
+from robottelo.config import settings
+from robottelo.decorators import (
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+    tier4,
+    skip_if_bug_open,
+)
+from robottelo.datafactory import (
+    filtered_datapoint,
+    valid_data_list
+)
 from robottelo.test import CLITestCase
+
+
+@filtered_datapoint
+def valid_scapcontent_list():
+    """Returns a list of valid environment names"""
+    return[
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric'),
+        gen_string('alphanumeric', 255)
+    ]
 
 
 class OpenScapTestCase(CLITestCase):
     """Tests related to the oscap cli hammer plugin"""
+
+    @classmethod
+    def setUpClass(cls):
+        super(OpenScapTestCase, cls).setUpClass()
+        file_name = settings.oscap.content_path
+        cls.file_name = file_name.split('/')[
+                        (file_name.split('/')).__len__() - 1]
+        ssh.upload_file(local_file=settings.oscap.content_path,
+                        remote_file="/tmp/{0}".format(cls.file_name))
 
     @run_only_on('sat')
     @stubbed()
@@ -153,8 +187,8 @@ class OpenScapTestCase(CLITestCase):
         :CaseImportance: Critical
         """
 
+    @skip_if_bug_open('bugzilla', 1471801)
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_scap_content_with_valid_title(self):
         """Create scap-content with valid title
@@ -179,6 +213,12 @@ class OpenScapTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
+        for title in valid_data_list():
+            with self.subTest(title):
+                scap_content = make_scapcontent({'title': title,
+                                                'scap-file': '/tmp/{0}'.format(
+                                                   self.file_name)})
+                self.assertEqual(scap_content['title'], title)
 
     @run_only_on('sat')
     @stubbed()
