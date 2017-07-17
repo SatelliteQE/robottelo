@@ -10,7 +10,7 @@ paramiko==2.2.1
 pygal==2.3.1
 pytest==3.0.7
 pytest-services==1.2.1
-pytest-mock==1.6.0
+pytest-mock==1.6.1
 requests==2.18.1
 # For reporting test results on SauceLabs
 sauceclient==1.0.0
