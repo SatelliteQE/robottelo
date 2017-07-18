@@ -21,7 +21,7 @@ from robottelo.datafactory import generate_strings_list, invalid_names_list
 from robottelo.decorators import tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_usergroup
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -189,3 +189,46 @@ class UserGroupTestCase(UITestCase):
             self.assertIsNotNone(self.usergroup.search(name))
             self.usergroup.update(name, users=[user_name])
             self.assertIsNotNone(self.usergroup.search(name))
+
+    @tier1
+    def test_positive_update_org_with_admin_perms(self):
+        """Add non-admin user to a usergroup with administrative privileges and
+        make sure user can update his organizations
+
+        :id: 13d50901-d94a-4ede-a134-d7b5e84c9a2c
+
+        :BZ: 1390833
+
+        :expectedresults: user can update his assigned organizations
+        """
+        new_org = entities.Organization().create()
+        password = gen_string('alpha')
+        user = entities.User(
+            admin=False,
+            default_organization=self.organization,
+            password=password,
+            organization=[self.organization],
+        ).create()
+        group_name = gen_string('alpha')
+        # Create a usergroup with admin permissions and associate the user
+        with Session(self.browser) as session:
+            make_usergroup(
+                session, name=group_name, org=self.organization.name)
+            self.assertIsNotNone(self.usergroup.search(group_name))
+            self.usergroup.update(
+                group_name, users=[user.login], roles=['admin'])
+            self.assertIsNotNone(self.usergroup.search(group_name))
+        # Login as the user and assign new organization
+        with Session(self.browser, user=user.login, password=password):
+            self.user.update(
+                user.login,
+                new_organizations=[new_org.name],
+            )
+            # Make sure both organizations are assigned
+            self.user.click(self.user.search(user.login))
+            self.user.click(tab_locators['users.tab_organizations'])
+            for org in (self.organization.name, new_org.name):
+                self.assertIsNotNone(
+                    self.user.wait_until_element(
+                        common_locators['entity_deselect'] % org)
+                )
