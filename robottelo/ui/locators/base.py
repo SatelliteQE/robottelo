@@ -1047,7 +1047,8 @@ locators = LocatorDict({
     "users.current_password": (By.ID, "user_current_password"),
     "users.password": (By.ID, "user_password"),
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
-    "users.user": (By.XPATH, "//a[contains(., '%s')]"),
+    "users.user": (
+        By.XPATH, "//a[contains(., '%s')][contains(@href, 'edit')]"),
     "users.table_value": (By.XPATH, "//td[contains(., '%s')]"),
     "users.default_org": (
         By.XPATH,
