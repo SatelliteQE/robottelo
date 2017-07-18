@@ -287,9 +287,8 @@ class ContentViewTestCase(CLITestCase):
     # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1359665)
-    def test_positive_update_name(self):
-        """Update content view name
+    def test_positive_update_name_by_id(self):
+        """Find content view by its id and update its name afterwards
 
         :id: 35fccf2c-abc4-4ca8-a565-a7a6adaaf429
 
@@ -299,17 +298,41 @@ class ContentViewTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        con_view = make_content_view({
+        cv = make_content_view({
             'name': gen_string('utf8'),
             'organization-id': make_org(cached=True)['id'],
         })
         new_name = gen_string('utf8')
         ContentView.update({
-            'id': con_view['id'],
-            'name': new_name,
+            'id': cv['id'],
+            'new-name': new_name,
         })
-        con_view = ContentView.info({'id': con_view['id']})
-        self.assertEqual(con_view['name'], new_name)
+        cv = ContentView.info({'id': cv['id']})
+        self.assertEqual(cv['name'], new_name)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_update_name_by_name(self):
+        """Find content view by its name and update it
+
+        :id: aa9bced6-ee6c-4a18-90ac-874ab4979711
+
+        :expectedresults: Content view is updated with new name
+
+        :BZ: 1359665, 1416857
+
+        :CaseImportance: Critical
+        """
+        new_name = gen_string('alpha')
+        org = make_org(cached=True)
+        cv = make_content_view({'organization-id': org['id']})
+        ContentView.update({
+            'name': cv['name'],
+            'organization-label': org['label'],
+            'new-name': new_name,
+        })
+        cv = ContentView.info({'id': cv['id']})
+        self.assertEqual(cv['name'], new_name)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -368,12 +391,11 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
-        """delete content views
+        """delete content view by its id
 
         :id: e96d6d47-8be4-4705-979f-e5c320eca293
 
         :expectedresults: content view can be deleted
-
 
         :CaseImportance: Critical
         """
@@ -383,6 +405,28 @@ class ContentViewTestCase(CLITestCase):
         ContentView.delete({'id': con_view['id']})
         with self.assertRaises(CLIReturnCodeError):
             ContentView.info({'id': con_view['id']})
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_delete_by_name(self):
+        """delete content view by its name
+
+        :id: 014b85f3-003b-42d9-bbfe-21620e8eb84b
+
+        :expectedresults: content view can be deleted
+
+        :BZ: 1416857
+
+        :CaseImportance: Critical
+        """
+        org = make_org(cached=True)
+        cv = make_content_view({'organization-id': org['id']})
+        ContentView.delete({
+            'name': cv['name'],
+            'organization': org['name'],
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.info({'id': cv['id']})
 
     @tier1
     @skip_if_bug_open('bugzilla', 1317057)
@@ -734,7 +778,6 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Composite content views are created
 
-
         :CaseLevel: Integration
         """
         # Create REPO
@@ -768,6 +811,58 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(
             con_view['components'][0]['id'],
             version1_id,
+            'version was not associated to composite CV',
+        )
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_create_composite_by_name(self):
+        """Create a composite content view and add non-composite content
+        view by its name
+
+        :id: c91271d8-efb8-487e-ab11-2e9e87660d3c
+
+        :expectedresults: Composite content view is created and has another
+            view associated to it
+
+        :BZ: 1416857
+
+        :CaseLevel: Integration
+        """
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Sync REPO
+        Repository.synchronize({'id': new_repo['id']})
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        cvv = new_cv['versions'][0]
+        # Create CV
+        cv = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(len(cv['components']), 0)
+        # Associate version to composite CV
+        ContentView.add_version({
+            u'content-view-version': cvv['version'],
+            u'content-view': new_cv['name'],
+            u'name': cv['name'],
+            u'organization-id': self.org['id'],
+        })
+        # Assert whether version was associated to composite CV
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(len(cv['components']), 1)
+        self.assertEqual(
+            cv['components'][0]['id'],
+            cvv['id'],
             'version was not associated to composite CV',
         )
 
@@ -818,6 +913,51 @@ class ContentViewTestCase(CLITestCase):
         })
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['versions']), 0)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_remove_component_by_name(self):
+        """Create a composite content view and remove component from it by name
+
+        :id: 908f9cad-b985-4bae-96c0-037ea1d395a6
+
+        :expectedresults: Composite content view info output does not contain
+            any values for its components
+
+        :BZ: 1416857
+
+        :CaseLevel: Integration
+        """
+        # Create new repository
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Sync REPO
+        Repository.synchronize({'id': new_repo['id']})
+        # Create new content-view and add repository to view
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'organization-id': self.org['id'],
+            u'repository-id': new_repo['id'],
+        })
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        # Get the CV info
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        # Create a composite CV
+        comp_cv = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
+            'component-ids': new_cv['versions'][0]['id']
+        })
+        self.assertEqual(len(comp_cv['components']), 1)
+        ContentView.remove_version({
+            u'content-view-version': new_cv['versions'][0]['version'],
+            u'content-view': new_cv['name'],
+            u'organization-id': self.org['id'],
+            u'name': comp_cv['name'],
+        })
+        comp_cv = ContentView.info({u'id': comp_cv['id']})
+        self.assertEqual(len(comp_cv['components']), 0)
 
     @tier2
     @run_only_on('sat')
@@ -2618,6 +2758,47 @@ class ContentViewTestCase(CLITestCase):
             org_hosts = Host.list({'organization-id': org['id']})
             self.assertEqual(len(org_hosts), 1)
             self.assertEqual(org_hosts[0]['name'], host_client.hostname)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_clone_by_id(self):
+        """Clone existing content view by id
+
+        :id: e3b63e6e-0964-45fb-a765-e1885c0ecbdd
+
+        :expectedresults: Content view is cloned successfully
+        """
+        org = make_org()
+        cloned_cv_name = gen_string('alpha')
+        content_view = make_content_view({u'organization-id': org['id']})
+        new_cv = ContentView.copy({
+            u'id': content_view['id'],
+            u'new-name': cloned_cv_name,
+        })[0]
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(new_cv['name'], cloned_cv_name)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_clone_by_name(self):
+        """Clone existing content view by name
+
+        :id: b4c94286-ebbe-4e4c-a1df-22cb7055984d
+
+        :expectedresults: Content view is cloned successfully
+
+        :BZ: 1416857
+        """
+        org = make_org()
+        cloned_cv_name = gen_string('alpha')
+        content_view = make_content_view({u'organization-id': org['id']})
+        new_cv = ContentView.copy({
+            u'name': content_view['name'],
+            u'organization-id': org['id'],
+            u'new-name': cloned_cv_name,
+        })[0]
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(new_cv['name'], cloned_cv_name)
 
     @tier2
     @run_only_on('sat')
