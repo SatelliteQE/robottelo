@@ -253,6 +253,27 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['download-policy'], policy)
 
     @tier1
+    def test_positive_create_with_mirror_on_sync(self):
+        """Create YUM repositories with available mirror on sync rule
+
+        :id: 37a09a91-42fc-4271-b58b-8e00ef0dc5a7
+
+        :expectedresults: YUM repository created successfully and its mirror on
+            sync rule value can be read back
+
+        :BZ: 1383258
+
+        :CaseImportance: Critical
+        """
+        for value in ['yes', 'no']:
+            with self.subTest(value):
+                new_repo = self._make_repository({
+                    u'content-type': u'yum',
+                    u'mirror-on-sync': value,
+                })
+                self.assertEqual(new_repo['mirror-on-sync'], value)
+
+    @tier1
     def test_positive_create_with_default_download_policy(self):
         """Verify if the default download policy is assigned
         when creating a YUM repo without `--download-policy`
@@ -1076,6 +1097,24 @@ class RepositoryTestCase(CLITestCase):
         })
         result = Repository.info({'id': new_repo['id']})
         self.assertEqual(result['gpg-key']['id'], gpg_key_new['id'])
+
+    @tier1
+    def test_positive_update_mirror_on_sync(self):
+        """Update the mirror on sync rule for repository
+
+        :id: 9bab2537-3223-40d7-bc4c-a51b09d2e812
+
+        :expectedresults: Repository is updated
+
+        :CaseImportance: Critical
+        """
+        new_repo = self._make_repository({u'mirror-on-sync': 'no'})
+        Repository.update({
+            u'id': new_repo['id'],
+            u'mirror-on-sync': 'yes',
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['mirror-on-sync'], 'yes')
 
     @run_only_on('sat')
     @tier1
