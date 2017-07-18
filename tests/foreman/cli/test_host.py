@@ -1733,6 +1733,7 @@ class KatelloAgentTestCase(CLITestCase):
     activation_key = None
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1457977)
     @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key
