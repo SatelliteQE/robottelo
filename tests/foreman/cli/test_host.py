@@ -832,171 +832,29 @@ class HostCreateTestCase(CLITestCase):
 
     @run_only_on('sat')
     @stubbed
-    @tier3
-    def test_positive_create_baremetal_with_bios(self):
-        """Create a new Host from provided MAC address
+    @tier2
+    def test_negative_create_with_incompatible_pxe_loader(self):
+        """Try to create host with a known OS and incompatible PXE loader
 
-        :id: 01509973-9f0b-4166-9fbd-59b753a7384b
+        :id: 75d7ab06-2d23-4f85-a080-faadfe2b294a
 
-        :setup: Create a PXE-based VM with BIOS boot mode (outside of
-            Satellite).
+        :setup:
+          1. Synchronize RHEL[5,6,7] kickstart repos
 
-        :steps: Create a new host using 'BareMetal' option and MAC address of
-            the pre-created VM
-
-        :expectedresults: Host is created
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed
-    @tier3
-    def test_positive_create_baremetal_with_uefi(self):
-        """Create a new Host from provided MAC address
-
-        :id: 508b268b-244d-4bf0-a92a-fbee96e7e8ae
-
-        :setup: Create a PXE-based VM with UEFI boot mode (outside of
-            Satellite).
-
-        :steps: Create a new host using 'BareMetal' option and MAC address of
-            the pre-created VM
-
-        :expectedresults: Host is created
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed
-    @tier3
-    def test_positive_verify_files_with_pxegrub_uefi(self):
-        """Provision a new Host and verify the tftp and dhcp file structure is
-        correct
-
-        :id: 8b4f5bb3-d949-4000-bc97-2be85c4f57be
 
         :steps:
+          1. create a new RHEL host using 'BareMetal' option and the following
+             OS-PXE_loader combinations:
 
-            1. Associate a pxegrub-type provisioning template with the os
-            2. Create new host (can be fictive bare metal) with the above OS
-               and PXE loader set to Grub UEFI
-            3. Build the host
+             a RHEL5,6 - GRUB2_UEFI
+             b RHEL5,6 - GRUB2_UEFI_SB
+             c RHEL7 - GRUB_UEFI
+             d RHEL7 - GRUB_UEFI_SB
 
-        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
-            dir/file structure:
-
-                grub/bootia32.efi
-                grub/bootx64.efi
-                grub/01-AA-BB-CC-DD-EE-FF
-                grub/efidefault
-                grub/shim.efi
-
-            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed
-    @tier3
-    def test_positive_verify_files_with_pxegrub_uefi_secureboot(self):
-        """Provision a new Host and verify the tftp and dhcp file structure is
-        correct
-
-
-        :id: a5482ecd-7bb8-4fda-9a74-f17751e11daf
-
-        :steps:
-
-            1. Associate a pxegrub-type provisioning template with the os
-            2. Create new host (can be fictive bare metal) with the above OS
-               and PXE loader set to Grub UEFI SecureBoot
-            3. Build the host
-
-        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
-            dir/file structure:
-
-                grub/bootia32.efi
-                grub/bootx64.efi
-                grub/01-AA-BB-CC-DD-EE-FF
-                grub/efidefault
-                grub/shim.efi
-
-            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed
-    @tier3
-    def test_positive_verify_files_with_pxegrub2_uefi(self):
-        """Provision a new UEFI Host and verify the tftp and dhcp file
-        structure is correct
-
-        :id: ce1acb0b-ff2e-4622-9e69-e3c0c4fdc466
-
-        :steps:
-
-            1. Associate a pxegrub-type provisioning template with the os
-            2. Create new host (can be fictive bare metal) with the above OS
-               and PXE loader set to Grub2 UEFI
-            3. Build the host
-
-        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
-            dir/file structure:
-
-                pxegrub2
-                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-                grub2/grub.cfg
-                grub2/grubx32.efi
-                grub2/grubx64.efi
-                grub/shim.efi
-
-            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed
-    @tier3
-    def test_positive_verify_files_with_pxegrub2_uefi_secureboot(self):
-        """Provision a new UEFI Host and verify the tftp and dhcp file
-        structure is correct
-
-        :id: 6811e0b0-154a-4af6-80c0-86009672a965
-
-        :steps:
-
-            1. Associate a pxegrub-type provisioning template with the os
-            2. Create new host (can be fictive bare metal) with the above OS
-               and PXE loader set to Grub2 UEFI SecureBoot
-            3. Build the host
-
-        :expectedresults: Verify [/var/lib/tftpboot/] contains the following
-            dir/file structure:
-
-                pxegrub2
-                grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
-                grub2/grub.cfg
-                grub2/grubx32.efi
-                grub2/grubx64.efi
-                grub/shim.efi
-
-            And record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+        :expectedresults:
+          1. Warning message appears
+          2. Files not deployed on TFTP
+          3. Host not created
 
         :caseautomation: notautomated
 
@@ -1770,6 +1628,204 @@ class HostParameterTestCase(CLITestCase):
                     })
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
+
+
+class HostProvisionTestCase(CLITestCase):
+    """Provisioning-related tests"""
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_provision_baremetal_with_bios_syslinux(self):
+        """Provision RHEL system on a new BIOS BM Host with SYSLINUX loader
+        from provided MAC address
+
+        :id: 01509973-9f0b-4166-9fbd-59b753a7384b
+
+        :setup:
+          1. Create a PXE-based VM with BIOS boot mode (outside of
+             Satellite).
+          2. Synchronize a RHEL Kickstart repo
+
+        :steps:
+          1. create a new RHEL host using 'BareMetal' option,
+             PXEGRUB loader and MAC address of the pre-created VM
+          2. do the provisioning assertions (assertion steps #1-6)
+          3. reboot the host
+
+        :expectedresults:
+          1. The loader files on TFTP are in the appropriate format and in the
+             appropriate dirs.
+          2. PXE handoff is successful (tcpdump shows the VM has requested
+             the correct files)
+          3. VM started to provision (might be tricky to automate console
+             checks)
+          4. VM accessible via SSH, shows correct OS version in
+             ``/etc/*release``
+          5. Host info command states 'built' in the status
+          6. GRUB config changes the boot order (boot local first)
+          7. Hosts boots straight to RHEL after reboot (step #4)
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_provision_baremetal_with_uefi_syslinux(self):
+        """Provision RHEL system on a new UEFI BM Host with SYSLINUX loader
+        from provided MAC address
+
+        :id: a02e39a9-e04b-483f-8036-a5fe0348f615
+
+        :setup:
+          1. Create a PXE-based VM with UEFI boot mode (outside of
+             Satellite).
+          2. Synchronize a RHEL Kickstart repo
+
+        :steps:
+          1. create a new RHEL host using 'BareMetal' option,
+             PXELINUX BIOS loader and MAC address of the pre-created VM
+          2. do the provisioning assertions (assertion steps #1-6)
+          3. reboot the host
+
+        :expectedresults:
+          1. The loader files on TFTP are in the appropriate format and in the
+             appropriate dirs.
+          2. PXE handoff is successful (tcpdump shows the VM has requested
+             the correct files)
+          3. VM started to provision (might be tricky to automate console
+             checks)
+          4. VM accessible via SSH, shows correct OS version in
+             ``/etc/*release``
+          5. Host info command states 'built' in the status
+          6. GRUB config changes the boot order (boot local first)
+          7. Hosts boots straight to RHEL after reboot (step #4)
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_provision_baremetal_with_uefi_grub(self):
+        """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
+        a provided MAC address
+
+        :id: 508b268b-244d-4bf0-a92a-fbee96e7e8ae
+
+        :setup:
+          1. Create a PXE-based VM with UEFI boot mode (outside of
+             Satellite).
+          2. Synchronize a RHEL6 Kickstart repo (el7 kernel is too new
+             for GRUB v1)
+
+        :steps:
+          1. create a new RHEL6 host using 'BareMetal' option,
+             PXEGRUB loader and MAC address of the pre-created VM
+          2. reboot the VM (to ensure the NW boot is run)
+          3. do the provisioning assertions (assertion steps #1-6)
+          4. reboot the host
+
+        :expectedresults:
+          1. The loader files on TFTP are in the appropriate format and in the
+             appropriate dirs.
+          2. PXE handoff is successful (tcpdump shows the VM has requested
+             the correct files)
+          3. VM started to provision (might be tricky to automate console
+             checks)
+          4. VM accessible via SSH, shows correct OS version in
+             ``/etc/*release``
+          5. Host info command states 'built' in the status
+          6. GRUB config changes the boot order (boot local first)
+          7. Hosts boots straight to RHEL after reboot (step #4)
+
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_provision_baremetal_with_uefi_grub2(self):
+        """Provision a RHEL7+ system on a new UEFI BM Host with GRUB2 loader
+        from a provided MAC address
+
+        :id: b944c1b4-8612-4299-ac2e-9f77487ba669
+
+        :setup:
+          1. Create a PXE-based VM with UEFI boot mode (outside of
+             Satellite).
+          2. Synchronize a RHEL7+ Kickstart repo
+             (el6 kernel is too old for GRUB2)
+
+        :steps:
+          1. create a new RHEL7+ host using 'BareMetal' option,
+             PXEGRUB2 loader and MAC address of the pre-created VM
+          2. reboot the VM (to ensure the NW boot is run)
+          3. do the provisioning assertions (assertion steps #1-6)
+          4. reboot the host
+
+
+        :expectedresults:
+          1. The loader files on TFTP are in the appropriate format and in the
+             appropriate dirs.
+          2. PXE handoff is successful (tcpdump shows the VM has requested
+             the correct files)
+          3. VM started to provision (might be tricky to automate console
+             checks)
+          4. VM accessible via SSH, shows correct OS version in
+             ``/etc/*release``
+          5. Host info command states 'built' in the status
+          6. GRUB config changes the boot order (boot local first)
+          7. Hosts boots straight to RHEL after reboot (step #4)
+
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_provision_baremetal_with_uefi_secureboot(self):
+        """Provision RHEL7+ on a new SecureBoot-enabled UEFI BM Host from
+        provided MAC address
+
+        :id: f5a0fe7b-0899-42df-81ad-be3143785303
+
+        :setup:
+          1. Create a PXE-based VM with UEFI boot mode from
+             a secureboot image (outside of Satellite).
+          2. Synchronize a RHEL7+ Kickstart repo
+             (el6 kernel is too old for GRUB2)
+
+        :steps:
+          1. The loader files on TFTP are in the appropriate format and in the
+             appropriate dirs.
+          2. PXE handoff is successful (tcpdump shows the VM has requested
+             the correct files)
+          3. VM started to provision (might be tricky to automate console
+             checks)
+          4. VM accessible via SSH, shows correct OS version in
+             ``/etc/*release``
+          5. Host info command states 'built' in the status
+          6. GRUB config changes the boot order (boot local first)
+          7. Hosts boots straight to RHEL after reboot (step #4)
+
+        :expectedresults: Host is provisioned
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
 
 
 @run_in_one_thread

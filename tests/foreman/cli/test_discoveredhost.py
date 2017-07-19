@@ -207,15 +207,35 @@ class DiscoveredTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier3
-    def test_positive_provision_pxeless_host(self):
-        """Provision the pxe-less discovered host from cli
+    def test_positive_provision_pxeless_bios_syslinux(self):
+        """Provision and discover the pxe-less BIOS host from cli using SYSLINUX
+        loader
 
         :id: ae7f3ce2-e66e-44dc-85cb-0c3c4782cbb1
 
-        :Setup: Host should already be discovered
+        :Setup:
+            1. Craft the FDI with remaster the image to have ssh enabled
 
-        :expectedresults: Host should be provisioned successfully and entry
-            from discovered host list should be auto removed
+        :Steps:
+            1. Create a BIOS VM and set it to boot from the FDI
+            2. Run assertion steps #1-2
+            3. Provision the discovered host using PXELinux loader
+            4. Run assertion steps #3-7
+
+        :expectedresults: Host should be provisioned successfully
+            1. [TBD] Ensure FDI loaded and successfully sent out facts
+
+               1.1 ping vm
+               1.2 ssh to the VM and read the logs (if ssh enabled)
+               1.3 optionally sniff the HTTP traffic coming from the host
+
+            2. Ensure host appeared in Discovered Hosts on satellite
+            3. [TBD] Ensure the kexec was successful (e.g. the kexec request
+               result in production.log)
+            4. [TBD] Ensure anaconda loaded and the installation finished
+            5. [TBD] Ensure the host is provisioned with correct attributes
+            6. Ensure the host is created in Hosts
+            7. Ensure the entry from discovered host list disappeared
 
         :CaseLevel: System
         """
@@ -224,6 +244,7 @@ class DiscoveredTestCase(CLITestCase):
                 org=self.org, loc=self.loc)
         with LibvirtGuest(boot_iso=True) as pxe_host:
             hostname = pxe_host.guest_name
+            # fixme: assertion #1
             discovered_host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(discovered_host)
             # Provision just discovered host
@@ -232,6 +253,7 @@ class DiscoveredTestCase(CLITestCase):
                 'hostgroup': self.configured_env['hostgroup']['name'],
                 'root-password': gen_string('alphanumeric'),
             })
+            # fixme: assertion #2-5
             provisioned_host = Host.info({
                 'name': '{0}.{1}'.format(
                     discovered_host['name'],
@@ -255,25 +277,172 @@ class DiscoveredTestCase(CLITestCase):
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
+    @stubbed
     @run_only_on('sat')
     @tier3
-    def test_positive_provision_pxe_host(self):
-        """Provision the pxe based discovered host from cli
+    def test_positive_provision_pxeless_uefi_grub(self):
+        """Provision and discover the pxe-less UEFI host from cli using GRUB
+        loader
 
-        :id: b5385fe3-d532-4373-af64-5492275ff8d4
+        :id: 0704ec80-dfaf-4f25-ad6b-a4cd3f33a1cb
 
-        :Setup: Host should already be discovered
+        :Setup:
+            1. Craft the FDI with remaster the image to have ssh enabled
+            2. Synchronize RHEL6 repo (needed for GRUB)
 
-        :expectedresults: Host should be provisioned successfully and entry
-            from discovered host list should be automatically removed.
+        :Steps:
+            1. Create a UEFI VM and set it to boot from the FDI
+            2. Run assertion steps #1-2
+            3. Provision the discovered host using UEFI_GRUB PXE loader
+            4. Run assertion steps #3-7
+
+        :expectedresults: Host should be provisioned successfully
+            1. [TBD] Ensure FDI loaded and successfully sent out facts
+
+                1.1 ping vm
+                1.2 ssh to the VM and read the logs (if ssh enabled)
+                1.3 optionally sniff the HTTP traffic coming from the host
+
+            2. Ensure host appeared in Discovered Hosts on satellite
+            3. [TBD] Ensure the kexec was successful (e.g. the kexec request
+               result in production.log)
+            4. [TBD] Ensure anaconda loaded and the installation finished
+            5. [TBD] Ensure the host is provisioned with correct attributes
+            6. Ensure the host is created in Hosts
+            7. Ensure the entry from discovered host list disappeared
 
         :CaseLevel: System
         """
+
+    @stubbed
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_pxeless_uefi_grub2(self):
+        """Provision and discover the pxe-less UEFI host from cli using GRUB2
+        loader
+
+        :id: 81b0b586-617c-4100-80e6-ce924fb26d88
+
+        :Setup:
+            1. Craft the FDI with remaster the image to have ssh enabled
+            2. Synchronize RHEL7+ repo (needed for GRUB2)
+
+        :Steps:
+            1. Create a UEFI VM and set it to boot from the FDI
+            2. Run assertion steps #1-2
+            3. Provision the discovered host using GRUB2_UEFI PXE loader
+            4. Run assertion steps #3-7
+
+        :expectedresults: Host should be provisioned successfully
+            1. Ensure FDI loaded and successfully sent out facts
+
+                1.1 ping vm
+                1.2 ssh to the VM and read the logs (if ssh enabled)
+                1.3 optionally sniff the HTTP traffic coming from the host
+
+            2. Ensure host appeared in Discovered Hosts on satellite
+            3. Ensure the kexec was successful (e.g. the kexec request
+               result in production.log)
+            4. Ensure anaconda loaded and the installation finished
+            5. Ensure the host is provisioned with correct attributes
+            6. Ensure the host is created in Hosts
+            7. Ensure the entry from discovered host list disappeared
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_pxeless_uefi_grub2_secureboot(self):
+        """Provision and discover the pxe-less UEFI SB host from cli using GRUB2
+        loader
+
+        :id: b9896977-9f4a-4f3d-85d9-660f62e76448
+
+        :Setup:
+            1. Craft the FDI with remaster the image to have ssh enabled
+            2. Synchronize RHEL7+ repo (needed for GRUB2)
+
+        :Steps:
+            1. Create a UEFI VM with secureboot and set it to boot from the FDI
+            2. Run assertion steps #1-2
+            3. Provision the discovered host using GRUB2_UEFI_SB PXE loader
+            4. Run assertion steps #3-7
+
+        :expectedresults: Host should be provisioned successfully
+            1. Ensure FDI loaded and successfully sent out facts
+
+                1.1 ping vm
+                1.2 ssh to the VM and read the logs (if ssh enabled)
+                1.3 optionally sniff the HTTP traffic coming from the host
+
+            2. Ensure host appeared in Discovered Hosts on satellite
+            3. Ensure the kexec was successful (e.g. the kexec request
+               result in production.log)
+            4. Ensure anaconda loaded and the installation finished
+            5. Ensure the host is provisioned with correct attributes
+            6. Ensure the host is created in Hosts
+            7. Ensure the entry from discovered host list disappeared
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_pxe_host_with_bios_syslinux(self):
+        """Provision the pxe-based BIOS discovered host from cli using SYSLINUX
+        loader
+
+        :id: b5385fe3-d532-4373-af64-5492275ff8d4
+
+        :Setup:
+            1. Create a BIOS VM and set it to boot from a network
+            2. for getting more detailed info from FDI, remaster the image to
+               have ssh enabled
+
+        :steps:
+            1. Build a default PXE template
+            2. Run assertion step #1
+            3. Boot the VM (from NW)
+            4. Run assertion steps #2-4
+            5. Provision the discovered host
+            6. Run assertion steps #5-9
+
+        :expectedresults: Host should be provisioned successfully
+            1. [TBD] Ensure the tftpboot files are updated
+
+              1.1 Ensure fdi-image files have been placed under tftpboot/boot/
+              1.2 Ensure the 'default' pxelinux config has been placed under
+              tftpboot/pxelinux.cfg/
+              1.3 Ensure the discovery section exists inside pxelinux config,
+              it leads to the FDI kernel and the ONTIMEOUT is set to discovery
+
+            2. [TBD] Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            3. [TBD] Ensure FDI loaded and successfully sent out facts
+
+                3.1 ping vm
+                3.2 ssh to the VM and read the logs (if ssh enabled)
+                3.3 optionally sniff the HTTP traffic coming from the host
+
+            4. Ensure host appeared in Discovered Hosts on satellite
+            5. [TBD] Ensure the tftpboot files are updated for the hosts mac
+            6. [TBD] Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            7. [TBD] Optionally ensure anaconda loaded and the installation
+               finished
+            8. [TBD] Ensure the host is provisioned with correct attributes
+            9. Ensure the entry from discovered host list disappeared
+
+        :CaseLevel: System
+        """
+        # fixme: assertion #1
         if not self.configured_env:
             self.configured_env = configure_env_for_provision(
                 org=self.org, loc=self.loc)
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name
+            # fixme: assertion #2-3
+            # assertion #4
             discovered_host = self._assertdiscoveredhost(hostname)
             self.assertIsNotNone(discovered_host)
             # Provision just discovered host
@@ -282,12 +451,14 @@ class DiscoveredTestCase(CLITestCase):
                 'hostgroup': self.configured_env['hostgroup']['name'],
                 'root-password': gen_string('alphanumeric'),
             })
+            # fixme: assertion #5-8
             provisioned_host = Host.info({
                 'name': '{0}.{1}'.format(
                     discovered_host['name'],
                     self.configured_env['domain']['name']
                 )
             })
+            # assertion #8
             self.assertEqual(
                 provisioned_host['network']['subnet'],
                 self.configured_env['subnet']['name']
@@ -300,10 +471,155 @@ class DiscoveredTestCase(CLITestCase):
                 provisioned_host['operating-system']['operating-system'],
                 self.configured_env['os']['title']
             )
-            # Check that provisioned host is not in the list of discovered
-            # hosts anymore
+            # assertion #9
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
+
+    @stubbed
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_pxe_host_with_uefi_grub(self):
+        """Provision the pxe-based UEFI discovered host from cli using PXEGRUB
+        loader
+
+        :id: fc86e56e-9dc6-48ba-aaa7-8b6611b973c9
+
+        :Setup:
+            1. Create an UEFI VM and set it to boot from a network
+            2. for getting more detailed info from FDI, remaster the image to
+               have ssh enabled
+
+        :steps:
+            1. Build a default PXE template
+            2. Run assertion step #1
+            3. Boot the VM (from NW)
+            4. Run assertion steps #2-4
+            5. Provision the discovered host
+            6. Run assertion steps #5-9
+
+        :expectedresults: Host should be provisioned successfully
+            1. Ensure the tftpboot files are updated
+
+              1.1 Ensure fdi-image files have been placed under tftpboot/boot/
+              1.2 Ensure the 'default' pxelinux config has been placed under
+              tftpboot/pxelinux.cfg/
+              1.3 Ensure the discovery section exists inside pxelinux config,
+              it leads to the FDI kernel and the ONTIMEOUT is set to discovery
+
+            2. Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            3. Ensure FDI loaded and successfully sent out facts
+
+                3.1 ping vm
+                3.2 ssh to the VM and read the logs (if ssh enabled)
+                3.3 optionally sniff the HTTP traffic coming from the host
+
+            4. Ensure host appeared in Discovered Hosts on satellite
+            5. Ensure the tftpboot files are updated for the hosts mac
+            6. Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            7. Optionally ensure anaconda loaded and the installation finished
+            8. Ensure the host is provisioned with correct attributes
+            9. Ensure the entry from discovered host list disappeared
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_pxe_host_with_uefi_grub2(self):
+        """Provision the pxe-based UEFI discovered host from cli using PXEGRUB2
+        loader
+
+        :id: 0002af1b-6f4b-40e2-8f2f-343387be6f72
+
+        :Setup:
+            1. Create an UEFI VM and set it to boot from a network
+            2. Synchronize RHEL7 kickstart repo (rhel6 kernel too old for GRUB)
+            3. for getting more detailed info from FDI, remaster the image to
+               have ssh enabled
+
+        :steps:
+            1. Build a default PXE template
+            2. Run assertion step #1
+            3. Boot the VM (from NW)
+            4. Run assertion steps #2-4
+            5. Provision the discovered host
+            6. Run assertion steps #5-9
+
+        :expectedresults: Host should be provisioned successfully
+            1. Ensure the tftpboot files are updated
+
+              1.1 Ensure fdi-image files have been placed under tftpboot/boot/
+              1.2 Ensure the 'default' pxelinux config has been placed under
+              tftpboot/pxelinux.cfg/
+              1.3 Ensure the discovery section exists inside pxelinux config,
+              it leads to the FDI kernel and the ONTIMEOUT is set to discovery
+
+            2. Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            3. Ensure FDI loaded and successfully sent out facts
+
+                3.1 ping vm
+                3.2 ssh to the VM and read the logs (if ssh enabled)
+                3.3 optionally sniff the HTTP traffic coming from the host
+
+            4. Ensure host appeared in Discovered Hosts on satellite
+            5. Ensure the tftpboot files are updated for the hosts mac
+            6. Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            7. Optionally ensure anaconda loaded and the installation finished
+            8. Ensure the host is provisioned with correct attributes
+            9. Ensure the entry from discovered host list disappeared
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @run_only_on('sat')
+    @tier3
+    def test_positive_provision_pxe_host_with_uefi_grub2_sb(self):
+        """Provision the pxe-based UEFI Secureboot discovered host from cli
+        using PXEGRUB2 loader
+
+        :id: 285ebbac-934b-45ae-a0ca-0dc450836428
+
+        :Setup:
+            1. Create an UEFI SB VM and set it to boot from a network
+            2. Synchronize RHEL6 kickstart repo (rhel7 kernel too new for GRUB)
+            3. for getting more detailed info from FDI, remaster the image to
+               have ssh enabled
+
+        :steps:
+            1. Build a default PXE template
+            2. Run assertion step #1
+            3. Boot the VM (from NW)
+            4. Run assertion steps #2-4
+            5. Provision the discovered host
+            6. Run assertion steps #5-9
+
+        :expectedresults: Host should be provisioned successfully
+            1. Ensure the tftpboot files are updated
+
+              1.1 Ensure fdi-image files have been placed under tftpboot/boot/
+              1.2 Ensure the 'default' pxelinux config has been placed under
+              tftpboot/pxelinux.cfg/
+              1.3 Ensure the discovery section exists inside pxelinux config,
+              it leads to the FDI kernel and the ONTIMEOUT is set to discovery
+
+            2. Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            3. Ensure FDI loaded and successfully sent out facts
+
+                3.1 ping vm
+                3.2 ssh to the VM and read the logs (if ssh enabled)
+                3.3 optionally sniff the HTTP traffic coming from the host
+
+            4. Ensure host appeared in Discovered Hosts on satellite
+            5. Ensure the tftpboot files are updated for the hosts mac
+            6. Ensure PXE handoff goes as expected (tcpdump -p tftp)
+            7. Optionally ensure anaconda loaded and the installation finished
+            8. Ensure the host is provisioned with correct attributes
+            9. Ensure the entry from discovered host list disappeared
+
+        :CaseLevel: System
+        """
 
     @run_only_on('sat')
     @tier3
