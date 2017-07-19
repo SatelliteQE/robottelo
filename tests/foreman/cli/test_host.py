@@ -1733,7 +1733,6 @@ class KatelloAgentTestCase(CLITestCase):
     activation_key = None
 
     @classmethod
-    @skip_if_bug_open('bugzilla', 1457977)
     @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key
@@ -1779,7 +1778,6 @@ class KatelloAgentTestCase(CLITestCase):
         super(KatelloAgentTestCase, self).setUp()
         # Create VM and register content host
         self.client = VirtualMachine(distro=DISTRO_RHEL7)
-        self.addCleanup(vm_cleanup, self.client)
         self.client.create()
         self.addCleanup(vm_cleanup, self.client)
         self.client.install_katello_ca()

@@ -118,7 +118,7 @@ class ContentView(Base):
         cls.command_sub = 'publish'
         # Publishing can take a while so try to wait a bit longer
         if timeout is None:
-            timeout = 120
+            timeout = 300
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,

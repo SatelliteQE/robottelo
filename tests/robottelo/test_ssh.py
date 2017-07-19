@@ -14,11 +14,15 @@ else:
 
 
 class MockChannel(object):
-    def __init__(self, ret):
+    def __init__(self, ret, status_ready=True):
         self.ret = ret
+        self.status_ready = status_ready
 
     def recv_exit_status(self):
         return self.ret
+
+    def exit_status_ready(self):
+        return self.status_ready
 
 
 class MockStdout(object):

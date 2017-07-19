@@ -297,7 +297,8 @@ class BaseCliTestCase(unittest2.TestCase):
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
             output_format=None,
-            timeout=None
+            timeout=300,
+            connection_timeout=10
         )
         self.assertIs(response, command.return_value)
 
@@ -318,7 +319,8 @@ class BaseCliTestCase(unittest2.TestCase):
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
             output_format='json',
-            timeout=None
+            timeout=300,
+            connection_timeout=10
         )
         handle_resp.assert_called_once_with(
             command.return_value,
