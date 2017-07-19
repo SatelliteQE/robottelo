@@ -1363,7 +1363,6 @@ class RepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['puppet-modules'], '0')
 
-    @skip_if_bug_open('bugzilla', 1343006)
     @tier1
     def test_positive_upload_content(self):
         """Create repository and upload content
@@ -1372,9 +1371,15 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: upload content is successful
 
+        :BZ: 1446975
+
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({'name': gen_string('alpha', 15)})
+        new_repo = self._make_repository({
+            u'name': gen_string('alpha', 15),
+            u'content-type': u'file',
+            u'url': None,
+        })
         ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD),
                         remote_file="/tmp/{0}".format(RPM_TO_UPLOAD))
         result = Repository.upload_content({
