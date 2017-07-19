@@ -736,12 +736,11 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_remove_version_by_id(self):
-        """Delete content view version using 'remove' command
+        """Delete content view version using 'remove' command by id
 
         :id: e8664353-6601-4566-8478-440be20a089d
 
         :expectedresults: Content view version deleted successfully
-
 
         :CaseImportance: Critical
         """
@@ -749,6 +748,7 @@ class ContentViewTestCase(CLITestCase):
         new_cv = make_content_view({u'organization-id': new_org['id']})
         ContentView.publish({u'id': new_cv['id']})
         new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 1)
         env = new_cv['lifecycle-environments'][0]
         cvv = new_cv['versions'][0]
         ContentView.remove_from_environment({
@@ -758,6 +758,37 @@ class ContentViewTestCase(CLITestCase):
 
         ContentView.remove({
             u'content-view-version-ids': cvv['id'],
+            u'id': new_cv['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 0)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_remove_version_by_name(self):
+        """Delete content view version using 'remove' command by name
+
+        :id: 2c838716-dcd3-4017-bffc-da53727c22a3
+
+        :expectedresults: Content view version deleted successfully
+
+        :BZ: 1416862
+
+        :CaseImportance: Critical
+        """
+        new_org = make_org({u'name': gen_alphanumeric()})
+        new_cv = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 1)
+        env = new_cv['lifecycle-environments'][0]
+        cvv = new_cv['versions'][0]
+        ContentView.remove_from_environment({
+            u'id': new_cv['id'],
+            u'lifecycle-environment-id': env['id'],
+        })
+        ContentView.remove({
+            u'content-view-versions': cvv['version'],
             u'id': new_cv['id'],
         })
         new_cv = ContentView.info({u'id': new_cv['id']})
