@@ -2,7 +2,7 @@
 """Implements Lifecycle content environments."""
 
 from robottelo.ui.base import Base
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -60,3 +60,17 @@ class LifecycleEnvironment(Base):
                 description,
                 common_locators['save']
             )
+
+    def fetch_puppet_module(self, lce_name, module_name, cv_name=None):
+        """Get added puppet module name from selected lifecycle environment and
+        content-view
+        """
+        self.search_and_click(lce_name)
+        self.click(tab_locators['lce.tab_puppet_modules'])
+        if cv_name:
+            self.assign_value(
+                locators['content_env.puppet_module.select_cv'], cv_name)
+        self.assign_value(common_locators['kt_search'], module_name)
+        self.click(common_locators['kt_search_button'])
+        return self.wait_until_element(
+            locators['content_env.puppet_module.get_name'] % module_name)
