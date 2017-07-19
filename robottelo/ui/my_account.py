@@ -52,6 +52,7 @@ class MyAccount(Base):
 
         :param str field_name: one of ["first_name", "last_name", "email",
             "language", "password", "password_confirmation"]
+
         :return str
         """
         self.navigate_to_entity()

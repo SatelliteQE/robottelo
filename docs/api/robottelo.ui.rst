@@ -23,6 +23,11 @@
 
 .. automodule:: robottelo.ui.bookmark
 
+:mod:`robottelo.ui.computeprofile`
+----------------------------------
+
+.. automodule:: robottelo.ui.computeprofile
+
 :mod:`robottelo.ui.computeresource`
 -----------------------------------
 
@@ -34,7 +39,7 @@
 .. automodule:: robottelo.ui.configgroups
 
 :mod:`robottelo.ui.container`
-------------------------------
+-----------------------------
 
 .. automodule:: robottelo.ui.container
 
@@ -52,6 +57,16 @@
 -----------------------------
 
 .. automodule:: robottelo.ui.dashboard
+
+:mod:`robottelo.ui.discoveredhosts`
+-----------------------------------
+
+.. automodule:: robottelo.ui.discoveredhosts
+
+:mod:`robottelo.ui.discoveryrules`
+----------------------------------
+
+.. automodule:: robottelo.ui.discoveryrules
 
 :mod:`robottelo.ui.dockertag`
 -----------------------------
@@ -143,6 +158,11 @@
 
 .. automodule:: robottelo.ui.medium
 
+:mod:`robottelo.ui.my_account`
+------------------------------
+
+.. automodule:: robottelo.ui.my_account
+
 :mod:`robottelo.ui.navigator`
 -----------------------------
 
@@ -157,6 +177,21 @@
 -----------------------
 
 .. automodule:: robottelo.ui.org
+
+:mod:`robottelo.ui.oscapcontent`
+--------------------------------
+
+.. automodule:: robottelo.ui.oscapcontent
+
+:mod:`robottelo.ui.oscappolicy`
+-------------------------------
+
+.. automodule:: robottelo.ui.oscappolicy
+
+:mod:`robottelo.ui.oscapreports`
+--------------------------------
+
+.. automodule:: robottelo.ui.oscapreports
 
 :mod:`robottelo.ui.packages`
 ----------------------------
@@ -184,7 +219,7 @@
 .. automodule:: robottelo.ui.puppetmodule
 
 :mod:`robottelo.ui.registry`
-------------------------------
+----------------------------
 
 .. automodule:: robottelo.ui.registry
 

@@ -60,6 +60,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.environment
 
+:mod:`robottelo.cli.erratum`
+----------------------------
+
+.. automodule:: robottelo.cli.erratum
+
 :mod:`robottelo.cli.fact`
 -------------------------
 
@@ -110,6 +115,16 @@ Submodules:
 
 .. automodule:: robottelo.cli.import_
 
+:mod:`robottelo.cli.job_invocation`
+-----------------------------------
+
+.. automodule:: robottelo.cli.job_invocation
+
+:mod:`robottelo.cli.job_template`
+---------------------------------
+
+.. automodule:: robottelo.cli.job_template
+
 :mod:`robottelo.cli.lifecycleenvironment`
 -----------------------------------------
 
@@ -145,6 +160,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.ostreebranch
 
+:mod:`robottelo.cli.package`
+----------------------------
+
+.. automodule:: robottelo.cli.package
+
 :mod:`robottelo.cli.partitiontable`
 -----------------------------------
 
@@ -169,6 +189,11 @@ Submodules:
 ---------------------------------
 
 .. automodule:: robottelo.cli.puppetmodule
+
+:mod:`robottelo.cli.recurring_logic`
+------------------------------------
+
+.. automodule:: robottelo.cli.recurring_logic
 
 :mod:`robottelo.cli.report`
 ---------------------------
