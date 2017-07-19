@@ -232,3 +232,48 @@ class UserGroupTestCase(UITestCase):
                     self.user.wait_until_element(
                         common_locators['entity_deselect'] % org)
                 )
+
+    @tier1
+    def test_positive_update_loc_with_admin_perms(self):
+        """Add non-admin user to a usergroup with administrative privileges and
+        make sure user can update his locations
+
+        :id: 03fb44cb-1a15-4eca-93d5-346837055bd0
+
+        :BZ: 1390833
+
+        :expectedresults: user can update his assigned locations
+        """
+        loc1 = entities.Location().create()
+        loc2 = entities.Location().create()
+        password = gen_string('alpha')
+        user = entities.User(
+            admin=False,
+            default_organization=self.organization,
+            location=[loc1],
+            organization=[self.organization],
+            password=password,
+        ).create()
+        group_name = gen_string('alpha')
+        # Create a usergroup with admin permissions and associate the user
+        with Session(self.browser) as session:
+            make_usergroup(
+                session, name=group_name, org=self.organization.name)
+            self.assertIsNotNone(self.usergroup.search(group_name))
+            self.usergroup.update(
+                group_name, users=[user.login], roles=['admin'])
+            self.assertIsNotNone(self.usergroup.search(group_name))
+        # Login as the user and assign new location
+        with Session(self.browser, user=user.login, password=password):
+            self.user.update(
+                user.login,
+                new_locations=[loc2.name],
+            )
+            # Make sure both locations are assigned
+            self.user.click(self.user.search(user.login))
+            self.user.click(tab_locators['users.tab_locations'])
+            for loc in (loc1.name, loc2.name):
+                self.assertIsNotNone(
+                    self.user.wait_until_element(
+                        common_locators['entity_deselect'] % loc)
+                )
