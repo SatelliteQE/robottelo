@@ -398,6 +398,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image is added to the CR successfully
          """
+        self.compute_resource.check_image_os(self.rhev_img_os)
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
@@ -454,6 +455,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
         """
+        self.compute_resource.check_image_os(self.rhev_img_os)
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
@@ -621,7 +623,7 @@ class RhevComputeResourceTestCase(UITestCase):
         :expectedresults: The Compute Resource created and opened successfully
 
         :BZ: 1452534
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
         """
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
@@ -787,7 +789,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: Automated
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
@@ -896,7 +898,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
-        :Caseautomation: notautomated
+        :CaseAutomation: Automated
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
@@ -993,7 +995,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with custom settings
 
-        :Caseautomation: notautomated
+        :CaseAutomation: Automated
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
