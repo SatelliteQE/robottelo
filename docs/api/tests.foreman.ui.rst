@@ -28,6 +28,11 @@
 
 .. automodule:: tests.foreman.ui.test_bookmark
 
+:mod:`tests.foreman.ui.test_bootdisk`
+-------------------------------------
+
+.. automodule:: tests.foreman.ui.test_bootdisk
+
 :mod:`tests.foreman.ui.test_capsule`
 ------------------------------------
 
