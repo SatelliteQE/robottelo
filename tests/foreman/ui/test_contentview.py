@@ -5239,3 +5239,102 @@ class ContentViewTestCase(UITestCase):
         """
         # Note: This test case requires complete external capsule
         #  configuration.
+
+    @stubbed
+    @tier2
+    def test_positive_arbitrary_file_repo_addition(self):
+        """Check a File Repository with Arbitrary File can be added to a
+        Content View
+
+        :id: 3837799a-1041-44b1-88b5-6f34c118e3a9
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+
+        :Steps:
+            1. Add the FR to the CV
+
+        :expectedresults: Check FR is added to CV
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_arbitrary_file_repo_removal(self):
+        """Check a File Repository with Arbitrary File can be removed from a
+        Content View
+
+        :id: f37f7013-569d-4318-95ec-b9fd1111e62d
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+            4. Add the FR to the CV
+
+        :Steps:
+            1. Remove the FR from the CV
+
+        :expectedresults: Check FR is removed from CV
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_arbitrary_file_sync_over_capsule(self):
+        """Check a File Repository with Arbitrary File can be added to a
+        Content View is synced throughout capsules
+
+        :id: ec56b501-daad-4757-a01a-2aec20ed1e2c
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+            4. Add the FR to the CV
+            5. Create a Capsule
+            6. Connect the Capsule with Satellite/Foreman host
+
+        :Steps:
+            1. Start synchronization
+
+        :expectedresults: Check CV with FR is synced over Capsule
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_arbitrary_file_repo_promotion(self):
+        """Check arbitrary files availability on Environment after Content
+        View promotion
+
+        :id: 1ea04f8d-3341-4d6c-b863-1a96dcebd830
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+            4. Add the FR to the CV
+            5. Create an Environment
+
+        :Steps:
+            1. Promote the CV to the Environment
+
+        :expectedresults: Check arbitrary files from FR is available on
+            environment
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """
