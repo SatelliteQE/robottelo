@@ -1588,7 +1588,7 @@ locators = LocatorDict({
         By.XPATH, ("//table[@class='repo_table']//td[contains(.,'%s')]"
                    "/../td/label/img[@alt='Spinner']")),
 
-    # Lifecycle Envionments
+    # Lifecycle Environments
     "content_env.new": (
         By.XPATH, "//a[contains(@ui-sref, 'environments.new')]"),
     "content_env.create_initial": (
@@ -1616,6 +1616,12 @@ locators = LocatorDict({
         "//dd[@bst-edit-textarea='environment.description']//textarea"),
     "content_env.table": (
         By.XPATH, "//table[contains(@class,'environment-table')]"),
+    "content_env.puppet_module.select_cv": (
+        By.XPATH,
+        "//select[contains(@ng-model, 'contentView')]"),
+    "content_env.puppet_module.get_name": (
+        By.XPATH, "//tr[contains(@ng-repeat, 'puppetModule')]"
+                  "/td[contains(., '%s')]"),
 
     # GPG Key
     "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpg-keys.new']"),

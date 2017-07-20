@@ -21,6 +21,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import create_role_permissions
+from robottelo.constants import FAKE_0_PUPPET_REPO, REPO_TYPE
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     run_only_on,
@@ -30,7 +31,7 @@ from robottelo.decorators import (
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
-from robottelo.ui.factory import make_lifecycle_environment
+from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators, menu_locators
 from robottelo.ui.session import Session
 
@@ -41,7 +42,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     @classmethod
     def setUpClass(cls):
         super(LifeCycleEnvironmentTestCase, cls).setUpClass()
-        cls.org_name = entities.Organization().create().name
+        cls.organization = entities.Organization().create()
 
     @run_only_on('sat')
     @tier1
@@ -59,7 +60,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                 with self.subTest(name):
                     make_lifecycle_environment(
                         session,
-                        org=self.org_name,
+                        org=self.organization.name,
                         name=name,
                         description=gen_string('alpha'),
                     )
@@ -83,14 +84,14 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session,
-                org=self.org_name,
+                org=self.organization.name,
                 name=env1_name,
                 description=description
             )
             self.assertIsNotNone(self.lifecycleenvironment.search(env1_name))
             make_lifecycle_environment(
                 session,
-                org=self.org_name,
+                org=self.organization.name,
                 name=env2_name,
                 description=description,
                 prior=env1_name,
@@ -112,7 +113,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session,
-                org=self.org_name,
+                org=self.organization.name,
                 name=name,
                 description=gen_string('alpha'),
             )
@@ -135,7 +136,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         new_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_lifecycle_environment(
-                session, org=self.org_name, name=name)
+                session, org=self.organization.name, name=name)
             self.assertIsNotNone(self.lifecycleenvironment.search(name))
             self.lifecycleenvironment.update(
                 name,
@@ -143,6 +144,51 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                 gen_string('alpha')
             )
             self.assertIsNotNone(self.lifecycleenvironment.search(new_name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_add_puppet_module(self):
+        """Promote content view with puppet module to a new environment
+
+        :id: 12bed99d-8f96-48ca-843a-b77e123e8e2e
+
+        :steps:
+            1. Create Product/puppet repo and sync it
+            2. Create CV and add puppet module from created repo
+            3. Publish and promote CV to new environment
+
+        :expectedresults: Puppet modules can be listed successfully from
+            lifecycle environment interface
+
+        :BZ: 1408264
+
+        :CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        puppet_module = 'httpd'
+        product = entities.Product(organization=self.organization).create()
+        repo_id = entities.Repository(
+            product=product,
+            content_type=REPO_TYPE['puppet'],
+            url=FAKE_0_PUPPET_REPO
+        ).create().id
+        entities.Repository(id=repo_id).sync()
+        with Session(self.browser) as session:
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.content_views.add_puppet_module(
+                cv_name,
+                puppet_module,
+                filter_term='Latest',
+            )
+            self.content_views.publish(cv_name)
+            self.content_views.promote(cv_name, 'Version 1', env_name)
+            self.assertIsNotNone(self.lifecycleenvironment.fetch_puppet_module(
+                env_name, puppet_module, cv_name=cv_name))
 
     @tier2
     @stubbed('Implement once BZ1348727 is fixed')
@@ -188,7 +234,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
             for name, prior in zip(env_names, chain([None], env_names)):
                 make_lifecycle_environment(
                     session,
-                    org=self.org_name,
+                    org=self.organization.name,
                     name=name,
                     prior=prior
                 )

@@ -149,6 +149,21 @@ tab_locators = LocatorDict({
     "gpgkey.tab_repos": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href,'repositories')]"),
 
+    # Lifecycle Environments
+    # Third level UI
+    "lce.tab_details": (
+        By.XPATH, "//a[contains(@ui-sref, 'environment.details')]"),
+    "lce.tab_contentview": (
+        By.XPATH, "//a[contains(@href, 'content-views')]"),
+    "lce.tab_yum_repos": (
+        By.XPATH, "//a[contains(@href, 'repositories')]"),
+    "lce.tab_errata": (
+        By.XPATH, "//a[contains(@ng-href, 'errata')]"),
+    "lce.tab_packages": (
+        By.XPATH, "//a[contains(@ng-href, 'packages')]"),
+    "lce.tab_puppet_modules": (
+        By.XPATH, "//a[contains(@ng-href, 'puppet-modules')]"),
+
     # Content Views
     # Third level UI
     "contentviews.tab_details": (
