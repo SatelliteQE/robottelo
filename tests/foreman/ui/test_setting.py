@@ -19,11 +19,7 @@
 from fauxfactory import gen_email, gen_string, gen_url
 from random import choice, randint
 from robottelo.datafactory import filtered_datapoint, valid_data_list
-from robottelo.decorators import (
-    run_only_on,
-    tier1,
-    stubbed,
-)
+from robottelo.decorators import run_only_on, tier1, stubbed, tier4
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import edit_param
@@ -999,3 +995,157 @@ class SettingTestCase(UITestCase):
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
+
+    @stubbed
+    @tier1
+    def test_negative_settings_access_to_non_admin(self):
+        """Check non admin users can't access Administer -> Settings tab
+
+        :id: cefb64ba-5209-4901-b09a-84a433e5e344
+
+        :steps:
+            1. Login with non admin user
+            2. Check "Administer" tab is not present
+            3. Navigate to /settings
+            4. Check message permission denied is present
+
+        :expectedresults: Administer -> Settings tab should not be available to
+            non admin users
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_update_email_delivery_method_smtp(self):
+        """Updating SMTP params on Email tab
+
+        :id: 3668e81a-6bb0-4399-b192-cad191f6a167
+
+        :steps:
+            1. Navigate to Administer > Settings > Email tab
+            2. Update delivery method select interface to SMTP
+            3. SMTP params configuration:
+                3.1. SMTP address
+                3.2. SMTP authentication
+                3.3. SMTP HELO/EHLO domain
+                3.4. SMTP StartTLS  AUTO
+                3.5. SMTP OpenSSL verify mode
+                3.6. SMTP password
+                3.7. SMTP port
+                3.8. SMTP username
+            4. Update "Email reply address" and "Email subject prefix"
+            5. Click "Test Email" button
+            6. Check success msg "Email was sent successfully" is shown
+            7. Check sent email has updated values on sender and subject
+                accordingly
+
+        :expectedresults: Email is sent through SMTP
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_update_email_delivery_method_smtp(self):
+        """Updating SMTP params on Email tab fail
+
+        :id: d2a40c36-4a7e-45cb-a1b6-750ed49f222b
+
+        :steps:
+            1. Navigate to Administer > Settings > Email tab
+            2. Update delivery method select interface to SMTP
+            3. Update SMTP params with invalid configuration:
+                3.1. SMTP address
+                3.2. SMTP authentication
+                3.3. SMTP HELO/EHLO domain
+                3.4. SMTP password
+                3.5. SMTP port
+                3.6. SMTP username
+            4. Click "Test Email" button
+            5. Check error msg "Unable to send email, check server log for more
+                information" is shown
+            6. Check /var/log/foreman/production.log has error msg related
+                to email
+
+        :expectedresults: Email is not sent through SMTP
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_update_email_delivery_method_sendmail(self):
+        """Updating Sendmail params on Email tab
+
+        :id: 1651e820-7fc2-4295-acef-68737da8e1e2
+
+        :steps:
+            1. Navigate to Administer > Settings > Email tab
+            2. Update delivery method select interface to Sendmail
+            3. Sendmail params configuration:
+                3.1. Sendmail arguments
+                3.2. Sendmail location
+                3.3. Send welcome email
+            4. Update "Email reply address" and "Email subject prefix"
+            5. Click "Test Email" button
+            6. Check success msg "Email was sent successfully" is shown
+            7. Check sent email has updated values on sender and subject
+                accordingly
+
+        :expectedresults: Email is sent through Sendmail
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_update_email_delivery_method_sendmail(self):
+        """Updating Sendmail params on Email tab fail
+
+        :id: 72391f12-68dd-4fce-b289-d3876564ce8a
+
+        :steps:
+            1. Navigate to Administer > Settings > Email tab
+            2. Update delivery method select interface to Sendmail
+            3. update Sendmail params with invalid configuration:
+                3.1. Sendmail arguments
+                3.2. Sendmail location
+                3.3. Send welcome email
+            4. Click "Test Email" button
+            5. Check error msg "Unable to send email, check server log for more
+                information" is shown
+            6. Check /var/log/foreman/production.log has error msg related
+                to email
+
+        :expectedresults: Email is not sent through Sendmail
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier4
+    def test_positive_email_yaml_config_precedence(self):
+        """Check configuration file /etc/foreman/email.yaml takes precedence
+        over UI. This behaviour will be default until Foreman 1.16. This
+        behavior can also be changed through --foreman-email-config-method
+        installer parameter
+
+        :id: 17b9fcd9-9b4b-41c9-b9f3-d3bd956c3939
+
+        :steps:
+            1. create a /etc/foreman/email.yaml file with smtp configuration
+            2. Restart katello service
+            3. Check only a few parameters are editable:
+                3.1 : Email reply address
+                3.2 : Email subject prefix
+                3.3 : Send welcome email
+            4. Delete or move email.yaml file
+            5. Restart katello service
+            6. Check all parameters on Administer/Settings/Email tab are
+                editable.
+
+        :expectedresults: File configuration takes precedence over ui
+
+        :CaseImportance: Critical
+        """
