@@ -15,7 +15,6 @@ import os
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
-from robottelo.decorators import bz_bug_is_open
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 
 logger = logging.getLogger(__name__)
@@ -257,7 +256,7 @@ class VirtualMachine(object):
         if force or settings.cdn or not downstream_repo:
             self.run(u'subscription-manager repos --enable {0}'.format(repo))
 
-    def install_katello_agent(self):
+    def install_katello_agent(self, start_gofer=True):
         """Installs katello agent on the virtual machine.
 
         :return: None.
@@ -265,17 +264,31 @@ class VirtualMachine(object):
             installed.
 
         """
-        self.run('yum install -y katello-agent')
+        ka_install = self.run('yum install -y katello-agent')
+        if ka_install.return_code != 0:
+            raise VirtualMachineError(
+                'Failed to install katello-agent',
+                ka_install.stderr
+            )
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
-            raise VirtualMachineError('Failed to install katello-agent')
-        if bz_bug_is_open('1431747'):
+            raise VirtualMachineError(
+                'Failed to locate katello-agent package',
+                result.stdout
+            )
+        if start_gofer:
             gofer_start = self.run('service goferd start')
             if gofer_start.return_code != 0:
-                raise VirtualMachineError('Failed to start katello-agent')
-        gofer_check = self.run('service goferd status')
-        if gofer_check.return_code != 0:
-            raise VirtualMachineError('katello-agent is not running')
+                raise VirtualMachineError(
+                    'Failed to start katello-agent',
+                    gofer_start.stderr
+                )
+            gofer_check = self.run('service goferd status')
+            if gofer_check.return_code != 0:
+                raise VirtualMachineError(
+                    'katello-agent is not running',
+                    gofer_check.stderr
+                )
 
     def install_katello_ca(self):
         """Downloads and installs katello-ca rpm on the virtual machine.
