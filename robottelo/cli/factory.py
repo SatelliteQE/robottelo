@@ -45,6 +45,7 @@ from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
+from robottelo.cli.realm import Realm
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import CapsuleTunnelError, Proxy
@@ -1897,6 +1898,53 @@ def make_org(options=None):
     }
 
     return create_object(Org, args, options)
+
+
+@cacheable
+def make_realm(options=None):
+    """
+    Usage::
+
+        hammer realm create [OPTIONS]
+
+    Options::
+
+        --location-ids LOCATION_IDS         REPLACE locations with given ids
+                                            Comma separated list of values.
+                                            Values containing comma should
+                                            be double quoted
+        --locations LOCATION_NAMES          Comma separated list of values.
+                                            Values containing comma should
+                                            be double quoted
+        --name NAME                         The realm name, e.g. EXAMPLE.COM
+        --organization-ids ORGANIZATION_IDS REPLACE organizations with
+                                            given ids.
+                                            Comma separated list of values.
+                                            Values containing comma should
+                                            be double quoted
+        --organizations ORGANIZATION_NAMES  Comma separated list of values.
+                                            Values containing comma should
+                                            be double quoted
+        --realm-proxy-id REALM_PROXY_ID     Capsule ID to use within this realm
+        --realm-type REALM_TYPE             Realm type, e.g.
+                                            Red Hat Identity Management
+                                            or Active Directory
+
+        -h, --help                          print help
+
+    """
+    # Assigning default values for attributes
+    args = {
+        u'location-ids': None,
+        u'locations': None,
+        u'name': gen_alphanumeric(6),
+        u'organization-ids': None,
+        u'organizations': None,
+        u'realm-proxy-id': None,
+        u'realm-type': None,
+    }
+
+    return create_object(Realm, args, options)
 
 
 @cacheable
