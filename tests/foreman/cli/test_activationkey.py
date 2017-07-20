@@ -229,6 +229,29 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(new_ak['host-limit'], u'10')
 
+    @tier2
+    def test_positive_create_content_and_check_enabled(self):
+        """Create activation key and add content to it. Check enabled state.
+
+        :id: abfc6c6e-acd1-4761-b309-7e68e1d17172
+
+        :expectedresults: Enabled state is shown for product content
+            successfully
+
+        :BZ: 1361993
+
+        :CaseLevel: Integration
+        """
+        result = setup_org_for_a_custom_repo({
+            u'url': FAKE_0_YUM_REPO,
+            u'organization-id': self.org['id'],
+        })
+        content = ActivationKey.product_content({
+            u'id': result['activationkey-id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(content[0]['enabled?'], 'true')
+
     def assert_negative_create_with_usage_limit(
             self, invalid_values, *in_error_msg):
         """Asserts Activation key is not created and respective error msg
