@@ -56,7 +56,6 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     stubbed,
-    skip_if_bug_open,
     tier1,
     tier2,
 )
@@ -273,13 +272,13 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_as_non_admin_user(self):
         """Create a repository as a non admin user
 
-        @id: 582949c4-b95f-4d64-b7f0-fb80b3d2bd7e
+        :id: 582949c4-b95f-4d64-b7f0-fb80b3d2bd7e
 
-        @expectedresults: Repository successfully created
+        :expectedresults: Repository successfully created
 
-        @BZ: 1374505
+        :BZ: 1426393
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
@@ -326,19 +325,18 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1447829)
     @tier2
     def test_positive_create_as_non_admin_user_with_cv_published(self):
         """Create a repository as a non admin user in a product that already
         contain a repository that is used in a published content view.
 
-        @id: 407864eb-50b8-4bc8-bbc7-0e6f8136d89f
+        :id: 407864eb-50b8-4bc8-bbc7-0e6f8136d89f
 
-        @expectedresults: New repository successfully created by non admin user
+        :expectedresults: New repository successfully created by non admin user
 
-        @BZ: 1447829
+        :BZ: 1447829
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alphanumeric')
