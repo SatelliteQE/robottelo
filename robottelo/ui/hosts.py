@@ -209,7 +209,8 @@ class Hosts(Base):
         self.search_and_click(u'{0}.{1}'.format(name, domain_name))
         self.click(locators['host.edit'])
         self.click(tab_locators['host.tab_interfaces'])
-        self.click(locators['host.delete_interface'] % identifier)
+        strategy, value = locators['host.delete_interface']
+        self.click((strategy, value % identifier))
         self.click(common_locators['submit'])
 
     def update_host_bulkactions(

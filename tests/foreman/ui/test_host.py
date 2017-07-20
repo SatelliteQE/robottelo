@@ -422,13 +422,13 @@ class HostTestCase(UITestCase):
     def test_negative_delete_primary_interface(self):
         """Attempt to delete primary interface of a host
 
-        :id: bc747e2c-38d9-4920-b4ae-6010851f704e
+        @id: bc747e2c-38d9-4920-b4ae-6010851f704e
 
-        :BZ: 1417119
+        @BZ: 1377654
 
-        :expectedresults: Interface was not deleted
+        @expectedresults: Interface was not deleted
 
-        :CaseLevel: System
+        @CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -471,8 +471,9 @@ class HostTestCase(UITestCase):
             self.hosts.click(host_el)
             self.hosts.click(locators['host.edit'])
             self.hosts.click(tab_locators['host.tab_interfaces'])
-            delete_button = self.hosts.wait_until_element(
-                locators['host.delete_interface'] % interface_id)
+            strategy, value = locators['host.delete_interface']
+            delete_button = self.hosts.wait_until_element((
+                strategy, value % interface_id))
             # Verify the button is disabled
             self.assertFalse(delete_button.is_enabled())
             self.assertEqual(delete_button.get_attribute('disabled'), 'true')
