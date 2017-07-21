@@ -275,8 +275,8 @@ class Base(object):
 
     @classmethod
     def execute(cls, command, user=None, password=None, output_format=None,
-                timeout=300, ignore_stderr=None, return_raw_response=None,
-                connection_timeout=10):
+                timeout=None, ignore_stderr=None, return_raw_response=None,
+                connection_timeout=None):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
         time_hammer = False

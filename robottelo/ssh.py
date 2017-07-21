@@ -82,7 +82,7 @@ def _call_paramiko_sshclient():  # pragma: no cover
 
 
 def get_client(hostname=None, username=None, password=None,
-               key_filename=None, timeout=10):
+               key_filename=None, timeout=None):
     """Returns a SSH client connected to given hostname"""
     if hostname is None:
         hostname = settings.server.hostname
@@ -92,6 +92,8 @@ def get_client(hostname=None, username=None, password=None,
         key_filename = settings.server.ssh_key
     if password is None:
         password = settings.server.ssh_password
+    if timeout is None:
+        timeout = settings.ssh_client.connection_timeout
     client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
@@ -107,7 +109,7 @@ def get_client(hostname=None, username=None, password=None,
 
 @contextmanager
 def get_connection(hostname=None, username=None, password=None,
-                   key_filename=None, timeout=10):
+                   key_filename=None, timeout=None):
     """Yield an ssh connection object.
 
     The connection will be configured with the specified arguments or will
@@ -137,6 +139,8 @@ def get_connection(hostname=None, username=None, password=None,
     :rtype: ``paramiko.SSHClient``
 
     """
+    if timeout is None:
+        timeout = settings.ssh_client.connection_timeout
     client = get_client(
         hostname, username, password, key_filename, timeout
     )
@@ -150,7 +154,7 @@ def get_connection(hostname=None, username=None, password=None,
 
 
 def add_authorized_key(key, hostname=None, username=None, password=None,
-                       key_filename=None, timeout=10):
+                       key_filename=None, timeout=None):
     """Appends a local public ssh key to remote authorized keys
 
     refer to: remote_execution_ssh_keys provisioning template
@@ -179,6 +183,9 @@ def add_authorized_key(key, hostname=None, username=None, password=None,
             key_content = key_file.read()
     else:
         raise AttributeError('Invalid key')
+
+    if timeout is None:
+        timeout = settings.ssh_client.connection_timeout
 
     key_content = key_content.strip()
     ssh_path = '~/.ssh'
@@ -245,8 +252,8 @@ def download_file(remote_file, local_file=None, hostname=None):
 
 
 def command(cmd, hostname=None, output_format=None, username=None,
-            password=None, key_filename=None, timeout=300,
-            connection_timeout=10):
+            password=None, key_filename=None, timeout=None,
+            connection_timeout=None):
     """Executes SSH command(s) on remote hostname.
 
     :param str cmd: The command to run
@@ -266,6 +273,10 @@ def command(cmd, hostname=None, output_format=None, username=None,
     :param connection_timeout: Time to wait for establishing the connection.
     """
     hostname = hostname or settings.server.hostname
+    if timeout is None:
+        timeout = settings.ssh_client.command_timeout
+    if connection_timeout is None:
+        connection_timeout = settings.ssh_client.connection_timeout
     with get_connection(hostname=hostname, username=username,
                         password=password, key_filename=key_filename,
                         timeout=connection_timeout) as connection:
@@ -273,8 +284,8 @@ def command(cmd, hostname=None, output_format=None, username=None,
             cmd, connection, output_format, timeout, connection_timeout)
 
 
-def execute_command(cmd, connection, output_format=None, timeout=300,
-                    connection_timeout=10):
+def execute_command(cmd, connection, output_format=None, timeout=None,
+                    connection_timeout=None):
     """Execute a command via ssh in the given connection
 
     :param cmd: a command to be executed via ssh
@@ -284,6 +295,10 @@ def execute_command(cmd, connection, output_format=None, timeout=300,
     :param connection_timeout: Time to wait for establishing the connection.
     :return: SSHCommandResult
     """
+    if timeout is None:
+        timeout = settings.ssh_client.command_timeout
+    if connection_timeout is None:
+        connection_timeout = settings.ssh_client.connection_timeout
     logger.info('>>> %s', cmd)
     _, stdout, stderr = connection.exec_command(
         cmd, timeout=connection_timeout)

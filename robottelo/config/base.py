@@ -758,6 +758,25 @@ class RHAISettings(FeatureSettings):
         return []
 
 
+class SSHClientSettings(FeatureSettings):
+    """SSHClient settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(SSHClientSettings, self).__init__(*args, **kwargs)
+        self.command_timeout = None
+        self.connection_timeout = None
+
+    def read(self, reader):
+        """Read SSHClient settings."""
+        self.command_timeout = reader.get(
+            'ssh_client', 'command_timeout', default=300, cast=int)
+        self.connection_timeout = reader.get(
+            'ssh_client', 'connection_timeout', default=10, cast=int)
+
+    def validate(self):
+        """Validate SSHClient settings."""
+        return []
+
+
 class TransitionSettings(FeatureSettings):
     """Transition settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -866,6 +885,7 @@ class Settings(object):
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
         self.rhev = RHEVSettings()
+        self.ssh_client = SSHClientSettings()
         self.transition = TransitionSettings()
         self.vlan_networking = VlanNetworkSettings()
         self.upgrade = UpgradeSettings()

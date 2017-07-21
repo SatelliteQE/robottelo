@@ -116,9 +116,6 @@ class ContentView(Base):
     def publish(cls, options, timeout=None):
         """Publishes a new version of content-view."""
         cls.command_sub = 'publish'
-        # Publishing can take a while so try to wait a bit longer
-        if timeout is None:
-            timeout = 300
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,
