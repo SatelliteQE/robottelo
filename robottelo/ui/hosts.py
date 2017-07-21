@@ -197,8 +197,6 @@ class Hosts(Base):
         :param domain_name: host's domain name
         :param str optional interface_id: interface identifier
         :param str optional interface_mac: interface MAC address
-        :raises TypeError: in case neither `interface_id` nor `interface_mac`
-            were passed
         """
         identifier = interface_id or interface_mac
         if identifier is None:
