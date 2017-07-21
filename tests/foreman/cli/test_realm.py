@@ -53,17 +53,20 @@ class RealmTestCase(CLITestCase):
         :expectedresults: Proxy is created and deleted
         """
         name = gen_string('alpha', random.randint(1, 30))
+        realm_name = gen_string('alpha', random.randint(1, 30))
         with self.subTest(name):
             proxy = self._make_proxy({u'name': name})
             self.assertEquals(proxy['name'], name)
-            realm = make_realm({'name': gen_string(
-                'alpha', random.randint(1, 30)),
-                                'realm-proxy-id': proxy['id'],
-                                'realm-type': 'Red Hat Identity Management',
-                                'locations': proxy['locations']})
-            self.assertEquals(len(Realm.list()), 1)
+            realm = make_realm({
+                'name': realm_name,
+                'realm-proxy-id': proxy['id'],
+                'realm-type': 'Red Hat Identity Management',
+                'locations': proxy['locations']
+            })
+            self.assertEqual(realm['name'], realm_name)
             Realm.delete({'name': realm['name']})
-            self.assertEquals(len(Realm.list()), 0)
+            with self.assertRaises(CLIReturnCodeError):
+                Realm.info({'id': realm['id']})
 
     @tier1
     def test_positive_create_delete_id(self):
@@ -74,16 +77,19 @@ class RealmTestCase(CLITestCase):
         :expectedresults: Proxy is created and deleted
         """
         name = gen_string('alpha', random.randint(1, 30))
+        realm_name = gen_string('alpha', random.randint(1, 30))
         with self.subTest(name):
             proxy = self._make_proxy({u'name': name})
-            realm = make_realm({'name': gen_string(
-                'alpha', random.randint(1, 30)),
-                                'realm-proxy-id': proxy['id'],
-                                'realm-type': 'Active Directory',
-                                'locations': proxy['locations']})
-            self.assertEquals(len(Realm.list()), 1)
+            realm = make_realm({
+                'name': realm_name,
+                'realm-proxy-id': proxy['id'],
+                'realm-type': 'Red Hat Identity Management',
+                'locations': proxy['locations']
+            })
+            self.assertEqual(realm['name'], realm_name)
             Realm.delete({'id': realm['id']})
-            self.assertEquals(len(Realm.list()), 0)
+            with self.assertRaises(CLIReturnCodeError):
+                Realm.info({'id': realm['id']})
 
     @tier1
     def test_positive_realm_info_name(self):
@@ -96,10 +102,12 @@ class RealmTestCase(CLITestCase):
         name = gen_string('alpha', random.randint(1, 30))
         with self.subTest(name):
             proxy = self._make_proxy({u'name': name})
-            realm = make_realm({'name': 'info_test',
-                                'realm-proxy-id': proxy['id'],
-                                'realm-type': 'Red Hat Identity Management',
-                                'locations': proxy['locations']})
+            realm = make_realm({
+                'name': 'info_test',
+                'realm-proxy-id': proxy['id'],
+                'realm-type': 'Red Hat Identity Management',
+                'locations': proxy['locations']
+            })
             info = Realm.info({'name': realm['name']})
             for key in info.keys():
                 self.assertEquals(info[key], realm[key])
@@ -116,10 +124,12 @@ class RealmTestCase(CLITestCase):
         name = gen_string('alpha', random.randint(1, 30))
         with self.subTest(name):
             proxy = self._make_proxy({u'name': name})
-            realm = make_realm({'name': 'info_test',
-                                'realm-proxy-id': proxy['id'],
-                                'realm-type': 'Active Directory',
-                                'locations': proxy['locations']})
+            realm = make_realm({
+                'name': 'info_test',
+                'realm-proxy-id': proxy['id'],
+                'realm-type': 'Red Hat Identity Management',
+                'locations': proxy['locations']
+            })
             info = Realm.info({'id': realm['id']})
             for key in info.keys():
                 self.assertEquals(info[key], realm[key])
@@ -139,41 +149,18 @@ class RealmTestCase(CLITestCase):
         realm_name2 = "update_test"
         with self.subTest(name):
             proxy = self._make_proxy({u'name': name})
-            realm = make_realm({'name': realm_name1,
-                                'realm-proxy-id': proxy['id'],
-                                'realm-type': 'Active Directory',
-                                'locations': proxy['locations']})
+            realm = make_realm({
+                'name': realm_name1,
+                'realm-proxy-id': proxy['id'],
+                'realm-type': 'Red Hat Identity Management',
+                'locations': proxy['locations']
+            })
             self.assertEquals(realm['name'], realm_name1)
             up = Realm.update({'id': realm['id'], 'new-name': realm_name2})
             self.assertEquals(up[0]['message'], 'Realm [{0}] updated'.format(
                 realm_name2))
             realm = Realm.info({'id': realm['id']})
             self.assertEquals(realm['name'], realm_name2)
-            Realm.delete({'id': realm['id']})
-
-    @tier1
-    def test_positive_realm_update_type(self):
-        """Test updating realm type
-
-        :id: 331b1252-1eb0-459a-b751-3a3619c30db9
-
-        :expectedresults: Realm type updated
-        """
-        name = gen_string('alpha', random.randint(1, 30))
-        realm_type1 = 'Active Directory'
-        realm_type2 = 'Red Hat Identity Management'
-        with self.subTest(name):
-            proxy = self._make_proxy({u'name': name})
-            realm = make_realm({'name': "realm",
-                                'realm-proxy-id': proxy['id'],
-                                'realm-type': realm_type1,
-                                'locations': proxy['locations']})
-            self.assertEquals(realm['realm-type'], realm_type1)
-            up = Realm.update({'id': realm['id'], 'realm-type': realm_type2})
-            self.assertEquals(up[0]['message'], 'Realm [{0}] updated'.format(
-                realm['name']))
-            realm = Realm.info({'id': realm['id']})
-            self.assertEquals(realm['realm-type'], realm_type2)
             Realm.delete({'id': realm['id']})
 
     @tier1
@@ -189,10 +176,12 @@ class RealmTestCase(CLITestCase):
         realm_type2 = 'invalid'
         with self.subTest(name):
             proxy = self._make_proxy({u'name': name})
-            realm = make_realm({'name': "realm",
-                                'realm-proxy-id': proxy['id'],
-                                'realm-type': realm_type1,
-                                'locations': proxy['locations']})
+            realm = make_realm({
+                'name': "realm",
+                'realm-proxy-id': proxy['id'],
+                'realm-type': realm_type1,
+                'locations': proxy['locations']
+            })
             with self.assertRaises(CLIReturnCodeError):
                 Realm.update({'id': realm['id'], 'realm-type': realm_type2})
             Realm.delete({'id': realm['id']})
