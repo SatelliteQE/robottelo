@@ -78,9 +78,11 @@ tests/robottelo directory and the Foreman/Satellite 6 tests are under the
 tests/foreman directory.
 
 If you want to run tests without the aid of ``make``, you can do that with
-either `unittest`_ or `nose`_. Just specify the path for the test suite you
+either `pytest`_ , `unittest`_ or `nose`_. Just specify the path for the test suite you
 want to run::
 
+    $ pytest tests/robotello
+    $ pytest tests/foreman
     $ python -m unittest discover -s tests/robottelo -t .
     $ python -m unittest discover -s tests/foreman -t .
     $ nosetests tests/robottelo
@@ -113,6 +115,45 @@ There are other settings to configure what web browser to use for UI tests and
 even configuration to run the automation using `SauceLabs`_. For more
 information about what web browsers you can use, check Selenium's `WebDriver`_
 documentation.
+
+Testing With Pytest
+---------------------
+
+To run all tests::
+
+    $ pytest
+
+It is possible to run a specific subset of tests::
+
+    $ pytest test_case.py
+    $ pytest test_case.py::TestClass
+    $ pytest test_case.py::TestClass::test_case_name
+
+To get more verbose output, or run multiple tests::
+
+    $ pytest tests/ -v
+    $ pytest tests/robottelo/test_decorators.py \
+             tests/robottelo/test_cli.py
+
+To test The Foreman's API, CLI or UI, use the following commands respectively::
+
+    $ pytest tests/foreman/api/
+    $ pytest tests/foreman/cli/
+    $ pytest tests/foreman/ui/
+
+To collect from three directories in one run::
+
+    $ pytest tests/foreman/{cli,api,ui}/test_host.py
+
+To search in testcase names, in this case it will run just negative tests::
+
+    $ pytest tests/foreman/cli/test_host.py -k negative
+
+To run tests in several threads, in this case 4::
+
+    $ pytest tests/foreman/cli/test_host.py -n 4
+
+For more information about Python's `pytest`_ module, read the documentation.
 
 Testing With Unittest
 ---------------------
@@ -262,6 +303,7 @@ The design and development for this software is led by `Og Maciel`_.
 .. _nose: https://nose.readthedocs.org/en/latest/index.html
 .. _Og Maciel: http://www.ogmaciel.com
 .. _Paramiko: http://www.paramiko.org/
+.. _Pytest: https://docs.pytest.org/en/latest/contents.html
 .. _Requests: http://docs.python-requests.org/en/latest/
 .. _Robottelo: https://github.com/SatelliteQE/robottelo
 .. _SauceLabs: https://saucelabs.com/
