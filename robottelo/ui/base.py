@@ -792,3 +792,16 @@ class Base(object):
                 .format(target)
             )
         self.logger.debug(u'Assigned value %s to %s', value, target)
+
+    def clear_entity_value(self, target):
+        """Clear current value for provided page element
+
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
+
+        """
+        element_type = self.element_type(target)
+        if element_type == 'input' or element_type == 'textarea':
+            self.input(target, '')
+        elif element_type == 'abbr':
+            self.click(target)
