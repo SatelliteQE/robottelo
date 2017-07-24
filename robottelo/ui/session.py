@@ -85,6 +85,9 @@ class Session(object):
         else:
             self.browser = browser()
 
+        # for compatibility purposes
+        self.test.browser = self.browser
+
         self.browser.foreman_user = self.test.foreman_user
         self.browser.foreman_password = self.test.foreman_password
 
@@ -172,6 +175,24 @@ class Session(object):
         self.template = Template(self.browser)
         self.trend = Trend(self.browser)
         self.usergroup = UserGroup(self.browser)
+
+        # for compatibility purposes
+        for attr in (
+                'activationkey', 'architecture', 'bookmark', 'container',
+                'compute_profile', 'compute_resource', 'contenthost',
+                'configgroups', 'content_views', 'dashboard', 'dockertag',
+                'domain', 'errata', 'discoveredhosts', 'discoveryrules',
+                'environment', 'gpgkey', 'hardwaremodel', 'hostcollection',
+                'hostgroup', 'hosts', 'job', 'jobtemplate', 'ldapauthsource',
+                'lifecycleenvironment', 'location', 'login', 'medium',
+                'my_account', 'navigator', 'nav', 'user', 'operatingsys',
+                'org', 'oscapcontent', 'oscappolicy', 'oscapreports',
+                'package', 'partitiontable', 'puppetclasses', 'puppetmodule',
+                'products', 'registry', 'repository', 'rhai', 'role',
+                'settings', 'sc_parameters', 'smart_variable', 'subnet',
+                'subscriptions', 'sync', 'syncplan', 'task', 'template',
+                'trend', 'usergroup'):
+            setattr(self.test, attr, getattr(self, attr))
 
         self.login.login(self._user, self._password)
         return self
