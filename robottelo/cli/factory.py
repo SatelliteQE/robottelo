@@ -1662,6 +1662,7 @@ def make_user(options=None):
         --auth-source-id AUTH_SOURCE_ID
         --default-location-id DEFAULT_LOCATION_ID
         --default-organization-id DEFAULT_ORGANIZATION_ID
+        --description DESCRIPTION
         --firstname FIRSTNAME
         --lastname LASTNAME
         --location-ids LOCATION_IDS         REPLACE locations with given ids
@@ -1683,6 +1684,7 @@ def make_user(options=None):
         u'auth-source-id': 1,
         u'default-location-id': None,
         u'default-organization-id': None,
+        u'description': None,
         u'firstname': gen_alphanumeric(),
         u'lastname': gen_alphanumeric(),
         u'location-ids': None,
