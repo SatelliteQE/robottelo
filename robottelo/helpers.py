@@ -32,6 +32,11 @@ class HostInfoError(Exception):
     """Indicates any issue when getting host info."""
 
 
+class ProvisioningCheckError(Exception):
+    """Indicates any issue when provisioning a host."""
+    pass
+
+
 class InvalidArgumentError(Exception):
     """Indicates an error when an invalid argument is received."""
 

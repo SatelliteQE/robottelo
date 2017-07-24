@@ -208,7 +208,7 @@ def one_to_many_names(name):
     return set((name, name + '_ids', Inflector().pluralize(name)))
 
 
-def configure_provisioning(org=None, loc=None):
+def configure_provisioning(org=None, loc=None, compute=False):
     """Create and configure org, loc, product, repo, cv, env. Update proxy,
     domain, subnet, compute resource, provision templates and medium with
     previously created entities and create a hostgroup using all mentioned
@@ -301,18 +301,18 @@ def configure_provisioning(org=None, loc=None):
         subnet.domain = [domain]
         subnet.location.append(loc)
         subnet.organization.append(org)
-        subnet.dns = [proxy]
-        subnet.dhcp = [proxy]
-        subnet.tftp = [proxy]
-        subnet.discovery = [proxy]
+        subnet.dns = proxy
+        subnet.dhcp = proxy
+        subnet.tftp = proxy
+        subnet.discovery = proxy
         subnet = subnet.update([
             'domain',
-            'discovery',
             'dhcp',
+            'tftp',
             'dns',
+            'discovery',
             'location',
             'organization',
-            'tftp',
         ])
     else:
         # Create new subnet
@@ -331,31 +331,33 @@ def configure_provisioning(org=None, loc=None):
     # Search if Libvirt compute-resource already exists
     # If so, just update its relevant fields otherwise,
     # Create new compute-resource with 'libvirt' provider.
-    resource_url = u'qemu+ssh://root@{0}/system'.format(
-        settings.compute_resources.libvirt_hostname
-    )
-    comp_res = [
-        res for res in entities.LibvirtComputeResource().search()
-        if res.provider == 'Libvirt' and res.url == resource_url
-    ]
-    if len(comp_res) >= 1:
-        computeresource = entities.LibvirtComputeResource(
-            id=comp_res[0].id).read()
-        computeresource.location.append(loc)
-        computeresource.organization.append(org)
-        computeresource = computeresource.update([
-            'location', 'organization'])
-    else:
-        # Create Libvirt compute-resource
-        computeresource = entities.LibvirtComputeResource(
-            provider=u'libvirt',
-            url=resource_url,
-            set_console_password=False,
-            display_type=u'VNC',
-            location=[loc.id],
-            organization=[org.id],
-        ).create()
-
+    # compute boolean is added to not block existing test's that depend on
+    # Libvirt resource and use this same functionality to all CR's.
+    if compute is False:
+        resource_url = u'qemu+ssh://root@{0}/system'.format(
+            settings.compute_resources.libvirt_hostname
+        )
+        comp_res = [
+            res for res in entities.LibvirtComputeResource().search()
+            if res.provider == 'Libvirt' and res.url == resource_url
+        ]
+        if len(comp_res) > 0:
+            computeresource = entities.LibvirtComputeResource(
+                id=comp_res[0].id).read()
+            computeresource.location.append(loc)
+            computeresource.organization.append(org)
+            computeresource = computeresource.update([
+                'location', 'organization'])
+        else:
+            # Create Libvirt compute-resource
+            computeresource = entities.LibvirtComputeResource(
+                provider=u'libvirt',
+                url=resource_url,
+                set_console_password=False,
+                display_type=u'VNC',
+                location=[loc.id],
+                organization=[org.id],
+            ).create()
     # Get the Partition table ID
     ptable = entities.PartitionTable().search(
         query={
@@ -404,22 +406,15 @@ def configure_provisioning(org=None, loc=None):
         query={u'search': u'name="x86_64"'}
     )[0].read()
 
-    # Get the media and update its location
-    media = entities.Media(organization=[org]).search()[0].read()
-    media.location.append(loc)
-    media.organization.append(org)
-    media = media.update(['location', 'organization'])
     # Update the OS to associate arch, ptable, templates
     os.architecture.append(arch)
     os.ptable.append(ptable)
     os.config_template.append(provisioning_template)
     os.config_template.append(pxe_template)
-    os.medium.append(media)
     os = os.update([
         'architecture',
         'config_template',
         'ptable',
-        'medium',
     ])
 
     # Create Hostgroup
@@ -434,7 +429,6 @@ def configure_provisioning(org=None, loc=None):
         puppet_proxy=proxy,
         puppet_ca_proxy=proxy,
         content_source=proxy,
-        medium=media,
         root_pass=gen_string('alphanumeric'),
         operatingsystem=os.id,
         organization=[org.id],
@@ -444,6 +438,8 @@ def configure_provisioning(org=None, loc=None):
     return {
         'host_group': host_group.name,
         'domain': domain.name,
+        'environment': environment.name,
+        'ptable': ptable.name,
     }
 
 

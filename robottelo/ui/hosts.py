@@ -65,6 +65,11 @@ class Hosts(Base):
                     locators.host.inherit_puppet_environment)
                 if 'active' in inherit.get_attribute('class'):
                     self.click(inherit)
+            elif parameter_name == 'Compute profile':
+                inherit = self.wait_until_element(
+                    locators.host.inherit_compute_profile)
+                if 'active' in inherit.get_attribute('class'):
+                    self.click(inherit)
             self.assign_value(param_locator, parameter_value)
 
     def _configure_interface_parameters(self, parameters_list):
@@ -103,6 +108,18 @@ class Hosts(Base):
             self.assign_value(param_locator, parameter_value)
         self.click(locators['host.save_interface'])
 
+    def _configure_provisioning_method(self, method):
+        """Provide configuration capabilities for host to be created using
+        provisioning methods. Eg.Boot disk based, Network Based, Image Based
+        """
+        self.click(tab_locators['host.tab_operating_system'])
+        if method == 'bootdisk':
+            self.click(tab_locators['operatingsys.tab_provision_bootdisk'])
+        elif method == 'network':
+            self.click(tab_locators['operatingsys.tab_provision_network'])
+        elif method == 'image':
+            self.click(tab_locators['operatingsys.tab_provision_images'])
+
     def _configure_puppet_modules(self, puppet_modules_list):
         """Provide configuration capabilities for host entity puppet classes
         tab.
@@ -130,7 +147,8 @@ class Hosts(Base):
             index += 1
 
     def create(self, name, parameters_list=None, puppet_classes=None,
-               interface_parameters=None, host_parameters=None, ):
+               interface_parameters=None, host_parameters=None,
+               provisioning_method=None):
         """Creates a host."""
         self.click(locators['host.new'])
         self.assign_value(locators['host.name'], name)
@@ -138,12 +156,15 @@ class Hosts(Base):
             self._configure_hosts_parameters(parameters_list)
         if puppet_classes is not None:
             self._configure_puppet_modules(puppet_classes)
-        if interface_parameters:
+        if interface_parameters is not None:
             self.click(tab_locators['host.tab_interfaces'])
             self.click(locators['host.edit_default_interface'])
             self._configure_interface_parameters(interface_parameters)
-        if host_parameters:
+        if host_parameters is not None:
             self._add_host_parameters(host_parameters)
+        if provisioning_method is not None:
+            self.click(tab_locators['host.tab_operating_system'])
+            self._configure_provisioning_method(provisioning_method)
         self.wait_until_element_is_not_visible(
             common_locators['modal_background'])
         self.click(common_locators['submit'])

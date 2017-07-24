@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
+from robottelo import ssh
 from robottelo.constants import FILTER, FOREMAN_PROVIDERS
 from robottelo.ui.base import Base, UINoSuchElementError, UIError
+from robottelo.helpers import ProvisioningCheckError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -441,3 +443,24 @@ class ComputeResource(Base):
             self, resource_type)
         resource_profile_form.set_values(**kwargs)
         resource_profile_form.submit()
+
+
+def host_provisioning_check(self, ip_addr):
+    """Check the provisioned host status by pinging the ip of host and check
+    to connect to ssh port
+
+    :param ip_addr: IP address of the provisioned host
+    :return: ssh command return code and stdout
+    """
+    result = ssh.command(
+        u'for i in {{1..60}}; do ping -c1 {0} && exit 0; sleep 20;'
+        u' done; exit 1'.format(ip_addr))
+    if result.return_code != 0:
+        raise ProvisioningCheckError(
+            'Failed to ping virtual machine Error:{0}'.format(result.stdout))
+    ssh_check = ssh.command(
+        u'for i in {{1..60}}; do nc -vn {0} 22 <<< "" && exit 0; sleep 20;'
+        u' done; exit 1'.format(ip_addr))
+    if ssh_check.return_code != 0:
+        raise ProvisioningCheckError(
+            'Failed to connect to SSH port of the virtual machine')
