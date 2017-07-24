@@ -40,7 +40,7 @@ class MediumTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
@@ -61,7 +61,7 @@ class MediumTestCase(UITestCase):
         """
         name = gen_string('alpha', 256)
         path = INSTALL_MEDIUM_URL % name
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['name_haserror']))
@@ -79,7 +79,7 @@ class MediumTestCase(UITestCase):
         :CaseImportance: Critical
         """
         path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in '', '  ':
                 with self.subTest(name):
                     make_media(
@@ -103,7 +103,7 @@ class MediumTestCase(UITestCase):
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
         os_family = 'Red Hat'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
             make_media(session, name=name, path=path, os_family=os_family)
@@ -122,7 +122,7 @@ class MediumTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha', 6)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_media(session, name=name, path='', os_family='Red Hat')
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['haserror']))
@@ -143,7 +143,7 @@ class MediumTestCase(UITestCase):
         new_name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         os_family = 'Red Hat'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
             make_media(session, name=new_name, path=path, os_family=os_family)
@@ -164,7 +164,7 @@ class MediumTestCase(UITestCase):
         """
         name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_media(session, name=name, path=path, os_family='Red Hat')
             self.medium.delete(name)
 
@@ -183,7 +183,7 @@ class MediumTestCase(UITestCase):
         newname = gen_string('alpha', 4)
         path = INSTALL_MEDIUM_URL % name
         newpath = INSTALL_MEDIUM_URL % newname
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.search(name))
             self.medium.update(name, newname, newpath, 'Debian')

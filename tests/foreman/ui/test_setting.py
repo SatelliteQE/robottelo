@@ -153,7 +153,7 @@ class SettingTestCase(UITestCase):
         """Revert the setting to its default value"""
         if self.original_value:  # do nothing for skipped test
             if self.saved_element != self.original_value:
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     edit_param(
                         session,
                         tab_locator=self.tab_locator,
@@ -175,7 +175,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -202,7 +202,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'administrator'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_settings_values():
@@ -230,7 +230,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation_api'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -258,7 +258,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'entries_per_page'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in invalid_settings_values():
@@ -288,7 +288,7 @@ class SettingTestCase(UITestCase):
         param_value = str(randint(30, 1000))
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'entries_per_page'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             edit_param(
@@ -313,7 +313,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_email']
         self.param_name = 'email_reply_address'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_settings_values():
@@ -340,7 +340,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'fix_db_cache'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -367,7 +367,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'use_gravatar'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -395,7 +395,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in invalid_settings_values():
@@ -424,7 +424,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_maxtrend_timeout_values():
@@ -452,7 +452,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in invalid_settings_values():
@@ -481,7 +481,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_maxtrend_timeout_values():
@@ -508,7 +508,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_urls():
@@ -535,7 +535,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in invalid_foreman_urls():
@@ -564,7 +564,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'login_text'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_data_list():
@@ -611,7 +611,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_foremantasks']
         self.param_name = 'dynflow_enable_console'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -640,7 +640,7 @@ class SettingTestCase(UITestCase):
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = ('authorize_login_delegation_auth_source_user'
                            '_autocreate')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_login_delegation_values():
@@ -668,7 +668,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'login_delegation_logout_url'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_urls():
@@ -695,7 +695,7 @@ class SettingTestCase(UITestCase):
         :CaseImportance: Critical
         """
         self.tab_locator = tab_locators['settings.tab_auth']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for param_name in invalid_oauth_active_values():
                 with self.subTest(param_name):
                     with self.assertRaises(UINoSuchElementError) as context:
@@ -721,7 +721,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'require_ssl_smart_proxies'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -749,7 +749,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'restrict_registered_smart_proxies'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -778,7 +778,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_trusted_puppetmaster_hosts():
@@ -805,7 +805,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in invalid_settings_values():
@@ -835,7 +835,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'ignore_puppet_facts_for_provisioning'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -863,7 +863,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'manage_puppetca'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -892,7 +892,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'query_local_nameservers'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -920,7 +920,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'safemode_render'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
@@ -949,7 +949,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in invalid_token_duration():
@@ -979,7 +979,7 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             for param_value in valid_token_duration():

@@ -58,7 +58,7 @@ class HostgroupTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
@@ -75,7 +75,7 @@ class HostgroupTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
@@ -96,7 +96,7 @@ class HostgroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
             make_hostgroup(session, name=name)
@@ -120,7 +120,7 @@ class HostgroupTestCase(UITestCase):
         arch = entities.Architecture().create()
         custom_os = entities.OperatingSystem(
             architecture=[arch]).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_hostgroup(
                 session,
                 name=name,
@@ -148,7 +148,7 @@ class HostgroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_hostgroup(
                 session,
                 name=name,
@@ -173,7 +173,7 @@ class HostgroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_hostgroup(
                 session,
                 name=name,
@@ -198,7 +198,7 @@ class HostgroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
             for new_name in generate_strings_list(length=4):
@@ -226,7 +226,7 @@ class HostgroupTestCase(UITestCase):
         arch = entities.Architecture().create()
         custom_os = entities.OperatingSystem(
             architecture=[arch]).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_hostgroup(
                 session,
                 name=name,
@@ -282,7 +282,7 @@ class HostgroupTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
@@ -320,7 +320,7 @@ class HostgroupTestCase(UITestCase):
             ).create().name
             for _ in range(3)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name, loc=loc.name)
             self.assertIsNotNone(self.hostgroup.search(name))
             self.hostgroup.click(
@@ -360,7 +360,7 @@ class HostgroupTestCase(UITestCase):
             environment=self.env,
             content_view=cv_b,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_host_groups()
             self.hostgroup.click(locators['hostgroups.new'])

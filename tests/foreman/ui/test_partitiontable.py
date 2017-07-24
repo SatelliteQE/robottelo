@@ -53,7 +53,7 @@ class PartitionTableTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list(length=1):
                 with self.subTest(name):
                     make_partitiontable(
@@ -75,7 +75,7 @@ class PartitionTableTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_partitiontable(
@@ -98,7 +98,7 @@ class PartitionTableTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,
@@ -120,7 +120,7 @@ class PartitionTableTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for comment_text in generate_strings_list():
                 with self.subTest(comment_text):
                     make_partitiontable(
@@ -146,7 +146,7 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,
@@ -178,7 +178,7 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,
@@ -210,7 +210,7 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         loc_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,
@@ -242,7 +242,7 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('alpha')
         org_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,
@@ -270,7 +270,7 @@ class PartitionTableTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_partitiontable(
@@ -297,7 +297,7 @@ class PartitionTableTestCase(UITestCase):
         """
         name = gen_string('utf8')
         os_family = 'Red Hat'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,
@@ -326,7 +326,7 @@ class PartitionTableTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session, name=name, template_path='', os_family='Red Hat')
             self.assertIsNotNone(self.partitiontable.wait_until_element(
@@ -344,7 +344,7 @@ class PartitionTableTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_partitiontable(
@@ -367,7 +367,7 @@ class PartitionTableTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,
@@ -399,7 +399,7 @@ class PartitionTableTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_partitiontable(
                 session,
                 name=name,

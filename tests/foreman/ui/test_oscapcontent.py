@@ -68,7 +68,7 @@ class OpenScapContentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for content_name in valid_data_list():
                 with self.subTest(content_name):
                     make_oscapcontent(
@@ -98,7 +98,7 @@ class OpenScapContentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for content_name in invalid_values_list(interface='ui'):
                 with self.subTest(content_name):
                     make_oscapcontent(
@@ -128,7 +128,7 @@ class OpenScapContentTestCase(UITestCase):
         :CaseImportance: Critical
         """
         # see BZ 1336374
-        with Session(self.browser):
+        with Session(self):
             self.assertIsNotNone(self.oscapcontent.search(
                 OSCAP_DEFAULT_CONTENT['rhel7_content']))
             self.assertIsNotNone(self.oscapcontent.search(
@@ -152,7 +152,7 @@ class OpenScapContentTestCase(UITestCase):
         """
         org = entities.Organization(name=gen_string('alpha')).create()
         content_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_oscapcontent(
                 session,
                 name=content_name,
@@ -180,7 +180,7 @@ class OpenScapContentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for content_name in valid_data_list():
                 with self.subTest(content_name):
                     make_oscapcontent(

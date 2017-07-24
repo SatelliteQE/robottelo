@@ -57,7 +57,7 @@ class OpenScapPolicy(UITestCase):
         :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_oscapcontent(
                 session,
                 name=content_name,
@@ -96,7 +96,7 @@ class OpenScapPolicy(UITestCase):
         :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_oscapcontent(
                 session,
                 name=content_name,
@@ -138,7 +138,7 @@ class OpenScapPolicy(UITestCase):
         :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_oscapcontent(
                 session,
                 name=content_name,
@@ -177,7 +177,7 @@ class OpenScapPolicy(UITestCase):
         """
         content_name = gen_string('alpha')
         policy_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_oscapcontent(
                 session,
                 name=content_name,
@@ -231,7 +231,7 @@ class OpenScapPolicy(UITestCase):
         :CaseImportance: Critical
         """
         content_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_oscapcontent(
                 session,
                 name=content_name,

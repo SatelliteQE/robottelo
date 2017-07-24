@@ -41,7 +41,7 @@ class HardwareModelTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_hw_model(session, name=name)
@@ -58,7 +58,7 @@ class HardwareModelTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_hw_model(session, name=name)
@@ -78,7 +78,7 @@ class HardwareModelTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_hw_model(session, name=name)
             self.assertIsNotNone(self.hardwaremodel.search(name))
             for new_name in valid_data_list():
@@ -98,7 +98,7 @@ class HardwareModelTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_hw_model(session, name=name)

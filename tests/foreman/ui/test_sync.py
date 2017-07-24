@@ -71,7 +71,7 @@ class SyncTestCase(UITestCase):
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repository_name in generate_strings_list():
                 with self.subTest(repository_name):
                     # Creates new repository through API
@@ -103,7 +103,7 @@ class SyncTestCase(UITestCase):
         repos = self.sync.create_repos_tree(RHCT)
         with manifests.clone() as manifest:
             upload_manifest(self.organization.id, manifest.content)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
             session.nav.go_to_sync_status()
@@ -162,7 +162,7 @@ class SyncTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_sync_status()
             sync = self.sync.sync_custom_repos(prod.name, [repo_name])
@@ -190,7 +190,7 @@ class SyncTestCase(UITestCase):
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.sync.enable_rh_repos(repos, repo_tab=REPO_TAB['ostree'])
             session.nav.go_to_sync_status()

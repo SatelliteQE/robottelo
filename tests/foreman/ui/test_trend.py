@@ -45,7 +45,7 @@ class TrendTest(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_trend(session, trend_type=TREND_TYPES['model'])
             search = self.trend.search(TREND_TYPES['model'])
             self.assertIsNotNone(search)
@@ -62,7 +62,7 @@ class TrendTest(UITestCase):
         """
         name = gen_string('alphanumeric')
         new_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_trend(
                 session,
                 trend_type=TREND_TYPES['facts'],
@@ -86,7 +86,7 @@ class TrendTest(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_trend(session, trend_type=TREND_TYPES['environment'])
             self.trend.delete(
                 TREND_TYPES['environment'], dropdown_present=True)

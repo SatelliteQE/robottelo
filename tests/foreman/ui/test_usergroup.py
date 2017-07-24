@@ -50,7 +50,7 @@ class UserGroupTestCase(UITestCase):
             password=gen_string('alpha'),
             organization=[self.organization],
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for group_name in generate_strings_list():
                 with self.subTest(group_name):
                     make_usergroup(
@@ -71,7 +71,7 @@ class UserGroupTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for group_name in invalid_names_list():
                 with self.subTest(group_name):
                     make_usergroup(
@@ -91,7 +91,7 @@ class UserGroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         group_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session, org=self.organization.name, name=group_name)
             self.assertIsNotNone(self.usergroup.search(group_name))
@@ -110,7 +110,7 @@ class UserGroupTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for group_name in generate_strings_list():
                 with self.subTest(group_name):
                     make_usergroup(
@@ -136,7 +136,7 @@ class UserGroupTestCase(UITestCase):
             organization=[self.organization],
         ).create()
 
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session,
                 name=group_name,
@@ -157,7 +157,7 @@ class UserGroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(session, name=name)
             self.assertIsNotNone(self.usergroup.search(name))
             for new_name in generate_strings_list():
@@ -184,7 +184,7 @@ class UserGroupTestCase(UITestCase):
             password=gen_string('alpha'),
             organization=[self.organization],
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(session, name=name, org=self.organization.name)
             self.assertIsNotNone(self.usergroup.search(name))
             self.usergroup.update(name, users=[user_name])
@@ -211,7 +211,7 @@ class UserGroupTestCase(UITestCase):
         ).create()
         group_name = gen_string('alpha')
         # Create a usergroup with admin permissions and associate the user
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session, name=group_name, org=self.organization.name)
             self.assertIsNotNone(self.usergroup.search(group_name))
@@ -219,7 +219,7 @@ class UserGroupTestCase(UITestCase):
                 group_name, users=[user.login], roles=['admin'])
             self.assertIsNotNone(self.usergroup.search(group_name))
         # Login as the user and assign new organization
-        with Session(self.browser, user=user.login, password=password):
+        with Session(self, user=user.login, password=password):
             self.user.update(
                 user.login,
                 new_organizations=[new_org.name],
@@ -256,7 +256,7 @@ class UserGroupTestCase(UITestCase):
         ).create()
         group_name = gen_string('alpha')
         # Create a usergroup with admin permissions and associate the user
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session, name=group_name, org=self.organization.name)
             self.assertIsNotNone(self.usergroup.search(group_name))
@@ -264,7 +264,7 @@ class UserGroupTestCase(UITestCase):
                 group_name, users=[user.login], roles=['admin'])
             self.assertIsNotNone(self.usergroup.search(group_name))
         # Login as the user and assign new location
-        with Session(self.browser, user=user.login, password=password):
+        with Session(self, user=user.login, password=password):
             self.user.update(
                 user.login,
                 new_locations=[loc2.name],

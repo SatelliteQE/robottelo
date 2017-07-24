@@ -69,7 +69,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         cls.ldap_server_name = authsource_attrs.name
 
     def tearDown(self):
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             if self.user.search(self.ldap_user_name):
                 self.user.delete(self.ldap_user_name)
@@ -83,8 +83,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         procedures
         """
         strategy, value = locators['login.loggedin']
-        with Session(
-                self.browser, self.ldap_user_name, self.ldap_user_passwd):
+        with Session(self, self.ldap_user_name, self.ldap_user_passwd):
             self.assertIsNotNone(self.login.wait_until_element(
                 (strategy, value % self.ldap_user_name)
             ))
@@ -108,7 +107,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         self.check_external_user()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session,
                 name=self.usergroup_name,
@@ -124,11 +123,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 new_password=self.ldap_user_passwd,
                 password_confirmation=self.ldap_user_passwd,
             )
-        with Session(
-            self.browser,
-            self.ldap_user_name,
-            self.ldap_user_passwd,
-        ):
+        with Session(self, self.ldap_user_name, self.ldap_user_passwd):
             session.nav.go_to_users()
             session.nav.go_to_roles()
             session.nav.go_to_content_views()
@@ -155,7 +150,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         strategy, value = locators['login.loggedin']
         foreman_role = gen_string('alpha')
         location_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=foreman_role)
             self.role.add_permission(
                 foreman_role,
@@ -178,7 +173,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 password_confirmation=self.ldap_user_passwd,
             )
         with Session(
-            self.browser,
+            self,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
@@ -209,7 +204,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         self.check_external_user()
         katello_role = gen_string('alpha')
         org_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=katello_role)
             self.role.add_permission(
                 katello_role,
@@ -232,7 +227,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 password_confirmation=self.ldap_user_passwd,
             )
         with Session(
-                self.browser,
+                self,
                 self.ldap_user_name,
                 self.ldap_user_passwd
         ) as session:
@@ -256,7 +251,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session,
                 name=self.usergroup_name,
@@ -286,7 +281,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         :CaseImportance: Critical
         """
         new_usergroup_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session,
                 name=self.usergroup_name,
@@ -321,7 +316,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session,
                 name=self.usergroup_name,
@@ -387,7 +382,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         katello_role = gen_string('alpha')
         org_name = gen_string('alpha')
         loc_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=foreman_role)
             self.role.add_permission(
                 foreman_role,
@@ -410,13 +405,13 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 password_confirmation=self.ldap_user_passwd,
             )
         with Session(
-            self.browser,
+            self,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=katello_role)
             self.role.add_permission(
                 katello_role,
@@ -433,7 +428,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.assertIsNotNone(self.usergroup.wait_until_element(
                 common_locators['notif.success']))
         with Session(
-            self.browser,
+            self,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
@@ -464,7 +459,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         """
         self.check_external_user()
         foreman_role = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=foreman_role)
             self.role.add_permission(
                 foreman_role,
@@ -487,14 +482,14 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 password_confirmation=self.ldap_user_passwd,
             )
         with Session(
-            self.browser, self.ldap_user_name, self.ldap_user_passwd
+            self, self.ldap_user_name, self.ldap_user_passwd
         ) as session:
             session.nav.go_to_loc()
-        with Session(self.browser):
+        with Session(self):
             self.usergroup.update(
                 self.usergroup_name, roles=[foreman_role], entity_select=False)
         with Session(
-            self.browser,
+            self,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
@@ -538,7 +533,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         katello_role = gen_string('alpha')
         org_name = gen_string('alpha')
         loc_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=foreman_role)
             self.role.add_permission(
                 foreman_role,
@@ -561,13 +556,13 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 password_confirmation=self.ldap_user_passwd,
             )
         with Session(
-            self.browser,
+            self,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=katello_role)
             self.role.add_permission(
                 katello_role,
@@ -581,7 +576,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 select=True,
             )
         with Session(
-            self.browser,
+            self,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:

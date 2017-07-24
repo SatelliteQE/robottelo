@@ -41,7 +41,7 @@ class RoleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list(length=10):
                 with self.subTest(name):
                     make_role(session, name=name)
@@ -57,7 +57,7 @@ class RoleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_role(session, name=name)
@@ -74,7 +74,7 @@ class RoleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list(length=10):
                 with self.subTest(name):
                     make_role(session, name=name)
@@ -91,7 +91,7 @@ class RoleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=name)
             self.assertIsNotNone(self.role.search(name))
             for new_name in generate_strings_list(length=10):
@@ -113,7 +113,7 @@ class RoleTestCase(UITestCase):
         name = gen_string('alpha')
         resource_type = 'Architecture'
         permissions = ['view_architectures', 'edit_architectures']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=name)
             self.assertIsNotNone(self.role.search(name))
             self.role.add_permission(
@@ -141,7 +141,7 @@ class RoleTestCase(UITestCase):
         """
         builtin_name = choice(ROLES)
         new_name = gen_string('alpha')
-        with Session(self.browser):
+        with Session(self):
             self.role.clone(builtin_name, new_name)
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
@@ -179,7 +179,7 @@ class RoleTestCase(UITestCase):
         # Pick up custom permissions
         resource_type = 'Architecture'
         permissions = ['view_architectures', 'edit_architectures']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create custom role with permissions
             make_role(session, name=name)
             self.role.add_permission(
@@ -216,7 +216,7 @@ class RoleTestCase(UITestCase):
         """
         user_name = gen_string('alpha')
         role_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Clone one of the builtin roles
             self.role.clone(choice(ROLES), role_name)
             # Create user wit this role
@@ -241,7 +241,7 @@ class RoleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         new_name = gen_string('alpha')
-        with Session(self.browser):
+        with Session(self):
             self.role.clone(choice(ROLES), new_name)
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
@@ -274,7 +274,7 @@ class RoleTestCase(UITestCase):
         resource_type = 'Architecture'
         permissions = ['view_architectures', 'edit_architectures']
         role_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(session, name=role_name)
             self.assertIsNotNone(self.role.search(role_name))
             self.role.add_permission(
@@ -309,7 +309,7 @@ class RoleTestCase(UITestCase):
             entities.Organization().create().name
             for _ in range(10)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(
                 session,
                 username=name,
@@ -322,7 +322,7 @@ class RoleTestCase(UITestCase):
         resource_type = 'Architecture'
         permissions = ['view_architectures', 'edit_architectures']
         role_name = gen_string('alphanumeric')
-        with Session(self.browser, name, password) as session:
+        with Session(self, name, password) as session:
             make_role(session, name=role_name)
             self.assertIsNotNone(self.role.search(role_name))
             self.role.add_permission(
@@ -364,7 +364,7 @@ class CannedRoleTestCases(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(
                 session,
                 name=name,
@@ -398,7 +398,7 @@ class CannedRoleTestCases(UITestCase):
         username = gen_string('alpha')
         password = gen_string('alpha')
         domain_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(
                 session,
                 name=name,
@@ -424,7 +424,7 @@ class CannedRoleTestCases(UITestCase):
                 organizations=[self.role_org],
                 edit=True
             )
-        with Session(self.browser, username, password) as session:
+        with Session(self, username, password) as session:
             set_context(session, org=self.role_org)
             set_context(session, loc=self.role_loc)
             make_domain(session, name=domain_name)
@@ -458,7 +458,7 @@ class CannedRoleTestCases(UITestCase):
         name = gen_string('alpha')
         username = gen_string('alpha')
         password = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(
                 session,
                 name=name,
@@ -484,7 +484,7 @@ class CannedRoleTestCases(UITestCase):
                 organizations=[self.role_org],
                 edit=True
             )
-        with Session(self.browser, username, password) as session:
+        with Session(self, username, password) as session:
             set_context(session, org=self.role_org)
             set_context(session, loc=self.role_loc)
             self.assertIsNone(session.nav.wait_until_element(
@@ -522,7 +522,7 @@ class CannedRoleTestCases(UITestCase):
         username = gen_string('alpha')
         password = gen_string('alpha')
         domain_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_role(
                 session,
                 name=name,
@@ -549,7 +549,7 @@ class CannedRoleTestCases(UITestCase):
                 organizations=[self.role_org, self.filter_org],
                 edit=True
             )
-        with Session(self.browser, username, password) as session:
+        with Session(self, username, password) as session:
             set_context(session, org=self.filter_org)
             set_context(session, loc=self.filter_loc)
             make_domain(session, name=domain_name)
@@ -559,7 +559,7 @@ class CannedRoleTestCases(UITestCase):
             self.assertIsNone(session.nav.wait_until_element(
                 menu_locators['menu.configure'], timeout=3))
 
-        with Session(self.browser, username, password) as session:
+        with Session(self, username, password) as session:
             set_context(session, org=self.role_org)
             set_context(session, loc=self.role_loc)
             self.assertIsNone(self.domain.search(domain_name))

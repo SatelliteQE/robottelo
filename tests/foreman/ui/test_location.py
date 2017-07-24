@@ -94,7 +94,7 @@ class LocationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             page = session.nav.go_to_loc
             make_loc(session, name=loc_name)
             auto_search = self.location.auto_complete_search(
@@ -119,7 +119,7 @@ class LocationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for loc_name in generate_strings_list():
                 with self.subTest(loc_name):
                     make_loc(session, name=loc_name)
@@ -136,7 +136,7 @@ class LocationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for loc_name in invalid_values_list(interface='ui'):
                 with self.subTest(loc_name):
                     make_loc(session, name=loc_name)
@@ -157,7 +157,7 @@ class LocationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         loc_name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
             make_loc(session, name=loc_name)
@@ -176,7 +176,7 @@ class LocationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for test_data in valid_org_loc_data():
                 with self.subTest(test_data):
                     org_name = test_data['org_name']
@@ -204,7 +204,7 @@ class LocationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
             for new_name in generate_strings_list():
@@ -228,7 +228,7 @@ class LocationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         loc_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
             new_name = gen_string('alpha', 247)
@@ -248,7 +248,7 @@ class LocationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             for loc_name in generate_strings_list():
                 with self.subTest(loc_name):
                     entities.Location(name=loc_name).create()
@@ -266,7 +266,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for subnet_name in generate_strings_list():
                 with self.subTest(subnet_name):
                     loc_name = gen_string('alpha')
@@ -297,7 +297,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for domain_name in generate_strings_list():
                 with self.subTest(domain_name):
                     loc_name = gen_string('alpha')
@@ -324,7 +324,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # User names does not accept html values
             for user_name in generate_strings_list(
                     length=10,
@@ -360,7 +360,7 @@ class LocationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
             selected = self.location.check_all_values(
@@ -384,7 +384,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for host_grp_name in generate_strings_list():
                 with self.subTest(host_grp_name):
                     loc_name = gen_string('alpha')
@@ -410,7 +410,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     loc_name = gen_string('alpha')
@@ -439,7 +439,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for env_name in valid_env_names():
                 with self.subTest(env_name):
                     loc_name = gen_string('alpha')
@@ -468,7 +468,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
                     loc_name = gen_string('alpha')
@@ -499,7 +499,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for medium_name in generate_strings_list():
                 with self.subTest(medium_name):
                     loc_name = gen_string('alpha')
@@ -530,7 +530,7 @@ class LocationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         loc_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             page = session.nav.go_to_loc
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
@@ -551,7 +551,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for template in generate_strings_list():
                 with self.subTest(template):
                     loc_name = gen_string('alpha')
@@ -584,7 +584,7 @@ class LocationTestCase(UITestCase):
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for env_name in valid_env_names():
                 with self.subTest(env_name):
                     loc_name = gen_string('alpha')
@@ -628,7 +628,7 @@ class LocationTestCase(UITestCase):
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for subnet_name in generate_strings_list():
                 with self.subTest(subnet_name):
                     loc_name = gen_string('alpha')
@@ -674,7 +674,7 @@ class LocationTestCase(UITestCase):
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for domain_name in generate_strings_list():
                 with self.subTest(domain_name):
                     loc_name = gen_string('alpha')
@@ -719,7 +719,7 @@ class LocationTestCase(UITestCase):
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # User names does not accept html values
             for user_name in generate_strings_list(
                     length=10,
@@ -768,7 +768,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for host_grp_name in generate_strings_list():
                 with self.subTest(host_grp_name):
                     loc_name = gen_string('alpha')
@@ -813,7 +813,7 @@ class LocationTestCase(UITestCase):
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
                     loc_name = gen_string('alpha')
@@ -860,7 +860,7 @@ class LocationTestCase(UITestCase):
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for medium_name in generate_strings_list():
                 with self.subTest(medium_name):
                     loc_name = gen_string('alpha')
@@ -905,7 +905,7 @@ class LocationTestCase(UITestCase):
         :CaseLevel: Integration
         """
         strategy, value = common_locators['all_values_selection']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for template_name in generate_strings_list(length=8):
                 with self.subTest(template_name):
                     loc_name = gen_string('alpha')

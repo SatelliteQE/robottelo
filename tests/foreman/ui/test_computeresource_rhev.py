@@ -89,7 +89,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_resource(
@@ -138,7 +138,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -193,7 +193,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for description in valid_data_list():
                 with self.subTest(description):
                     make_resource(
@@ -233,7 +233,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_names_list():
                 with self.subTest(name):
                     make_resource(
@@ -279,7 +279,7 @@ class RhevComputeResourceTestCase(UITestCase):
         ]
         newname = gen_string('alpha')
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             with self.subTest(newname):
                 make_resource(
                     session,
@@ -320,7 +320,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -366,7 +366,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             with self.subTest(name):
                 make_resource(
                     session,
@@ -404,7 +404,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for img_name in valid_data_list():
                 with self.subTest(img_name):
                     # Note: create a new compute resource for each sub test
@@ -460,7 +460,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Password', self.rhev_password, 'field'],
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for img_name in invalid_names_list():
                 with self.subTest(img_name):
                     # Note: create a new compute resource for each sub test as
@@ -523,7 +523,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -561,7 +561,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -630,7 +630,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -670,7 +670,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -699,7 +699,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         cr_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=cr_name,
@@ -750,7 +750,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
     def tearDown(self):
         """Delete the host to free the resources"""
         super(RhevComputeResourceHostTestCase, self).tearDown()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             hosts = entities.Host().search(
                 query={u'search': u'organization={0}'.format(self.org_name)})
@@ -793,7 +793,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         cr_name = gen_string('alpha', 9)
         img_name = gen_string('alpha', 5)
         root_pwd = gen_string('alpha', 15)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             parameter_list = [
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],
@@ -901,7 +901,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
         root_pwd = gen_string('alpha', 15)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             parameter_list = [
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],
@@ -998,7 +998,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
         root_pwd = gen_string('alpha', 15)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             parameter_list = [
                 ['URL', self.rhev_url, 'field'],
                 ['Username', self.rhev_username, 'field'],

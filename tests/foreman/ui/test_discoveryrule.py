@@ -94,7 +94,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_discoveryrule(
@@ -117,7 +117,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for query in valid_search_queries():
                 with self.subTest(query):
                     name = gen_string('alpha')
@@ -149,7 +149,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         hostname = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -178,7 +178,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         limit = str(gen_integer(1, 100))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -207,7 +207,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         priority = str(gen_integer(1, 100))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -233,7 +233,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -260,7 +260,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_discoveryrule(
@@ -283,7 +283,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -307,7 +307,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for limit in '-1', gen_string('alpha'):
                 with self.subTest(limit):
                     make_discoveryrule(
@@ -342,7 +342,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -368,7 +368,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -398,7 +398,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -422,7 +422,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_discoveryrule(
@@ -446,7 +446,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -472,7 +472,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -504,7 +504,7 @@ class DiscoveryRuleTestCase(UITestCase):
         name = gen_string('alpha')
         new_hostgroup_name = entities.HostGroup(
             organization=[self.session_org]).create().name
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -537,7 +537,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         hostname = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -564,7 +564,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         limit = str(gen_integer(1, 100))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -591,7 +591,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         priority = str(gen_integer(1, 100))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -617,7 +617,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -646,7 +646,7 @@ class DiscoveryRuleTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -676,7 +676,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         hostname = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -708,7 +708,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         limit = str(gen_integer(1, 100))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -749,7 +749,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """
         name = gen_string('alpha')
         priority = str(gen_integer(1, 100))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_discoveryrule(
                 session,
                 name=name,
@@ -874,7 +874,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
         :CaseLevel: Integration
         """
         with Session(
-            self.browser, self.manager_user, self.manager_user_password
+            self, self.manager_user, self.manager_user_password
         ) as session:
             name = gen_string('alpha')
             make_discoveryrule(
@@ -897,7 +897,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
         :CaseLevel: Integration
         """
         with Session(
-            self.browser, self.manager_user, self.manager_user_password
+            self, self.manager_user, self.manager_user_password
         ) as session:
             name = gen_string('alpha')
             make_discoveryrule(
@@ -927,7 +927,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
         :CaseLevel: Integration
         """
         with Session(
-            self.browser, self.reader_user, self.reader_user_password
+            self, self.reader_user, self.reader_user_password
         ) as session:
             session.nav.go_to_discovery_rules()
             element = self.discoveryrules.find_element(
@@ -947,7 +947,7 @@ class DiscoveryRuleRoleTestCase(UITestCase):
         :CaseLevel: Integration
         """
         with Session(
-            self.browser, self.reader_user, self.reader_user_password
+            self, self.reader_user, self.reader_user_password
         ) as session:
             session.nav.go_to_discovery_rules()
             element = self.discoveryrules.find_element(

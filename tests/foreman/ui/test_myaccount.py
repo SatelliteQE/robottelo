@@ -81,7 +81,7 @@ class MyAccountTestCase(UITestCase):
         valid_names.append('name with space')
         for first_name in valid_names:
             with self.subTest(first_name):
-                with Session(self.browser, self.account_user.login,
+                with Session(self, self.account_user.login,
                              self.account_password):
                     self.my_account.update(first_name=first_name)
                     self.assertEqual(
@@ -101,7 +101,7 @@ class MyAccountTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser, self.account_user.login,
+        with Session(self, self.account_user.login,
                      self.account_password):
             email = gen_email()
             self.my_account.update(email=email)
@@ -125,7 +125,7 @@ class MyAccountTestCase(UITestCase):
         valid_names.append('name with space')
         for last_name in valid_names:
             with self.subTest(last_name):
-                with Session(self.browser, self.account_user.login,
+                with Session(self, self.account_user.login,
                              self.account_password):
                     self.my_account.update(last_name=last_name)
                     self.assertEqual(
@@ -149,7 +149,7 @@ class MyAccountTestCase(UITestCase):
             with self.subTest(language):
                 password = gen_alpha()
                 user = User(password=password).create()
-                with Session(self.browser, user.login, password):
+                with Session(self, user.login, password):
                     self.my_account.update(language=language)
                     # Cant use directly language because its value changes
                     # after updating current language
@@ -172,7 +172,7 @@ class MyAccountTestCase(UITestCase):
             with self.subTest(password):
                 old_password = 'old_password'
                 user = User(password=old_password).create()
-                with Session(self.browser, user.login, old_password):
+                with Session(self, user.login, old_password):
                     self.my_account.update(
                         current_password=old_password, password=password,
                         password_confirmation=password)
@@ -180,10 +180,10 @@ class MyAccountTestCase(UITestCase):
                 # UINoSuchElementError is raised on __exit__ once logout is
                 # only possible with prior login
                 with self.assertRaises(UINoSuchElementError):
-                    with Session(self.browser, user.login, old_password):
+                    with Session(self, user.login, old_password):
                         self.assertFalse(self.login.is_logged())
 
-                with Session(self.browser, user.login, password):
+                with Session(self, user.login, password):
                     self.assertTrue(self.login.is_logged())
                     # Check user can navigate to her own account again
                     self.my_account.navigate_to_entity()

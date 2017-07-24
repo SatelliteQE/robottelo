@@ -71,7 +71,7 @@ class PackagesTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.package.select_repo(self.yum_repo.name)
             self.assertIsNotNone(self.package.search('bear'))
@@ -90,7 +90,7 @@ class PackagesTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.assertIsNotNone(self.package.search('tiger'))
             self.assertIsNotNone(self.package.search('Lizard'))
@@ -114,7 +114,7 @@ class PackagesTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.package.select_repo(self.yum_repo.name)
             self.package.check_package_details(
@@ -153,7 +153,7 @@ class PackagesTestCase(UITestCase):
         """
         with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
             self.yum_repo.upload_content(files={'content': handle})
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.package.select_repo(self.yum_repo.name)
             self.package.search_and_click(RPM_TO_UPLOAD.split('-')[0])
@@ -197,7 +197,7 @@ class RHPackagesTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.package.select_repo(REPOS['rhst7']['name'])
             self.assertIsNotNone(self.package.search('facter'))
@@ -216,7 +216,7 @@ class RHPackagesTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.package.select_repo(REPOS['rhst7']['name'])
             self.package.check_file_list(

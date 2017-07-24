@@ -52,7 +52,7 @@ class SubscriptionTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             # Step 1: Attempt to upload a manifest
             with manifests.clone() as manifest:
                 self.subscriptions.upload(manifest)
@@ -79,7 +79,7 @@ class SubscriptionTestCase(UITestCase):
         """
         org = entities.Organization().create()
         self.upload_manifest(org.id, manifests.clone())
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.subscriptions.navigate_to_entity()
             self.subscriptions.click(locators['subs.manage_manifest'])
@@ -118,7 +118,7 @@ class SubscriptionTestCase(UITestCase):
         ]
         org = entities.Organization().create()
         self.upload_manifest(org.id, manifests.clone())
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.subscriptions.navigate_to_entity()
             self.subscriptions.click(locators['subs.manage_manifest'])
@@ -162,7 +162,7 @@ class SubscriptionTestCase(UITestCase):
             organization=[org],
             default_organization=org,
         ).create()
-        with Session(self.browser, user.login, password):
+        with Session(self, user.login, password):
             self.subscriptions.navigate_to_entity()
             self.assertIsNotNone(self.subscriptions.wait_until_element(
                 locators['subs.no_manifests_title']))
@@ -199,7 +199,7 @@ class SubscriptionTestCase(UITestCase):
             organization=[org],
             default_organization=org,
         ).create()
-        with Session(self.browser, user.login, password):
+        with Session(self, user.login, password):
             self.subscriptions.navigate_to_entity()
             self.assertFalse(self.browser.current_url.endswith('katello/403'))
             self.assertIsNotNone(

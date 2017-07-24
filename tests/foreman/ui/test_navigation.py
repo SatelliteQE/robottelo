@@ -84,7 +84,7 @@ class NavigationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for page in self.page_objects().values():
                     page.navigate_to_entity()
                     self.assertIsNotNone(session.nav.wait_until_element(
@@ -104,7 +104,7 @@ class NavigationTestCase(UITestCase):
 
         :expectedresults: Page is opened without errors
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.navigate_to_entity()
             self.environment.navigate_to_entity()
             self.assertIsNotNone(session.nav.wait_until_element(
@@ -123,7 +123,7 @@ class NavigationTestCase(UITestCase):
 
         :expectedresults: Page is opened without errors
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.architecture.navigate_to_entity()
             self.content_views.navigate_to_entity()
             self.assertIsNotNone(session.nav.wait_until_element(
@@ -148,7 +148,7 @@ class NavigationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             pages = self.page_objects()
             for page_name in (
                     'Activation Key', 'Product', 'Domain', 'Location'):

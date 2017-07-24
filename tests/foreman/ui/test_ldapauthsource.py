@@ -51,7 +51,7 @@ class LDAPAuthSourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for server_name in generate_strings_list():
                 with self.subTest(server_name):
                     make_ldapauth(
@@ -87,7 +87,7 @@ class LDAPAuthSourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for server_name in generate_strings_list():
                 with self.subTest(server_name):
                     make_ldapauth(

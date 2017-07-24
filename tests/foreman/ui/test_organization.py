@@ -93,7 +93,7 @@ class OrganizationTestCase(UITestCase):
         """
         org_name = gen_string('alpha')
         part_string = org_name[:3]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             page = session.nav.go_to_org
             make_org(session, org_name=org_name)
             auto_search = self.org.auto_complete_search(
@@ -111,7 +111,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
@@ -127,7 +127,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for label in valid_labels():
                 with self.subTest(label):
                     org_name = gen_string('alphanumeric')
@@ -150,7 +150,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for item in valid_labels():
                 with self.subTest(item):
                     make_org(session, org_name=item, label=item)
@@ -175,7 +175,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
@@ -198,7 +198,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     #  Use nailgun to create Location
@@ -222,7 +222,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for org_name in invalid_values_list(interface='ui'):
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
@@ -241,7 +241,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     make_org(session, org_name=org_name)
@@ -261,7 +261,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     entities.Organization(name=org_name).create()
@@ -286,7 +286,7 @@ class OrganizationTestCase(UITestCase):
         org = entities.Organization(name=org_name).create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(session, org_name, name='DEV')
             make_lifecycle_environment(
                 session, org_name, name='QE', prior='DEV'
@@ -322,7 +322,7 @@ class OrganizationTestCase(UITestCase):
         with manifests.original_manifest() as manifest:
             upload_manifest(org.id, manifest.content)
         try:
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 for _ in range(3):
                     self.assertIsNotNone(org.download_debug_certificate())
                     session.nav.go_to_select_org(org.name)
@@ -346,7 +346,7 @@ class OrganizationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         org_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
             for new_name in generate_strings_list():
@@ -367,7 +367,7 @@ class OrganizationTestCase(UITestCase):
         :CaseImportance: Critical
         """
         org_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
             for new_name in invalid_names_list():
@@ -388,7 +388,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for domain_name in generate_strings_list():
                 with self.subTest(domain_name):
                     domain = entities.Domain(name=domain_name).create()
@@ -409,7 +409,7 @@ class OrganizationTestCase(UITestCase):
         :CaseLevel: Integration
         """
 
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for domain_name in generate_strings_list():
@@ -435,7 +435,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for user_name in valid_users():
                 with self.subTest(user_name):
                     user = entities.User(
@@ -459,7 +459,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for user_name in valid_users():
@@ -492,7 +492,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for hostgroup_name in generate_strings_list():
                 with self.subTest(hostgroup_name):
                     # Create host group using nailgun
@@ -514,7 +514,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for hostgroup_name in generate_strings_list():
@@ -542,7 +542,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for location_name in generate_strings_list():
                 with self.subTest(location_name):
                     location = entities.Location(name=location_name).create()
@@ -561,7 +561,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for location_name in generate_strings_list():
@@ -589,7 +589,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
                     url = (LIBVIRT_RESOURCE_URL %
@@ -616,7 +616,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for resource_name in generate_strings_list():
@@ -648,7 +648,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for media_name in generate_strings_list():
                 with self.subTest(media_name):
                     # Create media using nailgun
@@ -672,7 +672,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for media_name in generate_strings_list():
@@ -703,7 +703,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for template_name in generate_strings_list():
                 with self.subTest(template_name):
                     # Create config template using nailgun
@@ -724,7 +724,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for template_name in generate_strings_list():
@@ -752,7 +752,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for ptable_name in generate_strings_list():
                 with self.subTest(ptable_name):
                     # Create partition table using nailgun
@@ -772,7 +772,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for ptable_name in generate_strings_list():
@@ -799,7 +799,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             for environment_name in valid_env_names():
                 with self.subTest(environment_name):
                     environment = entities.Environment(
@@ -819,7 +819,7 @@ class OrganizationTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             org_name = gen_string('alpha')
             make_org(session, org_name=org_name)
             for environment_name in valid_env_names():

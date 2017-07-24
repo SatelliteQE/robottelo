@@ -80,7 +80,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_os(
@@ -104,7 +104,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for test_data in valid_os_parameters():
                 with self.subTest(test_data):
                     make_os(
@@ -131,7 +131,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_os(
@@ -158,7 +158,7 @@ class OperatingSystemTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_os(
                 session,
                 name=gen_string('alpha'),
@@ -184,7 +184,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for major_version in gen_string('numeric', 6), '', '-6':
                 with self.subTest(major_version):
                     name = gen_string('alpha')
@@ -213,7 +213,7 @@ class OperatingSystemTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for minor_version in gen_string('numeric', 17), '-5':
                 with self.subTest(minor_version):
                     make_os(
@@ -242,7 +242,7 @@ class OperatingSystemTestCase(UITestCase):
         name = gen_string('alpha')
         major_version = gen_string('numeric', 1)
         minor_version = gen_string('numeric', 1)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_os(
                 session,
                 name=name,
@@ -275,7 +275,7 @@ class OperatingSystemTestCase(UITestCase):
         :CaseImportance: Critical
         """
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser):
+        with Session(self):
             self.operatingsys.delete(os_name)
 
     @run_only_on('sat')
@@ -291,7 +291,7 @@ class OperatingSystemTestCase(UITestCase):
         :CaseImportance: Critical
         """
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser):
+        with Session(self):
             for test_data in valid_os_parameters():
                 with self.subTest(test_data):
                     self.operatingsys.update(
@@ -324,7 +324,7 @@ class OperatingSystemTestCase(UITestCase):
             organization=[self.organization],
         ).create()
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.operatingsys.update(os_name, new_mediums=[medium_name])
             result_obj = self.operatingsys.get_os_entities(os_name, 'medium')
@@ -351,7 +351,7 @@ class OperatingSystemTestCase(UITestCase):
             organization=[self.organization],
         ).create()
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.operatingsys.update(os_name, new_ptables=[ptable])
             result_obj = self.operatingsys.get_os_entities(os_name, 'ptable')
@@ -376,7 +376,7 @@ class OperatingSystemTestCase(UITestCase):
             operatingsystem=[entities.OperatingSystem(name=os_name).create()],
             organization=[self.organization],
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.operatingsys.update(os_name, template=template_name)
             result_obj = self.operatingsys.get_os_entities(os_name, 'template')
@@ -393,7 +393,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             try:
                 self.operatingsys.set_os_parameter(
                     entities.OperatingSystem().create().name,
@@ -414,7 +414,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             try:
                 self.operatingsys.set_os_parameter(
                     entities.OperatingSystem().create().name,
@@ -437,7 +437,7 @@ class OperatingSystemTestCase(UITestCase):
         """
         param_name = gen_string('alpha', 4)
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser):
+        with Session(self):
             try:
                 self.operatingsys.set_os_parameter(
                     os_name, param_name, gen_string('alpha', 3))
@@ -459,7 +459,7 @@ class OperatingSystemTestCase(UITestCase):
         param_name = gen_string('alpha', 4)
         param_value = gen_string('alpha', 3)
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser):
+        with Session(self):
             try:
                 for _ in range(2):
                     self.operatingsys.set_os_parameter(
@@ -482,7 +482,7 @@ class OperatingSystemTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             try:
                 self.operatingsys.set_os_parameter(
                     entities.OperatingSystem().create().name, '', '')
@@ -505,7 +505,7 @@ class OperatingSystemTestCase(UITestCase):
         :CaseLevel: Integration
         """
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser):
+        with Session(self):
             for param in invalid_values_list(interface='ui'):
                 with self.subTest(param):
                     try:

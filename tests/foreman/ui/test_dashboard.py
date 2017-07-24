@@ -64,7 +64,7 @@ class DashboardTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             self.assertEqual(self.dashboard.search(gen_string('alpha')), 0)
             self.assertIsNone(self.dashboard.wait_until_element(
@@ -85,7 +85,7 @@ class DashboardTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             self.assertGreaterEqual(
                 self.dashboard.search('production', 'environment'), 1)
@@ -111,7 +111,7 @@ class DashboardTestCase(UITestCase):
         org = entities.Organization().create()
         entities.Host(organization=org).create()
         host = entities.Host(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertEqual(
                 self.dashboard.search(host.name, 'name'), 1)
@@ -136,7 +136,7 @@ class DashboardTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             self.dashboard.remove_widget('Latest Events')
             self.assertIsNone(self.dashboard.get_widget('Latest Events'))
 
@@ -159,7 +159,7 @@ class DashboardTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             self.dashboard.remove_widget('Host Configuration Chart')
             self.dashboard.manage_widget('Save Dashboard')
             self.assertIsNone(
@@ -185,7 +185,7 @@ class DashboardTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             self.dashboard.remove_widget('Task Status')
             self.dashboard.manage_widget('Save Dashboard')
             self.assertIsNone(self.dashboard.get_widget('Task Status'))
@@ -232,7 +232,7 @@ class DashboardTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             for widget in ['Discovered Hosts', 'Content Views']:
                 self.dashboard.remove_widget(widget)
                 self.dashboard.manage_widget('Save Dashboard')
@@ -255,7 +255,7 @@ class DashboardTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             self.dashboard.navigate_to_entity()
             self.assertEqual(
                 self.browser.current_url.split('/')[-1],
@@ -329,7 +329,7 @@ class DashboardTestCase(UITestCase):
         ]
         org = entities.Organization().create()
         host = entities.Host(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.dashboard.navigate_to_entity()
             for criteria in criteria_list:
@@ -366,7 +366,7 @@ class DashboardTestCase(UITestCase):
         """
         org = entities.Organization().create()
         entities.Host(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertEqual(
                 self.dashboard.get_hcc_host_percentage('No report'),
@@ -393,7 +393,7 @@ class DashboardTestCase(UITestCase):
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
         content_view.publish()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertTrue(self.dashboard.validate_task_navigation(
                 'running', 'state=running&result=pending'))
@@ -426,7 +426,7 @@ class DashboardTestCase(UITestCase):
         name = entities.Organization().create().name
         with self.assertRaises(HTTPError):
             entities.Organization(name=name).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=name)
             self.assertTrue(self.dashboard.validate_error_navigation(
                 'Create',
@@ -459,7 +459,7 @@ class DashboardTestCase(UITestCase):
             ['Promoted to {0}'.format(lc_env.name), 'Success'],
             ['Published new version', 'Success']
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             actual_list = self.dashboard.get_cvh_tasks_list(content_view.name)
             self.assertTrue(all(
@@ -494,7 +494,7 @@ class DashboardTestCase(UITestCase):
         content_view = entities.ContentView(organization=org).create()
         content_view.publish()
         promote(content_view.read().version[0], lc_env.id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertIsNotNone(
                 self.dashboard.search(lc_env.name, 'lifecycle_environment'))
@@ -570,7 +570,7 @@ class DashboardTestCase(UITestCase):
             product=product,
         ).create()
         repo.sync()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertEqual(
                 self.dashboard.get_so_product_status(product.name),
@@ -627,7 +627,7 @@ class DashboardTestCase(UITestCase):
             self.assertTrue(client.subscribed)
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=org.name)
                 self.assertTrue(self.dashboard.validate_chss_navigation(
                     'Invalid', u'subscription_status = invalid'))
@@ -661,7 +661,7 @@ class DashboardTestCase(UITestCase):
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertGreaterEqual(self.dashboard.get_cst_subs_count(
                 'Active Subscriptions'), 1)
@@ -694,7 +694,7 @@ class DashboardTestCase(UITestCase):
             host=[host],
             organization=org,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertEqual(
                 self.dashboard.get_hc_host_count(host_collection.name),
@@ -754,7 +754,7 @@ class DashboardTestCase(UITestCase):
             login=user_login,
             password=user_password
         ).create()
-        with Session(self.browser, user_login, user_password):
+        with Session(self, user_login, user_password):
             self.assertEqual(
                 self.dashboard.get_total_hosts_count(), 0)
             self.assertIsNotNone(self.dashboard.get_widget('Latest Errata'))

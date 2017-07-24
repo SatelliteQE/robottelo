@@ -47,7 +47,7 @@ class ProductTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for prd_name in generate_strings_list():
                 with self.subTest(prd_name):
                     make_product(
@@ -72,7 +72,7 @@ class ProductTestCase(UITestCase):
         :CaseLevel: Integration
         """
         organization_2 = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for prd_name in generate_strings_list():
                 with self.subTest(prd_name):
                     for org in [self.organization.name, organization_2.name]:
@@ -96,7 +96,7 @@ class ProductTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_product(
@@ -122,7 +122,7 @@ class ProductTestCase(UITestCase):
         """
         prd_name = gen_string('alphanumeric')
         description = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_product(
                 session,
                 org=self.organization.name,
@@ -147,7 +147,7 @@ class ProductTestCase(UITestCase):
         :CaseImportance: Critical
         """
         prd_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_product(
                 session,
                 org=self.organization.name,
@@ -175,7 +175,7 @@ class ProductTestCase(UITestCase):
         """
         prd_name = gen_string('alphanumeric')
         new_prd_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_product(
                 session,
                 org=self.organization.name,
@@ -201,7 +201,7 @@ class ProductTestCase(UITestCase):
         :CaseImportance: Critical
         """
         prd_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_product(
                 session,
                 org=self.organization.name,
@@ -225,7 +225,7 @@ class ProductTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for prd_name in generate_strings_list():
                 with self.subTest(prd_name):
                     make_product(

@@ -40,7 +40,7 @@ class TaskTest(UITestCase):
         :CaseImportance: Critical
         """
 
-        with Session(self.browser):
+        with Session(self):
             self.assertIsNotNone(self.task.search(
                 str(gen_integer(min_value=1489607391328)),
                 expecting_results=False)

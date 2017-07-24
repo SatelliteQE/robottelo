@@ -117,7 +117,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -152,7 +152,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -198,7 +198,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -209,7 +209,7 @@ class BookmarkTestCase(UITestCase):
                         ),
                     )
                     self.assertIsNotNone(self.bookmark.search(name))
-                with Session(self.browser, user=self.custom_user.login,
+                with Session(self, user=self.custom_user.login,
                              password=self.custom_password):
                     self.assertIsNone(self.bookmark.search(name))
 
@@ -235,7 +235,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     name = ''
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -275,7 +275,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -309,7 +309,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
                     for _ in range(2):
@@ -350,7 +350,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     query = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
@@ -384,7 +384,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     bm1_name = gen_string(random.choice(STRING_TYPES))
                     bm2_name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
@@ -426,7 +426,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     query = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
@@ -463,7 +463,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -500,7 +500,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     query = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
@@ -555,7 +555,7 @@ class BookmarkTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             bm1_name = gen_string(random.choice(STRING_TYPES))
             bm1_entity = self.getOneEntity()[0]
             bm2_name = gen_string(random.choice(STRING_TYPES))
@@ -572,14 +572,14 @@ class BookmarkTestCase(UITestCase):
                 public=False,
                 query=gen_string('alphanumeric'),
             )
-        with Session(self.browser, user=self.custom_user.login,
+        with Session(self, user=self.custom_user.login,
                      password=self.custom_password):
             self.assertIsNotNone(self.bookmark.search(bm1_name))
             self.assertIsNone(self.bookmark.search(bm2_name))
-        with Session(self.browser):
+        with Session(self):
             self.bookmark.update(bm1_name, new_public=False)
             self.bookmark.update(bm2_name, new_public=True)
-        with Session(self.browser, user=self.custom_user.login,
+        with Session(self, user=self.custom_user.login,
                      password=self.custom_password):
             self.assertIsNone(self.bookmark.search(bm1_name))
             self.assertIsNotNone(self.bookmark.search(bm2_name))
@@ -605,7 +605,7 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser):
+                with Session(self):
                     name = gen_string(random.choice(STRING_TYPES))
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -642,7 +642,7 @@ class BookmarkTestCase(UITestCase):
             controller=self.getOneEntity()[0]['controller'],
             public=True,
         ).create()
-        with Session(self.browser, user=self.custom_user.login,
+        with Session(self, user=self.custom_user.login,
                      password=self.custom_password):
             with self.assertRaises(UIError):
                 self.bookmark.delete(bm.name)

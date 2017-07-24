@@ -195,7 +195,7 @@ class SmartClassParametersTestCase(UITestCase):
             system
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.assertIsNotNone(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
 
@@ -243,7 +243,7 @@ class SmartClassParametersTestCase(UITestCase):
             entities.Role(cfg, id=role.id).read()
         self.assertIn(
             '403 Client Error: Forbidden', context.exception.message)
-        with Session(self.browser, username, password):
+        with Session(self, username, password):
             self.assertIsNotNone(self.sc_parameters.search(
                 sc_param.parameter, self.puppet_class.name))
 
@@ -263,7 +263,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         new_value = gen_string('alpha')
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -288,7 +288,7 @@ class SmartClassParametersTestCase(UITestCase):
             Matcher section enabled.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -323,7 +323,7 @@ class SmartClassParametersTestCase(UITestCase):
             Merging and Matcher section is disabled.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -365,7 +365,7 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             for data in valid_sc_parameters_data():
                 with self.subTest(data):
                     self.sc_parameters.update(
@@ -404,7 +404,7 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             initial_value = self.sc_parameters.fetch_default_value(
                 sc_param.parameter, self.puppet_class.name)
             for data in invalid_sc_parameters_data():
@@ -439,7 +439,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Validation shouldn't work with puppet default value.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -523,7 +523,7 @@ class SmartClassParametersTestCase(UITestCase):
             regex.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -555,7 +555,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         initial_value = gen_string('numeric')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -590,7 +590,7 @@ class SmartClassParametersTestCase(UITestCase):
             regex.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -626,7 +626,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         matcher_value = gen_string('numeric')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -662,7 +662,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error raised for default value not in list.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -692,7 +692,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error not raised for default value in list.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -726,7 +726,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error raised for matcher value not in list.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -764,7 +764,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error not raised for matcher value in list.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -801,7 +801,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error raised for matcher value not of default type.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -835,7 +835,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         matcher_value = gen_integer()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -872,7 +872,7 @@ class SmartClassParametersTestCase(UITestCase):
             both.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -908,7 +908,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Error raised for non existing attribute.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -946,7 +946,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         loc_name = '{0}, {1}'.format(gen_string('alpha'), gen_string('alpha'))
         entities.Location(name=loc_name).create()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -989,7 +989,7 @@ class SmartClassParametersTestCase(UITestCase):
         :CaseImportance: Critical
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1036,7 +1036,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1095,7 +1095,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1158,7 +1158,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1221,7 +1221,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1316,7 +1316,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1381,7 +1381,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1474,7 +1474,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[80,90]'
         override_value2 = '[90,100]'
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1537,7 +1537,7 @@ class SmartClassParametersTestCase(UITestCase):
         sc_param = self.sc_params_list.pop()
         override_value = '[70,80]'
         override_value2 = '[90,100]'
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1583,7 +1583,7 @@ class SmartClassParametersTestCase(UITestCase):
             Duplicates checkboxes are enabled to check.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1623,7 +1623,7 @@ class SmartClassParametersTestCase(UITestCase):
             enabled to check.
         """
         sc_param = self.sc_params_list.pop()
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1668,7 +1668,7 @@ class SmartClassParametersTestCase(UITestCase):
             name=hg_name, environment=self.env).create()
         hostgroup.add_puppetclass(
             data={'puppetclass_id': self.puppet_class.id})
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1925,7 +1925,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         initial_value = gen_string('alpha')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -1969,7 +1969,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         initial_value = gen_string('alpha')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -2076,7 +2076,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         new_value = gen_string('alpha')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,
@@ -2149,7 +2149,7 @@ class SmartClassParametersTestCase(UITestCase):
         """
         sc_param = self.sc_params_list.pop()
         matcher_value = gen_string('alpha')
-        with Session(self.browser):
+        with Session(self):
             self.sc_parameters.update(
                 sc_param.parameter,
                 self.puppet_class.name,

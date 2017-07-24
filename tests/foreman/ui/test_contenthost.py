@@ -121,7 +121,7 @@ class ContentHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             self.assertIsNotNone(self.contenthost.search(self.client.hostname))
             self.assertIsNotNone(
                 self.contenthost.search(
@@ -146,7 +146,7 @@ class ContentHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             result = self.contenthost.execute_package_action(
                 self.client.hostname,
                 'Package Install',
@@ -170,7 +170,7 @@ class ContentHostTestCase(UITestCase):
             FAKE_6_YUM_REPO,
             FAKE_0_CUSTOM_PACKAGE
         )
-        with Session(self.browser):
+        with Session(self):
             result = self.contenthost.execute_package_action(
                 self.client.hostname,
                 'Package Remove',
@@ -191,7 +191,7 @@ class ContentHostTestCase(UITestCase):
         :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        with Session(self.browser):
+        with Session(self):
             result = self.contenthost.execute_package_action(
                 self.client.hostname,
                 'Package Update',
@@ -211,7 +211,7 @@ class ContentHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             result = self.contenthost.execute_package_action(
                 self.client.hostname,
                 'Group Install',
@@ -232,7 +232,7 @@ class ContentHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             result = self.contenthost.execute_package_action(
                 self.client.hostname,
                 'Group Install',
@@ -260,7 +260,7 @@ class ContentHostTestCase(UITestCase):
         :CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        with Session(self.browser):
+        with Session(self):
             result = self.contenthost.install_errata(
                 self.client.hostname,
                 FAKE_2_ERRATA_ID,
@@ -283,7 +283,7 @@ class ContentHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             result = self.contenthost.fetch_parameters(
                 self.client.hostname,
                 [['Details', 'Registered By']],
@@ -308,7 +308,7 @@ class ContentHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             # open the content host
             self.contenthost.search_and_click(self.client.hostname)
             # open the provisioning tab of the content host
