@@ -32,6 +32,7 @@ from robottelo.config import settings
 from robottelo.datafactory import (
     invalid_emails_list,
     invalid_names_list,
+    valid_data_list,
     valid_emails_list,
     valid_usernames_list,
 )
@@ -109,6 +110,21 @@ class UserTestCase(CLITestCase):
                 escaped_email = email.replace('"', r'\"').replace('`', r'\`')
                 user = make_user({'mail': escaped_email})
                 self.assertEqual(user['email'], email)
+
+    @tier1
+    def test_positive_create_with_description(self):
+        """Create User for all variations of Description
+
+        :id: 6d2f8d13-4033-4741-9bdd-37e76abff59f
+
+        :expectedresults: User is created
+
+        :CaseImportance: Critical
+        """
+        for description in valid_data_list():
+            with self.subTest(description):
+                user = make_user({'description': description})
+                self.assertEqual(description, user['description'])
 
     @tier1
     def test_positive_create_with_password(self):
@@ -811,6 +827,26 @@ class UserWithCleanUpTestCase(CLITestCase):
                 })
                 result = User.info({'id': user['id']})
                 self.assertEqual(result['email'], email)
+
+    @tier1
+    def test_positive_update_description(self):
+        """Update Description value for existing User
+
+        :id: 8ead3d27-884a-4ac3-94e8-476f406c557b
+
+        :expectedresults: User is updated
+
+        :CaseImportance: Critical
+        """
+        user = self.user
+        for new_description in valid_data_list():
+            with self.subTest(new_description):
+                User.update({
+                    'id': user['id'],
+                    'description': new_description,
+                })
+                user = User.info({'id': user['id']})
+                self.assertEqual(user['description'], new_description)
 
     @tier1
     def test_positive_update_password(self):
