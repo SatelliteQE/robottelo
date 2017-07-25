@@ -111,14 +111,15 @@ class ContentHostTestCase(UITestCase):
         """Register host into the system and search for it afterwards by
         subscription status
 
-        @id: b4d24ee7-51b9-43e4-b0c9-7866b6340ce1
+        :id: b4d24ee7-51b9-43e4-b0c9-7866b6340ce1
 
-        @assert: Validate that host can be found for valid subscription status
-        and that host is not present in the list for invalid status
+        :expectedresults: Validate that host can be found for valid
+            subscription status and that host is not present in the list for
+            invalid status
 
-        @BZ: 1406855
+        :BZ: 1406855
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         with Session(self.browser):
             self.assertIsNotNone(self.contenthost.search(self.client.hostname))
