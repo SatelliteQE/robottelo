@@ -22,6 +22,6 @@ from robottelo.cli.base import Base
 
 
 class Realm(Base):
-    """Manipulates Realm subcommand introduced in Satellite 6.3"""
+    """Manipulates Realm subcommand"""
 
     command_base = 'realm'

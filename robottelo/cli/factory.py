@@ -46,10 +46,10 @@ from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
-from robottelo.cli.realm import Realm
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import CapsuleTunnelError, Proxy
+from robottelo.cli.realm import Realm
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
