@@ -1540,7 +1540,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_create_override_from_attribute(self):
+    def test_positive_override_from_attribute(self):
         """Impact on variable on overriding the variable value from attribute.
 
         :id: 0d4a6b5f-09d8-4d64-ae4b-efa152815ea8
@@ -1548,14 +1548,12 @@ class SmartVariablesTestCase(UITestCase):
         :steps:
 
             1.  Create a variable.
-            2.  Associate variable with fqdn/hostgroup.
-            3.  From host/hostgroup, override the variable value.
-            4.  Submit the changes.
+            2.  From host/hostgroup, override the variable value.
+            3.  Submit the changes.
 
         :expectedresults:
 
             1.  The host/hostgroup is saved with changes.
-            2.  New matcher for fqdn/hostgroup created inside variable.
 
         :CaseLevel: Integration
         """
@@ -1572,6 +1570,50 @@ class SmartVariablesTestCase(UITestCase):
                 self.host.name, name, gen_string('alpha'))
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'overrides_number', '1'))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_override_default_value_from_attribute(self):
+        """Override smart variable that has default value with a new value from
+        attribute(host) page
+
+        :id: a76dcb34-b005-4998-99e9-418b2e821a00
+
+        :steps:
+
+            1.  Create a variable with array type and default value
+            2.  From host/hostgroup, override the variable value.
+            3.  Submit the changes.
+
+        :expectedresults:
+
+            1.  The host/hostgroup is saved with changes and variable value has
+                been changed
+            2.  Smart variable should be treated as overridden
+
+        :BZ: 1405118
+
+        :CaseLevel: Integration
+        """
+        name = gen_string('alpha')
+        new_value = '[90,100,120]'
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet_class.name,
+                key_type='array',
+                default_value='[20,30]',
+            )
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '0'))
+            self.hosts.set_smart_variable_value(
+                self.host.name, name, new_value)
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '1'))
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host.name, name)
+            self.assertEqual(sv_value.get_attribute('value'), new_value)
 
     @run_only_on('sat')
     @tier2
