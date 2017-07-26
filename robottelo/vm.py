@@ -172,6 +172,8 @@ class VirtualMachine(object):
         if result.return_code != 0:
             raise VirtualMachineError(
                 u'Failed to run snap-guest: {0}'.format(result.stderr))
+        else:
+            self._created = True
 
         # Give some time to machine boot
         result = ssh.command(
@@ -180,6 +182,8 @@ class VirtualMachine(object):
             self.provisioning_server
         )
         if result.return_code != 0:
+            logger.error('Failed to obtain VM IP, reverting changes')
+            self.destroy()
             raise VirtualMachineError(
                 'Failed to fetch virtual machine IP address information')
         output = ''.join(result.stdout)
@@ -190,12 +194,14 @@ class VirtualMachine(object):
             self.provisioning_server
         )
         if ssh_check.return_code != 0:
+            logger.error('Failed to SSH to the VM, reverting changes')
+            self.destroy()
             raise VirtualMachineError(
                 'Failed to connect to SSH port of the virtual machine')
-        self._created = True
 
     def destroy(self):
         """Destroys the virtual machine on the provisioning server"""
+        logger.info('Destroying the VM')
         if not self._created:
             return
         if self._subscribed:
