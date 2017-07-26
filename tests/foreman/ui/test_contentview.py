@@ -1004,8 +1004,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.add_filter(
                 cv_name,
                 filter_name,
@@ -1148,8 +1146,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -1191,8 +1187,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.add_filter(
                 cv_name,
                 filter_name,
@@ -1241,8 +1235,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -1324,8 +1316,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
                 self.assertEqual(
@@ -1388,8 +1378,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1445,8 +1433,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1617,8 +1603,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1671,8 +1655,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1838,10 +1820,6 @@ class ContentViewTestCase(UITestCase):
                 self.setup_to_create_cv(repo_name=repo_name)
                 # add the repository to the created content view
                 self.content_views.add_remove_repos(cv_name, [repo_name])
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form'])
-                )
                 # publish the content view
                 version_name = self.content_views.publish(cv_name)
                 # assert the content view successfully published
@@ -1974,10 +1952,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             # Publish the CV
             self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -2020,10 +1994,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -2117,8 +2087,6 @@ class ContentViewTestCase(UITestCase):
             # add the repository to content view
             self.content_views.add_remove_repos(
                 cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # add a package exclude filter
             self.content_views.add_filter(
                 cv_name,
@@ -2171,7 +2139,7 @@ class ContentViewTestCase(UITestCase):
             with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
                 host_client.install_katello_ca()
                 host_client.register_contenthost(
-                        org.label, activation_key.name)
+                    org.label, activation_key.name)
                 self.assertTrue(host_client.subscribed)
                 # assert the host_client exists in content hosts page
                 self.assertIsNotNone(
@@ -2207,8 +2175,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add the repository to content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
@@ -2296,7 +2262,7 @@ class ContentViewTestCase(UITestCase):
             with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
                 host_client.install_katello_ca()
                 host_client.register_contenthost(
-                        org.label, activation_key.name)
+                    org.label, activation_key.name)
                 self.assertTrue(host_client.subscribed)
                 # assert the host_client exists in content hosts page
                 self.assertIsNotNone(
@@ -3492,8 +3458,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # Publish and promote CV to next environment
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element
@@ -3541,8 +3505,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add the repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3598,8 +3560,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add the repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3763,8 +3723,6 @@ class ContentViewTestCase(UITestCase):
             # add the docker repo to the created content view
             self.content_views.add_remove_repos(
                 cv_name, [docker_repo_name], repo_type='docker')
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3872,8 +3830,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3981,8 +3937,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -4090,8 +4044,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -4195,8 +4147,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
