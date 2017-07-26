@@ -435,12 +435,12 @@ tab_locators = LocatorDict({
     # Hostgroup
     # Third level UI
 
-    "hostgroup.tab_hostgroup": (By.XPATH, "//a[@href='#primary']"),
+    "hostgroup.tab_host_group": (By.XPATH, "//a[@href='#primary']"),
     "hostgroup.tab_ansible_roles": (By.XPATH, "//a[@href='#ansible_roles']"),
     "hostgroup.tab_puppet_classes": (By.XPATH, "//a[@href='#puppet_klasses']"),
     "hostgroup.tab_network": (By.XPATH, "//a[@href='#network']"),
     "hostgroup.tab_operating_system": (By.XPATH, "//a[@href='#os']"),
-    "hostgroup.tab_params": (By.XPATH, "//a[@href='#params']"),
+    "hostgroup.tab_parameters": (By.XPATH, "//a[@href='#params']"),
     "hostgroup.tab_locations": (By.XPATH, "//a[@href='#locations']"),
     "hostgroup.tab_organizations": (By.XPATH, "//a[@href='#organizations']"),
     "hostgroup.tab_activation_keys": (
@@ -1786,7 +1786,7 @@ locators = LocatorDict({
     "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
     "hostgroups.name": (By.ID, "hostgroup_name"),
     "hostgroups.parent": (By.ID, "hostgroup_parent_id"),
-    "hostgroups.environment": (
+    "hostgroups.lifecycle_environment": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_lifecycle_environment')]/a"
          "/span[contains(@class, 'arrow')]")),
@@ -1815,10 +1815,41 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_puppet_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "hostgroups.openscap_capsule": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_openscap_proxy_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "hostgroups.activation_keys": (
         By.XPATH, "//input[contains(@id, 'activation_keys')]"),
     "hostgroups.ak_autocomplete": (
         By.XPATH, "//ul[contains(@class, 'ui-autocomplete')]/li/a"),
+    "hostgroups.architecture": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_architecture_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.architecture_clear": (
+        By.XPATH,
+        "//div[contains(@id, 'hostgroup_architecture_id')]/a/abbr"),
+    "hostgroups.architecture_value": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_architecture_id')]/a"
+         "/span[contains(@class, 'select2-chosen')]")),
+    "hostgroups.operating_system": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_operatingsystem_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.operating_system_clear": (
+        By.XPATH,
+        "//div[contains(@id, 'hostgroup_operatingsystem_id')]/a/abbr"),
+    "hostgroups.media": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_medium_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.partition_table": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_ptable_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.root_password": (By.ID, "hostgroup_root_pass"),
 
     # Users
 

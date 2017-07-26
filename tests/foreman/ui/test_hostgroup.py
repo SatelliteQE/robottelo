@@ -55,9 +55,11 @@ class HostgroupTestCase(UITestCase):
         @id: 8bcf45e5-9e7f-4050-9de6-a90350b70006
 
         @expectedresults: Hostgroup is created
+
+        @CaseImportance: Critical
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=4):
+            for name in generate_strings_list():
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
                     self.assertIsNotNone(self.hostgroup.search(name))
@@ -70,13 +72,17 @@ class HostgroupTestCase(UITestCase):
         @id: a0232740-ae9f-44ce-9f3d-bafc8f1b05cb
 
         @expectedresults: Hostgroup is not created
+
+        @CaseImportance: Critical
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
-                    self.assertIsNotNone(self.hostgroup.wait_until_element
-                                         (common_locators['name_haserror']))
+                    self.assertIsNotNone(
+                        self.hostgroup.wait_until_element(
+                            common_locators['name_haserror'])
+                    )
 
     @run_only_on('sat')
     @tier1
@@ -92,23 +98,91 @@ class HostgroupTestCase(UITestCase):
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
             make_hostgroup(session, name=name)
-            self.assertIsNotNone(self.hostgroup.wait_until_element
-                                 (common_locators['name_haserror']))
+            self.assertIsNotNone(
+                self.hostgroup.wait_until_element(
+                    common_locators['name_haserror'])
+            )
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete(self):
-        """Delete a hostgroup
+    def test_positive_create_with_arch_and_os(self):
+        """Create new hostgroup with architecture and operating system assigned
 
-        @id: f118532b-ca9b-4bf4-b53b-9573abcb347a
+        @id: d1e537f2-ae04-439e-a252-6873184e8a8d
 
-        @expectedresults: Hostgroup is deleted
+        @expectedresults: Hostgroup is created
+
+        @CaseImportance: Critical
         """
+        name = gen_string('alpha')
+        arch = entities.Architecture().create()
+        custom_os = entities.OperatingSystem(
+            architecture=[arch]).create()
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=4):
-                with self.subTest(name):
-                    make_hostgroup(session, name=name)
-                    self.hostgroup.delete(name)
+            make_hostgroup(
+                session,
+                name=name,
+                org=self.organization.name,
+                parameters_list=[
+                    ['Operating System', 'Architecture', arch.name],
+                    [
+                        'Operating System',
+                        'Operating system',
+                        '{0} {1}'.format(custom_os.name, custom_os.major)
+                    ],
+                ],
+            )
+            self.assertIsNotNone(self.hostgroup.search(name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_oscap_capsule(self):
+        """Create new hostgroup with oscap capsule
+
+        @id: c0ab1148-93ff-41d3-93c3-2ff139349884
+
+        @expectedresults: Hostgroup is created with oscap capsule
+
+        @CaseImportance: Critical
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_hostgroup(
+                session,
+                name=name,
+                parameters_list=[
+                    ['Host Group', 'Content Source', self.sat6_hostname],
+                    ['Host Group', 'Puppet CA', self.sat6_hostname],
+                    ['Host Group', 'Puppet Master', self.sat6_hostname],
+                    ['Host Group', 'Openscap Capsule', self.sat6_hostname],
+                ],
+            )
+            self.assertIsNotNone(self.hostgroup.search(name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_activation_keys(self):
+        """Create new hostgroup with activation keys
+
+        @id: cfda3c1b-37fd-42c1-a74c-841efb83b2f5
+
+        @expectedresults: Hostgroup is created with activation keys
+
+        @CaseImportance: Critical
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_hostgroup(
+                session,
+                name=name,
+                org=self.organization.name,
+                parameters_list=[
+                    ['Host Group', 'Lifecycle Environment', self.env.name],
+                    ['Host Group', 'Content View', self.cv.name],
+                    ['Activation Keys', 'Activation Keys', self.ak.name],
+                ],
+            )
+            self.assertIsNotNone(self.hostgroup.search(name))
 
     @run_only_on('sat')
     @tier1
@@ -118,6 +192,8 @@ class HostgroupTestCase(UITestCase):
         @id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
 
         @expectedresults: Hostgroup is updated
+
+        @CaseImportance: Critical
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -131,44 +207,84 @@ class HostgroupTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_with_oscap_capsule(self):
-        """Create new hostgroup with oscap capsule
+    def test_positive_update_with_removed_arch(self):
+        """Create new hostgroup with content view, architecture and os
+        assigned. Then remove these attributes from the hostgroup. Attempt to
+        update hostgroup with the same architecture
 
-        @id: c0ab1148-93ff-41d3-93c3-2ff139349884
+        @id: 431d88a3-590e-42cf-b45d-09b1d8a62b30
 
-        @expectedresults: Hostgroup is created with oscap capsule
+        @expectedresults: Hostgroup is updated and no error is raised
+
+        @BZ: 1372917
+
+        @CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
-            make_hostgroup(
-                    session,
-                    content_source=self.sat6_hostname,
-                    name=name,
-                    puppet_ca=self.sat6_hostname,
-                    puppet_master=self.sat6_hostname,
-                    oscap_capsule=self.sat6_hostname,
-                )
-            self.assertIsNotNone(self.hostgroup.search(name))
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_with_activation_keys(self):
-        """Create new hostgroup with activation keys
-
-        @id: cfda3c1b-37fd-42c1-a74c-841efb83b2f5
-
-        @expectedresults: Hostgroup is created with activation keys
-        """
-        name = gen_string('alpha')
+        arch = entities.Architecture().create()
+        custom_os = entities.OperatingSystem(
+            architecture=[arch]).create()
         with Session(self.browser) as session:
             make_hostgroup(
                 session,
                 name=name,
-                environment=self.env.name,
-                content_view=self.cv.name,
-                activation_key=self.ak.name,
+                org=self.organization.name,
+                parameters_list=[
+                    ['Host Group', 'Lifecycle Environment', self.env.name],
+                    ['Host Group', 'Content View', self.cv.name],
+                    ['Operating System', 'Architecture', arch.name],
+                    [
+                        'Operating System',
+                        'Operating system',
+                        '{0} {1}'.format(custom_os.name, custom_os.major)
+                    ],
+                ],
             )
-            self.assertIsNotNone(self.hostgroup.search(name))
+            self.hostgroup.search_and_click(name)
+            self.hostgroup.click(
+                tab_locators['hostgroup.tab_operating_system'])
+            self.assertEqual(
+                self.hostgroup.wait_until_element(
+                    locators['hostgroups.architecture_value']).text,
+                arch.name
+            )
+            self.hostgroup.update(
+                name,
+                parameters_list=[
+                    ['Operating System', 'Operating system', None],
+                    ['Operating System', 'Architecture', None],
+                ],
+            )
+            self.hostgroup.search_and_click(name)
+            self.hostgroup.click(
+                tab_locators['hostgroup.tab_operating_system'])
+            self.assertIsNone(self.hostgroup.wait_until_element(
+                locators['hostgroups.architecture_value'], timeout=5))
+            self.hostgroup.update(
+                name,
+                parameters_list=[
+                    ['Operating System', 'Architecture', arch.name]
+                ],
+            )
+            self.assertIsNone(self.hostgroup.wait_until_element(
+                common_locators['haserror'], timeout=3))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_delete(self):
+        """Delete a hostgroup
+
+        @id: f118532b-ca9b-4bf4-b53b-9573abcb347a
+
+        @expectedresults: Hostgroup is deleted
+
+        @CaseImportance: Critical
+        """
+        with Session(self.browser) as session:
+            for name in generate_strings_list(length=4):
+                with self.subTest(name):
+                    make_hostgroup(session, name=name)
+                    self.hostgroup.delete(name)
 
     @run_only_on('sat')
     @tier1
@@ -180,16 +296,18 @@ class HostgroupTestCase(UITestCase):
 
         @Steps:
 
-        1. Create two content views A & B
-        2. Publish both content views
-        3. Create an activation key pointed to view A in Library
-        4. Create an activation key pointed to view B in Library
-        5. Go to the new Hostgroup page, select content view B & Library,
-            click on the activation key tab and click in the input box
+            1. Create two content views A & B
+            2. Publish both content views
+            3. Create an activation key pointed to view A in Library
+            4. Create an activation key pointed to view B in Library
+            5. Go to the new Hostgroup page, select content view B & Library,
+                click on the activation key tab and click in the input box
 
         @expectedresults: Only the activation key for view B is listed
 
         @BZ: 1321511
+
+        @CaseImportance: Critical
         """
         # Use setup entities as A and create another set for B.
         cv_b = entities.ContentView(organization=self.organization).create()
@@ -204,7 +322,7 @@ class HostgroupTestCase(UITestCase):
             session.nav.go_to_host_groups()
             self.hostgroup.click(locators['hostgroups.new'])
             self.hostgroup.assign_value(
-                locators['hostgroups.environment'], self.env.name)
+                locators['hostgroups.lifecycle_environment'], self.env.name)
             self.hostgroup.assign_value(
                 locators['hostgroups.content_view'], cv_b.name)
             # Switch to Activation Keys tab and click on input
