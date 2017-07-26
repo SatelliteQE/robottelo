@@ -178,6 +178,11 @@
 
 .. automodule:: tests.foreman.cli.test_oscap
 
+:mod:`tests.foreman.cli.test_oscap_tailoringfiles`
+-----------------------------------
+
+.. automodule:: tests.foreman.cli.test_oscap_tailoringfiles
+
 :mod:`tests.foreman.cli.test_ostreebranch`
 ------------------------------------------
 
