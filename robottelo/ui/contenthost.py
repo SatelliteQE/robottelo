@@ -126,6 +126,7 @@ class ContentHost(Base):
         """
         self.click(self.search(name))
         self.click(tab_locators['contenthost.tab_packages'])
+        self.click(tab_locators['contenthost.tab_packages.actions'])
         self.assign_value(
             locators['contenthost.remote_actions'], action_name)
         self.assign_value(

@@ -557,7 +557,7 @@ locators = LocatorDict({
         "//input[@type='text' and contains(@ng-model, 'packageAction')]"),
     "contenthost.perform_remote_action": (
         By.XPATH,
-        ("//form[@ng-submit='performPackageAction()']"
+        ("//form[contains(@ng-submit, 'performPackageAction')]"
          "//button[contains(@class, 'ng-scope')]")),
     "contenthost.remote_action_finished": (
         By.XPATH,
@@ -574,9 +574,9 @@ locators = LocatorDict({
          "/td[contains(@class, 'ng-scope') and contains(., '%s')]")),
     "contenthost.fetch_registered_by": (
         By.XPATH,
-        ("//div[@class='detail']/span[contains(@translate-plural, 'Activation "
-         "Keys')]/following-sibling::span"
-         "//a[contains(@href, 'activation_keys')]")),
+        ("//dd/ul[contains(@ng-show, 'activation_keys')]"
+         "/li[contains(@ng-repeat, 'activation_key')]"
+         "/span/a[contains(@ui-sref, 'activation-key.info')]")),
     "contenthost.subscription_message": (
         By.XPATH,
         "//div[contains(@data-extend-template, 'registration')]/span/span[1]"),

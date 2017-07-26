@@ -253,7 +253,16 @@ tab_locators = LocatorDict({
         "//a[@class='ng-scope' and contains(@href,'subscriptions')]"),
     "contenthost.tab_packages": (
         By.XPATH,
-        "//a[@class='ng-scope' and contains(@href,'packages')]"),
+        "//li[@class='dropdown' and contains(@ng-class,'packages')]/a"),
+    "contenthost.tab_packages.installed": (
+        By.XPATH,
+        "//li/a[contains(@ui-sref,'packages.installed')]"),
+    "contenthost.tab_packages.applicable": (
+        By.XPATH,
+        "//li/a[contains(@ui-sref,'packages.applicable')]"),
+    "contenthost.tab_packages.actions": (
+        By.XPATH,
+        "//li/a[contains(@ui-sref,'packages.actions')]"),
     "contenthost.tab_errata": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href,'errata')]"),
