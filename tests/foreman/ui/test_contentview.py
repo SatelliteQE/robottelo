@@ -3524,6 +3524,38 @@ class ContentViewTestCase(UITestCase):
                 composite_cv.name, version)
 
     @run_only_on('sat')
+    @tier2
+    def test_positive_delete_version_without_refresh(self):
+        """Publish content view few times in a row and then delete one version.
+
+        :id: 4c11eaaa-a9c0-4fbc-91f2-e8290dce09f5
+
+        :expectedresults: Version is deleted successfully and all other
+            versions are present on the page
+
+        :BZ: 1374134
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        cv = entities.ContentView(organization=org).create()
+        cvv_names = []
+        for i in range(5):
+            cv.publish()
+            cvv = cv.read().version[i].read()
+            cvv_names.append('Version {0}'.format(cvv.version))
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            cvv_delete = cvv_names.pop(0)
+            self.content_views.delete_version(cv.name, cvv_delete)
+            self.content_views.check_progress_bar_status(cvv_delete)
+            self.assertIsNone(self.content_views.wait_until_element(
+                locators['contentviews.version_name'] % cvv_delete, timeout=5))
+            for cvv in cvv_names:
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    locators['contentviews.version_name'] % cvv))
+
+    @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
     def test_positive_add_custom_ostree(self):
