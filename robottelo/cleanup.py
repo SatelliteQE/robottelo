@@ -24,6 +24,11 @@ def capsule_cleanup(proxy_id=None):
         Proxy.delete({'id': proxy_id})
 
 
+def realm_cleanup(realm_id=None):
+    """Deletes the realm with the given id"""
+    entities.Realm(id=realm_id).delete()
+
+
 def location_cleanup(loc_id=None):
     """Deletes the location with the given id"""
     entities.Location(id=loc_id).delete()

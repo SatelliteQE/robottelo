@@ -19,18 +19,15 @@
 import random
 
 from fauxfactory import gen_string
-from robottelo.cleanup import capsule_cleanup
+from robottelo.cleanup import capsule_cleanup, realm_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
-    make_location,
     make_proxy,
     make_realm,
     CLIFactoryError,
 )
 from robottelo.cli.realm import Realm
-from robottelo.decorators import (
-    tier1,
-)
+from robottelo.decorators import tier1
 from robottelo.test import CLITestCase
 
 
@@ -52,21 +49,18 @@ class RealmTestCase(CLITestCase):
 
         :expectedresults: Proxy is created and deleted
         """
-        name = gen_string('alpha', random.randint(1, 30))
         realm_name = gen_string('alpha', random.randint(1, 30))
-        with self.subTest(name):
-            proxy = self._make_proxy({u'name': name})
-            self.assertEquals(proxy['name'], name)
-            realm = make_realm({
-                'name': realm_name,
-                'realm-proxy-id': proxy['id'],
-                'realm-type': 'Red Hat Identity Management',
-                'locations': proxy['locations']
-            })
-            self.assertEqual(realm['name'], realm_name)
-            Realm.delete({'name': realm['name']})
-            with self.assertRaises(CLIReturnCodeError):
-                Realm.info({'id': realm['id']})
+        proxy = self._make_proxy()
+        realm = make_realm({
+            'name': realm_name,
+            'realm-proxy-id': proxy['id'],
+            'realm-type': 'Red Hat Identity Management',
+            'locations': proxy['locations']
+        })
+        self.assertEqual(realm['name'], realm_name)
+        Realm.delete({'name': realm['name']})
+        with self.assertRaises(CLIReturnCodeError):
+            Realm.info({'id': realm['id']})
 
     @tier1
     def test_positive_create_delete_id(self):
@@ -76,20 +70,18 @@ class RealmTestCase(CLITestCase):
 
         :expectedresults: Proxy is created and deleted
         """
-        name = gen_string('alpha', random.randint(1, 30))
         realm_name = gen_string('alpha', random.randint(1, 30))
-        with self.subTest(name):
-            proxy = self._make_proxy({u'name': name})
-            realm = make_realm({
-                'name': realm_name,
-                'realm-proxy-id': proxy['id'],
-                'realm-type': 'Red Hat Identity Management',
-                'locations': proxy['locations']
-            })
-            self.assertEqual(realm['name'], realm_name)
-            Realm.delete({'id': realm['id']})
-            with self.assertRaises(CLIReturnCodeError):
-                Realm.info({'id': realm['id']})
+        proxy = self._make_proxy()
+        realm = make_realm({
+            'name': realm_name,
+            'realm-proxy-id': proxy['id'],
+            'realm-type': 'Red Hat Identity Management',
+            'locations': proxy['locations']
+        })
+        self.assertEqual(realm['name'], realm_name)
+        Realm.delete({'id': realm['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Realm.info({'id': realm['id']})
 
     @tier1
     def test_positive_realm_info_name(self):
@@ -99,19 +91,18 @@ class RealmTestCase(CLITestCase):
 
         :expectedresults: Realm info information from name is correct
         """
-        name = gen_string('alpha', random.randint(1, 30))
-        with self.subTest(name):
-            proxy = self._make_proxy({u'name': name})
-            realm = make_realm({
-                'name': 'info_test',
-                'realm-proxy-id': proxy['id'],
-                'realm-type': 'Red Hat Identity Management',
-                'locations': proxy['locations']
-            })
-            info = Realm.info({'name': realm['name']})
-            for key in info.keys():
-                self.assertEquals(info[key], realm[key])
-            Realm.delete({'name': realm['name']})
+        realm_name = gen_string('alpha', random.randint(1, 30))
+        proxy = self._make_proxy()
+        realm = make_realm({
+            'name': realm_name,
+            'realm-proxy-id': proxy['id'],
+            'realm-type': 'Red Hat Identity Management',
+            'locations': proxy['locations']
+        })
+        self.addCleanup(realm_cleanup, realm['id'])
+        info = Realm.info({'name': realm_name})
+        for key in info.keys():
+            self.assertEquals(info[key], realm[key])
 
     @tier1
     def test_positive_realm_info_id(self):
@@ -121,20 +112,18 @@ class RealmTestCase(CLITestCase):
 
         :expectedresults: Realm info information from ID is correct
         """
-        name = gen_string('alpha', random.randint(1, 30))
-        with self.subTest(name):
-            proxy = self._make_proxy({u'name': name})
-            realm = make_realm({
-                'name': 'info_test',
-                'realm-proxy-id': proxy['id'],
-                'realm-type': 'Red Hat Identity Management',
-                'locations': proxy['locations']
-            })
-            info = Realm.info({'id': realm['id']})
-            for key in info.keys():
-                self.assertEquals(info[key], realm[key])
-            self.assertEquals(info, Realm.info({'id': realm['id']}))
-            Realm.delete({'id': realm['id']})
+        proxy = self._make_proxy()
+        realm = make_realm({
+            'name': gen_string('alpha'),
+            'realm-proxy-id': proxy['id'],
+            'realm-type': 'Red Hat Identity Management',
+            'locations': proxy['locations']
+        })
+        self.addCleanup(realm_cleanup, realm['id'])
+        info = Realm.info({'id': realm['id']})
+        for key in info.keys():
+            self.assertEquals(info[key], realm[key])
+        self.assertEquals(info, Realm.info({'id': realm['id']}))
 
     @tier1
     def test_positive_realm_update_name(self):
@@ -144,24 +133,24 @@ class RealmTestCase(CLITestCase):
 
         :expectedresults: Realm name updated
         """
-        name = gen_string('alpha', random.randint(1, 30))
-        realm_name1 = "test"
-        realm_name2 = "update_test"
-        with self.subTest(name):
-            proxy = self._make_proxy({u'name': name})
-            realm = make_realm({
-                'name': realm_name1,
-                'realm-proxy-id': proxy['id'],
-                'realm-type': 'Red Hat Identity Management',
-                'locations': proxy['locations']
-            })
-            self.assertEquals(realm['name'], realm_name1)
-            up = Realm.update({'id': realm['id'], 'new-name': realm_name2})
-            self.assertEquals(up[0]['message'], 'Realm [{0}] updated'.format(
-                realm_name2))
-            realm = Realm.info({'id': realm['id']})
-            self.assertEquals(realm['name'], realm_name2)
-            Realm.delete({'id': realm['id']})
+        realm_name = gen_string('alpha')
+        new_realm_name = gen_string('alphanumeric')
+        proxy = self._make_proxy()
+        realm = make_realm({
+            'name': realm_name,
+            'realm-proxy-id': proxy['id'],
+            'realm-type': 'Red Hat Identity Management',
+            'locations': proxy['locations']
+        })
+        self.addCleanup(realm_cleanup, realm['id'])
+        self.assertEquals(realm['name'], realm_name)
+        up = Realm.update({'id': realm['id'], 'new-name': new_realm_name})
+        self.assertEquals(
+            up[0]['message'],
+            'Realm [{0}] updated'.format(new_realm_name)
+        )
+        realm = Realm.info({'id': realm['id']})
+        self.assertEquals(realm['name'], new_realm_name)
 
     @tier1
     def test_negative_realm_update_invalid_type(self):
@@ -171,20 +160,18 @@ class RealmTestCase(CLITestCase):
 
         :expectedresults: Realm is not updated
         """
-        name = gen_string('alpha', random.randint(1, 30))
-        realm_type1 = 'Red Hat Identity Management'
-        realm_type2 = 'invalid'
-        with self.subTest(name):
-            proxy = self._make_proxy({u'name': name})
-            realm = make_realm({
-                'name': "realm",
-                'realm-proxy-id': proxy['id'],
-                'realm-type': realm_type1,
-                'locations': proxy['locations']
-            })
-            with self.assertRaises(CLIReturnCodeError):
-                Realm.update({'id': realm['id'], 'realm-type': realm_type2})
-            Realm.delete({'id': realm['id']})
+        realm_type = 'Red Hat Identity Management'
+        new_realm_type = gen_string('alpha')
+        proxy = self._make_proxy()
+        realm = make_realm({
+            'name': gen_string('alpha'),
+            'realm-proxy-id': proxy['id'],
+            'realm-type': realm_type,
+            'locations': proxy['locations']
+        })
+        self.addCleanup(realm_cleanup, realm['id'])
+        with self.assertRaises(CLIReturnCodeError):
+            Realm.update({'id': realm['id'], 'realm-type': new_realm_type})
 
     @tier1
     def test_negative_create_name_only(self):
@@ -195,7 +182,7 @@ class RealmTestCase(CLITestCase):
         :expectedresults: Realm creation fails, requires proxy_id and type
         """
         with self.assertRaises(CLIFactoryError):
-            make_realm({'name': 'test'})
+            make_realm({'name': gen_string('alpha')})
 
     @tier1
     def test_negative_create_invalid_id(self):
@@ -206,8 +193,11 @@ class RealmTestCase(CLITestCase):
         :expectedresults: Realm creation fails, proxy_id must be numeric
         """
         with self.assertRaises(CLIFactoryError):
-            make_realm({'name': 'test', 'realm-proxy-id': 'invalid_id',
-                        'realm-type': 'Red Hat Identity Management'})
+            make_realm({
+                'name': gen_string('alpha'),
+                'realm-proxy-id': gen_string('alphanumeric'),
+                'realm-type': 'Red Hat Identity Management'
+            })
 
     @tier1
     def test_negative_create_invalid_realm_type(self):
@@ -219,8 +209,11 @@ class RealmTestCase(CLITestCase):
             e.g. Red Hat Identity Management or Active Directory
         """
         with self.assertRaises(CLIFactoryError):
-            make_realm({'name': 'test', 'realm-proxy-id': '1',
-                        'realm-type': 'invalid_type'})
+            make_realm({
+                'name': gen_string('alpha'),
+                'realm-proxy-id': '1',
+                'realm-type': gen_string('alpha')
+            })
 
     @tier1
     def test_negative_create_invalid_location(self):
@@ -229,25 +222,30 @@ class RealmTestCase(CLITestCase):
         :id: 95335c3a-413f-4156-b727-91b525738171
 
         :expectedresults: Realm creation fails, location not found
-
         """
         with self.assertRaises(CLIFactoryError):
-            make_realm({'name': 'test', 'realm-proxy-id': '1',
-                        'locations': 'Raleigh, NC',
-                        'realm-type': 'invalid_type'})
+            make_realm({
+                'name': gen_string('alpha'),
+                'realm-proxy-id': '1',
+                'locations': 'Raleigh, NC',
+                'realm-type': 'Red Hat Identity Management'
+            })
 
     @tier1
     def test_negative_create_invalid_organization(self):
-        """Create a realm with an invalid type
+        """Create a realm with an invalid organization
 
         :id: c0ffbc6d-a2da-484b-9627-5454687a3abb
 
         :expectedresults: Realm creation fails, organization not found
         """
         with self.assertRaises(CLIFactoryError):
-            make_realm({'name': 'test', 'realm-proxy-id': '1',
-                        'organizations': 'Red Hat',
-                        'realm-type': 'invalid_type'})
+            make_realm({
+                'name': gen_string('alpha'),
+                'realm-proxy-id': '1',
+                'organizations': gen_string('alphanumeric', 20),
+                'realm-type': 'Red Hat Identity Management'
+            })
 
     @tier1
     def test_negative_delete_nonexistent_realm_name(self):
@@ -258,7 +256,7 @@ class RealmTestCase(CLITestCase):
         :expectedresults: Realm not found
         """
         with self.assertRaises(CLIReturnCodeError):
-            Realm.delete({'name': 'dne'})
+            Realm.delete({'name': gen_string('alpha', 20)})
 
     @tier1
     def test_negative_delete_nonexistent_realm_id(self):
@@ -280,7 +278,7 @@ class RealmTestCase(CLITestCase):
         :expectedresults: Realm not found
         """
         with self.assertRaises(CLIReturnCodeError):
-            Realm.info({'name': 'dne'})
+            Realm.info({'name': gen_string('alpha')})
 
     @tier1
     def test_negative_info_nonexistent_realm_id(self):
@@ -292,25 +290,3 @@ class RealmTestCase(CLITestCase):
         """
         with self.assertRaises(CLIReturnCodeError):
             Realm.info({'id': 0})
-
-    @tier1
-    def test_negative_update_nonexistent_realm_name(self):
-        """Update realm with a name that does not exists
-
-        :id: 912bf1b9-5662-4f49-839b-f7e7085baf27
-
-        :expectedresults: Realm not found
-        """
-        with self.assertRaises(CLIReturnCodeError):
-            Realm.update({'name': 'dne', 'new-name': 'test'})
-
-    @tier1
-    def test_negative_update_nonexistent_realm_id(self):
-        """Update realm with an id that does not exists
-
-        :id: aa3fa540-663c-48ce-ac06-61c6c1ad9542
-
-        :expectedresults: Realm not found
-        """
-        with self.assertRaises(CLIReturnCodeError):
-            Realm.update({'id': 0, 'locations': make_location()})
