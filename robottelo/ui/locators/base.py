@@ -1968,7 +1968,7 @@ locators = LocatorDict({
         "//tr[contains(@ng-repeat,'package')]/td[2][contains(., '%s')]"),
     "contentviews.version.puppet_module_name": (
         By.XPATH,
-        ("//tr[contains(@ng-repeat, 'contentViewPuppetModule')]"
+        ("//tr[contains(@ng-repeat, 'puppetModule')]"
          "/td[contains(., '%s')]")),
 
     # Packages
