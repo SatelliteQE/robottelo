@@ -12,3 +12,8 @@
 -------------------------------------
 
 .. automodule:: tests.foreman.sys.test_restore
+
+:mod:`tests.foreman.sys.test_sat_clone`
+---------------------------------------
+
+.. automodule:: tests.foreman.sys.test_sat_clone
