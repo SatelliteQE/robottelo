@@ -86,3 +86,55 @@ class SettingTestCase(CLITestCase):
 
         :caseautomation: notautomated
         """
+
+    @stubbed
+    @tier1
+    def test_positive_update_login_page_footer_text(self):
+        """Updates parameter "login_text" in settings
+
+        :id: 4d4e1151-5bd6-4fa2-8dbb-e182b43ad7ec
+
+        :steps:
+
+            1. Execute "settings" command with "set" as sub-command
+            with any string
+
+        :expectedresults: Parameter is updated successfully
+
+        :caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_update_login_page_footer_text_without_value(self):
+        """Updates parameter "login_text" without any string (empty value)
+
+        :id: 01ce95de-2994-42b6-b9f8-f7882981fb69
+
+        :steps:
+
+            1. Execute "settings" command with "set" as sub-command
+            without any string(empty value) in value parameter
+
+        :expectedresults: Message on login screen should be removed
+
+        :caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_update_login_page_footer_text(self):
+        """Attempt to update parameter "Login_page_footer_text"
+            with invalid value(long length) under General tab
+
+        :id: 87ef6b19-fdc5-4541-aba8-e730f1a3caa7
+
+        :steps:
+
+            1. Execute "settings" command with "set" as sub-command
+            with invalid string(long length)
+
+        :expectedresults: Parameter is not updated
+
+        :caseautomation: notautomated
+        """
