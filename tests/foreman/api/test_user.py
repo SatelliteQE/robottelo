@@ -22,6 +22,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import (
     generate_strings_list,
+    valid_data_list,
     valid_usernames_list,
     valid_emails_list,
     invalid_emails_list,
@@ -98,6 +99,21 @@ class UserTestCase(APITestCase):
                 self.assertEqual(user.mail, mail)
 
     @tier1
+    def test_positive_create_with_description(self):
+        """Create User for all variations of Description
+
+        :id: 1463d71c-b77d-4223-84fa-8370f77b3edf
+
+        :expectedresults: User is created
+
+        :CaseImportance: Critical
+        """
+        for description in valid_data_list():
+            with self.subTest(description):
+                user = entities.User(description=description).create()
+                self.assertEqual(user.description, description)
+
+    @tier1
     def test_positive_create_with_password(self):
         """Create User for all variations of Password
 
@@ -129,6 +145,93 @@ class UserTestCase(APITestCase):
                 user.delete()
                 with self.assertRaises(HTTPError):
                     user.read()
+
+    @tier1
+    def test_positive_update_username(self):
+        """Update a user and provide new username.
+
+        :id: a8e218b1-7256-4f20-91f3-3958d58ea5a8
+
+        :expectedresults: The user's ``Username`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        user = entities.User().create()
+        for login in valid_usernames_list():
+            with self.subTest(login):
+                user.login = login
+                user = user.update(['login'])
+                self.assertEqual(user.login, login)
+
+    @tier1
+    def test_positive_update_firstname(self):
+        """Update a user and provide new firstname.
+
+        :id: a1287d47-e7d8-4475-abe8-256e6f2034fc
+
+        :expectedresults: The user's ``firstname`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        user = entities.User().create()
+        for firstname in generate_strings_list(
+                exclude_types=['html'], max_length=50):
+            with self.subTest(firstname):
+                user.firstname = firstname
+                user = user.update(['firstname'])
+                self.assertEqual(user.firstname, firstname)
+
+    @tier1
+    def test_positive_update_lastname(self):
+        """Update a user and provide new lastname.
+
+        :id: 25c6c9df-5db2-4827-89bb-b8fd0658a9b9
+
+        :expectedresults: The user's ``lastname`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        user = entities.User().create()
+        for lastname in generate_strings_list(
+                exclude_types=['html'], max_length=50):
+            with self.subTest(lastname):
+                user.lastname = lastname
+                user = user.update(['lastname'])
+                self.assertEqual(user.lastname, lastname)
+
+    @tier1
+    def test_positive_update_email(self):
+        """Update a user and provide new email.
+
+        :id: 9eefcba6-66a3-41bf-87ba-3e032aee1db2
+
+        :expectedresults: The user's ``email`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        user = entities.User().create()
+        for mail in valid_emails_list():
+            with self.subTest(mail):
+                user.mail = mail
+                user = user.update(['mail'])
+                self.assertEqual(user.mail, mail)
+
+    @tier1
+    def test_positive_update_description(self):
+        """Update a user and provide new email.
+
+        :id: a1d764ad-e9bb-4e5e-b8cd-3c52e1f128f6
+
+        :expectedresults: The user's ``Description`` attribute is updated.
+
+        :CaseImportance: Critical
+        """
+        user = entities.User().create()
+        for description in valid_data_list():
+            with self.subTest(description):
+                user.description = description
+                user = user.update(['description'])
+                self.assertEqual(user.description, description)
 
     @tier1
     def test_positive_update_admin(self):
