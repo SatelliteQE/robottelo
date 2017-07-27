@@ -4472,3 +4472,102 @@ class ContentViewRedHatOstreeContent(CLITestCase):
             'name': lc_env['name'],
         }
         self.assertIn(environment, cv['lifecycle-environments'])
+
+    @stubbed
+    @tier2
+    def test_positive_arbitrary_file_repo_addition(self):
+        """Check a File Repository with Arbitrary File can be added to a
+        Content View
+
+        :id: 8c217d44-6f66-4b41-b77d-f5179a9e3b4e
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+
+        :Steps:
+            1. Add the FR to the CV
+
+        :expectedresults: Check FR is added to CV
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_arbitrary_file_repo_removal(self):
+        """Check a File Repository with Arbitrary File can be removed from a
+        Content View
+
+        :id: 156e30ab-bfae-4120-9353-d3b567801106
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+            4. Add the FR to the CV
+
+        :Steps:
+            1. Remove the FR from the CV
+
+        :expectedresults: Check FR is removed from CV
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_arbitrary_file_sync_over_capsule(self):
+        """Check a File Repository with Arbitrary File can be added to a
+        Content View is synced throughout capsules
+
+        :id: ffa59550-464c-40dc-9bd2-444331f73708
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+            4. Add the FR to the CV
+            5. Create a Capsule
+            6. Connect the Capsule with Satellite/Foreman host
+
+        :Steps:
+            1. Start synchronization
+
+        :expectedresults: Check CV with FR is synced over Capsule
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_arbitrary_file_repo_promotion(self):
+        """Check arbitrary files availability on Environment after Content
+        View promotion
+
+        :id: 3c728b9e-27e4-4afc-90b0-8c728e634d6f
+
+        :Setup:
+            1. Create a File Repository (FR)
+            2. Upload an arbitrary file to it
+            3. Create a Content View (CV)
+            4. Add the FR to the CV
+            5. Create an Environment
+
+        :Steps:
+            1. Promote the CV to the Environment
+
+        :expectedresults: Check arbitrary files from FR is available on
+            environment
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """

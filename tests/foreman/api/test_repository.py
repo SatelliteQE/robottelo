@@ -59,6 +59,8 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    stubbed,
+    tier4
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
@@ -1579,3 +1581,124 @@ class DRPMRepositoryTestCase(APITestCase):
         )
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
+
+    @stubbed
+    @tier1
+    def test_positive_upload_file_to_file_repo(self):
+        """Check arbitrary file can be uploaded to File Repository
+
+        :id: fdb46481-f0f4-45aa-b075-2a8f6725e51b
+
+        :Steps:
+            1. Create a File Repository
+            2. Upload an arbitrary file to it
+
+        :expectedresults: uploaded file is available under File Repository
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_file_permissions(self):
+        """Check file permissions after file upload to File Repository
+
+        :id: 03b4b7dd-0505-4302-ae00-5de33ad420b0
+
+        :Setup:
+            1. Create a File Repository
+            2. Upload an arbitrary file to it
+
+        :Steps: Retrieve file permissions from File Repository
+
+        :expectedresults: uploaded file permissions are kept after upload
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_remove_file(self):
+        """Check arbitrary file can be removed from File Repository
+
+        :id: 65068b4c-9018-4baa-b87b-b6e9d7384a5d
+
+        :Setup:
+            1. Create a File Repository
+            2. Upload an arbitrary file to it
+
+        :Steps: Remove a file from File Repository
+
+        :expectedresults: file is not listed under File Repository after
+            removal
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier4
+    def test_positive_remote_directory_sync(self):
+        """Check an entire remote directory can be synced to File Repository
+        through http
+
+        :id: 5c29b758-004a-4c71-a860-7087a0e96747
+
+        :Setup:
+            1. Create a directory to be synced with a pulp manifest on its root
+            2. Make the directory available through http
+
+        :Steps:
+            1. Create a File Repository with url pointing to http url
+                created on setup
+            2. Initialize synchronization
+
+
+        :expectedresults: entire directory is synced over http
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_local_directory_sync(self):
+        """Check an entire local directory can be synced to File Repository
+
+        :id: 178145e6-62e1-4cb9-b825-44d3ab41e754
+
+        :Setup:
+            1. Create a directory to be synced with a pulp manifest on its root
+                locally (on the Satellite/Foreman host)
+
+        :Steps:
+            1. Create a File Repository with url pointing to local url
+                created on setup
+            2. Initialize synchronization
+
+
+        :expectedresults: entire directory is synced
+
+        :CaseAutomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_symlinks_sync(self):
+        """Check synlinks can be synced to File Repository
+
+        :id: 438a8e21-3502-4995-86db-c67ba0f3c469
+
+        :Setup:
+            1. Create a directory to be synced with a pulp manifest on its root
+                locally (on the Satellite/Foreman host)
+            2. Make sure it contains synlinks
+
+        :Steps:
+            1. Create a File Repository with url pointing to local url
+                created on setup
+            2. Initialize synchronization
+
+        :expectedresults: entire directory is synced, including files
+            referred by symlinks
+
+        :CaseAutomation: notautomated
+        """
