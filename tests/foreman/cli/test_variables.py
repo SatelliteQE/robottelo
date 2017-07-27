@@ -854,21 +854,54 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['values']['1']['value'], False)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
-        """Test matcher creation for non-existing attribute.
+        """Attempt to create Smart Variable with a matcher that has value for
+        non existing attribute.
 
         :id: bde1edf6-12b8-457e-ac8f-a909666abfb5
 
-        :steps: Attempt to create a matcher with non existing attribute.
-
-        :expectedresults: Matcher is not created for non-existing attribute.
-
-        :caseautomation: notautomated
+        :expectedresults: Matcher is not created and error is raised
 
         :CaseImportance: Critical
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet_class['name'],
+            'default-value': 'true',
+            'variable-type': 'boolean',
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.add_override_value({
+                'smart-variable-id': smart_variable['id'],
+                'match': 'hostgroup={0}'.format(gen_string('alpha')),
+                'value': 'false',
+            })
+
+    @run_only_on('sat')
+    @tier1
+    def test_negative_create_matcher_with_invalid_attribute(self):
+        """Attempt to create Smart Variable with a matcher that has value for
+        invalid attribute that is not in order priority list.
+
+        :id: 35c0edab-31f5-4795-ba75-010ec355744c
+
+        :expectedresults: Matcher is not created and error is raised
+
+        :BZ: 1379277
+
+        :CaseImportance: Critical
+        """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet_class['name'],
+            'default-value': 'true',
+            'variable-type': 'boolean',
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.add_override_value({
+                'smart-variable-id': smart_variable['id'],
+                'match': 'something_is_here=true',
+                'value': 'false',
+            })
 
     @run_only_on('sat')
     @tier1
