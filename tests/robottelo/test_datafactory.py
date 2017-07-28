@@ -43,48 +43,44 @@ class FilteredDataPointTestCase(unittest2.TestCase):
 
     def test_filtered_datapoint_True(self):
         """Tests if run_one_datapoint=false returns all data points"""
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=False):
-            settings.run_one_datapoint = False
-            self.assertEqual(len(generate_strings_list()), 7)
-            self.assertEqual(len(invalid_emails_list()), 10)
-            self.assertEqual(len(invalid_id_list()), 4)
-            self.assertEqual(len(invalid_interfaces_list()), 8)
-            self.assertEqual(len(invalid_names_list()), 7)
-            self.assertEqual(len(invalid_values_list()), 10)
-            self.assertEqual(len(invalid_usernames_list()), 4)
-            self.assertEqual(len(valid_labels_list()), 2)
-            self.assertEqual(len(valid_data_list()), 7)
-            self.assertEqual(len(valid_emails_list()), 8)
-            self.assertEqual(len(valid_environments_list()), 4)
-            self.assertEqual(len(valid_hosts_list()), 3)
-            self.assertEqual(len(valid_hostgroups_list()), 7)
-            self.assertEqual(len(valid_interfaces_list()), 3)
-            self.assertEqual(len(valid_names_list()), 15)
-            self.assertEqual(len(valid_org_names_list()), 7)
-            self.assertEqual(len(valid_usernames_list()), 6)
+        settings.run_one_datapoint = False
+        self.assertEqual(len(generate_strings_list()), 7)
+        self.assertEqual(len(invalid_emails_list()), 8)
+        self.assertEqual(len(invalid_id_list()), 4)
+        self.assertEqual(len(invalid_interfaces_list()), 8)
+        self.assertEqual(len(invalid_names_list()), 7)
+        self.assertEqual(len(invalid_values_list()), 10)
+        self.assertEqual(len(invalid_usernames_list()), 4)
+        self.assertEqual(len(valid_labels_list()), 2)
+        self.assertEqual(len(valid_data_list()), 7)
+        self.assertEqual(len(valid_emails_list()), 8)
+        self.assertEqual(len(valid_environments_list()), 4)
+        self.assertEqual(len(valid_hosts_list()), 3)
+        self.assertEqual(len(valid_hostgroups_list()), 7)
+        self.assertEqual(len(valid_interfaces_list()), 3)
+        self.assertEqual(len(valid_names_list()), 15)
+        self.assertEqual(len(valid_org_names_list()), 7)
+        self.assertEqual(len(valid_usernames_list()), 6)
 
     def test_filtered_datapoint_False(self):
         """Tests if run_one_datapoint=True returns one data point"""
-        with mock.patch('robottelo.datafactory.bz_bug_is_open',
-                        return_value=False):
-            settings.run_one_datapoint = True
-            self.assertEqual(len(generate_strings_list()), 1)
-            self.assertEqual(len(invalid_emails_list()), 1)
-            self.assertEqual(len(invalid_id_list()), 1)
-            self.assertEqual(len(invalid_interfaces_list()), 1)
-            self.assertEqual(len(invalid_names_list()), 1)
-            self.assertEqual(len(invalid_values_list()), 1)
-            self.assertEqual(len(valid_data_list()), 1)
-            self.assertEqual(len(valid_emails_list()), 1)
-            self.assertEqual(len(valid_environments_list()), 1)
-            self.assertEqual(len(valid_hosts_list()), 1)
-            self.assertEqual(len(valid_hostgroups_list()), 1)
-            self.assertEqual(len(valid_interfaces_list()), 1)
-            self.assertEqual(len(valid_labels_list()), 1)
-            self.assertEqual(len(valid_names_list()), 1)
-            self.assertEqual(len(valid_org_names_list()), 1)
-            self.assertEqual(len(valid_usernames_list()), 1)
+        settings.run_one_datapoint = True
+        self.assertEqual(len(generate_strings_list()), 1)
+        self.assertEqual(len(invalid_emails_list()), 1)
+        self.assertEqual(len(invalid_id_list()), 1)
+        self.assertEqual(len(invalid_interfaces_list()), 1)
+        self.assertEqual(len(invalid_names_list()), 1)
+        self.assertEqual(len(invalid_values_list()), 1)
+        self.assertEqual(len(valid_data_list()), 1)
+        self.assertEqual(len(valid_emails_list()), 1)
+        self.assertEqual(len(valid_environments_list()), 1)
+        self.assertEqual(len(valid_hosts_list()), 1)
+        self.assertEqual(len(valid_hostgroups_list()), 1)
+        self.assertEqual(len(valid_interfaces_list()), 1)
+        self.assertEqual(len(valid_labels_list()), 1)
+        self.assertEqual(len(valid_names_list()), 1)
+        self.assertEqual(len(valid_org_names_list()), 1)
+        self.assertEqual(len(valid_usernames_list()), 1)
 
     @mock.patch('robottelo.datafactory.gen_string')
     def test_generate_strings_list_remove_str(self, gen_string):
