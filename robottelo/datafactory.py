@@ -69,7 +69,16 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
 
 @filtered_datapoint
 def invalid_emails_list():
-    """Returns a list of invalid emails."""
+    """
+    Returns a list of invalid emails.
+
+    Based on RFC 5321 and 5322, however consecutive dots are removed from
+    the list, as such emails, e.g. `email@example..c` or `dot..dot@example.com`
+    are common on the wild and it was decided to treat them as valid.
+
+    For more information, see `Bugzilla #1455501:
+    <https://bugzilla.redhat.com/show_bug.cgi?id=1455501>`_.
+    """
     return [
         u'foreman@',
         u'@foreman',
