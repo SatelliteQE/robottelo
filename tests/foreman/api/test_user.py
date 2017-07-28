@@ -29,7 +29,7 @@ from robottelo.datafactory import (
     invalid_usernames_list,
     invalid_names_list
 )
-from robottelo.decorators import tier1
+from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -372,3 +372,165 @@ class UserRoleTestCase(APITestCase):
                 # pylint:disable=no-member
                 set([role.id for role in chosen_roles] + [self.anon_role.id]),
             )
+
+
+class SshKeyInUserTestCase(APITestCase):
+    """Implements the SSH Key in User Tests"""
+
+    @stubbed
+    @tier1
+    def test_positive_create_ssh_key(self):
+        """SSH Key can be added to User
+
+        :id: d00905f6-3a70-4e2f-a5ae-fcac18274bb7
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Add SSH key to the above user
+
+        :expectedresults: SSH key should be added to user
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_ssh_key_super_admin(self):
+        """SSH Key can be added to Super Admin user
+
+        :id: 397eea22-759c-4cd4-bda1-0e7835566c72
+
+        :expectedresults: SSH Key should be added to Super Admin user
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_create_ssh_key(self):
+        """Invalid ssh key can not be added in User Template
+
+        :id: e924ff03-8b2c-4ab9-a054-ea491413e143
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Attempt to add invalid string as SSH Key to above user
+                e.g blabla
+
+        :expectedresults:
+
+            1. Invalid SSH key should not be added in user
+            2. Satellite returns 'Fingerprint could not be generated' error
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_create_invalid_length_ssh_key(self):
+        """Attempt to add SSH key that has invalid length
+
+        :id: 899f0c46-c7fe-4610-80f1-1add4a9cbc26
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Attempt to add invalid length of SSH Key to above user
+
+        :expectedresults: Satellite should raise 'Length could not be
+            calculated' error
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_multiple_ssh_key_types(self):
+        """Multiple types of ssh keys can be added to user
+
+        :id: d1ffa908-dc86-40c8-b6f0-20650cc67046
+
+        :steps:
+            1. Create user with all the details
+            2. Add multiple types of supported ssh keys, type includes
+                rsa, dsa, ed25519, ecdsa
+
+        :expectedresults: Multiple types of supported ssh keys can be added to
+            user
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_delete_ssh_key(self):
+        """Satellite Admin can delete ssh key from user
+
+        :id: 37da9052-83a7-440d-b24c-9d4458f011e3
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Add SSH Key to above user
+            3. Delete the ssh-key from user
+
+        :expectedresults: SSH key should be deleted from user
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_ssh_key_in_host_enc(self):
+        """SSH key appears in host ENC output
+
+        :id: 4b70a950-e777-4b2d-a83d-29279715fe6d
+
+        :steps:
+
+            1. Create user with all the details
+            2. Add ssh key in above user
+            3. Provision a new host from the above user
+            4. Check new hosts ENC output
+
+        :expectedresults: SSH key should be added to host ENC output
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_list_users_ssh_key(self):
+        """Satellite lists users ssh keys
+
+        :id: 8098e74a-d81e-4410-b744-435901bd70c0
+
+        :steps:
+
+            1. Create user with all the details
+            2. Add SSH key in above user
+            3. List all the ssh keys of above user
+
+        :expectedresults: Satellite should list all the SSH keys of user
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_info_users_ssh_key(self):
+        """Satellite returns info of user ssh key
+
+        :id: 27c526b6-1008-47f8-98ac-4b2eb9b3d65e
+
+        :steps:
+
+            1. Create user with all the details
+            2. Add SSH key in above user
+            3. Info the above ssh key in user
+
+        :expectedresults: Satellite should return information of SSH keys of
+            user
+
+        :CaseImportance: Critical
+        """
