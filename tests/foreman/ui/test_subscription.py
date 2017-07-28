@@ -78,12 +78,13 @@ class SubscriptionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         org = entities.Organization().create()
+        self.upload_manifest(org.id, manifests.clone())
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            with manifests.clone() as manifest:
-                self.subscriptions.upload(manifest)
+            self.subscriptions.navigate_to_entity()
+            self.subscriptions.click(locators['subs.manage_manifest'])
             self.assertTrue(self.subscriptions.wait_until_element_exists(
-                locators['subs.import_history.imported']))
+                 locators['subs.import_history.imported']))
             self.subscriptions.delete(really=False)
             self.assertIsNotNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
@@ -116,10 +117,11 @@ class SubscriptionTestCase(UITestCase):
             'debugging purposes.',
         ]
         org = entities.Organization().create()
+        self.upload_manifest(org.id, manifests.clone())
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            with manifests.clone() as manifest:
-                self.subscriptions.upload(manifest)
+            self.subscriptions.navigate_to_entity()
+            self.subscriptions.click(locators['subs.manage_manifest'])
             self.assertTrue(self.subscriptions.wait_until_element_exists(
                 locators['subs.import_history.imported']))
             self.subscriptions.click(locators['subs.delete_manifest'])
