@@ -25,6 +25,13 @@ ssh_key=
 # Admin password when accessing API and UI
 # admin_password=changeme
 
+# section for ssh client settings
+# [ssh_client]
+# Time to wait for the ssh command to finish, in seconds
+# command_timeout=300
+# Time to wait for establishing the ssh connection, in seconds
+# connection_timeout=10
+
 # Override robottelo configuration
 # [robottelo]
 # The directory where screenshots will be saved.

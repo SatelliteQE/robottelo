@@ -14,11 +14,15 @@ else:
 
 
 class MockChannel(object):
-    def __init__(self, ret):
+    def __init__(self, ret, status_ready=True):
         self.ret = ret
+        self.status_ready = status_ready
 
     def recv_exit_status(self):
         return self.ret
+
+    def exit_status_ready(self):
+        return self.status_ready
 
 
 class MockStdout(object):
@@ -107,6 +111,8 @@ class SSHTestCase(TestCase):
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = key_filename
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
         with ssh.get_connection() as connection:  # pylint:disable=W0212
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
@@ -134,6 +140,8 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
         with ssh.get_connection() as connection:  # pylint:disable=W0212
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
@@ -206,6 +214,8 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
         ssh.add_authorized_key('ssh-rsa xxxx user@host')
 
     @mock.patch('robottelo.ssh.settings')
@@ -215,6 +225,9 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
+
         with ssh.get_connection() as connection:  # pylint:disable=W0212
             ret = ssh.execute_command('ls -la', connection)
             self.assertEquals(ret.stdout, [u'ls -la'])
@@ -227,6 +240,9 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
+
         with ssh.get_connection() as connection:  # pylint:disable=W0212
             ret = ssh.execute_command(
                 'ls -la', connection, output_format='plain')
@@ -240,6 +256,8 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('ls -la')
         self.assertEquals(ret.stdout, [u'ls -la'])
@@ -252,6 +270,8 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('ls -la', output_format='plain')
         self.assertEquals(ret.stdout, u'ls -la')
@@ -264,6 +284,8 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('a,b,c\n1,2,3', output_format='csv')
         self.assertEquals(ret.stdout, [{u'a': u'1', u'b': u'2', u'c': u'3'}])
@@ -276,6 +298,8 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
+        settings.ssh_client.command_timeout = 300
+        settings.ssh_client.connection_timeout = 10
 
         ret = ssh.command('{"a": 1, "b": true}', output_format='json')
         self.assertEquals(ret.stdout, {u'a': u'1', u'b': True})
