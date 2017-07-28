@@ -762,14 +762,24 @@ class SSHClientSettings(FeatureSettings):
     """SSHClient settings definitions."""
     def __init__(self, *args, **kwargs):
         super(SSHClientSettings, self).__init__(*args, **kwargs)
-        self.command_timeout = None
-        self.connection_timeout = None
+        self._command_timeout = None
+        self._connection_timeout = None
+
+    @property
+    def command_timeout(self):
+        return self._command_timeout if (
+            self._command_timeout is not None) else 300
+
+    @property
+    def connection_timeout(self):
+        return self._connection_timeout if (
+            self._connection_timeout is not None) else 10
 
     def read(self, reader):
         """Read SSHClient settings."""
-        self.command_timeout = reader.get(
+        self._command_timeout = reader.get(
             'ssh_client', 'command_timeout', default=300, cast=int)
-        self.connection_timeout = reader.get(
+        self._connection_timeout = reader.get(
             'ssh_client', 'connection_timeout', default=10, cast=int)
 
     def validate(self):
