@@ -73,14 +73,42 @@ class PuppetUpgradeTestCase(CLITestCase):
 
         :Steps:
 
-            1. register client (p3)
+            1. register p3 client to p3 Capsule
             2. prepare puppet module
             3. upgrade Capsule from p3 to p4
             4. apply puppet module to p3 client
             5. upgrade client from p3 to p4
-            6. apply puppet module to the client
-            7. register another client (p4)
-            8. apply puppet module to the client
+            6. apply puppet module to the p4 client
+            7. register another p4 client
+            8. apply puppet module to the p4 client
+
+        :expectedresults: multiple asserts along the code that motd module was
+            applied
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier4
+    def test_positive_puppet_capsule_rolling_upgrade(self):
+        """Upgrade by moving clients from old to new Capsule
+
+        :id: db23cd30-736f-11e7-87a6-c85b7636aebf
+
+        :Steps:
+
+            1. register p3 client to p3 Capsule
+            2. prepare puppet module
+            3. prepare new p4 Capsule
+            4. transition p3 client to the new p4 Capsule
+            5. apply puppet module to p3 client
+            6. upgrade client from p3 to p4
+            7. apply puppet module to the p4 client
+            8. register another p4 client
+            9. apply puppet module to the p4 client
 
         :expectedresults: multiple asserts along the code that motd module was
             applied
