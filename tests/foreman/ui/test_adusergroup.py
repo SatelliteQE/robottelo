@@ -123,7 +123,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 new_password=self.ldap_user_passwd,
                 password_confirmation=self.ldap_user_passwd,
             )
-        with Session(self, self.ldap_user_name, self.ldap_user_passwd):
+        with Session(
+                self, self.ldap_user_name, self.ldap_user_passwd) as session:
             session.nav.go_to_users()
             session.nav.go_to_roles()
             session.nav.go_to_content_views()

@@ -23,7 +23,6 @@ from robottelo.constants import LANGUAGES
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
-from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.session import Session
 
 
@@ -177,11 +176,8 @@ class MyAccountTestCase(UITestCase):
                         current_password=old_password, password=password,
                         password_confirmation=password)
 
-                # UINoSuchElementError is raised on __exit__ once logout is
-                # only possible with prior login
-                with self.assertRaises(UINoSuchElementError):
-                    with Session(self, user.login, old_password):
-                        self.assertFalse(self.login.is_logged())
+                with Session(self, user.login, old_password):
+                    self.assertFalse(self.login.is_logged())
 
                 with Session(self, user.login, password):
                     self.assertTrue(self.login.is_logged())
