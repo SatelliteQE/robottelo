@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements User UI."""
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -20,7 +21,8 @@ class LdapAuthSource(Base):
                server_type=None, login_name=None, first_name=None,
                surname=None, mail=None, photo=None, account_user=None,
                account_passwd=None, account_basedn=None,
-               account_grpbasedn=None, ldap_filter=False, otf_register=True):
+               account_grpbasedn=None, ldap_filter=False, otf_register=True,
+               orgs=None, org_select=None, locations=None, loc_select=None):
         """Create new ldap auth source from UI."""
         if not self.wait_until_element(locators['ldapsource.new']):
             return
@@ -52,6 +54,10 @@ class LdapAuthSource(Base):
         self.assign_value(locators['ldapserver.firstname'], first_name)
         self.assign_value(locators['ldapserver.surname'], surname)
         self.assign_value(locators['ldapserver.mail'], mail)
+        if locations:
+            self._configure_locations(locations, loc_select)
+        if orgs:
+            self._configure_orgs(orgs, org_select)
         if photo:
             self.assign_value(locators['ldapserver.photo'], photo)
         self.click(common_locators['submit'])
@@ -63,3 +69,31 @@ class LdapAuthSource(Base):
         """
         self.navigate_to_entity()
         return self.wait_until_element(self._search_locator() % (name, name))
+
+    def _configure_orgs(self, orgs, org_select):
+        """Provides configuration capabilities for ldap auth source
+        organization. The following format should be used::
+
+            orgs=['Aoes6V', 'JIFNPC'], org_select=True
+
+        """
+        self.configure_entity(
+            orgs,
+            FILTER['ldapauthsource_org'],
+            tab_locator=tab_locators['tab_org'],
+            entity_select=org_select
+        )
+
+    def _configure_locations(self, locations, loc_select):
+        """Provides configuration capabilities for ldap auth source
+        location. The following format should be used::
+
+            locations=['Default Location'], loc_select=True
+
+        """
+        self.configure_entity(
+            locations,
+            FILTER['ldapauthsource_loc'],
+            tab_locator=tab_locators['tab_loc'],
+            entity_select=loc_select
+        )

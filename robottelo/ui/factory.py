@@ -656,6 +656,10 @@ def make_ldapauth(session, **kwargs):
         u'account_grpbasedn': None,
         u'ldap_filter': False,
         u'otf_register': True,
+        u'locations': None,
+        u'loc_select': False,
+        u'orgs': None,
+        u'org_select': False,
     }
     page = session.nav.go_to_ldap_auth
     core_factory(create_args, kwargs, session, page)
