@@ -90,6 +90,8 @@ FILTER = {
     'filter_org': 'filter_organization',
     'filter_loc': 'filter_location',
     'filter_permission': 'filter_permission',
+    'ldapauthsource_loc': 'auth_source_ldap_location',
+    'ldapauthsource_org': 'auth_source_ldap_organization',
     'loc_capsules': 'location_smart_proxy',
     'loc_domain': 'location_domain',
     'loc_envs': 'location_environment',

@@ -14,6 +14,7 @@
 
 :Upstream: No
 """
+from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
@@ -109,7 +110,6 @@ class LDAPAuthSourceTestCase(UITestCase):
                     )
                     self.ldapauthsource.delete(server_name)
 
-    @stubbed()
     @tier2
     def test_positive_create_withad_org_and_loc(self):
         """Create LDAP auth_source for AD with org and loc assigned.
@@ -126,6 +126,30 @@ class LDAPAuthSourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        with Session(self.browser) as session:
+            for server_name in generate_strings_list():
+                with self.subTest(server_name):
+                    make_ldapauth(
+                        session,
+                        name=server_name,
+                        server=self.ldap_hostname,
+                        server_type=LDAP_SERVER_TYPE['UI']['ad'],
+                        login_name=LDAP_ATTR['login_ad'],
+                        first_name=LDAP_ATTR['firstname'],
+                        surname=LDAP_ATTR['surname'],
+                        mail=LDAP_ATTR['mail'],
+                        account_user=self.ldap_user_name,
+                        account_passwd=self.ldap_user_passwd,
+                        account_basedn=self.base_dn,
+                        account_grpbasedn=self.group_base_dn,
+                        orgs=[entities.Organization().create().name],
+                        org_select=True,
+                        locations=[entities.Location().create().name],
+                        loc_select=True,
+                    )
+                    self.assertIsNotNone(
+                        self.ldapauthsource.search(server_name)
+                    )
 
     @stubbed()
     @tier2
