@@ -49,6 +49,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
+    stubbed,
     tier1,
     tier3,
 )
@@ -677,3 +678,38 @@ class HostCollectionPackageManagementTest(UITestCase):
             )
             self.assertEqual(result, 'success')
             self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
+
+    @tier1
+    @stubbed
+    def test_positive_add_subscription(self):
+        """Try to add a subscription to a host collection
+
+        :id: e705b949-0c3c-4bb5-aab8-c7b3fa3c0228
+
+        :steps:
+
+            1. Create a new or use an existing subscription
+            2. Add the subscription to the host collection
+
+        :expectedresults: The subscription was added to the host collection
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @stubbed
+    def test_positive_remove_subscription(self):
+        """Try to remove a subscription from a host collection
+
+        :id: 1c380df4-abee-46f4-8843-5d9e6eacac41
+
+        :steps:
+
+            1. Create a new or use an existing subscription
+            2. Add the subscription to the host collection
+            3. Remove the subscription from the host collection
+
+        :expectedresults: The subscription was added to the host collection
+
+        :CaseImportance: Critical
+        """

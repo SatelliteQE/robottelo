@@ -43,6 +43,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
+    stubbed,
     tier3,
 )
 from robottelo.test import UITestCase
@@ -322,3 +323,50 @@ class ContentHostTestCase(UITestCase):
             host_url = urljoin(settings.server.get_url(),
                                'hosts/{0}'.format(self.client.hostname))
             self.assertEqual(self.browser.current_url, host_url)
+
+    @tier3
+    @stubbed
+    def test_positive_bulk_add_subscriptions(self):
+        """Add a subscription to more than one content host, using bulk actions.
+
+        :id: a427c77f-100d-4af5-9248-6f806db364ef
+
+        :steps:
+
+            1. Upload a manifest with, or use an existing, subscription
+            2. Register multiple hosts to the current organization
+            3. Select all of those hosts
+            4. Navigate to the bulk subscriptions page
+            5. Select and add a subscription to the hosts
+
+        :expectedresults: The subscriptions are successfully attached to the
+            hosts
+
+        :CaseLevel: System
+        """
+
+    @tier3
+    @stubbed
+    def test_positive_bulk_remove_subscriptions(self):
+        """Remove a subscription to more than one content host, using bulk
+        actions.
+
+        :id: f74b829e-d888-4caf-a25e-ca64b073a3fc
+
+        :steps:
+
+            1. Upload a manifest with, or use an existing, subscription
+            2. Register multiple hosts to the current organization
+            3. Select all of those hosts
+            4. Navigate to the bulk subscriptions page
+            5. Select and add a subscription to the hosts
+            6. Verify that the subscriptions were added
+            7. Reselect all the hosts from step 3
+            8. Navigate to the bulk subscriptions page
+            9. Select the subscription added in step 5 and remove it
+
+        :expectedresults: The subscriptions are successfully removed from the
+            hosts
+
+        :CaseLevel: System
+        """

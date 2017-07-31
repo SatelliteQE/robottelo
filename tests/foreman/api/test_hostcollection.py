@@ -17,7 +17,7 @@
 from nailgun import entities
 from random import choice
 from requests.exceptions import HTTPError
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier2
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.test import APITestCase
 
@@ -403,3 +403,38 @@ class HostCollectionTestCase(APITestCase):
                         name=name,
                         organization=self.org,
                     ).create()
+
+    @tier1
+    @stubbed
+    def test_positive_add_subscription(self):
+        """Try to add a subscription to a host collection
+
+        :id: c4ec5727-eb25-452e-a91f-87cafb16666b
+
+        :steps:
+
+            1. Create a new or use an existing subscription
+            2. Add the subscription to the host collection
+
+        :expectedresults: The subscription was added to the host collection
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @stubbed
+    def test_positive_remove_subscription(self):
+        """Try to remove a subscription from a host collection
+
+        :id: fdf43e57-5101-4270-9750-afe26f77c53c
+
+        :steps:
+
+            1. Create a new or use an existing subscription
+            2. Add the subscription to the host collection
+            3. Remove the subscription from the host collection
+
+        :expectedresults: The subscription was added to the host collection
+
+        :CaseImportance: Critical
+        """
