@@ -143,7 +143,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_activationkey(
@@ -165,7 +165,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -186,7 +186,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for env_name in valid_data_list():
                 with self.subTest(env_name):
                     name = gen_string('alpha')
@@ -215,7 +215,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for cv_name in valid_data_list():
                 with self.subTest(cv_name):
                     name = gen_string('alpha')
@@ -249,7 +249,7 @@ class ActivationKeyTestCase(UITestCase):
             name=gen_string(str_type='utf8'),
         ).create()
 
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -311,8 +311,7 @@ class ActivationKeyTestCase(UITestCase):
             password=password,
             organization=[self.organization],
         ).create()
-        with Session(
-                self.browser, user=user.login, password=password) as session:
+        with Session(self, user=user.login, password=password) as session:
             make_activationkey(session, name=ak_name, env=ENVIRONMENT)
             self.assertIsNotNone(self.activationkey.search(ak_name))
             # add Host Collection
@@ -366,8 +365,7 @@ class ActivationKeyTestCase(UITestCase):
             password=password,
             organization=[self.organization],
         ).create()
-        with Session(
-                self.browser, user=user.login, password=password) as session:
+        with Session(self, user=user.login, password=password) as session:
             make_activationkey(session, name=ak_name, env=ENVIRONMENT)
             self.assertIsNotNone(self.activationkey.search(ak_name))
             # add Host Collection
@@ -400,7 +398,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -421,7 +419,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_names_list():
                 with self.subTest(name):
                     make_activationkey(
@@ -446,7 +444,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for limit in invalid_names_list():
                 with self.subTest(limit):
                     name = gen_string('alpha')
@@ -472,7 +470,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_activationkey(
@@ -502,7 +500,7 @@ class ActivationKeyTestCase(UITestCase):
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -530,7 +528,7 @@ class ActivationKeyTestCase(UITestCase):
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -564,7 +562,7 @@ class ActivationKeyTestCase(UITestCase):
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo(product_name=product_name)
         self.cv_publish_promote(cv_name, env_name, repo_id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -598,7 +596,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -619,7 +617,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha', 10)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -646,7 +644,7 @@ class ActivationKeyTestCase(UITestCase):
         """
         name = gen_string('alpha')
         description = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -678,7 +676,7 @@ class ActivationKeyTestCase(UITestCase):
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -723,7 +721,7 @@ class ActivationKeyTestCase(UITestCase):
         self.cv_publish_promote(cv1_name, env1_name, repo1_id)
         repo2_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv2_name, env2_name, repo2_id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -794,7 +792,7 @@ class ActivationKeyTestCase(UITestCase):
         repo2_id = self.enable_sync_redhat_repo(rh_repo2, org.id)
         self.cv_publish_promote(cv2_name, env2_name, repo2_id, org.id)
 
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=org.name,
@@ -824,7 +822,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -847,7 +845,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -872,7 +870,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha', 10)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -899,7 +897,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -938,7 +936,7 @@ class ActivationKeyTestCase(UITestCase):
         """
         name = gen_string('alpha')
         host_limit = '1'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -982,7 +980,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseLevel: System
         """
         key_name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -1025,7 +1023,7 @@ class ActivationKeyTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.organization.label, ak.name)
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.organization.name)
                 host = self.activationkey.search_content_host(
                     ak.name, vm.hostname)
@@ -1077,7 +1075,7 @@ class ActivationKeyTestCase(UITestCase):
         # Helper function to create and promote CV to next environment
         repo_id = self.enable_sync_redhat_repo(rh_repo, org_id=org.id)
         self.cv_publish_promote(cv_name, env_name, repo_id, org.id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=org.name,
@@ -1109,7 +1107,7 @@ class ActivationKeyTestCase(UITestCase):
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo(product_name=product_name)
         self.cv_publish_promote(cv_name, env_name, repo_id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -1183,7 +1181,7 @@ class ActivationKeyTestCase(UITestCase):
         # Sync repository
         for repo_id in [rhel_repo_id, repo.id]:
             entities.Repository(id=repo_id).sync()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=org.name,
@@ -1232,7 +1230,7 @@ class ActivationKeyTestCase(UITestCase):
                     'subscription_id': subs.id,
                 })
                 break
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             # Verify subscription is assigned to activation key
             self.assertIsNotNone(
@@ -1278,7 +1276,7 @@ class ActivationKeyTestCase(UITestCase):
         repo_2_id = self.create_sync_custom_repo(
             product_name=product_2_name, repo_url=FAKE_2_YUM_REPO)
         self.cv_publish_promote(cv_2_name, env_2_name, repo_2_id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create activation_key_1
             make_activationkey(
                 session,
@@ -1353,7 +1351,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     set_context(session, org=self.organization.name)
@@ -1374,7 +1372,7 @@ class ActivationKeyTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     set_context(session, org=self.organization.name)
@@ -1400,11 +1398,7 @@ class ActivationKeyTestCase(UITestCase):
         user = entities.User(
             password=password, login=gen_string('alpha'), admin=True).create()
         # Create Activation Key with new user credentials
-        with Session(
-                self.browser,
-                user=user.login,
-                password=password,
-        ) as session:
+        with Session(self, user=user.login, password=password) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -1414,7 +1408,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(ak_name))
         # Remove user and check that AK still exists
         user.delete()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.organization.name)
             self.assertIsNotNone(self.activationkey.search(ak_name))
 
@@ -1459,7 +1453,7 @@ class ActivationKeyTestCase(UITestCase):
         ).create()
         cv.publish()
         ak = entities.ActivationKey(content_view=cv, organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.activationkey.associate_product(
                 ak.name, [custom_product.name, DEFAULT_SUBSCRIPTION_NAME])
@@ -1503,7 +1497,7 @@ class ActivationKeyTestCase(UITestCase):
             vm2.install_katello_ca()
             vm2.register_contenthost(org.label, ak2.name)
             self.assertTrue(vm2.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=org.name)
                 ak1_hosts = self.activationkey.fetch_associated_content_hosts(
                     ak1.name)

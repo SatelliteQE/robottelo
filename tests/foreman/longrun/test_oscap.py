@@ -107,7 +107,7 @@ class OpenScapTestCase(UITestCase):
                 'rhel_repo': rhel7_repo,
             },
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             # Creates oscap content for both rhel6 and rhel7
             for content in [rhel6_content, rhel7_content]:
@@ -207,7 +207,7 @@ class OpenScapTestCase(UITestCase):
             'hgrp': hgrp7_name,
             'rhel_repo': rhel7_repo,
         }
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             # Creates oscap content for rhel7
             session.nav.go_to_oscap_content()

@@ -79,7 +79,7 @@ class HostCollectionTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_host_collection(
@@ -97,7 +97,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session,
                 name=name,
@@ -117,7 +117,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name, limit='10')
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -133,7 +133,7 @@ class HostCollectionTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list('ui'):
                 with self.subTest(name):
                     make_host_collection(
@@ -156,7 +156,7 @@ class HostCollectionTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for limit in invalid_names_list():
                 with self.subTest(limit):
                     make_host_collection(
@@ -181,7 +181,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -202,7 +202,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session,
                 name=name,
@@ -231,7 +231,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -252,7 +252,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name, limit='15')
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -274,7 +274,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -298,7 +298,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -317,7 +317,7 @@ class HostCollectionTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_host_collection(
@@ -336,7 +336,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -358,7 +358,7 @@ class HostCollectionTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
             self.assertIsNotNone(self.hostcollection.search(name))
@@ -392,7 +392,7 @@ class HostCollectionTestCase(UITestCase):
             u'name': gen_string('alpha'),
             u'organization-id': self.organization.id,
         })
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, org=self.organization.name, name=name)
             self.hostcollection.add_host(name, new_system['name'])
@@ -431,7 +431,7 @@ class HostCollectionTestCase(UITestCase):
             })['name']
             for _ in range(2)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host_collection(
                 session, org=org.name, name=name, limit='1')
             self.hostcollection.add_host(name, new_systems[0])
@@ -545,7 +545,7 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             self.hostcollection.execute_bulk_package_action(
                 self.host_collection.name,
                 'install',
@@ -571,7 +571,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 FAKE_6_YUM_REPO,
                 FAKE_0_CUSTOM_PACKAGE
             )
-        with Session(self.browser):
+        with Session(self):
             self.hostcollection.execute_bulk_package_action(
                 self.host_collection.name,
                 'remove',
@@ -597,7 +597,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         """
         for client in self.hosts:
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        with Session(self.browser):
+        with Session(self):
             self.hostcollection.execute_bulk_package_action(
                 self.host_collection.name,
                 'update',
@@ -617,7 +617,7 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             self.hostcollection.execute_bulk_package_action(
                 self.host_collection.name,
                 'install',
@@ -638,7 +638,7 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser):
+        with Session(self):
             self.hostcollection.execute_bulk_package_action(
                 self.host_collection.name,
                 'install',
@@ -670,7 +670,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         """
         for client in self.hosts:
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-        with Session(self.browser):
+        with Session(self):
             result = self.hostcollection.execute_bulk_errata_installation(
                 self.host_collection.name,
                 FAKE_2_ERRATA_ID,

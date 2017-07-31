@@ -50,7 +50,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_resource(
@@ -74,7 +74,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for description in valid_data_list():
                 with self.subTest(description):
                     name = gen_string('alpha')
@@ -100,7 +100,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for display_type in 'VNC', 'SPICE':
                 with self.subTest(display_type):
                     name = gen_string('alpha')
@@ -127,7 +127,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for console_password in True, False:
                 with self.subTest(console_password):
                     name = gen_string('alpha')
@@ -155,7 +155,7 @@ class ComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
         include_list = [' ']
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_names_list() + include_list:
                 with self.subTest(name):
                     make_resource(
@@ -183,7 +183,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for newname in valid_data_list():
                 with self.subTest(newname):
                     name = gen_string('alpha')
@@ -211,7 +211,7 @@ class ComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -239,7 +239,7 @@ class ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_resource(
@@ -266,7 +266,7 @@ class ComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,

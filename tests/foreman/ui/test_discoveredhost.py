@@ -155,7 +155,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
@@ -180,7 +180,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest(boot_iso=True) as pxe_less_host:
                 hostname = pxe_less_host.guest_name
@@ -321,7 +321,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             # To show new fact column 'Interfaces' on Discovered Hosts page
             self._edit_discovery_fact_column_param(session, "interfaces")
@@ -396,7 +396,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             # To show new fact column 'Interfaces' on Discovered Hosts page
             self._edit_discovery_fact_column_param(session, "interfaces")
@@ -428,7 +428,7 @@ class DiscoveryTestCase(UITestCase):
         :CaseLevel: System
         """
         param_value = 'myfact'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             # To show new fact column 'Interfaces' on Discovered Hosts page
             self._edit_discovery_fact_column_param(session, param_value)
@@ -457,7 +457,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
@@ -494,7 +494,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
@@ -516,7 +516,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
@@ -540,7 +540,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
@@ -582,7 +582,7 @@ class DiscoveryTestCase(UITestCase):
         :CaseLevel: System
         """
         param_value = 'interfaces'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             # To show new fact column 'Interfaces' on Discovered Hosts page
             self._edit_discovery_fact_column_param(session, param_value)
@@ -615,7 +615,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             # To show new fact column 'Interfaces' on Discovered Hosts page
             self._edit_discovery_fact_column_param(session, 'interfaces')
@@ -648,7 +648,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 hostname = pxe_host.guest_name
@@ -687,7 +687,7 @@ class DiscoveryTestCase(UITestCase):
         """
         new_org = gen_string('alpha')
         entities.Organization(name=new_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
@@ -721,7 +721,7 @@ class DiscoveryTestCase(UITestCase):
         :CaseLevel: System
         """
         loc = entities.Location().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
@@ -777,7 +777,7 @@ class DiscoveryTestCase(UITestCase):
         :CaseLevel: System
         """
         rule_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
@@ -867,7 +867,7 @@ class DiscoveryTestCase(UITestCase):
             discovery_auto.value = 'False'
             discovery_auto.update(['value'])
             rule_name = gen_string('alpha')
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.org_name)
                 # Define a discovery rule
                 make_discoveryrule(
@@ -967,7 +967,7 @@ class DiscoveryTestCase(UITestCase):
         :CaseLevel: System
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
@@ -1000,7 +1000,7 @@ class DiscoveryTestCase(UITestCase):
         :CaseLevel: System
         """
         rule_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_1_host:
                 host_1_name = pxe_1_host.guest_name
@@ -1052,7 +1052,7 @@ class DiscoveryTestCase(UITestCase):
         :CaseLevel: System
         """
         param_value = 'bios_vendor'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             # To show new fact column 'Interfaces' on Discovered Hosts page
             self._edit_discovery_fact_column_param(session, param_value)
@@ -1087,7 +1087,7 @@ class DiscoveryTestCase(UITestCase):
         """
         param_value = 'test'
         expected_value = u'N/A'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             # To show new fact column 'Interfaces' on Discovered Hosts page
             self._edit_discovery_fact_column_param(session, param_value)
@@ -1216,7 +1216,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
@@ -1253,7 +1253,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_name = pxe_host.guest_name
@@ -1493,7 +1493,7 @@ class DiscoveryPrefixTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
                 host_mac = pxe_host.mac

@@ -81,7 +81,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.org_.label, lce='Library')
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.org_.name)
                 self.assertIsNotNone(self.hosts.search(vm.hostname))
                 self.assertIsNotNone(self.contenthost.search(vm.hostname))
@@ -124,7 +124,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(org.label, activation_key.name)
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(org.name)
                 self.assertIsNotNone(self.hosts.search(vm.hostname))
                 self.assertIsNotNone(self.contenthost.search(vm.hostname))
@@ -151,7 +151,7 @@ class HostContentHostUnificationTestCase(UITestCase):
         host.create_missing()
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=host.name,
@@ -203,7 +203,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.org_.label, lce='Library')
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.org_.name)
                 name, domain_name = vm.hostname.split('.', 1)
                 new_name = gen_string('alphanumeric').lower()
@@ -243,7 +243,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.org_.label, lce='Library')
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.org_.name)
                 new_name = gen_string('alphanumeric').lower()
                 self.contenthost.update(
@@ -280,7 +280,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.register_contenthost(self.org_.label, lce='Library')
             self.assertTrue(vm.subscribed)
             host = Host.info({'name': vm.hostname})
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.org_.name)
                 self.contenthost.update(
                     vm.hostname,
@@ -310,7 +310,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(self.org_.label, lce='Library')
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.org_.name)
                 self.hosts.delete(vm.hostname, dropdown_present=True)
                 self.assertIsNone(self.contenthost.search(vm.hostname))
@@ -353,7 +353,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(org.label, activation_key.name)
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(org.name)
                 self.contenthost.unregister(vm.hostname)
                 self.contenthost.validate_subscription_status(
@@ -399,7 +399,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(org.label, activation_key.name)
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(org.name)
                 self.contenthost.delete(vm.hostname)
                 self.assertIsNone(self.hosts.search(vm.hostname))
@@ -442,7 +442,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             vm.install_katello_ca()
             vm.register_contenthost(org.label, activation_key.name)
             self.assertTrue(vm.subscribed)
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(org.name)
                 self.contenthost.unregister(vm.hostname)
                 self.contenthost.validate_subscription_status(
@@ -474,7 +474,7 @@ class HostContentHostUnificationTestCase(UITestCase):
         host.create_missing()
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=host.name,
@@ -529,7 +529,7 @@ class HostContentHostUnificationTestCase(UITestCase):
         host.create_missing()
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=host.name,

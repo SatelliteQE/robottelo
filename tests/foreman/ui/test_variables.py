@@ -198,7 +198,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_smart_variable(
@@ -229,7 +229,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         value = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -266,7 +266,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_names_list():
                 with self.subTest(name):
                     make_smart_variable(
@@ -301,7 +301,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         value = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -336,7 +336,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         old_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=old_name,
@@ -368,7 +368,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -405,7 +405,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for _ in range(2):
                 make_smart_variable(
                     session,
@@ -440,7 +440,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -487,7 +487,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         initial_value = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -530,7 +530,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 puppet_class=self.puppet_class.name,
@@ -563,7 +563,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -594,7 +594,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
@@ -633,7 +633,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -672,7 +672,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 puppet_class=self.puppet_class.name,
@@ -704,7 +704,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -735,7 +735,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
@@ -773,7 +773,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -808,7 +808,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
@@ -844,7 +844,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -879,7 +879,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
@@ -917,7 +917,7 @@ class SmartVariablesTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=gen_string('alpha'),
@@ -959,7 +959,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         default_value = gen_string('alpha')
         override_value = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1005,7 +1005,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1058,7 +1058,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = gen_string('alphanumeric')
         override_value2 = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1114,7 +1114,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1171,7 +1171,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1227,7 +1227,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1287,7 +1287,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1345,7 +1345,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = '[80, 90]'
         override_value2 = '[90, 100]'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1402,7 +1402,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = '[70, 80]'
         override_value2 = '[90, 100]'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1444,7 +1444,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1473,7 +1473,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1514,7 +1514,7 @@ class SmartVariablesTestCase(UITestCase):
             name=hg_name, environment=self.env).create()
         hostgroup.add_puppetclass(
             data={'puppetclass_id': self.puppet_class.id})
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=sv_name,
@@ -1558,7 +1558,7 @@ class SmartVariablesTestCase(UITestCase):
         :CaseLevel: Integration
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1597,7 +1597,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         new_value = '[90,100,120]'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1639,7 +1639,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         default_value = gen_string('numeric').lstrip('0')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1681,7 +1681,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         host_override_value = gen_string('numeric').lstrip('0')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1732,7 +1732,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         override_value = gen_string('numeric').lstrip('0')
         host_override_value = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1779,7 +1779,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         value = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1813,7 +1813,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         value = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1859,7 +1859,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         default_value = gen_string('numeric').lstrip('0')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1910,7 +1910,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         default_value = gen_string('numeric').lstrip('0')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -1959,7 +1959,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         value = gen_string('alphanumeric')
         new_value = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -2009,7 +2009,7 @@ class SmartVariablesTestCase(UITestCase):
         name = gen_string('alpha')
         default_value = gen_string('numeric').lstrip('0')
         host_override_value = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,
@@ -2067,7 +2067,7 @@ class SmartVariablesTestCase(UITestCase):
         """
         name = gen_string('alpha')
         override_value = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_smart_variable(
                 session,
                 name=name,

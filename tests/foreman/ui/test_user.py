@@ -92,7 +92,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for user_name in valid_strings():
                 with self.subTest(user_name):
                     make_user(session, username=user_name)
@@ -108,7 +108,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for first_name in valid_strings():
                 with self.subTest(first_name):
                     name = gen_string('alpha')
@@ -125,7 +125,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for last_name in valid_strings(50):
                 with self.subTest(last_name):
                     name = gen_string('alpha')
@@ -142,7 +142,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for email in valid_emails_list():
                 with self.subTest(email):
                     name = gen_string('alpha')
@@ -159,7 +159,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for description in valid_data_list():
                 with self.subTest(description):
                     name = gen_string('alpha')
@@ -178,7 +178,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for language in LANGUAGES:
                 with self.subTest(language):
                     name = gen_string('alpha')
@@ -201,7 +201,7 @@ class UserTestCase(UITestCase):
             u'bar+{{}}|\"?hi {0}'.format(gen_string('alpha', 2)),
         )
         test_data.extend(extra_passwords)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for password in test_data:
                 with self.subTest(password):
                     name = gen_string('alpha')
@@ -224,7 +224,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=user_name, admin=True)
             self.assertIsNotNone(self.user.search(user_name))
 
@@ -240,7 +240,7 @@ class UserTestCase(UITestCase):
         """
         name = gen_string('alpha')
         role = entities.Role().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name, roles=[role.name], edit=True)
             self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
@@ -263,7 +263,7 @@ class UserTestCase(UITestCase):
         role2 = gen_string('alpha')
         for role in [role1, role2]:
             entities.Role(name=role).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name, roles=[role1, role2], edit=True)
             self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
@@ -284,7 +284,7 @@ class UserTestCase(UITestCase):
         :CaseLevel: Integration
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name, roles=ROLES, edit=True)
             self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
@@ -305,7 +305,7 @@ class UserTestCase(UITestCase):
         name = gen_string('alpha')
         org_name = gen_string('alpha')
         entities.Organization(name=org_name).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(
                 session, username=name, organizations=[org_name], edit=True)
             self.user.click(self.user.search(name))
@@ -329,7 +329,7 @@ class UserTestCase(UITestCase):
         org_name2 = gen_string('alpha')
         for org_name in [org_name1, org_name2]:
             entities.Organization(name=org_name).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=DEFAULT_ORG)
             make_user(
                 session,
@@ -357,7 +357,7 @@ class UserTestCase(UITestCase):
         name = gen_string('alpha')
         org_name = gen_string('alpha')
         entities.Organization(name=org_name).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True, default_org=org_name)
             self.user.search_and_click(name)
@@ -382,7 +382,7 @@ class UserTestCase(UITestCase):
         name = gen_string('alpha')
         loc_name = gen_string('alpha')
         entities.Location(name=loc_name).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name, locations=[loc_name],
                       edit=True, default_loc=loc_name)
             self.user.search_and_click(name)
@@ -405,7 +405,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(
                 session,
                 username=user_name,
@@ -426,7 +426,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for user_name in invalid_values_list(interface='ui'):
                 with self.subTest(user_name):
                     make_user(session, username=user_name)
@@ -443,7 +443,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # invalid_values_list is not used here because first name is an
             # optional field
             for first_name in invalid_names_list():
@@ -466,7 +466,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # invalid_values_list is not used here because sur name is an
             # optional field
             for last_name in invalid_names_list():
@@ -489,7 +489,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for email in invalid_emails_list():
                 with self.subTest(email):
                     name = gen_string('alpha')
@@ -507,7 +507,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=gen_string('alpha'), authorized_by='')
             self.assertIsNotNone(
                 self.user.wait_until_element(common_locators['haserror']))
@@ -522,7 +522,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(
                 session,
                 username=gen_string('alpha'),
@@ -552,7 +552,7 @@ class UserTestCase(UITestCase):
             entities.User(organization=[org]).create().login
             for _ in range(2)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_usergroup(
                 session,
                 name=group_name,
@@ -583,7 +583,7 @@ class UserTestCase(UITestCase):
         """
         name = gen_string('alpha')
         password = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Role Site meaning 'Site Manager' here
             make_user(
                 session,
@@ -595,7 +595,7 @@ class UserTestCase(UITestCase):
             )
         for new_username in valid_strings():
             with self.subTest(new_username):
-                with Session(self.browser):
+                with Session(self):
                     self.user.update(name, new_username)
                     self.assertIsNotNone(
                         self.user.search(new_username))
@@ -617,7 +617,7 @@ class UserTestCase(UITestCase):
         first_name = gen_string('alpha')
         new_first_name = gen_string('alpha')
         username = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=username, first_name=first_name)
             self.user.update(username, first_name=new_first_name)
             self.user.validate_user(username, 'firstname', new_first_name)
@@ -635,7 +635,7 @@ class UserTestCase(UITestCase):
         last_name = gen_string('alpha')
         new_last_name = gen_string('alpha')
         username = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=username, last_name=last_name)
             self.user.update(username, last_name=new_last_name)
             self.user.validate_user(username, 'lastname', new_last_name)
@@ -653,7 +653,7 @@ class UserTestCase(UITestCase):
         email = u'{0}@example.com'.format(gen_string('alpha'))
         new_email = u'{0}@myexample.com'.format(gen_string('alpha'))
         username = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=username, email=email)
             self.user.update(username, email=new_email)
             self.user.validate_user(username, 'email', new_email)
@@ -670,7 +670,7 @@ class UserTestCase(UITestCase):
         """
         username = gen_string('alpha')
         description = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=username, description=description)
             for new_description in valid_data_list():
                 with self.subTest(new_description):
@@ -691,7 +691,7 @@ class UserTestCase(UITestCase):
         """
         locale = random.choice(list(LANGUAGES.keys()))
         username = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=username)
             self.user.update(username, locale=locale)
             self.user.validate_user(username, 'language', locale, False)
@@ -709,7 +709,7 @@ class UserTestCase(UITestCase):
         """
         user_name = gen_string('alpha')
         new_password = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Role 'Site' meaning 'Site Manager' here
             make_user(session, username=user_name, edit=True, roles=['Site'])
             self.user.update(
@@ -732,7 +732,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=user_name, admin=True)
             self.assertIsNotNone(self.user.search(user_name))
             self.assertFalse(
@@ -749,7 +749,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=user_name, admin=False)
             self.assertIsNotNone(self.user.search(user_name))
             self.assertTrue(self.user.user_admin_role_toggle(user_name, True))
@@ -767,7 +767,7 @@ class UserTestCase(UITestCase):
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
         role_name = entities.Role().create().name
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
@@ -794,7 +794,7 @@ class UserTestCase(UITestCase):
             entities.Role().create().name
             for _ in range(3)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=role_names)
             self.user.search_and_click(name)
@@ -816,7 +816,7 @@ class UserTestCase(UITestCase):
         :CaseLevel: Integration
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=ROLES)
             self.user.search_and_click(name)
@@ -840,7 +840,7 @@ class UserTestCase(UITestCase):
         name = gen_string('alpha')
         org_name = gen_string('alpha')
         entities.Organization(name=org_name).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             self.user.update(name, new_organizations=[org_name])
             self.user.search_and_click(name)
@@ -864,7 +864,7 @@ class UserTestCase(UITestCase):
             entities.Organization().create().name
             for _ in range(3)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             self.user.update(name, new_organizations=org_names)
             self.user.click(self.user.search(name))
@@ -886,7 +886,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             for new_user_name in invalid_names_list():
                 with self.subTest(new_user_name):
@@ -905,7 +905,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             for new_first_name in invalid_names_list():
                 with self.subTest(new_first_name):
@@ -924,7 +924,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             for new_surname in invalid_names_list():
                 with self.subTest(new_surname):
@@ -943,7 +943,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             for new_email in invalid_emails_list():
                 with self.subTest(new_email):
@@ -967,7 +967,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             self.user.update(
                 name,
@@ -992,7 +992,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=name)
             self.user.update(
                 name,
@@ -1016,7 +1016,7 @@ class UserTestCase(UITestCase):
         new_last_name = gen_string('alpha')
         username = gen_string('alpha')
         new_username = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=username)
             self.user.update(
                 username,
@@ -1039,7 +1039,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         user_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=user_name)
             self.user.delete(user_name)
 
@@ -1054,7 +1054,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=user_name, admin=True)
             self.assertIsNotNone(self.user.search(user_name))
             self.user.delete(user_name)
@@ -1070,7 +1070,7 @@ class UserTestCase(UITestCase):
         :CaseImportance: Critical
         """
         user_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(session, username=user_name)
             self.assertIsNotNone(self.user.search(user_name))
             self.user.delete(user_name, really=False)
@@ -1139,7 +1139,7 @@ class UserTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for timezone in TIMEZONES:
                 with self.subTest(timezone):
                     name = gen_string('alpha')
@@ -1320,7 +1320,7 @@ class ActiveDirectoryUserTestCase(UITestCase):
         :CaseLevel: Integration
         """
         user_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(
                 session,
                 username=user_name,

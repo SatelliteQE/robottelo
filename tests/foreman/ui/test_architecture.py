@@ -55,7 +55,7 @@ class ArchitectureTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for test_data in valid_arch_os_names():
                 with self.subTest(test_data):
                     entities.OperatingSystem(
@@ -79,7 +79,7 @@ class ArchitectureTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_arch(session, name=name)
@@ -97,7 +97,7 @@ class ArchitectureTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for invalid_name in invalid_values_list(interface='ui'):
                 with self.subTest(invalid_name):
                     make_arch(session, name=invalid_name)
@@ -115,7 +115,7 @@ class ArchitectureTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_arch(session, name=name)
@@ -136,7 +136,7 @@ class ArchitectureTestCase(UITestCase):
         :CaseImportance: Critical
         """
         os = entities.OperatingSystem(name=gen_string('alpha')).create()
-        with Session(self.browser):
+        with Session(self):
             for name in generate_strings_list():
                 with self.subTest(name):
                     entities.Architecture(
@@ -157,7 +157,7 @@ class ArchitectureTestCase(UITestCase):
         old_name = gen_string('alpha')
         os_name = gen_string('alpha')
         entities.OperatingSystem(name=os_name).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_arch(session, name=old_name)
             self.assertIsNotNone(self.architecture.search(old_name))
             for new_name in generate_strings_list():

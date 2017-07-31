@@ -20,6 +20,7 @@ from fauxfactory import gen_string
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import tier1
 from robottelo.test import UITestCase
+from robottelo.ui.session import Session
 
 
 @filtered_datapoint
@@ -48,9 +49,9 @@ class LoginTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        self.login.login(self.foreman_user,
-                         self.foreman_password)
-        self.assertTrue(self.login.is_logged())
+        with Session(
+                self, user=self.foreman_user, password=self.foreman_password):
+            self.assertTrue(self.login.is_logged())
 
     @tier1
     def test_negative_login(self):
@@ -64,5 +65,7 @@ class LoginTestCase(UITestCase):
         """
         for test_data in invalid_credentials():
             with self.subTest(test_data):
-                self.login.login(test_data['login'], test_data['pass'])
-                self.assertFalse(self.login.is_logged())
+                with Session(
+                    self, test_data['login'], password=test_data['pass']
+                ) as session:
+                    self.assertFalse(session.login.is_logged())

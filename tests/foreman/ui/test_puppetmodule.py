@@ -57,7 +57,7 @@ class PuppetModuleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             self.assertIsNotNone(self.puppetmodule.search('ntp'))
 
     @tier1
@@ -73,7 +73,7 @@ class PuppetModuleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             self.puppetmodule.check_puppet_details(
                 'ntp',
                 [
@@ -107,5 +107,5 @@ class PuppetModuleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             self.puppetmodule.check_repo('ntp', [self.repo.name])

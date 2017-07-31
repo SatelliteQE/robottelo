@@ -43,7 +43,7 @@ class EnvironmentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_environments_list():
                 with self.subTest(name):
                     make_env(session, name=name)
@@ -61,7 +61,7 @@ class EnvironmentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_env(session, name=name)
@@ -82,7 +82,7 @@ class EnvironmentTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_env(session, name=name)
             for new_name in valid_environments_list():
                 with self.subTest(new_name):
@@ -101,7 +101,7 @@ class EnvironmentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_environments_list():
                 with self.subTest(name):
                     make_env(session, name=name)

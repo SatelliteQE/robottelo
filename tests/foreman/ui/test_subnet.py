@@ -50,7 +50,7 @@ class SubnetTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_subnet(
@@ -72,7 +72,7 @@ class SubnetTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_subnet(
@@ -99,7 +99,7 @@ class SubnetTestCase(UITestCase):
         domain = entities.Domain(
             organization=[self.organization]
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_subnet(
                 session,
                 org=self.organization.name,
@@ -132,7 +132,7 @@ class SubnetTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_subnet(
@@ -155,7 +155,7 @@ class SubnetTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_subnet(
                 session,
                 subnet_name=gen_string('alpha'),
@@ -187,7 +187,7 @@ class SubnetTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_subnet(
@@ -211,7 +211,7 @@ class SubnetTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_subnet(
                 session,
                 subnet_name=name,
@@ -232,7 +232,7 @@ class SubnetTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_subnet(
                 session,
                 subnet_name=name,
@@ -259,7 +259,7 @@ class SubnetTestCase(UITestCase):
         """
         name = gen_string('alpha')
         new_network = gen_ipaddr(ip3=True)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_subnet(
                 session,
                 subnet_name=name,
@@ -283,7 +283,7 @@ class SubnetTestCase(UITestCase):
         """
         name = gen_string('alpha')
         new_mask = gen_netmask(16, 31)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_subnet(
                 session,
                 subnet_name=name,

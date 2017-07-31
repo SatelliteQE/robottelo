@@ -76,7 +76,7 @@ class DomainTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     domain_name = description = DOMAIN % name
@@ -95,7 +95,7 @@ class DomainTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_long_domain_names():
                 with self.subTest(name):
                     domain_name = description = DOMAIN % name
@@ -116,7 +116,7 @@ class DomainTestCase(UITestCase):
         :CaseImportance: Critical
         """
         domain_name = description = DOMAIN % gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_domain(session, name=domain_name, description=description)
             self.domain.delete(domain_name)
 
@@ -132,7 +132,7 @@ class DomainTestCase(UITestCase):
         :CaseImportance: Critical
         """
         domain_name = description = DOMAIN % gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_domain(session, name=domain_name, description=description)
             self.assertIsNotNone(self.domain.search(domain_name))
             for testdata in valid_domain_update_data():
@@ -158,7 +158,7 @@ class DomainTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_domain(session, name=name, description=name)
@@ -177,7 +177,7 @@ class DomainTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     domain_name = description = DOMAIN % name
@@ -202,7 +202,7 @@ class DomainTestCase(UITestCase):
         :CaseLevel: Integration
         """
         domain_name = description = DOMAIN % gen_string('alpha', 4)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_domain(session, name=domain_name, description=description)
             self.assertIsNotNone(self.domain.search(description))
             self.domain.set_domain_parameter(
@@ -223,7 +223,7 @@ class DomainTestCase(UITestCase):
         :CaseLevel: Integration
         """
         domain_name = description = DOMAIN % gen_string('alpha', 4)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_domain(session, name=domain_name, description=description)
             self.assertIsNotNone(self.domain.search(description))
             self.domain.set_domain_parameter(
@@ -244,7 +244,7 @@ class DomainTestCase(UITestCase):
         :CaseLevel: Integration
         """
         domain_name = description = DOMAIN % gen_string('alpha', 4)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_domain(session, name=domain_name, description=description)
             self.assertIsNotNone(self.domain.search(description))
             self.domain.set_domain_parameter(
@@ -269,7 +269,7 @@ class DomainTestCase(UITestCase):
         domain_name = description = DOMAIN % gen_string('alpha', 4)
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_domain(session, name=domain_name, description=description)
             self.assertIsNotNone(self.domain.search(description))
             self.domain.set_domain_parameter(
@@ -290,7 +290,7 @@ class DomainTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             domain_name = description = DOMAIN % gen_string('alpha', 4)
             param_name = gen_string('alpha')
             param_value = gen_string('alpha')

@@ -52,7 +52,7 @@ class TemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_templates(
@@ -75,7 +75,7 @@ class TemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_templates(
@@ -100,7 +100,7 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_templates(
                 session,
                 name=name,
@@ -131,7 +131,7 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             with self.assertRaises(UIError) as context:
                 make_templates(
                     session,
@@ -157,7 +157,7 @@ class TemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             with self.assertRaises(UIError) as context:
                 make_templates(
                     session,
@@ -182,7 +182,7 @@ class TemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_templates(
                 session,
                 name=gen_string('alpha', 16),
@@ -206,7 +206,7 @@ class TemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_templates(
@@ -229,7 +229,7 @@ class TemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             for template_name in generate_strings_list():
                 with self.subTest(template_name):
@@ -253,7 +253,7 @@ class TemplateTestCase(UITestCase):
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_templates(
                 session,
                 name=name,
@@ -284,7 +284,7 @@ class TemplateTestCase(UITestCase):
         os_list = [
             entities.OperatingSystem().create().name for _ in range(2)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_templates(
                 session,
                 name=name,
@@ -328,7 +328,7 @@ class TemplateTestCase(UITestCase):
             default_organization=self.organization,
             location=[self.loc],
         ).create()
-        with Session(self.browser, user=user_login, password=user_password):
+        with Session(self, user=user_login, password=user_password):
             self.template.update(name=template.name, new_name=new_name)
             self.assertIsNotNone(self.template.search(new_name))
 
@@ -352,7 +352,7 @@ class TemplateTestCase(UITestCase):
         os_list = [
             entities.OperatingSystem().create().name for _ in range(2)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_templates(
                 session,
                 name=name,
@@ -390,7 +390,7 @@ class TemplateTestCase(UITestCase):
         hostgroup = entities.HostGroup(
             organization=[org], location=[loc]).create()
         template_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name, loc=loc.name)
             make_templates(
                 session,

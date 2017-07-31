@@ -325,7 +325,7 @@ class LibvirtHostTestCase(UITestCase):
 
     def tearDown(self):
         """Delete the host to free the resources"""
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
@@ -349,7 +349,7 @@ class LibvirtHostTestCase(UITestCase):
             location=[self.loc],
             organization=[self.org_],
         ).create(True)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=self.hostname,
@@ -566,7 +566,7 @@ class HostTestCase(UITestCase):
         host.create_missing()
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=host.name,
@@ -618,7 +618,7 @@ class HostTestCase(UITestCase):
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
         interface_id = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=host.name,
@@ -687,7 +687,7 @@ class HostTestCase(UITestCase):
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
         host_name = host.name
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=host_name,
@@ -746,7 +746,7 @@ class HostTestCase(UITestCase):
         host.create_missing()
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=current_name,
@@ -798,7 +798,7 @@ class HostTestCase(UITestCase):
         host.create_missing()
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=host.name,
@@ -852,7 +852,7 @@ class HostTestCase(UITestCase):
             host_parameters_attributes=parameters,
         ).create()
         additional_host = entities.Host(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             # Check that hosts present in the system
             for host in [param_host, additional_host]:
@@ -890,7 +890,7 @@ class HostTestCase(UITestCase):
             ).create()
             for value in param_values
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             # Check that hosts present in the system
             for host in hosts:
@@ -931,7 +931,7 @@ class HostTestCase(UITestCase):
             host_parameters_attributes=parameters,
         ).create()
         additional_host = entities.Host(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             # Check that hosts present in the system
             for host in [param_host, additional_host]:
@@ -975,7 +975,7 @@ class HostTestCase(UITestCase):
             host_parameters_attributes=parameters,
         ).create()
         additional_host = entities.Host(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             # Check that hosts present in the system
             for host in [param_host, additional_host]:
@@ -1011,7 +1011,7 @@ class HostTestCase(UITestCase):
         org = entities.Organization().create()
         loc = entities.Location().create()
         host = entities.Host(organization=org, location=loc).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.org.update(org.name, all_capsules=True)
             self.location.update(loc.name, all_capsules=True)
             set_context(session, org=org.name, loc=loc.name)
@@ -1073,7 +1073,7 @@ class HostTestCase(UITestCase):
             'partition-table-id': host.ptable.id,
             'puppet-proxy-id': puppet_proxy['id'],
         })
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, host.organization.name, host.location.name)
             result = self.hosts.fetch_host_parameters(
                 host.name,
@@ -1379,7 +1379,7 @@ class AtomicHostTestCase(UITestCase):
 
     def tearDown(self):
         """Delete the host to free the resources"""
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
@@ -1399,7 +1399,7 @@ class AtomicHostTestCase(UITestCase):
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string('alpha', 15)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=self.hostname,
@@ -1469,7 +1469,7 @@ class AtomicHostTestCase(UITestCase):
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string('alpha', 15)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_host(
                 session,
                 name=self.hostname,
@@ -1548,7 +1548,7 @@ class BulkHostTestCase(UITestCase):
             ).create().name
             for _ in range(18)
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=org.name)
             self.assertIsNotNone(self.hosts.update_host_bulkactions(
                 hosts_names,

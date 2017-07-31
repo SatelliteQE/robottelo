@@ -123,7 +123,7 @@ class DockerTagTestCase(UITestCase):
             url=DOCKER_REGISTRY_HUB,
         ).create()
         repo.sync()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(organization.name)
             self.assertIsNotNone(
                 self.dockertag.search('latest', pr.name, repo.name))
@@ -153,7 +153,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     product = entities.Product(
@@ -180,7 +180,7 @@ class DockerRepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         product = entities.Product(organization=self.organization).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for _ in range(randint(2, 5)):
                 name = gen_string('utf8')
                 _create_repository(
@@ -205,7 +205,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for _ in range(randint(2, 3)):
                 pr = entities.Product(organization=self.organization).create()
                 for _ in range(randint(2, 3)):
@@ -233,7 +233,7 @@ class DockerRepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.organization).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -258,7 +258,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             name = gen_string('alphanumeric')
             product = entities.Product(
                 organization=self.organization).create()
@@ -288,7 +288,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             repo_name = gen_string('alphanumeric')
             product = entities.Product(organization=self.organization).create()
             _create_repository(
@@ -321,7 +321,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             name = gen_string('alphanumeric')
             new_url = gen_url()
             product = entities.Product(
@@ -353,7 +353,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     product = entities.Product(
@@ -388,7 +388,7 @@ class DockerRepositoryTestCase(UITestCase):
             for _
             in range(randint(2, 5))
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for product in products:
                 repo_name = gen_string('alphanumeric')
                 _create_repository(
@@ -440,7 +440,7 @@ class DockerRepositoryTestCase(UITestCase):
         ).create()
         self.assertEqual(product.sync_plan.id, sync_plan.id)
         repo_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -482,7 +482,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -512,7 +512,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for _ in range(randint(2, 3)):
                 repo_name = gen_string('alphanumeric')
                 _create_repository(
@@ -543,7 +543,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -576,7 +576,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -608,7 +608,7 @@ class DockerContentViewTestCase(UITestCase):
         :CaseLevel: Integration
         """
         cvs = []
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for _ in range(randint(2, 3)):
                 repo_name = gen_string('alphanumeric')
                 _create_repository(
@@ -645,7 +645,7 @@ class DockerContentViewTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in valid_data_list():
                 with self.subTest(repo_name):
                     content_view = entities.ContentView(
@@ -685,7 +685,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -721,7 +721,7 @@ class DockerContentViewTestCase(UITestCase):
         :CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             content_view = entities.ContentView(
                 composite=False,
                 organization=self.organization,
@@ -761,7 +761,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -798,7 +798,7 @@ class DockerContentViewTestCase(UITestCase):
         repo_name = gen_string('utf8')
         lce = entities.LifecycleEnvironment(
             organization=self.organization).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             content_view = entities.ContentView(
                 composite=False,
                 organization=self.organization,
@@ -834,7 +834,7 @@ class DockerContentViewTestCase(UITestCase):
         :CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             content_view = entities.ContentView(
                 composite=False,
                 organization=self.organization,
@@ -881,7 +881,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -923,7 +923,7 @@ class DockerContentViewTestCase(UITestCase):
             composite=False,
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             _create_repository(
                 session,
                 org=self.organization.name,
@@ -992,7 +992,7 @@ class DockerActivationKeyTestCase(UITestCase):
         :CaseLevel: Integration
         """
         ak_name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -1038,7 +1038,7 @@ class DockerActivationKeyTestCase(UITestCase):
         """
         ak_name = gen_string('utf8')
         composite_name = gen_string('utf8')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.navigator.go_to_select_org(self.organization.name)
             self.navigator.go_to_content_views()
             self.content_views.create(composite_name, is_composite=True)
@@ -1102,7 +1102,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for comp_name in valid_data_list():
                 with self.subTest(comp_name):
                     make_resource(
@@ -1132,7 +1132,7 @@ class DockerComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
         comp_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=comp_name,
@@ -1179,7 +1179,7 @@ class DockerComputeResourceTestCase(UITestCase):
                     ).create()
                     for _ in range(randint(2, 5))
                 ]
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     session.nav.go_to_select_org(self.organization.name)
                     for container in containers:
                         result = self.compute_resource.search_container(
@@ -1198,7 +1198,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for comp_name in valid_data_list():
                 with self.subTest(comp_name):
                     make_resource(
@@ -1228,7 +1228,7 @@ class DockerComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
         comp_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=comp_name,
@@ -1259,7 +1259,7 @@ class DockerComputeResourceTestCase(UITestCase):
         :CaseImportance: Critical
         """
         comp_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for url in (settings.docker.external_url,
                         settings.docker.get_unix_socket_url()):
                 with self.subTest(url):
@@ -1345,7 +1345,7 @@ class DockerContainerTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
                 with self.subTest(compute_resource):
                     make_container(
@@ -1369,7 +1369,7 @@ class DockerContainerTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
                 with self.subTest(compute_resource):
                     name = gen_string('alphanumeric')
@@ -1403,7 +1403,7 @@ class DockerContainerTestCase(UITestCase):
         registry = entities.Registry(
             url=settings.docker.external_registry_1).create()
         try:
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(self.organization.name)
                 make_container(
                     session,
@@ -1441,7 +1441,7 @@ class DockerContainerTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
                 with self.subTest(compute_resource):
                     name = gen_string('alphanumeric')
@@ -1479,7 +1479,7 @@ class DockerContainerTestCase(UITestCase):
                 ).create()
                 container.delete()
                 # Check result of delete operation on UI
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     set_context(session, org=self.organization.name)
                     self.assertIsNone(self.container.search(
                         compute_resource.name, container.name))
@@ -1511,7 +1511,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_registry(
@@ -1536,7 +1536,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             name = gen_string('utf8')
             make_registry(
                 session,
@@ -1566,7 +1566,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             name = gen_string('utf8')
             make_registry(
                 session,
@@ -1596,7 +1596,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             name = gen_string('utf8')
             make_registry(
                 session,
@@ -1627,7 +1627,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             name = gen_string('utf8')
             make_registry(
                 session,
@@ -1657,7 +1657,7 @@ class DockerRegistryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_registry(

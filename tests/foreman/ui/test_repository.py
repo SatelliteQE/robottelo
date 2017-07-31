@@ -144,7 +144,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     set_context(session, org=self.session_org.name)
@@ -171,7 +171,7 @@ class RepositoryTestCase(UITestCase):
         org_2 = entities.Organization(name=gen_string('alpha')).create()
         product_1 = entities.Product(organization=self.session_org).create()
         product_2 = entities.Product(organization=org_2).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list(
                     exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
@@ -221,7 +221,7 @@ class RepositoryTestCase(UITestCase):
             content_type=REPO_TYPE['puppet'],
         ).create()
         new_repo.sync()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Check packages number in first repository
             self.products.search_and_click(self.session_prod.name)
             self.assertIsNotNone(self.repository.search(repo.name))
@@ -252,7 +252,7 @@ class RepositoryTestCase(UITestCase):
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list(
                     exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
@@ -305,7 +305,7 @@ class RepositoryTestCase(UITestCase):
             organization=[self.session_org],
         ).create()
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser, user_login, user_password) as session:
+        with Session(self, user_login, user_password) as session:
             # ensure that the created user is not a global admin user
             # check administer->users page
             with self.assertRaises(UINoSuchElementError):
@@ -371,7 +371,7 @@ class RepositoryTestCase(UITestCase):
         content_view.repository = [repo]
         content_view = content_view.update(['repository'])
         content_view.publish()
-        with Session(self.browser, user_login, user_password) as session:
+        with Session(self, user_login, user_password) as session:
             # ensure that the created user is not a global admin user
             # check administer->users page
             with self.assertRaises(UINoSuchElementError):
@@ -405,7 +405,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         for repo_name in invalid_values_list(interface='ui'):
             with self.subTest(repo_name):
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     set_context(session, org=self.session_org.name)
                     self.products.search_and_click(product.name)
                     make_repository(
@@ -430,7 +430,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.session_org.name)
             self.products.search_and_click(product.name)
             make_repository(
@@ -460,7 +460,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list(
                     exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
@@ -504,7 +504,7 @@ class RepositoryTestCase(UITestCase):
             organization=self.session_org,
         ).create()
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.session_org.name)
             self.products.search_and_click(product.name)
             make_repository(
@@ -537,7 +537,7 @@ class RepositoryTestCase(UITestCase):
         checksum_default = CHECKSUM_TYPE['default']
         checksum_update = CHECKSUM_TYPE['sha1']
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.session_org.name)
             self.products.search_and_click(product.name)
             make_repository(
@@ -567,7 +567,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list(
                     exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
@@ -623,7 +623,7 @@ class RepositoryTestCase(UITestCase):
         """
         discovered_urls = 'fakerepo01/'
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
             session.nav.go_to_products()
             self.repository.discover_repo(
@@ -645,7 +645,7 @@ class RepositoryTestCase(UITestCase):
         """
         product_name = gen_string('alpha')
         discovered_urls = 'fakerepo01/'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.session_org.name)
             session.nav.go_to_select_loc(self.session_loc.name)
             session.nav.go_to_products()
@@ -670,7 +670,7 @@ class RepositoryTestCase(UITestCase):
         :CaseLevel: Integration
         """
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list(
                     exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
@@ -702,7 +702,7 @@ class RepositoryTestCase(UITestCase):
         """
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
                     # Creates new puppet repository
@@ -734,7 +734,7 @@ class RepositoryTestCase(UITestCase):
         """
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in valid_repo_names_docker_sync():
                 with self.subTest(repo_name):
                     # Creates new docker repository
@@ -764,7 +764,7 @@ class RepositoryTestCase(UITestCase):
 
         :BZ: 1318004
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             repo = entities.Repository(
                 url=FAKE_1_YUM_REPO,
                 content_type='yum',
@@ -810,7 +810,7 @@ class RepositoryTestCase(UITestCase):
 
         :BZ: 1318004
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             repo = entities.Repository(
                 url=FAKE_1_PUPPET_REPO,
                 content_type='puppet',
@@ -855,7 +855,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         prod = entities.Product(organization=self.session_org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for repo_name in generate_strings_list(
                     exclude_types=['numeric'], bug_id=1467722):
                 with self.subTest(repo_name):
@@ -892,7 +892,7 @@ class RepositoryTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.click(self.products.search(prod.name))
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -926,7 +926,7 @@ class RepositoryTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.click(self.products.search(prod.name))
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -959,7 +959,7 @@ class RepositoryTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.search_and_click(prod.name)
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -986,7 +986,7 @@ class RepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.search_and_click(self.session_prod.name)
             self.repository.navigate_to_entity()
@@ -1009,7 +1009,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for policy in DOWNLOAD_POLICIES.values():
                 with self.subTest(policy):
                     self.products.search_and_click(self.session_prod.name)
@@ -1039,7 +1039,7 @@ class RepositoryTestCase(UITestCase):
         self.assertTrue(default_dl_policy and
                         DOWNLOAD_POLICIES.get(default_dl_policy[0].value))
         default_dl_policy = DOWNLOAD_POLICIES.get(default_dl_policy[0].value)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.search_and_click(self.session_prod.name)
             make_repository(session, name=repo_name, repo_type='yum')
@@ -1074,7 +1074,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
-        with Session(self.browser):
+        with Session(self):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='On Demand')
             self.products.search_and_click(self.session_prod.name)
@@ -1097,7 +1097,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
-        with Session(self.browser):
+        with Session(self):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Background')
             self.products.search_and_click(self.session_prod.name)
@@ -1120,7 +1120,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
-        with Session(self.browser):
+        with Session(self):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Immediate')
             self.products.search_and_click(self.session_prod.name)
@@ -1143,7 +1143,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
-        with Session(self.browser):
+        with Session(self):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Background')
             self.products.search_and_click(self.session_prod.name)
@@ -1166,7 +1166,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
-        with Session(self.browser):
+        with Session(self):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='Immediate')
             self.products.search_and_click(self.session_prod.name)
@@ -1189,7 +1189,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Background')
-        with Session(self.browser):
+        with Session(self):
             self.products.search_and_click(self.session_prod.name)
             self.repository.update(repo_name, download_policy='On Demand')
             self.products.search_and_click(self.session_prod.name)
@@ -1212,7 +1212,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         repo_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.search_and_click(self.session_prod.name)
             invalid = gen_string('alpha', 5)
             msg = "Could not locate element with visible text: %s" % invalid
@@ -1238,7 +1238,7 @@ class RepositoryTestCase(UITestCase):
         """
         repo_name = gen_string('alphanumeric')
         self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
-        with Session(self.browser):
+        with Session(self):
             self.products.search_and_click(self.session_prod.name)
             invalid = gen_string('alpha', 5)
             msg = "Could not locate element with visible text: %s" % invalid
@@ -1272,7 +1272,7 @@ class RepositoryTestCase(UITestCase):
                 repo_type for repo_type in REPO_TYPE.values()
                 if repo_type != 'yum'
             ]
-        with Session(self.browser):
+        with Session(self):
             for content_type in non_yum_repo_types:
                 self.products.search_and_click(self.session_prod.name)
                 with self.subTest(content_type):
@@ -1301,7 +1301,7 @@ class RepositoryTestCase(UITestCase):
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.search_and_click(product.name)
             make_repository(
                 session,
@@ -1342,7 +1342,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.search_and_click(product.name)
             make_repository(
                 session,
@@ -1396,7 +1396,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.search_and_click(product.name)
             make_repository(
                 session,
@@ -1448,7 +1448,7 @@ class RepositoryTestCase(UITestCase):
         """
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.search_and_click(product.name)
             make_repository(
                 session,
@@ -1488,7 +1488,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.search_and_click(product.name)
             make_repository(
                 session,
@@ -1541,7 +1541,7 @@ class RepositoryTestCase(UITestCase):
         product = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         cv_name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.products.search_and_click(product.name)
             make_repository(
                 session,
@@ -1593,7 +1593,7 @@ class RepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             # Create and sync first repo
             repo1 = entities.Repository(
                 product=self.session_prod,
@@ -1642,7 +1642,7 @@ class RepositoryTestCase(UITestCase):
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             # Enable RH repository
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
@@ -1674,7 +1674,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.session_org.name)
             self.products.search_and_click(self.session_prod.name)
             make_repository(session, name=repo_name)
@@ -1730,7 +1730,7 @@ class RepositoryTestCase(UITestCase):
             role=[role],
         ).create()
         repo = entities.Repository(product=self.session_prod).create()
-        with Session(self.browser, user=user.login, password=password):
+        with Session(self, user=user.login, password=password):
             self.products.search_and_click(self.session_prod.name)
             self.assertIsNotNone(self.repository.search(repo.name))
             self.repository.upload_content(
@@ -1779,8 +1779,7 @@ class RepositoryTestCase(UITestCase):
             password=password,
             role=[role],
         ).create()
-        with Session(
-                self.browser, user=user.login, password=password) as session:
+        with Session(self, user=user.login, password=password) as session:
             self.products.search_and_click(self.session_prod.name)
             repo_name = gen_string('alphanumeric')
             make_repository(
@@ -1801,7 +1800,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.session_org.name)
             self.products.search_and_click(self.session_prod.name)
             make_repository(session, name=repo_name)
@@ -1829,7 +1828,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.session_org.name)
             self.products.search_and_click(self.session_prod.name)
             make_repository(
@@ -1867,7 +1866,7 @@ class RepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             set_context(session, org=self.session_org.name)
             self.products.search_and_click(self.session_prod.name)
             make_repository(
@@ -1894,7 +1893,7 @@ class RepositoryTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             repo = entities.Repository(
                 url=FAKE_1_YUM_REPO,
                 content_type='yum',
@@ -1926,7 +1925,7 @@ class RepositoryTestCase(UITestCase):
 
         :expectedresults: Content Counts shows zero puppet modules
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             repo = entities.Repository(
                 url=FAKE_1_PUPPET_REPO,
                 content_type='puppet',

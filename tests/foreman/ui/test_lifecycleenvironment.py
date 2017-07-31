@@ -55,7 +55,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_lifecycle_environment(
@@ -81,7 +81,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         env1_name = gen_string('alpha')
         env2_name = gen_string('alpha')
         description = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session,
                 org=self.organization.name,
@@ -110,7 +110,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session,
                 org=self.organization.name,
@@ -134,7 +134,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session, org=self.organization.name, name=name)
             self.assertIsNotNone(self.lifecycleenvironment.search(name))
@@ -174,7 +174,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
             url=FAKE_0_PUPPET_REPO
         ).create().id
         entities.Repository(id=repo_id).sync()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
             # Create content-view
@@ -229,7 +229,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             env_names = [gen_string('alpha') for _ in range(11)]
             for name, prior in zip(env_names, chain([None], env_names)):
                 make_lifecycle_environment(
@@ -311,14 +311,14 @@ class LifeCycleEnvironmentTestCase(UITestCase):
             password=user_password
         ).create()
         # create a life cycle environment as admin user and ensure it's visible
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
             self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
 
         # ensure the created user also can find the created life cycle
         # environment link
-        with Session(self.browser, user=user_login, password=user_password):
+        with Session(self, user=user_login, password=user_password):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(

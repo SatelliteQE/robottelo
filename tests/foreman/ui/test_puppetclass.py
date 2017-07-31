@@ -40,7 +40,7 @@ class PuppetClassTestCase(UITestCase):
         """
         class_name = 'foreman_scap_client'
         param_name = 'ca_file'
-        with Session(self.browser):
+        with Session(self):
             for description in valid_data_list():
                 with self.subTest(description):
                     # Importing puppet classes from puppet-foreman_scap_client
@@ -67,7 +67,7 @@ class PuppetClassTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser):
+        with Session(self):
             for name in valid_data_list():
                 with self.subTest(name):
                     entities.PuppetClass(name=name).create()

@@ -129,7 +129,7 @@ class SyncPlanTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_syncplan(
@@ -151,7 +151,7 @@ class SyncPlanTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for desc in generate_strings_list():
                 with self.subTest(desc):
                     name = gen_string('utf8')
@@ -174,7 +174,7 @@ class SyncPlanTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for interval in valid_sync_intervals():
                 with self.subTest(interval):
                     name = gen_string('alphanumeric')
@@ -202,7 +202,7 @@ class SyncPlanTestCase(UITestCase):
         """
         plan_name = gen_string('alpha')
         startdate = self.get_client_datetime() + timedelta(minutes=10)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -237,7 +237,7 @@ class SyncPlanTestCase(UITestCase):
         """
         plan_name = gen_string('alpha')
         startdate = self.get_client_datetime() + timedelta(days=10)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -264,7 +264,7 @@ class SyncPlanTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list(interface='ui'):
                 with self.subTest(name):
                     make_syncplan(
@@ -287,7 +287,7 @@ class SyncPlanTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(session, org=self.organization.name, name=name)
             self.assertIsNotNone(self.syncplan.search(name))
             make_syncplan(
@@ -318,7 +318,7 @@ class SyncPlanTestCase(UITestCase):
             interval=SYNC_INTERVAL['day'],
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             for new_plan_name in generate_strings_list():
                 with self.subTest(new_plan_name):
@@ -348,7 +348,7 @@ class SyncPlanTestCase(UITestCase):
             enabled=True,
             sync_date=start_date,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             for new_interval in valid_sync_intervals():
                 with self.subTest(new_interval):
@@ -386,7 +386,7 @@ class SyncPlanTestCase(UITestCase):
             interval=SYNC_INTERVAL['week'],
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.syncplan.update(
                 plan_name, add_products=[product.name])
@@ -415,7 +415,7 @@ class SyncPlanTestCase(UITestCase):
             interval=SYNC_INTERVAL['week'],
             organization=self.organization,
         ).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.syncplan.update(plan_name, add_products=[product.name])
             self.syncplan.click(self.syncplan.search(plan_name))
@@ -443,7 +443,7 @@ class SyncPlanTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for plan_name in generate_strings_list():
                 with self.subTest(plan_name):
                     entities.SyncPlan(
@@ -486,7 +486,7 @@ class SyncPlanTestCase(UITestCase):
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
         startdate = self.get_client_datetime()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -526,7 +526,7 @@ class SyncPlanTestCase(UITestCase):
         repo = entities.Repository(product=product).create()
         startdate = self.get_client_datetime() - timedelta(
                 seconds=(interval - delay/2))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -572,7 +572,7 @@ class SyncPlanTestCase(UITestCase):
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
         startdate = self.get_client_datetime() + timedelta(seconds=delay)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -631,7 +631,7 @@ class SyncPlanTestCase(UITestCase):
             for _ in range(randint(2, 3))
         ]
         startdate = self.get_client_datetime() + timedelta(seconds=delay)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -707,7 +707,7 @@ class SyncPlanTestCase(UITestCase):
         repo = entities.Repository(id=repo_id).read()
         startdate = self.get_client_datetime() - timedelta(
                 seconds=(interval - delay/2))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=org.name,
@@ -767,7 +767,7 @@ class SyncPlanTestCase(UITestCase):
         )
         repo = entities.Repository(id=repo_id).read()
         startdate = self.get_client_datetime() + timedelta(seconds=delay)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=org.name,
@@ -816,7 +816,7 @@ class SyncPlanTestCase(UITestCase):
         repo = entities.Repository(product=product).create()
         startdate = self.get_client_datetime() - timedelta(days=1)\
             + timedelta(seconds=delay/2)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -867,7 +867,7 @@ class SyncPlanTestCase(UITestCase):
         repo = entities.Repository(product=product).create()
         startdate = self.get_client_datetime() - timedelta(weeks=1)\
             + timedelta(seconds=delay/2)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,

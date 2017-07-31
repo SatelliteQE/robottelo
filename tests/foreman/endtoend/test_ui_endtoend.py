@@ -80,7 +80,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         :expectedresults: 'Default Organization' is found
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.assertEqual(
                 session.nav.go_to_select_org(DEFAULT_ORG),
                 DEFAULT_ORG
@@ -93,7 +93,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         :expectedresults: 'Default Location' is found
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.assertEqual(
                 session.nav.go_to_select_loc(DEFAULT_LOC),
                 DEFAULT_LOC
@@ -106,7 +106,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
         :expectedresults: Admin User is found and has Admin role
         """
-        with Session(self.browser):
+        with Session(self):
             self.assertTrue(self.user.user_admin_role_toggle('admin'))
 
     @skip_if_not_set('compute_resources')
@@ -158,7 +158,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         yum_repository_name = gen_string('alpha')
 
         # step 1: Create a new user with admin permissions
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_user(
                 session,
                 admin=True,
@@ -169,7 +169,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             self.assertIsNotNone(self.user.search(username))
             self.assertTrue(self.user.user_admin_role_toggle(username))
 
-        with Session(self.browser, username, password) as session:
+        with Session(self, username, password) as session:
             # step 2.1: Create a new organization
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
@@ -345,7 +345,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         if settings.rhel6_repo is None:
             self.skipTest('Missing configuration for rhel6_repo')
         rhel6_repo = settings.rhel6_repo
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create New organization
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))

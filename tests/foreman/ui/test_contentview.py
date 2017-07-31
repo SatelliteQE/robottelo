@@ -154,7 +154,7 @@ class ContentViewTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_contentview(
@@ -177,7 +177,7 @@ class ContentViewTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # invalid_names_list is used instead of invalid_values_list
             # because save button will not be enabled if name is blank
             for name in invalid_names_list():
@@ -213,7 +213,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create Life-cycle environment
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
@@ -253,7 +253,7 @@ class ContentViewTestCase(UITestCase):
         """
         ccv_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Creates a composite CV along with product and sync'ed repository
             make_contentview(
                 session,
@@ -307,7 +307,7 @@ class ContentViewTestCase(UITestCase):
         repo_url = FAKE_0_PUPPET_REPO
         cv_name = gen_string('alpha')
         puppet_module = 'httpd'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(
                 repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
             # Create content-view
@@ -334,7 +334,7 @@ class ContentViewTestCase(UITestCase):
         """
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_contentview(
                 session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -363,7 +363,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -401,7 +401,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         package1_name = 'cow'
         package2_name = 'bear'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -460,7 +460,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         package1_name = 'cow'
         package2_name = 'bear'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -519,7 +519,7 @@ class ContentViewTestCase(UITestCase):
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         package_name = 'cow'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -589,7 +589,7 @@ class ContentViewTestCase(UITestCase):
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         package_name = 'walrus'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -676,7 +676,7 @@ class ContentViewTestCase(UITestCase):
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         package_name = 'walrus'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -777,7 +777,7 @@ class ContentViewTestCase(UITestCase):
             start_date=start_date,
         ).create()
         self.assertEqual(set(cvfr.types), set(FILTER_ERRATA_TYPE.values()))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             result = self.content_views.fetch_erratum_date_range_filter_values(
                 content_view.name, cvf.name)
@@ -806,7 +806,7 @@ class ContentViewTestCase(UITestCase):
         repo2_name = gen_string('alpha')
         repo1_package_name = 'walrus'
         repo2_package_name = 'Walrus'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo1_name)
             self.setup_to_create_cv(
                 repo_name=repo2_name, repo_url=FAKE_3_YUM_REPO)
@@ -880,7 +880,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         package_name = 'walrus'
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -931,7 +931,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -966,7 +966,7 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -996,7 +996,7 @@ class ContentViewTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_contentview(
                 session,
                 org=self.organization.name,
@@ -1022,7 +1022,7 @@ class ContentViewTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_contentview(
                 session, org=self.organization.name, name=name)
             self.assertIsNotNone(self.content_views.search(name))
@@ -1049,7 +1049,7 @@ class ContentViewTestCase(UITestCase):
         """
         name = gen_string('alpha', 8)
         desc = gen_string('alpha', 15)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_contentview(
                 session,
                 org=self.organization.name,
@@ -1094,7 +1094,7 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content view
             make_contentview(session, org=org.name, name=cv_name)
@@ -1137,7 +1137,7 @@ class ContentViewTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_contentview(
@@ -1181,7 +1181,7 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name2)
@@ -1202,7 +1202,7 @@ class ContentViewTestCase(UITestCase):
         # Workaround to fetch added puppet module name:
         # UI doesn't refresh and populate the added module name
         # until we logout and navigate again to puppet-module tab
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             module = self.content_views.fetch_puppet_module(
                 cv_name1, puppet_module)
@@ -1240,7 +1240,7 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
@@ -1283,7 +1283,7 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content view
             make_contentview(session, org=org.name, name=cv_name)
@@ -1333,7 +1333,7 @@ class ContentViewTestCase(UITestCase):
         """
         cv_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -1357,7 +1357,7 @@ class ContentViewTestCase(UITestCase):
         :CaseLevel: Integration
         """
         composite_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_contentview(
                 session,
                 org=self.organization.name,
@@ -1387,7 +1387,7 @@ class ContentViewTestCase(UITestCase):
         """
         cv1_name = gen_string('alpha')
         cv2_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_contentview(
                 session, org=self.organization.name, name=cv1_name)
             self.assertIsNotNone(self.content_views.search(cv1_name))
@@ -1424,7 +1424,7 @@ class ContentViewTestCase(UITestCase):
         """
         unpublished_cv_name = gen_string('alpha')
         composite_cv_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create unpublished component CV
             make_contentview(
                 session, org=self.organization.name, name=unpublished_cv_name)
@@ -1461,7 +1461,7 @@ class ContentViewTestCase(UITestCase):
         """
         non_composite_cv = gen_string('alpha')
         composite_cv = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create unpublished component CV
             make_contentview(
                 session,
@@ -1529,7 +1529,7 @@ class ContentViewTestCase(UITestCase):
         published_cv_name = gen_string('alpha')
         unpublished_cv_name = gen_string('alpha')
         composite_cv_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create published component CV
             make_contentview(
                 session, org=self.organization.name, name=published_cv_name)
@@ -1573,7 +1573,7 @@ class ContentViewTestCase(UITestCase):
         """
         cv_name = gen_string('alpha')
         repo_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -1610,7 +1610,7 @@ class ContentViewTestCase(UITestCase):
             product=product
         ).create()
         puppet_repository.sync()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -1662,7 +1662,7 @@ class ContentViewTestCase(UITestCase):
         env_name = gen_string('alpha')
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
             self.assertIsNotNone(session.nav.wait_until_element(
@@ -1709,7 +1709,7 @@ class ContentViewTestCase(UITestCase):
         env_name = gen_string('alpha')
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
             self.assertIsNotNone(session.nav.wait_until_element(
@@ -1764,7 +1764,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
             self.assertIsNotNone(
@@ -1827,7 +1827,7 @@ class ContentViewTestCase(UITestCase):
             'releasever': None,
         }
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a life cycle environment
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
@@ -1926,7 +1926,7 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
@@ -1966,7 +1966,7 @@ class ContentViewTestCase(UITestCase):
         env_name = gen_string('alpha')
         # Create new org to import manifest
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a lifecycle environment
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
@@ -2021,7 +2021,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
             self.assertIsNotNone(session.nav.wait_until_element(
@@ -2077,7 +2077,7 @@ class ContentViewTestCase(UITestCase):
             'releasever': None,
         }
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a life cycle environment
             make_lifecycle_environment(
                 session, org=org.name, name=env_name)
@@ -2179,7 +2179,7 @@ class ContentViewTestCase(UITestCase):
         env_name = gen_string('alpha')
         # will promote environment to 3 versions
         versions_count = 3
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create environment lifecycle
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
@@ -2252,7 +2252,7 @@ class ContentViewTestCase(UITestCase):
         env_name = gen_string('alpha')
         # will promote environment to 3 versions
         versions_count = 3
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create environment lifecycle
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
@@ -2328,7 +2328,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         cv_name = gen_string('alpha')
         copy_cv_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
@@ -2373,7 +2373,7 @@ class ContentViewTestCase(UITestCase):
         env_name = gen_string('alpha')
         copy_cv_name = gen_string('alpha')
         copy_env_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a repository
             self.setup_to_create_cv(repo_name=repo_name)
             # create a lifecycle environment
@@ -2456,7 +2456,7 @@ class ContentViewTestCase(UITestCase):
         env = entities.LifecycleEnvironment(organization=org).create()
         # create a repository
         self.setup_to_create_cv(org_id=org.id, rh_repo=rh_repo)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create content view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -2546,7 +2546,7 @@ class ContentViewTestCase(UITestCase):
         # create a yum repository
         self.setup_to_create_cv(
             org_id=org.id, repo_name=repo_name, repo_url=repo_url)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create content view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -2609,7 +2609,7 @@ class ContentViewTestCase(UITestCase):
             repo_name=repo_name,
             repo_type=REPO_TYPE['puppet']
         )
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create content view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -2762,7 +2762,7 @@ class ContentViewTestCase(UITestCase):
             password=user_password
         ).create()
         # create a content view with the main admin account
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a lifecycle environment
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
@@ -2778,7 +2778,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.copy_view(cv_name, cv_copy_name)
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
         # login as the user created above
-        with Session(self.browser, user_login, user_password):
+        with Session(self, user_login, user_password):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
@@ -2960,7 +2960,7 @@ class ContentViewTestCase(UITestCase):
             password=user_password
         ).create()
         # create a content view with the main admin account
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a repository
             self.setup_to_create_cv(repo_name=repo_name)
             # create the first content view
@@ -2970,7 +2970,7 @@ class ContentViewTestCase(UITestCase):
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
-        with Session(self.browser, user_login, user_password):
+        with Session(self, user_login, user_password):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
@@ -3104,7 +3104,7 @@ class ContentViewTestCase(UITestCase):
             repository=[docker_repo, yum_repo],
         ).create()
         # Log in as readonly user
-        with Session(self.browser, user_login, user_password):
+        with Session(self, user_login, user_password):
             # Open the content view
             cv = self.content_views.search(content_view.name)
             self.assertIsNotNone(cv)
@@ -3204,7 +3204,7 @@ class ContentViewTestCase(UITestCase):
             password=user_password
         ).create()
         # create a content views with the main admin account
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a lifecycle environment
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
@@ -3217,7 +3217,7 @@ class ContentViewTestCase(UITestCase):
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
-        with Session(self.browser, user_login, user_password):
+        with Session(self, user_login, user_password):
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
@@ -3248,7 +3248,7 @@ class ContentViewTestCase(UITestCase):
                 context.exception.message
             )
         # publish the content view with the main admin account
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # select the current organisation
             session.nav.go_to_select_org(self.organization.name)
             version = self.content_views.publish(cv_name)
@@ -3257,7 +3257,7 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
         # login as the user created above and try to promote the content view
-        with Session(self.browser, user_login, user_password):
+        with Session(self, user_login, user_password):
             with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.promote(
                     cv_name, version, env_name)
@@ -3333,7 +3333,7 @@ class ContentViewTestCase(UITestCase):
             password=user_password
         ).create()
         # login as the user created above
-        with Session(self.browser, user_login, user_password) as session:
+        with Session(self, user_login, user_password) as session:
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
@@ -3400,7 +3400,7 @@ class ContentViewTestCase(UITestCase):
         # API returns version like '1.0'
         # WebUI displays version like 'Version 1.0'
         version = 'Version {0}'.format(cvv[0].read().version)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -3431,7 +3431,7 @@ class ContentViewTestCase(UITestCase):
         version = 'Version {0}'.format(cvv.version)
         lc_env = entities.LifecycleEnvironment(organization=org).create()
         cvv.promote(data={u'environment_id': lc_env.id})
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -3464,7 +3464,7 @@ class ContentViewTestCase(UITestCase):
             content_view=cv,
         ).create()
 
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             session.nav.go_to_content_views()
             self.content_views.validate_version_cannot_be_deleted(
@@ -3516,7 +3516,7 @@ class ContentViewTestCase(UITestCase):
         # API returns version like '1.0'
         # WebUI displays version like 'Version 1.0'
         version = 'Version {0}'.format(cvv.version)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.delete_version(composite_cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -3544,7 +3544,7 @@ class ContentViewTestCase(UITestCase):
             cv.publish()
             cvv = cv.read().version[i].read()
             cvv_names.append('Version {0}'.format(cvv.version))
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             cvv_delete = cvv_names.pop(0)
             self.content_views.delete_version(cv.name, cvv_delete)
@@ -3576,7 +3576,7 @@ class ContentViewTestCase(UITestCase):
             repo_type=REPO_TYPE['ostree'],
             repo_unprotected=False
         )
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -3616,7 +3616,7 @@ class ContentViewTestCase(UITestCase):
         # Create new org to import manifest
         org = entities.Organization().create()
         self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -3653,7 +3653,7 @@ class ContentViewTestCase(UITestCase):
             repo_type=REPO_TYPE['ostree'],
             repo_unprotected=False
         )
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -3704,7 +3704,7 @@ class ContentViewTestCase(UITestCase):
         # Create new org to import manifest
         org = entities.Organization().create()
         self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -3769,7 +3769,7 @@ class ContentViewTestCase(UITestCase):
             product=prod,
         ).create()
         puppet_repo.sync()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -3800,7 +3800,7 @@ class ContentViewTestCase(UITestCase):
         # Workaround to fetch added puppet module name:
         # UI doesn't refresh and populate the added module name
         # until we logout and navigate again to puppet-module tab
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             module = self.content_views.fetch_puppet_module(
                 cv_name, puppet_module)
@@ -3856,7 +3856,7 @@ class ContentViewTestCase(UITestCase):
             # Sync repository
             entities.Repository(id=repo_id).sync()
             entity_mixins.TASK_TIMEOUT = old_task_timeout
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -3906,7 +3906,7 @@ class ContentViewTestCase(UITestCase):
         ostree_repo.sync()
         entity_mixins.TASK_TIMEOUT = old_task_timeout
         cv = entities.ContentView(organization=self.organization).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             # Add repository to selected CV
             self.content_views.add_remove_repos(
@@ -3954,7 +3954,7 @@ class ContentViewTestCase(UITestCase):
         cv = cv.read()
         cv_info = cv.version[0].read()
         version = 'Version {0}'.format(cv_info.version)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -3990,7 +3990,7 @@ class ContentViewTestCase(UITestCase):
         ostree_repo.sync()
         entity_mixins.TASK_TIMEOUT = old_task_timeout
         cv = entities.ContentView(organization=self.organization).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             # Add repository to selected CV
             self.content_views.add_remove_repos(
@@ -4045,7 +4045,7 @@ class ContentViewTestCase(UITestCase):
         lc_env = entities.LifecycleEnvironment(organization=org).create()
         promote(cv.version[0], lc_env.id)
 
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -4096,7 +4096,7 @@ class ContentViewTestCase(UITestCase):
         cv = entities.ContentView(organization=self.organization).create()
         cv.repository = [ostree_repo, yum_repo]
         cv = cv.update(['repository'])
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.content_views.add_puppet_module(
                 cv.name,
@@ -4106,7 +4106,7 @@ class ContentViewTestCase(UITestCase):
         # Workaround to fetch added puppet module name:
         # UI doesn't refresh and populate the added module name
         # until we logout and navigate again to puppet-module tab
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             module = self.content_views.fetch_puppet_module(
                 cv.name, puppet_module)
@@ -4188,7 +4188,7 @@ class ContentViewTestCase(UITestCase):
         cv = cv.read()
         cv_info = cv.version[0].read()
         version = 'Version {0}'.format(cv_info.version)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -4218,7 +4218,7 @@ class ContentViewTestCase(UITestCase):
         org = entities.Organization().create()
         self.setup_to_create_cv(rh_repo=rh_ah_repo, org_id=org.id)
         cv = entities.ContentView(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             # Add repository to selected CV
             self.content_views.add_remove_repos(
@@ -4263,7 +4263,7 @@ class ContentViewTestCase(UITestCase):
         cv = cv.read()
         cv_info = cv.version[0].read()
         version = 'Version {0}'.format(cv_info.version)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -4303,7 +4303,7 @@ class ContentViewTestCase(UITestCase):
         cv = cv.read()
         cv_info = cv.version[0].read()
         version = 'Version {0}'.format(cv_info.version)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.promote(cv.name, version, lc_env.name)
             self.assertIsNotNone(
@@ -4344,7 +4344,7 @@ class ContentViewTestCase(UITestCase):
         cv_info = cv.version[0].read()
         version = 'Version {0}'.format(cv_info.version)
         promote(cv.version[0], lc_env.id)
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             self.content_views.delete_version(cv.name, version)
             self.content_views.check_progress_bar_status(version)
@@ -4403,7 +4403,7 @@ class ContentViewTestCase(UITestCase):
             entity_mixins.TASK_TIMEOUT = old_task_timeout
 
         cv = entities.ContentView(organization=org).create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_select_org(org.name)
             # Add ostree repository to selected CV
             self.content_views.add_remove_repos(
@@ -4452,7 +4452,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
-        with Session(self.browser, username, user_password) as session:
+        with Session(self, username, user_password) as session:
             # Create Life-cycle environment
             make_lifecycle_environment(session, name=env_name)
             # Creates a CV along with product and sync'ed repository
@@ -4495,7 +4495,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a yum repository
             self.setup_to_create_cv(
                 repo_name=repo_name,
@@ -4548,7 +4548,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create a yum repository
             self.setup_to_create_cv(
                 repo_name=repo_name,
@@ -4612,7 +4612,7 @@ class ContentViewTestCase(UITestCase):
         puppet_module_name = FAKE_0_PUPPET_MODULE
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create the DEV lifecycle environment
             make_lifecycle_environment(
                 session, org=org.name, name=env_dev_name)
@@ -4695,7 +4695,7 @@ class ContentViewTestCase(UITestCase):
         docker_upstream_name = DOCKER_UPSTREAM_NAME
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create the DEV, QE lifecycle environments
             env_prior = None
             for env_name in [env_dev_name, env_qe_name]:
@@ -4788,7 +4788,7 @@ class ContentViewTestCase(UITestCase):
         ]
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create the DEV, QE, PROD lifecycle environments
             env_prior = None
             for env_name in env_names:
@@ -4891,7 +4891,7 @@ class ContentViewTestCase(UITestCase):
         ]
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create the DEV, QE, STAGE, PROD lifecycle environments
             env_prior = None
             for env_name in env_names:
@@ -4996,7 +4996,7 @@ class ContentViewTestCase(UITestCase):
         ]
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create the DEV, QE, STAGE, PROD lifecycle environments
             env_prior = None
             for env_name in env_names:
@@ -5096,7 +5096,7 @@ class ContentViewTestCase(UITestCase):
         ]
         # create a new organization
         org = entities.Organization().create()
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # create the DEV, QE, STAGE, PROD lifecycle environments
             env_prior = None
             for env_name in env_names:

@@ -159,7 +159,7 @@ class ErrataTestCase(UITestCase):
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
         })
-        with Session(self.browser) as session:
+        with Session(self) as session:
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
             self.assertIsNone(self.errata.search(FAKE_3_ERRATA_ID))
@@ -205,7 +205,7 @@ class ErrataTestCase(UITestCase):
             role=[role],
             password=user_password,
         ).create()
-        with Session(self.browser, user.login, user_password) as session:
+        with Session(self, user.login, user_password) as session:
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
             self.assertIsNotNone(self.errata.search(REAL_0_ERRATA_ID))
@@ -239,7 +239,7 @@ class ErrataTestCase(UITestCase):
             client.enable_repo(REPOS['rhst7']['id'])
             client.install_katello_agent()
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-            with Session(self.browser):
+            with Session(self):
                 result = self.errata.install(
                     CUSTOM_REPO_ERRATA_ID, client.hostname)
                 self.assertEqual(result, 'success')
@@ -278,7 +278,7 @@ class ErrataTestCase(UITestCase):
                 client.install_katello_agent()
                 client.run(
                     'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-            with Session(self.browser):
+            with Session(self):
                 result = self.errata.install(
                     CUSTOM_REPO_ERRATA_ID,
                     [client.hostname for client in clients],
@@ -304,7 +304,7 @@ class ErrataTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             self.errata.validate_table_fields(
                 REAL_0_ERRATA_ID,
                 only_applicable=False,
@@ -327,7 +327,7 @@ class ErrataTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             self.errata.check_errata_details(
                 REAL_0_ERRATA_ID,
                 TOOLS_ERRATA_DETAILS,
@@ -353,7 +353,7 @@ class ErrataTestCase(UITestCase):
             id=self.custom_entitites['product-id']).read()
         repo = entities.Repository(
             id=self.custom_entitites['repository-id']).read()
-        with Session(self.browser):
+        with Session(self):
             self.assertIsNotNone(
                 self.errata.repository_search(
                     CUSTOM_REPO_ERRATA_ID,
@@ -394,7 +394,7 @@ class ErrataTestCase(UITestCase):
             entities.Repository(id=repo_with_cves_id).sync()['result'],
             'success'
         )
-        with Session(self.browser):
+        with Session(self):
             self.errata.check_errata_details(
                 real_errata_id,
                 [['CVEs', real_errata_cves]],
@@ -457,7 +457,7 @@ class ErrataTestCase(UITestCase):
                 'lifecycle-environment-id': new_env.id,
                 'organization-id': self.session_org.id,
             })
-            with Session(self.browser):
+            with Session(self):
                 self.assertIsNotNone(
                     self.errata.contenthost_search(
                         CUSTOM_REPO_ERRATA_ID,
@@ -502,7 +502,7 @@ class ErrataTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        with Session(self.browser):
+        with Session(self):
             self.assertIsNotNone(
                 self.errata.auto_complete_search(
                     CUSTOM_REPO_ERRATA_ID, only_applicable=False)
@@ -590,7 +590,7 @@ class ErrataTestCase(UITestCase):
                     'lifecycle-environment-id': new_env.id,
                     'organization-id': self.session_org.id,
                 })
-                with Session(self.browser):
+                with Session(self):
                     self.assertIsNotNone(
                         self.contenthost.errata_search(
                             client.hostname,
@@ -629,7 +629,7 @@ class ErrataTestCase(UITestCase):
             client.install_katello_agent()
             client.run(
                 'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
-            with Session(self.browser):
+            with Session(self):
                 self.assertIsNotNone(
                     self.contenthost.errata_search(
                         client.hostname,
@@ -723,7 +723,7 @@ class ErrataTestCase(UITestCase):
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(org.name)
                 result = self.contenthost.fetch_errata_counts(client.hostname)
                 for errata in ('security', 'bug_fix', 'enhancement'):
@@ -824,7 +824,7 @@ class ErrataTestCase(UITestCase):
             client.enable_repo(REPOS['rhst6']['id'])
             client.enable_repo(REPOS['rhva6']['id'])
             client.install_katello_agent()
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 session.nav.go_to_select_org(org.name)
                 result = self.contenthost.fetch_errata_counts(
                     client.hostname, details_page=True)
@@ -971,7 +971,7 @@ class FilteredErrataTestCase(UITestCase):
             self.assertGreater(len(cvvs), 1)
             for i in range(len(cvvs)-1):
                 ContentView.version_delete({u'id': cvvs[i]['id']})
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 edit_param(
                     session,
                     tab_locator=tab_locators['settings.tab_katello'],

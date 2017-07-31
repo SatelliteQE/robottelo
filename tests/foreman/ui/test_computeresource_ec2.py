@@ -79,7 +79,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
             ['Region', self.aws_region, 'special select']
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
                 make_resource(
                     session,
                     name=name,
@@ -216,7 +216,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
             ['Region', self.aws_region, 'special select']
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -305,7 +305,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
             ['Region', self.aws_region, 'special select']
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -346,7 +346,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
             ['Region', self.aws_region, 'special select']
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,

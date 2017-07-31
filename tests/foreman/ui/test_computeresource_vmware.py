@@ -76,7 +76,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Password', self.vmware_password, 'field'],
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in valid_data_list():
                 with self.subTest(name):
                     make_resource(
@@ -115,7 +115,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for description in valid_data_list():
                 with self.subTest(description):
                     make_resource(
@@ -153,7 +153,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Password', self.vmware_password, 'field'],
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_names_list():
                 with self.subTest(name):
                     make_resource(
@@ -198,7 +198,7 @@ class VmwareComputeResourceTestCase(UITestCase):
         ]
         newname = gen_string('alpha')
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             with self.subTest(newname):
                 make_resource(
                     session,
@@ -240,7 +240,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -285,7 +285,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             with self.subTest(name):
                 make_resource(
                     session,
@@ -328,7 +328,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for img_name in valid_data_list():
                 with self.subTest(name):
                     make_resource(
@@ -383,7 +383,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for img_name in invalid_names_list():
                 with self.subTest(name):
                     make_resource(
@@ -436,7 +436,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -498,7 +498,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,
@@ -664,7 +664,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         cr_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=cr_name,

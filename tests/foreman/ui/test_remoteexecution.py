@@ -74,7 +74,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_job_template(
@@ -105,7 +105,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
                     make_job_template(
@@ -141,7 +141,7 @@ class JobsTemplateTestCase(UITestCase):
         """
         name = gen_string('alpha')
         var_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_job_template(
                 session,
                 name=name,
@@ -173,7 +173,7 @@ class JobsTemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             for name in invalid_values_list('ui'):
                 with self.subTest(name):
                     make_job_template(
@@ -202,7 +202,7 @@ class JobsTemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_job_template(
                 session,
                 name=name,
@@ -238,7 +238,7 @@ class JobsTemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_job_template(
                 session,
                 name=name,
@@ -269,7 +269,7 @@ class JobsTemplateTestCase(UITestCase):
         """
         name = gen_string('alpha')
         clone_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_job_template(
                 session,
                 name=name,
@@ -302,7 +302,7 @@ class JobsTemplateTestCase(UITestCase):
         name = gen_string('alpha')
         old_template = gen_string('alpha')
         new_template = gen_string('alphanumeric')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_job_template(
                 session,
                 name=name,
@@ -337,7 +337,7 @@ class JobsTemplateTestCase(UITestCase):
         """
         name = gen_string('alpha')
         var_name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_job_template(
                 session,
                 name=name,
@@ -379,7 +379,7 @@ class JobsTemplateTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_job_template(
                 session,
                 name=name,
@@ -477,7 +477,7 @@ class RemoteExecutionTestCase(UITestCase):
                 u'name': client.hostname,
                 u'subnet-id': self.new_sub['id'],
             })
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=self.organization.name)
                 self.hosts.click(self.hosts.search(client.hostname))
                 status = self.job.run(
@@ -528,7 +528,7 @@ class RemoteExecutionTestCase(UITestCase):
                 u'name': client.hostname,
                 u'subnet-id': self.new_sub['id'],
             })
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=self.organization.name)
                 make_job_template(
                     session,
@@ -596,7 +596,7 @@ class RemoteExecutionTestCase(UITestCase):
                         u'name': vm.hostname,
                         u'subnet-id': self.new_sub['id'],
                     })
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     set_context(session, org=self.organization.name)
                     self.hosts.update_host_bulkactions(
                         [client.hostname, client2.hostname],
@@ -652,7 +652,7 @@ class RemoteExecutionTestCase(UITestCase):
                 u'name': client.hostname,
                 u'subnet-id': self.new_sub['id'],
             })
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=self.organization.name)
                 self.hosts.click(self.hosts.search(client.hostname))
                 plan_time = (

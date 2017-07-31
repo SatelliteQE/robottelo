@@ -87,7 +87,7 @@ class RHAITestCase(UITestCase):
                 vm.configure_rhai_client(self.ak_name, self.org_label,
                                          DISTRO_RHEL6)
 
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     # view clients registered to Red Hat Access Insights
                     session.nav.go_to_select_org(self.org_name)
                     Navigator(self.browser).go_to_insights_systems()
@@ -109,7 +109,7 @@ class RHAITestCase(UITestCase):
             displayed if the user tries to view Access Insights overview
             without selecting an org
         """
-        with Session(self.browser) as session:
+        with Session(self) as session:
             # Given that the user does not specify any Organization
             session.nav.go_to_select_org("Any Organization")
             session.nav.go_to_insights_overview()
@@ -136,7 +136,7 @@ class RHAITestCase(UITestCase):
                 vm.configure_rhai_client(self.ak_name, self.org_label,
                                          DISTRO_RHEL7)
 
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     session.nav.go_to_select_org(self.org_name)
                     Navigator(self.browser).go_to_insights_systems()
                     # Click on the unregister icon 'X' in the table against the
