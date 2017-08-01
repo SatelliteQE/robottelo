@@ -183,6 +183,11 @@
 
 .. automodule:: tests.foreman.api.test_role
 
+:mod:`tests.foreman.api.test_setting`
+----------------------------------
+
+.. automodule:: tests.foreman.api.test_setting
+
 :mod:`tests.foreman.api.test_smartproxy`
 ----------------------------------------
 
