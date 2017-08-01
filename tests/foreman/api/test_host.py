@@ -1275,6 +1275,64 @@ class HostTestCase(APITestCase):
             host.read().operatingsystem.read().name, new_os.name)
 
     @run_only_on('sat')
+    @tier2
+    @stubbed
+    def test_positive_add_future_subscription(self):
+        """Attempt to add a future-dated subscription to a content host.
+
+        :id: 603bb8eb-3435-4259-a036-400f2767de66
+
+        :steps:
+
+            1. Import a manifest with a future-dated subscription
+            2. Add the subscription to the content host
+
+        :expectedresults: The future-dated subscription was added to the host
+
+        :CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
+    @tier2
+    @stubbed
+    def test_positive_add_future_subscription_with_ak(self):
+        """Register a content host with an activation key that has a
+        future-dated subscription.
+
+        :id: f5286a44-0891-4605-8a6f-787f4754b3c0
+
+        :steps:
+
+            1. Import a manifest with a future-dated subscription
+            2. Add the subscription to an activation key
+            3. Register a new content host with the activation key
+
+        :expectedresults: The host was registered and future subscription added
+
+        :CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
+    @tier2
+    @stubbed
+    def test_negative_auto_attach_future_subscription(self):
+        """Run auto-attach on a content host, with a current and future-dated
+        subscription.
+
+        :id: f4a6feec-baf8-40c6-acb3-474b34419a62
+
+        :steps:
+
+            1. Import a manifest with a future-dated and current subscription
+            2. Register a content host to the organization
+            3. Run auto-attach on the content host
+
+        :expectedresults: Only the current subscription was added to the host
+
+        :CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
     @stubbed
     @tier3
     def test_positive_create_baremetal_with_bios(self):

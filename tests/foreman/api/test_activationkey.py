@@ -29,6 +29,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
+    stubbed,
     tier1,
     tier2,
 )
@@ -514,6 +515,24 @@ class ActivationKeyTestCase(APITestCase):
             {custom_repo.product.id, rh_repo.product.id},
             {subscr['product']['id'] for subscr in ak_subscriptions}
         )
+
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    @stubbed
+    def test_positive_add_future_subscriptiont(self):
+        """Add a future-dated subscription to an activation key.
+
+        :id: ee5debc7-f901-45ab-b55c-04d1a208c3e6
+
+        :steps:
+
+            1. Import a manifest that contains a future-dated subscription
+            2. Add the subscription to the activation key
+
+        :expectedresults: The future-dated sub is successfully added to the key
+
+        :CaseLevel: Integration
+        """
 
 
 class ActivationKeySearchTestCase(APITestCase):

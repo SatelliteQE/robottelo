@@ -24,6 +24,7 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.decorators import (
     run_in_one_thread,
     skip_if_not_set,
+    stubbed,
     tier1,
     tier2,
 )
@@ -132,6 +133,26 @@ class SubscriptionTestCase(UITestCase):
                     self.assertIn(line, actual_message)
             finally:
                 self.subscriptions.click(common_locators['cancel'])
+
+    @stubbed()
+    @tier1
+    def test_positive_view_future_dated(self):
+        """Upload manifest with future-dated subscription and verify that it is
+        visible, noted to be future, and the start date is in the future.
+
+        :id: 2a35175f-a4d3-48da-96f1-da78d94b206d
+
+        :steps:
+
+            1. Import a manifest with a future-dated subscription
+            2. Navigate to the subscriptions page
+
+        :expectedresults: Future-dated subscription is shown, there is an
+            indication it is future, and the start time is in the future.
+
+        :CaseImportance: Critical
+        """
+        pass
 
     @tier2
     def test_positive_access_with_non_admin_user_without_manifest(self):
