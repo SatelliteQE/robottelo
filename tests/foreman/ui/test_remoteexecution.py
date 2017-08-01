@@ -399,6 +399,47 @@ class JobsTemplateTestCase(UITestCase):
             self.assertIsNotNone(self.jobtemplate.wait_until_element(
                 common_locators['alert.error']))
 
+    @tier1
+    def test_positive_preview_job_template_with_foreman_url(self):
+        """Create a simple Job Template that contains foreman url variable in
+        its body
+
+        :id: 46f93efd-1508-41b6-af34-e9d7f658925b
+
+        :Steps:
+
+            1. Navigate to Hosts -> Job Templates
+            2. Enter a valid name
+            3. Populate the template code
+            4. Navigate to the job tab
+            5. Enter a job name
+            6. Click submit
+            7. Open created template and select "preview" within the template
+                viewer
+
+        :expectedresults: The job template content can be previewed without
+            errors
+
+        :BZ: 1374344
+
+        :CaseImportance: Critical
+        """
+        template_name = gen_string('alpha')
+        with Session(self) as session:
+            make_job_template(
+                session,
+                name=template_name,
+                template_type='input',
+                template_content='<%= foreman_url("built") %>',
+            )
+            self.jobtemplate.click(self.jobtemplate.search(template_name))
+            self.jobtemplate.click(common_locators['ace.preview'])
+            self.assertIn(
+                settings.server.hostname,
+                self.jobtemplate.wait_until_element(
+                    locators['job.template_input']).text
+            )
+
 
 class RemoteExecutionTestCase(UITestCase):
     """Test class for remote execution feature"""
