@@ -22,7 +22,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import bz_bug_is_open, stubbed, tier1, tier2
+from robottelo.decorators import bz_bug_is_open, stubbed, tier1, tier2, tier3
 from robottelo.test import APITestCase
 
 
@@ -90,7 +90,7 @@ class RoleTestCase(APITestCase):
 
 
 class CannedRoleTestCases(APITestCase):
-    """Implements Canned Roles tests from UI"""
+    """Implements Canned Roles tests from API"""
 
     @stubbed
     @tier1
@@ -154,11 +154,14 @@ class CannedRoleTestCases(APITestCase):
 
         :id: f891e2e1-76f8-4edf-8c96-b41d05483298
 
-        :steps: Create a filter to which taxonomies cannot be associated.  e.g
-            Architecture filter
+        :steps: Create a filter to which taxonomies cannot be associated.
+            e.g Architecture filter
 
-        :expectedresults: 1. Filter is created without taxonomies. 2. Override
-            check is set to false 3. Filter doesnt inherit taxonomies from role
+        :expectedresults:
+
+            1. Filter is created without taxonomies
+            2. Override check is set to false
+            3. Filter doesnt inherit taxonomies from role
 
         :caseautomation: notautomated
 
@@ -193,7 +196,7 @@ class CannedRoleTestCases(APITestCase):
         :steps:
 
             1. Create a filter to which taxonomies can be associated.
-            e.g Domain filter
+                e.g Domain filter
             2. Override a filter with some taxonomies
 
         :expectedresults:
@@ -245,15 +248,17 @@ class CannedRoleTestCases(APITestCase):
     @stubbed
     @tier1
     def test_positive_disable_filter_override(self):
-        """Unset override resets filter taxonomies
+        """Unsetting override flag resets filter taxonomies
 
         :id: eaa7b921-7c12-45c5-989b-d82aa2b6e3a6
 
         :steps:
 
-            1. Create role with overridden filter having different taxonomies
-               than its role.
-            2. Unset the override flag in above role filter
+            1. Create role with organization A and Location A
+            2. Create an overridden filter in role with organization B
+                and Location B
+            3. Set above filter override flag to False in role
+            4. Get above role filters
 
         :expectedresults: The taxonomies of filters resets/synced to role
             taxonomies
@@ -264,21 +269,120 @@ class CannedRoleTestCases(APITestCase):
         """
 
     @stubbed
-    @tier2
-    def test_positive_access_resources_from_role_taxonomies(self):
-        """Test user access resources from taxonomies of assigned role
+    @tier1
+    def test_positive_create_org_admin_from_clone(self):
+        """Create Org Admin role which has access to most of the resources
+        within organization
 
-        :id: 706a8cea-5f65-4736-81ae-eb6fa4ea8c7a
+        :id: bf33b70a-25a9-4eb1-982f-03448d008ec8
+
+        :steps: Create Org Admin role by cloning 'Organization admin' role
+            which has most resources permissions
+
+        :expectedresults: Org Admin role should be created successfully
+
+        :caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_cloned_role_with_taxonomies(self):
+        """Taxonomies can be assigned to cloned role
+
+        :id: 31079015-5ede-439a-a062-e20d1ffd66df
 
         :steps:
 
-            1. Create role with taxonomies
-            2. Create resource(s) filter(s) without overriding them
-            3. Create user with taxonomies same as role taxonomies
-            4. Assign step 1 role to user
+            1. Create Org Admin role by cloning 'Organization admin' role
+            2. Set new taxonomies (locations and organizations) to cloned role
 
-        :expectedresults: User should be able to access the resource(s) of the
-            assigned role
+        :expectedresults:
+
+            1. While cloning, role allows to set taxonomies
+            2. New taxonomies should be applied to cloned role successfully
+
+        :caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_access_entities_from_org_admin(self):
+        """User can access resources within its taxonomies if assigned role
+        has permission for same taxonomies
+
+        :id: ab709822-0e58-473b-994c-b4e660d2bf76
+
+        :steps:
+
+            1. Create Org Admin role and assign taxonomies to it
+            2. Create user with same taxonomies as role above
+            3. Assign cloned role to user above
+            4. Login with user and attempt to access resources
+
+        :expectedresults: User should be able to access all the resources and
+            permissions in taxonomies selected in Org Admin role
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_access_entities_from_org_admin(self):
+        """User can not access resources in taxonomies assigned to role if
+        its own taxonomies are not same as its role
+
+        :id: 225bed99-e768-461f-9972-4b9a4ffe3152
+
+        :steps:
+
+            1. Create Org Admin and assign taxonomies to it
+            2. Create user with different taxonomies than above Org Admin
+                taxonomies
+            3. Assign above cloned role to user
+            4. Login with user and attempt to access resources
+
+        :expectedresults: User should not be able to access any resources and
+            permissions in taxonomies selected in Org Admin role
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_access_entities_from_user(self):
+        """User can not access resources within its own taxonomies if assigned
+        role does not have permissions for user taxonomies
+
+        :id: 5d663705-7b9e-4c42-82fa-db2f53715c91
+
+        :steps:
+
+            1. Create Org Admin and assign taxonomies to it
+            2. Create user with different taxonomies than above Org Admin
+                taxonomies
+            3. Assign above cloned role to user
+            4. Login with user and attempt to access resources
+
+        :expectedresults: User should not be able to access any resources and
+            permissions in its own taxonomies
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_override_cloned_role_filter(self):
+        """Cloned role filter overrides
+
+        :id: 8a32ed5f-b93f-4f31-aff4-16602fbe7fab
+
+        :steps:
+
+            1. Create a role with overridden filter
+            2. Clone above role
+            3. Attempt to override the filter in cloned role
+
+        :expectedresults: Filter in cloned role should be overridden
 
         :caseautomation: notautomated
 
@@ -287,23 +391,658 @@ class CannedRoleTestCases(APITestCase):
 
     @stubbed
     @tier2
-    def test_negative_access_resources_outside_role_taxonomies(self):
-        """Test user cannot access resources from non associated taxonomies to
-        role
+    def test_positive_emptiness_of_filter_taxonomies_on_role_clone(self):
+        """Taxonomies of filters in cloned role are set to None for filters that
+        are overridden in parent role
 
-        :id: 87317ca9-b47b-4a6f-a80f-e2bbd1d9cf4e
+        :id: 4bfc44db-9089-4ce8-9fd8-8eab1a7cbd33
 
         :steps:
 
-            1. Create role with taxonomies
-            2. Create resource(s) filter(s) without overriding them
-            3. Create user with taxonomies not matching role taxonomies
-            4. Assign step 1 role to user
+            1. Create a role with an overridden filter
+            2. Overridden filter should have taxonomies assigned
+            3. Clone above role
+            4. GET cloned role filters
 
-        :expectedresults: User should not be able to access the resource(s)
-            that are not associated to assigned role
+        :expectedresults:
+
+            1. Taxonomies of the 'parent roles overridden filter' are set to
+                None in cloned role
+            2. Override flag is set to True in cloned role filter
 
         :caseautomation: notautomated
 
         :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_override_empty_filter_taxonomies_in_cloned_role(self):
+        """Taxonomies of filters in cloned role can be overridden for filters that
+        are overridden in parent role
+
+        :id: f393f303-e754-48e2-abce-9b1713a3c054
+
+        :steps:
+
+            1. Create a role with an overridden filter
+            2. Overridden filter should have taxonomies assigned
+            3. In cloned role, override 'parent roles overridden filter' by
+                assigning some taxonomies to it
+
+        :expectedresults: The taxonomies should be able to assign to
+            'parent roles overridden filter' in cloned role
+
+        :caseautomation: notautomated
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_clone_role_having_overridden_filter_with_taxonomies(self):# noqa
+        """When taxonomies assigned to cloned role, Unlimited and Override flag
+        sets on filter for filter that is overridden in parent role
+
+        :id: 233a4489-d327-4fa0-8a8a-b3a0905b9c12
+
+        :steps:
+
+            1. Create a role with organization A and Location A
+            2. Create overridden role filter in organization B
+                and Location B
+            3. Clone above role and assign Organization A and Location A
+                while cloning
+            4. GET cloned role filter
+
+        :expectedresults: Unlimited and Override flags should be set to True on
+            filter for filter that is overridden in parent role
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_clone_role_having_non_overridden_filter_with_taxonomies(self):# noqa
+        """When taxonomies assigned to cloned role, Neither unlimited nor
+        override sets on filter for filter that is not overridden in parent
+        role
+
+        :id: abc8d419-0c1a-4043-b739-833714663127
+
+        :steps:
+
+            1. Create a role with organization A and Location A
+            2. Create role filter without overriding
+            3. Clone above role and assign Organization A and Location A
+                while cloning
+            4. GET cloned role filter
+
+        :expectedresults: Both unlimited and override flag should be set to
+            False on filter for filter that is not overridden in parent role
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_clone_role_having_unlimited_filter_with_taxonomies(self):
+        """When taxonomies assigned to cloned role, Neither unlimited nor
+        override sets on filter for filter that is unlimited in parent role
+
+        :id: 7cb99401-9af2-40b8-9300-0a6333f8aaa0
+
+        :steps:
+
+            1. Create a role with organization A and Location A
+            2. Create role filter with unlimited check
+            3. Clone above role and assign Organization A and Location A
+                while cloning
+            4. GET cloned role filter
+
+        :expectedresults: Both unlimited and override flags should be set to
+            False on filter for filter that is unlimited in parent role
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_clone_role_having_overridden_filter_without_taxonomies(self):# noqa
+        """When taxonomies not assigned to cloned role, Unlimited and override
+        flags sets on filter for filter that is overridden in parent role
+
+        :id: 1af58f93-46f8-411a-8468-43abc34ef966
+
+        :steps:
+
+            1. Create a role with organization A and Location A
+            2. Create overridden role filter in organization B
+                and Location B
+            3. Clone above role without assigning taxonomies
+            4. GET cloned role filter
+
+        :expectedresults: Both unlimited and Override flags should be set to
+            True on filter for filter that is overridden in parent role
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_clone_role_without_taxonomies_non_overided_filter(self):
+        """When taxonomies not assigned to cloned role, only unlimited but not
+        override flag sets on filter for filter that is overridden in parent
+        role
+
+        :id: 85eea70a-482a-487c-affa-dec3891a1388
+
+        :steps:
+
+            1. Create a role with organization A and Location A
+            2. Create role filter without overriding
+            3. Clone above role without assigning taxonomies
+            4. GET cloned role filter
+
+        :expectedresults:
+
+            1. Unlimited flag should be set to True
+            2. Override flag should be set to False
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_clone_role_without_taxonomies_unlimited_filter(self):
+        """When taxonomies not assigned to cloned role, Unlimited and override
+        flags sets on filter for filter that is unlimited in parent role
+
+        :id: 8ffc7b34-1a25-4663-b3c8-0bbf5fcb61aa
+
+        :steps:
+
+            1. Create a role with organization A and Location A
+            2. Create role filter with unlimited check
+            3. Clone above role without assigning taxonomies
+            4. GET cloned role filter
+
+        :expectedresults:
+
+            1. Unlimited flag should be set to True
+            2. Override flag should be set to False
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_force_unlimited(self):
+        """Unlimited flag forced sets to filter when no taxonomies are set to role
+        and filter
+
+        :id: b94d35f3-be63-4b05-b42e-a77a1c48a4f3
+
+        :steps:
+
+            1. Create a role with organization A and Location A
+            2. Create a role filter without override and unlimited check
+            3. Remove taxonomies assigned earlier to role and ensure
+                no taxonomies are assigned to role
+            4. GET Role filter
+
+        :expectedresults: Unlimited flag should be forcefully set on filter
+            when no taxonomies are set to role and filter
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_user_group_users_access_as_org_admin(self):
+        """Users in usergroup can have access to the resources in taxonomies if
+        the taxonomies of Org Admin role is same
+
+        :id: e7f25d82-3b69-4b8e-b5fc-714d33f91505
+
+        :steps:
+
+            1. Create an Org Admin role by cloning 'Organization admin' role
+            2. Assign an organization A and Location A to the Org Admin role
+            3. Create two users without assigning roles while creating them
+            4. Assign Organization A and Location A to both users
+            5. Create an user group with above two users
+
+        :expectedresults: Both the user should have access to the resources of
+            organization A and Location A
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_user_group_users_access_contradict_as_org_admins(self):
+        """Users in usergroup can/cannot have access to the resources in
+        taxonomies depends on the taxonomies of Org Admin role is same/not_same
+
+        :id: f597b8ca-0e4d-4970-837e-bbc943a93c24
+
+        :steps:
+
+            1. Create an Org Admin role by cloning 'Organization admin' role
+            2. Assign an organization A and Location A to the Org Admin role
+            3. Create an user without assigning roles while creating them and
+                assign Organization B and Location B
+            4. Create another user without assigning roles while creating them
+                and assign Organization A and Location A
+            5. Create an user group, add above two users to the user group
+
+        :expectedresults:
+
+            1. User assigned to Organization B and Location B shouldn't have
+                access to the resources of organization A,B and Location A,B
+            2. User assigned to Organization A and Location A should have
+                access to the resources of organization A and Location A
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_assign_org_admin_to_user_group(self):
+        """Users in usergroup can access to the resources in taxonomies if
+        the taxonomies of Org Admin role are same
+
+        :id: d70dc6e4-427d-4587-bf34-6d922f770bef
+
+        :steps:
+
+            1. Create an Org Admin role by cloning 'Organization admin' role
+            2. Assign an organization A and Location A to the Org Admin role
+            3. Create two users without assigning roles while creating them
+            4. Assign Organization A and Location A to both users
+            5. Create an user group add above two users to the user group
+
+        :expectedresults: Both the user should have access to the resources of
+            organization A and Location A
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_assign_org_admin_to_user_group(self):
+        """Users in usergroup can not have access to the resources in
+        taxonomies if the taxonomies of Org Admin role is not same
+
+        :id: 4ebcf809-9ba1-4634-8bfa-9e6c67b534f3
+
+        :steps:
+
+            1. Create an Org Admin role by cloning 'Organization admin' role
+            2. Assign an organization A and Location A to the Org Admin role
+            3. Create two users without assigning roles while creating them
+            4. Assign Organization B and Location B to both users
+            5. Create an user group add above two users to the user group
+
+        :expectedresults: Both the user shouldn't have access to the resources
+            of organization A,B and Location A,B
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier2
+    def test_negative_assign_taxonomies_by_org_admin(self):
+        """Org Admin doesn't have permissions to assign org/loc to any of
+        its entities
+
+        :id: d8586573-70df-4438-937f-4869583a3d58
+
+        :steps:
+
+            1. Create Org Admin role by cloning 'Organization admin' role
+            2. Assign an organization A,B and Location A,B to the Org Admin
+                role
+            3. Create user and assign above Org Admin role
+            4. Assign Organization A,B and Location A,B to the user
+            5. Login from the new user and attempt to assign organization(s)
+                and location(s) to any resource
+
+        :expectedresults: Org Admin should not be able to assign the taxonomies
+            to any of its resources
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_remove_org_admin_role(self):
+        """Super Admin user can remove Org Admin role
+
+        :id: 03fac76c-22ac-43cf-9068-b96e255b3c3c
+
+        :steps:
+
+            1. Create Org Admin by cloning 'Organization admin' role
+            2. Assign any taxonomies to it
+            3. Create an user and assign above role to user
+            4. Delete the Org Admin role
+
+        :expectedresults: Super Admin should be able to remove Org Admin role
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_taxonomies_control_to_superadmin_with_org_admin(self):
+        """Super Admin can access entities in taxonomies assigned to Org Admin
+
+        :id: 37db0b40-ed35-4e70-83e8-83cff27caae2
+
+        :steps:
+
+            1. Create Org Admin role and assign organization A and Location A
+            2. Create User and assign above Org Admin role
+            3. Login with SuperAdmin who created the above Org Admin role and
+                access entities in Organization A and Location A
+
+        :expectedresults: Super admin should be able to access the entities in
+            taxonomies assigned to Org Admin
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_taxonomies_control_to_superadmin_without_org_admin(self):
+        """Super Admin can access entities in taxonomies assigned to Org Admin
+        after deleting Org Admin role/user
+
+        :id: 446f66a5-16e0-4298-b326-262913502955
+
+        :steps:
+
+            1. Create Org Admin role and assign organization A and Location A
+            2. Create User and assign above Org Admin role
+            3. Delete Org Admin role also the User created above
+            4. Login with SuperAdmin who created the above Org Admin role and
+                access entities in Organization A and Location A
+
+        :expectedresults: Super admin should be able to access the entities in
+            taxonomies assigned to Org Admin after deleting Org Admin
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_create_roles_by_org_admin(self):
+        """Org Admin has no permissions to create new roles
+
+        :id: 6c307e3c-069e-4c59-a187-18caf6f0894c
+
+        :steps:
+
+            1. Create Org Admin role and assign any taxonomies to it
+            2. Create user and assign above org Admin role to it
+            3. Login with above Org Admin user
+            4. Attempt to create a new role
+
+        :expectedresults: Org Admin should not have permissions to create
+            new role
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_modify_roles_by_org_admin(self):
+        """Org Admin has no permissions to modify existing roles
+
+        :id: 93ad9d7d-afad-4403-84a9-d59cc2ddfa58
+
+        :steps:
+
+            1. Create Org Admin role and assign any taxonomies to it
+            2. Create user and assign above Org Admin role to it
+            3. Login with above Org Admin user
+            4. Attempt to update any existing role to modify
+
+        :expectedresults: Org Admin should not have permissions to update
+            existing roles
+        """
+
+    @stubbed
+    @tier2
+    def test_negative_admin_permissions_to_org_admin(self):
+        """Org Admin has no access to Super Admin user
+
+        :id: cdebf9a8-35c2-4730-8423-de47a2c15ff5
+
+        :steps:
+
+            1. Create Org Admin role and assign any taxonomies to it
+            2. Create user and assign above Org Admin role to it
+            3. Login with above Org Admin user
+            4. Attempt to info Super Admin user
+
+        :expectedresults: Org Admin should not have access of Admin user
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_create_user_by_org_admin(self):
+        """Org Admin can create new users
+
+        :id: f4edbe25-3ee6-46d6-8fca-a04f6ddc8eed
+
+        :steps:
+
+            1. Create Org Admin role and assign any taxonomies to it
+            2. Create user and assign above Org Admin role to it
+            3. Login with above Org Admin user
+            4. Attempt to create new users
+
+        :expectedresults:
+
+            1. Org Admin should be able to create new users
+            2. Only Org Admin role should be available to assign to its users
+            3. Org Admin should be able to assign Org Admin role to its users
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_access_users_inside_org_admin_taxonomies(self):
+        """Org Admin can access users inside its taxonomies
+
+        :id: c43275de-e0ff-4a22-b103-391a5ab81874
+
+        :steps:
+
+            1. Create Org Admin role and assign Org A and Location A
+            2. Create new user A and assign Org A and Location A
+            3. Assign Org Admin role to User A
+            4. Create another user B and assign Org A and Location A
+            5. Assign any role to user B that does have access to Org A and
+                Location A
+            6. Login with Org Admin user A and attempt to view user B
+
+        :expectedresults: Org Admin should be able to access users inside
+            its taxonomies
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_negative_access_users_outside_org_admin_taxonomies(self):
+        """Org Admin can not access users outside its taxonomies
+
+        :id: c784b146-60e8-4d6b-ac87-f8351b7e61ab
+
+        :steps:
+
+            1. Create Org Admin role and assign Org A and Location A
+            2. Create new user A and assign Org A and Location A
+            3. Assign Org Admin role to User A
+            4. Create another user B and assign Org B and Location B
+            5. Assign any role to user B that doesnt have access to Org A and
+                Location A
+            6. Login with Org Admin user A and attempt to view user B
+
+        :expectedresults: Org Admin should not be able to access users outside
+            its taxonomies
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_create_taxonomies_by_org_admin(self):
+        """Org Admin cannot define/create organizations and locations
+
+        :id: 56d9e204-395c-4d6a-b821-43c2f4fe8822
+
+        :steps:
+
+            1. Create Org Admin role and assign any taxonomies to it
+            2. Create user and assign above Org Admin role to it
+            3. Login with above Org Admin user
+            4. Attempt to create Organizations and Locations
+
+        :expectedresults: Org Admin should not have access to create taxonomies
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_access_all_global_entities_by_org_admin(self):
+        """Org Admin can access all global entities in any taxonomies
+        regardless of its own assigned taxonomies
+
+        :id: add5feb3-7a3f-45a1-a633-49f1141b029b
+
+        :steps:
+
+            1. Create Org Admin role and assign Org A and Location A
+            2. Create new user and assign Org A,B and Location A,B
+            3. Assign Org Admin role to User
+            4. Login with Org Admin user
+            5. Attempt to create all the global entities in org B and Loc B
+                e.g Architectures, Operating System
+
+        :expectedresults: Org Admin should have access to all the global
+            entities in any taxonomies
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_access_entities_from_ldap_org_admin(self):
+        """LDAP User can access resources within its taxonomies if assigned
+        role has permission for same taxonomies
+
+        :id: 214ee608-6f69-434a-bd6d-804129ac5574
+
+        :steps:
+
+            1. Create Org Admin and assign taxonomies to it
+            2. Create LDAP user with same taxonomies as role above
+            3. Assign Org Admin role to user above
+            4. Login with LDAP user and attempt to access resources
+
+        :expectedresults: LDAP User should be able to access all the resources
+            and permissions in taxonomies selected in Org Admin role
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_access_entities_from_ldap_org_admin(self):
+        """LDAP User can not access resources in taxonomies assigned to role if
+        its own taxonomies are not same as its role
+
+        :id: 7fab713a-035f-496a-a7a6-86407a46a480
+
+        :steps:
+
+            1. Create Org Admin and assign taxonomies to it
+            2. Create LDAP user with different taxonomies than above Org Admin
+                taxonomies
+            3. Assign above cloned role to LDAP user
+            4. Login with LDAP user and attempt to access resources
+
+        :expectedresults: LDAP User should not be able to access resources and
+            permissions in taxonomies selected in Org Admin role
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_access_entities_from_ldap_user(self):
+        """LDAP User can not access resources within its own taxonomies if
+        assigned role does not have permissions for same taxonomies
+
+        :id: cd8cec18-a0bf-4e9c-aad5-71fb46108690
+
+        :steps:
+
+            1. Create Org Admin and assign taxonomies to it
+            2. Create LDAP user with different taxonomies than above Org Admin
+                taxonomies
+            3. Assign above cloned role to LDAP user
+            4. Login with LDAP user and attempt to access resources
+
+        :expectedresults: LDAP User should not be able to access any resources
+            and permissions in its own taxonomies
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_assign_org_admin_to_ldap_user_group(self):
+        """Users in LDAP usergroup can access to the resources in taxonomies if
+        the taxonomies of Org Admin role are same
+
+        :id: d12d78f9-d3e9-4931-8b03-9fc22cfd8cfe
+
+        :steps:
+
+            1. Create an Org Admin role by cloning 'Organization admin' role
+            2. Assign an organization A and Location A to the Org Admin role
+            3. Create an LDAP usergroup with two users
+            4. Assign Organization A and Location A to LDAP usergroup
+            5. Assign Org Admin role to LDAP usergroup
+
+        :expectedresults: Users in LDAP usergroup should have access to the
+            resources in taxonomies if the taxonomies of Org Admin role are
+            same
+
+        :CaseLevel: System
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_assign_org_admin_to_ldap_user_group(self):
+        """Users in LDAP usergroup can not have access to the resources in
+        taxonomies if the taxonomies of Org Admin role is not same
+
+        :id: f62800eb-5408-4dbe-8d11-6d8a2c770dbc
+
+        :steps:
+
+            1. Create an Org Admin role by cloning 'Organization admin' role
+            2. Assign an organization A and Location A to the Org Admin role
+            3. Create an LDAP usergroup with two users
+            4. Assign Organization B and Location B to LDAP usergroup
+            5. Assign Org Admin role to LDAP usergroup
+
+        :expectedresults: Users in LDAP usergroup should not have access to the
+            resources in taxonomies if the taxonomies of Org Admin role is not
+            same
+
+        :CaseLevel: System
         """
