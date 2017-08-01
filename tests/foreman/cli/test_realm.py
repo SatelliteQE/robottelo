@@ -52,11 +52,11 @@ class RealmTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_name(self):
-        """Proxy deletion by realm name
+        """Realm deletion by realm name
 
         :id: ef3967e6-d53d-4dec-b74f-c20448d5fc6d
 
-        :expectedresults: Proxy is deleted
+        :expectedresults: Realm is deleted
         """
         proxy = self._make_proxy()
         realm = make_realm({
@@ -69,11 +69,11 @@ class RealmTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """Proxy deletion by realm id
+        """Realm deletion by realm id
 
         :id: 7c1aca0e-9724-40de-b38f-9189bdae0514
 
-        :expectedresults: Proxy is deleted
+        :expectedresults: Realm is deleted
         """
         proxy = self._make_proxy()
         realm = make_realm({
