@@ -415,3 +415,142 @@ class AnsibleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+
+    @stubbed()
+    @tier3
+    def test_positive_update_inventory_with_groups(self):
+        """Tower inventory should be updated with sat groups like host-group,
+        location, organization, content-views and life-cycle environment
+        with admin user.
+
+        :id: 48a1eba3-4297-4778-8bde-b667c3ac40f0
+
+        :Setup:
+
+            1. Ansible Tower should be installed w/th valid license
+            2. Satellite server should be configured w/ groups like:
+                host-group, location, organization, content-views and
+                life-cycle environment
+
+        :Steps:
+
+            1. Add credentials by specifying type, URL, Username(admin) and
+                password of Satellite6
+            2. Goto Inventories -> Add inventory
+            3. Add group and Source should be Satellite6
+            4. Select the added credentials in step1 and click 'save'.
+
+        :expectedresults: Tower inventory should show sat groups
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_update_inventory_with_normal_user(self):
+        """Tower inventory should be updated with sat groups like host-group,
+        location, organization, content-views and life-cycle environment
+        accessible to non-admin sat user.
+
+        :id: dddf4881-da3b-4254-b782-31632dd9b4ef
+
+        :Setup:
+
+            1. Ansible Tower should be installed w/th valid license
+            2. Satellite server should be configured w/ groups like:
+                host-group, location, organization, content-views and
+                life-cycle environment
+            3. A normal user should be defined w/ some roles and filters
+
+        :Steps:
+
+            1. Add credentials by specifying type, URL, user name(non-admin)
+                and password of Satellite6
+            2. Goto Inventories -> Add inventory
+            3. Add group and Source should be Satellite6
+            4. Select the added credentials in step1 and click 'save'.
+
+        :expectedresults: Tower inventory should show sat groups accessible to
+            non-admin sat user
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_run_job_on_sat_hosts(self):
+        """Run playbooks on the existing satellite hosts in tower through
+        Ansible job templates
+
+        :id: a46bdd3a-9012-41eb-a67f-15496b30870d
+
+        :Setup:
+
+            1. Ansible Tower should be installed w/th valid license
+            2. Inventory should be configured w/ sat6 server
+
+        :Steps:
+
+            1. Add ansible scripts or playbook to run on selected inventory
+            2. Add ansible job template and select inventory, job template
+
+        :expectedresults: Playbook associated to Job template should run on all
+            associated sat hosts in selected inventory
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_provision_with_provisioning_callback(self):
+        """Host provisioned through satellite should be able to run playbook
+        itself from Tower through provisioning callback.
+
+        :id: 722e8460-7156-4fc6-8dad-3ec1bdea2c6c
+
+        :Setup:
+
+            1. Ansible Tower should be installed w/th valid license
+            2. Inventory should be configured w/ sat6 server
+            3. Provisioning callback should be enabled in Tower
+            4. Satellite should be updated w/ required changes in templates
+                and global variables.
+
+        :expectedresults: Playbook associated to Job template should run on the
+            host during post install phase.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_provisioning_callback_with_imagebased(self):
+        """Host provisioned through satellite should be able to run playbook
+        itself from Tower through provisioning callback using image based
+        provisioning.
+
+        :id: 153e67bb-65de-4fc6-bd8a-b910526b71e4
+
+        :Setup:
+
+            1. Ansible Tower should be installed w/th valid license
+            2. Inventory should be configured w/ sat6 server
+            3. Provisioning callback should be enabled in Tower
+            4. Satellite should be updated w/ required changes in templates
+                and global variables.
+
+        :expectedresults: Playbook associated to Job template should run on the
+            host during post install phase.
+
+        :caseautomation: notautomated
+
+        :CaseLevel: System
+        """
