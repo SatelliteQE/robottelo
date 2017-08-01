@@ -2,7 +2,7 @@
 """Implements Packages UI"""
 
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators, tab_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -51,3 +51,13 @@ class Package(Base):
         for package_file in file_list:
             self.wait_until_element(
                 locators['package.content_file'] % package_file)
+
+    def search_in_repo(self, name, repo_name, expecting_results=True):
+        """Search for package and filter results by repository"""
+        self.search(name)
+        self.select_repo(repo_name)
+        # In case we expecting that search should not find any entity
+        if expecting_results is False:
+            return self.wait_until_element(
+                common_locators['kt_search_no_results'])
+        return self.wait_until_element(self._search_locator() % name)
