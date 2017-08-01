@@ -1,0 +1,342 @@
+# -*- encoding: utf-8 -*-
+"""
+:Requirement: Computeresource
+
+:CaseLevel: Acceptance
+
+:CaseComponent: CLI
+
+:TestType: Functional
+
+:CaseImportance: High
+
+:Upstream: No
+"""
+from robottelo.decorators import (
+    run_only_on,
+    stubbed,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+    tier3
+)
+from robottelo.test import CLITestCase
+
+
+class RHEVComputeResourceTestCase(CLITestCase):
+    """RHEVComputeResource CLI tests."""
+
+    @tier1
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_create_rhev_with_valid_name(self):
+        """Create Compute Resource of type Rhev with valid name
+
+        :id: 92a577db-144e-4761-a52e-e83887464986
+
+        :expectedresults: Compute resource is created
+
+        :caseautomation: notautomated
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_rhev_info(self):
+        """List the info of RHEV compute resource
+
+        :id: 1b18f6e8-c431-41ab-ae49-a2bbb74712f2
+
+        :expectedresults: RHEV Compute resource Info is displayed
+
+        :caseautomation: notautomated
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_delete_by_name(self):
+        """Delete the RHEV compute resource by name
+
+        :id: ac84acbe-3e02-4f49-9695-b668df28b353
+
+        :expectedresults: Compute resource is deleted
+
+        :caseautomation: notautomated
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_delete_by_id(self):
+        """Delete the RHEV compute resource by id
+
+        :id: 4bcd4fa3-df8b-4773-b142-e47458116552
+
+        :expectedresults: Compute resource is deleted
+
+        :caseautomation: notautomated
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @run_only_on('sat')
+    @stubbed()
+    def test_negative_create_rhev_with_url(self):
+        """RHEV compute resource negative create with invalid values
+
+        :id: 1f318a4b-8dca-491b-b56d-cff773ed624e
+
+        :expectedresults: Compute resource is not created
+
+        :caseautomation: notautomated
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @run_only_on('sat')
+    @stubbed()
+    def test_negative_create_with_same_name(self):
+        """RHEV compute resource negative create with the same name
+
+        :id: f00813ef-df31-462c-aa87-479b8272aea3
+
+        :steps:
+
+            1. Create a RHEV compute resource.
+            2. Create another RHEV compute resource with same name.
+
+        :expectedresults: Compute resource is not created
+
+        :caseautomation: notautomated
+
+        :CaseImportance: Critical
+        """
+
+    @tier1
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_update_name(self):
+        """RHEV compute resource positive update
+
+        :id: 5ca29b81-d1f0-409f-843d-aa5daf957d7f
+
+        :steps:
+
+            1. Create a RHEV compute resource
+            2. Update the name of the created compute resource
+
+        :expectedresults: Compute Resource is successfully updated
+
+        :caseautomation: notautomated
+
+        :CaseImportance: Critical
+        """
+
+    @tier2
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_add_image_rhev_with_name(self):
+        """Add images to the RHEV compute resource
+
+        :id: 6c7f4169-2e78-44d6-87af-434146093bcc
+
+        :setup: Images/templates should be present in RHEV-M itself,
+            so that satellite can use them.
+
+        :steps:
+
+            1. Create a compute resource of type rhev.
+            2. Create a image for the compute resource with valid parameter,
+               compute-resource image create
+
+        :caseautomation: notautomated
+
+        :expectedresults: The image is added to the CR successfully
+         """
+
+    @tier2
+    @run_only_on('sat')
+    @stubbed()
+    def test_negative_add_image_rhev_with_invalid_name(self):
+        """Attempt to add invalid image to the RHEV compute resource
+
+        :id: e8a653f9-9749-4c76-95ed-2411a7c0a117
+
+        :setup: Images/templates should be present in RHEV-M itself,
+            so that satellite can use them.
+
+        :steps:
+
+            1. Create a compute resource of type rhev.
+            2. Create a image for the compute resource with invalid value for
+               name parameter, compute-resource image create.
+
+        :caseautomation: notautomated
+
+        :expectedresults: The image should not be added to the CR
+        """
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1278917)
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_access_rhev_with_default_profile(self):
+        """List Compute profile for RHEV compute resource
+
+        :id: aa587312-6c37-40bb-99cb-5566139a690a
+
+        :caseautomation: notautomated
+
+        :BZ: 1278917
+
+        :expectedresults: Compute profiles are listed in RHEV compute resource
+        """
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1278917)
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_access_rhev_with_custom_profile(self):
+        """Associate custom default (3-Large) compute profile
+         to RHEV compute resource
+
+        :id: a84fda33-962f-47bb-b5c7-5e726e417049
+
+        :steps:
+
+            1. Create a compute resource of type rhev.
+            2. Edit (3-Large) with valid configurations and submit.
+
+        :expectedresults: The Compute Resource created and compute profile
+         is associated successfully.
+
+        :BZ: 1278917
+
+        :caseautomation: notautomated
+        """
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1278917)
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_access_rhev_with_custom_profile_with_template(self):
+        """Associate custom default (3-Large) compute profile to RHEV compute
+         resource with template
+
+        :id: 6b55fd23-0a32-4415-aef4-80f53b902f30
+
+        :steps:
+
+            1. Create a compute resource of type rhev.
+            2. Provide it with the valid hostname, username and password.
+            3. Edit (3-Large) with valid configuration and template.
+
+        :expectedresults: The Compute Resource created and compute profile
+            is associated successfully.
+
+        :BZ: 1278917
+
+        :caseautomation: notautomated
+        """
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1475443)
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_retrieve_rhev_vm_list(self):
+        """Retrieve the Virtual machine list from RHEV compute resource
+
+        :id: bac05ac9-1175-4139-b3c3-828ae82a3421
+
+        :steps:
+
+            1. Select the created compute resource.
+            2. List the available VM's on the RHEV compute resource
+
+        :caseautomation: notautomated
+
+        :BZ: 1475443
+
+        :expectedresults: The Virtual machines should be listed
+        """
+
+    @tier2
+    @skip_if_bug_open('bugzilla', 1475443)
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_rhev_vm_power_on_off(self):
+        """The virtual machine in RHEV compute resource should be powered
+         on and off.
+
+        :id: e66c9347-c607-4607-bb80-1210869c8fac
+
+        :steps:
+
+            1. Select the created compute resource.
+            2. List the available VM's on the RHEV compute resource
+            3. Try to turn on and off a VM from the list
+
+        :caseautomation: notautomated
+
+        :BZ: 1475443
+
+        :expectedresults: The Virtual machines should be turned ON and OFF
+            successfully
+        """
+
+    @tier3
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_provision_rhev_with_host_group(self):
+        """Provision a host on RHEV compute resource with
+        the help of hostgroup.
+
+        :id: ba78868f-5cff-462f-a55d-f6aa4d11db52
+
+        :setup: Hostgroup and provisioning setup like domain, subnet etc.
+
+        :steps:
+
+            1. Create a RHEV compute resource.
+            2. Create a host on RHEV compute resource using the Hostgroup
+            3. Use compute-attributes parameter to specify key-value parameters
+               regarding the virtual machine.
+            4. Provision the host.
+
+        :expectedresults: The host should be provisioned with host group
+
+        :caseautomation: notautomated
+        """
+
+    @tier3
+    @run_only_on('sat')
+    @stubbed()
+    def test_positive_provision_rhev_without_host_group(self):
+        """Provision a host on RHEV compute resource without
+        the help of hostgroup.
+
+        :id: 861940cb-1550-4f00-9df2-5a45683635b1
+
+        :setup: Provisioning setup like domain, subnet etc.
+
+        :steps:
+
+            1. Create a RHEV compute resource.
+            2. Create a host on RHEV compute resource.
+            3. Use compute-attributes parameter to specify key-value parameters
+               regarding the virtual machine.
+            4. Provision the host.
+
+        :expectedresults: The host should be provisioned successfully
+
+        :caseautomation: notautomated
+        """
