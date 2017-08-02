@@ -1630,3 +1630,16 @@ HOT_BACKUP_FILES = [
     u'.pulp.snar',
     u'pg_globals.dump',
 ]
+
+VMWARE_CONSTANTS = {
+    'cluster': 'Satellite_Engineering',
+    'folder': 'vm',
+    'guest_os': 'Red Hat Enterprise Linux 7 (64-bit)',
+    'scsicontroller': 'LSI Logic Parallel',
+    'virtualhw_version': 'Default',
+    'pool': 'Resources',
+    'network_interface_name': 'VMXNET 3',
+    'datastore': 'Local-Ironforge (free: 1.84 TB, prov: 1.14 TB, '
+                 'total: 2.72 TB)',
+    'network_interfaces': 'qe_%s'
+}

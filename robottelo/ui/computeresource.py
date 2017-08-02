@@ -40,6 +40,28 @@ class ResourceProfileFormBase(object):
                 value = [value]
         return value
 
+    def _assign_locator_value(self, target, value):
+        """Assign provided value to page element depending on the type of that
+        element
+        """
+        target_type = self.page.element_type(target)
+        if (target_type == 'span' or
+                target_type == 'select') and ' (' in value:
+            # do all the necessary workaround
+            self.page.click(target)
+            # Typing entity value without parenthesis part
+            self.page.assign_value(
+                common_locators['select_list_search_box'], value.split(' (')
+                [0])
+            # selecting Value by its full name (with parenthesis
+            # part)
+            self.page.click(
+                common_locators['entity_select_list_vmware'] % value.split
+                (' (')[0])
+            pass
+        else:
+            self.page.assign_value(target, value)
+
     def set_value(self, name, value):
         """Set the value of the corresponding field in UI"""
         locator_attr = '{0}_locator'.format(name)
@@ -59,16 +81,16 @@ class ResourceProfileFormBase(object):
                         field_locator = group_fields_locators.get(field_key)
                         available_fields = self.page.find_elements(
                             field_locator)
-                        if len(available_fields)-1 < field_index:
+                        if len(available_fields) - 1 < field_index:
                             self.page.click(add_node_locator)
                             available_fields = self.page.find_elements(
                                 field_locator)
-                        self.page.assign_value(
+                        self._assign_locator_value(
                             available_fields[field_index], field_value)
 
                 field_index += 1
         else:
-            self.page.assign_value(locator, value)
+            self._assign_locator_value(locator, value)
 
     def set_values(self, **kwargs):
         """Set the values of the corresponding fields in UI"""
@@ -116,13 +138,13 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
     group_fields_locators = dict(
         network_interfaces=dict(
             _add_node=locators[
-                "resource.compute_profile.rhev_interface_add_node"],
+                "resource.compute_profile.interface_add_node"],
             name=locators["resource.compute_profile.rhev_interface_name"],
             network=locators["resource.compute_profile.rhev_interface_network"]
         ),
         storage=dict(
             _add_node=locators[
-                "resource.compute_profile.rhev_storage_add_node"],
+                "resource.compute_profile.storage_add_node"],
             size=locators["resource.compute_profile.rhev_storage_size"],
             storage_domain=locators[
                 "resource.compute_profile.rhev_storage_domain"],
@@ -144,9 +166,58 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
         ResourceProfileFormBase.set_values(self, **kwargs)
 
 
+class ResourceProfileFormVMware(ResourceProfileFormBase):
+    """Implement VMware compute resource profile form"""
+
+    cpus_locator = locators["resource.compute_profile.vmware_cpus"]
+    corespersocket_locator = locators[
+        "resource.compute_profile.vmware_corespersocket"]
+    memory_locator = locators["resource.compute_profile.vmware_memory"]
+    cluster_locator = locators["resource.compute_profile.vmware_cluster"]
+    folder_locator = locators["resource.compute_profile.vmware_folder"]
+    guest_os_locator = locators["resource.compute_profile.vmware_guest_os"]
+    scsicontroller_locator = locators[
+        "resource.compute_profile.vmware_scsicontroller"]
+    virtualhw_version_locator = locators[
+        "resource.compute_profile.vmware_virtualhw_version"]
+    memory_hotadd_locator = locators[
+        "resource.compute_profile.vmware_memory_hotadd"]
+    cpu_hotadd_locator = locators[
+        "resource.compute_profile.vmware_cpu_hotadd"]
+    cdrom_drive_locator = locators[
+        "resource.compute_profile.vmware_cdrom_drive"]
+    annotation_notes_locator = locators[
+        "resource.compute_profile.vmware_annotation_notes"]
+    image_locator = locators["resource.compute_profile.rhev_image"]
+    pool_locator = locators[
+        "resource.compute_profile.vmware_resource_pool"]
+    group_fields_locators = dict(
+        network_interfaces=dict(
+            _add_node=locators[
+                "resource.compute_profile.interface_add_node"],
+            name=locators["resource.compute_profile.vmware_interface_name"],
+            network=locators[
+                "resource.compute_profile.vmware_interface_network"]
+        ),
+        storage=dict(
+            _add_node=locators[
+                "resource.compute_profile.storage_add_node"],
+            datastore=locators[
+                "resource.compute_profile.vmware_storage_datastore"],
+            size=locators["resource.compute_profile.vmware_storage_size"],
+            thin_provision=locators[
+                "resource.compute_profile.vmware_storage_thin_provision"],
+            eager_zero=locators[
+                "resource.compute_profile.vmware_storage_eager_zero"],
+            disk_mode=locators["resource.compute_profile.vmware_disk_mode"]
+        ),
+    )
+
+
 _compute_resource_profiles = {
     FOREMAN_PROVIDERS['ec2']: ResourceProfileFormEC2,
     FOREMAN_PROVIDERS['rhev']: ResourceProfileFormRHEV,
+    FOREMAN_PROVIDERS['vmware']: ResourceProfileFormVMware,
 }
 
 

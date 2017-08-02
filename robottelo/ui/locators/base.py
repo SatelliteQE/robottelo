@@ -447,7 +447,7 @@ locators = LocatorDict({
         ("//div[@id='s2id_compute_attribute_vm_attrs_image_id']"
          "/a/span[contains(@class, 'arrow')]")
     ),
-    "resource.compute_profile.rhev_interface_add_node": (
+    "resource.compute_profile.interface_add_node": (
         By.XPATH,
         ("//div/fieldset[@id='network_interfaces']"
          "/a[@data-association='interfaces']")
@@ -462,7 +462,7 @@ locators = LocatorDict({
         ("//div/fieldset[@id='network_interfaces']"
          "//div[contains(@id, 'network')]/a/span[contains(@class, 'arrow')]")
     ),
-    "resource.compute_profile.rhev_storage_add_node": (
+    "resource.compute_profile.storage_add_node": (
         By.XPATH,
         ("//div/fieldset[@id='storage_volumes']"
          "/a[@data-association='volumes']")
@@ -488,7 +488,106 @@ locators = LocatorDict({
         ("//div/fieldset[@id='storage_volumes']"
          "//div/label/input[contains(@id, 'bootable_true')]")
     ),
-
+    "resource.compute_profile.vmware_cpus": (
+        By.XPATH,
+        "//div/span/input[@id='compute_attribute_vm_attrs_cpus']"
+    ),
+    "resource.compute_profile.vmware_corespersocket": (
+        By.XPATH,
+        "//div/span/input[@id='compute_attribute_vm_attrs_corespersocket']"
+    ),
+    "resource.compute_profile.vmware_memory": (
+        By.XPATH,
+        ".//*[@id='compute_attribute_vm_attrs_memory_mb']"
+    ),
+    "resource.compute_profile.vmware_cluster": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_cluster']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_resource_pool": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_resource_pool']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_folder": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_path']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_guest_os": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_guest_id']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_scsicontroller": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_scsi_controller_type']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_virtualhw_version": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_hardware_version']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_memory_hotadd": (
+        By.XPATH,
+        ".//*[@id='compute_attribute_vm_attrs_memoryHotAddEnabled']"
+    ),
+    "resource.compute_profile.vmware_cpu_hotadd": (
+        By.XPATH,
+        ".//*[@id='compute_attribute_vm_attrs_cpuHotAddEnabled']"
+    ),
+    "resource.compute_profile.vmware_cdrom_drive": (
+        By.XPATH,
+        ".//*[@id='compute_attribute_vm_attrs_add_cdrom']"
+    ),
+    "resource.compute_profile.vmware_annotation_notes": (
+        By.XPATH,
+        ".//*[@id='compute_attribute_vm_attrs_annotation']"
+    ),
+    "resource.compute_profile.vmware_image": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_image_id']"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_interface_name": (
+        By.XPATH,
+        ("//div/fieldset[@id='network_interfaces']"
+         "//div[contains(@id, 'type')]/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_interface_network": (
+        By.XPATH,
+        ("//div/fieldset[@id='network_interfaces']"
+         "//div[contains(@id, 'network')]/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_storage_datastore": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div[contains(@id, 'datastore')]"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.vmware_storage_size": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div/input[contains(@id,'size_gb')]")
+    ),
+    "resource.compute_profile.vmware_storage_thin_provision": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div/input[contains(@id,'thin')]")
+    ),
+    "resource.compute_profile.vmware_storage_eager_zero": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div/input[contains(@id,'eager_zero')]")
+    ),
+    "resource.compute_profile.vmware_disk_mode": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div[contains(@id, 'mode')]"
+         "/a/span[contains(@class, 'arrow')]")
+    ),
     # Content Hosts
     "contenthost.page_title": (
         By.XPATH, "//h2/span[contains(., 'Content Hosts')]"),
