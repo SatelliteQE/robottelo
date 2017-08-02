@@ -2028,15 +2028,14 @@ locators = LocatorDict({
     "subs.subscription_search": (
         By.XPATH,
         "//input[@class='form-control ng-scope ng-pristine ng-valid']"),
-    "subs.no_manifests_title": (
-        By.XPATH,
-        '//span[contains(., "You currently don\'t have any Subscriptions")]'),
     "subs.subscriptions_list": (
         By.XPATH, "//a[@href='/subscriptions'][contains(@class, 'ng-scope')]"),
     "subs.import_history.imported": (
         By.XPATH, "//td[text()[contains(.,'imported successfully')]]"),
     "subs.import_history.deleted": (
         By.XPATH, "//td[text()[contains(., 'deleted')]]"),
+    "subs.page_title": (
+        By.XPATH, "//h2/span[contains(., 'Subscriptions')]"),
 
     # Settings
     "settings.param": (

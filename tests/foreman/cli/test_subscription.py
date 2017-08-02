@@ -27,7 +27,6 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
-from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
@@ -48,12 +47,7 @@ class SubscriptionTestCase(CLITestCase):
         """
         if manifest is None:
             manifest = manifests.clone()
-        upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            u'file': manifest.filename,
-            'organization-id': org_id,
-        })
-        manifest.content.close()
+        self.upload_manifest(org_id, manifest)
 
     @tier1
     def test_positive_manifest_upload(self):

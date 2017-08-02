@@ -43,7 +43,7 @@ class Subscriptions(Base):
         self.click(locators['subs.upload'])
         timeout = 300
         if bz_bug_is_open(1339696):
-            timeout = 900
+            timeout = 1500
         self.wait_until_element(locators['subs.manifest_exists'], timeout)
         os.remove(manifest.filename)
 
@@ -57,7 +57,7 @@ class Subscriptions(Base):
             self.click(common_locators['confirm_remove'])
             timeout = 300
             if bz_bug_is_open(1339696):
-                timeout = 900
+                timeout = 1500
             self.wait_until_element(common_locators['alert.success'], timeout)
         else:
             self.click(common_locators['cancel'])
