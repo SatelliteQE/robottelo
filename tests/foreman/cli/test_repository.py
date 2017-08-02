@@ -2165,6 +2165,9 @@ class GitPuppetMirrorTestCase(CLITestCase):
         :CaseAutomation: notautomated
         """
 
+
+class FileRepositoryTestCase(CLITestCase):
+    """Specific tests for File Repositories"""
     @stubbed
     @tier1
     def test_positive_upload_file_to_file_repo(self):
