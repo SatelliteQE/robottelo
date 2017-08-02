@@ -4473,6 +4473,11 @@ class ContentViewRedHatOstreeContent(CLITestCase):
         }
         self.assertIn(environment, cv['lifecycle-environments'])
 
+
+class ContentViewFileRepoTestCase(CLITestCase):
+    """Specific tests for Content Views with File Repositories containing
+    arbitrary files
+    """
     @stubbed
     @tier2
     def test_positive_arbitrary_file_repo_addition(self):

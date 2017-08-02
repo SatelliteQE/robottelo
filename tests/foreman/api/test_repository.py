@@ -1582,6 +1582,9 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+
+class FileRepositoryTestCase(APITestCase):
+    """Specific tests for File Repositories"""
     @stubbed
     @tier1
     def test_positive_upload_file_to_file_repo(self):

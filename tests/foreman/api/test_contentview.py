@@ -1808,6 +1808,11 @@ class ContentViewRedHatOstreeContent(APITestCase):
         self.assertEqual(
             len(content_view.read().version[0].read().environment), 2)
 
+
+class ContentViewFileRepoTestCase(APITestCase):
+    """Specific tests for Content Views with File Repositories containing
+    arbitrary files
+    """
     @stubbed
     @tier2
     def test_positive_arbitrary_file_repo_addition(self):
