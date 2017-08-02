@@ -48,6 +48,11 @@
 
 .. automodule:: tests.foreman.cli.test_computeresource_rhev
 
+:mod:`tests.foreman.cli.test_contentaccess`
+-------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_contentaccess
+
 :mod:`tests.foreman.cli.test_contentviewfilter`
 -----------------------------------------------
 

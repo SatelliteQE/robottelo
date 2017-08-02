@@ -83,6 +83,11 @@
 
 .. automodule:: tests.foreman.ui.test_config_group
 
+:mod:`tests.foreman.ui.test_contentaccess`
+------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_contentaccess
+
 :mod:`tests.foreman.ui.test_contenthost`
 ----------------------------------------
 

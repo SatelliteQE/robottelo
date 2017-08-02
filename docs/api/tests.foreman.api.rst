@@ -37,6 +37,10 @@
 -----------------------------------------------
 
 .. automodule:: tests.foreman.api.test_contentmanagement
+:mod:`tests.foreman.api.test_contentaccess`
+-------------------------------------------
+
+.. automodule:: tests.foreman.api.test_contentaccess
 
 :mod:`tests.foreman.api.test_contentviewfilter`
 -----------------------------------------------
