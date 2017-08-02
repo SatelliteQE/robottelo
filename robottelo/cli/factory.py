@@ -1298,28 +1298,6 @@ def make_host(options=None):
         provision                                   true/false
         virtual                                     true/false
     """
-    # Check for required options
-    required_options = (
-        'architecture-id',
-        'medium-id',
-        'operatingsystem-id',
-        'partition-table-id',
-    )
-
-    if options is None:
-        raise CLIFactoryError(
-            'Options {0} are required'.format(', '.join(required_options))
-        )
-
-    missing_options = [
-        option for option in required_options if options.get(option) is None
-    ]
-
-    if missing_options:
-        raise CLIFactoryError(
-            'Options {0} are required'.format(', '.join(missing_options))
-        )
-
     args = {
         u'architecture': None,
         u'architecture-id': None,
@@ -2103,6 +2081,7 @@ def make_hostgroup(options=None):
         --organization-ids ORGANIZATION_IDS     REPLACE organizations with
                                                 given ids.
                                                 Comma separated list of values.
+        --parent PARENT_NAME                    Name of parent hostgroup
         --parent-id PARENT_ID
         --partition-table PTABLE_NAME                    Partition table name
         --partition-table-id PTABLE_ID
@@ -2143,6 +2122,7 @@ def make_hostgroup(options=None):
         u'operatingsystem-id': None,
         u'organizations': None,
         u'organization-ids': None,
+        u'parent': None,
         u'parent-id': None,
         u'partition-table': None,
         u'partition-table-id': None,

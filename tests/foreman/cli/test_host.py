@@ -781,6 +781,55 @@ class HostCreateTestCase(CLITestCase):
             hostgroup['content-view'],
         )
 
+    @skip_if_bug_open('bugzilla', '1436162')
+    @tier3
+    def test_positive_create_inherit_nested_hostgroup(self):
+        """Create two nested host groups with the same name, but different
+        parents. Then create host using any from these hostgroups title
+
+        :id: 7bc95130-3f20-493d-b54c-04c444d97563
+
+        :expectedresults: Host created successfully using host group title
+
+        :CaseLevel: System
+
+        :BZ: 1436162
+        """
+        options = entities.Host()
+        options.create_missing()
+        host_name = gen_string('alpha').lower()
+        nested_hg_name = gen_string('alpha')
+        parent_hostgroups = []
+        nested_hostgroups = []
+        for _ in range(2):
+            parent_hg_name = gen_string('alpha')
+            parent_hostgroups.append(make_hostgroup({
+                'name': parent_hg_name,
+                'organization-ids': options.organization.id,
+            }))
+            nested_hostgroups.append(make_hostgroup({
+                'name': nested_hg_name,
+                'parent': parent_hg_name,
+                'organization-ids': options.organization.id,
+                'architecture-id': options.architecture.id,
+                'domain-id': options.domain.id,
+                'medium-id': options.medium.id,
+                'operatingsystem-id': options.operatingsystem.id,
+                'partition-table-id': options.ptable.id,
+                'location-ids': options.location.id
+            }))
+
+        host = make_host({
+            'hostgroup-title': nested_hostgroups[0]['title'],
+            'location-id': options.location.id,
+            'organization-id': options.organization.id,
+            'name': host_name,
+        })
+        self.assertEqual(
+            '{0}.{1}'.format(host_name, options.domain.read().name),
+            host['name'],
+        )
+
     @run_only_on('sat')
     @stubbed
     @tier3
