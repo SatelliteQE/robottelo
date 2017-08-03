@@ -193,6 +193,11 @@
 
 .. automodule:: robottelo.ui.oscapreports
 
+:mod:`robottelo.ui.oscap_tailoringfile`
+---------------------------------------
+
+.. automodule:: robottelo.ui.oscap_tailoringfile
+
 :mod:`robottelo.ui.packages`
 ----------------------------
 

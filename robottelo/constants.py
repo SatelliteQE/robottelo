@@ -120,6 +120,8 @@ FILTER = {
     'os_ptable': 'operatingsystem_ptable',
     'oscap_loc': 'scap_content_location',
     'oscap_org': 'scap_content_organization',
+    'oscap_tailoring_loc': 'tailoring_file_location',
+    'oscap_tailoring_org': 'tailoring_file_organization',
     'policy_loc': 'policy_location',
     'policy_org': 'policy_organization',
     'policy_hgrp': 'policy_hostgroup',

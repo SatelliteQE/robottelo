@@ -2422,6 +2422,14 @@ locators = LocatorDict({
     # oscap reports
     "oscap.report_select": (By.XPATH, "//a[normalize-space(.)='%s']"),
 
+    # oscap tailoring file
+    "oscap.upload_tailoringfile": (
+        By.XPATH, "//a[@data-id='aid_compliance_tailoring_files_new']"),
+    "oscap.tailoringfile_path": (
+        By.ID, "tailoring_file_scap_file"),
+    "oscap.tailoringfile_title": (
+        By.ID, "tailoring_file_name"),
+
     # Registries
     "registry.new": (By.XPATH, "//a[contains(@href, '/registries/new')]"),
     "registry.name": (By.ID, "docker_registry_name"),

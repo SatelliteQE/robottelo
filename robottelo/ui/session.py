@@ -43,6 +43,7 @@ from robottelo.ui.org import Org
 from robottelo.ui.oscapcontent import OpenScapContent
 from robottelo.ui.oscappolicy import OpenScapPolicy
 from robottelo.ui.oscapreports import OpenScapReports
+from robottelo.ui.oscap_tailoringfile import OpenScapTailoringfile
 from robottelo.ui.packages import Package
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
@@ -155,6 +156,7 @@ class Session(object):
         self.oscapcontent = OpenScapContent(self.browser)
         self.oscappolicy = OpenScapPolicy(self.browser)
         self.oscapreports = OpenScapReports(self.browser)
+        self.oscaptailoringfile = OpenScapTailoringfile(self.browser)
         self.package = Package(self.browser)
         self.partitiontable = PartitionTable(self.browser)
         self.puppetclasses = PuppetClasses(self.browser)
@@ -187,7 +189,8 @@ class Session(object):
                 'lifecycleenvironment', 'location', 'login', 'medium',
                 'my_account', 'navigator', 'nav', 'user', 'operatingsys',
                 'org', 'oscapcontent', 'oscappolicy', 'oscapreports',
-                'package', 'partitiontable', 'puppetclasses', 'puppetmodule',
+                'oscaptailoringfile', 'package', 'partitiontable',
+                'puppetclasses', 'puppetmodule',
                 'products', 'registry', 'repository', 'rhai', 'role',
                 'settings', 'sc_parameters', 'smart_variable', 'subnet',
                 'subscriptions', 'sync', 'syncplan', 'task', 'template',

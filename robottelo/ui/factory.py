@@ -27,6 +27,7 @@ from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
 from robottelo.ui.oscapcontent import OpenScapContent
 from robottelo.ui.oscappolicy import OpenScapPolicy
+from robottelo.ui.oscap_tailoringfile import OpenScapTailoringfile
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
@@ -695,6 +696,19 @@ def make_oscappolicy(session, **kwargs):
     page = session.nav.go_to_oscap_policy
     core_factory(create_args, kwargs, session, page)
     OpenScapPolicy(session.browser).create(**create_args)
+
+
+def make_oscap_tailoringfile(session, org=None, loc=None, **kwargs):
+    """Creates an oscap tailoring file """
+    create_args = {
+        u'name': None,
+        u'tailoring_path': None,
+        u'tailoring_org': None,
+        u'tailoring_loc': None,
+    }
+    page = session.nav.go_to_oscap_tailoringfile
+    core_factory(create_args, kwargs, session, page, org=org, loc=loc)
+    OpenScapTailoringfile(session.browser).create(**create_args)
 
 
 def make_registry(session, org=None, loc=None, force_context=True, **kwargs):

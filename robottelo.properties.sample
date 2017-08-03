@@ -218,6 +218,7 @@ ssh_key=
 # For OSCAP Testing
 # [oscap]
 # content_path=~/ssg-rhel6-ds.xml
+# tailoring_path=~/ssg-firefox-ds-tailoring.xml
 
 # Atomic Ostree Kickstart Installer
 # [ostree]

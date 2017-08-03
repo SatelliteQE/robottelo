@@ -651,10 +651,12 @@ class OscapSettings(FeatureSettings):
     def __init__(self, *args, **kwargs):
         super(OscapSettings, self).__init__(*args, **kwargs)
         self.content_path = None
+        self.tailoring_path = None
 
     def read(self, reader):
         """Read Oscap settings."""
         self.content_path = reader.get('oscap', 'content_path')
+        self.tailoring_path = reader.get('oscap', 'tailoring_path')
 
     def validate(self):
         """Validate Oscap settings."""
@@ -662,6 +664,10 @@ class OscapSettings(FeatureSettings):
         if self.content_path is None:
             validation_errors.append(
                 '[oscap] content_path option must be provided.'
+            )
+        if self.tailoring_path is None:
+            validation_errors.append(
+                '[oscap] tailoring_path option must be provided.'
             )
         return validation_errors
 

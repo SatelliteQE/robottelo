@@ -408,6 +408,13 @@ class Navigator(Base):
             menu_locators['menu.oscap_reports'],
         )
 
+    def go_to_oscap_tailoringfile(self):
+        """Navigates to Oscap Tailoring File"""
+        self.menu_click(
+            menu_locators['menu.hosts'],
+            menu_locators['menu.oscap_tailoringfile'],
+        )
+
     def go_to_select_org(self, org, force=True):
         """Selects the specified organization.
 

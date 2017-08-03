@@ -153,6 +153,9 @@ menu_locators = LocatorDict({
     "menu.oscap_reports": (
         By.XPATH,
         (MENU_CONTAINER_PATH + "//a[@id='menu_item_compliance_reports']")),
+    "menu.oscap_tailoringfile": (
+        By.XPATH,
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_compliance_files']")),
 
     # Configure Menu
     "menu.configure": (
