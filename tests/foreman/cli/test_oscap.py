@@ -533,6 +533,46 @@ class OpenScapTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    def test_positive_associate_scap_policy_with_tailoringfiles_id(self):
+        """Associate tailoring file by id to scap policy
+
+        :id: 4d60333d-ffd7-4c6c-9ba5-6a311ccf2910
+
+        :steps:
+
+            1. Login to hammer shell.
+            2. Execute "policy" command with "create" as sub-command.
+            3. Pass valid parameters.
+            4. Associate tailoring file by "tailoring-file-id" with policy
+
+        :expectedresults: The policy is created and associated successfully.
+
+        :caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_associate_scap_policy_with_tailoringfiles_name(self):
+        """Associate tailoring file by name to scap policy
+
+        :id: d0f9b244-b92d-4889-ba6a-8973ea05bf43
+
+        :steps:
+
+            1. Login to hammer shell.
+            2. Execute "policy" command with "create" as sub-command.
+            3. Pass valid parameters.
+            4. Associate tailoring file by "tailoring-file" with policy
+
+        :expectedresults: The policy is created and associated successfully.
+
+        :caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
     def test_positive_create_scap_policy_without_hostgroups(self):
         """Create scap policy without hostgroups
 
@@ -701,6 +741,46 @@ class OpenScapTestCase(CLITestCase):
             1. Login to hammer shell.
             2. Execute "policy" command with "update" as sub-command.
             3. Pass scap-content-id as parameter.
+
+        :expectedresults: The scap policy is updated.
+
+        :caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_update_scap_policy_with_tailoringfiles_id(self):
+        """Update the scap policy by updating the scap tailoring file id
+        associated with the policy
+
+        :id: 91a25e0b-d5d2-49d8-a3cd-1f3836ac323c
+
+        :steps:
+
+            1. Login to hammer shell.
+            2. Execute "policy" command with "update" as sub-command.
+            3. Pass tailoring-file-id as parameter.
+
+        :expectedresults: The scap policy is updated.
+
+        :caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_update_scap_policy_with_tailoringfiles_name(self):
+        """Update the scap policy by updating the scap tailoring file name
+        associated with the policy
+
+        :id: a2403170-51df-4561-9a58-820f77a5e048
+
+        :steps:
+
+            1. Login to hammer shell.
+            2. Execute "policy" command with "update" as sub-command.
+            3. Pass tailoring-file as parameter.
 
         :expectedresults: The scap policy is updated.
 
