@@ -71,7 +71,6 @@ test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/endtoend
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/installer
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/longrun
-	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/performance
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhai
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys

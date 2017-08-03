@@ -10,7 +10,6 @@ Submodules:
     tests.foreman.endtoend
     tests.foreman.installer
     tests.foreman.longrun
-    tests.foreman.performance
     tests.foreman.rhai
     tests.foreman.rhci
     tests.foreman.sys
