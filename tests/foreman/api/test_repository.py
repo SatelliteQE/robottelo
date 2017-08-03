@@ -543,7 +543,7 @@ class RepositoryTestCase(APITestCase):
         """Verify that non-YUM repositories cannot be created with
         download policy
 
-        @id: 71388973-50ea-4a20-9406-0aca142014ca
+        @id: 8a59cb31-164d-49df-b3c6-9b90634919ce
 
         @expectedresults: Non-YUM repository is not created with a download
         policy
