@@ -283,15 +283,6 @@ def gen_import_org_manifest_data():
             u'organization': gen_string('alphanumeric')
         } for i in range(len(org_ids))]},
     )
-    if not bz_bug_is_open('1260722'):
-        random_data = random_data + (
-            {'users': [{
-                u'key': 'organization_id',
-                u'key_id': type(u'')(i + 1),
-                u'organization_id': org_ids[i],
-                u'organization': gen_string('utf8')
-            } for i in range(len(org_ids))]},
-        )
     return random_data
 
 

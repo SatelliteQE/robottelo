@@ -38,9 +38,11 @@ Subcommands::
 """
 import csv
 import os
+import tempfile
+
 from robottelo import manifests, ssh
 from robottelo.cli.base import Base
-import tempfile
+from robottelo.decorators import bz_bug_is_open
 
 
 class Import(Base):
@@ -131,12 +133,13 @@ class Import(Base):
         )
 
     @classmethod
-    def organization(cls, options=None):
+    def organization(cls, options=None, timeout=None):
         """Import Organizations (from spacewalk-report users)."""
         cls.command_sub = 'organization'
         return cls.execute(
             cls._construct_command(options),
             output_format='',
+            timeout=timeout,
         )
 
     @classmethod
@@ -291,8 +294,11 @@ class Import(Base):
                 )
             manifest_list.append(u'{0}/{1}.zip'.format(man_dir, org))
         options.update({'upload-manifests-from': man_dir})
-
-        result = cls.organization(options)
+        timeout = 300
+        if bz_bug_is_open(1339696) and len(manifest_list):
+            # put timeout proportionally for each manifest to upload
+            timeout = 1500 * len(manifest_list)
+        result = cls.organization(options, timeout=timeout)
         ssh.command(u'rm -rf {0}'.format(man_dir))
         transition_data = cls.read_transition_csv(
             ssh.command(

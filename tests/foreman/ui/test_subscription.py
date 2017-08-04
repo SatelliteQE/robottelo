@@ -186,7 +186,7 @@ class SubscriptionTestCase(UITestCase):
         with Session(self, user.login, password):
             self.subscriptions.navigate_to_entity()
             self.assertIsNotNone(self.subscriptions.wait_until_element(
-                locators['subs.no_manifests_title']))
+                locators['subs.page_title']))
             self.assertFalse(self.browser.current_url.endswith('katello/403'))
 
     @tier2
