@@ -715,6 +715,7 @@ class ActivationKeyTestCase(CLITestCase):
                     host_col_name
                 )
 
+    @run_in_one_thread
     @tier2
     def test_positive_update_host_collection_with_default_org(self):
         """Test that host collection can be associated to Activation
