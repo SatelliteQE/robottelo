@@ -1438,6 +1438,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1461804)
     @tier2
     def test_positive_delete_key_for_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg then associate
