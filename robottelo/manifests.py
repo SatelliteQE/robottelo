@@ -132,7 +132,8 @@ class Manifest(object):
         if self._content is None:
             self._content = _manifest_cloner.clone()
         if self.filename is None:
-            self.filename = u'/tmp/manifest-{0}.zip'.format(int(time.time()))
+            self.filename = u'/var/tmp/manifest-{0}.zip'.format(
+                    int(time.time()))
 
     @property
     def content(self):
