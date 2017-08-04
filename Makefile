@@ -31,6 +31,7 @@ help:
 	@echo "  test-foreman-tier2         to run Foreman deployment tier2 tests"
 	@echo "  test-foreman-tier3         to run Foreman deployment tier3 tests"
 	@echo "  test-foreman-tier4         to run Foreman deployment tier4 tests"
+	@echo "  test-foreman-sys           to run Foreman deployment sys tests"
 	@echo "  test-foreman-api           to test a Foreman deployment API"
 	@echo "  test-foreman-api-threaded  to do the above with threading."
 	@echo "                             Requires pytest-xdist"
@@ -119,6 +120,9 @@ test-foreman-tier3:
 test-foreman-tier4:
 	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier4' $(join $(FOREMAN_TESTS_PATH), longrun)
 
+test-foreman-sys:
+	$(PYTEST) $(PYTEST_OPTS) $(join $(FOREMAN_TESTS_PATH), sys)
+
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
 
@@ -178,7 +182,8 @@ clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
         test-robottelo-coverage test-foreman-api test-foreman-cli \
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
-        test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
-        graph-entities lint logs-join logs-clean pyc-clean \
-        uuid-check uuid-fix token-prefix-editor can-i-push? \
-        install-commit-hook gitflake8 clean-shared clean-cache clean-all
+	test-foreman-sys test-foreman-ui test-foreman-ui-xvfb \
+	test-foreman-endtoend graph-entities lint logs-join \
+	logs-clean pyc-clean uuid-check uuid-fix token-prefix-editor \
+	can-i-push? install-commit-hook gitflake8 clean-shared \
+	clean-cache clean-all
