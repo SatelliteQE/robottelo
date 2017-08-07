@@ -27,10 +27,11 @@ from robottelo.cli.factory import (
     CLIFactoryError,
 )
 from robottelo.cli.realm import Realm
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, run_in_one_thread
 from robottelo.test import CLITestCase
 
 
+@run_in_one_thread
 class RealmTestCase(CLITestCase):
     """Tests for Realms via Hammer CLI, must be run on QE RHEL7 Sat6.3 host"""
 
