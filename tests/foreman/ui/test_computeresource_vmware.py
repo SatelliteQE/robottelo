@@ -74,7 +74,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: A vmware compute resource is created successfully.
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseImportance: Critical
         """
@@ -112,7 +112,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: A vmware compute resource is created successfully
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseImportance: Critical
         """
@@ -151,7 +151,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: A vmware compute resource is not created
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseImportance: Critical
         """
@@ -194,7 +194,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The vmware compute resource is updated
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseImportance: Critical
         """
@@ -237,7 +237,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The vmware compute resource is updated
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseLevel: Integration
         """
@@ -282,7 +282,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The compute resource is deleted
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseImportance: Critical
         """
@@ -325,10 +325,11 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image is added to the CR successfully
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseLevel: Integration
         """
+        self.compute_resource.check_image_os(self.vmware_img_os)
         parameter_list = [
             ['VCenter/Server', self.vmware_url, 'field'],
             ['Username', self.vmware_username, 'field'],
@@ -380,10 +381,11 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseLevel: Integration
         """
+        self.compute_resource.check_image_os(self.vmware_img_os)
         parameter_list = [
             ['VCenter/Server', self.vmware_url, 'field'],
             ['Username', self.vmware_username, 'field'],
@@ -433,7 +435,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Compute Resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseLevel: Integration
         """
@@ -549,7 +551,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Virtual machines should be displayed
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseLevel: Integration
         """
@@ -715,7 +717,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Virtual machine is switched on and switched off
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :Caselevel: Integration
         """
