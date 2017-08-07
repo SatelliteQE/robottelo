@@ -48,6 +48,7 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user, make_usergroup, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
+from robozilla.decorators import skip_if_bug_open
 
 
 @filtered_datapoint
@@ -1329,3 +1330,444 @@ class ActiveDirectoryUserTestCase(UITestCase):
                 password2='',
             )
             self.assertIsNotNone(self.user.search(user_name))
+
+
+class SshKeyInUserTestCase(UITestCase):
+    """Implements the SSH Key in User Tests"""
+
+    @stubbed
+    @tier2
+    def test_postitive_ssh_key_tab_presence(self):
+        """SSH keys tab presence in User details page
+
+        :id: a0c77cc1-0484-4290-b4b3-87ab3d0bde56
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Attempt to create new user form Super admin
+            3. Verify SSH Keys tab in user details page
+
+        :expectedresults: New user details page should have a tab of SSH Keys
+        """
+
+    @stubbed
+    @tier2
+    def test_postitive_ssh_key_tab_presence_Super_Admin(self):
+        """SSH keys tab presence in Super Admin details page
+
+        :id: 72dc8c6e-3627-436a-adf3-f32d09b2f1c7
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Edit Super Admin user details page
+            3. Verify SSH Keys tab in Super Admin user details page
+
+        :expectedresults: Super Admin user details page should have a tab of
+            SSH Keys
+        """
+
+    @stubbed
+    @tier1
+    @skip_if_bug_open('bugzilla', 1465389)
+    def test_positive_create_ssh_key(self):
+        """SSH Key can be added while creating a new user
+
+        :id: e608f1b2-2ca4-4c32-8a70-47bed63e8b09
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Attempt to create new user with all the details
+            3. Add SSH Key in SSH Keys tab before saving the user
+            4. Save the new User
+
+        :expectedresults: New user should be added with SSH key
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_ssh_key_super_admin(self):
+        """SSH Key can be added to Super Admin user details page
+
+        :id: 31388483-35f5-4828-82e9-9305a76e712d
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Edit Super Admin user details page
+            3. Add SSH Key in SSH Keys tab
+            4. Save the changes of Super Admin user
+
+        :expectedresults: Super Admin should be saved with SSH key
+        """
+
+    @stubbed
+    @tier1
+    @skip_if_bug_open('bugzilla', 1465389)
+    def test_positive_create_multiple_ssh_keys(self):
+        """Multiple SSH Keys can be added while creating a new user
+
+        :id: 6552194f-63ff-4a6e-9784-5b3dc1772fd5
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Attempt to create new user with all the details
+            3. Add multiple SSH Keys in SSH Keys tab before saving the user
+            4. Save the new User
+
+        :expectedresults: New user should be added with multiple SSH keys
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_multiple_ssh_keys_super_admin(self):
+        """Multiple SSH Keys can be added to Super admin user details page
+
+        :id: 267cea76-0b75-4b37-a04f-dc3659cab409
+
+        :steps:
+
+                1. Go to Administer -> Users
+                2. Edit Super Admin user details page
+                3. Add multiple SSH Keys in SSH Keys tab
+                4. Save the changes of Super Admin user
+
+        :expectedresults: Super Admin should be saved with multiple SSH keys
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_create_ssh_key(self):
+        """Invalid ssh key can not be added in User details page
+
+        :id: a815cd8b-142e-4743-b95a-c922def193f6
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Attempt to create new user with all the details
+            3. Attempt to add invalid string as SSH Key in SSH Keys tab
+                before saving the user
+
+        :expectedresults: Invalid SSH key should not be added in user details
+            page
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_create_invalid_ssh_key(self):
+        """"Invalid SSH key can not be added to user and corresponding error
+        notification displays
+
+        :id: ea613925-75a0-421c-b02b-e61ce2fe0d84
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Attempt to create new user with all the details
+            3. Attempt to add invalid string as SSH Key in SSH Keys tab
+                before saving the user. e.g blabla
+
+        :expectedresults:
+
+            1. SSH Key should not be added to user
+            2. Satellite should show 'Fingerprint could not be generated'
+                error notification
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_create_too_long_length_ssh_key(self):
+        """SSH key with too long length can not be added to user and
+        corresponding error notification displays
+
+        :id: 2a3bb547-a073-4de6-85a7-20ace85992a2
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Attempt to create new user with all the details
+            3. Attempt to add invalid length of SSH Key in SSH Keys tab
+                before saving the user
+
+        :expectedresults:
+
+            1. SSH Key should not be added to user
+            2. Satellite should show 'Length could not be calculated'
+                error notification
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_ssh_key_to_pxe_discovered_host(self):
+        """Satellite automatically adds SSH key of user to the provisioned host
+        that is discovered with PXE
+
+        :id: 86598125-6ca1-4147-920f-b5e2e9ad8ccd
+
+        :steps:
+
+            1. Create User with valid ssh-key
+            2. Configure Satellite with DHCP, DNS and TFTP
+            3. Enable foreman plugin discovery
+            4. Install and enable discovery service plugin.
+            5. Update PXELinux global default template with satellite
+                capsule url and ONTIMEOUT to discovery
+            6. Build the PXE default template from Hosts -> Provisioning
+                templates
+            7. Update Satellite Kickstart Default provisioning template,
+                inherit 'create_users' snippet
+            8. Create Host Group to provision the host
+            9. Boot a blank bare metal host in a network
+            10. Wait for successful Discovery Status on bare metal host
+            11. In Hosts -> Discovered Hosts, find the above discovered
+                host
+            12. Choose to provision and choose name, taxonomies and
+                Hostgroup
+            13. Check IP, MAC fields and Primary, Managed, Provision
+                options assigned automatically in Host -> Interface tab
+            14. Check Host -> Operating System details populated
+                automatically
+            15. Resolve PXELinux details page- 'kickstart default PXELinux'
+                and provision Template - 'Satellite Kickstart Default'
+            16. Submit these changes for provisioning and wait for
+                provisioning to complete.
+            17. Attempt to ssh access the provisioned host from satellite
+                server
+
+        :expectedresults:
+
+            1. User should be able to password-less access to provisioned
+                host
+            2. Satellite should automatically add SSH key to provisioned
+                host
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_ssh_key_to_pxeless_provisioned_host(self):
+        """Satellite automatically adds SSH key of user to the PXELess
+        provisioned host
+
+        :id: edbbafbd-5a82-4f27-ab93-2aa88d3a3353
+
+        :steps:
+
+            1. Create User with valid ssh-key
+            2. Configure Satellite with DHCP and DNS
+            3. Update Satellite Kickstart Default provisioning template,
+                inherit 'create_users' snippet
+            4. Create Host Group to provision the host
+            5. Attempt to create a new host from Hosts -> New Host
+            6. Choose name, taxonomies and Hostgroup
+            7. Check IP, Primary, Managed, Provision
+                options assigned automatically in Host -> Interface tab
+            8. Enter the bare metal host mac in interface tab
+            9. Check Host -> Operating System details populated
+                automatically
+            10. Resolve bootdisk template-'Boot disk iPXE - host',
+                kexec template='Discovery Red Hat kexec' and
+                provision Template - 'Satellite Kickstart Default'.
+            11. Submit these changes
+            12. After creating this host entry, Download the Generic boot disk
+                from this host -> boot disk -> Generic Image
+            13. Flash the Generic boot disk in some bootable device
+            14. Boot the Provisionable host from above media device
+            15. Wait for host to connect to Satellite, start installation,
+                finish installation, post installation configurations
+            16. Attempt to ssh access the provisioned host from satellite
+                server
+
+        :expectedresults:
+
+            1. User should be able to password-less access to provisioned
+                host
+            2. Satellite should automatically add SSH key to provisioned host
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_ssh_key_to_pxeless_discovered_host(self):
+        """Satellite automatically adds SSH key of user to the provisioned
+         host that is discovered with PXELess
+
+        :id: a3a7fcd8-9efd-4863-ac81-48c1a2cdb61b
+
+        :steps:
+
+            1. Create User with valid ssh-key
+            2. Configure Satellite with DHCP, DNS and TFTP
+            3. Update Satellite Kickstart Default provisioning template,
+                inherit 'create_users' snippet
+            4. Create Host Group to provision the host
+            5. Enable foreman plugin discovery through satellite installer
+            6. Install and enable discovery service plugin
+            7. Flash the discovery ISO in some bootable device
+            8. Boot the provisionable host from bootable device
+            9. In host, Choose Discovery with DHCP
+            10. Choose primary network interface that connects to the satelite
+            11. Provide integrated capsule/external capsule server url
+            12. Set connection type to Proxy
+            13. Dont provide any custom facts
+            14. Wait for satellite to discover the host in Hosts -> Discovered
+                Hosts
+            15. Choose to provision and choose name, taxonomies and Hostgroup
+            16. Check IP, MAC fields and Primary, Managed, Provision
+                options assigned automatically in Host -> Interface tab
+            17. Check Host -> Operating System details populated
+                automatically
+            18. Resolve kexec Template- 'Discovery Red Hat kexec' and
+                provision Template - 'Satellite Kickstart Default'.
+            19. Submit these changes for provisioning and wait for
+                provisioning to complete.
+            20. Attempt to ssh access the provisioned host from satellite
+                server
+
+        :expectedresults:
+
+            1. User should be able to password-less access to provisioned
+                host
+            2. Satellite should automatically add SSH key to provisioned host
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_ssh_key_in_network_based_provisioned_host(self):
+        """Satellite automatically adds SSH key of user onto the host
+        provisioned using network based method
+
+        :id: ff2efc2a-02d0-4e2e-90d4-be2562fe384e
+
+        :steps:
+
+            1. Create User with valid ssh-key
+            2. Configure Satellite with DHCP, DNS
+            3. Create libvirt/RHEVM/VMWare Compute Resource on satellite
+            4. Create suitable compute profile for choosed CR
+            5. Update Satellite Kickstart Default provisioning template,
+                inherit 'create_users' snippet
+            6. Create Host Group for provisioning the host
+            7. Attempt to create a new host from Hosts -> New Host
+            8. Choose name, taxonomies and Hostgroup
+            9. Select choosed(in step 2) CR in 'deploy on' option
+            10. Check IP value amd Primary, Managed, Provision
+                options assigned automatically in Host -> Interface tab
+            11. Leave MAC Address blank to be assigned by CR
+            12. Check Host -> Operating System details populated
+                automatically, also choose Network Based provisioning
+            13. Choose appropriate Virtual Machine details
+            14. Submit these changes for provisioning and wait for provisioning
+                to complete
+            15. Attempt to ssh access the provisioned host from satellite
+                server
+
+        :expectedresults:
+
+            1. User should be able to password-less access to provisioned
+                host
+            2. Satellite should automatically add SSH key to provisioned host
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_ssh_key_in_image_based_provisioned_host(self):
+        """Satellite automatically adds SSH key of user onto the host
+        provisioned using image based method
+
+        :id: 470f7142-c805-43c3-b0cc-02bd380f098b
+
+        :steps:
+
+            1. Create User with valid ssh-key
+            2. Configure Satellite with DHCP, DNS
+            3. Create EC2/Openstack/VMware/libvirt/RHEV Compute Resource on
+                satellite
+            4. Create suitable compute profile for choosed CR
+            5. Update Satellite Kickstart Default Finish provisioning template,
+                inherit 'create_users' snippet
+            6. Create Host Group for provisioning the host
+            7. Attempt to create a new host from Hosts -> New Host
+            8. Choose name, taxonomies and Hostgroup
+            9. Select choosed(in step 2) CR in 'deploy on' option
+            10. Check IP value amd Primary, Managed, Provision
+                options assigned automatically in Host -> Interface tab
+            11. Leave MAC Address blank to be assigned by CR
+            12. Check Host -> Operating System details populated
+                automatically, also choose Image Based provisioning
+            13. Choose appropriate Virtual Machine details
+            14. Submit these changes for provisioning and wait for provisioning
+                to complete
+            15. Attempt to ssh access the provisioned host from satellite
+                server
+
+        :expectedresults:
+
+            1. User should be able to password-less access to provisioned
+                host
+            2. Satellite should automatically add SSH key to provisioned host
+        """
+
+    @stubbed
+    @tier3
+    def test_negative_invalid_ssh_key_access_to_provisioned_host(self):
+        """ Satellite user cannot password-less access with invalid ssh key
+
+        :id: 13f2d109-d15e-4fee-ae49-7ce3b27efd17
+
+        :steps:
+
+            1. Create user with ssh public key which doesnt matches the private
+                key of user(i.e Wrong public key)
+            2. Update Satellite Kickstart Default template, inherit
+                'create_users' snippet
+            3. Provision a host on libvirt CR with above user
+            4. Attempt to ssh access the provisioned host from satellite sever
+
+        :expectedresults: User should not be able to password-less access to
+            provisioned host having wrong non matching publc key
+        """
+
+    @stubbed
+    @tier3
+    def test_positive_multiple_key_types_access_to_provisioned_host(self):
+        """ Satellite automatically adds supported multiple type of SSH key of
+        user onto the host provisioned
+
+        :id: 1532df12-e0a5-4da6-9e28-5d2eba98f0af
+
+        :steps:
+            1. Create user with any type of ssh key, type includes
+                rsa, dsa, ed25519, ecdsa
+            2. Update Satellite Kickstart Default template, inherit
+                'create_users' snippet
+            3. Provision a host on libvirt CR with above user
+            4. Attempt to ssh access the provisioned host from satellite sever
+
+        :expectedresults:
+
+            1. User should be able to password-less access to provisioned
+                host using any supported type of ssh keys
+            2. Satellite should automatically add any supported type of SSH key
+                to provisioned host
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_delete_ssh_key(self):
+        """Satellite Admin can delete ssh key from user
+
+        :id: e4df559d-3f01-4dfb-a847-ae5f7d91ef90
+
+        :steps:
+
+            1. Go to Administer -> Users
+            2. Attempt to create new user with all the details
+            3. Add SSH Key in SSH Keys tab before saving the user
+            4. Save the new User
+            5. Edit the user created above and delete the ssh-key from user
+
+        :expectedresults: SSH key should be deleted from user
+        """
