@@ -1436,6 +1436,7 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
     def test_positive_drpm_sync(self):
         """Synchronize repository with DRPMs
@@ -1474,6 +1475,7 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
     def test_positive_drpm_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
@@ -1524,6 +1526,7 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
     def test_positive_drpm_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,

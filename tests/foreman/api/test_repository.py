@@ -1484,6 +1484,7 @@ class DRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(DRPMRepositoryTestCase, cls).setUpClass()
