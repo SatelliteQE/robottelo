@@ -268,6 +268,70 @@ class RepositoryTestCase(UITestCase):
                         repo_name, 'checksum', checksum))
 
     @run_only_on('sat')
+    @tier1
+    def test_positive_create_repo_with_upstream_credentials(self):
+        """Create repository with upstream username and password parameters
+
+        :id: e6ca6e08-a2f7-4a67-9499-c4b12815d916
+
+        :expectedresults: Repository is created with expected username and
+            password field is hidden
+
+        :CaseImportance: Critical
+        """
+        repo_name = gen_string('alpha')
+        repo_username = gen_string('alpha')
+        product = entities.Product(organization=self.session_org).create()
+        with Session(self) as session:
+            self.products.search_and_click(product.name)
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_1_YUM_REPO,
+                upstream_username=repo_username,
+                upstream_password=gen_string('alpha')
+            )
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'upstream_username', repo_username))
+            self.products.search_and_click(product.name)
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'upstream_password', '******'))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_clear_repo_upstream_credentials(self):
+        """Create repository with upstream username and password parameters.
+        Then remove these parameters
+
+        :id: 66977094-946f-401b-a8d4-5da5412cdacf
+
+        :expectedresults: Upstream username and password parameters can be
+            removed from repository
+
+        :BZ: 1433481
+
+        :CaseImportance: Critical
+        """
+        repo_name = gen_string('alpha')
+        repo_username = gen_string('alpha')
+        product = entities.Product(organization=self.session_org).create()
+        with Session(self) as session:
+            self.products.search_and_click(product.name)
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_1_YUM_REPO,
+                upstream_username=repo_username,
+                upstream_password=gen_string('alpha')
+            )
+            self.repository.update(repo_name, new_upstream_username='')
+            self.repository.click(locators['repo.upstream_password_clear'])
+            for property_name in ['upstream_username', 'upstream_password']:
+                self.products.search_and_click(product.name)
+                self.assertTrue(self.repository.validate_field(
+                    repo_name, property_name, ''))
+
+    @run_only_on('sat')
     @tier2
     def test_positive_create_as_non_admin_user(self):
         """Create a repository as a non admin user

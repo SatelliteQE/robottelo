@@ -215,10 +215,8 @@ def make_product(session, org=None, loc=None, force_context=True, **kwargs):
     Products(session.browser).create(**create_args)
 
 
-def make_repository(session, org=None, loc=None,
-                    force_context=True, **kwargs):
+def make_repository(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a repository"""
-
     create_args = {
         u'name': None,
         u'gpg_key': None,
@@ -227,6 +225,8 @@ def make_repository(session, org=None, loc=None,
         u'repo_type': REPO_TYPE['yum'],
         u'repo_checksum': CHECKSUM_TYPE['default'],
         u'upstream_repo_name': None,
+        u'upstream_username': None,
+        u'upstream_password': None,
         u'download_policy': None,
     }
     page = Repos(session.browser).navigate_to_entity
