@@ -1399,9 +1399,11 @@ class DockerContainerTestCase(UITestCase):
         :CaseLevel: Integration
         """
         repo_name = 'rhel'
-        container_name = gen_string('alphanumeric')
+        container_name = gen_string('alphanumeric').lower()
         registry = entities.Registry(
-            url=settings.docker.external_registry_1).create()
+            organization=[self.organization],
+            url=settings.docker.external_registry_1
+        ).create()
         try:
             with Session(self) as session:
                 session.nav.go_to_select_org(self.organization.name)

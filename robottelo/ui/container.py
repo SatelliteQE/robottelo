@@ -99,15 +99,14 @@ class Container(Base):
                 current_tab = self._form_locator_name(
                     parameter['sub_tab_name'] + ' Tab')
                 self.click(locators[current_tab])
-                self.assign_value(
-                    locators[
+                if parameter['sub_tab_name'] == 'External registry':
+                    locator = locators[
                         self._form_locator_name(
-                            'registry.' + parameter['name'])
-                    ]
-                    if parameter['sub_tab_name'] == 'External registry' else
-                    locators[self._form_locator_name(parameter['name'])],
-                    parameter['value']
-                )
+                            'registry.' + parameter['name'])]
+                else:
+                    locator = locators[
+                        self._form_locator_name(parameter['name'])]
+                self.assign_value(locator, parameter['value'])
         self.click(locators[current_tab + '_next'])
         self.assign_value(locators['container.name'], name)
         self.assign_value(locators['container.command'], command)
