@@ -1364,7 +1364,6 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn(
             u"'--auto-attach': value must be one of", exe.exception.stderr)
 
-    @skip_if_bug_open('bugzilla', 1435286)
     @tier3
     def test_positive_content_override(self):
         """Positive content override
@@ -1404,7 +1403,9 @@ class ActivationKeyTestCase(CLITestCase):
                     u'organization-id': self.org['id'],
                 })
                 self.assertEqual(
-                    content[0]['enabled?'], str(override_value).lower())
+                    content[0]['override'],
+                    'enabled:{}'.format(int(override_value))
+                )
 
     @tier2
     def test_positive_remove_user(self):
