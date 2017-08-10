@@ -1242,8 +1242,7 @@ class ActivationKeyTestCase(UITestCase):
             self.navigator.go_to_red_hat_subscriptions()
             self.subscriptions.delete()
             self.assertIsNotNone(self.subscriptions.wait_until_element(
-                common_locators['alert.success'], timeout=180))
-            # Verify the subscription was removed from the activation key
+                    locators['subs.import_history.deleted']))
             self.assertIsNone(
                 self.activationkey.search_key_subscriptions(
                     activation_key.name, DEFAULT_SUBSCRIPTION_NAME

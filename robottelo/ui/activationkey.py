@@ -40,7 +40,7 @@ class ActivationKey(Base):
         self.search_and_click(ak_name)
         self.click(tab_locators['ak.subscriptions'])
         self.assign_value(
-            locators['ak.subscriptions.search'], subscription_name)
+            common_locators['kt_search'], subscription_name)
         return self.wait_until_element(
             (locators['ak.get_subscription_name'] % subscription_name))
 
