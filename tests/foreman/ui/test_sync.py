@@ -100,10 +100,10 @@ class SyncTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        repos = self.sync.create_repos_tree(RHCT)
         with manifests.clone() as manifest:
             upload_manifest(self.organization.id, manifest.content)
         with Session(self) as session:
+            repos = self.sync.create_repos_tree(RHCT)
             session.nav.go_to_select_org(self.organization.name)
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
             session.nav.go_to_sync_status()
@@ -186,11 +186,11 @@ class SyncTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        repos = self.sync.create_repos_tree(ATOMIC_HOST_TREE)
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
         with Session(self) as session:
+            repos = self.sync.create_repos_tree(ATOMIC_HOST_TREE)
             session.nav.go_to_select_org(org.name)
             self.sync.enable_rh_repos(repos, repo_tab=REPO_TAB['ostree'])
             session.nav.go_to_sync_status()
