@@ -139,6 +139,13 @@ ssh_key=
 # basedn=
 # grpbasedn=
 
+# For LDAP freeIPA Authentication.
+# [ipa]
+# hostname_ipa=
+# username_ipa=
+# password_ipa=
+# basedn_ipa=
+# grpbasedn_ipa=
 
 # Fake manifest testing.
 # [fake_manifest]
