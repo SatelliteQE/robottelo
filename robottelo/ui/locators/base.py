@@ -1628,11 +1628,12 @@ locators = LocatorDict({
     "ak.prd_content.select_repo": (
         By.XPATH,
         "//u[contains(.,'%s')]/../../div/form/div/select"),
-    "ak.product_contents": (
+    "ak.subscriptions.search": (
         By.XPATH,
-        ("//div[contains(@ng-controller, "
-         "'ActivationKeyProductDetailsController')]/div[@class='row']"
-         "/div[@ng-repeat='content in product.available_content']/h4/u"),
+        "//input[@ng-model='subscriptionSearch']"),
+    "ak.repository_sets": (
+        By.XPATH,
+        "//table//tr[@row-select='productRepoSet']/td[@bst-table-cell][1]",
     ),
 
     # Sync Status

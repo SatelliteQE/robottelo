@@ -321,8 +321,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//button[@ng-click='removeHostCollections()']"),
     "ak.associations": (
         By.XPATH, "//ul/li[@class='dropdown']/a"),
-    "ak.tab_prd_content": (
-        By.XPATH, "//a[contains(@ui-sref, 'details.products')]/span/span"),
+    "ak.tab_repository_sets": (
+        By.XPATH, "//a[@ui-sref='activation-key.products']/span/span"),
 
     # Manifest / subscriptions
     "manifest.tab_rpms": (
