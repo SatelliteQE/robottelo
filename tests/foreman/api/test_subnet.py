@@ -18,6 +18,13 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 :Upstream: No
 """
+from nailgun import entities
+from requests.exceptions import HTTPError
+from robottelo.datafactory import (
+    gen_string,
+    generate_strings_list,
+    invalid_values_list
+)
 from robottelo.decorators import (
     stubbed,
     tier1,
@@ -32,7 +39,32 @@ from robozilla.decorators import skip_if_bug_open
 class ParameterizedSubnetTestCase(APITestCase):
     """Implements parametrized subnet tests in API"""
 
-    @stubbed()
+    @tier1
+    def test_positive_with_parameter(self):
+        """Subnet can be created along with parameters
+
+        :id: ec581cb5-8c48-4b9c-b536-302c0b7ec30f
+
+        :steps: Create Subnet with parameter that has single key and single
+            value
+
+        :expectedresults: The Subnet is created with parameter
+        """
+        parameter = [
+            {'name': gen_string('alpha'), 'value': gen_string('alpha')}
+        ]
+        subnet = entities.Subnet(
+            subnet_parameters_attributes=parameter
+        ).create()
+        self.assertEqual(
+            subnet.subnet_parameters_attributes[0]['name'],
+            parameter[0]['name']
+        )
+        self.assertEqual(
+            subnet.subnet_parameters_attributes[0]['value'],
+            parameter[0]['value']
+        )
+
     @tier1
     def test_positive_add_parameter(self):
         """Parameters can be created in subnet
@@ -46,8 +78,18 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         :expectedresults: The parameter should be created in subnet
         """
+        subnet = entities.Subnet().create()
+        for name in generate_strings_list(exclude_types=['html']):
+            with self.subTest(name):
+                value = gen_string('utf8')
+                subnet_param = entities.Parameter(
+                    subnet=subnet.id,
+                    name=name,
+                    value=value
+                ).create()
+                self.assertEqual(subnet_param.name, name)
+                self.assertEqual(subnet_param.value, value)
 
-    @stubbed()
     @tier1
     def test_positive_add_parameter_with_multiple_values(self):
         """Subnet parameters can be created with multiple values
@@ -63,8 +105,18 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The parameter with multiple values should be saved
             in subnet
         """
+        subnet = entities.Subnet().create()
+        name = gen_string('alpha')
+        values = ', '.join(generate_strings_list(exclude_types=['html']))
+        with self.subTest(name):
+            subnet_param = entities.Parameter(
+                name=name,
+                subnet=subnet.id,
+                value=values
+            ).create()
+            self.assertEqual(subnet_param.name, name)
+            self.assertEqual(subnet_param.value, values)
 
-    @stubbed()
     @tier1
     def test_positive_create_with_parameter_and_valid_separator(self):
         """Subnet parameters can be created with multiple names with valid
@@ -81,8 +133,25 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The parameter with multiple names separated by valid
             separators should be saved in subnet
         """
+        subnet = entities.Subnet().create()
+        valid_separators = [',', '/', '-', '|']
+        valid_names = []
+        for separator in valid_separators:
+            valid_names.append(
+                '{}'.format(separator).join(generate_strings_list(
+                    exclude_types=['html']))
+            )
+        value = gen_string('utf8')
+        for name in valid_names:
+            with self.subTest(name):
+                subnet_param = entities.Parameter(
+                    name=name,
+                    subnet=subnet.id,
+                    value=value
+                ).create()
+                self.assertEqual(subnet_param.name, name)
+                self.assertEqual(subnet_param.value, value)
 
-    @stubbed()
     @tier1
     def test_negative_create_with_parameter_and_invalid_separator(self):
         """Subnet parameters can not be created with multiple names with
@@ -102,8 +171,16 @@ class ParameterizedSubnetTestCase(APITestCase):
                 separators should not be saved in subnet
             2. An error for invalid name should be thrown.
         """
+        subnet = entities.Subnet().create()
+        invalid_values = invalid_values_list() + ['name with space']
+        for name in invalid_values:
+            with self.subTest(name):
+                with self.assertRaises(HTTPError):
+                    entities.Parameter(
+                        name=name,
+                        subnet=subnet.id
+                    ).create()
 
-    @stubbed()
     @tier1
     def test_negative_create_with_duplicated_parameters(self):
         """Attempt to create multiple parameters with same key name for the
@@ -122,8 +199,20 @@ class ParameterizedSubnetTestCase(APITestCase):
                 names
             2. An error for duplicate parameter should be thrown
         """
+        subnet = entities.Subnet().create()
+        entities.Parameter(
+            name='duplicateParameter', subnet=subnet.id
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.Parameter(
+                name='duplicateParameter', subnet=subnet.id
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Name has already been taken"
+        )
 
-    @stubbed()
+    @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_positive_inherit_subnet_parmeters_in_host(self):
@@ -148,7 +237,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: System
         """
 
-    @stubbed()
+    @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_subnet_parameters_override_from_host(self):
@@ -172,7 +261,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed()
+    @stubbed
     @tier3
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
         """Override subnet parameter from host impact on subnet parameter
@@ -192,7 +281,6 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: System
         """
 
-    @stubbed()
     @tier1
     def test_positive_update_parameter(self):
         """Subnet parameter can be updated
@@ -207,8 +295,25 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         :expectedresults: The parameter name and value should be updated
         """
+        parameters = [{
+            'name': gen_string('alpha'), 'value': gen_string('alpha')
+        }]
+        subnet = entities.Subnet(
+            subnet_parameters_attributes=parameters).create()
+        up_parameters = [{
+            'name': gen_string('utf8'), 'value': gen_string('utf8')
+        }]
+        subnet.subnet_parameters_attributes = up_parameters
+        up_subnet = subnet.update(['subnet_parameters_attributes'])
+        self.assertEqual(
+            up_subnet.subnet_parameters_attributes[0]['name'],
+            up_parameters[0]['name']
+        )
+        self.assertEqual(
+            up_subnet.subnet_parameters_attributes[0]['value'],
+            up_parameters[0]['value']
+        )
 
-    @stubbed()
     @tier1
     def test_negative_update_parameter(self):
         """Subnet parameter can not be updated with invalid names
@@ -226,8 +331,20 @@ class ParameterizedSubnetTestCase(APITestCase):
             1. The parameter should not be updated with invalid name
             2. An error for invalid name should be thrown
         """
+        subnet = entities.Subnet().create()
+        sub_param = entities.Parameter(
+            name=gen_string('utf8'),
+            subnet=subnet.id,
+            value=gen_string('utf8')
+        ).create()
+        invalid_values = invalid_values_list() + ['name with space']
+        for new_name in invalid_values:
+            with self.subTest(new_name):
+                with self.assertRaises(HTTPError):
+                    sub_param.name = new_name
+                    sub_param.update(['name'])
 
-    @stubbed()
+    @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_update_subnet_parameter_host_impact(self):
@@ -252,7 +369,6 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed()
     @tier1
     def test_positive_delete_subnet_parameter(self):
         """Subnet parameter can be deleted
@@ -266,8 +382,15 @@ class ParameterizedSubnetTestCase(APITestCase):
 
         :expectedresults: The parameter should be deleted from subnet
         """
+        subnet = entities.Subnet().create()
+        sub_param = entities.Parameter(
+            subnet=subnet.id
+        ).create()
+        sub_param.delete()
+        with self.assertRaises(HTTPError):
+            sub_param.read()
 
-    @stubbed()
+    @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_delete_subnet_parameter_host_impact(self):
@@ -291,7 +414,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed()
+    @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     @upgrade
@@ -318,7 +441,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed()
+    @stubbed
     @tier1
     def test_positive_list_parameters(self):
         """Satellite lists all the subnet parameters
@@ -335,7 +458,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             parameters
         """
 
-    @stubbed()
+    @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_positive_subnet_parameter_priority(self):
@@ -362,7 +485,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: System
         """
 
-    @stubbed()
+    @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_negative_component_overrides_subnet_parameter(self):
