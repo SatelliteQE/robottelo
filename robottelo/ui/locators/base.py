@@ -1891,7 +1891,7 @@ locators = LocatorDict({
         "//a[@class='ng-scope' and contains(@href, 'repositories')]"),
     "contentviews.repo_name": (
         By.XPATH,
-        "//a[@class='ng-binding' and contains(@ui-sref,'repositories.info')]"),
+        "//a[@class='ng-binding' and contains(@ui-sref,'repository.info')]"),
     "contentviews.select_repo": (
         By.XPATH,
         ("//td[contains(normalize-space(.), '%s')]"
