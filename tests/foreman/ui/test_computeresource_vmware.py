@@ -486,7 +486,7 @@ class VmwareComputeResourceTestCase(UITestCase):
             ['Datacenter', self.vmware_datacenter, 'special select'],
         ]
         name = gen_string('alpha')
-        with Session(self.browser) as session:
+        with Session(self) as session:
             make_resource(
                 session,
                 name=name,

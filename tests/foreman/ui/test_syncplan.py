@@ -95,7 +95,7 @@ class SyncPlanTestCase(UITestCase):
             raise AssertionError(
                 'Repository contains invalid number of content entities')
 
-    def get_client_datetime(self):
+    def get_client_datetime(self, browser):
         """Make Javascript call inside of browser session to get exact current
         date and time. In that way, we will be isolated from any issue that can
         happen due different environments where test automation code is
@@ -104,6 +104,8 @@ class SyncPlanTestCase(UITestCase):
         When calling .getMonth() you need to add +1 to display the correct
         month. Javascript count always starts at 0, so calling .getMonth() in
         May will return 4 and not 5.
+
+        :param browser: Webdriver browser object.
 
         :return: Datetime object that contains data for current date and time
             on a client
@@ -116,7 +118,7 @@ class SyncPlanTestCase(UITestCase):
             'currentdate.getHours()',
             'currentdate.getMinutes()',
         )
-        client_datetime = self.browser.execute_script(script)
+        client_datetime = browser.execute_script(script)
         return datetime.strptime(client_datetime, '%Y-%m-%d : %H:%M')
 
     @tier1
@@ -201,8 +203,9 @@ class SyncPlanTestCase(UITestCase):
         :CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
-        startdate = self.get_client_datetime() + timedelta(minutes=10)
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         + timedelta(minutes=10))
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -236,8 +239,9 @@ class SyncPlanTestCase(UITestCase):
         :CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
-        startdate = self.get_client_datetime() + timedelta(days=10)
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         + timedelta(days=10))
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -485,8 +489,8 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = self.get_client_datetime()
         with Session(self) as session:
+            startdate = self.get_client_datetime(session.browser)
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -524,9 +528,9 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = self.get_client_datetime() - timedelta(
-                seconds=(interval - delay/2))
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         - timedelta(seconds=(interval - delay / 2)))
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -571,8 +575,9 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = self.get_client_datetime() + timedelta(seconds=delay)
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         + timedelta(seconds=delay))
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -630,8 +635,9 @@ class SyncPlanTestCase(UITestCase):
             for product in products
             for _ in range(randint(2, 3))
         ]
-        startdate = self.get_client_datetime() + timedelta(seconds=delay)
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         + timedelta(seconds=delay))
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -705,9 +711,9 @@ class SyncPlanTestCase(UITestCase):
             releasever=None,
         )
         repo = entities.Repository(id=repo_id).read()
-        startdate = self.get_client_datetime() - timedelta(
-                seconds=(interval - delay/2))
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         - timedelta(seconds=(interval - delay / 2)))
             make_syncplan(
                 session,
                 org=org.name,
@@ -766,8 +772,9 @@ class SyncPlanTestCase(UITestCase):
             releasever=None,
         )
         repo = entities.Repository(id=repo_id).read()
-        startdate = self.get_client_datetime() + timedelta(seconds=delay)
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         + timedelta(seconds=delay))
             make_syncplan(
                 session,
                 org=org.name,
@@ -814,9 +821,9 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = self.get_client_datetime() - timedelta(days=1)\
-            + timedelta(seconds=delay/2)
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         - timedelta(days=1) + timedelta(seconds=delay / 2))
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -865,9 +872,9 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
         repo = entities.Repository(product=product).create()
-        startdate = self.get_client_datetime() - timedelta(weeks=1)\
-            + timedelta(seconds=delay/2)
         with Session(self) as session:
+            startdate = (self.get_client_datetime(session.browser)
+                         - timedelta(weeks=1) + timedelta(seconds=delay / 2))
             make_syncplan(
                 session,
                 org=self.organization.name,

@@ -1644,8 +1644,8 @@ class RepositoryTestCase(UITestCase):
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
-        repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
         with Session(self) as session:
+            repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
             session.nav.go_to_select_org(org.name)
             # Enable RH repository
             self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
