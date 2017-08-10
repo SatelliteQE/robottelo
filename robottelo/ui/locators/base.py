@@ -1607,7 +1607,7 @@ locators = LocatorDict({
     "ak.add_selected_subscription": (
         By.XPATH, "//button[@ng-click='addSelected()']"),
     "ak.get_subscription_name": (
-        By.XPATH, "//tr/td/a[contains(., '%s')]"),
+        By.XPATH, "//tr/td/b[contains(., '%s')]"),
     "ak.selected_cv": (
         By.XPATH,
         ("//div[@bst-edit-select='activationKey.content_view.name']"
@@ -1628,9 +1628,6 @@ locators = LocatorDict({
     "ak.prd_content.select_repo": (
         By.XPATH,
         "//u[contains(.,'%s')]/../../div/form/div/select"),
-    "ak.subscriptions.search": (
-        By.XPATH,
-        "//input[@ng-model='subscriptionSearch']"),
     "ak.product_contents": (
         By.XPATH,
         ("//div[contains(@ng-controller, "
