@@ -26,7 +26,13 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2, upgrade
+from robottelo.decorators import (
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
@@ -306,3 +312,334 @@ class ConfigTemplateTestCase(APITestCase):
                 for key in uniqe_keys:
                     del new_template[key]
                 self.assertEqual(template_origin, new_template)
+
+
+class TemplateSyncTestCase(APITestCase):
+    """Implements TemplateSync tests from API"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup for TemplateSync functionality
+
+        :setup:
+
+            1. Git repository must exist (in gitlab or github) and its url
+               set in ssh:// form in robottelo.constants.
+               (note: git@git... form does not work, should start with ssh://)
+            2. SSH key must be set to `foreman` user to access that git host
+               via ssh://.
+            3. Local directory /var/tmp/templatesync-{random}/ must be created.
+            4. Organization and Location must be created to isolate the
+               templates ownership.
+            5. Administer -> Settings -> TemplateSync settings must be set
+               for default options:
+               branch -> develop
+               repo -> e.g: ssh://git@github.com/username/community-templates
+               prefix - > robottelo (or something else easy to test)
+            6. The git repository must be populated with some dummy templates
+               for testing and that repo must have content in different
+               branches and diverse directory roots. Based on
+               foreman/community templates create some templates with
+               diverse set of names and prefixes to use for testing the
+               regex filtering and also some templates must have Org/Loc
+               metadata matching the previously created Org/Loc. the process of
+               population this templates repository can be part of this setUp.
+
+               e.g: https://github.com/theforeman/community-templates/tree/
+                    develop/provisioning_templates/provision
+                    in the above directory there are templates prefixed with
+                    `alterator` `atomic` `coreos` `freebsd` etc..
+
+        :info:
+            - https://theforeman.org/plugins/foreman_templates/5.0/index.html
+            - /apidoc/v2/template/import.html
+            - /apidoc/v2/template/export.html
+
+        """
+
+    # Import tests
+
+    @stubbed()
+    @tier1
+    def test_positive_import_filtered_templates_from_git(self):
+        """Assure only templates with a given filter regex are pulled from
+        git repo.
+
+        :id: 628a95d6-7a4e-4e56-ad7b-d9fecd34f765
+
+        :Steps:
+            1. Using nailgun or direct API call
+               import only the templates matching with regex e.g: `^atomic.*`
+               refer to: `/apidoc/v2/template/import.html`
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'} and template imported
+            2. Assert no other template has been imported but only those
+               matching specified regex.
+               NOTE: Templates are always imported with a prefix defaults to
+               `community` unless it is specified as empty string
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_negative_import_filtered_templates_from_git(self):
+        """Assure templates with a given filter regex are NOT pulled from
+        git repo.
+
+        :id: a6857454-249b-4a2e-9b53-b5d7b4eb34e3
+
+        :Steps:
+            1. Using nailgun or direct API call
+               import the templates NOT matching with regex e.g: `^freebsd.*`
+               refer to: `/apidoc/v2/template/import.html` using the
+               {'negate': true} in POST body to negate the filter regex.
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'}
+            2. Assert templates mathing the regex were not pulled.
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_import_from_branch(self):
+        """Assure only templates from a given branch are imported
+
+        :id: 8ccb2c13-808d-41b7-afd7-22431311d74a
+
+        :Steps:
+            1. Using nailgun or direct API call
+               import templates specifying a git branch e.g:
+               `-d {'branch': 'testing'}` in POST body.
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'} and templates imported
+            2. Assert only templates from that branch were imported
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_import_from_subdirectory(self):
+        """Assure only templates from a given subdirectory are imported
+
+        :id: 9d368931-045b-4bfd-94ea-ef67006191a1
+
+        :Steps:
+            1. Using nailgun or direct API call
+               import templates specifying a git subdirectory e.g:
+               `-d {'dirname': 'test_sub_dir'}` in POST body.
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'} and templates imported
+            2. Assert only templates from that subdirectory were imported
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_negative_import_locked_template(self):
+        """Assure locked templates are not pulled from repository.
+
+        :id: 88e21cad-448e-45e0-add2-94493a1319c5
+
+        :Steps:
+            1. Using nailgun or direct API call try to import a locked template
+
+        :expectedresults:
+            1. Assert locked template is not updated
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_import_force_locked_template(self):
+        """Assure locked templates are updated from repository when `force` is
+        specified.
+
+        :id: b80fbfc4-bcab-4a5d-b6c1-0e22906cd8ab
+
+        :Steps:
+            1. Using nailgun or direct API call
+               import some of the locked template specifying the `force`
+               parameter e.g: `-d {'force': true}` in POST body.
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'}
+            2. Assert locked template is forced to update
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_import_associated_with_taxonomies(self):
+        """Assure imported template is automatically associated with
+        Organization and Location.
+
+        :id: 04a14a56-bd71-412b-b2da-4b8c3991c401
+
+        :Steps:
+            1. Using nailgun or direct API call
+               import some template containing metadata with Org/Loc specs
+               and specify the `associate` parameter
+               e.g: `-d {'associate': 'always'}` in POST body.
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'}
+            2. Assert template is imported and org/loc are associated based on
+               template metadata.
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_import_all_templates_from_repo(self):
+        """Assure all templates are imported if no filter is specified.
+
+        :id: 95ac9543-d989-44f4-b4d9-18f20a0b58b9
+
+        :Steps:
+            1. Using nailgun or direct API call
+               import all templates from repository (ensure filters are empty)
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'}
+            2. Assert all existing templates are imported.
+
+        :CaseImportance: Critical
+        """
+
+    # Export tests
+
+    @stubbed()
+    @tier1
+    def test_positive_export_filtered_templates_to_git(self):
+        """Assure only templates with a given filter regex are pushed to
+        git template (new templates are created, existing updated).
+
+        :id: fd583f85-f170-4b93-b9b1-36d72f31c31f
+
+        :Steps:
+            1. Using nailgun or direct API call
+               export only the templates matching with regex e.g: `^atomic.*`
+               refer to: `/apidoc/v2/template/export.html`
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'} and templates exported.
+            2. Assert no other template has been exported but only those
+               matching specified regex.
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_negative_export_filtered_templates_from_git(self):
+        """Assure templates with a given filter regex are NOT pushed to
+        git repo.
+
+        :id: ca1186f7-a0d5-4e5e-b7dd-de293308bc90
+
+        :Steps:
+            1. Using nailgun or direct API call
+               export the templates NOT matching with regex e.g: `^freebsd.*`
+               refer to: `/apidoc/v2/template/export.html` using the
+               {'negate': true, 'filter': '^freebsd.*'} in POST body to
+               negate the filter regex.
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'}
+            2. Assert templates mathing the regex are not pushed
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_export_to_branch(self):
+        """Assure templates are exported to specified existing branch
+
+        :id: 2bef9597-1b5a-4010-b6e9-a3540e045a7b
+
+        :Steps:
+            1. Using nailgun or direct API call
+               export templates specifying a git branch e.g:
+               `-d {'branch': 'testing'}` in POST body.
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'} and templates exported
+            2. Assert templates were exported to specified branch on repo
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_export_to_subdirectory(self):
+        """Assure templates are exported to repository existing subdirectory
+
+        :id: 8ea11a1a-165e-4834-9387-7accb4c94e77
+
+        :Steps:
+            1. Using nailgun or direct API call
+               export templates specifying a git subdirectory e.g:
+               `-d {'dirname': 'test_sub_dir'}` in POST body
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'} and templates exported
+            2. Assert templates are exported to the given subdirectory on repo
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_export_and_import_with_metadata(self):
+        """Assure exported template contains metadata.
+
+        :id: ba8a34ce-c2c6-4889-8729-59714c0a4b19
+
+        :Steps:
+            1. Create a template using nailgun entity and specify Org/Loc.
+            2. Using nailgun or direct API call
+               export the template containing metadata with Org/Loc specs
+               and specify the `metadata_export_mode` parameter
+               e.g: `-d {'metadata_export_mode': 'refresh'}` in POST body
+            3. Use import to pull this specific template (using filter) and
+               specifying `associate` and a different `prefix`
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'}
+            2. Assert template is exported and org/loc are present on
+               template metadata
+            3. Assert template can be imported with associated Org/Loc
+               as specified in metadata
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_export_all_templates_to_repo(self):
+        """Assure all templates are exported if no filter is specified.
+
+        :id: 0bf6fe77-01a3-4843-86d6-22db5b8adf3b
+
+        :Steps:
+            1. Using nailgun or direct API call
+               export all templates to repository (ensure filters are empty)
+
+        :expectedresults:
+            1. Assert result is {'message': 'success'}
+            2. Assert all existing templates were exported to repository
+
+        :CaseImportance: Critical
+        """
