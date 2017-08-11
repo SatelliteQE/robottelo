@@ -1870,7 +1870,8 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             # create a composite content view
-            self.content_views.create(cv_composite_name, is_composite=True)
+            make_contentview(session, org=org.name, name=cv_composite_name,
+                             is_composite=True)
             self.assertIsNotNone(self.content_views.search(cv_composite_name))
             # add the first and second content views to the composite one
             self.content_views.add_remove_cv(
