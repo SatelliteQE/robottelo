@@ -514,3 +514,63 @@ class TemplateTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+
+
+class TemplateSyncTestCase(UITestCase):
+    """Implements TemplateSync tests from UI"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Setup for TemplateSync functionality
+
+        :steps:
+
+            1. Git repository must exist (in gitlab or github) and its url
+               set in ssh:// form in robottelo.constants.
+               (note: git@git... form does not work, should start with ssh://)
+            2. SSH key must be set to `foreman` user to access that git host
+               via ssh://.
+            3. Local directory /var/tmp/templatesync-{random}/ must be created.
+            4. Organization and Location must be created to isolate the
+               templates ownership.
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_settings_is_enabled(self):
+        """Assure foremen-template plugin is enabled by asserting the
+        Template Sync tab shows under UI Administer - > Settings.
+
+        :id: d140c3eb-e1ef-4737-9ccd-a964d3e93639
+
+        :Steps:
+            1. Go to Administer -> Setttings
+
+        :expectedresults:
+            1. Assert "Template Sync" tab is present
+
+        :CaseImportance: Critical
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_git_settings(self):
+        """Assure git configuration can be set on UI.
+
+        :id: b9a43550-9c5a-4af7-a763-146622af7e61
+
+        :Steps:
+            1. Go to Administer -> Setttings
+            2. Click Template-Sync tab
+            3. Configure git settings for fields:
+               branch -> develop
+               repo -> e.g: ssh://git@github.com/username/community-templates
+               prefix - > robottelo (or something else easy to test)
+
+        :expectedresults:
+            1. Assert settings are successfully saved after a refresh
+
+        :CaseImportance: Critical
+        """
