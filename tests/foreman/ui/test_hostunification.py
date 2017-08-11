@@ -38,7 +38,7 @@ from robottelo.decorators import (
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_host
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -565,6 +565,7 @@ class HostContentHostUnificationTestCase(UITestCase):
                     'busybox',
                     timeout=5,
                 )
+            self.contenthost.click(tab_locators['contenthost.tab_details'])
             self.assertIn(
                 ('This Host is not currently registered with'
                  ' subscription-manager'),
