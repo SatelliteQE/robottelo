@@ -2096,9 +2096,8 @@ class KatelloAgentTestCase(CLITestCase):
             client.create()
             client.install_katello_ca()
             # register the client host with the current activation key
-            result = client.register_contenthost(
+            client.register_contenthost(
                 self.org['name'], activation_key=activation_key['name'])
-            self.assertEqual(result.return_code, 0)
             self.assertTrue(client.subscribed)
             # note: when registering the host, it should be automatically added
             # to the host collection
