@@ -376,6 +376,18 @@ class VirtWhoConfigGeneralTestcase(TestCase):
 
         """
 
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_rhel6(self):
+        """
+        :id: f0453a2d-fa81-40ae-81a9-330b529a3062
+
+        :steps:
+            1. Verify a virt-who configuration script can be deployed on RHEL6 Server
+
+        """
+
 
 
 
