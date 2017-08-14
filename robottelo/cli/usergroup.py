@@ -153,3 +153,19 @@ class UserGroupExternal(Base):
         cls.command_sub = 'refresh'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def create(cls, options=None):
+        """Create external user group"""
+        cls.command_sub = 'create'
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
+        # External user group can only be fetched by specifying both id and
+        # user group id it is linked to
+        if len(result) > 0 and 'id' in result[0]:
+            info_options = {
+                'user-group-id': options.get('user-group-id'),
+                'id': result[0]['id'],
+            }
+            result = cls.info(info_options)
+        return result
