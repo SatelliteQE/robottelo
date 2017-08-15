@@ -24,6 +24,7 @@ from robottelo.ui.dockertag import DockerTag
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.errata import Errata
+from robottelo.ui.globalparameters import GlobalParameters
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostcollection import HostCollection
@@ -134,6 +135,7 @@ class Session(object):
         self.discoveredhosts = DiscoveredHosts(self.browser)
         self.discoveryrules = DiscoveryRules(self.browser)
         self.environment = Environment(self.browser)
+        self.globalparameters = GlobalParameters(self.browser)
         self.gpgkey = GPGKey(self.browser)
         self.hardwaremodel = HardwareModel(self.browser)
         self.hostcollection = HostCollection(self.browser)
@@ -191,7 +193,7 @@ class Session(object):
                 'products', 'registry', 'repository', 'rhai', 'role',
                 'settings', 'sc_parameters', 'smart_variable', 'subnet',
                 'subscriptions', 'sync', 'syncplan', 'task', 'template',
-                'trend', 'usergroup'):
+                'trend', 'usergroup', 'globalparameters'):
             setattr(self.test, attr, getattr(self, attr))
 
         self.login.login(self._user, self._password)

@@ -12,6 +12,7 @@ from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
+from robottelo.ui.globalparameters import GlobalParameters
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostcollection import HostCollection
@@ -776,3 +777,17 @@ def make_smart_variable(
     PuppetClasses(session.browser).click(
         PuppetClasses(session.browser).search(kwargs['puppet_class']))
     SmartVariable(session.browser).create(**create_args)
+
+
+def make_global_parameter(
+        session, org=None, loc=None, force_context=True, **kwargs):
+    """Creates Global Parameter"""
+    create_args = {
+        u'name': gen_string('alpha'),
+        u'value': None,
+        u'hidden_value': False,
+    }
+    page = session.nav.go_to_global_parameters
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    GlobalParameters(session.browser).create(**create_args)

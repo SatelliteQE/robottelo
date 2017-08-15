@@ -1039,7 +1039,7 @@ BOOKMARK_ENTITIES = [
         'skip_for_ui': ('bugzilla', 1387569), 'setup': entities.DiscoveryRule
     },
     {
-        'name': 'GlobalParameter', 'controller': 'common_parameters',
+        'name': 'GlobalParameters', 'controller': 'common_parameters',
         'setup': entities.CommonParameter, 'skip_for_ui': ('bugzilla', 1456833)
     },
     {
