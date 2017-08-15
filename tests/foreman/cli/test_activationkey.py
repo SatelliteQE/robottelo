@@ -870,7 +870,6 @@ class ActivationKeyTestCase(CLITestCase):
         """
 
     @run_in_one_thread
-    @skip_if_bug_open('bugzilla', 1339211)
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_delete_subscription(self):
@@ -1162,7 +1161,7 @@ class ActivationKeyTestCase(CLITestCase):
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
         org_id = make_org()['id']
-        ackey_id = self._make_activation_key()['id']
+        ackey_id = self._make_activation_key({'organization-id': org_id})['id']
         Subscription.upload({
             'file': manifest.filename,
             'organization-id': org_id,
