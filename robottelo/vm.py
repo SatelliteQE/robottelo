@@ -49,9 +49,11 @@ class VirtualMachine(object):
     def __init__(
             self, cpu=1, ram=512, distro=None, provisioning_server=None,
             image_dir=None, tag=None, hostname=None, domain=None,
-            target_image=None, bridge=None):
+            source_image=None, target_image=None, bridge=None):
+        distro_docker = settings.docker.docker_image
         distro_el6 = settings.distro.image_el6
         distro_el7 = settings.distro.image_el7
+        allowed_distros = [distro_docker, distro_el6, distro_el7]
         self.cpu = cpu
         self.ram = ram
         if distro == DISTRO_RHEL6:
@@ -61,10 +63,10 @@ class VirtualMachine(object):
         if distro is None:
             distro = distro_el7
         self.distro = distro
-        if self.distro not in (distro_el6, distro_el7):
+        if self.distro not in (allowed_distros):
             raise VirtualMachineError(
-                u'{0} is not a supported distro. Choose one of {1}, {2}'
-                .format(self.distro, distro_el6, distro_el7)
+                u'{0} is not a supported distro. Choose one of {1}'
+                .format(self.distro, allowed_distros)
             )
         if provisioning_server is None:
             self.provisioning_server = settings.clients.provisioning_server
@@ -87,6 +89,7 @@ class VirtualMachine(object):
         self._domain = domain
         self._created = False
         self._subscribed = False
+        self._source_image = source_image or u'{0}-base'.format(self.distro)
         self._target_image = target_image or str(id(self))
         if tag:
             self._target_image = tag + self._target_image
@@ -156,7 +159,7 @@ class VirtualMachine(object):
             self.bridge = 'br0'
 
         command = u' '.join(command_args).format(
-            source_image=u'{0}-base'.format(self.distro),
+            source_image=self._source_image,
             target_image=self.target_image,
             vm_ram=self.ram,
             vm_cpu=self.cpu,

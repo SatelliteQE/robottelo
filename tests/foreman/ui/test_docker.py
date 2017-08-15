@@ -36,7 +36,7 @@ from robottelo.decorators import (
     tier2,
     upgrade,
 )
-from robottelo.helpers import install_katello_ca, remove_katello_ca
+from robottelo.helpers import get_host_info
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
@@ -49,6 +49,7 @@ from robottelo.ui.factory import (
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.products import Products
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
 @filtered_datapoint
@@ -1146,29 +1147,23 @@ class DockerComputeResourceTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        cr_internal = entities.DockerComputeResource(
-            organization=[self.organization],
-            url=settings.docker.get_unix_socket_url(),
-        ).create()
-        cr_external = entities.DockerComputeResource(
+        compute_resource = entities.DockerComputeResource(
             organization=[self.organization],
             url=settings.docker.external_url,
         ).create()
-        for compute_resource in (cr_internal, cr_external):
-            with self.subTest(compute_resource):
-                containers = [
-                    entities.DockerHubContainer(
-                        compute_resource=compute_resource,
-                        organization=[self.organization],
-                    ).create()
-                    for _ in range(randint(2, 5))
-                ]
-                with Session(self.browser) as session:
-                    session.nav.go_to_select_org(self.organization.name)
-                    for container in containers:
-                        result = self.compute_resource.search_container(
-                            compute_resource.name, container.name)
-                        self.assertIsNotNone(result)
+        containers = [
+            entities.DockerHubContainer(
+                compute_resource=compute_resource,
+                organization=[self.organization],
+            ).create()
+            for _ in range(3)
+        ]
+        with Session(self) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            for container in containers:
+                result = self.compute_resource.search_container(
+                    compute_resource.name, container.name)
+                self.assertIsNotNone(result)
 
     @run_only_on('sat')
     @tier1
@@ -1253,10 +1248,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
 
 class DockerContainerTestCase(UITestCase):
-    """Tests specific to using ``Containers`` in local and external Docker
-    Compute Resources
-
-    """
+    """Tests specific to using ``Containers`` in a Docker Compute Resource"""
 
     @classmethod
     @skip_if_not_set('docker')
@@ -1264,6 +1256,20 @@ class DockerContainerTestCase(UITestCase):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainerTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
+
+        docker_image = settings.docker.docker_image
+        cls.docker_host = VirtualMachine(
+            source_image=docker_image,
+            tag=u'docker'
+        )
+        cls.docker_host.create()
+        cls.docker_host.install_katello_ca()
+        cls.cr_external = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            organization=[cls.organization],
+            url='http://{0}:2375'.format(cls.docker_host.ip_addr),
+        ).create()
+
         cls.lce = entities.LifecycleEnvironment(
             organization=cls.organization).create()
         cls.repo = entities.Repository(
@@ -1282,16 +1288,6 @@ class DockerContainerTestCase(UITestCase):
         cls.content_view.publish()
         cls.cvv = content_view.read().version[0].read()
         promote(cls.cvv, cls.lce.id)
-        cls.cr_internal = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[cls.organization],
-            url=settings.docker.get_unix_socket_url(),
-        ).create()
-        cls.cr_external = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[cls.organization],
-            url=settings.docker.external_url,
-        ).create()
         cls.parameter_list = [
             {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
              'name': 'Lifecycle Environment', 'value': cls.lce.name},
@@ -1302,12 +1298,10 @@ class DockerContainerTestCase(UITestCase):
             {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
              'name': 'Tag', 'value': 'latest'},
         ]
-        install_katello_ca()
 
     @classmethod
     def tearDownClass(cls):
-        """Remove katello-ca certificate"""
-        remove_katello_ca()
+        cls.docker_host.destroy()
         super(DockerContainerTestCase, cls).tearDownClass()
 
     @run_only_on('sat')
@@ -1315,55 +1309,51 @@ class DockerContainerTestCase(UITestCase):
     @tier2
     @upgrade
     def test_positive_create_with_compresource(self):
-        """Create containers for local and external compute resources
+        """Create containers for a compute resource
 
         @id: 4916c72f-e921-450c-8023-2ee516deaf25
 
-        @expectedresults: The docker container is created for each compute
-        resource
+        @expectedresults: The docker container is created for the compute
+            resource
 
         @CaseLevel: Integration
         """
-        with Session(self.browser) as session:
-            for compute_resource in (self.cr_internal, self.cr_external):
-                with self.subTest(compute_resource):
-                    make_container(
-                        session,
-                        org=self.organization.name,
-                        resource_name=compute_resource.name + ' (Docker)',
-                        name=gen_string('alphanumeric'),
-                        parameter_list=self.parameter_list,
-                    )
+        with Session(self) as session:
+            make_container(
+                session,
+                org=self.organization.name,
+                resource_name=self.cr_external.name + ' (Docker)',
+                name=gen_string('alphanumeric'),
+                parameter_list=self.parameter_list,
+            )
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1347658)
     @tier2
     def test_positive_power_on_off(self):
-        """Create containers for local and external compute resource,
+        """Create containers for a compute resource,
         then power them on and finally power them off
 
         @id: cc27bb6f-7fa4-4c87-bf7e-339f2f888717
 
-        @expectedresults: The docker container is created for each compute
-        resource and the power status is showing properly
+        @expectedresults: The docker container is created and the power status
+            is showing properly
 
         @CaseLevel: Integration
         """
-        with Session(self.browser) as session:
-            for compute_resource in (self.cr_internal, self.cr_external):
-                with self.subTest(compute_resource):
-                    name = gen_string('alphanumeric')
-                    make_container(
-                        session,
-                        org=self.organization.name,
-                        resource_name=compute_resource.name + ' (Docker)',
-                        name=name,
-                        parameter_list=self.parameter_list,
-                    )
-                    self.assertEqual(self.container.set_power_status(
-                        compute_resource.name, name, True), u'On')
-                    self.assertEqual(self.container.set_power_status(
-                        compute_resource.name, name, False), u'Off')
+        with Session(self) as session:
+            name = gen_string('alphanumeric')
+            make_container(
+                session,
+                org=self.organization.name,
+                resource_name=self.cr_external.name + ' (Docker)',
+                name=name,
+                parameter_list=self.parameter_list,
+            )
+            self.assertEqual(self.container.set_power_status(
+                self.cr_external.name, name, True), u'On')
+            self.assertEqual(self.container.set_power_status(
+                self.cr_external.name, name, False), u'Off')
 
     @run_only_on('sat')
     @tier2
@@ -1414,57 +1404,72 @@ class DockerContainerTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1347658)
     @tier2
     def test_positive_delete(self):
-        """Delete containers in local and external compute resources
+        """Delete containers in an external compute resource
 
         @id: e69808e7-6a0c-4310-b57a-2271ac61d11a
 
-        @expectedresults: The docker containers are deleted in local and
-        external compute resources
+        @expectedresults: The docker containers are deleted
 
         @CaseLevel: Integration
         """
-        with Session(self.browser) as session:
-            for compute_resource in (self.cr_internal, self.cr_external):
-                with self.subTest(compute_resource):
-                    name = gen_string('alphanumeric')
-                    make_container(
-                        session,
-                        org=self.organization.name,
-                        resource_name=compute_resource.name + ' (Docker)',
-                        name=name,
-                        parameter_list=self.parameter_list,
-                    )
-                    self.container.delete(compute_resource.name, name)
-                    self.assertIsNone(
-                        self.container.search(compute_resource.name, name))
+        with Session(self) as session:
+            name = gen_string('alphanumeric')
+            make_container(
+                session,
+                org=self.organization.name,
+                resource_name=self.cr_external.name + ' (Docker)',
+                name=name,
+                parameter_list=self.parameter_list,
+            )
+            self.container.delete(self.cr_external.name, name)
+            self.assertIsNone(
+                self.container.search(self.cr_external.name, name))
+
+
+@skip_if_bug_open('bugzilla', 1414821)
+class DockerUnixSocketContainerTestCase(UITestCase):
+    """Tests specific to using ``Containers`` in local Docker Compute Resource
+      accessed via unix socket
+
+    """
+
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        super(DockerUnixSocketContainerTestCase, cls).setUpClass()
+        cls.host_info = get_host_info()
+        cls.organization = entities.Organization().create()
+        cls.cr_internal = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            organization=[cls.organization],
+            url=settings.docker.get_unix_socket_url(),
+        ).create()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(DockerUnixSocketContainerTestCase, cls).tearDownClass()
 
     @run_only_on('sat')
     @tier2
-    def test_positive_delete_using_api_call(self):
-        """Create and delete containers using direct API calls and verify
-        result of these operations through UI interface
+    def test_positive_create_with_compresource(self):
+        """Create containers for a docker unix-socket compute resource
 
-        @id: 047e2ef9-66b6-41e2-9c29-b7c2da2b64f8
+        @id: 756a76c2-e406-4172-b72a-ca40cf3645f6
 
-        @expectedresults: The docker containers are deleted successfully and
-        are not present on UI
+        @expectedresults: The docker container is created for the compute
+            resource
 
         @CaseLevel: Integration
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource.url):
-                # Create and delete docker container using API
-                container = entities.DockerHubContainer(
-                    command='top',
-                    compute_resource=compute_resource,
-                    organization=[self.organization],
-                ).create()
-                container.delete()
-                # Check result of delete operation on UI
-                with Session(self.browser) as session:
-                    set_context(session, org=self.organization.name)
-                    self.assertIsNone(self.container.search(
-                        compute_resource.name, container.name))
+        with Session(self) as session:
+            make_container(
+                session,
+                org=self.organization.name,
+                resource_name=self.cr_internal.name + ' (Docker)',
+                name=gen_string('alphanumeric'),
+                parameter_list=self.parameter_list,
+            )
 
 
 @run_in_one_thread
