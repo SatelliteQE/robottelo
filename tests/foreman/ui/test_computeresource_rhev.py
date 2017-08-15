@@ -398,7 +398,6 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image is added to the CR successfully
          """
-        self.compute_resource.check_image_os(self.rhev_img_os)
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
@@ -406,6 +405,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         with Session(self) as session:
+            self.compute_resource.check_image_os(self.rhev_img_os)
             for img_name in valid_data_list():
                 with self.subTest(img_name):
                     # Note: create a new compute resource for each sub test
@@ -455,7 +455,6 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :expectedresults: The image should not be added to the CR
         """
-        self.compute_resource.check_image_os(self.rhev_img_os)
         parameter_list = [
             ['URL', self.rhev_url, 'field'],
             ['Username', self.rhev_username, 'field'],
@@ -463,6 +462,7 @@ class RhevComputeResourceTestCase(UITestCase):
             ['Datacenter', self.rhev_datacenter, 'special select'],
         ]
         with Session(self) as session:
+            self.compute_resource.check_image_os(self.rhev_img_os)
             for img_name in invalid_names_list():
                 with self.subTest(img_name):
                     # Note: create a new compute resource for each sub test as

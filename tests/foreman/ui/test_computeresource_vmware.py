@@ -329,7 +329,6 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        self.compute_resource.check_image_os(self.vmware_img_os)
         parameter_list = [
             ['VCenter/Server', self.vmware_url, 'field'],
             ['Username', self.vmware_username, 'field'],
@@ -338,6 +337,7 @@ class VmwareComputeResourceTestCase(UITestCase):
         ]
         name = gen_string('alpha')
         with Session(self) as session:
+            self.compute_resource.check_image_os(self.vmware_img_os)
             for img_name in valid_data_list():
                 with self.subTest(name):
                     make_resource(
@@ -385,7 +385,6 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        self.compute_resource.check_image_os(self.vmware_img_os)
         parameter_list = [
             ['VCenter/Server', self.vmware_url, 'field'],
             ['Username', self.vmware_username, 'field'],
@@ -394,6 +393,7 @@ class VmwareComputeResourceTestCase(UITestCase):
         ]
         name = gen_string('alpha')
         with Session(self) as session:
+            self.compute_resource.check_image_os(self.vmware_img_os)
             for img_name in invalid_names_list():
                 with self.subTest(name):
                     make_resource(
