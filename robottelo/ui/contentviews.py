@@ -42,7 +42,10 @@ class ContentViews(Base):
         # the calendar panel popup and hide other form elements that became
         # unreachable.
         # close the popup calendar panel
-        self.click(locators.contentviews.calendar_date_button % name)
+        button = self.wait_until_element(
+            locators.contentviews.calendar_date_button % name, timeout=2)
+        if button:
+            self.click(button)
 
     def create(self, name, label=None, description=None, is_composite=False):
         """Creates a content view"""
