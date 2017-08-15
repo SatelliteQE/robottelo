@@ -4,7 +4,7 @@
 cachetools==2.0.0
 cryptography==2.0.3
 fauxfactory==2.1.1
-idna==2.5
+idna==2.6
 Inflector==2.0.11
 mock==2.0.0
 paramiko==2.2.1
