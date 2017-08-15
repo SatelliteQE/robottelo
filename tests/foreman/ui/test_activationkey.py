@@ -1422,7 +1422,7 @@ class ActivationKeyTestCase(UITestCase):
         :expectedresults: Both Red Hat and custom product subscriptions are
             assigned as Activation Key's product content
 
-        :BZ: 1426386
+        :BZ: 1426386, 1432285
 
         :CaseLevel: Integration
         """
@@ -1457,7 +1457,7 @@ class ActivationKeyTestCase(UITestCase):
             self.activationkey.associate_product(
                 ak.name, [custom_product.name, DEFAULT_SUBSCRIPTION_NAME])
             self.assertEqual(
-                set(self.activationkey.fetch_product_contents(ak.name)),
+                set(self.activationkey.fetch_repository_sets(ak.name)),
                 {custom_repo.name, REPOSET['rhst7']}
             )
 

@@ -106,7 +106,7 @@ class ActivationKey(Base):
     def enable_repos(self, name, repos, enable=True):
         """Enables repository via product_content tab of the activation_key."""
         self.search_and_click(name)
-        self.click(tab_locators['ak.tab_prd_content'])
+        self.click(tab_locators['ak.tab_repository_sets'])
         for repo in repos:
             self.click(locators['ak.prd_content.edit_repo'] % repo)
             if enable:
@@ -183,13 +183,13 @@ class ActivationKey(Base):
         return self.wait_until_element(
             locators['ak.content_host_select'] % content_host_name)
 
-    def fetch_product_contents(self, name):
-        """Fetch associated product content from selected activation key."""
+    def fetch_repository_sets(self, name):
+        """Fetch associated repository sets from selected activation key."""
         self.search_and_click(name)
-        self.click(tab_locators['ak.tab_prd_content'])
+        self.click(tab_locators['ak.tab_repository_sets'])
         return [
             el.text for el
-            in self.find_elements(locators['ak.product_contents'])
+            in self.find_elements(locators['ak.repository_sets'])
         ]
 
     def copy(self, name, new_name=None):
