@@ -47,6 +47,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier3,
+    upgrade
 )
 from robottelo.test import APITestCase
 from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
@@ -170,6 +171,7 @@ class ErrataTestCase(APITestCase):
                 )
             )
 
+    @upgrade
     @tier3
     def test_positive_install_in_hc(self):
         """Install errata in a host-collection
@@ -521,6 +523,7 @@ class ErrataTestCase(APITestCase):
             for errata in ('bugfix', 'enhancement'):
                 self._validate_errata_counts(host, errata, 1)
 
+    @upgrade
     @tier3
     def test_positive_get_applicable_for_host(self):
         """Get applicable errata ids for a host
@@ -713,6 +716,7 @@ class ErrataTestCase(APITestCase):
         :CaseLevel: System
         """
 
+    @upgrade
     @stubbed()
     @tier3
     def test_positive_incremental_update_apply_packages_to_envs_cvs(self):

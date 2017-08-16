@@ -44,6 +44,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, get_nailgun_config
@@ -59,6 +60,7 @@ REPEAT = 3
 class ContentViewTestCase(APITestCase):
     """Tests for content views."""
 
+    @upgrade
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_host(self):
@@ -132,6 +134,7 @@ class ContentViewTestCase(APITestCase):
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], lc_env.id)
 
+    @upgrade
     @tier2
     @run_only_on('sat')
     def test_positive_clone_with_diff_env(self):
@@ -879,6 +882,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(len(composite_cv.version[0].read().environment), 2)
 
+    @upgrade
     @tier2
     def test_positive_promote_composite_multiple_content_once(self):
         """Create empty composite view and assign random number of
@@ -936,6 +940,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             len(composite_cv.version[0].read().environment),
         )
 
+    @upgrade
     @tier2
     def test_positive_promote_composite_multiple_content_multiple(self):
         """Create empty composite view and assign random number of
@@ -1274,6 +1279,7 @@ class ContentViewRedHatContent(APITestCase):
         self.assertEqual(
             len(content_view.read().version[0].read().environment), 2)
 
+    @upgrade
     @tier2
     def test_positive_promote_rh_custom_spin(self):
         """Attempt to promote a content view containing Red Hat spin - i.e.,
@@ -1654,6 +1660,7 @@ class OstreeContentViewTestCase(APITestCase):
         self.assertEqual(
             len(content_view.read().version[0].read().environment), 2)
 
+    @upgrade
     @tier2
     def test_positive_publish_promote_with_custom_ostree_and_other(self):
         """Publish & Promote a content view with custom ostree and other contents
@@ -1776,6 +1783,7 @@ class ContentViewRedHatOstreeContent(APITestCase):
         self.assertEqual(
             len(content_view.read().version[0].read().environment), 2)
 
+    @upgrade
     @tier2
     def test_positive_publish_promote_with_RH_ostree_and_other(self):
         """Publish & Promote a content view with RH ostree and other contents
@@ -1888,6 +1896,7 @@ class ContentViewFileRepoTestCase(APITestCase):
 
     @stubbed
     @tier2
+    @upgrade
     def test_positive_arbitrary_file_repo_promotion(self):
         """Check arbitrary files availability on Environment after Content
         View promotion

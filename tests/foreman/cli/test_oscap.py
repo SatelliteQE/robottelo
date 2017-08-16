@@ -22,6 +22,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier4,
+    upgrade,
     skip_if_bug_open,
 )
 from robottelo.datafactory import (
@@ -863,6 +864,7 @@ class OpenScapTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
+    @upgrade
     @run_only_on('sat')
     @stubbed()
     @tier4
