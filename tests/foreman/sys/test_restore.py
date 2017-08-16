@@ -27,8 +27,9 @@ from robottelo.ssh import get_connection
 from robottelo.test import TestCase
 from time import sleep
 
-NOVALID_MSG = '**** Given directory is not valid ****'
-NOFILES_MSG = '**** Given directory does not contain necessary files ****'
+NOVALID_MSG = 'Please specify the backup directory to restore'
+NOEXIST_MSG = 'Backup directory does not exist'
+NOFILES_MSG = 'Cannot find the required'
 
 
 def make_random_tmp_directory(connection):
@@ -62,7 +63,6 @@ class RestoreTestCase(TestCase):
                 \n{0}'.format('\n'.join(result[1])))
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1451833)
     def test_negative_restore_no_directory(self):
         """run katello-restore with no directory specified
 
@@ -71,6 +71,8 @@ class RestoreTestCase(TestCase):
         :Steps:
 
             1. Run ``katello-restore``
+
+        :bz: 1451833
 
         :expectedresults: The error message is shown, services are not
             stopped
@@ -82,7 +84,7 @@ class RestoreTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
-            self.assertIn(NOVALID_MSG, result.stdout)
+            self.assertIn(NOVALID_MSG, result.stderr)
             self.check_services_status()
 
     @destructive
@@ -105,8 +107,8 @@ class RestoreTestCase(TestCase):
                 'katello-restore {}'.format(name),
                 output_format='plain'
             )
-            self.assertEqual(result.return_code, 255)
-            self.assertIn(NOVALID_MSG, result.stdout)
+            self.assertEqual(result.return_code, 1)
+            self.assertIn(NOEXIST_MSG, result.stderr)
             self.check_services_status()
 
     @destructive
@@ -134,6 +136,7 @@ class RestoreTestCase(TestCase):
             self.check_services_status()
 
     @destructive
+    @skip_if_bug_open('bugzilla', 1482135)
     def test_positive_restore_from_offline_backup(self):
         """katello-restore from offline backup files
 
@@ -146,6 +149,8 @@ class RestoreTestCase(TestCase):
             3. Add another user
             4. Restore from backup
 
+        :bz: 1482135
+
         :expectedresults: Restore is successfull. User 1 is
             present after restoring, User 2 is not
 
@@ -156,7 +161,7 @@ class RestoreTestCase(TestCase):
             dir_name = make_random_tmp_directory(connection)
             entities.User(login=username1).create()
             result = connection.run(
-                'katello-backup /tmp/{0} '
+                'katello-backup -y /tmp/{0} '
                 '--skip-pulp-content'.format(dir_name),
                 output_format='plain'
             )
@@ -174,6 +179,7 @@ class RestoreTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
+    @skip_if_bug_open('bugzilla', 1482135)
     def test_positive_restore_from_online_and_incremental(self):
         """katello-restore from online and incremental backup
 
@@ -188,6 +194,8 @@ class RestoreTestCase(TestCase):
             5. Restore from online backup
             6. Restore from incremental backup
 
+        :bz: 1482135
+
         :expectedresults: Both restores are successful. User 1
             is present after restoring from online backup, User 2
             is not. Both Users are present after restoring from
@@ -201,7 +209,7 @@ class RestoreTestCase(TestCase):
             username2 = gen_string('alpha')
             entities.User(login=username1).create()
             result = connection.run(
-                'katello-backup /tmp/{0} '
+                'katello-backup -y /tmp/{0} '
                 '--online-backup '
                 '--skip-pulp-content'.format(b1),
                 output_format='plain'
@@ -209,7 +217,7 @@ class RestoreTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             entities.User(login=username2).create()
             result = connection.run(
-                'katello-backup '
+                'katello-backup -y '
                 '--skip-pulp-content '
                 '--online-backup /tmp/{0} '
                 '--incremental /tmp/{1}/*'
