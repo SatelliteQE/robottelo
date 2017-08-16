@@ -110,11 +110,6 @@ Submodules:
 
 .. automodule:: robottelo.cli.hostgroup
 
-:mod:`robottelo.cli.import_`
-----------------------------
-
-.. automodule:: robottelo.cli.import_
-
 :mod:`robottelo.cli.job_invocation`
 -----------------------------------
 
