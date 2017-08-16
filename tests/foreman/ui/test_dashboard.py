@@ -29,6 +29,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
@@ -631,12 +632,22 @@ class DashboardTestCase(UITestCase):
                 set_context(session, org=org.name)
                 self.assertTrue(self.dashboard.validate_chss_navigation(
                     'Invalid', u'subscription_status = invalid'))
-                self.assertIsNotNone(self.dashboard.wait_until_element(
-                    common_locators['kt_search_no_results']))
-                self.assertTrue(self.dashboard.validate_chss_navigation(
-                    'Partial', u'subscription_status = partial'))
-                self.assertIsNotNone(self.dashboard.wait_until_element(
-                    common_locators['kt_search_no_results']))
+                if not bz_bug_is_open(1482150):
+                    self.assertIsNotNone(self.dashboard.wait_until_element(
+                        common_locators['kt_search_no_results']))
+                    self.assertTrue(self.dashboard.validate_chss_navigation(
+                        'Partial', u'subscription_status = partial'))
+                    self.assertIsNotNone(self.dashboard.wait_until_element(
+                        common_locators['kt_search_no_results']))
+                else:
+                    hosts = self.dashboard.find_elements(
+                            self.contenthost._search_locator() % "")
+                    self.assertEqual(len(hosts), 0)
+                    self.assertTrue(self.dashboard.validate_chss_navigation(
+                        'Partial', u'subscription_status = partial'))
+                    hosts = self.dashboard.find_elements(
+                        self.contenthost._search_locator() % "")
+                    self.assertEqual(len(hosts), 0)
                 self.assertTrue(self.dashboard.validate_chss_navigation(
                     'Valid', u'subscription_status = valid', client.hostname))
 
