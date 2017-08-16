@@ -17,7 +17,7 @@
 
 # For ease of use hc refers to host-collection throughout this document
 
-from robottelo.decorators import stubbed, tier3
+from robottelo.decorators import stubbed, tier3, upgrade
 from robottelo.test import APITestCase
 
 
@@ -26,6 +26,7 @@ class ErrataTestCase(APITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_install(self):
         """Install errata in a host-collection
 
@@ -127,6 +128,7 @@ class ErrataTestCase(APITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_filter_by_affected_hosts(self):
         """Filter errata list based on affected content hosts
 
@@ -192,6 +194,7 @@ class ErrataTestCase(APITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_get_count_for_chost(self):
         """Available errata count when retrieving Content host
 
@@ -289,6 +292,7 @@ class ErrataTestCase(APITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_incremental_update_apply_packages_to_envs_cvs(self):
         """Select multiple packages and apply them to multiple content
         views in multiple environments

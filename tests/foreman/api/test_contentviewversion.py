@@ -33,6 +33,7 @@ from robottelo.decorators import (
     stubbed,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
@@ -266,6 +267,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(content_view.read().version), 0)
 
+    @upgrade
     @tier2
     def test_positive_delete_non_default(self):
         """Create content view and publish and promote it to new
@@ -297,6 +299,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(content_view.read().version), 0)
 
+    @upgrade
     @tier2
     def test_positive_delete_composite_version(self):
         """Create composite content view and publish it. After that try to
@@ -753,6 +756,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
             {lce.id for lce in content_view_version.read().environment}
         )
 
+    @upgrade
     @run_only_on('sat')
     @tier2
     def test_positive_delete_cv_promoted_to_multi_env(self):
@@ -878,6 +882,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         @CaseLevel: System
         """
 
+    @upgrade
     @stubbed()
     @run_only_on('sat')
     @tier3
@@ -960,6 +965,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 class ContentViewVersionIncrementalTestCase(APITestCase):
     """Tests for content view version promotion."""
 
+    @upgrade
     @tier2
     def test_positive_incremental_update_puppet(self):
         """Incrementally update a CVV with a puppet module.

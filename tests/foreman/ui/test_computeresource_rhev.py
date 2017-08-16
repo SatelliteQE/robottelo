@@ -13,7 +13,15 @@
 @Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+
+from robottelo.decorators import (
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+    upgrade
+)
 from robottelo.test import UITestCase
 
 
@@ -134,6 +142,7 @@ class RhevComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_delete_rhev(self):
         """Delete a rhev Compute Resource
 
@@ -315,6 +324,7 @@ class RhevComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_rhev_with_custom_compute_settings(self):
         """ Provision a host on rhev compute resource with
          custom disk, cpu count and memory.

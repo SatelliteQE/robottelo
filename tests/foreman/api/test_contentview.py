@@ -40,6 +40,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
@@ -54,6 +55,7 @@ REPEAT = 3
 class ContentViewTestCase(APITestCase):
     """Tests for content views."""
 
+    @upgrade
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_host(self):
@@ -126,6 +128,7 @@ class ContentViewTestCase(APITestCase):
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], lc_env.id)
 
+    @upgrade
     @tier2
     @run_only_on('sat')
     def test_positive_clone_with_diff_env(self):
@@ -629,6 +632,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         )
 
     @tier2
+    @upgrade
     def test_positive_promote_with_yum_multiple(self):
         """Give a content view a yum repo, publish it once and promote
         the content view version ``REPEAT + 1`` times.
@@ -698,6 +702,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(cvv.puppet_module), 1)
 
     @tier2
+    @upgrade
     def test_positive_promote_with_puppet_multiple(self):
         """Give a content view a puppet module, publish it once and
         promote the content view version ``Library + random`` times.
@@ -824,6 +829,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(len(composite_cv.version[0].read().environment), 2)
 
+    @upgrade
     @tier2
     def test_positive_promote_composite_multiple_content_once(self):
         """Create empty composite view and assign random number of
@@ -881,6 +887,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             len(composite_cv.version[0].read().environment),
         )
 
+    @upgrade
     @tier2
     def test_positive_promote_composite_multiple_content_multiple(self):
         """Create empty composite view and assign random number of
@@ -1024,6 +1031,7 @@ class ContentViewDeleteTestCase(APITestCase):
     """Tests for deleting content views."""
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create content view and then delete it.
 
@@ -1176,6 +1184,7 @@ class ContentViewRedHatContent(APITestCase):
         self.assertEqual(
             len(content_view.read().version[0].read().environment), 2)
 
+    @upgrade
     @tier2
     def test_positive_promote_rh_custom_spin(self):
         """Attempt to promote a content view containing Red Hat spin - i.e.,
@@ -1270,6 +1279,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier3
     @stubbed()
+    @upgrade
     def test_positive_subscribe_host_custom_cv(self):
         """Attempt to subscribe hosts to content view(s)
 
@@ -1301,6 +1311,7 @@ class ContentViewTestCaseStub(APITestCase):
         @CaseLevel: Integration
         """
 
+    @upgrade
     @tier2
     @stubbed()
     def test_positive_restart_publish_via_dynflow(self):

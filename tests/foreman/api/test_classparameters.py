@@ -33,6 +33,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
@@ -218,6 +219,7 @@ class SmartClassParametersTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_list_with_non_admin_user(self):
         """List all the parameters for specific puppet class by id.
 

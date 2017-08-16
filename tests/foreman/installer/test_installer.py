@@ -20,7 +20,7 @@ from six.moves import zip
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import get_host_info
 from robottelo.log import LogFile
 from robottelo.test import TestCase
@@ -215,6 +215,7 @@ class SELinuxTestCase(TestCase):
 
     version_regex = re.compile(r'((\d\.?)+[-.]\d)')
 
+    @upgrade
     @tier1
     def test_positive_foreman_module(self):
         """Check if SELinux foreman module has the right version
@@ -239,6 +240,7 @@ class SELinuxTestCase(TestCase):
         rpm_version = rpm_version[:-2]
         self.assertEqual(rpm_version.replace('-', '.'), semodule_version)
 
+    @upgrade
     @tier1
     def test_positive_check_installer_services(self):
         """Check if services start correctly
@@ -358,6 +360,7 @@ def extract_params(lst):
 class InstallerParamsTestCase(TestCase):
     """Checks installer API changes"""
 
+    @upgrade
     @tier1
     def test_installer_options_and_flags(self):
         """Look for changes on installer options and flags
