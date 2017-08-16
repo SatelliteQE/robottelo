@@ -44,6 +44,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier4,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
@@ -161,6 +162,7 @@ class OpenScapTestCase(UITestCase):
                 u'value': u'1',
             }})
 
+    @upgrade
     @run_only_on('sat')
     @tier4
     def test_positive_upload_to_satellite(self):

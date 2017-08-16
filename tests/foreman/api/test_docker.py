@@ -35,6 +35,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.host_info import get_host_os_version
@@ -860,6 +861,7 @@ class DockerContentViewTestCase(APITestCase):
         promote(comp_cvv, lce.id)
         self.assertEqual(len(comp_cvv.read().environment), 2)
 
+    @upgrade
     @tier2
     @run_only_on('sat')
     def test_positive_promote_multiple_with_docker_repo_composite(self):
@@ -1237,6 +1239,7 @@ class DockerContainerTestCase(APITestCase):
                     compute_resource.name,
                 )
 
+    @upgrade
     @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1282431)
@@ -1338,6 +1341,7 @@ class DockerContainerTestCase(APITestCase):
                 ).create()
                 self.assertTrue(container.logs()['logs'])
 
+    @upgrade
     @run_in_one_thread
     @run_only_on('sat')
     @tier2
@@ -1527,6 +1531,7 @@ class DockerRegistryTestCase(APITestCase):
         finally:
             registry.delete()
 
+    @upgrade
     @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
