@@ -254,7 +254,7 @@ class UICSVExportHostsColumns(UITestCase):
             Create Compute resource host
 
         :steps:
-            1. Export CSV page in the UI
+            1. Export Hosts page to CSV
 
         :expectedresults: Verify the compute resource name is in the model column in the exported CSV
 
@@ -268,9 +268,9 @@ class UICSVExportHostsColumns(UITestCase):
         :id: ae283c17-75b8-4933-acbe-af5a6fa5b145
 
         :setup:
-            Populate puppet facts page with entries with last report time
+            Cause host to send report so last report time is populated
         :steps:
-            1. Export CSV page in the UI
+            1. Export Host CSV page in the UI
 
         :expectedresults: verify the lasted reported time is in the correct format in the CSV.
 
@@ -283,7 +283,7 @@ class UICSVExportHostsColumns(UITestCase):
         :id: c4293168-8217-447f-add2-e5ab495f9acd
 
         :setup:
-            Populate puppet facts page with entries with no last report time
+            Populate host page with entries with no last report time
         :steps:
             1. Export CSV page in the UI
 
@@ -436,29 +436,90 @@ class UICSVExportFactsColumns(UITestCase):
 
     def setUp(self):
         pass
-
-    def test_positive_name(self):
-        pass
-
-    def test_positive_value(self):
-        pass
-
-    def test_positive_origin(self):
-        pass
-
-    def test_positive_reported(self):
-        pass
-
-    def test_postive_nested_value(self):
+    def test_positive_host(self):
         """
-        Verify what ever the end result of https://bugzilla.redhat.com/show_bug.cgi?id=1477341 is.
+        :id: 01db2369-afe8-4390-9877-715c2b0e775d
+
+        :setup:
 
         :return:
         """
-        pass
+    def test_positive_name(self):
+        """
+        :id: ce8bca9d-228d-478e-840d-76d31801dd01
+
+        :setup:
+            Populate system facts with all variations of fact names
+
+        :steps:
+            1. Export Facts page
+
+        :expectedresults: Facts name column has all correct values.
+        """
+
+    def test_positive_value(self):
+        """
+        :id: 591a9da2-2c2e-488e-8e13-487053bbf730
+
+        :setup:
+            Populate system facts with multiple variations of fact values
+
+        :steps:
+            1. Export Facts page
+
+        :expectedresults: Facts value column has all correct values.
+        """
+
+    def test_positive_origin(self):
+        """
+        :id: 3637aa16-5eb4-44b8-94b2-7546d8c78161
+
+        :steps:
+            1. populate facts from multiple orgins (Puppet, etc)
+            2. Export facts page
+
+        :expectedresults: Orgin column is correct for all rows.
+        """
+
+    def test_positive_reported(self):
+        """
+        :id: 4367aaa9-4b30-458b-8573-e5dc285b18fb
+
+        :steps:
+            1. Populate facts at multiple times
+            2. export facts page
+
+
+        :expectedresults: Reported time is correct for all values
+        """
+
+
+    @tier1
+    @stubbed
+    def test_postive_nested_value(self):
+        """
+        :id: 558eb900-c39e-4f8a-a816-4b935ca4aa17
+
+        :steps:
+            1. Verify what ever the end result of https://bugzilla.redhat.com/show_bug.cgi?id=1477341 is.
+
+        """
+
 
 class UICSVExportFactsNested(UITestCase):
-    pass
+    @tier1
+    def test_positive_nested_facts(self):
+        """
+        :id: 7732f49c-8d29-4548-a20c-5955cdfa2a14
+
+        :steps:
+            1. Recurse down a nested fact (ex DMI)
+            2. Export CSV for each level
+
+        :expectedresults: Values are in CSV at each level.
+        """
+
+
 
 class UICSVExportConfigMgmtReports(UITestCase):
     pass
