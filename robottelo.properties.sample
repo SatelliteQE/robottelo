@@ -173,6 +173,11 @@ ssh_key=
 # If you have docker deamon running on the server and it is published under a
 # unix socket. This will be used by tests that test local docker daemon.
 # unix_socket=true
+# Name of the libvirt image containing the OS with docker instance set up
+# Each test involving external docker instance will instantiate a new VM
+# requires [clients] section.
+# docker_image=rhel7-docker-base
+#
 # External docker URL in the format http[s]://<server>:<port>. The
 # {server_hostname} variable can be used and will be replaced by
 # server.hostname value.
