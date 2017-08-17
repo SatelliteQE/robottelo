@@ -28,7 +28,7 @@ from robottelo.datafactory import (
     invalid_usernames_list,
     invalid_names_list
 )
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -104,6 +104,7 @@ class UserTestCase(APITestCase):
                 self.assertIsNotNone(user)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create random users and then delete it.
 
@@ -218,6 +219,7 @@ class UserRoleTestCase(APITestCase):
             )
 
     @tier1
+    @upgrade
     def test_positive_update(self):
         """Update an existing user and give it roles.
 
