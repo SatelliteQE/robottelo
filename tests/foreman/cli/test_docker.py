@@ -1538,10 +1538,6 @@ class DockerContainersTestCase(CLITestCase):
             'url': 'http://{0}:2375'.format(self.docker_host.ip_addr),
         })
 
-    @classmethod
-    def tearDownClass(cls):
-        super(DockerContainersTestCase, cls).tearDownClass()
-
     def tearDown(self):
         self.docker_host.destroy()
 
@@ -1752,10 +1748,6 @@ class DockerUnixSocketContainerTestCase(CLITestCase):
             'provider': DOCKER_PROVIDER,
             'url': settings.docker.get_unix_socket_url(),
         })
-
-    @classmethod
-    def tearDownClass(cls):
-        super(DockerUnixSocketContainerTestCase, cls).tearDownClass()
 
     @tier3
     @run_only_on('sat')
