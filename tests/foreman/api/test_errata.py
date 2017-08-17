@@ -515,7 +515,10 @@ class ErrataTestCase(APITestCase):
             host = entities.Host().search(query={
                 'search': 'name={0}'.format(client.hostname)})[0].read()
             for errata in ('security', 'bugfix', 'enhancement'):
-                self._validate_errata_counts(host, errata, 0)
+                if bz_bug_is_open(1482502):
+                    self._validate_errata_counts(host, errata, None)
+                else:
+                    self._validate_errata_counts(host, errata, 0)
             client.run(
                 'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
             self._validate_errata_counts(host, 'security', 1)
