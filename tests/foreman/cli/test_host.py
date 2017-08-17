@@ -2207,7 +2207,7 @@ class HostSubscriptionTestCase(CLITestCase):
             u'lifecycle-environment-id': cls.env['id'],
             u'activationkey-id': cls.activation_key['id'],
             u'subscription': cls.subscription_name,
-        })
+        }, force_use_cdn=True)
         org_subscriptions = Subscription.list(
             {'organization-id': cls.org['id']})
         cls.default_subscription_id = None
@@ -2293,6 +2293,11 @@ class HostSubscriptionTestCase(CLITestCase):
             'organization-id': self.org['id'],
             'content-view-id': self.content_view['id'],
             'lifecycle-environment-id': self.hosts_env['id'],
+        })
+        ActivationKey.update({
+            'organization-id': self.org['id'],
+            'id': activation_key['id'],
+            'auto-attach': 0,
         })
         if add_subscription:
             ActivationKey.add_subscription({
@@ -2455,7 +2460,8 @@ class HostSubscriptionTestCase(CLITestCase):
             'id': activation_key['id'],
             'host-id': host['id'],
         }, output_format='json')
-        self.assertEqual(len(host_subscriptions), 0)
+        self.assertNotIn(self.subscription_name,
+                         [sub['name'] for sub in host_subscriptions])
         self._register_client(activation_key=activation_key)
         Host.subscription_attach({
             'host-id': host['id'],
@@ -2466,9 +2472,8 @@ class HostSubscriptionTestCase(CLITestCase):
             'id': activation_key['id'],
             'host-id': host['id'],
         }, output_format='json')
-        self.assertEqual(len(host_subscriptions), 1)
-        self.assertEqual(
-            host_subscriptions[0]['name'], self.subscription_name)
+        self.assertIn(self.subscription_name,
+                      [sub['name'] for sub in host_subscriptions])
         Host.subscription_remove({
             'host-id': host['id'],
             'subscription-id': self.default_subscription_id
@@ -2478,7 +2483,8 @@ class HostSubscriptionTestCase(CLITestCase):
             'id': activation_key['id'],
             'host-id': host['id'],
         }, output_format='json')
-        self.assertEqual(len(host_subscriptions), 0)
+        self.assertNotIn(self.subscription_name,
+                         [sub['name'] for sub in host_subscriptions])
 
     @tier3
     def test_positive_auto_attach(self):
