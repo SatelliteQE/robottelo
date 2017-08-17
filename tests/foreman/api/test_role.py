@@ -22,7 +22,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import bz_bug_is_open, tier1
+from robottelo.decorators import bz_bug_is_open, tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -47,6 +47,7 @@ class RoleTestCase(APITestCase):
                 self.assertEqual(entities.Role(name=name).create().name, name)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete a role with name ``name_generator()``.
 

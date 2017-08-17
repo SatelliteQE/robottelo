@@ -33,6 +33,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
@@ -162,6 +163,7 @@ class SmartClassParametersTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_list_parameters_by_host_id(self):
         """List all the parameters included in specific Host by its id.
 
@@ -344,6 +346,7 @@ class SmartClassParametersTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_parameter_type(self):
         """Positive Parameter Update for parameter types - Valid Value.
 
@@ -931,6 +934,7 @@ class SmartClassParametersTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_matcher(self):
         """Create matcher for attribute in parameter.
 
@@ -1044,6 +1048,7 @@ class SmartClassParametersTestCase(APITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
@@ -1140,6 +1145,7 @@ class SmartClassParametersTestCase(APITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
@@ -1236,6 +1242,7 @@ class SmartClassParametersTestCase(APITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
