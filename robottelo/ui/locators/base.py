@@ -2284,6 +2284,20 @@ locators = LocatorDict({
     "discoveredhosts.create_host_button": (
         By.XPATH, ("//input[@value='Create host']")),
 
+    # Global Parameters
+    "globalparameters.select": (
+        By.XPATH, ("//tr[contains(@id, 'common_parameter')]"
+                   "/td/a[contains(@data-id, 'aid_common_parameters')"
+                   " and contains(., '%s')]")),
+    "globalparameters.new": (
+        By.XPATH, "//div/a[@data-id='aid_common_parameters_new']"),
+    "globalparameters.name": (
+        By.XPATH, "//div/input[@id='common_parameter_name']"),
+    "globalparameters.value": (
+        By.XPATH, "//div[contains(@class, 'ace_editor')]"),
+    "globalparameters.hidden_value": (
+        By.XPATH, "//div/input[@id='common_parameter_hidden_value']"),
+
     # LDAP Authentication
     "ldapsource.new": (
         By.XPATH, "//a[contains(@href, '/auth_source_ldaps/new')]"),
