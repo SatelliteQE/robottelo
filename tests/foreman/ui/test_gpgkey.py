@@ -786,7 +786,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         :expectedresults: gpg key is associated with product as well as with
             the repositories
 
-        :BZ: 1210180
+        :BZ: 1210180, 1461804
 
         :CaseLevel: Integration
         """
@@ -1103,7 +1103,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         :expectedresults: gpg key is associated with product as well as with
             repository before/after update
 
-        :BZ: 1210180
+        :BZ: 1210180, 1461804
 
         :CaseLevel: Integration
         """
@@ -1447,7 +1447,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             the repositories during creation but removed from product after
             deletion
 
-        :BZ: 1210180
+        :BZ: 1210180, 1461804
 
         :CaseLevel: Integration
         """
@@ -1526,6 +1526,8 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         :expectedresults: gpg key is associated with single repository but not
             with product during creation but removed from repository after
             deletion
+
+        :BZ: 1461804
 
         :CaseLevel: Integration
         """
