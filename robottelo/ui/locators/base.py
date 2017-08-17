@@ -2150,6 +2150,9 @@ locators = LocatorDict({
     "settings.save": (
         By.XPATH,
         "//td[@class='setting_value']//form//button[@type='submit']"),
+    "settings.remove": (
+        By.XPATH,
+        "//div/span[contains(@class, 'editable-clear-x')]"),
 
     # Config Groups
     "config_groups.new": (

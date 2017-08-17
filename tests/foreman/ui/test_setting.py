@@ -579,7 +579,33 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @stubbed()
+    @tier1
+    def test_positive_remove_login_page_footer_text(self):
+        """Remove parameter "Login_page_footer_text" under General tab
+
+        :id: e31544bf-8d78-4452-9ddb-fd4b76544673
+
+        :expectedresults: Parameter should be removed
+
+        :CaseImportance: Critical
+        """
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'login_text'
+        with Session(self) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            edit_param(
+                session,
+                tab_locator=self.tab_locator,
+                param_name=self.param_name,
+                param_value=gen_string('alpha'),
+            )
+            self.settings.remove_parameter(self.tab_locator, self.param_name)
+            self.saved_element = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            self.assertEqual("Empty", self.saved_element)
+
+    @stubbed
     @tier1
     def test_negative_update_login_page_footer_text(self):
         """Attempt to update parameter "Login_page_footer_text"
@@ -1170,7 +1196,6 @@ class SettingTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_remove_hostname_default_prefix(self):
         """Remove the set(default) prefix from hostname_prefix setting
@@ -1183,12 +1208,24 @@ class SettingTestCase(UITestCase):
             2. Click on 'X' sign to remove the text and save
 
         :expectedresults: Default set prefix should be removed
-
-        :caseautomation: notautomated
         """
+        self.tab_locator = tab_locators['settings.tab_discovered']
+        self.param_name = 'discovery_prefix'
+        with Session(self) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            edit_param(
+                session,
+                tab_locator=self.tab_locator,
+                param_name=self.param_name,
+                param_value=gen_string('alpha'),
+            )
+            self.settings.remove_parameter(self.tab_locator, self.param_name)
+            self.saved_element = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            self.assertEqual("Empty", self.saved_element)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_remove_hostname_default_facts(self):
         """Remove the set(default) fact from hostname_facts setting and
@@ -1203,9 +1240,31 @@ class SettingTestCase(UITestCase):
 
         :expectedresults: Default set fact should be removed and a new fact
             should be set
-
-        :caseautomation: notautomated
         """
+        self.tab_locator = tab_locators['settings.tab_discovered']
+        self.param_name = 'discovery_hostname'
+        with Session(self) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            edit_param(
+                session,
+                tab_locator=self.tab_locator,
+                param_name=self.param_name,
+                param_value=gen_string('alpha'),
+            )
+            self.settings.remove_parameter(self.tab_locator, self.param_name)
+            self.saved_element = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            self.assertEqual("Empty", self.saved_element)
+            edit_param(
+                session,
+                tab_locator=self.tab_locator,
+                param_name=self.param_name,
+                param_value="uuid",
+            )
+            self.saved_element = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            self.assertEqual("uuid", self.saved_element)
 
     @run_only_on('sat')
     @stubbed()
