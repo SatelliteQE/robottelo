@@ -20,6 +20,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier4,
+    upgrade
 )
 from robottelo.test import UITestCase
 
@@ -230,6 +231,7 @@ class TailoringFilesTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
+    @upgrade
     @run_only_on('sat')
     @stubbed()
     @tier4

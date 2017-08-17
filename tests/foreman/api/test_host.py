@@ -41,6 +41,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.decorators.func_locker import lock_function
 from robottelo.test import APITestCase
@@ -1292,6 +1293,7 @@ class HostTestCase(APITestCase):
         :CaseLevel: Integration
         """
 
+    @upgrade
     @run_only_on('sat')
     @tier2
     @stubbed
@@ -1659,6 +1661,7 @@ class HostInterfaceTestCase(APITestCase):
         with self.assertNotRaises(HTTPError, expected_value=404):
             primary_interface.read()
 
+    @upgrade
     @tier1
     def test_positive_delete_and_check_host(self):
         """Delete host's interface (not primary) and make sure the host was not

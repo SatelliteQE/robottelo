@@ -33,6 +33,7 @@ from robottelo.decorators import (
     stubbed,
     tier4,
     skip_if_bug_open,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
@@ -61,6 +62,7 @@ class OpenScapTestCase(UITestCase):
         super(OpenScapTestCase, cls).setUpClass()
         cls.config_env = configure_puppet_test()
 
+    @upgrade
     @run_only_on('sat')
     @tier4
     def test_positive_upload_to_satellite(self):
@@ -178,6 +180,7 @@ class OpenScapTestCase(UITestCase):
                     # Satellite6.
                     self.assertTrue(self.oscapreports.search(host))
 
+    @upgrade
     @skip_if_bug_open('bugzilla', 1420439)
     @tier4
     def test_positive_push_updated_content(self):

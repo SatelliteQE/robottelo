@@ -28,6 +28,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
@@ -635,6 +636,7 @@ class VmwareComputeResourceTestCase(UITestCase):
         :CaseLevel: System
         """
 
+    @upgrade
     @run_only_on('sat')
     @stubbed()
     @tier3

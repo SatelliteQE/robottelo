@@ -31,6 +31,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.api.utils import configure_provisioning
 from robottelo.helpers import ProvisioningCheckError
@@ -972,6 +973,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
             with self.assertNotRaises(ProvisioningCheckError):
                 self.compute_resource.host_provisioning_check(host_ip)
 
+    @upgrade
     @skip_if_bug_open('bugzilla', 1467925)
     @skip_if_bug_open('bugzilla', 1467828)
     @run_only_on('sat')
