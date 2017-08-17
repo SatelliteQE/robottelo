@@ -1219,29 +1219,23 @@ class DockerContainerTestCase(APITestCase):
         super(DockerContainerTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         """Instantiate and setup a docker host VM + compute resource"""
         docker_image = settings.docker.docker_image
-        cls.docker_host = VirtualMachine(
+        self.docker_host = VirtualMachine(
             source_image=docker_image,
             tag=u'docker'
         )
-        cls.docker_host.create()
-        cls.docker_host.install_katello_ca()
-        cls.compute_resource = entities.DockerComputeResource(
+        self.docker_host.create()
+        self.docker_host.install_katello_ca()
+        self.compute_resource = entities.DockerComputeResource(
             name=gen_string('alpha'),
-            organization=[cls.org],
-            url='http://{0}:2375'.format(cls.docker_host.ip_addr),
+            organization=[self.org],
+            url='http://{0}:2375'.format(self.docker_host.ip_addr),
         ).create()
 
-    @classmethod
-    def tearDownClass(cls):
-        """Remove katello-ca certificate"""
-        super(DockerContainerTestCase, cls).tearDownClass()
-
-    def tearDown(cls):
-        cls.docker_host.destroy()
+    def tearDown(self):
+        self.docker_host.destroy()
 
     @tier2
     @run_only_on('sat')
@@ -1439,11 +1433,6 @@ class DockerUnixSocketContainerTestCase(APITestCase):
             organization=[cls.org],
             url=settings.docker.get_unix_socket_url(),
         ).create()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Remove katello-ca certificate"""
-        super(DockerUnixSocketContainerTestCase, cls).tearDownClass()
 
     @tier2
     @run_only_on('sat')
