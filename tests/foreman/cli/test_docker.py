@@ -1517,36 +1517,33 @@ class DockerContainersTestCase(CLITestCase):
     @skip_if_not_set('docker')
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        '''super(DockerContainersTestCase, cls).setUpClass()
+        super(DockerContainersTestCase, cls).setUpClass()
         cls.org = make_org()
-        '''
 
-    @classmethod
-    def setUp(cls):
+    def setUp(self):
         """Instantiate and setup a docker host VM + compute resource"""
-        cls.logger.info(u'Creating an external docker host')
+        self.logger.info(u'Creating an external docker host')
         docker_image = settings.docker.docker_image
-        cls.docker_host = VirtualMachine(
+        self.docker_host = VirtualMachine(
             source_image=docker_image,
             tag=u'docker'
         )
-        cls.docker_host.create()
-        cls.logger.info(u'Installing katello-ca on the external docker host')
-        cls.docker_host.install_katello_ca()
-        cls.logger.info(u'Adding the external docker host as a docker CR')
-        cls.comp_resource = make_compute_resource({
-            'organization-ids': [cls.org['id']],
+        self.docker_host.create()
+        self.logger.info(u'Installing katello-ca on the external docker host')
+        self.docker_host.install_katello_ca()
+        self.logger.info(u'Adding the external docker host as a docker CR')
+        self.comp_resource = make_compute_resource({
+            'organization-ids': [self.org['id']],
             'provider': DOCKER_PROVIDER,
-            'url': 'http://{0}:2375'.format(cls.docker_host.ip_addr),
+            'url': 'http://{0}:2375'.format(self.docker_host.ip_addr),
         })
 
     @classmethod
     def tearDownClass(cls):
         super(DockerContainersTestCase, cls).tearDownClass()
 
-    @classmethod
-    def tearDown(cls):
-        cls.docker_host.destroy()
+    def tearDown(self):
+        self.docker_host.destroy()
 
     @tier3
     @run_only_on('sat')
