@@ -1468,10 +1468,6 @@ class DockerUnixSocketContainerTestCase(UITestCase):
             url=settings.docker.get_unix_socket_url(),
         ).create()
 
-    @classmethod
-    def tearDownClass(cls):
-        super(DockerUnixSocketContainerTestCase, cls).tearDownClass()
-
     @run_only_on('sat')
     @tier2
     def test_positive_create_with_compresource(self):
