@@ -18,7 +18,13 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, tier1, tier2, tier3
+from robottelo.decorators import (
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+    upgrade
+)
 from robottelo.test import APITestCase
 from robozilla.decorators import skip_if_bug_open
 
@@ -288,6 +294,7 @@ class ParameterizedSubnetTestCase(APITestCase):
     @stubbed
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
+    @upgrade
     def test_positive_delete_subnet_overridden_parameter_host_impact(self):
         """Deleting parameter from subnet component doesnt deletes its
         overridden parameter in host inheriting that subnet

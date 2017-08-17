@@ -22,7 +22,14 @@ http://theforeman.org/api/apidoc/v2/roles.html
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import bz_bug_is_open, stubbed, tier1, tier2, tier3
+from robottelo.decorators import (
+    bz_bug_is_open,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+    upgrade
+)
 from robottelo.test import APITestCase
 
 
@@ -49,6 +56,7 @@ class RoleTestCase(APITestCase):
                 self.assertEqual(entities.Role(name=name).create().name, name)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete a role with name ``name_generator()``.
 
@@ -188,6 +196,7 @@ class CannedRoleTestCases(APITestCase):
 
     @stubbed
     @tier1
+    @upgrade
     def test_positive_create_overridable_filter(self):
         """Create overridable filter in role
 
@@ -599,6 +608,7 @@ class CannedRoleTestCases(APITestCase):
 
     @stubbed
     @tier3
+    @upgrade
     def test_positive_user_group_users_access_as_org_admin(self):
         """Users in usergroup can have access to the resources in taxonomies if
         the taxonomies of Org Admin role is same

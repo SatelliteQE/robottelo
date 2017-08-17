@@ -29,7 +29,12 @@ from robottelo.datafactory import (
     invalid_usernames_list,
     invalid_names_list
 )
-from robottelo.decorators import stubbed, tier1, tier2
+from robottelo.decorators import (
+    stubbed,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.test import APITestCase
 
 
@@ -130,6 +135,7 @@ class UserTestCase(APITestCase):
                 self.assertIsNotNone(user)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create random users and then delete it.
 
@@ -345,6 +351,7 @@ class UserRoleTestCase(APITestCase):
             )
 
     @tier1
+    @upgrade
     def test_positive_update(self):
         """Update an existing user and give it roles.
 
@@ -447,6 +454,7 @@ class SshKeyInUserTestCase(APITestCase):
 
     @stubbed
     @tier1
+    @upgrade
     def test_positive_create_multiple_ssh_key_types(self):
         """Multiple types of ssh keys can be added to user
 
@@ -463,6 +471,7 @@ class SshKeyInUserTestCase(APITestCase):
 
     @stubbed
     @tier1
+    @upgrade
     def test_positive_delete_ssh_key(self):
         """Satellite Admin can delete ssh key from user
 
@@ -481,6 +490,7 @@ class SshKeyInUserTestCase(APITestCase):
 
     @stubbed
     @tier2
+    @upgrade
     def test_positive_ssh_key_in_host_enc(self):
         """SSH key appears in host ENC output
 
