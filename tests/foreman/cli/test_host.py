@@ -66,6 +66,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE_NAME,
     FAKE_0_ERRATA_ID,
     FAKE_1_ERRATA_ID,
     FAKE_0_YUM_REPO,
@@ -1951,27 +1952,29 @@ class KatelloAgentTestCase(CLITestCase):
             `yum update --security` command on client
 
         :CaseLevel: System
+
+        :BZ: 1420671
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
-            FAKE_1_CUSTOM_PACKAGE
+            FAKE_2_CUSTOM_PACKAGE
         )
-        # check the system is up to date
+        # Check the system is up to date
         result = self.client.run(
             'yum update --security | grep "No packages needed for security"'
         )
         self.assertEqual(result.return_code, 0)
-        # downgrade walrus package
+        # Downgrade walrus package
         self.client.run('yum downgrade -y {0}'.format(
-            FAKE_1_CUSTOM_PACKAGE_NAME))
-        # apply sea erratum that is security advisory
-        Host.errata_apply({
-            u'errata-ids': FAKE_1_ERRATA_ID,
-            u'host-id': self.host['id'],
-        })
-        # check the erratum becomes available
+            FAKE_2_CUSTOM_PACKAGE_NAME))
+        # Check that host has applicable errata
+        host_errata = Host.errata_list({u'host-id': self.host['id']})
+        self.assertEqual(host_errata[0]['erratum-id'], FAKE_1_ERRATA_ID)
+        self.assertEqual(host_errata[0]['installable'], 'true')
+        # Check the erratum becomes available
         result = self.client.run(
-            'yum update --security | grep "No packages needed for security"'
+            'yum update --assumeno --security '
+            '| grep "No packages needed for security"'
         )
         self.assertEqual(result.return_code, 1)
 
