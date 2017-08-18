@@ -13,7 +13,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from robottelo.decorators import run_only_on, stubbed, tier1
 from robottelo.test import TestCase, APITestCase
 
 
@@ -27,7 +27,9 @@ class VirtWhoConfigAPI(APITestCase):
         :id: 701b22b8-fe92-4dd3-8d7d-c7b5efb7281b
 
         :steps:
-            1. Create new VM in a supported hypervisor and check if it is reported to Satellite (waiting until the next virt-who report comes in)
+            1. Create new VM in a supported hypervisor
+            2. Wait until the next virt-who report comes in.
+            3. Verify the VM is reported to satellite
 
 
         """
@@ -36,14 +38,14 @@ class VirtWhoConfigAPI(APITestCase):
     @stubbed()
     @tier1
     def test_negative_vm_create(self):
-        """ Register a vm on non-virt-who hyper visor
+        """ Register a vm on non-virt-who hypervisor
 
         :id: abecc851-2475-4455-9c12-63a73fcb09bb
 
         :steps:
-            1. Check if there are no virt-who reports reported if there is no change in guest-host mapping in hypervisor
+            1. Verify there are no virt-who reports reported if there is no 
+                change in guest-host mapping in hypervisor
 
-        :return:
         """
 
     @run_only_on('sat')
@@ -67,15 +69,14 @@ class VirtWhoConfigAPI(APITestCase):
         :id: 7e1bb498-4e63-44e8-be97-83e07601f56d
 
         :steps:
-            1. Create a virt-who configuration with a reporting interval of every 1 hour.
-            2. Verify a Virt-who configuration is created that sets the interval to 1 hour
+            1. Create a virt-who configuration set reporting interval to 1 hour.
+            2. Verify a Virt-who configuration are the interval is 1 hour.
             3. Verify a report is sent every hour
             4. Repeat for each supported interval.
         """
 
 
 class VirtWhoConfigRoleApiTests(APITestCase):
-
 
     @run_only_on('sat')
     @stubbed()
@@ -89,7 +90,7 @@ class VirtWhoConfigRoleApiTests(APITestCase):
             2. Verify the user can create virt-who configurations
             3. Verify the user can edit an existing virt-who configuration
             4. Verify the user can delete a virt-who configuration
-            5. Verify the user can see virt-who reporting information through the dashboard
+            5. Verify the user can see reporting info via the dashboard widget.
             6. Verify the user can do no other actions
         """
 
@@ -115,10 +116,10 @@ class VirtWhoConfigRoleApiTests(APITestCase):
         :id: 63462338-a6f5-48eb-8b04-433c53882817
 
         :steps:
-            a. Create a user with ONLY the virt-who reporter role.
-            b. Configure virt-who WITHOUT using the virt-who config plugin. Set the Satellite the created user.
-            c. Create a vm to cause virt-who to send a report to satellite.
-            d. Verify the virt-who server send a report to the satellite.
+            1. Create a user with ONLY the virt-who reporter role.
+            2. Configure virt-who with the user, WITHOUT using the virt-who config plugin.
+            3. Create a vm to cause virt-who to send a report to satellite.
+            4. Verify the virt-who server send a report to the satellite.
         """
 
     @run_only_on('sat')
@@ -129,7 +130,7 @@ class VirtWhoConfigRoleApiTests(APITestCase):
             :id: 7dee0965-9ec4-4d76-a6ae-f2eec1960bac
 
             :steps:
-                e. Verify the user can do no other actions other then those in test_positive_role_reporter
+                1. Verify the user can do no other actions other then those in test_positive_role_reporter
 
         :return:
         """
