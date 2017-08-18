@@ -560,7 +560,7 @@ class ErrataTestCase(APITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        }, force_manifest_upload=True)
+        }, force_use_cdn=True)
         setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': org.id,
