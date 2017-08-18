@@ -43,7 +43,7 @@ class UICSVExportHosts(UITestCase):
             1. Populate page with >20 (or max# per-page) items. For example 30
             2. Press export CSV button
 
-        :expectedresult: Exported CSV will have all rows (30)
+        :expectedresults: Exported CSV will have all rows (30)
 
         """
 
@@ -322,7 +322,7 @@ class UICSVExportFacts(UITestCase):
 
             2. Press export CSV button
 
-        :expectedresult: Exported CSV will have all rows (30)
+        :expectedresults: Exported CSV will have all rows (30)
 
         """
 
@@ -548,7 +548,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
             1. Populate page with >20 (or max# per-page) items. For example 30
             2. Press export CSV button
 
-        :expectedresult: Exported CSV will have all rows (30)
+        :expectedresults: Exported CSV will have all rows (30)
 
         """
 
