@@ -184,10 +184,10 @@ class ContentHost(Base):
                 environment_name
             )
         self.assign_value(
-            common_locators['kt_table_search'],
+            common_locators['kt_search'],
             'id = "{0}"'.format(errata_id),
         )
-        self.click(common_locators['kt_table_search_button'])
+        self.click(common_locators['kt_search_button'])
         return self.wait_until_element(
             locators['contenthost.errata_select'] % errata_id)
 
