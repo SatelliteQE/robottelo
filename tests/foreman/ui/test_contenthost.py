@@ -16,8 +16,8 @@
 :Upstream: No
 """
 from six.moves.urllib.parse import urljoin
-
 from nailgun import entities
+
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
@@ -84,7 +84,7 @@ class ContentHostTestCase(UITestCase):
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
-        })
+        }, force_manifest_upload=True)
         setup_org_for_a_custom_repo({
             'url': FAKE_6_YUM_REPO,
             'organization-id': cls.session_org.id,
@@ -107,7 +107,6 @@ class ContentHostTestCase(UITestCase):
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
 
-    @skip_if_bug_open('bugzilla', 1478090)
     @tier3
     def test_positive_search_by_subscription_status(self):
         """Register host into the system and search for it afterwards by
@@ -119,7 +118,7 @@ class ContentHostTestCase(UITestCase):
             subscription status and that host is not present in the list for
             invalid status
 
-        :BZ: 1406855, 1478090
+        :BZ: 1406855
 
         :CaseLevel: System
         """
