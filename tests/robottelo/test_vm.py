@@ -78,7 +78,8 @@ class VirtualMachineTestCase(unittest2.TestCase):
             vm.create()
 
         vm.run('ls')
-        ssh_command.assert_called_once_with('ls', hostname='192.168.0.1')
+        ssh_command.assert_called_once_with(
+            'ls', hostname='192.168.0.1', timeout=None)
 
     def test_run_raises_exception(self):
         """Check if run raises an exception if the vm is not created"""

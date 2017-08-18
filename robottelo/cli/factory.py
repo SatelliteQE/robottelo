@@ -3439,7 +3439,7 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
         if '--scenario foreman-proxy-content' in satellite_installer_cmd:
             satellite_installer_cmd = satellite_installer_cmd.replace(
                  '--scenario foreman-proxy-content', '--scenario capsule')
-    result = capsule_vm.run(satellite_installer_cmd)
+    result = capsule_vm.run(satellite_installer_cmd, timeout=1500)
     if result.return_code != 0:
         # before exit download the capsule log file
         _, log_path = mkstemp(prefix='capsule_external-', suffix='.log')

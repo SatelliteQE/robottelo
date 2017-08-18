@@ -380,10 +380,11 @@ class VirtualMachine(object):
         """
         return self.run(u'subscription-manager unregister')
 
-    def run(self, cmd):
+    def run(self, cmd, timeout=None):
         """Runs a ssh command on the virtual machine
 
         :param str cmd: Command to run on the virtual machine
+        :param int timeout: Time to wait for the ssh command to finish
         :return: A :class:`robottelo.ssh.SSHCommandResult` instance with
             the commands results
         :rtype: robottelo.ssh.SSHCommandResult
@@ -397,7 +398,7 @@ class VirtualMachine(object):
                 'command'
             )
 
-        return ssh.command(cmd, hostname=self.ip_addr)
+        return ssh.command(cmd, hostname=self.ip_addr, timeout=timeout)
 
     def get(self, remote_path, local_path=None):
         """Get a remote file from the virtual machine."""

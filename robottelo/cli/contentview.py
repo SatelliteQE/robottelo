@@ -113,7 +113,7 @@ class ContentView(Base):
             cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def publish(cls, options, timeout=None):
+    def publish(cls, options, timeout=1500):
         """Publishes a new version of content-view."""
         cls.command_sub = 'publish'
         return cls.execute(
@@ -172,12 +172,13 @@ class ContentView(Base):
             cls._construct_command(options), output_format='csv')
 
     @classmethod
-    def version_promote(cls, options):
+    def version_promote(cls, options, timeout=600):
         """Promotes content-view version to next env."""
         cls.command_sub = 'version promote'
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,
+            timeout=timeout
         )
 
     @classmethod
