@@ -2510,6 +2510,12 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False,
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(
                     u'Failed to upload manifest\n{0}'.format(err.msg))
+            # attach the default subscription to activation key
+            activationkey_add_subscription_to_repo({
+                'activationkey-id': result[u'activationkey-id'],
+                'organization-id': result[u'organization-id'],
+                'subscription': DEFAULT_SUBSCRIPTION_NAME,
+            })
         return result
 
 

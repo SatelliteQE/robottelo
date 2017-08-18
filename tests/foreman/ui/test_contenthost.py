@@ -17,8 +17,8 @@
 """
 import re
 from six.moves.urllib.parse import urljoin
-
 from nailgun import entities
+
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
@@ -85,9 +85,9 @@ class ContentHostTestCase(UITestCase):
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
-        })
-        cls.entities = setup_org_for_a_custom_repo({
-            'url': FAKE_0_YUM_REPO,
+        }, force_manifest_upload=True)
+        setup_org_for_a_custom_repo({
+            'url': FAKE_6_YUM_REPO,
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
