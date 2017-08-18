@@ -13,7 +13,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from robottelo.decorators import  stubbed, tier1
 from robottelo.test import UITestCase
 
 
@@ -27,10 +27,10 @@ class UICSVExportHosts(UITestCase):
         :id: be5e2b2d-3a93-4803-8c6e-d81a97c5a1a5
 
         :steps:
-            1. Populate page with <20  items.
+            1. Populate host page with <20  items.
             2. Press export CSV button
 
-        :expectedresult: Exported CSV will have all rows
+        :expectedresults: Exported CSV will have all rows
         """
 
     @stubbed
@@ -304,9 +304,11 @@ class UICSVExportFacts(UITestCase):
         """
         :id: 87229ff1-f80a-43a3-ad66-eab16eb7786d
 
-        :setup:
-            1.
-        :return:
+        :steps:
+            1. Populate facts page with <20  items.
+            2. Press export CSV button
+
+        :expectedresults: Exported CSV will have all rows
         """
 
     @tier1
