@@ -3,6 +3,8 @@
 
 :Requirement: tailoringfiles
 
+:CaseAutomation: Automated
+
 :CaseLevel: Acceptance
 
 :CaseComponent: UI
@@ -13,7 +15,10 @@
 
 :Upstream: No
 """
-
+from fauxfactory import gen_string
+from nailgun import entities
+from robottelo.config import settings
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_only_on,
     stubbed,
@@ -22,14 +27,26 @@ from robottelo.decorators import (
     tier4,
     upgrade
 )
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
+from robottelo.ui.factory import make_oscap_tailoringfile
+from robottelo.ui.session import Session
 
 
 class TailoringFilesTestCase(UITestCase):
     """Implements Tailoring Files tests in UI."""
 
+    @classmethod
+    def setUpClass(cls):
+        super(TailoringFilesTestCase, cls).setUpClass()
+        file_path = settings.oscap.tailoring_path
+        cls.tailoring_path = get_data_file(file_path)
+        loc = entities.Location(name=gen_string('alpha')).create()
+        cls.loc_name = loc.name
+        org = entities.Organization(name=gen_string('alpha')).create()
+        cls.org_name = org.name
+
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create(self):
         """Create new Tailoring Files using different values types as name
@@ -44,12 +61,22 @@ class TailoringFilesTestCase(UITestCase):
             2. Upload a valid tailoring file
             3. Give it a valid name
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring file will be added to satellite
 
         :CaseImportance: Critical
         """
+        with Session(self) as session:
+            for tailoringfile_name in valid_data_list():
+                with self.subTest(tailoringfile_name):
+                    make_oscap_tailoringfile(
+                        session,
+                        name=tailoringfile_name,
+                        tailoring_path=self.tailoring_path,
+                        tailoring_loc=self.loc_name,
+                        tailoring_org=self.org_name,
+                    )
+                    self.assertIsNotNone(
+                        self.oscaptailoringfile.search(tailoringfile_name))
 
     @run_only_on('sat')
     @stubbed()
@@ -87,7 +114,7 @@ class TailoringFilesTestCase(UITestCase):
         :steps:
 
             1. Navigate to Tailoring files menu
-            2. With valid name ,upload a valid tailoring file
+            2. With valid name, upload a valid tailoring file
 
         :CaseAutomation: notautomated
 
