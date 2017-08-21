@@ -67,8 +67,8 @@ class SyncPlanTestCase(UITestCase):
         """Check whether corresponding content is present in repository before
         or after synchronization is performed
 
-        :param product: Name of product, repo of which to validate
-        :param repo: Name of repository to be validated
+        :param product: product entity, repo of which to validate
+        :param repo: repository entity to be validated
         :param content_types: List of repository content entities that should
             be validated (e.g. packages, errata, package_groups)
         :param bool after_sync: Specify whether you perform validation before
@@ -77,8 +77,8 @@ class SyncPlanTestCase(UITestCase):
             presence. Delay between each attempt is 10 seconds. Default is 10
             attempts.
         """
-        self.products.search_and_click(product)
-        self.repository.search_and_click(repo)
+        self.products.search_and_click(product.read().name)
+        self.repository.search_and_click(repo.read().name)
         for _ in range(max_attempts):
             try:
                 for content in content_types:
@@ -92,8 +92,12 @@ class SyncPlanTestCase(UITestCase):
             except AssertionError:
                 sleep(30)
         else:
-            raise AssertionError(
-                'Repository contains invalid number of content entities')
+            repo = repo.read()
+            self.assertNotEqual(
+                repo.last_sync,
+                None,
+                'Repository contains invalid number of content entities'
+            )
 
     def get_client_datetime(self, browser):
         """Make Javascript call inside of browser session to get exact current
@@ -503,8 +507,8 @@ class SyncPlanTestCase(UITestCase):
                 plan_name, add_products=[product.name])
             with self.assertRaises(AssertionError):
                 self.validate_repo_content(
-                    product.name,
-                    repo.name,
+                    product,
+                    repo,
                     ['errata', 'package_groups', 'packages'],
                     max_attempts=5,
                 )
@@ -545,18 +549,22 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[product.name])
             # Verify product has not been synced yet
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was not synced'.format(delay/4, product.name))
             sleep(delay/4)
             self.validate_repo_content(
-                product.name, repo.name,
+                product, repo,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
             # Wait until the next recurrence
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was synced'.format(delay, product.name))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
-                product.name,
-                repo.name,
+                product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
             )
 
@@ -588,28 +596,32 @@ class SyncPlanTestCase(UITestCase):
             )
             # Verify product is not synced and doesn't have any content
             self.validate_repo_content(
-                product.name,
-                repo.name,
+                product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
             # Associate sync plan with product
             self.syncplan.update(plan_name, add_products=[product.name])
             # Wait half of expected time
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was not synced'.format(delay/2, product.name))
             sleep(delay / 2)
             # Verify product has not been synced yet
             self.validate_repo_content(
-                product.name,
-                repo.name,
+                product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
             # Wait the rest of expected time
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was synced'.format(delay/2, product.name))
             sleep(delay/2)
             # Verify product was synced successfully
             self.validate_repo_content(
-                product.name,
-                repo.name,
+                product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
             )
 
@@ -649,8 +661,8 @@ class SyncPlanTestCase(UITestCase):
             #  Verify products have not been synced yet
             for repo in repos:
                 self.validate_repo_content(
-                    repo.product.read().name,
-                    repo.name,
+                    repo.product,
+                    repo,
                     ['errata', 'package_groups', 'packages'],
                     after_sync=False,
                 )
@@ -659,22 +671,26 @@ class SyncPlanTestCase(UITestCase):
                 plan_name, add_products=[product.name for product in products])
             # Wait third part of expected time, because it will take a while to
             # verify each product and repository
+            self.logger.info('Waiting {0} seconds to check \
+                products were not synced'.format(delay/3))
             sleep(delay / 3)
             # Verify products has not been synced yet
             for repo in repos:
                 self.validate_repo_content(
-                    repo.product.read().name,
-                    repo.name,
+                    repo.product,
+                    repo,
                     ['errata', 'package_groups', 'packages'],
                     after_sync=False,
                 )
             # Wait the rest of expected time
+            self.logger.info('Waiting {0} seconds to check \
+                products were synced'.format(delay*2/3))
             sleep(delay * 2 / 3)
             # Verify product was synced successfully
             for repo in repos:
                 self.validate_repo_content(
-                    repo.product.read().name,
-                    repo.name,
+                    repo.product,
+                    repo,
                     ['errata', 'package_groups', 'packages'],
                 )
 
@@ -727,19 +743,23 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[PRDS['rhel']])
             # Verify product has not been synced yet
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was not synced'.format(delay/4, PRDS['rhel']))
             sleep(delay/4)
             self.validate_repo_content(
-                PRDS['rhel'],
-                repo.name,
+                repo.product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
             # Wait until the first recurrence
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was synced'.format(delay, PRDS['rhel']))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
-                PRDS['rhel'],
-                repo.name,
+                repo.product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
             )
 
@@ -788,20 +808,24 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[PRDS['rhel']])
             # Wait half of expected time
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was not synced'.format(delay/2, PRDS['rhel']))
             sleep(delay / 2)
             # Verify product has not been synced yet
             self.validate_repo_content(
-                PRDS['rhel'],
-                repo.name,
+                repo.product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
             # Wait the rest of expected time
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was synced'.format(delay/2, PRDS['rhel']))
             sleep(delay / 2)
             # Verify product was synced successfully
             self.validate_repo_content(
-                PRDS['rhel'],
-                repo.name,
+                repo.product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
             )
 
@@ -838,18 +862,22 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[product.name])
             # Verify product has not been synced yet
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was not synced'.format(delay/4, product.name))
             sleep(delay/4)
             self.validate_repo_content(
-                product.name, repo.name,
+                product, repo,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
             # Wait until the next recurrence
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was synced'.format(delay, product.name))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
-                product.name,
-                repo.name,
+                product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
             )
 
@@ -889,17 +917,21 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[product.name])
             # Verify product has not been synced yet
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was not synced'.format(delay/4, product.name))
             sleep(delay/4)
             self.validate_repo_content(
-                product.name, repo.name,
+                product, repo,
                 ['errata', 'package_groups', 'packages'],
                 after_sync=False,
             )
             # Wait until the next recurrence
+            self.logger.info('Waiting {0} seconds to check \
+                product {1} was synced'.format(delay, product.name))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
-                product.name,
-                repo.name,
+                product,
+                repo,
                 ['errata', 'package_groups', 'packages'],
             )
