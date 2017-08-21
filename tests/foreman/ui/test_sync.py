@@ -111,7 +111,7 @@ class SyncTestCase(UITestCase):
             # syn.sync_rh_repos returns boolean values and not objects
             self.assertTrue(sync)
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_sync_disconnected_to_connected_rh_repos(self):
         """Migrating from disconnected to connected satellite.

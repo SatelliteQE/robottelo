@@ -384,7 +384,7 @@ class UserRoleTestCase(APITestCase):
 class SshKeyInUserTestCase(APITestCase):
     """Implements the SSH Key in User Tests"""
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_ssh_key(self):
         """SSH Key can be added to User
@@ -401,7 +401,7 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_ssh_key_super_admin(self):
         """SSH Key can be added to Super Admin user
@@ -413,7 +413,7 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_ssh_key(self):
         """Invalid ssh key can not be added in User Template
@@ -434,7 +434,7 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_invalid_length_ssh_key(self):
         """Attempt to add SSH key that has invalid length
@@ -452,7 +452,7 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     @upgrade
     def test_positive_create_multiple_ssh_key_types(self):
@@ -469,7 +469,7 @@ class SshKeyInUserTestCase(APITestCase):
             user
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     @upgrade
     def test_positive_delete_ssh_key(self):
@@ -488,7 +488,7 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     @upgrade
     def test_positive_ssh_key_in_host_enc(self):
@@ -508,7 +508,7 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_list_users_ssh_key(self):
         """Satellite lists users ssh keys
@@ -526,7 +526,7 @@ class SshKeyInUserTestCase(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_info_users_ssh_key(self):
         """Satellite returns info of user ssh key

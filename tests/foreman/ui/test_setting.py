@@ -579,7 +579,7 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_login_page_footer_text(self):
         """Attempt to update parameter "Login_page_footer_text"
@@ -996,7 +996,7 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_settings_access_to_non_admin(self):
         """Check non admin users can't access Administer -> Settings tab
@@ -1015,7 +1015,7 @@ class SettingTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_email_delivery_method_smtp(self):
         """Updating SMTP params on Email tab
@@ -1045,7 +1045,7 @@ class SettingTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_email_delivery_method_smtp(self):
         """Updating SMTP params on Email tab fail
@@ -1073,7 +1073,7 @@ class SettingTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_email_delivery_method_sendmail(self):
         """Updating Sendmail params on Email tab
@@ -1098,7 +1098,7 @@ class SettingTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_email_delivery_method_sendmail(self):
         """Updating Sendmail params on Email tab fail
@@ -1123,7 +1123,7 @@ class SettingTestCase(UITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_email_yaml_config_precedence(self):
         """Check configuration file /etc/foreman/email.yaml takes precedence

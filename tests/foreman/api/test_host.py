@@ -1277,7 +1277,7 @@ class HostTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_add_future_subscription(self):
         """Attempt to add a future-dated subscription to a content host.
 
@@ -1296,7 +1296,7 @@ class HostTestCase(APITestCase):
     @upgrade
     @run_only_on('sat')
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_add_future_subscription_with_ak(self):
         """Register a content host with an activation key that has a
         future-dated subscription.
@@ -1316,7 +1316,7 @@ class HostTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier2
-    @stubbed
+    @stubbed()
     def test_negative_auto_attach_future_subscription(self):
         """Run auto-attach on a content host, with a current and future-dated
         subscription.
@@ -1335,7 +1335,7 @@ class HostTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_create_baremetal_with_bios(self):
         """Create a new Host from provided MAC address
@@ -1356,7 +1356,7 @@ class HostTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_create_baremetal_with_uefi(self):
         """Create a new Host from provided MAC address
@@ -1377,7 +1377,7 @@ class HostTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub_uefi(self):
         """Provision a new Host and verify the tftp and dhcpd file
@@ -1409,7 +1409,7 @@ class HostTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub_uefi_secureboot(self):
         """Provision a new Host and verify the tftp and dhcpd file structure is
@@ -1441,7 +1441,7 @@ class HostTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub2_uefi(self):
         """Provision a new UEFI Host and verify the tftp and dhcpd file
@@ -1473,7 +1473,7 @@ class HostTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_verify_files_with_pxegrub2_uefi_secureboot(self):
         """Provision a new UEFI Host and verify the tftp and dhcpd file

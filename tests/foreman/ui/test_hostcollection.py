@@ -680,7 +680,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_add_subscription(self):
         """Try to add a subscription to a host collection
 
@@ -697,7 +697,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_remove_subscription(self):
         """Try to remove a subscription from a host collection
 

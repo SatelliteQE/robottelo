@@ -100,7 +100,7 @@ class RoleTestCase(APITestCase):
 class CannedRoleTestCases(APITestCase):
     """Implements Canned Roles tests from API"""
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_role_with_taxonomies(self):
         """create role with taxonomies
@@ -116,7 +116,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_role_without_taxonomies(self):
         """Create role without taxonomies
@@ -132,7 +132,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_filter_without_override(self):
         """Create filter in role w/o overriding it
@@ -155,7 +155,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_non_overridable_filter(self):
         """Create non overridable filter in role
@@ -176,7 +176,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_override_non_overridable_filter(self):
         """Override non overridable filter
@@ -194,7 +194,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     @upgrade
     def test_positive_create_overridable_filter(self):
@@ -219,7 +219,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_role_taxonomies(self):
         """Update role taxonomies which applies to its non-overrided filters
@@ -236,7 +236,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_role_taxonomies(self):
         """Update role taxonomies which doesnt applies to its overrided filters
@@ -254,7 +254,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_disable_filter_override(self):
         """Unsetting override flag resets filter taxonomies
@@ -277,7 +277,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_org_admin_from_clone(self):
         """Create Org Admin role which has access to most of the resources
@@ -293,7 +293,7 @@ class CannedRoleTestCases(APITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_cloned_role_with_taxonomies(self):
         """Taxonomies can be assigned to cloned role
@@ -313,7 +313,7 @@ class CannedRoleTestCases(APITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_access_entities_from_org_admin(self):
         """User can access resources within its taxonomies if assigned role
@@ -334,7 +334,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_negative_access_entities_from_org_admin(self):
         """User can not access resources in taxonomies assigned to role if
@@ -356,7 +356,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_negative_access_entities_from_user(self):
         """User can not access resources within its own taxonomies if assigned
@@ -378,7 +378,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_override_cloned_role_filter(self):
         """Cloned role filter overrides
@@ -398,7 +398,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_emptiness_of_filter_taxonomies_on_role_clone(self):
         """Taxonomies of filters in cloned role are set to None for filters that
@@ -424,7 +424,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_override_empty_filter_taxonomies_in_cloned_role(self):
         """Taxonomies of filters in cloned role can be overridden for filters that
@@ -447,7 +447,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_clone_role_having_overridden_filter_with_taxonomies(self):# noqa
         """When taxonomies assigned to cloned role, Unlimited and Override flag
@@ -470,7 +470,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_clone_role_having_non_overridden_filter_with_taxonomies(self):# noqa
         """When taxonomies assigned to cloned role, Neither unlimited nor
@@ -493,7 +493,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_clone_role_having_unlimited_filter_with_taxonomies(self):
         """When taxonomies assigned to cloned role, Neither unlimited nor
@@ -515,7 +515,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_clone_role_having_overridden_filter_without_taxonomies(self):# noqa
         """When taxonomies not assigned to cloned role, Unlimited and override
@@ -537,7 +537,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_clone_role_without_taxonomies_non_overided_filter(self):
         """When taxonomies not assigned to cloned role, only unlimited but not
@@ -561,7 +561,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_clone_role_without_taxonomies_unlimited_filter(self):
         """When taxonomies not assigned to cloned role, Unlimited and override
@@ -584,7 +584,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_force_unlimited(self):
         """Unlimited flag forced sets to filter when no taxonomies are set to role
@@ -606,7 +606,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     @upgrade
     def test_positive_user_group_users_access_as_org_admin(self):
@@ -629,7 +629,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_user_group_users_access_contradict_as_org_admins(self):
         """Users in usergroup can/cannot have access to the resources in
@@ -657,7 +657,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_assign_org_admin_to_user_group(self):
         """Users in usergroup can access to the resources in taxonomies if
@@ -679,7 +679,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_negative_assign_org_admin_to_user_group(self):
         """Users in usergroup can not have access to the resources in
@@ -701,7 +701,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_assign_taxonomies_by_org_admin(self):
         """Org Admin doesn't have permissions to assign org/loc to any of
@@ -725,7 +725,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_remove_org_admin_role(self):
         """Super Admin user can remove Org Admin role
@@ -742,7 +742,7 @@ class CannedRoleTestCases(APITestCase):
         :expectedresults: Super Admin should be able to remove Org Admin role
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_taxonomies_control_to_superadmin_with_org_admin(self):
         """Super Admin can access entities in taxonomies assigned to Org Admin
@@ -762,7 +762,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_taxonomies_control_to_superadmin_without_org_admin(self):
         """Super Admin can access entities in taxonomies assigned to Org Admin
@@ -784,7 +784,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_roles_by_org_admin(self):
         """Org Admin has no permissions to create new roles
@@ -802,7 +802,7 @@ class CannedRoleTestCases(APITestCase):
             new role
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_modify_roles_by_org_admin(self):
         """Org Admin has no permissions to modify existing roles
@@ -820,7 +820,7 @@ class CannedRoleTestCases(APITestCase):
             existing roles
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_admin_permissions_to_org_admin(self):
         """Org Admin has no access to Super Admin user
@@ -839,7 +839,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_create_user_by_org_admin(self):
         """Org Admin can create new users
@@ -862,7 +862,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_access_users_inside_org_admin_taxonomies(self):
         """Org Admin can access users inside its taxonomies
@@ -885,7 +885,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_access_users_outside_org_admin_taxonomies(self):
         """Org Admin can not access users outside its taxonomies
@@ -908,7 +908,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_taxonomies_by_org_admin(self):
         """Org Admin cannot define/create organizations and locations
@@ -925,7 +925,7 @@ class CannedRoleTestCases(APITestCase):
         :expectedresults: Org Admin should not have access to create taxonomies
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_access_all_global_entities_by_org_admin(self):
         """Org Admin can access all global entities in any taxonomies
@@ -946,7 +946,7 @@ class CannedRoleTestCases(APITestCase):
             entities in any taxonomies
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_access_entities_from_ldap_org_admin(self):
         """LDAP User can access resources within its taxonomies if assigned
@@ -967,7 +967,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_negative_access_entities_from_ldap_org_admin(self):
         """LDAP User can not access resources in taxonomies assigned to role if
@@ -989,7 +989,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_negative_access_entities_from_ldap_user(self):
         """LDAP User can not access resources within its own taxonomies if
@@ -1011,7 +1011,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can access to the resources in taxonomies if
@@ -1034,7 +1034,7 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_negative_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can not have access to the resources in

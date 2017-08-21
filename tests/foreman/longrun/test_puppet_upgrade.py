@@ -37,7 +37,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         cls.sat6_hostname = settings.server.hostname
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_puppet_upgrade(self):
         """Upgrade Satellite/client puppet versions
@@ -64,7 +64,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_puppet_capsule_upgrade(self):
         """Upgrade standalone Capsule/client puppet versions
@@ -91,7 +91,7 @@ class PuppetUpgradeTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_puppet_capsule_rolling_upgrade(self):
         """Upgrade by moving clients from old to new Capsule

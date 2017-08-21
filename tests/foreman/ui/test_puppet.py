@@ -37,7 +37,7 @@ class PuppetTestCase(UITestCase):
         cls.sat6_hostname = settings.server.hostname
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_puppet_scenario(self):
         """Tests extensive all-in-one puppet scenario
@@ -84,7 +84,7 @@ class PuppetCapsuleTestCase(UITestCase):
         cls.sat6_hostname = settings.server.hostname
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_puppet_capsule_scenario(self):
         """Tests extensive all-in-one puppet scenario via Capsule

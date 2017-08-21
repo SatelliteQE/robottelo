@@ -832,7 +832,7 @@ class HostCreateTestCase(CLITestCase):
         )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_create_with_incompatible_pxe_loader(self):
         """Try to create host with a known OS and incompatible PXE loader
@@ -1635,7 +1635,7 @@ class HostProvisionTestCase(CLITestCase):
     """Provisioning-related tests"""
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_bios_syslinux(self):
         """Provision RHEL system on a new BIOS BM Host with SYSLINUX loader
@@ -1673,7 +1673,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_uefi_syslinux(self):
         """Provision RHEL system on a new UEFI BM Host with SYSLINUX loader
@@ -1711,7 +1711,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_uefi_grub(self):
         """Provision a RHEL system on a new UEFI BM Host with GRUB loader from
@@ -1752,7 +1752,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_uefi_grub2(self):
         """Provision a RHEL7+ system on a new UEFI BM Host with GRUB2 loader
@@ -1794,7 +1794,7 @@ class HostProvisionTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_provision_baremetal_with_uefi_secureboot(self):
         """Provision RHEL7+ on a new SecureBoot-enabled UEFI BM Host from

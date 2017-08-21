@@ -561,7 +561,7 @@ class HostCollectionTestCase(CLITestCase):
             self.assertEqual(len(listed_hosts), number)
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_add_subscription(self):
         """Try to add a subscription to a host collection
 
@@ -578,7 +578,7 @@ class HostCollectionTestCase(CLITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_remove_subscription(self):
         """Try to remove a subscription from a host collection
 

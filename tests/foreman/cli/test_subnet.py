@@ -393,7 +393,7 @@ class SubnetTestCase(CLITestCase):
 class ParameterizedSubnetTestCase(CLITestCase):
     """Implements parametrized subnet tests in CLI"""
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier2
     def test_positive_set_parameter_option_presence(self):
@@ -410,7 +410,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             be present
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_positive_create_with_parameter(self):
@@ -426,7 +426,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :expectedresults: The parameter should be created in subnet
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_positive_create_with_parameter_and_multiple_values(self):
@@ -444,7 +444,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             in subnet
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_positive_create_with_parameter_and_multiple_names(self):
@@ -463,7 +463,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             separators should be saved in subnet
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_negative_create_with_parameter_and_invalid_separator(self):
@@ -482,7 +482,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             invalid separators should not be saved in subnet
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_positive_create_with_multiple_parameters(self):
@@ -499,7 +499,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             having unique key names
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_negative_create_with_duplicated_parameters(self):
@@ -517,7 +517,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             duplicate names
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
@@ -537,7 +537,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             host parameters
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
@@ -559,7 +559,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             in host parameters
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
@@ -584,7 +584,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
                 and not global parameters
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier2
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
@@ -604,7 +604,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             should not change actual value in subnet parameter
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_positive_update_parameter(self):
@@ -621,7 +621,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :expectedresults: The parameter name and value should be updated
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_negative_update_parameter(self):
@@ -638,7 +638,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :expectedresults: The parameter should not be updated with invalid name
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
@@ -658,7 +658,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
             value from subnet parameters
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_positive_delete_subnet_parameter(self):
@@ -674,7 +674,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :expectedresults: The parameter should be deleted from subnet
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
     def test_positive_delete_multiple_parameters(self):
@@ -690,7 +690,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :expectedresults: Multiple parameters should be deleted from subnet
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
@@ -710,7 +710,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
         :expectedresults: The parameter should be deleted from host
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier2
     def test_positive_delete_subnet_parameter_overrided_host_impact(self):

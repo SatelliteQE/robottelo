@@ -32,7 +32,7 @@ BCK_MSG = "Hostname change complete!"
 class RenameHostTestCase(TestCase):
     """Implements ``katello-change-hostname`` tests"""
 
-    @stubbed
+    @stubbed()
     def test_positive_rename_satellite(self):
         """run katello-change-hostname on Satellite server
 
@@ -81,7 +81,7 @@ class RenameHostTestCase(TestCase):
         # with get_connection(hostname=hostname) as connection:
         # ...
 
-    @stubbed
+    @stubbed()
     def test_positive_rename_capsule(self):
         """run katello-change-hostname on Capsule
 
