@@ -1335,7 +1335,7 @@ class ActiveDirectoryUserTestCase(UITestCase):
 class SshKeyInUserTestCase(UITestCase):
     """Implements the SSH Key in User Tests"""
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_postitive_ssh_key_tab_presence(self):
         """SSH keys tab presence in User details page
@@ -1351,7 +1351,7 @@ class SshKeyInUserTestCase(UITestCase):
         :expectedresults: New user details page should have a tab of SSH Keys
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_postitive_ssh_key_tab_presence_Super_Admin(self):
         """SSH keys tab presence in Super Admin details page
@@ -1368,7 +1368,7 @@ class SshKeyInUserTestCase(UITestCase):
             SSH Keys
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     @skip_if_bug_open('bugzilla', 1465389)
     def test_positive_create_ssh_key(self):
@@ -1386,7 +1386,7 @@ class SshKeyInUserTestCase(UITestCase):
         :expectedresults: New user should be added with SSH key
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_ssh_key_super_admin(self):
         """SSH Key can be added to Super Admin user details page
@@ -1403,7 +1403,7 @@ class SshKeyInUserTestCase(UITestCase):
         :expectedresults: Super Admin should be saved with SSH key
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     @skip_if_bug_open('bugzilla', 1465389)
     def test_positive_create_multiple_ssh_keys(self):
@@ -1421,7 +1421,7 @@ class SshKeyInUserTestCase(UITestCase):
         :expectedresults: New user should be added with multiple SSH keys
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_multiple_ssh_keys_super_admin(self):
         """Multiple SSH Keys can be added to Super admin user details page
@@ -1438,7 +1438,7 @@ class SshKeyInUserTestCase(UITestCase):
         :expectedresults: Super Admin should be saved with multiple SSH keys
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_ssh_key(self):
         """Invalid ssh key can not be added in User details page
@@ -1456,7 +1456,7 @@ class SshKeyInUserTestCase(UITestCase):
             page
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_invalid_ssh_key(self):
         """"Invalid SSH key can not be added to user and corresponding error
@@ -1478,7 +1478,7 @@ class SshKeyInUserTestCase(UITestCase):
                 error notification
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_too_long_length_ssh_key(self):
         """SSH key with too long length can not be added to user and
@@ -1500,7 +1500,7 @@ class SshKeyInUserTestCase(UITestCase):
                 error notification
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_ssh_key_to_pxe_discovered_host(self):
         """Satellite automatically adds SSH key of user to the provisioned host
@@ -1546,7 +1546,7 @@ class SshKeyInUserTestCase(UITestCase):
                 host
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_ssh_key_to_pxeless_provisioned_host(self):
         """Satellite automatically adds SSH key of user to the PXELess
@@ -1588,7 +1588,7 @@ class SshKeyInUserTestCase(UITestCase):
             2. Satellite should automatically add SSH key to provisioned host
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_ssh_key_to_pxeless_discovered_host(self):
         """Satellite automatically adds SSH key of user to the provisioned
@@ -1633,7 +1633,7 @@ class SshKeyInUserTestCase(UITestCase):
             2. Satellite should automatically add SSH key to provisioned host
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_ssh_key_in_network_based_provisioned_host(self):
         """Satellite automatically adds SSH key of user onto the host
@@ -1671,7 +1671,7 @@ class SshKeyInUserTestCase(UITestCase):
             2. Satellite should automatically add SSH key to provisioned host
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_ssh_key_in_image_based_provisioned_host(self):
         """Satellite automatically adds SSH key of user onto the host
@@ -1710,7 +1710,7 @@ class SshKeyInUserTestCase(UITestCase):
             2. Satellite should automatically add SSH key to provisioned host
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_negative_invalid_ssh_key_access_to_provisioned_host(self):
         """ Satellite user cannot password-less access with invalid ssh key
@@ -1730,7 +1730,7 @@ class SshKeyInUserTestCase(UITestCase):
             provisioned host having wrong non matching publc key
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_multiple_key_types_access_to_provisioned_host(self):
         """ Satellite automatically adds supported multiple type of SSH key of
@@ -1754,7 +1754,7 @@ class SshKeyInUserTestCase(UITestCase):
                 to provisioned host
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_delete_ssh_key(self):
         """Satellite Admin can delete ssh key from user

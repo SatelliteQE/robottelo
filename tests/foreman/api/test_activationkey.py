@@ -523,7 +523,7 @@ class ActivationKeyTestCase(APITestCase):
     @upgrade
     @skip_if_not_set('fake_manifest')
     @tier2
-    @stubbed
+    @stubbed()
     def test_positive_add_future_subscriptiont(self):
         """Add a future-dated subscription to an activation key.
 

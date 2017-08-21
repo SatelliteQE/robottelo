@@ -5175,7 +5175,7 @@ class ContentViewTestCase(UITestCase):
         # Note: This test case requires complete external capsule
         #  configuration.
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_addition(self):
         """Check a File Repository with Arbitrary File can be added to a

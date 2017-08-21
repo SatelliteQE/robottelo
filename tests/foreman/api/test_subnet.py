@@ -32,7 +32,7 @@ from robozilla.decorators import skip_if_bug_open
 class ParameterizedSubnetTestCase(APITestCase):
     """Implements parametrized subnet tests in API"""
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_add_parameter(self):
         """Parameters can be created in subnet
@@ -47,7 +47,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The parameter should be created in subnet
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_add_parameter_with_multiple_values(self):
         """Subnet parameters can be created with multiple values
@@ -64,7 +64,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             in subnet
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_with_parameter_and_valid_separator(self):
         """Subnet parameters can be created with multiple names with valid
@@ -82,7 +82,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             separators should be saved in subnet
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_with_parameter_and_invalid_separator(self):
         """Subnet parameters can not be created with multiple names with
@@ -103,7 +103,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. An error for invalid name should be thrown.
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_create_with_duplicated_parameters(self):
         """Attempt to create multiple parameters with same key name for the
@@ -123,7 +123,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. An error for duplicate parameter should be thrown
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_positive_inherit_subnet_parmeters_in_host(self):
@@ -148,7 +148,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_subnet_parameters_override_from_host(self):
@@ -172,7 +172,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
         """Override subnet parameter from host impact on subnet parameter
@@ -192,7 +192,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_parameter(self):
         """Subnet parameter can be updated
@@ -208,7 +208,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The parameter name and value should be updated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_parameter(self):
         """Subnet parameter can not be updated with invalid names
@@ -227,7 +227,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             2. An error for invalid name should be thrown
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_update_subnet_parameter_host_impact(self):
@@ -252,7 +252,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_delete_subnet_parameter(self):
         """Subnet parameter can be deleted
@@ -267,7 +267,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         :expectedresults: The parameter should be deleted from subnet
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     def test_positive_delete_subnet_parameter_host_impact(self):
@@ -291,7 +291,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
     @tier2
     @upgrade
@@ -318,7 +318,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_list_parameters(self):
         """Satellite lists all the subnet parameters
@@ -335,7 +335,7 @@ class ParameterizedSubnetTestCase(APITestCase):
             parameters
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_positive_subnet_parameter_priority(self):
@@ -362,7 +362,7 @@ class ParameterizedSubnetTestCase(APITestCase):
         CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
     def test_negative_component_overrides_subnet_parameter(self):

@@ -325,7 +325,7 @@ class ContentHostTestCase(UITestCase):
             self.assertEqual(self.browser.current_url, host_url)
 
     @tier3
-    @stubbed
+    @stubbed()
     def test_positive_bulk_add_subscriptions(self):
         """Add a subscription to more than one content host, using bulk actions.
 
@@ -346,7 +346,7 @@ class ContentHostTestCase(UITestCase):
         """
 
     @tier3
-    @stubbed
+    @stubbed()
     def test_positive_bulk_remove_subscriptions(self):
         """Remove a subscription to more than one content host, using bulk
         actions.

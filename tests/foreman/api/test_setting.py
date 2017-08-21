@@ -22,7 +22,7 @@ from robottelo.test import APITestCase
 class SettingTestCase(APITestCase):
     """Implements tests for Settings for API"""
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_login_page_footer_text(self):
         """Updates parameter "login_text" in settings
@@ -34,7 +34,7 @@ class SettingTestCase(APITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_login_page_footer_text_without_value(self):
         """Updates parameter "login_text" without any string (empty value)
@@ -46,7 +46,7 @@ class SettingTestCase(APITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_login_page_footer_text(self):
         """Attempt to update parameter "Login_page_footer_text"

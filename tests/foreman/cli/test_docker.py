@@ -1308,7 +1308,7 @@ class DockerClientTestCase(CLITestCase):
                 hostname=self.docker_host.ip_addr
             )
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @skip_if_not_set('docker')
     @tier3

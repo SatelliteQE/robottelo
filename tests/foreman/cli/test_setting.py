@@ -87,7 +87,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_login_page_footer_text(self):
         """Updates parameter "login_text" in settings
@@ -104,7 +104,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_login_page_footer_text_without_value(self):
         """Updates parameter "login_text" without any string (empty value)
@@ -121,7 +121,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_login_page_footer_text(self):
         """Attempt to update parameter "Login_page_footer_text"
@@ -139,7 +139,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_email_delivery_method_smtp(self):
         """Check Updating SMTP params through settings subcommand
@@ -165,7 +165,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_email_delivery_method_sendmail(self):
         """Check Updating Sendmail params through settings subcommand
@@ -185,7 +185,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_email_reply_address(self):
         """Check email reply address is updated
@@ -197,7 +197,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_email_reply_address(self):
         """Check email reply address is not updated
@@ -211,7 +211,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_email_subject_prefix(self):
         """Check email subject prefix is updated
@@ -223,7 +223,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_email_subject_prefix(self):
         """Check email subject prefix not
@@ -237,7 +237,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_update_send_welcome_email(self):
         """Check email send welcome email is updated
@@ -251,7 +251,7 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_update_send_welcome_email(self):
         """Check email send welcome email is updated

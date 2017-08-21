@@ -380,7 +380,7 @@ class HostTestCase(UITestCase):
     """Implements Host tests in UI"""
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_create_baremetal_with_bios(self):
         """Create a new Host AR from provided MAC address
@@ -401,7 +401,7 @@ class HostTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_create_baremetal_with_uefi(self):
         """Create a new Host AR from provided MAC address
@@ -422,7 +422,7 @@ class HostTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_create_with_incompatible_pxe_loader(self):
         """Try to create host with a known OS and incompatible PXE loader

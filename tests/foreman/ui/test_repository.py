@@ -582,7 +582,7 @@ class RepositoryTestCase(UITestCase):
                     self.repository.delete(repo_name)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_delete_puppet_repo_associated_with_cv(self):
         """Delete a puppet repo associated with a content view - BZ#1271000
@@ -2171,7 +2171,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 class FileRepositoryTestCase(UITestCase):
     """Implements File Repo tests in UI"""
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_create_with_name(self):
         """Check File Repository creation
@@ -2193,7 +2193,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_upload_file(self):
         """Check arbitrary file can be uploaded to File Repository
@@ -2216,7 +2216,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_upload_large_file(self):
         """Check large file can be handled by File Repository
@@ -2240,7 +2240,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_upload_0_byte_file(self):
         """Check 0 byte file can be handled by File Repository
@@ -2264,7 +2264,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_filer_permissions(self):
         """Check file permissions after file upload to File Repository
@@ -2287,7 +2287,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_remove_file(self):
         """Check arbitrary file can be removed from File Repository
@@ -2314,7 +2314,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
@@ -2341,7 +2341,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
@@ -2367,7 +2367,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_symlink_sync(self):
         """Check symlinks are synced to File Repository
@@ -2394,7 +2394,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_hidden_files_sync(self):
         """Check hidden files are synced accordingly to pulp manifest
@@ -2422,7 +2422,7 @@ class FileRepositoryTestCase(UITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_hidden_files_sync(self):
         """Check hidden files aren't synced accordingly to pulp manifest

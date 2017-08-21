@@ -277,7 +277,7 @@ class DiscoveredTestCase(CLITestCase):
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_pxeless_uefi_grub(self):
@@ -314,7 +314,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_pxeless_uefi_grub2(self):
@@ -351,7 +351,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_pxeless_uefi_grub2_secureboot(self):
@@ -475,7 +475,7 @@ class DiscoveredTestCase(CLITestCase):
             with self.assertRaises(CLIReturnCodeError):
                 DiscoveredHost.info({'id': discovered_host['id']})
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub(self):
@@ -523,7 +523,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2(self):
@@ -572,7 +572,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_pxe_host_with_uefi_grub2_sb(self):

@@ -1821,7 +1821,7 @@ class ContentViewFileRepoTestCase(APITestCase):
     """Specific tests for Content Views with File Repositories containing
     arbitrary files
     """
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_addition(self):
         """Check a File Repository with Arbitrary File can be added to a
@@ -1844,7 +1844,7 @@ class ContentViewFileRepoTestCase(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_removal(self):
         """Check a File Repository with Arbitrary File can be removed from a
@@ -1868,7 +1868,7 @@ class ContentViewFileRepoTestCase(APITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_arbitrary_file_sync_over_capsule(self):
         """Check a File Repository with Arbitrary File can be added to a
@@ -1894,7 +1894,7 @@ class ContentViewFileRepoTestCase(APITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     @upgrade
     def test_positive_arbitrary_file_repo_promotion(self):

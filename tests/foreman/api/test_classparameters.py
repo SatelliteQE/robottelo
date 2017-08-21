@@ -479,7 +479,7 @@ class SmartClassParametersTestCase(APITestCase):
                 )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_negative_validate_puppet_default_value(self):
         """Validation doesn't work on puppet default value.

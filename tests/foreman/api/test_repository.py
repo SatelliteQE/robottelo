@@ -1586,7 +1586,7 @@ class DRPMRepositoryTestCase(APITestCase):
 
 class FileRepositoryTestCase(APITestCase):
     """Specific tests for File Repositories"""
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_upload_file_to_file_repo(self):
         """Check arbitrary file can be uploaded to File Repository
@@ -1602,7 +1602,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_file_permissions(self):
         """Check file permissions after file upload to File Repository
@@ -1620,7 +1620,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_remove_file(self):
         """Check arbitrary file can be removed from File Repository
@@ -1639,7 +1639,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
@@ -1662,7 +1662,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_local_directory_sync(self):
         """Check an entire local directory can be synced to File Repository
@@ -1684,7 +1684,7 @@ class FileRepositoryTestCase(APITestCase):
         :CaseAutomation: notautomated
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_symlinks_sync(self):
         """Check synlinks can be synced to File Repository

@@ -2918,7 +2918,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_restart_dynflow_promote(self):
         """attempt to restart a failed content view promotion
 
@@ -2936,7 +2936,7 @@ class ContentViewTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_restart_dynflow_publish(self):
         """attempt to restart a failed content view publish
 
@@ -4478,7 +4478,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
     """Specific tests for Content Views with File Repositories containing
     arbitrary files
     """
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_addition(self):
         """Check a File Repository with Arbitrary File can be added to a
@@ -4501,7 +4501,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_removal(self):
         """Check a File Repository with Arbitrary File can be removed from a
@@ -4525,7 +4525,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: Integration
         """
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_arbitrary_file_sync_over_capsule(self):
         """Check a File Repository with Arbitrary File can be added to a
@@ -4551,7 +4551,7 @@ class ContentViewFileRepoTestCase(CLITestCase):
         :CaseLevel: System
         """
 
-    @stubbed
+    @stubbed()
     @tier2
     def test_positive_arbitrary_file_repo_promotion(self):
         """Check arbitrary files availability on Environment after Content
