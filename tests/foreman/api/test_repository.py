@@ -60,7 +60,8 @@ from robottelo.decorators import (
     tier1,
     tier2,
     stubbed,
-    tier4
+    tier4,
+    upgrade
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
@@ -173,6 +174,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.url, url_encoded)
 
     @tier1
+    @upgrade
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
@@ -954,6 +956,7 @@ class RepositoryTestCase(APITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1328092)
     @tier2
+    @upgrade
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
@@ -1067,6 +1070,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
 
@@ -1090,6 +1094,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
 
@@ -1331,6 +1336,7 @@ class OstreeRepositoryTestCase(APITestCase):
         self.assertEqual(new_url, repo.url)
 
     @tier1
+    @upgrade
     def test_positive_delete_ostree(self):
         """Delete an ostree repository.
 
@@ -1353,6 +1359,7 @@ class OstreeRepositoryTestCase(APITestCase):
     @tier2
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
+    @upgrade
     def test_positive_sync_rh_atomic(self):
         """Sync RH Atomic Ostree Repository.
 
@@ -1444,6 +1451,7 @@ class SRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @upgrade
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1548,6 +1556,7 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @upgrade
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1622,6 +1631,7 @@ class FileRepositoryTestCase(APITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_remove_file(self):
         """Check arbitrary file can be removed from File Repository
 
@@ -1641,6 +1651,7 @@ class FileRepositoryTestCase(APITestCase):
 
     @stubbed()
     @tier4
+    @upgrade
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
         through http

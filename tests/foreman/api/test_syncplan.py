@@ -40,7 +40,8 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
-    tier4
+    tier4,
+    upgrade
 )
 from robottelo.test import APITestCase
 from time import sleep
@@ -524,6 +525,7 @@ class SyncPlanProductTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_remove_products(self):
         """Create a sync plan with two products and then remove both
         products from it.
@@ -727,6 +729,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             repo, ['erratum', 'package', 'package_group'])
 
     @tier4
+    @upgrade
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -842,6 +845,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
     @run_in_one_thread
     @tier4
+    @upgrade
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -1035,6 +1039,7 @@ class SyncPlanDeleteTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_synced_product(self):
         """Create a sync plan with one synced product and delete it.
 
