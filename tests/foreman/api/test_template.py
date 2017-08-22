@@ -22,7 +22,7 @@ from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import skip_if_bug_open, tier1, tier2, upgrade
 from robottelo.test import APITestCase
 
 
@@ -149,6 +149,7 @@ class ConfigTemplateTestCase(APITestCase):
                 self.assertNotEqual(c_temp.name, new_name)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create configuration template and then delete it.
 
