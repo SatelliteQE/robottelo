@@ -23,7 +23,9 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from robottelo.decorators import (
+    run_only_on, stubbed, tier1, tier2, tier3, upgrade
+)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_subnet
@@ -178,6 +180,7 @@ class SubnetTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete an existing subnet
 
@@ -400,6 +403,7 @@ class ParameterizedSubnetTestCase(UITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_with_multiple_parameters(self):
         """Subnet with more than one parameters
 
@@ -480,6 +484,7 @@ class ParameterizedSubnetTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_subnet_parameters_override_from_host(self):
         """Subnet parameters values can be overriden from host
 
@@ -602,6 +607,7 @@ class ParameterizedSubnetTestCase(UITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_delete_multiple_parameters(self):
         """Multiple subnet parameters can be deleted at once
 
@@ -645,6 +651,7 @@ class ParameterizedSubnetTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_delete_subnet_parameter_overrided_host_impact(self):
         """Deleting parameter from subnet component doesnt deletes its
             overridden parameter in host inheriting that subnet

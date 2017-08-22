@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import valid_names_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.ui.factory import make_global_parameter
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
@@ -109,6 +109,7 @@ class GlobalParametersTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create Global Parameter with valid values then delete it.
 

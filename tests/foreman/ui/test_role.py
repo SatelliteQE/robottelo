@@ -21,7 +21,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import ROLES
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import stubbed, tier1, tier2, tier3
+from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_domain, make_role, make_user, set_context
 from robottelo.ui.locators import common_locators, menu_locators, tab_locators
@@ -229,6 +229,7 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(element)
 
     @tier1
+    @upgrade
     def test_positive_delete_cloned_builtin(self):
         """Delete cloned builtin role
 
@@ -435,6 +436,7 @@ class CannedRoleTestCases(UITestCase):
                 menu_locators['menu.configure'], timeout=3))
 
     @tier2
+    @upgrade
     def test_positive_create_non_overridable_filter(self):
         """Create non overridden filter in role
 
@@ -495,6 +497,7 @@ class CannedRoleTestCases(UITestCase):
             self.architecture.update(old_name='x86_64', new_name='x86_64')
 
     @tier2
+    @upgrade
     def test_positive_create_overridable_filter(self):
         """Create overridden filter in role
 
@@ -691,6 +694,7 @@ class CannedRoleTestCases(UITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_cloned_role_with_taxonomies(self):
         """Taxonomies can be assigned to cloned role
 
@@ -1012,6 +1016,7 @@ class CannedRoleTestCases(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_user_group_users_access_as_org_admin(self):
         """Users in usergroup can have access to the resources in taxonomies if
         the taxonomies of Org Admin role is same
@@ -1433,6 +1438,7 @@ class CannedRoleTestCases(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can access to the resources in taxonomies if
         the taxonomies of Org Admin role are same

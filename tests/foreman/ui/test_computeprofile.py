@@ -17,7 +17,7 @@
 
 from fauxfactory import gen_string
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_compute_profile
 from robottelo.ui.locators import common_locators
@@ -101,6 +101,7 @@ class ComputeProfileTestCase(UITestCase):
                         common_locators['name_haserror']))
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete Compute Profile entity
 

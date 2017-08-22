@@ -35,6 +35,7 @@ from robottelo.decorators import (
     run_only_on,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_smart_variable
@@ -210,6 +211,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_with_host(self):
         """Creates a Smart Variable and associate it with host.
 
@@ -283,6 +285,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete(self):
         """Deletes a Smart Variable from Smart Variables Menu.
 
@@ -420,6 +423,7 @@ class SmartVariablesTestCase(UITestCase):
     @run_only_on('sat')
     @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
+    @upgrade
     def test_positive_update_type(self):
         """Update Smart Variable with valid default value for all variable
         types
@@ -545,6 +549,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_default_value_with_regex(self):
         """Create Smart Variable that has default value that match regexp from
         validator rule
@@ -687,6 +692,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_default_value_with_list(self):
         """Creates Smart Variable that has default value that is in the list
         from validator rule
@@ -755,6 +761,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_matcher_value_with_list(self):
         """Create Smart Variable that has matcher value that is in the list
         from validator rule
@@ -983,6 +990,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
@@ -1085,6 +1093,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
@@ -1141,6 +1150,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_negative_create_matcher_merge_override(self):
         """Attempt to merge the values from non associated matchers.
 
@@ -1197,6 +1207,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
@@ -1315,6 +1326,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 

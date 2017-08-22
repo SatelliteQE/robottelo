@@ -18,7 +18,7 @@
 
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -58,6 +58,7 @@ class PuppetClassTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create new puppet-class and then delete it
 

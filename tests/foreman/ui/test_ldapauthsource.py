@@ -18,7 +18,8 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import skip_if_not_set, stubbed, tier1, tier2
+from robottelo.decorators import (
+    skip_if_not_set, stubbed, tier1, tier2, upgrade)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_ldapauth
 from robottelo.ui.session import Session
@@ -111,6 +112,7 @@ class LDAPAuthSourceTestCase(UITestCase):
                     self.ldapauthsource.delete(server_name)
 
     @tier2
+    @upgrade
     def test_positive_create_withad_org_and_loc(self):
         """Create LDAP auth_source for AD with org and loc assigned.
 

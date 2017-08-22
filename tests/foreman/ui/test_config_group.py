@@ -21,7 +21,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_config_groups
 from robottelo.ui.locators import common_locators
@@ -93,6 +93,7 @@ class ConfigGroupTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete selected config-groups
 

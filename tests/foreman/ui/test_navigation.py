@@ -16,7 +16,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import skip_if_bug_open, tier1
+from robottelo.decorators import skip_if_bug_open, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, menu_locators
 from robottelo.ui.session import Session
@@ -75,6 +75,7 @@ class NavigationTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1426382)
     @tier1
+    @upgrade
     def test_positive_navigate(self):
         """Navigate through application pages
 
