@@ -28,6 +28,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -106,6 +107,7 @@ class DomainTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete a domain
 
@@ -120,6 +122,7 @@ class DomainTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update(self):
         """Update a domain with name and description
 

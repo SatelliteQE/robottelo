@@ -44,6 +44,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     skip_if_not_set,
     tier3,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators, tab_locators
@@ -207,6 +208,7 @@ class ContentHostTestCase(UITestCase):
                 self.client.hostname, FAKE_2_CUSTOM_PACKAGE))
 
     @tier3
+    @upgrade
     def test_positive_install_package_group(self):
         """Install a package group to a host remotely
 
@@ -255,6 +257,7 @@ class ContentHostTestCase(UITestCase):
                     self.client.hostname, package))
 
     @tier3
+    @upgrade
     def test_positive_install_errata(self):
         """Install a errata to a host remotely
 
@@ -328,6 +331,7 @@ class ContentHostTestCase(UITestCase):
             self.assertEqual(self.browser.current_url, host_url)
 
     @tier3
+    @upgrade
     def test_positive_attached_subscription_link(self):
         """Check that the attached subscriptions link on subscriptions tab
         points to the subscription details page

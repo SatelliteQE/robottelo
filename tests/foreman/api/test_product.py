@@ -28,7 +28,13 @@ from robottelo.constants import (
     VALID_GPG_KEY_FILE,
 )
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
@@ -208,6 +214,7 @@ class ProductTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_update_gpg(self):
         """Create a product and update its GPGKey
 
@@ -320,6 +327,7 @@ class ProductTestCase(APITestCase):
         self.assertGreaterEqual(rpm_repo.read().content_counts['rpm'], 1)
 
     @tier2
+    @upgrade
     def test_positive_sync_several_repos(self):
         """Sync product (all repositories within a product)
 

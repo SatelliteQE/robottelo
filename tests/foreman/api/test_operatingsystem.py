@@ -26,7 +26,13 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.test import APITestCase
 from six.moves.http_client import NOT_FOUND
 
@@ -34,8 +40,9 @@ from six.moves.http_client import NOT_FOUND
 class OperatingSystemParameterTestCase(APITestCase):
     """Tests for operating system parameters."""
 
-    @tier1
     @run_only_on('sat')
+    @tier1
+    @upgrade
     def test_verify_bugzilla_1114640(self):
         """Create a parameter for operating system 1.
 
@@ -471,8 +478,9 @@ class OperatingSystemTestCase(APITestCase):
             id=os.id, family=new_os_family).update(['family'])
         self.assertEqual(os.family, new_os_family)
 
-    @tier2
     @run_only_on('sat')
+    @tier2
+    @upgrade
     def test_positive_update_arch(self):
         """Create an operating system that points at an architecture and
         then update it to point to another architecture
@@ -540,8 +548,9 @@ class OperatingSystemTestCase(APITestCase):
         self.assertEqual(len(os.medium), 1)
         self.assertEqual(os.medium[0].id, media_2.id)
 
-    @tier2
     @run_only_on('sat')
+    @tier2
+    @upgrade
     def test_positive_update_medias(self):
         """Create an operating system that points at media entity and
         then update it to point to another multiple different medias.
@@ -567,8 +576,9 @@ class OperatingSystemTestCase(APITestCase):
             set([medium.id for medium in medias])
         )
 
-    @tier2
     @run_only_on('sat')
+    @tier2
+    @upgrade
     def test_positive_update_template(self):
         """Create an operating system that points at config template and
         then update it to point to another template
@@ -651,8 +661,9 @@ class OperatingSystemTestCase(APITestCase):
             entities.OperatingSystem(
                 id=os.id, family='NON_EXISTENT_OS').update(['family'])
 
-    @tier1
     @run_only_on('sat')
+    @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create new operating system entity and then delete it.
 
