@@ -15,7 +15,7 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, tier1
+from robottelo.decorators import stubbed, tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -24,6 +24,7 @@ class SettingTestCase(APITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_update_login_page_footer_text(self):
         """Updates parameter "login_text" in settings
 

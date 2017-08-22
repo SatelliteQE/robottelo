@@ -17,7 +17,7 @@
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import skip_if_bug_open, tier1
+from robottelo.decorators import skip_if_bug_open, tier1, upgrade
 from robottelo.test import APITestCase
 
 
@@ -91,6 +91,7 @@ class TemplateCombinationTestCase(APITestCase):
 
     @tier1
     @skip_if_bug_open('bugzilla', 1369737)
+    @upgrade
     def test_positive_delete_combination(self):
         """Assert API template combination delete method works.
 

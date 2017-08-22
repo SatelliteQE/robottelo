@@ -29,6 +29,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import (
     default_url_on_new_port,
@@ -89,6 +90,7 @@ class CapsuleTestCase(APITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1398695)
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Proxy deletion
 
@@ -199,6 +201,7 @@ class CapsuleTestCase(APITestCase):
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_refresh_features(self):
         """Refresh smart proxy features, search for proxy by id
 
