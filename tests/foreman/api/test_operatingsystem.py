@@ -26,7 +26,13 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.test import APITestCase
 from six.moves.http_client import NOT_FOUND
 
@@ -35,6 +41,7 @@ class OperatingSystemParameterTestCase(APITestCase):
     """Tests for operating system parameters."""
 
     @tier1
+    @upgrade
     @run_only_on('sat')
     def test_verify_bugzilla_1114640(self):
         """Create a parameter for operating system 1.
@@ -510,6 +517,7 @@ class OperatingSystemTestCase(APITestCase):
         self.assertEqual(os.family, new_os_family)
 
     @tier2
+    @upgrade
     @run_only_on('sat')
     def test_positive_update_arch(self):
         """Create an operating system that points at an architecture and
@@ -579,6 +587,7 @@ class OperatingSystemTestCase(APITestCase):
         self.assertEqual(os.medium[0].id, media_2.id)
 
     @tier2
+    @upgrade
     @run_only_on('sat')
     def test_positive_update_medias(self):
         """Create an operating system that points at media entity and
@@ -606,6 +615,7 @@ class OperatingSystemTestCase(APITestCase):
         )
 
     @tier2
+    @upgrade
     @run_only_on('sat')
     def test_positive_update_template(self):
         """Create an operating system that points at config template and
@@ -698,6 +708,7 @@ class OperatingSystemTestCase(APITestCase):
                 id=os.id, family='NON_EXISTENT_OS').update(['family'])
 
     @tier1
+    @upgrade
     @run_only_on('sat')
     def test_positive_delete(self):
         """Create new operating system entity and then delete it.

@@ -27,7 +27,7 @@ from robottelo.datafactory import (
     valid_data_list,
     valid_usernames_list,
 )
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import tier1, tier2, upgrade
 from robottelo.test import APITestCase
 
 
@@ -255,6 +255,7 @@ class UserGroupTestCase(APITestCase):
         self.assertEqual(new_role.name, user_group.role[0].read().name)
 
     @tier1
+    @upgrade
     def test_positive_update_with_new_usergroup(self):
         """Add new user group to existing one
 
