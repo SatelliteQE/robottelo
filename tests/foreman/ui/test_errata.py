@@ -48,6 +48,7 @@ from robottelo.constants import (
     TOOLS_ERRATA_TABLE_DETAILS,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
@@ -679,7 +680,7 @@ class ErrataTestCase(UITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_use_cdn=True)
         setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': org.id,
@@ -728,7 +729,12 @@ class ErrataTestCase(UITestCase):
                 result = self.contenthost.fetch_errata_counts(client.hostname)
                 for errata in ('security', 'bug_fix', 'enhancement'):
                     self.assertEqual(result[errata]['value'], 0)
-                    self.assertEqual(result[errata]['color'], 'black')
+                    if bz_bug_is_open(1484044):
+                        self.assertNotIn(
+                            result['security']['color'], ('red', 'yellow'))
+                    else:
+                        self.assertEqual(result['security']['color'], 'black')
+
                 client.run(
                     'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
                 result = self.contenthost.fetch_errata_counts(client.hostname)
@@ -780,7 +786,7 @@ class ErrataTestCase(UITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_use_cdn=True)
         setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': org.id,
@@ -830,7 +836,11 @@ class ErrataTestCase(UITestCase):
                     client.hostname, details_page=True)
                 for errata in ('security', 'bug_fix', 'enhancement'):
                     self.assertEqual(result[errata]['value'], 0)
-                    self.assertEqual(result[errata]['color'], 'black')
+                if bz_bug_is_open(1484044):
+                    self.assertNotIn(
+                        result['security']['color'], ('red', 'yellow'))
+                else:
+                    self.assertEqual(result['security']['color'], 'black')
                 client.run(
                     'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
                 result = self.contenthost.fetch_errata_counts(
