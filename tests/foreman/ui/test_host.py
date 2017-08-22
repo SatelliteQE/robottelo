@@ -850,7 +850,6 @@ class HostTestCase(UITestCase):
                 (strategy, value % additional_host.name)))
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1392422)
     @tier2
     def test_positive_search_by_parameter_with_operator(self):
         """Search by global parameter assigned to host using operator '<>' and
@@ -862,13 +861,18 @@ class HostTestCase(UITestCase):
         :expectedresults: All assigned hosts to organization are returned by
             search
 
-        :BZ: 1392422
+        :BZ: 1463806
 
         :CaseLevel: Integration
         """
         org = entities.Organization().create()
         param_name = gen_string('alpha')
         param_value = gen_string('alpha')
+        param_global_value = gen_string('numeric')
+        entities.CommonParameter(
+            name=param_name,
+            value=param_global_value
+        ).create()
         parameters = [{'name': param_name, 'value': param_value}]
         param_host = entities.Host(
             organization=org,
