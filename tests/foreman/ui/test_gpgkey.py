@@ -38,6 +38,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import UITestCase
@@ -136,6 +137,7 @@ class GPGKey(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_negative_create_via_paste_and_same_name(self):
         """Create gpg key with valid name and valid gpg key text via cut and
         paste/string import then try to create new one with same name and same
@@ -230,6 +232,7 @@ class GPGKey(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_for_imported_content(self):
         """Create gpg key with valid name and valid gpg key via file import
         then delete it
@@ -406,8 +409,9 @@ class GPGKey(UITestCase):
                     self.assertIsNone(self.gpgkey.search(new_name))
 
     @run_only_on('sat')
-    @tier3
     @skip_if_not_set('clients')
+    @tier3
+    @upgrade
     def test_positive_consume_content_using_repo(self):
         """Hosts can install packages using gpg key associated with single
         custom repository
@@ -752,6 +756,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1436152)
     @tier2
+    @upgrade
     def test_positive_add_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery method
@@ -1004,6 +1009,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_update_key_for_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key then associate it
         with custom product that has more than one repository then update the
@@ -1069,6 +1075,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1436152)
     @tier2
+    @upgrade
     def test_positive_update_key_for_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery
@@ -1181,6 +1188,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_update_key_for_repo_from_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key then associate it
         to repository from custom product that has more than one repository
@@ -1367,6 +1375,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_key_for_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key then
         associate it with custom product that has more than one repository then
@@ -1414,6 +1423,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1436152)
     @tier2
+    @upgrade
     def test_positive_delete_key_for_product_using_repo_discovery(self):
         """Create gpg key with valid name and valid gpg then associate
         it with custom product using Repo discovery method then delete it
@@ -1493,6 +1503,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_key_for_repo_from_product_with_repos(self):
         """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than

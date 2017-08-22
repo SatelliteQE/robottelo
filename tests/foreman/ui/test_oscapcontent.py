@@ -26,6 +26,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
@@ -147,6 +148,7 @@ class OpenScapContentTestCase(UITestCase):
                 self.oscapcontent.search(content_name))
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create OpenScap content and then delete it.
 

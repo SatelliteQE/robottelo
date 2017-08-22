@@ -22,7 +22,12 @@ from robottelo.constants import (
     OSCAP_WEEKDAY,
 )
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, skip_if_not_set, tier1
+from robottelo.decorators import (
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+    upgrade
+)
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_oscapcontent, make_oscappolicy
@@ -77,6 +82,7 @@ class OpenScapPolicy(UITestCase):
                         self.oscappolicy.search(policy_name))
 
     @tier1
+    @upgrade
     def test_positive_delete_by_policy_name(self):
         """Create OpenScap Policy.
 
