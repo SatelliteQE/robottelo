@@ -29,7 +29,7 @@ from nailgun.entity_fields import OneToManyField
 from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
@@ -333,6 +333,7 @@ class UserRoleTestCase(APITestCase):
                 self.give_user_permission(_permission_name(entity_cls, 'read'))
                 entity_cls(self.cfg, id=entity.id).read()
 
+    @upgrade
     @tier1
     def test_positive_check_delete(self):
         """Check whether the "destroy_*" role has an effect.

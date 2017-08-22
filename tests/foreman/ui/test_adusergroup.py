@@ -26,6 +26,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
@@ -350,6 +351,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         """
 
     @skip_if_bug_open('bugzilla', '1221971')
+    @upgrade
     @tier2
     def test_positive_update_external_roles(self):
         """Added AD UserGroup roles get pushed down to user
@@ -429,6 +431,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.assertIsNotNone(self.org.search(org_name))
 
     @tier2
+    @upgrade
     def test_positive_delete_external_roles(self):
         """Deleted AD UserGroup roles get pushed down to user
 

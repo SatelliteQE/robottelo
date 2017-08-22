@@ -29,6 +29,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
@@ -45,6 +46,7 @@ class HostGroupTestCase(APITestCase):
         cls.loc = entities.Location(organization=[cls.org]).create()
 
     @skip_if_bug_open('bugzilla', 1222118)
+    @upgrade
     @tier3
     def test_verify_bugzilla_1107708(self):
         """Host that created from HostGroup entity with PuppetClass
@@ -621,6 +623,7 @@ class HostGroupTestCase(APITestCase):
                 self.assertEqual(name, hostgroup.name)
 
     @tier2
+    @upgrade
     @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_parent(self):
         """Update a hostgroup with a new parent hostgroup
