@@ -22,7 +22,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_arch
 from robottelo.ui.locators import common_locators
@@ -133,6 +133,7 @@ class ArchitectureTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_name_and_os(self):
         """Update Architecture with new name and OS
 

@@ -16,7 +16,7 @@
 """
 from nailgun import entities
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -105,6 +105,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
     @tier1
+    @upgrade
     def test_positive_search_single_result(self):
         """Search for puppet modules in a CVV with one puppet module.
 

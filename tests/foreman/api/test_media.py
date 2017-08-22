@@ -20,7 +20,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2, upgrade
 from robottelo.test import APITestCase
 
 
@@ -239,8 +239,9 @@ class MediaTestCase(APITestCase):
             entities.Media(
                 id=media.id, os_family='NON_EXISTENT_OS').update(['os_family'])
 
-    @tier1
     @run_only_on('sat')
+    @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create new media entity and then delete it.
 

@@ -28,7 +28,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo import ssh
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
@@ -271,6 +271,7 @@ class UserRoleTestCase(APITestCase):
                 entity_cls(self.cfg, id=entity_id).read()
 
     @tier1
+    @upgrade
     def test_positive_check_delete(self):
         """Check whether the "destroy_*" role has an effect.
 

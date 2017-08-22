@@ -59,6 +59,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.helpers import read_data_file
 from robottelo.ui.base import UIError, UINoSuchElementError
@@ -183,6 +184,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_end_to_end(self):
         """create content view with yum repo, publish it
         and promote it to Library +1 env
@@ -1395,10 +1397,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
     @run_only_on('sat')
+    @stubbed()
     @skip_if_not_set('fake_manifest')
     @tier3
+    @upgrade
     def test_positive_promote_with_rh_custom_spin(self):
         """attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
@@ -1620,10 +1623,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
     @run_only_on('sat')
+    @stubbed()
     @skip_if_not_set('fake_manifest')
     @tier3
+    @upgrade
     def test_positive_publish_with_rh_custom_spin(self):
         """attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
@@ -2077,6 +2081,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_subscribe_system_with_rh_custom_spin(self):
         """Attempt to subscribe a host to content view with rh repository
          and custom filter
@@ -2174,6 +2179,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_subscribe_system_with_custom_content(self):
         """Attempt to subscribe a host to content view with custom repository
 
@@ -2232,6 +2238,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_subscribe_system_with_puppet_modules(self):
         """Attempt to subscribe a host to content view with puppet modules
 
@@ -3084,6 +3091,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_version_with_ak(self):
         """Delete a content-view version that had associated activation
         key to it
@@ -3126,6 +3134,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.validate_version_deleted(cv.name, version)
 
     @tier2
+    @upgrade
     def test_positive_delete_composite_version(self):
         """Delete a composite content-view version associated to 'Library'
 
@@ -3318,6 +3327,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_remove_promoted_custom_ostree_contents(self):
         """Remove promoted custom ostree contents from selected environment of
         CV.
@@ -3335,6 +3345,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_publish_promote_with_custom_ostree_and_other(self):
         """Create a CV with ostree as well as yum and puppet type contents and
         publish and promote them to next environment.
@@ -3432,6 +3443,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_publish_promote_with_rh_ostree_and_other(self):
         """Create a CV with rh ostree as well as rh yum and puppet type contents and
         publish, promote them to next environment.
@@ -3449,6 +3461,7 @@ class ContentViewTestCase(UITestCase):
     @run_in_one_thread
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_promote_CV_with_custom_user_role_and_filters(self):
         """Publish and promote cv with user with custom role and filter
         @id: a07fe3df-8645-4a0c-8c56-3f8314ae4878
@@ -4102,6 +4115,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
          environments
@@ -4249,6 +4263,7 @@ class ContentViewTestCase(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
          environments, with one of the environments used in association of an

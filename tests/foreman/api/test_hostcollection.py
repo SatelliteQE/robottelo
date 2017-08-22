@@ -18,7 +18,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from random import choice
 from requests.exceptions import HTTPError
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import skip_if_bug_open, tier1, tier2, upgrade
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
@@ -232,6 +232,7 @@ class HostCollectionTestCase(APITestCase):
         self.assertEqual(len(host_collection.host), 1)
 
     @tier2
+    @upgrade
     def test_positive_add_hosts(self):
         """Add hosts to host collection.
 
@@ -357,6 +358,7 @@ class HostCollectionTestCase(APITestCase):
         self.assertEqual(host_collection.host[0].id, self.hosts[1].id)
 
     @tier1
+    @upgrade
     def test_positive_update_hosts(self):
         """Update host collection's hosts.
 
@@ -381,6 +383,7 @@ class HostCollectionTestCase(APITestCase):
         )
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Check if host collection can be deleted
 
