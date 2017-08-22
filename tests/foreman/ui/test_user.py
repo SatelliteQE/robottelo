@@ -42,6 +42,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user, set_context
@@ -182,6 +183,7 @@ class UserTestCase(UITestCase):
                     self.assertIsNotNone(self.user.search(name))
 
     @tier1
+    @upgrade
     def test_positive_create_admin(self):
         """Create an Admin user
 
@@ -623,6 +625,7 @@ class UserTestCase(UITestCase):
             self.user.validate_user(username, 'language', locale, False)
 
     @tier1
+    @upgrade
     def test_positive_update_password(self):
         """Update password for a user
 
@@ -723,6 +726,7 @@ class UserTestCase(UITestCase):
                     self.user.wait_until_element((strategy, value % role)))
 
     @tier2
+    @upgrade
     def test_positive_update_with_all_roles(self):
         """Update User with all roles
 
@@ -929,6 +933,7 @@ class UserTestCase(UITestCase):
             self.assertIsNone(self.user.search(new_username))
 
     @tier1
+    @upgrade
     def test_positive_delete_user(self):
         """Delete an existing User
 
@@ -943,6 +948,7 @@ class UserTestCase(UITestCase):
                     self.user.delete(user_name)
 
     @tier1
+    @upgrade
     def test_positive_delete_admin(self):
         """Delete an admin user
 
@@ -972,6 +978,7 @@ class UserTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_end_to_end(self):
         """Create User and perform different operations
 
@@ -1197,6 +1204,7 @@ class ActiveDirectoryUserTestCase(UITestCase):
         cls.ldap_server_name = authsource_attrs.name
 
     @tier2
+    @upgrade
     def test_positive_create_in_ldap_mode(self):
         """Create User in ldap mode
 

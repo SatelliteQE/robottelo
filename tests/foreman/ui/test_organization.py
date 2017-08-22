@@ -36,6 +36,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment, make_org
@@ -238,6 +239,7 @@ class OrganizationTestCase(UITestCase):
                     self.assertIsNotNone(error)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create organization with valid values then delete it.
 
@@ -255,6 +257,7 @@ class OrganizationTestCase(UITestCase):
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_verify_bugzilla_1225588(self):
         """Create Organization with valid values and upload manifest.
         Then try to delete that organization.
@@ -287,6 +290,7 @@ class OrganizationTestCase(UITestCase):
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_verify_bugzilla_1259248(self):
         """Create organization with valid manifest. Download debug
         certificate for that organization and refresh added manifest for few

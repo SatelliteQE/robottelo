@@ -21,7 +21,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import ROLES
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import tier1, skip_if_bug_open
+from robottelo.decorators import tier1, skip_if_bug_open, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_role, make_user
 from robottelo.ui.locators import common_locators, tab_locators
@@ -61,6 +61,7 @@ class RoleTestCase(UITestCase):
                         common_locators['name_haserror']))
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete an existing role
 
@@ -196,6 +197,7 @@ class RoleTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1353788)
     @tier1
+    @upgrade
     def test_positive_assign_cloned_role(self):
         """Clone role and assign it to user
 
@@ -221,6 +223,7 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(element)
 
     @tier1
+    @upgrade
     def test_positive_delete_cloned_builtin(self):
         """Delete cloned builtin role
 
@@ -283,6 +286,7 @@ class RoleTestCase(UITestCase):
                 set(permissions), set(assigned_permissions[resource_type]))
 
     @tier1
+    @upgrade
     def test_positive_create_filter_admin_user_with_orgs(self):
         """Attempt to create a role filter by admin user, who has 10
         organizations assigned
