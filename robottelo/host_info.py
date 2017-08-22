@@ -82,21 +82,25 @@ def _extract_sat_version(ssh_cmd):
 def get_repo_rpms(repo_path, hostname=None):
     """Returns a list of rpms in specific repository directory.
 
-    :param str repo_path: unix path to the repo, e.g. '/var/lib/pulp/fooRepo'
+    :param str repo_path: unix path to the repo, e.g. '/var/lib/pulp/fooRepo/'
     :param str optional hostname: hostname or IP address of the remote host. If
         ``None`` the hostname will be get from ``main.server.hostname`` config.
     :return: list representing rpm package names
     :rtype: list
     """
+    if not repo_path.endswith('/'):
+        repo_path += '/'
     result = ssh.command(
-        '(cd {} && find *.rpm)'.format(repo_path),
+        "find {} -name '*.rpm' | awk -F/ '{{print $NF}}'"
+        .format(repo_path),
         hostname=hostname,
     )
     if result.return_code != 0:
         raise CLIReturnCodeError(
             result.return_code, result.stderr, 'No .rpm found')
-    # strip empty lines
-    return [rpm for rpm in result.stdout if rpm]
+    # strip empty lines and sort alphabetically (as order may be wrong because
+    # of different paths)
+    return sorted([rpm for rpm in result.stdout if rpm])
 
 
 def get_repomd_revision(repo_path, hostname=None):

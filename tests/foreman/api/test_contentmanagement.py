@@ -1,18 +1,18 @@
 """Test class for the content management tests.
 
-@Requirement: Content Management
+:Requirement: Content Management
 
-@CaseAutomation: Automated
+:CaseAutomation: Automated
 
-@CaseLevel: Acceptance
+:CaseLevel: Acceptance
 
-@CaseComponent: API
+:CaseComponent: API
 
-@TestType: Functional
+:TestType: Functional
 
-@CaseImportance: High
+:CaseImportance: High
 
-@Upstream: No
+:Upstream: No
 """
 import os
 
@@ -52,19 +52,19 @@ class ContentManagementTestCase(APITestCase):
     interactions.
     """
 
-    @skip_if_bug_open('bugzilla', 1437150)
+    @skip_if_bug_open('bugzilla', 1463811)
     @tier2
     def test_positive_sync_repos_with_large_errata(self):
         """Attempt to synchronize 2 repositories containing large (or lots of)
         errata.
 
-        @id: d6680b9f-4c88-40b4-8b96-3d170664cb28
+        :id: d6680b9f-4c88-40b4-8b96-3d170664cb28
 
-        @BZ: 1437150
+        :BZ: 1463811
 
-        @CaseLevel: Integration
+        :CaseLevel: Integration
 
-        @expectedresults: both repositories were successfully synchronized
+        :expectedresults: both repositories were successfully synchronized
         """
         org = entities.Organization().create()
         for _ in range(2):
@@ -107,22 +107,22 @@ class CapsuleContentManagementTestCase(APITestCase):
         environment with a capsule, sync repository, sync it once again, update
         repository (add 1 new package), sync repository once again.
 
-        @id: 35513099-c918-4a8e-90d0-fd4c87ad2f82
+        :id: 35513099-c918-4a8e-90d0-fd4c87ad2f82
 
-        @BZ: 1388296
+        :BZ: 1394354
 
-        @expectedresults:
+        :expectedresults:
 
-        1. Repository sync triggers capsule sync
-        2. After syncing capsule contains same repo content as satellite
-        3. Syncing repository which has no changes for a second time does not
-           trigger any new publish task
-        4. Repository revision on capsule remains exactly the same after second
-           repo sync with no changes
-        5. Syncing repository which was updated will update the content on
-           capsule
+            1. Repository sync triggers capsule sync
+            2. After syncing capsule contains same repo content as satellite
+            3. Syncing repository which has no changes for a second time does
+               not trigger any new publish task
+            4. Repository revision on capsule remains exactly the same after
+               second repo sync with no changes
+            5. Syncing repository which was updated will update the content on
+               capsule
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo_name = gen_string('alphanumeric')
         # Create and publish custom repository with 2 packages in it
@@ -317,17 +317,18 @@ class CapsuleContentManagementTestCase(APITestCase):
         environment with a capsule, sync repository, examine existing packages
         on capsule, download any package, examine packages once more
 
-        @id: ba470269-a7ad-4181-bc7c-8e17a177ca20
+        :id: ba470269-a7ad-4181-bc7c-8e17a177ca20
 
-        @expectedresults:
+        :expectedresults:
 
-        1. After initial syncing only symlinks are present on both satellite
-           and capsule, no real packages were fetched.
-        2. All the symlinks are pointing to non-existent files.
-        3. Attempt to download package is successful
-        4. Downloaded package checksum matches checksum of the source package
+            1. After initial syncing only symlinks are present on both
+               satellite and capsule, no real packages were fetched.
+            2. All the symlinks are pointing to non-existent files.
+            3. Attempt to download package is successful
+            4. Downloaded package checksum matches checksum of the source
+               package
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo_url = FAKE_3_YUM_REPO
         packages_count = FAKE_3_YUM_REPOS_COUNT
@@ -451,14 +452,14 @@ class CapsuleContentManagementTestCase(APITestCase):
         from first repo to second one, sync it, attempt to install package on
         some host.
 
-        @id: 39149642-1e7e-4ef8-8762-bec295913014
+        :id: 39149642-1e7e-4ef8-8762-bec295913014
 
-        @BZ: 1409856
+        :BZ: 1426408
 
-        @expectedresults: host, subscribed to second repo only, can
+        :expectedresults: host, subscribed to second repo only, can
             successfully install package
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo1_name = gen_string('alphanumeric')
         repo2_name = gen_string('alphanumeric')
@@ -599,20 +600,21 @@ class CapsuleContentManagementTestCase(APITestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(package_name, result.stdout[0])
 
+    @skip_if_bug_open('bugzilla', 1486277)
     @tier4
     def test_positive_update_with_immediate_sync(self):
         """Create a repository with on_demand download policy, associate it
         with capsule, sync repo, update download policy to immediate, sync once
         more.
 
-        @id: 511b531d-1fbe-4d64-ae31-0f9eb6625e7f
+        :id: 511b531d-1fbe-4d64-ae31-0f9eb6625e7f
 
-        @BZ: 1315752
+        :BZ: 1315752, 1486277
 
-        @expectedresults: content was successfully synchronized - capsule
+        :expectedresults: content was successfully synchronized - capsule
             filesystem contains valid links to packages
 
-        @CaseLevel: System
+        :CaseLevel: System
         """
         repo_url = FAKE_1_YUM_REPO
         packages_count = FAKE_1_YUM_REPOS_COUNT
