@@ -36,6 +36,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier4,
+    upgrade
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
@@ -91,6 +92,7 @@ class SyncTestCase(UITestCase):
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_sync_rh_repos(self):
         """Create Content RedHat Sync with two repos.
 
@@ -143,6 +145,7 @@ class SyncTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
+    @upgrade
     def test_positive_sync_custom_ostree_repo(self):
         """Create custom ostree repository and sync it.
 
@@ -173,6 +176,7 @@ class SyncTestCase(UITestCase):
     @skip_if_os('RHEL6')
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_sync_rh_ostree_repo(self):
         """Sync CDN based ostree repository .
 

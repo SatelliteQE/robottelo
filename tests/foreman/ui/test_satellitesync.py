@@ -20,7 +20,8 @@ from robottelo.decorators import (
     run_only_on,
     stubbed,
     tier1,
-    tier3
+    tier3,
+    upgrade
 )
 from robottelo.test import UITestCase
 
@@ -31,6 +32,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_show_repo_export_history(self):
         """Product history shows repo export history on export.
 
@@ -49,6 +51,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_show_cv_export_history(self):
         """CV history shows CV version export history on export.
 
@@ -117,6 +120,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_restrict_other_redhat_repo_import(self):
         """Restrict the import/sync of non exported repos.
 
