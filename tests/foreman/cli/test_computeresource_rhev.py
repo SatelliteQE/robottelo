@@ -18,7 +18,8 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
-    tier3
+    tier3,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -205,6 +206,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1278917)
     @run_only_on('sat')
     @stubbed()
+    @upgrade
     def test_positive_access_rhev_with_custom_profile(self):
         """Associate custom default (3-Large) compute profile
          to RHEV compute resource
@@ -317,9 +319,10 @@ class RHEVComputeResourceTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @tier3
     @run_only_on('sat')
     @stubbed()
+    @tier3
+    @upgrade
     def test_positive_provision_rhev_without_host_group(self):
         """Provision a host on RHEV compute resource without
         the help of hostgroup.
