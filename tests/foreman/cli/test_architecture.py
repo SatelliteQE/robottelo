@@ -24,7 +24,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -109,6 +109,7 @@ class ArchitectureTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create Architecture with valid values then delete it
         by ID

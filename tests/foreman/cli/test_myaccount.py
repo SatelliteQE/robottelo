@@ -22,7 +22,7 @@ from robottelo.cli.factory import make_user
 from robottelo.cli.user import User
 from robottelo.constants import LOCALES
 from robottelo.datafactory import invalid_emails_list
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -250,6 +250,7 @@ class MyAccountEphemeralUserTestCase(CLITestCase):
         return _test_user_info(self)
 
     @tier1
+    @upgrade
     def test_positive_update_password(self):
         """Update Password in My Account
 

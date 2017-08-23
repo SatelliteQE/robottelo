@@ -31,7 +31,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -260,6 +260,7 @@ class OperatingSystemTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Successfully deletes Operating System by its ID
 
@@ -321,6 +322,7 @@ class OperatingSystemTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_add_template(self):
         """Add provisioning template to operating system
 

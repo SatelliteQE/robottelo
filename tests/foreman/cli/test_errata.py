@@ -69,12 +69,13 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    stubbed,
-    tier3,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
+    stubbed,
+    tier3,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -560,6 +561,7 @@ class ErrataTestCase(CLITestCase):
         return sorted_erratum_info_list
 
     @tier3
+    @upgrade
     def test_positive_list_sort_by_issued_date(self):
         """Sort errata by Issued date
 
@@ -1694,6 +1696,7 @@ class ErrataTestCase(CLITestCase):
                 self.assertIn(REAL_4_ERRATA_ID, cve_errata_ids)
 
     @tier3
+    @upgrade
     def test_positive_user_permission(self):
         """Show errata only if the User has permissions to view them
 
@@ -1791,6 +1794,7 @@ class ErrataTestCase(CLITestCase):
             self.org_multi_product_big_errata_id, user_org_errata_ids)
 
     @stubbed()
+    @upgrade
     def test_positive_list_affected_chosts(self):
         """View a list of affected content hosts for an erratum
 

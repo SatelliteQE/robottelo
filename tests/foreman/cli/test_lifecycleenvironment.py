@@ -22,7 +22,7 @@ from robottelo.cli.factory import make_lifecycle_environment, make_org
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -201,6 +201,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create lifecycle environment with valid name, prior to
         Library

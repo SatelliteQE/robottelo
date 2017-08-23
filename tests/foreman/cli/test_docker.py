@@ -52,6 +52,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -821,6 +822,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_promote_multiple_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
@@ -913,6 +915,7 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1359665)
+    @upgrade
     def test_positive_promote_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the multiple available lifecycle-environments.
@@ -1312,6 +1315,7 @@ class DockerClientTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_not_set('docker')
     @tier3
+    @upgrade
     def test_positive_upload_image(self):
         """A Docker-enabled client can create a new ``Dockerfile``
         pointing to an existing Docker image from a Satellite 6 and modify it.
@@ -1471,6 +1475,7 @@ class DockerComputeResourceTestCase(CLITestCase):
     @tier3
     @skip_if_bug_open('bugzilla', 1466240)
     @run_only_on('sat')
+    @upgrade
     def test_positive_list_containers(self):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
@@ -1629,6 +1634,7 @@ class DockerContainersTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1282431)
     @skip_if_bug_open('bugzilla', 1347658)
+    @upgrade
     def test_positive_create_using_cv(self):
         """Create docker container using custom content view, lifecycle
         environment and docker repository
@@ -1817,6 +1823,7 @@ class DockerUnixSocketContainerTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_create_with_compresource(self):
         """Create containers on a docker compute resource
 

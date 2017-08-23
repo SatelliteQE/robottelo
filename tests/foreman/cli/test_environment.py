@@ -38,6 +38,7 @@ from robottelo.decorators import (
     run_only_on,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 
@@ -349,6 +350,7 @@ class EnvironmentTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create Environment with valid values then delete it
         by ID

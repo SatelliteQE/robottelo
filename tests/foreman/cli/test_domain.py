@@ -24,10 +24,11 @@ from robottelo.datafactory import (
     filtered_datapoint, invalid_id_list, valid_data_list
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
     tier1,
     tier2,
-    bz_bug_is_open,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 
@@ -354,6 +355,7 @@ class DomainTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_parameter(self):
         """Domain delete-parameter removes parameter
 

@@ -54,6 +54,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 
@@ -455,6 +456,7 @@ class HostGroupTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_with_multiple_entities_ids(self):
         """Check if hostgroup with multiple options ids can be created
 
@@ -740,6 +742,7 @@ class HostGroupTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create HostGroup with valid values then delete it
         by ID
