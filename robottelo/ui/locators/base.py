@@ -2654,7 +2654,7 @@ locators = LocatorDict({
     "errata.content_hosts.errata_apply": (
         By.XPATH,
         ("//button[contains(@class, 'btn-primary') and "
-         "contains(@ng-disabled, 'detailsTable')]")),
+         "contains(@ng-disabled, 'table.numSelected')]")),
     "errata.content_hosts.confirm_installation": (
         By.XPATH,
         "//button[contains(@class, 'btn-primary') and @type='submit']"),
@@ -2663,35 +2663,38 @@ locators = LocatorDict({
     "errata.repositories.repo_select": (
         By.XPATH,
         ("//a[contains(@href, 'repositories') and contains(., '%s')]"
-         "[../following-sibling::td/a[contains(@ui-sref, 'products.details') "
+         "[../following-sibling::td/a[contains(@ui-sref, 'product.info') "
          "and contains(., '%s')]]")),
     "errata.advisory": (
         By.XPATH,
-        "//span[text()='Advisory']/../../span[contains(@class, 'info-value')]"
+        "//dt/span[text()='Advisory']/../following-sibling::dd[1]"
     ),
     "errata.cves": (
         By.XPATH,
-        "//span[text()='CVEs']/../../span[contains(@class, 'info-value')]"),
+        "//span[text()='CVEs']/../../dd"
+        "/span[contains(@ng-repeat, 'errata.cves')]/a"),
+    "errata.cves_na": (
+        By.XPATH,
+        "//span[text()='CVEs']/../../dd"
+        "/span[contains(@ng-show, 'errata.cves')]"),
     "errata.type": (
         By.XPATH,
-        "//span[text()='Type']/../../span[contains(@class, 'info-value')]"
+        "//span[text()='Type']/../following-sibling::dd[1]"
     ),
     "errata.severity": (
         By.XPATH,
-        "//span[text()='Severity']/../../span[contains(@class, 'info-value')]"
+        "//span[text()='Severity']/../following-sibling::dd[1]"
     ),
     "errata.issued": (
         By.XPATH,
-        "//span[text()='Issued']/../../span[contains(@class, 'info-value')]"
+        "//span[text()='Issued']/../following-sibling::dd[1]"
     ),
     "errata.last_updated_on": (
         By.XPATH,
-        "//span[text()='Last Updated On']/../.."
-        "/span[contains(@class, 'info-value')]"),
+        "//span[text()='Last Updated On']/../following-sibling::dd[1]"),
     "errata.reboot_suggested": (
         By.XPATH,
-        "//span[text()='Reboot Suggested?']/../.."
-        "/span[contains(@class, 'info-value')]"),
+        "//span[text()='Reboot Suggested?']/../following-sibling::dd[1]"),
     "errata.topic": (
         By.XPATH,
         "//span[text()='Topic']/.."
