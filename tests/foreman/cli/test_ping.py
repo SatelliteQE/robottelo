@@ -15,7 +15,7 @@
 :Upstream: No
 """
 from robottelo import ssh
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import CLITestCase
 from six.moves import zip
 
@@ -24,6 +24,7 @@ class PingTestCase(CLITestCase):
     """Tests related to the hammer ping command"""
 
     @tier1
+    @upgrade
     def test_positive_ping(self):
         """hammer ping return code
 

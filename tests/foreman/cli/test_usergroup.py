@@ -40,6 +40,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -145,6 +146,7 @@ class UserGroupTestCase(CLITestCase):
         self.assertEqual(user_group['roles'][0], role['name'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_roles(self):
         """Create new user group using multiple roles attached to that group.
         Use roles name as a parameter
@@ -199,6 +201,7 @@ class UserGroupTestCase(CLITestCase):
         )
 
     @tier1
+    @upgrade
     def test_positive_create_with_usergroups(self):
         """Create new user group using multiple user groups attached to that
         initial group. Use user groups name as a parameter
@@ -356,6 +359,7 @@ class UserGroupTestCase(CLITestCase):
                 self.assertNotEqual(user_group['name'], new_name)
 
     @tier1
+    @upgrade
     def test_positive_delete_by_name(self):
         """Create user group with valid name and then delete it using that name
 
@@ -551,6 +555,7 @@ class UserGroupTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1395229)
     @tier2
+    @upgrade
     def test_positive_remove_role_by_name(self):
         """Create new user group using valid role attached to that group. Then
         remove that role from user group by name
@@ -595,6 +600,7 @@ class UserGroupTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1395229)
     @tier2
+    @upgrade
     def test_positive_remove_user_by_name(self):
         """Create new user group using valid user attached to that group. Then
         remove that user from user group by name
@@ -639,6 +645,7 @@ class UserGroupTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1395229)
     @tier2
+    @upgrade
     def test_positive_remove_usergroup_by_name(self):
         """Create new user group using another user group attached to the
         initial group. Then remove that attached user group by name

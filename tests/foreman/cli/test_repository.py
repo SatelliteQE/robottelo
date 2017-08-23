@@ -70,7 +70,8 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    tier4)
+    tier4,
+    upgrade)
 from robottelo.datafactory import (
     invalid_http_credentials,
     invalid_values_list,
@@ -113,6 +114,7 @@ class RepositoryTestCase(CLITestCase):
         return make_repository(options)
 
     @tier1
+    @upgrade
     def test_verify_bugzilla_1189289(self):
         """Check if repository docker-upstream-name is shown
         in repository info
@@ -193,6 +195,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['content-type'], u'yum')
 
     @tier1
+    @upgrade
     def test_positive_create_with_puppet_repo(self):
         """Create Puppet repository
 
@@ -235,6 +238,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['content-type'], u'yum')
 
     @tier1
+    @upgrade
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
@@ -253,6 +257,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['download-policy'], policy)
 
     @tier1
+    @upgrade
     def test_positive_create_with_mirror_on_sync(self):
         """Create YUM repositories with available mirror on sync rule
 
@@ -448,6 +453,7 @@ class RepositoryTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_gpg_key_by_id(self):
         """Check if repository can be created with gpg key ID
 
@@ -527,6 +533,7 @@ class RepositoryTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_yum_repo_with_checksum_type(self):
         """Create a YUM repository with a checksum type
 
@@ -779,6 +786,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1328092)
     @tier2
+    @upgrade
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
@@ -852,6 +860,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1405503)
     @tier2
+    @upgrade
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
@@ -880,6 +889,7 @@ class RepositoryTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_synchronize_docker_repo(self):
         """Check if Docker repository can be created and synced
 
@@ -1185,6 +1195,7 @@ class RepositoryTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_name(self):
         """Check if repository can be created and deleted
 
@@ -1255,6 +1266,7 @@ class RepositoryTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1459845)
     @skip_if_bug_open('bugzilla', 1459874)
     @tier1
+    @upgrade
     def test_positive_remove_content_by_repo_name(self):
         """Synchronize repository and remove rpm content from using repo name
 
@@ -1302,6 +1314,7 @@ class RepositoryTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1459845)
     @skip_if_bug_open('bugzilla', 1459874)
     @tier1
+    @upgrade
     def test_positive_remove_content_rpm(self):
         """Synchronize repository and remove rpm content from it
 
@@ -1334,6 +1347,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1459845)
     @tier1
+    @upgrade
     def test_positive_remove_content_puppet(self):
         """Synchronize repository and remove puppet content from it
 
@@ -1665,6 +1679,7 @@ class OstreeRepositoryTestCase(CLITestCase):
                     })
 
     @tier2
+    @upgrade
     def test_positive_synchronize_ostree_repo(self):
         """Synchronize ostree repo
 
@@ -1709,6 +1724,7 @@ class OstreeRepositoryTestCase(CLITestCase):
             Repository.info({u'name': new_repo['name']})
 
     @tier1
+    @upgrade
     def test_positive_delete_ostree_by_id(self):
         """Delete Ostree repository by id
 
@@ -1798,6 +1814,7 @@ class SRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @upgrade
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1910,6 +1927,7 @@ class DRPMRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @upgrade
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -2005,6 +2023,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_local_delete(self):
         """Delete repository with local git puppet mirror.
 
@@ -2062,6 +2081,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_remote_delete(self):
         """Delete repository with remote git puppet mirror.
 
@@ -2102,6 +2122,7 @@ class GitPuppetMirrorTestCase(CLITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_sync_with_content_change(self):
         """Sync repository with changes in git puppet mirror.
         If module changes in GIT mirror but the version in manifest
@@ -2205,6 +2226,7 @@ class FileRepositoryTestCase(CLITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_remove_file(self):
         """Check arbitrary file can be removed from File Repository
 
@@ -2224,6 +2246,7 @@ class FileRepositoryTestCase(CLITestCase):
 
     @stubbed()
     @tier4
+    @upgrade
     def test_positive_remote_directory_sync(self):
         """Check an entire remote directory can be synced to File Repository
         through http

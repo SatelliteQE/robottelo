@@ -15,13 +15,14 @@
 :Upstream: No
 """
 
-from robottelo.decorators import stubbed, tier3
+from robottelo.decorators import stubbed, tier3, upgrade
 from robottelo.test import TestCase
 
 
 class InfobloxTestCase(TestCase):
     @stubbed()
     @tier3
+    @upgrade
     def test_set_dns_provider(self):
         """Check Infoblox DNS plugin is set as provider
 
@@ -44,6 +45,7 @@ class InfobloxTestCase(TestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_set_dhcp_provider(self):
         """Check Infoblox DHCP plugin is set as provider
 
@@ -85,6 +87,7 @@ class InfobloxTestCase(TestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_enable_dns_plugin(self):
         """Check Infoblox DNS plugin can be enabled on server
 
@@ -118,6 +121,7 @@ class InfobloxTestCase(TestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_enable_dhcp_plugin(self):
         """Check Infoblox DHCP plugin can be enabled on host
 
@@ -151,6 +155,7 @@ class InfobloxTestCase(TestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_dhcp_ip_range(self):
         """Check host get IP from Infoblox IP range while provisioning a host
 
@@ -168,6 +173,7 @@ class InfobloxTestCase(TestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_dns_records(self):
         """Check DNS records are updated via infoblox DNS plugin
 

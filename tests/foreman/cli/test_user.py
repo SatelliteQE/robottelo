@@ -36,7 +36,8 @@ from robottelo.datafactory import (
     valid_emails_list,
     valid_usernames_list,
 )
-from robottelo.decorators import stubbed, skip_if_bug_open, tier1, tier2, tier3
+from robottelo.decorators import (
+    stubbed, skip_if_bug_open, tier1, tier2, tier3, upgrade)
 from robottelo.test import CLITestCase
 
 
@@ -143,6 +144,7 @@ class UserTestCase(CLITestCase):
                 self.assertTrue(user)
 
     @tier1
+    @upgrade
     def test_positive_create_admin(self):
         """Create an Admin user
 
@@ -225,6 +227,7 @@ class UserTestCase(CLITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_create_in_ldap_modes(self):
         """Create User in supported ldap modes
 
@@ -437,6 +440,7 @@ class UserTestCase(CLITestCase):
         self.assertEqual(user['admin'], 'no')
 
     @tier1
+    @upgrade
     def test_positive_delete_by_name(self):
         """Create an user and then delete it using its name
 
@@ -640,6 +644,7 @@ class UserTestCase(CLITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_end_to_end(self):
         """Create User and perform different operations
 
@@ -849,6 +854,7 @@ class UserWithCleanUpTestCase(CLITestCase):
                 self.assertEqual(user['description'], new_description)
 
     @tier1
+    @upgrade
     def test_positive_update_password(self):
         """Update Password/Verify fields for existing User
 
@@ -1041,6 +1047,7 @@ class UserWithCleanUpTestCase(CLITestCase):
                 self.assertIn(role['name'], user['roles'])
 
     @tier2
+    @upgrade
     def test_positive_add_roles(self):
         """Add multiple roles to User
 
@@ -1070,6 +1077,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1138553)
     @tier2
+    @upgrade
     def test_positive_remove_role(self):
         """Remove role from User for all variations of role names
 
@@ -1136,6 +1144,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         self.assert_user_roles(self.stubbed_roles)
 
     @tier2
+    @upgrade
     def test_positive_update_all_roles(self):
         """Update User with all roles
 

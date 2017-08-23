@@ -39,6 +39,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier3,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -228,6 +229,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_cv(self):
         """Export CV version contents in directory and Import them.
 
@@ -303,6 +305,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_cv_iso(self):
         """Export CV version contents in directory as iso and Import it.
 
@@ -414,6 +417,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_cv_incremental(self):
         """Export and Import CV version contents incrementally.
 
@@ -494,6 +498,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_repo(self):
         """Export repo in directory and Import them.
 
@@ -582,6 +587,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_reimport_repo(self):
         """Packages missing from upstream are removed from downstream on reimport.
 
@@ -605,6 +611,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_repo_iso(self):
         """Export repo in directory as iso and Import it.
 
@@ -727,6 +734,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_repo_incremental(self):
         """Export and Import repo incrementally.
 
@@ -803,6 +811,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_kickstart_tree(self):
         """kickstart tree is exported to specified location.
 
@@ -899,6 +908,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_redhat_yum_repo(self):
         """Import the exported YUM repo contents.
 
@@ -944,6 +954,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_redhat_incremental_yum_repo(self):
         """Import the exported YUM repo contents incrementally.
 
@@ -985,6 +996,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_redhat_yum_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and Import.
 
@@ -1031,6 +1043,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_redhat_yum_incremental_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and import incrementally.
 
@@ -1075,6 +1088,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_redhat_cv(self):
         """Export CV version having Red Hat contents in directory and Import
         them.
@@ -1099,6 +1113,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_redhat_mix_cv(self):
         """Export CV version having Red Hat and custom repo in directory
         and Import them.
@@ -1125,6 +1140,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_redhat_cv_iso(self):
         """Export CV version having Red Hat contents as ISO.
 
@@ -1142,6 +1158,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_export_import_redhat_cv_iso(self):
         """Export CV version having Red Hat contents as ISO and Import them.
 
@@ -1166,6 +1183,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_install_package_from_imported_repos(self):
         """Install packages in client from imported repo of Downstream satellite.
 

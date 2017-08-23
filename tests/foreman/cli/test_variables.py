@@ -42,6 +42,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -423,6 +424,7 @@ class SmartVariablesTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_type(self):
         """Create smart variable with all valid key types and values.
 
@@ -942,6 +944,7 @@ class SmartVariablesTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_remove_matcher(self):
         """Create a Smart Variable with matcher and remove that matcher
         afterwards.
@@ -1393,6 +1396,7 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['avoid-duplicates'], False)
 
     @tier2
+    @upgrade
     def test_positive_impact_delete_attribute(self):
         """Impact on variable after deleting associated attribute.
 
@@ -1506,6 +1510,7 @@ class SmartVariablesTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_hidden_value(self):
         """Update the hidden default value of variable.
 

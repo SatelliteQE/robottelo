@@ -55,7 +55,8 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    tier3
+    tier3,
+    upgrade
 )
 from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.test import CLITestCase
@@ -171,6 +172,7 @@ class JobTemplateTestCase(CLITestCase):
             })
 
     @tier1
+    @upgrade
     def test_positive_delete_job_template(self):
         """Delete a job template
 
@@ -472,6 +474,7 @@ class RemoteExecutionTestCase(CLITestCase):
             )
 
     @tier3
+    @upgrade
     def test_positive_run_default_job_template_multiple_hosts(self):
         """Run default job template against multiple hosts
 
@@ -508,6 +511,7 @@ class RemoteExecutionTestCase(CLITestCase):
             self.assertEqual(invocation_command['success'], u'2', output_msgs)
 
     @tier3
+    @upgrade
     def test_positive_install_multiple_packages_with_a_job(self):
         """Run job to install several packages on host
 
@@ -598,6 +602,7 @@ class RemoteExecutionTestCase(CLITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_run_job_multiple_hosts_concurrency(self):
         """Run job against multiple hosts with concurrency-level
 
@@ -735,6 +740,7 @@ class RemoteExecutionTestCase(CLITestCase):
             )
 
     @tier3
+    @upgrade
     def test_positive_run_default_job_template_multiple_hosts_by_ip(self):
         """Run default job template against multiple hosts by ip
 
@@ -826,6 +832,7 @@ class RemoteExecutionTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
 
     @tier3
+    @upgrade
     def test_positive_run_recurring_job_with_max_iterations_by_ip(self):
         """Run default job template multiple times with max iteration by ip
 

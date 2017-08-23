@@ -23,7 +23,7 @@ from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
 from robottelo.constants import PERMISSIONS, ROLES
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import stubbed, tier1, tier2, tier3
+from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -72,6 +72,7 @@ class RoleTestCase(CLITestCase):
         self.assertEqual(role['name'], filter_['role'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_permission(self):
         """Create new role with a set of permission
 
@@ -207,6 +208,7 @@ class RoleTestCase(CLITestCase):
             err.exception.msg, 'At least one of options .* is required')
 
     @tier1
+    @upgrade
     def test_positive_list_filters_with_pagination(self):
         """Make sure filters list can be displayed with different items per
         page value
@@ -260,6 +262,7 @@ class RoleTestCase(CLITestCase):
                     len(filters), len(permissions) % per_page or per_page)
 
     @tier1
+    @upgrade
     def test_positive_delete_cloned_builtin(self):
         """Clone a builtin role and attempt to delete it
 
@@ -289,6 +292,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_role_with_taxonomies(self):
         """create role with taxonomies
 
@@ -384,6 +388,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_overridable_filter(self):
         """Create overridable filter in role
 
@@ -526,6 +531,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_access_entities_from_org_admin(self):
         """User can access resources within its taxonomies if assigned role
         has permission for same taxonomies
@@ -811,6 +817,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_user_group_users_access_as_org_admin(self):
         """Users in usergroup can have access to the resources in taxonomies if
         the taxonomies of Org Admin role is same
@@ -929,6 +936,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_remove_org_admin_role(self):
         """Super Admin user can remove Org Admin role
 
@@ -1147,6 +1155,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_access_entities_from_ldap_org_admin(self):
         """LDAP User can access resources within its taxonomies if assigned
         role has permission for same taxonomies
@@ -1212,6 +1221,7 @@ class CannedRoleTestCases(CLITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_assign_org_admin_to_ldap_user_group(self):
         """Users in LDAP usergroup can access to the resources in taxonomies if
         the taxonomies of Org Admin role are same
