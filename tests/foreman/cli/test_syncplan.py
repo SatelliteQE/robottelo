@@ -45,6 +45,7 @@ from robottelo.decorators import (
     tier1,
     tier3,
     tier4,
+    upgrade
 )
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
@@ -294,6 +295,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1336790)
     @tier1
+    @upgrade
     def test_positive_update_sync_date(self):
         """Check if syncplan sync date can be updated
 
@@ -340,6 +342,7 @@ class SyncPlanTestCase(CLITestCase):
         )
 
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Check if syncplan can be created and deleted
 
@@ -371,6 +374,7 @@ class SyncPlanTestCase(CLITestCase):
         self.assertIsNotNone(result.get('enabled'))
 
     @tier4
+    @upgrade
     def test_negative_synchronize_custom_product_past_sync_date(self):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
@@ -403,6 +407,7 @@ class SyncPlanTestCase(CLITestCase):
             # validate the error message once unstubbed (#3611)
 
     @tier4
+    @upgrade
     def test_positive_synchronize_custom_product_past_sync_date(self):
         """Create a sync plan with a past datetime as a sync date, add a
         custom product and verify the product gets synchronized on the next
@@ -448,6 +453,7 @@ class SyncPlanTestCase(CLITestCase):
             repo, ['errata', 'package-groups', 'packages'])
 
     @tier4
+    @upgrade
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -491,6 +497,7 @@ class SyncPlanTestCase(CLITestCase):
             repo, ['errata', 'package-groups', 'packages'])
 
     @tier4
+    @upgrade
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -546,6 +553,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @run_in_one_thread
     @tier4
+    @upgrade
     def test_positive_synchronize_rh_product_past_sync_date(self):
         """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
@@ -612,6 +620,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @run_in_one_thread
     @tier4
+    @upgrade
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -675,6 +684,7 @@ class SyncPlanTestCase(CLITestCase):
         self.validate_repo_content(repo, ['errata', 'packages'])
 
     @tier3
+    @upgrade
     def test_positive_synchronize_custom_product_daily_recurrence(self):
         """Create a daily sync plan with a past datetime as a sync date,
         add a custom product and verify the product gets synchronized on

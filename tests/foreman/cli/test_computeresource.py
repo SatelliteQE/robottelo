@@ -46,6 +46,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     skip_if_not_set,
     tier1,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -180,8 +181,9 @@ class ComputeResourceTestCase(CLITestCase):
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertTrue(result)
 
-    @tier1
     @run_only_on('sat')
+    @tier1
+    @upgrade
     def test_positive_delete_by_name(self):
         """Test Compute Resource delete
 
@@ -202,9 +204,9 @@ class ComputeResourceTestCase(CLITestCase):
         self.assertFalse(result)
 
     # Positive create
-
-    @tier1
     @run_only_on('sat')
+    @tier1
+    @upgrade
     def test_positive_create_with_libvirt(self):
         """Test Compute Resource create
 

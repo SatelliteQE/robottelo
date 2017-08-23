@@ -19,7 +19,8 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    tier4
+    tier4,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -254,6 +255,7 @@ class TailoringFilesTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_delete_tailoring_file(self):
         """ Delete tailoring file
 
@@ -274,6 +276,7 @@ class TailoringFilesTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier4
+    @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
         """ End-to-End Oscap run with tailoring files and default capsule
 
@@ -301,6 +304,7 @@ class TailoringFilesTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier4
+    @upgrade
     def test_positive_oscap_run_with_tailoring_file_and_external_capsule(self):
         """ End-to-End Oscap run with tailoring files and external capsule
 
@@ -328,6 +332,7 @@ class TailoringFilesTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier4
+    @upgrade
     def test_positive_fetch_tailoring_file_information_from_arfreports(self):
         """ Fetch Tailoring file Information from Arf-reports
 

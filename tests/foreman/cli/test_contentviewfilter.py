@@ -31,7 +31,13 @@ from robottelo.cli.factory import (
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    bz_bug_is_open,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.test import CLITestCase
 
 
@@ -642,6 +648,7 @@ class ContentViewFilterTestCase(CLITestCase):
         self.assertEqual(cvf['repositories'][0]['name'], new_repo['name'])
 
     @tier2
+    @upgrade
     def test_positive_update_repo_with_different_type(self):
         """Create new content view filter and apply it to existing content view
         that has repository assigned to it. Try to update that filter and
@@ -923,6 +930,7 @@ class ContentViewFilterTestCase(CLITestCase):
                     })
 
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create new content view filter and assign it to existing content
         view by id. Try to delete that filter using its id as a parameter

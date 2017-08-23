@@ -37,7 +37,13 @@ from robottelo.datafactory import (
     valid_labels_list,
     invalid_values_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.test import CLITestCase
 
 
@@ -227,6 +233,7 @@ class ProductTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_gpg_key(self):
         """Update product's gpg keys
 
@@ -257,6 +264,7 @@ class ProductTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_sync_plan(self):
         """Update product's sync plan
 
@@ -375,6 +383,7 @@ class ProductTestCase(CLITestCase):
         self.assertEqual(new_product['sync-plan-id'], sync_plan['id'])
 
     @tier2
+    @upgrade
     def test_positive_remove_sync_plan_by_id(self):
         """Check if a sync plan can be removed from a product
 
@@ -472,6 +481,7 @@ class ProductTestCase(CLITestCase):
         self.assertEqual(u'Syncing Complete.', product['sync-state'])
 
     @tier2
+    @upgrade
     def test_positive_package_count(self):
         """Check that packages count is correctly filtered by product id
 
