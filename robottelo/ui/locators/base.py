@@ -1418,6 +1418,8 @@ locators = LocatorDict({
     "repo.type": (By.ID, "content_type"),
     "repo.url": (By.ID, "url"),
     "repo.upstream_name": (By.ID, "docker_upstream_name"),
+    "repo.upstream_username": (By.ID, "upstream_username"),
+    "repo.upstream_password": (By.ID, "upstream_password"),
     "repo.checksum": (By.ID, "checksum_type"),
     "repo.via_http": (By.ID, "unprotected"),
     "repo.search": (By.XPATH, "//input[@ng-model='table.searchTerm']"),
@@ -1471,6 +1473,25 @@ locators = LocatorDict({
                    "//i[contains(@class, 'fa-edit')]")),
     "repo.via_http_toggle": (
         By.XPATH, "//dd[@bst-edit-checkbox='repository.unprotected']//input"),
+    "repo.upstream_username_edit": (
+        By.XPATH, ("//dd[@bst-edit-text='repository.upstream_username']"
+                   "//i[contains(@class, 'fa-edit')]")),
+    "repo.upstream_username_update": (
+        By.XPATH,
+        "//dd[@bst-edit-text='repository.upstream_username']//input"
+    ),
+    "repo.upstream_password_edit": (
+        By.XPATH,
+        "//dd[@bst-edit-custom='repository.upstream_password_exists']"
+        "//i[contains(@class, 'fa-edit')]"),
+    "repo.upstream_password_update": (
+        By.XPATH,
+        "//dd[@bst-edit-custom='repository.upstream_password_exists']//input"
+    ),
+    "repo.upstream_password_clear": (
+        By.XPATH,
+        "//dd[@bst-edit-custom='repository.upstream_password_exists']"
+        "//i[contains(@class, 'fa-remove')]"),
     "repo.gpg_key_edit": (
         By.XPATH, ("//dd[@selector='repository.gpg_key_id']"
                    "//i[contains(@class, 'fa-edit')]")),
@@ -1510,6 +1531,14 @@ locators = LocatorDict({
     "repo.fetch_upstream": (
         By.XPATH, ("//dd[@bst-edit-text='repository.docker_upstream_name']"
                    "//div[@class='bst-edit']/div/span[2]")),
+    "repo.fetch_upstream_username": (
+        By.XPATH, ("//dd[@bst-edit-text='repository.upstream_username']"
+                   "//div[@class='bst-edit']/div/span[2]")),
+    "repo.fetch_upstream_password": (
+        By.XPATH,
+        "//dd[@bst-edit-custom='repository.upstream_password_exists']"
+        "//div[@class='bst-edit']/div/span[2]"
+    ),
     "repo.fetch_packages": (
         By.XPATH,
         "//a[@class='ng-binding'"

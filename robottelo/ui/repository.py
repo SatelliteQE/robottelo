@@ -17,7 +17,8 @@ class Repos(Base):
         return locators['repo.select']
 
     def create(self, name, gpg_key=None, http=False, url=None,
-               upstream_repo_name=None, repo_type=REPO_TYPE['yum'],
+               upstream_repo_name=None, upstream_username=None,
+               upstream_password=None, repo_type=REPO_TYPE['yum'],
                repo_checksum=CHECKSUM_TYPE['default'], download_policy=None):
         """Creates new repository from UI."""
         self.click(locators['repo.new'])
@@ -41,13 +42,20 @@ class Repos(Base):
         if upstream_repo_name:
             self.assign_value(
                 locators['repo.upstream_name'], upstream_repo_name)
+        if upstream_username:
+            self.assign_value(
+                locators['repo.upstream_username'], upstream_username)
+        if upstream_password:
+            self.assign_value(
+                locators['repo.upstream_password'], upstream_password)
         if http:
             self.click(locators['repo.via_http'])
         self.click(common_locators['create'])
 
     def update(self, name, new_name=None, new_url=None,
                new_repo_checksum=None, new_gpg_key=None, http=False,
-               new_upstream_name=None, download_policy=None):
+               new_upstream_name=None, new_upstream_username=None,
+               new_upstream_password=None, download_policy=None):
         """Updates repositories from UI."""
         self.search_and_click(name)
         if new_name:
@@ -74,6 +82,20 @@ class Repos(Base):
             self.click(locators['repo.upstream_edit'])
             self.assign_value(
                 locators['repo.upstream_update'], new_upstream_name)
+            self.click(common_locators['save'])
+        if new_upstream_username is not None:
+            self.click(locators['repo.upstream_username_edit'])
+            self.assign_value(
+                locators['repo.upstream_username_update'],
+                new_upstream_username
+            )
+            self.click(common_locators['save'])
+        if new_upstream_password:
+            self.click(locators['repo.upstream_password_edit'])
+            self.assign_value(
+                locators['repo.upstream_password_update'],
+                new_upstream_password
+            )
             self.click(common_locators['save'])
         if download_policy:
             self.click(locators['repo.download_policy_edit'])
@@ -126,7 +148,8 @@ class Repos(Base):
         self.search_and_click(name)
         if field_name in [
             'checksum', 'errata', 'gpgkey', 'package_groups', 'packages',
-            'upstream', 'url', 'download_policy'
+            'upstream', 'url', 'download_policy', 'upstream_username',
+            'upstream_password'
         ]:
             return (self.wait_until_element(locators[
                 'repo.fetch_' + field_name]).text == expected_field_value)
