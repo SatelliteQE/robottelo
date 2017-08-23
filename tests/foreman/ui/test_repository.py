@@ -57,6 +57,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
@@ -158,6 +159,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_in_different_orgs(self):
         """Create repository in two different orgs with same name
 
@@ -193,6 +195,7 @@ class RepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(repo_name))
 
     @tier2
+    @upgrade
     def test_positive_create_puppet_repo_same_url_different_orgs(self):
         """Create two repos with the same URL in two different organizations.
 
@@ -239,6 +242,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_repo_with_checksum(self):
         """Create repository with checksum type as sha256.
 
@@ -323,6 +327,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1447829)
     @tier2
+    @upgrade
     def test_positive_create_as_non_admin_user_with_cv_published(self):
         """Create a repository as a non admin user in a product that already
         contain a repository that is used in a published content view.
@@ -594,6 +599,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_discover_repo_via_existing_product(self):
         """Create repository via repo-discovery under existing product
 
@@ -641,6 +647,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_sync_custom_repo_yum(self):
         """Create Custom yum repos and sync it via the repos page.
 
@@ -671,6 +678,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_sync_custom_repo_puppet(self):
         """Create Custom puppet repos and sync it via the repos page.
 
@@ -703,6 +711,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_sync_custom_repo_docker(self):
         """Create Custom docker repos and sync it via the repos page.
 
@@ -759,6 +768,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier1
+    @upgrade
     def test_positive_delete_custom_ostree_repo(self):
         """Delete custom ostree repository.
 
@@ -933,6 +943,7 @@ class RepositoryTestCase(UITestCase):
     # using a loop But for clarity we decided to keep as separated tests
 
     @tier1
+    @upgrade
     def test_positive_create_immediate_update_to_on_demand(self):
         """Update `immediate` download policy to `on_demand` for a newly
         created YUM repository
@@ -953,6 +964,7 @@ class RepositoryTestCase(UITestCase):
             )
 
     @tier1
+    @upgrade
     def test_positive_create_immediate_update_to_background(self):
         """Update `immediate` download policy to `background` for a newly
         created YUM repository
@@ -1013,6 +1025,7 @@ class RepositoryTestCase(UITestCase):
             )
 
     @tier1
+    @upgrade
     def test_positive_create_background_update_to_immediate(self):
         """Update `background` download policy to `immediate` for a newly
         created YUM repository
@@ -1223,6 +1236,7 @@ class RepositoryTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1378442)
     @tier2
+    @upgrade
     def test_positive_srpm_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1365,6 +1379,7 @@ class RepositoryTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1378442)
     @tier2
+    @upgrade
     def test_positive_drpm_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1531,6 +1546,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
 
     @tier1
+    @upgrade
     def test_positive_upload_rpm_non_admin(self):
         """Create yum repository, then upload rpm package via UI by non-admin
         user.
@@ -1643,6 +1659,7 @@ class RepositoryTestCase(UITestCase):
             self.assertEqual(int(number.text), 0)
 
     @tier1
+    @upgrade
     def test_positive_upload_puppet(self):
         """Create puppet repository and upload puppet module
 
@@ -1759,6 +1776,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_local_delete(self):
         """Delete repository with local git puppet mirror.
 
@@ -1822,6 +1840,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_remote_delete(self):
         """Delete repository with remote git puppet mirror.
 
@@ -1865,6 +1884,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_sync_with_content_change(self):
         """Sync repository with changes in git puppet mirror.
         If module changes in GIT mirror but the version in manifest

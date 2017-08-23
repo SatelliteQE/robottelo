@@ -35,6 +35,7 @@ from robottelo.decorators import (
     stubbed,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators, tab_locators
@@ -546,6 +547,7 @@ class HostTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_delete(self):
         """Delete a Host
 
@@ -920,6 +922,7 @@ class HostTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_delete_atomic_host(self):
         """Delete a provisioned atomic host
 
@@ -968,6 +971,7 @@ class BulkHostTestCase(UITestCase):
     """Implements tests for Bulk Hosts actions in UI"""
 
     @tier3
+    @upgrade
     def test_positive_bulk_delete_host(self):
         """Delete a multiple hosts from the list
 

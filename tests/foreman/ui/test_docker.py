@@ -34,6 +34,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import UITestCase
@@ -892,6 +893,7 @@ class DockerContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_promote_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and
         publish it. Then promote it to the multiple available
@@ -1310,6 +1312,7 @@ class DockerContainerTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_with_compresource(self):
         """Create containers for local and external compute resources
 
@@ -1362,6 +1365,7 @@ class DockerContainerTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_with_external_registry(self):
         """Create a container pulling an image from a custom external
         registry

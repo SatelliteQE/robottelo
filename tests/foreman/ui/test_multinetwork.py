@@ -15,7 +15,7 @@
 
 @Upstream: No
 """
-from robottelo.decorators import stubbed, tier3
+from robottelo.decorators import stubbed, tier3, upgrade
 from robottelo.test import UITestCase
 
 
@@ -99,6 +99,7 @@ class MultinetworkTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_create_with_specified_internal_db_ipam_static(self):
         """Create host with default interface when IPAM set as
         'Internal DB' (with start and end IP range) and BootMode set as
@@ -371,6 +372,7 @@ class MultinetworkTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_add_alias_with_static_bootmode(self):
         """Add an alias interface when bootMode set to 'Static'
         mode under selected subnet
@@ -458,6 +460,7 @@ class MultinetworkTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_add_bond_interface_using_two_existing(self):
         """Add bond interface using existing two interfaces
 
@@ -588,6 +591,7 @@ class MultinetworkTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_add_bmc_interface(self):
         """Add bmc interface
 

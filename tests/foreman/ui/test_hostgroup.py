@@ -21,7 +21,7 @@ from nailgun import entities
 
 from robottelo.config import settings
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -136,6 +136,7 @@ class HostgroupTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_oscap_capsule(self):
         """Create new hostgroup with oscap capsule
 
@@ -161,6 +162,7 @@ class HostgroupTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_activation_keys(self):
         """Create new hostgroup with activation keys
 
