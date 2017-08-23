@@ -26,6 +26,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -66,6 +67,7 @@ class SubscriptionTestCase(CLITestCase):
         )
 
     @tier1
+    @upgrade
     def test_positive_manifest_delete(self):
         """Delete uploaded manifest
 
@@ -89,6 +91,7 @@ class SubscriptionTestCase(CLITestCase):
         )
 
     @tier2
+    @upgrade
     def test_positive_enable_manifest_reposet(self):
         """enable repository set
 
@@ -141,6 +144,7 @@ class SubscriptionTestCase(CLITestCase):
         )
 
     @tier1
+    @upgrade
     def test_positive_manifest_refresh(self):
         """upload manifest and refresh
 

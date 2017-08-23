@@ -40,7 +40,8 @@ from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
     tier1,
-    tier2
+    tier2,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -125,6 +126,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(loc['users'][0], user['login'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_user_by_name(self):
         """Create new location with assigned user to it. Use user login
         as a parameter
@@ -141,6 +143,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(loc['users'][0], user['login'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_compresource_by_id(self):
         """Create new location with compute resource assigned to it. Use
         compute resource id as a parameter
@@ -173,6 +176,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(loc['compute-resources'][0], comp_resource['name'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_template_by_id(self):
         """Create new location with config template assigned to it. Use
         config template id as a parameter
@@ -213,6 +217,7 @@ class LocationTestCase(CLITestCase):
         )
 
     @tier1
+    @upgrade
     def test_positive_create_with_domain_by_id(self):
         """Create new location with assigned domain to it. Use domain id
         as a parameter
@@ -262,6 +267,7 @@ class LocationTestCase(CLITestCase):
         self.assertIn(subnet['network'], loc['subnets'][0])
 
     @tier1
+    @upgrade
     def test_positive_create_with_subnet_by_name(self):
         """Create new location with assigned subnet to it. Use subnet
         name as a parameter
@@ -295,6 +301,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(loc['environments'][0], env['name'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_environment_by_name(self):
         """Create new location with assigned environment to it. Use
         environment name as a parameter
@@ -327,6 +334,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(loc['hostgroups'][0], host_group['name'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_hostgroup_by_name(self):
         """Create new location with assigned host group to it. Use host
         group name as a parameter
@@ -344,6 +352,7 @@ class LocationTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1234287)
     @tier1
+    @upgrade
     def test_positive_create_with_medium(self):
         """Create new location with assigned media to it.
 
@@ -360,6 +369,7 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(loc['installation-media'][0], medium['name'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_environments_by_id(self):
         """Basically, verifying that location with multiple entities
         assigned to it by id can be created in the system. Environments were
@@ -380,6 +390,7 @@ class LocationTestCase(CLITestCase):
             self.assertIn(env['name'], loc['environments'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_domains_by_name(self):
         """Basically, verifying that location with multiple entities
         assigned to it by name can be created in the system. Domains were
@@ -759,6 +770,7 @@ class LocationTestCase(CLITestCase):
         self.assertNotIn(proxy['name'], loc['smart-proxies'])
 
     @tier1
+    @upgrade
     def test_positive_delete_by_name(self):
         """Try to delete location using name of that location as a
         parameter. Use different value types for testing.
@@ -873,6 +885,7 @@ class LocationTestCase(CLITestCase):
             param_new_value, location['parameters'][param_name.lower()])
 
     @tier1
+    @upgrade
     def test_positive_remove_parameter_by_loc_name(self):
         """Remove a parameter from location
 

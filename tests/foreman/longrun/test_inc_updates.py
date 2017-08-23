@@ -53,6 +53,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     tier4,
+    upgrade
 )
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
@@ -231,6 +232,7 @@ class IncrementalUpdateTestCase(TestCase):
 
     @run_only_on('sat')
     @tier4
+    @upgrade
     def test_positive_noapply_api(self):
         """Check if api incremental update can be done without
         actually applying it
@@ -280,6 +282,7 @@ class IncrementalUpdateTestCase(TestCase):
 
     @run_only_on('sat')
     @tier4
+    @upgrade
     def test_positive_noapply_cli(self):
         """Check if cli incremental update can be done without
         actually applying it

@@ -20,7 +20,7 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo import manifests
 from robottelo.constants import PRDS, REPOSET
-from robottelo.decorators import run_in_one_thread, tier1
+from robottelo.decorators import run_in_one_thread, tier1, upgrade
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -30,6 +30,7 @@ class RepositorySetTestCase(CLITestCase):
     """Repository Set CLI tests."""
 
     @tier1
+    @upgrade
     def test_positive_list_available_repositories(self):
         """List available repositories for repository-set
 

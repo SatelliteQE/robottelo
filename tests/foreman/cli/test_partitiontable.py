@@ -23,7 +23,8 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_os, make_partition_table
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    run_only_on, skip_if_bug_open, tier1, tier2, upgrade)
 from robottelo.test import CLITestCase
 
 
@@ -80,6 +81,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         self.assertTrue(content in ptable_content[0])
 
     @tier1
+    @upgrade
     def test_positive_create_with_content_length(self):
         """Create a Partition Table with content length more than 4096 chars
 
@@ -132,6 +134,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
             PartitionTable.info({'id': ptable['id']})
 
     @tier1
+    @upgrade
     def test_positive_delete_by_name(self):
         """Create a Partition Table then delete it by its name
 
@@ -213,6 +216,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
         self.assertNotIn(os['title'], ptable['operating-systems'])
 
     @tier2
+    @upgrade
     def test_positive_remove_os_by_name(self):
         """Add an operating system to a partition table then remove it. Use
         names for removal

@@ -25,7 +25,8 @@ from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
 from robottelo.datafactory import filtered_datapoint, valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from robottelo.decorators import (
+    run_only_on, stubbed, tier1, tier2, tier3, upgrade)
 from robottelo.test import CLITestCase
 from robozilla.decorators import skip_if_bug_open
 
@@ -87,6 +88,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_address_pool(self):
         """Create subnet with valid address pool
 
@@ -151,6 +153,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_gateway(self):
         """Check if subnet with gateway can be created
 
@@ -166,6 +169,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_ipam(self):
         """Check if subnet with different ipam types can be created
 
@@ -203,6 +207,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_negative_create_with_address_pool(self):
         """Create subnet with invalid address pool range
 
@@ -373,6 +378,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Check if Subnet can be deleted
 
@@ -485,6 +491,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
     @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
+    @upgrade
     def test_positive_create_with_multiple_parameters(self):
         """Subnet with more than one parameters
 
@@ -521,6 +528,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1426612)
     @skip_if_bug_open('bugzilla', 1470014)
     @tier3
+    @upgrade
     def test_positive_inherit_subnet_parmeters_in_host(self):
         """Host inherits parameters from subnet
 
@@ -587,6 +595,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
     @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier2
+    @upgrade
     def test_positive_subnet_parameters_override_impact_on_subnet(self):
         """Override subnet parameter from host impact on subnet parameter
 
@@ -677,6 +686,7 @@ class ParameterizedSubnetTestCase(CLITestCase):
     @stubbed()
     @skip_if_bug_open('bugzilla', 1426612)
     @tier1
+    @upgrade
     def test_positive_delete_multiple_parameters(self):
         """Multiple subnet parameters can be deleted at once
 
