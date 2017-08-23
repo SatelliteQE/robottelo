@@ -1199,19 +1199,14 @@ class ContentViewTestCase(UITestCase):
                 puppet_module,
                 filter_term='Latest',
             )
-        # Workaround to fetch added puppet module name:
-        # UI doesn't refresh and populate the added module name
-        # until we logout and navigate again to puppet-module tab
-        with Session(self) as session:
-            session.nav.go_to_select_org(org.name)
             module = self.content_views.fetch_puppet_module(
                 cv_name1, puppet_module)
             self.assertIsNotNone(module)
             self.content_views.publish(cv_name1)
             self.content_views.add_remove_repos(cv_name2, [rh_repo['name']])
             self.content_views.publish(cv_name2)
-            self.content_views.create(composite_name, is_composite=True)
-            session.nav.go_to_select_org(org.name)
+            make_contentview(
+                session, org=org.name, name=composite_name, is_composite=True)
             self.content_views.add_remove_cv(
                 composite_name, [cv_name1, cv_name2])
 
@@ -2124,7 +2119,8 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             # create a composite content view
-            self.content_views.create(cv_composite_name, is_composite=True)
+            make_contentview(session, org=org.name, name=cv_composite_name,
+                             is_composite=True)
             self.assertIsNotNone(self.content_views.search(cv_composite_name))
             # add the first and second content views to the composite one
             self.content_views.add_remove_cv(
