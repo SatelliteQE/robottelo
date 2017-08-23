@@ -16,7 +16,7 @@
 @Upstream: No
 """
 
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -34,6 +34,7 @@ class SingleSignOnTestCase(CLITestCase):
     # can be easily added later.
 
     @stubbed()
+    @upgrade
     def test_positive_login_kerberos_user(self):
         """kerberos user can login to CLI
 
@@ -47,6 +48,7 @@ class SingleSignOnTestCase(CLITestCase):
         """
 
     @stubbed()
+    @upgrade
     def test_positive_login_ipa_user(self):
         """IPA user can login to CLI
 
@@ -60,6 +62,7 @@ class SingleSignOnTestCase(CLITestCase):
         """
 
     @stubbed()
+    @upgrade
     def test_positive_login_openldap_user(self):
         """OpenLDAP user can login to CLI
 
