@@ -24,8 +24,9 @@ from robottelo.cli.factory import (
 from robottelo.cli.puppet import Puppet
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.decorators import (
+    run_only_on,
     tier2,
-    run_only_on
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -54,6 +55,7 @@ class PuppetClassTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_list_smart_class_parameters(self):
         """List smart class parameters associated with the puppet class.
 
@@ -67,6 +69,7 @@ class PuppetClassTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_list_smart_variables(self):
         """List smart variables associated with the puppet class.
 

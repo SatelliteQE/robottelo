@@ -23,7 +23,7 @@ from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
 from robottelo.constants import ROLES
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import skip_if_bug_open, tier1
+from robottelo.decorators import skip_if_bug_open, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -68,6 +68,7 @@ class RoleTestCase(CLITestCase):
         self.assertEqual(role['name'], filter_['role'])
 
     @tier1
+    @upgrade
     def test_positive_create_with_permission(self):
         """Create new role with a set of permission
 
@@ -179,6 +180,7 @@ class RoleTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1470675)
     @tier1
+    @upgrade
     def test_positive_delete_cloned_builtin(self):
         """Clone a builtin role and attempt to delete it
 
