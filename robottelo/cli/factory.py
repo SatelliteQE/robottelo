@@ -40,6 +40,7 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
+from robottelo.cli.ldapauthsource import LDAPAuthSource
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
 from robottelo.cli.medium import Medium
@@ -1741,6 +1742,91 @@ def make_usergroup_external(options=None):
     }
 
     return create_object(UserGroupExternal, args, options)
+
+
+@cacheable
+def make_ldap_auth_source(options=None):
+    """
+    Usage::
+
+        hammer auth-source ldap create [OPTIONS]
+
+    Options::
+
+        --account ACCOUNT
+        --account-password ACCOUNT_PASSWORD       required if onthefly_register
+                                                  is true
+        --attr-firstname ATTR_FIRSTNAME           required if onthefly_register
+                                                  is true
+        --attr-lastname ATTR_LASTNAME             required if onthefly_register
+                                                  is true
+        --attr-login ATTR_LOGIN                   required if onthefly_register
+                                                  is true
+        --attr-mail ATTR_MAIL                     required if onthefly_register
+                                                  is true
+        --attr-photo ATTR_PHOTO
+        --base-dn BASE_DN
+        --groups-base GROUPS_BASE                 groups base DN
+        --host HOST
+        --ldap-filter LDAP_FILTER                 LDAP filter
+        --location-ids LOCATION_IDS               REPLACE locations with given
+                                                  ids
+                                                  Comma separated list of
+                                                  values. Values containing
+                                                  comma should be double quoted
+        --locations LOCATION_NAMES                Comma separated list of
+                                                  values. Values containing
+                                                  comma should be double quoted
+        --name NAME
+        --onthefly-register                       ONTHEFLY_REGISTER One of
+                                                  true/false, yes/no, 1/0.
+        --organization-ids ORGANIZATION_IDS       REPLACE organizations with
+                                                  given ids.
+                                                  Comma separated list of
+                                                  values. Values containing
+                                                  comma should be double quoted
+        --organizations ORGANIZATION_NAMES        Comma separated list of
+                                                  values. Values containing
+                                                  comma should be double quoted
+        --port PORT                               defaults to 389
+        --server-type SERVER_TYPE                 type of the LDAP server
+                                                  Possible value(s):
+                                                  'free_ipa',
+                                                  'active_directory', 'posix'
+        --tls TLS                                 One of true/false, yes/no,
+                                                  1/0.
+        --usergroup-sync USERGROUP_SYNC           sync external user groups on
+                                                  login
+                                                  One of true/false, yes/no,
+                                                  1/0.
+        -h, --help                                print help
+    """
+    # Assigning default values for attributes
+    args = {
+        u'account': None,
+        u'account-password': None,
+        u'attr-firstname': None,
+        u'attr-lastname': None,
+        u'attr-login': None,
+        u'attr-mail': None,
+        u'attr-photo': None,
+        u'base-dn': None,
+        u'groups-base': None,
+        u'host': None,
+        u'ldap-filter': None,
+        u'location-ids': None,
+        u'locations': None,
+        u'name': gen_alphanumeric(),
+        u'onthefly-register': None,
+        u'organization-ids': None,
+        u'organizations': None,
+        u'port': None,
+        u'server-type': None,
+        u'tls': None,
+        u'usergroup-sync': None,
+    }
+
+    return create_object(LDAPAuthSource, args, options)
 
 
 @cacheable

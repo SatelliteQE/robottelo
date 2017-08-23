@@ -910,6 +910,11 @@ LDAP_SERVER_TYPE = {
         'ad': 'active_directory',
         'posix': 'posix',
     },
+    'CLI': {
+        'ipa': 'free_ipa',
+        'ad': 'active_directory',
+        'posix': 'posix',
+    },
     'UI': {
         'ipa': 'FreeIPA',
         'ad': 'Active Directory',

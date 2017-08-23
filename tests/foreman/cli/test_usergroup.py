@@ -17,20 +17,30 @@
 """
 
 from random import randint
-from robottelo.cli.usergroup import UserGroup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
+    make_ldap_auth_source,
     make_role,
     make_user,
     make_usergroup,
+    make_usergroup_external,
 )
+from robottelo.cli.usergroup import UserGroup
+from robottelo.config import settings
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import (
+    gen_string,
     invalid_values_list,
     valid_data_list,
     valid_usernames_list,
 )
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+    tier2,
+)
 from robottelo.test import CLITestCase
 
 
@@ -648,3 +658,52 @@ class UserGroupTestCase(CLITestCase):
         })
         user_group = UserGroup.info({'id': user_group['id']})
         self.assertEqual(len(user_group['user-groups']), 0)
+
+
+class ActiveDirectoryUserGroupTestCase(CLITestCase):
+    """Implements Active Directory feature tests for user groups in CLI."""
+
+    @classmethod
+    @skip_if_not_set('ldap')
+    def setUpClass(cls):
+        """Read settings and create LDAP auth source that can be re-used in
+        tests."""
+        super(ActiveDirectoryUserGroupTestCase, cls).setUpClass()
+        cls.ldap_user_name = settings.ldap.username
+        cls.ldap_user_passwd = settings.ldap.password
+        cls.base_dn = settings.ldap.basedn
+        cls.group_base_dn = settings.ldap.grpbasedn
+        cls.ldap_hostname = settings.ldap.hostname
+        cls.auth = make_ldap_auth_source({
+            u'name': gen_string('alpha'),
+            u'onthefly-register': 'true',
+            u'host': cls.ldap_hostname,
+            u'server-type': LDAP_SERVER_TYPE['CLI']['ad'],
+            u'attr-login': LDAP_ATTR['login_ad'],
+            u'attr-firstname': LDAP_ATTR['firstname'],
+            u'attr-lastname': LDAP_ATTR['surname'],
+            u'attr-mail': LDAP_ATTR['mail'],
+            u'account': cls.ldap_user_name,
+            u'account-password': cls.ldap_user_passwd,
+            u'base-dn': cls.base_dn,
+            u'groups-base': cls.group_base_dn,
+        })
+
+    @tier2
+    def test_positive_create(self):
+        """Create external user group using LDAP
+
+        :id: 812c701a-27c5-4c4e-a4f7-04bf7d887a7c
+
+        :expectedresults: User group is created successfully and assigned to
+            correct auth source
+
+        :CaseLevel: Integration
+        """
+        user_group = make_usergroup()
+        ext_user_group = make_usergroup_external({
+            'auth-source-id': self.auth['id'],
+            'user-group-id': user_group['id'],
+            'name': 'foobargroup'
+        })
+        self.assertEqual(ext_user_group['auth-source'], self.auth['name'])
