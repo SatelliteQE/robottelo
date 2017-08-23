@@ -14,7 +14,14 @@
 """
 
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
+from robottelo.decorators import (
+    run_only_on,
+    stubbed,
+    tier1,
+    tier3,
+    tier4,
+    upgrade
+)
 from robottelo.test import UITestCase
 
 
@@ -162,6 +169,7 @@ class AnsibleTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_associate_ansible_roles_to_hosts(self):
         """Associate Ansible roles to hosts
 
@@ -183,6 +191,7 @@ class AnsibleTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_execute_custom_ansible_role(self):
         """Execute custom Ansible roles on hosts
 
@@ -249,6 +258,7 @@ class AnsibleTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_run_ansibles_role_multiple_hosts(self):
         """Check if Ansible roles can be run on multiple hosts
 
@@ -508,6 +518,7 @@ class AnsibleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_with_provisioning_callback(self):
         """Host provisioned through satellite should be able to run playbook
         itself from Tower through provisioning callback.

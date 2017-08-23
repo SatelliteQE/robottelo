@@ -16,7 +16,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import stubbed, tier1, tier3
+from robottelo.decorators import stubbed, tier1, tier3, upgrade
 from robottelo.test import UITestCase
 
 
@@ -49,6 +49,7 @@ class EmailTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_sync_with_enabled_notification(self):
         """Receive email after every sync operation
 
@@ -131,6 +132,7 @@ class EmailTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_host_with_daily_notification(self):
         """Receive daily email with host advisory information
 
@@ -251,6 +253,7 @@ class EmailTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_sync_errata_notification(self):
         """Receive 'Katello Sync Errata' notifications - only for
         repositories and content views that the user has view access to

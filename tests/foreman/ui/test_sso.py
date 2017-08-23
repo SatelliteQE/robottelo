@@ -16,7 +16,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import stubbed, tier3
+from robottelo.decorators import stubbed, tier3, upgrade
 from robottelo.test import UITestCase
 
 
@@ -69,6 +69,7 @@ class SingleSignOnTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_sso_kerberos_basic_roles(self):
         """SSO - kerberos (IdM or AD) login (basic) that has roles
         assigned.

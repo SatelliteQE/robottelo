@@ -29,6 +29,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
@@ -486,6 +487,7 @@ class Ec2ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_ec2_with_host_group(self):
         """ Provision a host on ec2 compute resource with
         the help of hostgroup.

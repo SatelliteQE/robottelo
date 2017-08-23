@@ -13,7 +13,14 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from robottelo.decorators import (
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+    upgrade,
+)
 from robottelo.test import UITestCase
 
 
@@ -361,6 +368,7 @@ class OpenstackComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_openstack_with_host_group(self):
         """ Provision a host on openstack compute resource with
         the help of hostgroup.

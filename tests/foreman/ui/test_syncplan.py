@@ -36,6 +36,7 @@ from robottelo.decorators import (
     tier2,
     tier3,
     tier4,
+    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
@@ -336,6 +337,7 @@ class SyncPlanTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1460146)
     @tier1
+    @upgrade
     def test_positive_update_interval(self):
         """Update Sync plan's interval
 
@@ -406,6 +408,7 @@ class SyncPlanTestCase(UITestCase):
             self.assertIsNotNone(element)
 
     @tier2
+    @upgrade
     def test_positive_update_and_disassociate_product(self):
         """Update Sync plan and disassociate products
 
@@ -442,6 +445,7 @@ class SyncPlanTestCase(UITestCase):
             self.assertIsNotNone(element)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete an existing Sync plan
 
@@ -626,6 +630,7 @@ class SyncPlanTestCase(UITestCase):
             )
 
     @tier4
+    @upgrade
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -696,6 +701,7 @@ class SyncPlanTestCase(UITestCase):
 
     @run_in_one_thread
     @tier4
+    @upgrade
     def test_positive_synchronize_rh_product_past_sync_date(self):
         """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
@@ -883,6 +889,7 @@ class SyncPlanTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', '1396647')
     @tier3
+    @upgrade
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
         """Create a daily sync plan with past datetime as a sync date,
         add a custom product and verify the product gets synchronized

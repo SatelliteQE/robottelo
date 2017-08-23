@@ -14,7 +14,7 @@
 
 :Upstream: No
 """
-from robottelo.decorators import run_only_on, stubbed, tier1
+from robottelo.decorators import run_only_on, stubbed, tier1, upgrade
 from robottelo.test import UITestCase
 
 
@@ -89,6 +89,7 @@ class ISODownloadTestCase(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_cdn_url(self):
         """Validate that cdn url to file path works
 

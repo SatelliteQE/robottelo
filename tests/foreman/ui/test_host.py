@@ -43,6 +43,7 @@ from robottelo.decorators import (
     stubbed,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
@@ -403,6 +404,7 @@ class HostTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_create_baremetal_with_uefi(self):
         """Create a new Host AR from provided MAC address
 
@@ -685,6 +687,7 @@ class HostTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_delete(self):
         """Delete a Host
 
@@ -1357,6 +1360,7 @@ class AtomicHostTestCase(UITestCase):
         """
 
     @tier3
+    @upgrade
     def test_positive_delete_atomic_host(self):
         """Delete a provisioned atomic host
 
@@ -1430,6 +1434,7 @@ class BulkHostTestCase(UITestCase):
     """Implements tests for Bulk Hosts actions in UI"""
 
     @tier3
+    @upgrade
     def test_positive_bulk_delete_host(self):
         """Delete a multiple hosts from the list
 

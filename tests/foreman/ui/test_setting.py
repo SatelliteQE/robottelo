@@ -19,7 +19,7 @@
 from fauxfactory import gen_email, gen_string, gen_url
 from random import choice, randint
 from robottelo.datafactory import filtered_datapoint, valid_data_list
-from robottelo.decorators import run_only_on, tier1, stubbed, tier4
+from robottelo.decorators import run_only_on, tier1, stubbed, tier4, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import edit_param
@@ -191,6 +191,7 @@ class SettingTestCase(UITestCase):
                     self.assertEqual(param_value, self.saved_element)
 
     @tier1
+    @upgrade
     def test_positive_update_administrator_param(self):
         """Updates parameter "administrator" under General tab
 
@@ -1047,6 +1048,7 @@ class SettingTestCase(UITestCase):
 
     @stubbed()
     @tier1
+    @upgrade
     def test_negative_update_email_delivery_method_smtp(self):
         """Updating SMTP params on Email tab fail
 

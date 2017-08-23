@@ -22,7 +22,8 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier3,
-    tier4
+    tier4,
+    upgrade,
 )
 from robottelo.test import UITestCase
 
@@ -33,6 +34,7 @@ class CapsuleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_errata_push(self):
         """User can push errata through to a client on
         an isolated capsule
@@ -53,6 +55,7 @@ class CapsuleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_rpm_push(self):
         """User can install a new errata on a client through
         an isolated capsule - this is a satellite-initiated action
@@ -73,6 +76,7 @@ class CapsuleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_puppet_push(self):
         """user can install new puppet module on a client
         through an isolated capsule
@@ -444,6 +448,7 @@ class CapsuleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_dns_and_dhcp_enabled_on_capsule(self):
         """Check DNS ana DHCP is enabled on capsule
 
