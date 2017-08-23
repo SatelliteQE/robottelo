@@ -284,10 +284,18 @@ class ActivationKeyTestCase(CLITestCase):
             with self.subTest(name), self.assertRaises(
                     CLIFactoryError) as raise_ctx:
                 self._make_activation_key({u'name': name})
+            content_to_validate = [u'Validation failed:']
+            if len(name) == 0:
+                content_to_validate.append(
+                    u'Name must contain at least 1 character')
+            elif len(name) > 255:
+                content_to_validate.append(
+                    u'Name is too long (maximum is 255 characters)')
+            else:
+                content_to_validate.append(name)
             self.assert_error_msg(
                 raise_ctx,
-                u'Validation failed:',
-                name
+                *content_to_validate
             )
 
     @tier1
