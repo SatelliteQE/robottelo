@@ -21,7 +21,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_medium, make_org, make_os
 from robottelo.cli.medium import Medium
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -128,6 +128,7 @@ class MediumTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_os(self):
         """Check if operating system can be removed from media
 

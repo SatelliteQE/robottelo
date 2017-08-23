@@ -30,6 +30,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.helpers import (
     default_url_on_new_port,
@@ -139,6 +140,7 @@ class CapsuleTestCase(CLITestCase):
     @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_refresh_features_by_id(self):
         """Refresh smart proxy features, search for proxy by id
 
@@ -203,6 +205,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
 
     @stubbed()
+    @upgrade
     def test_positive_provision(self):
         """User can provision through a capsule
 
@@ -270,6 +273,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """
 
     @stubbed()
+    @upgrade
     def test_positive_consume_content(self):
         """User can consume content on system, from a content source,
         through proxy-enabled capsule
@@ -355,6 +359,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """
 
     @stubbed()
+    @upgrade
     def test_positive_enable_bmc(self):
         """Enable BMC feature on smart-proxy
 

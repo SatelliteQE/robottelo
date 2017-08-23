@@ -31,7 +31,13 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier2
+from robottelo.decorators import (
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+    upgrade
+)
 from robottelo.test import CLITestCase
 
 
@@ -320,6 +326,7 @@ class HostCollectionTestCase(CLITestCase):
         self.assertGreater(result['total-hosts'], no_of_content_host)
 
     @tier2
+    @upgrade
     def test_positive_remove_host_by_id(self):
         """Check if content host can be removed from host collection
 

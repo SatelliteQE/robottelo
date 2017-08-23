@@ -15,7 +15,7 @@
 
 :Upstream: No
 """
-from robottelo.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -28,6 +28,7 @@ class InstallerTestCase(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
+    @upgrade
     def test_positive_installer_check_services(self):
         # devnote:
         # maybe `hammer ping` command might be useful here to check

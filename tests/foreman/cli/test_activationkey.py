@@ -51,6 +51,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
@@ -396,6 +397,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_with_cv(self):
         """Create activation key with content view assigned to it and
         delete it using activation key id
@@ -643,6 +645,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @skip_if_not_set('clients')
     @tier3
+    @upgrade
     def test_positive_usage_limit(self):
         """Test that Usage limit actually limits usage
 
@@ -815,6 +818,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
+    @upgrade
     def test_positive_add_redhat_and_custom_products(self):
         """Test if RH/Custom product can be associated to Activation key
 
@@ -924,6 +928,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @skip_if_not_set('clients')
     @tier3
+    @upgrade
     def test_positive_update_aks_to_chost(self):
         """Check if multiple Activation keys can be attached to a
         Content host
@@ -1249,6 +1254,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_copy_subscription(self):
         """Copy Activation key and verify contents
 

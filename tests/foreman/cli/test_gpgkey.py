@@ -43,6 +43,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
@@ -264,6 +265,7 @@ class TestGPGKey(CLITestCase):
     # Positive Delete
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create gpg key with valid name and valid gpg key via file
         import then delete it
@@ -916,6 +918,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_key_for_product_with_repo(self):
         """Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
@@ -1186,6 +1189,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_consume_content_using_repos(self):
         """Hosts can install packages using gpg key associated with
         multiple custom repositories

@@ -89,6 +89,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine, VirtualMachineError
@@ -213,6 +214,7 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(host_interface['mac-address'], mac)
 
     @tier2
+    @upgrade
     def test_positive_create_with_interface_by_id(self):
         """A host with defined interface can be created. Use domain id as one
         of the interface keys
@@ -495,6 +497,7 @@ class HostCreateTestCase(CLITestCase):
             })
 
     @tier3
+    @upgrade
     def test_positive_register_with_no_ak(self):
         """Register host to satellite without activation key
 
@@ -678,6 +681,7 @@ class HostCreateTestCase(CLITestCase):
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
     @tier3
+    @upgrade
     def test_positive_unregister(self):
         """Unregister a host
 
@@ -1637,6 +1641,7 @@ class HostProvisionTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_baremetal_with_bios_syslinux(self):
         """Provision RHEL system on a new BIOS BM Host with SYSLINUX loader
         from provided MAC address
@@ -1754,6 +1759,7 @@ class HostProvisionTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_baremetal_with_uefi_grub2(self):
         """Provision a RHEL7+ system on a new UEFI BM Host with GRUB2 loader
         from a provided MAC address
@@ -1922,6 +1928,7 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_apply_errata(self):
         """Apply errata to a host
 
@@ -1980,6 +1987,7 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_install_package(self):
         """Install a package to a host remotely
 
@@ -2063,6 +2071,7 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_install_package_group(self):
         """Install a package group to a host remotely
 
@@ -2121,6 +2130,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
 
     @tier3
+    @upgrade
     def test_positive_register_host_ak_with_host_collection(self):
         """Attempt to register a host using activation key with host collection
 
@@ -2446,6 +2456,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
 
     @tier3
+    @upgrade
     def test_positive_remove(self):
         """Attempt to remove a subscription from content host
 

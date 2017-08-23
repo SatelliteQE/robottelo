@@ -25,7 +25,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
-from robottelo.decorators import skip_if_bug_open, tier1
+from robottelo.decorators import skip_if_bug_open, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -131,6 +131,7 @@ class FilterTestCase(CLITestCase):
             Filter.info({'id': filter_['id']})
 
     @tier1
+    @upgrade
     def test_positive_delete_role(self):
         """Create a filter and delete the role it points at.
 

@@ -27,7 +27,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.ostreebranch import OstreeBranch
 from robottelo.cli.repository import Repository
 from robottelo.constants import FEDORA23_OSTREE_REPO
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, upgrade
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import CLITestCase
 
@@ -71,6 +71,7 @@ class OstreeBranchTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_list_by_repo_id(self):
         """List Ostree branches by repo id
 
