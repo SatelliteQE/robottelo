@@ -50,6 +50,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier3,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -285,6 +286,7 @@ class HostCollectionTestCase(UITestCase):
                         self.hostcollection.update(name, limit=limit)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create Host Collection and delete it for all variations of name
 
@@ -341,6 +343,7 @@ class HostCollectionTestCase(UITestCase):
                     )
 
     @tier3
+    @upgrade
     def test_positive_add_host(self):
         """Check if host can be added to Host Collection
 
@@ -510,6 +513,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 )
 
     @tier3
+    @upgrade
     def test_positive_install_package(self):
         """Install a package to hosts inside host collection remotely
 
@@ -531,6 +535,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 self.hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
     @tier3
+    @upgrade
     def test_positive_remove_package(self):
         """Remove a package from hosts inside host collection remotely
 
@@ -582,6 +587,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
 
     @tier3
+    @upgrade
     def test_positive_install_package_group(self):
         """Install a package group to hosts inside host collection remotely
 
@@ -633,6 +639,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                     self.hosts, package, expected_installed=False)
 
     @tier3
+    @upgrade
     def test_positive_install_errata(self):
         """Install an errata to the hosts inside host collection remotely
 

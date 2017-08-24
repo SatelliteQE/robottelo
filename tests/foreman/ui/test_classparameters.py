@@ -36,6 +36,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import UITestCase
@@ -348,6 +349,7 @@ class SmartClassParametersTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_parameter_type(self):
         """Positive Parameter Update for parameter types - Valid Value.
 
@@ -928,6 +930,7 @@ class SmartClassParametersTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_matcher_puppet_default_value(self):
         """Create matcher for attribute in parameter,
         Where Value is puppet default value.
@@ -1912,6 +1915,7 @@ class SmartClassParametersTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_unhide_parameter_default_value(self):
         """Unhide the default value of parameter.
 

@@ -19,7 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_product
 from robottelo.ui.locators import common_locators
@@ -206,6 +206,7 @@ class ProductTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete Content Product
 
