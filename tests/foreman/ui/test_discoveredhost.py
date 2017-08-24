@@ -25,7 +25,8 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     stubbed,
-    tier3
+    tier3,
+    upgrade,
 )
 from robottelo.api.utils import configure_provisioning
 from robottelo.libvirt_discovery import LibvirtGuest
@@ -141,6 +142,7 @@ class DiscoveryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_pxe_based_discovery(self):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
         PXE default
@@ -166,6 +168,7 @@ class DiscoveryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_pxe_less_with_dhcp_unattended(self):
         """Discover a host with dhcp via bootable discovery ISO by setting
         "proxy.type=proxy" in PXE default in unattended mode.
@@ -762,6 +765,7 @@ class DiscoveryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_manual_provision_host_with_rule(self):
         """Create a new discovery rule and manually provision a discovered host using
         that discovery rule.
@@ -1237,6 +1241,7 @@ class DiscoveryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_provision_using_quick_host_button(self):
         """Associate hostgroup while provisioning a discovered host from
         host properties model window and select quick host.

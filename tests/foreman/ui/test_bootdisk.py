@@ -15,7 +15,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import stubbed, tier3
+from robottelo.decorators import stubbed, tier3, upgrade
 from robottelo.test import UITestCase
 
 
@@ -53,6 +53,7 @@ class BootdiskTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_using_full_host_bootdisk_with_dhcp(self):
         """Provision a host through Full Host bootdisk where dhcp service is
         enabled.

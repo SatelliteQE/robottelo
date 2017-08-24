@@ -29,6 +29,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     stubbed,
+    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
@@ -413,6 +414,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete existing Discovery Rule
 

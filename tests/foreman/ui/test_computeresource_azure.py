@@ -13,7 +13,14 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from robottelo.decorators import (
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+    upgrade,
+)
 from robottelo.test import UITestCase
 
 
@@ -174,6 +181,7 @@ class AzureComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_delete_azure(self):
         """Delete An azure compute resource.
 
@@ -290,6 +298,7 @@ class AzureComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_provision_azure_with_host_group(self):
         """ Provision a host on azure compute resource with
         the help of hostgroup.

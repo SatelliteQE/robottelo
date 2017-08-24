@@ -22,6 +22,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
     tier3,
+    upgrade,
 )
 from robottelo.test import UITestCase
 
@@ -39,6 +40,7 @@ class PuppetTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_puppet_scenario(self):
         """Tests extensive all-in-one puppet scenario
 
@@ -86,6 +88,7 @@ class PuppetCapsuleTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_puppet_capsule_scenario(self):
         """Tests extensive all-in-one puppet scenario via Capsule
 

@@ -30,6 +30,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.helpers import add_remote_execution_ssh_key, get_data_file
 from robottelo.cli.factory import make_subnet
@@ -220,6 +221,7 @@ class JobsTemplateTestCase(UITestCase):
                 common_locators['name_haserror']))
 
     @tier1
+    @upgrade
     def test_positive_delete_job_template(self):
         """Delete a job template
 
@@ -248,6 +250,7 @@ class JobsTemplateTestCase(UITestCase):
             self.jobtemplate.delete(name, dropdown_present=True)
 
     @tier1
+    @upgrade
     def test_positive_clone_job_template(self):
         """Clone a Job Template
 
@@ -601,6 +604,7 @@ class RemoteExecutionTestCase(UITestCase):
                     )
 
     @tier3
+    @upgrade
     def test_positive_run_job_template_multiple_hosts(self):
         """Run a job template against multiple hosts
 
@@ -783,6 +787,7 @@ class RemoteExecutionTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_run_job_against_multiple_provisioned_hosts(self):
         """Run a job against multiple provisioned hosts
 
