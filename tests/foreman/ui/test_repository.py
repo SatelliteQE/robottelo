@@ -565,7 +565,7 @@ class RepositoryTestCase(UITestCase):
                     self.repository.delete(repo_name)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_delete_puppet_repo_associated_with_cv(self):
         """Delete a puppet repo associated with a content view - BZ#1271000
