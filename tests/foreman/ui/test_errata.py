@@ -42,9 +42,11 @@ from robottelo.constants import (
     PRDS,
     REAL_0_ERRATA_ID,
     REAL_0_RH_PACKAGE,
+    REAL_4_ERRATA_ID,
+    REAL_4_ERRATA_CVES,
+    REAL_4_ERRATA_DETAILS,
     REPOS,
     REPOSET,
-    TOOLS_ERRATA_DETAILS,
     TOOLS_ERRATA_TABLE_DETAILS,
 )
 from robottelo.decorators import (
@@ -101,7 +103,7 @@ class ErrataTestCase(UITestCase):
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
-        })
+        }, force_manifest_upload=True)
         cls.custom_entitites = setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': cls.session_org.id,
@@ -109,6 +111,17 @@ class ErrataTestCase(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
+        rhva_repo = enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
+            org_id=cls.session_org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhva6']['name'],
+            reposet=REPOSET['rhva6'],
+            releasever=DEFAULT_RELEASE_VERSION,
+        )
+        assert entities.Repository(id=rhva_repo).sync()['result'] == 'success'
+        cls.rhva_errata_id = REAL_4_ERRATA_ID
+        cls.rhva_errata_cves = REAL_4_ERRATA_CVES
 
     @stubbed()
     @tier2
@@ -210,7 +223,7 @@ class ErrataTestCase(UITestCase):
         with Session(self, user.login, user_password) as session:
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
-            self.assertIsNotNone(self.errata.search(REAL_0_ERRATA_ID))
+            self.assertIsNotNone(self.errata.search(self.rhva_errata_id))
             self.assertIsNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
 
     @tier3
@@ -332,8 +345,8 @@ class ErrataTestCase(UITestCase):
         """
         with Session(self):
             self.errata.check_errata_details(
-                REAL_0_ERRATA_ID,
-                TOOLS_ERRATA_DETAILS,
+                REAL_4_ERRATA_ID,
+                REAL_4_ERRATA_DETAILS,
                 only_applicable=False,
             )
 
@@ -384,20 +397,8 @@ class ErrataTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
-        real_errata_id = 'RHSA-2014:1873'  # rhva6 errata with CVEs
-        real_errata_cves = 'CVE-2014-3633 , CVE-2014-3657 , CVE-2014-7823'
-        repo_with_cves_id = enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=self.session_org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhva6']['name'],
-            reposet=REPOSET['rhva6'],
-            releasever=DEFAULT_RELEASE_VERSION,
-        )
-        self.assertEqual(
-            entities.Repository(id=repo_with_cves_id).sync()['result'],
-            'success'
-        )
+        real_errata_id = self.rhva_errata_id
+        real_errata_cves = set(self.rhva_errata_cves)
         with Session(self):
             self.errata.check_errata_details(
                 real_errata_id,
@@ -406,7 +407,7 @@ class ErrataTestCase(UITestCase):
             )
             self.errata.check_errata_details(
                 CUSTOM_REPO_ERRATA_ID,
-                [['CVEs', 'N/A']],
+                [['CVEs_NA', 'N/A']],
                 only_applicable=False,
             )
 
@@ -943,7 +944,7 @@ class FilteredErrataTestCase(UITestCase):
             'content-view-id': content_view.id,
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
-        })
+        }, force_manifest_upload=True)
         custom_entitites = setup_org_for_a_custom_repo({
             'url': CUSTOM_REPO_URL,
             'organization-id': self.session_org.id,
@@ -990,9 +991,9 @@ class FilteredErrataTestCase(UITestCase):
             with Session(self) as session:
                 edit_param(
                     session,
-                    tab_locator=tab_locators['settings.tab_katello'],
+                    tab_locator=tab_locators['settings.tab_content'],
                     param_name='errata_status_installable',
-                    param_value='true',
+                    param_value='Yes',
                 )
                 expected_dict = {
                     'Status': 'OK',
@@ -1004,9 +1005,9 @@ class FilteredErrataTestCase(UITestCase):
                 self.assertEqual(expected_dict, actual_dict)
                 edit_param(
                     session,
-                    tab_locator=tab_locators['settings.tab_katello'],
+                    tab_locator=tab_locators['settings.tab_content'],
                     param_name='errata_status_installable',
-                    param_value='false',
+                    param_value='No',
                 )
                 expected_dict = {
                     'Status': 'Error',

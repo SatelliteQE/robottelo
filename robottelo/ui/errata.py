@@ -57,8 +57,8 @@ class Errata(Base):
         # Use search only in case 1 hostname was passed. Otherwise checkboxes
         # state will be lost after each search
         if len(hostnames) == 1:
-            self.assign_value(common_locators['kt_table_search'], hostnames[0])
-            self.click(common_locators['kt_table_search_button'])
+            self.assign_value(common_locators['kt_search'], hostnames[0])
+            self.click(common_locators['kt_search_button'])
         for hostname in hostnames:
             self.click(locators['errata.content_hosts.ch_select'] % hostname)
         self.click(locators['errata.content_hosts.errata_apply'])
@@ -82,8 +82,8 @@ class Errata(Base):
             self.show_only_applicable(only_applicable)
         self.click(self.search(errata_id))
         self.click(tab_locators['errata.tab_repositories'])
-        self.assign_value(common_locators['kt_table_search'], repo_name)
-        self.click(common_locators['kt_table_search_button'])
+        self.assign_value(common_locators['kt_search'], repo_name)
+        self.click(common_locators['kt_search_button'])
         return self.wait_until_element(
             locators['errata.repositories.repo_select'] %
             (repo_name, package_name)
@@ -131,13 +131,29 @@ class Errata(Base):
                 'errata',
                 (parameter_name.lower()).replace(' ', '_')
             ))
-            actual_text = self.wait_until_element(locators[param_locator]).text
-            if parameter_value not in actual_text:
-                raise UIError(
-                    'Actual text for "{0}" parameter is "{1}", but it is'
-                    ' expected to have "{2}"'.format(
-                        parameter_name, actual_text, parameter_value)
-                )
+            if isinstance(parameter_value, set):
+                actual_text_set = set()
+                if self.wait_until_element_exists(locators[param_locator]):
+                    actual_text_set = {
+                        element.text.strip()
+                        for element in self.find_elements(
+                            locators[param_locator])
+                        }
+                if parameter_value != actual_text_set:
+                    raise UIError(
+                        'Actual text set for "{0}" parameter is "{1}", but it'
+                        ' is expected to be "{2}"'.format(
+                            parameter_name, actual_text_set, parameter_value)
+                    )
+            else:
+                actual_text = self.wait_until_element(
+                    locators[param_locator]).text
+                if parameter_value not in actual_text:
+                    raise UIError(
+                        'Actual text for "{0}" parameter is "{1}", but it is'
+                        ' expected to have "{2}"'.format(
+                            parameter_name, actual_text, parameter_value)
+                    )
 
     def validate_table_fields(
             self, errata_id, only_applicable=None, values_list=None):

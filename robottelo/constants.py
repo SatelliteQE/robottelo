@@ -439,7 +439,7 @@ FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
 REAL_0_ERRATA_ID = 'RHBA-2016:1503'  # for rhst7
 REAL_1_ERRATA_ID = 'RHBA-2016:1357'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHEA-2014:0657'  # for REAL_0_RH_PACKAGE
-REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhst6 with type=security and cves
+REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
 FAKE_0_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_ERRATUM_COUNT = 4
@@ -1162,6 +1162,31 @@ BACKUP_FILES = [
     u'mongo_dump',
     u'pulp_data.tar',
     u'pulp.snar',
+]
+
+REAL_4_ERRATA_DETAILS = [
+    ['Advisory', REAL_4_ERRATA_ID],
+    ['CVEs', set(REAL_4_ERRATA_CVES)],
+    ['Type', 'Security Advisory'],
+    ['Severity', 'Moderate'],
+    ['Issued', '11/18/14'],
+    ['Last Updated On', '11/18/14'],
+    ['Reboot Suggested', 'No'],
+    [
+        'Topic',
+        'Updated libvirt packages that fix three security issues and one bug '
+        'are now\navailable for Red Hat Enterprise Linux 6.'
+    ],
+    [
+        'Description',
+        'The libvirt library is a C API for managing and interacting with the'
+        '\nvirtualization capabilities of Linux and other operating systems.'
+     ],
+    [
+        'Solution',
+        'Before applying this update, make sure all previously released errata'
+        '\nrelevant to your system have been applied.'
+    ],
 ]
 
 TOOLS_ERRATA_DETAILS = [

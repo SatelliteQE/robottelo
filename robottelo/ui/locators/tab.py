@@ -278,9 +278,9 @@ tab_locators = LocatorDict({
 
     # Errata
     "errata.tab_content_hosts": (
-        By.XPATH, "//a[@ui-sref='errata.details.content-hosts']"),
+        By.XPATH, "//a[@ui-sref='erratum.content-hosts']"),
     "errata.tab_repositories": (
-        By.XPATH, "//a[@ui-sref='errata.details.repositories']"),
+        By.XPATH, "//a[@ui-sref='erratum.repositories']"),
 
     # Sync Plans
     # Third level UI
@@ -363,8 +363,8 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Puppet')]"),
     "settings.tab_discovered": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Discovered')]"),
-    "settings.tab_katello": (
-        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Katello')]"),
+    "settings.tab_content": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'Content')]"),
     "settings.tab_foremantasks": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href, 'ForemanTasks')]"),
