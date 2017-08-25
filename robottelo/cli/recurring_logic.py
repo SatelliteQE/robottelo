@@ -19,4 +19,5 @@ class RecurringLogic(Base):
     Manipulate recurring logics
     """
 
+
 command_base = 'recurring-logic'
