@@ -33,6 +33,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_not_set,
     tier3,
+    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -88,6 +89,7 @@ class HostContentHostUnificationTestCase(UITestCase):
     @run_in_one_thread
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_register_host_via_ak(self):
         """Register a pre-installed host via rhsm using activation-key
 
@@ -130,6 +132,7 @@ class HostContentHostUnificationTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_provision_foreman_host(self):
         """Test if a foreman host can be provisioned
 
@@ -283,6 +286,7 @@ class HostContentHostUnificationTestCase(UITestCase):
     @run_in_one_thread
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_unregister_content_host(self):
         """Unregister a host from content-hosts page
 
@@ -372,6 +376,7 @@ class HostContentHostUnificationTestCase(UITestCase):
     @run_in_one_thread
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_re_register_host(self):
         """Re-register a host which was un-registered earlier from content-host
 

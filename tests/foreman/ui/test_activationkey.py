@@ -50,6 +50,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_activationkey, set_context
@@ -171,6 +172,7 @@ class ActivationKeyTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_with_envs(self):
         """Create Activation key for all variations of Environments
 
@@ -200,6 +202,7 @@ class ActivationKeyTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_with_cv(self):
         """Create Activation key for all variations of Content Views
 
@@ -227,6 +230,7 @@ class ActivationKeyTestCase(UITestCase):
                     self.assertIsNotNone(self.activationkey.search(name))
 
     @tier2
+    @upgrade
     def test_positive_create_with_host_collection(self):
         """Create Activation key with Host Collection
 
@@ -312,6 +316,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(host_collection)
 
     @tier2
+    @upgrade
     def test_positive_remove_host_collection_non_admin(self):
         """Test that host collection can be removed from Activation Keys
         by non-admin user.
@@ -491,6 +496,7 @@ class ActivationKeyTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_with_cv(self):
         """Create Activation key with content view and delete it
 
@@ -519,6 +525,7 @@ class ActivationKeyTestCase(UITestCase):
 
     @skip_if_not_set('clients')
     @tier3
+    @upgrade
     def test_positive_delete_with_system(self):
         """Delete an Activation key which has registered systems
 
@@ -1045,6 +1052,7 @@ class ActivationKeyTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_add_rh_and_custom_products(self):
         """Test that RH/Custom product can be associated to Activation
         keys
@@ -1175,6 +1183,7 @@ class ActivationKeyTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1342057)
     @skip_if_not_set('clients')
     @tier3
+    @upgrade
     def test_positive_add_multiple_aks_to_system(self):
         """Check if multiple Activation keys can be attached to a system
 
@@ -1265,6 +1274,7 @@ class ActivationKeyTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_copy(self):
         """Create Activation key and copy it
 
@@ -1344,6 +1354,7 @@ class ActivationKeyTestCase(UITestCase):
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_fetch_product_content(self):
         """Associate RH & custom product with AK and fetch AK's product content
 
@@ -1393,6 +1404,7 @@ class ActivationKeyTestCase(UITestCase):
 
     @skip_if_not_set('clients')
     @tier3
+    @upgrade
     def test_positive_host_associations(self):
         """Register few hosts with different activation keys and ensure proper
         data is reflected under Associations > Content Hosts tab

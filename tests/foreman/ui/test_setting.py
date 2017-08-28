@@ -25,6 +25,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     tier1,
+    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -220,6 +221,7 @@ class SettingTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1125181)
     @tier1
+    @upgrade
     def test_positive_update_administrator_param(self):
         """Updates parameter "administrator" under General tab
 

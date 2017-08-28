@@ -14,7 +14,7 @@
 
 @Upstream: No
 """
-from robottelo.decorators import stubbed, tier3
+from robottelo.decorators import stubbed, tier3, upgrade
 from robottelo.test import UITestCase
 
 
@@ -23,6 +23,7 @@ class SystemRegistrationTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_get_pushed_content(self):
         # variations: content types - RH rpms/errata; custom content rpms;
         # puppet modules
@@ -53,6 +54,7 @@ class SystemRegistrationTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_deregister_system(self):
         """delete system via Systems UI
 

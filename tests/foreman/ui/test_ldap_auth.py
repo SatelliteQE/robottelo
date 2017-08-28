@@ -15,7 +15,7 @@
 @Upstream: No
 """
 
-from robottelo.decorators import skip_if_not_set, stubbed, tier3
+from robottelo.decorators import skip_if_not_set, stubbed, tier3, upgrade
 from robottelo.test import UITestCase
 
 
@@ -61,6 +61,7 @@ class LDAPAuthTestCase(UITestCase):
     @skip_if_not_set('ldap')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_ipa_basic_roles(self):
         """Login with LDAP - IPA for user with roles/rights
 
@@ -127,6 +128,7 @@ class LDAPAuthTestCase(UITestCase):
     @skip_if_not_set('ldap')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_ad_basic_roles(self):
         """Login with LDAP - AD for user with roles/rights
 
@@ -193,6 +195,7 @@ class LDAPAuthTestCase(UITestCase):
     @skip_if_not_set('ldap')
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_rhdsldap_basic_roles(self):
         """Login with LDAP - RHDS LDAP for user with roles/rights
         assigned.

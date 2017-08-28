@@ -24,7 +24,13 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
 )
-from robottelo.decorators import run_only_on, skip_if_not_set, tier1, tier2
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_not_set,
+    tier1,
+    tier2,
+    upgrade,
+)
 from robottelo.constants import (
     DEFAULT_ORG,
     INSTALL_MEDIUM_URL,
@@ -227,6 +233,7 @@ class LocationTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create location with valid values then delete it.
 
@@ -690,6 +697,7 @@ class LocationTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_user(self):
         """Create admin users then add user and remove it by using the location
         name
@@ -784,6 +792,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_not_set('compute_resources')
     @tier2
+    @upgrade
     def test_positive_remove_compresource(self):
         """Remove compute resource by using the location name and compute
         resource name
