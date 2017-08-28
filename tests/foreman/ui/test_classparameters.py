@@ -1015,6 +1015,102 @@ class SmartClassParametersTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_positive_view_yaml_output_after_resubmit_array_type(self):
+        """Validate yaml output for smart class parameter that opened few times
+        in a row. Such output should be the same in case you submit form
+        without any changes to the default value of the parameter
+
+        :id: 55242e56-58ed-4957-b118-8de3be7402e3
+
+        :steps:
+            1.  Check the Override checkbox.
+            2.  Set array key type.
+            3.  Set default value to some host properties.
+            4.  Submit the change.
+            5.  Go to YAML output of associated host.
+            6.  Open smart class parameter for edit, but don't change any value
+            7.  Submit form
+            8.  Go to YAML output of associated host.
+
+        :expectedresults: The YAML output has same values before and after
+            second edit.
+
+        :BZ: 1241249
+
+        :CaseLevel: Integration
+        """
+        sc_param = self.sc_params_list.pop()
+        initial_value = "['<%= @host.domain %>', '<%= @host.mac %>']"
+        with Session(self):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                key_type='array',
+                default_value=initial_value,
+            )
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp[0], self.domain_name)
+            self.assertEqual(output_scp[1], self.host.mac)
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, initial_value)
+            self.sc_parameters.click(common_locators['submit'])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp[0], self.domain_name)
+            self.assertEqual(output_scp[1], self.host.mac)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_view_yaml_output_after_resubmit_yaml_type(self):
+        """Validate yaml output for smart class parameter that opened few times
+        in a row. Such output should be the same in case you submit form
+        without any changes to the default value of the parameter
+
+        :id: 7cdb0bf2-9732-4d40-941f-d3a3f3fa7612
+
+        :steps:
+            1.  Check the Override checkbox.
+            2.  Set yaml key type.
+            3.  Set default value to some host properties.
+            4.  Submit the change.
+            5.  Go to YAML output of associated host.
+            6.  Open smart class parameter for edit, but don't change any value
+            7.  Submit form
+            8.  Go to YAML output of associated host.
+
+        :expectedresults: The YAML output has same values before and after
+            second edit.
+
+        :BZ: 1241249
+
+        :CaseLevel: Integration
+        """
+        sc_param = self.sc_params_list.pop()
+        initial_value = '- <%= @host.domain %>'
+        with Session(self):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                key_type='yaml',
+                default_value=initial_value,
+            )
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp[0], self.domain_name)
+            value = self.sc_parameters.fetch_default_value(
+                sc_param.parameter, self.puppet_class.name, hidden=True)
+            self.assertEqual(value, initial_value)
+            self.sc_parameters.click(common_locators['submit'])
+            output = yaml.load(self.hosts.get_yaml_output(self.host.name))
+            output_scp = output['classes'][self.pm_name][sc_param.parameter]
+            self.assertEqual(output_scp[0], self.domain_name)
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
