@@ -25,7 +25,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -110,6 +110,7 @@ class ModelTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create Model with valid values then delete it
         by ID

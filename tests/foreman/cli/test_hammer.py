@@ -18,7 +18,7 @@ import json
 
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
 from six import StringIO
@@ -150,6 +150,7 @@ class HammerCommandsTestCase(CLITestCase):
                 )
 
     @tier1
+    @upgrade
     def test_positive_all_options(self):
         """check all provided options for every hammer command
 

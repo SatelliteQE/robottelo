@@ -80,6 +80,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
@@ -1127,6 +1128,7 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_apply_errata(self):
         """Apply errata to a host
 
@@ -1184,6 +1186,7 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_install_package(self):
         """Install a package to a host remotely
 
@@ -1268,6 +1271,7 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_install_package_group(self):
         """Install a package group to a host remotely
 
@@ -1326,6 +1330,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
 
     @tier3
+    @upgrade
     def test_positive_register_host_ak_with_host_collection(self):
         """Attempt to register a host using activation key with host collection
 
@@ -1650,6 +1655,7 @@ class HostSubscriptionTestCase(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
 
     @tier3
+    @upgrade
     def test_positive_remove(self):
         """Attempt to remove a subscription from content host
 

@@ -15,7 +15,7 @@
 
 @Upstream: No
 """
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -23,6 +23,7 @@ class CapsuleInstallerTestCase(CLITestCase):
     """Test class for capsule installer CLI"""
 
     @stubbed()
+    @upgrade
     def test_positive_basic(self):
         """perform a basic install of capsule.
 

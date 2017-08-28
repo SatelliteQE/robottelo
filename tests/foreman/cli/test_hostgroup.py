@@ -54,6 +54,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
@@ -603,6 +604,7 @@ class HostGroupTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create HostGroup with valid values then delete it
         by ID
