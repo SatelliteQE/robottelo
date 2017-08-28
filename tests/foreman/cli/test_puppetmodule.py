@@ -20,7 +20,7 @@ from robottelo.cli.factory import make_org, make_product, make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.constants import FAKE_0_PUPPET_REPO, FAKE_1_PUPPET_REPO
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -79,6 +79,7 @@ class PuppetModuleTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_list_multiple_repos(self):
         """Verify that puppet-modules list for specific repo is correct
         and does not affected by other repositories.

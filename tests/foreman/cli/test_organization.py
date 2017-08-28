@@ -50,6 +50,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -174,6 +175,7 @@ class OrganizationTestCase(CLITestCase):
                 self.assertEqual(org['description'], desc)
 
     @tier1
+    @upgrade
     def test_positive_create_with_name_label_description(self):
         """Create organization with valid name, label and description
 
@@ -252,6 +254,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_subnet_by_name(self):
         """Remove a subnet from organization by its name
 
@@ -343,6 +346,7 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(user['login'], org['users'])
 
     @tier2
+    @upgrade
     def test_positive_remove_user_by_id(self):
         """Remove an user from organization by its ID
 
@@ -521,6 +525,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_hostgroup_by_name(self):
         """Remove a hostgroup from an organization by its name
 
@@ -631,6 +636,7 @@ class OrganizationTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_not_set('compute_resources')
     @tier2
+    @upgrade
     def test_positive_remove_compresource_by_id(self):
         """Remove a compute resource from organization by its ID
 
@@ -730,6 +736,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_medium_by_id(self):
         """Remove a medium from organization by its ID
 
@@ -885,6 +892,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_template_by_name(self):
         """ARemove a provisioning template from organization by its name
 
@@ -966,6 +974,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_domain_by_name(self):
         """Remove a domain from organization by its name
 
@@ -1043,6 +1052,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_lce(self):
         """Remove a lifecycle environment from organization
 
@@ -1119,6 +1129,7 @@ class OrganizationTestCase(CLITestCase):
     @run_only_on('sat')
     @run_in_one_thread
     @tier2
+    @upgrade
     def test_positive_remove_capsule_by_id(self):
         """Remove a capsule from organization by its id
 
@@ -1244,6 +1255,7 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_remove_parameter_by_org_name(self):
         """Remove a parameter from organization
 
@@ -1344,6 +1356,7 @@ class OrganizationTestCase(CLITestCase):
     # Positive Delete
 
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Delete an organization by ID
 
