@@ -2268,17 +2268,17 @@ locators = LocatorDict({
         By.XPATH, ("//a[contains(@href,'%s') and contains(.,'Delete')]")),
     "discoveredhosts.select_all": (By.ID, "check_all"),
     "discoveredhosts.fetch_ip": (
-        By.XPATH, ("//td/span/a[contains(@href, '%s')]/following::td[2]")),
+        By.XPATH, ("//td[descendant::*[normalize-space(.)='%s']]"
+                   "/following::td[2]")),
     "discoveredhosts.select_host": (
-        By.XPATH, ("//a[contains(@href, '%s')]/../../../td/"
-                   "input[@type='checkbox']")),
+        By.XPATH, ("//td[descendant::*[normalize-space(.)='%s']]/"
+                   "/preceding-sibling::td//input[@type='checkbox']")),
     "discoveredhosts.select_action": (
         By.XPATH, ("//div[@id='submit_multiple']/a[@data-toggle='dropdown']")),
     "discoveredhosts.select_action_facts": (
         By.XPATH, ("//div[@id='title_action']//a[@data-toggle='dropdown']")),
     "discoveredhosts.provision_from_facts": (
-        By.XPATH, ("//div[@id='title_action']//ul/li"
-                   "/a[contains(., 'Provision')]")),
+        By.XPATH, "//div[@id='title_action']//ul/li/a[.='Provision']"),
     "discoveredhosts.multi_delete": (
         By.XPATH, ("//a[contains(@onclick, "
                    "'/discovered_hosts/multiple_destroy')]")),
@@ -2310,8 +2310,8 @@ locators = LocatorDict({
         By.XPATH, ("//div[@id='confirmation-modal']"
                    "//div[@class='modal-footer']/button[2]")),
     "discoveredhosts.provision": (
-        By.XPATH, ("//td/span/a[contains(@href, '%s')]/following::td/div[2]"
-                   "/span/a[contains(.,'Provision')]")),
+        By.XPATH, ("//td[descendant::*[normalize-space(.)='%s']]"
+                   "/following-sibling::td//a[contains(.,'Provision')]")),
     "discoveredhosts.select_modal_hostgroup": (
         By.ID, "s2id_host_hostgroup_id"),
     "discoveredhosts.select_modal_org": (
@@ -2322,9 +2322,9 @@ locators = LocatorDict({
         By.XPATH, ("/li[contains(@class, 'select2-result')]"
                    "/div[contains(., '%s')]")),
     "discoveredhosts.quick_create_button": (
-        By.XPATH, ("//input[@value='Quick create']")),
+        By.XPATH, ("//input[@value='Quick Create']")),
     "discoveredhosts.create_host_button": (
-        By.XPATH, ("//input[@value='Create host']")),
+        By.XPATH, ("//input[@value='Create Host']")),
 
     # Global Parameters
     "globalparameters.select": (

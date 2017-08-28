@@ -95,8 +95,8 @@ common_locators = LocatorDict({
     "submit": (By.NAME, "commit"),
     "select_action_dropdown": (
         By.XPATH,
-        "//td[*[normalize-space(.)='%s']]/following-sibling::td/div"
-        "/a[@data-toggle='dropdown']"),
+        "//td[descendant::*[normalize-space(.)='%s']]/"
+        "following-sibling::td/div/a[@data-toggle='dropdown']"),
     "delete_button": (
         By.XPATH,
         "//a[contains(@data-confirm, '%s') and @data-method='delete']"),

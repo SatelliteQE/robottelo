@@ -970,7 +970,7 @@ class DiscoveryTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        name = gen_string('alpha')
+        name = gen_string('alpha').lower()
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
             with LibvirtGuest() as pxe_host:
@@ -1006,36 +1006,36 @@ class DiscoveryTestCase(UITestCase):
         rule_name = gen_string('alpha')
         with Session(self) as session:
             session.nav.go_to_select_org(self.org_name)
-            with LibvirtGuest() as pxe_1_host:
+            with LibvirtGuest() as pxe_1_host, LibvirtGuest() as pxe_2_host:
                 host_1_name = pxe_1_host.guest_name
                 self.assertTrue(
                     self.discoveredhosts.waitfordiscoveredhost(host_1_name)
                 )
-                with LibvirtGuest() as pxe_2_host:
-                    host_2_name = pxe_2_host.guest_name
-                    self.assertTrue(
-                        self.discoveredhosts.waitfordiscoveredhost(host_2_name)
-                    )
-                    # Define a discovery rule
-                    make_discoveryrule(
-                        session,
-                        name=rule_name,
-                        host_limit=2,
-                        hostgroup=self.config_env['host_group'],
-                        search_rule='cpu_count = 1',
-                        locations=[self.loc.name],
-                    )
-                    self.assertIsNotNone(self.discoveryrules.search(rule_name))
-                    self.discoveredhosts.auto_provision_all()
-                    hostnames = [host_1_name, host_2_name]
-                    for hostname in hostnames:
-                        self.assertIsNotNone(self.hosts.search(
-                            u'{0}.{1}'.format(
-                                hostname, self.config_env['domain'])))
-                        # Check that provisioned host is not in the list of
-                        # discovered hosts anymore
-                        self.assertIsNone(
-                            self.discoveredhosts.search(hostname))
+                host_2_name = pxe_2_host.guest_name
+                self.assertTrue(
+                    self.discoveredhosts.waitfordiscoveredhost(host_2_name)
+                )
+                # Define a discovery rule
+                make_discoveryrule(
+                    session,
+                    name=rule_name,
+                    host_limit=2,
+                    hostgroup=self.config_env['host_group'],
+                    search_rule='cpu_count = 1',
+                    locations=[self.loc.name],
+                )
+                self.assertIsNotNone(self.discoveryrules.search(rule_name))
+                self.discoveredhosts.auto_provision_all()
+                hostnames = [host_1_name, host_2_name]
+                for hostname in hostnames:
+                    self.assertIsNotNone(self.hosts.search(
+                        u'{0}.{1}'.format(
+                            hostname, self.config_env['domain'])))
+                    # Check that provisioned host is not in the list of
+                    # discovered hosts anymore
+                    self.assertIsNotNone(
+                        self.discoveredhosts.search(
+                            hostname, expecting_results=False))
 
     @run_only_on('sat')
     @tier3
@@ -1227,7 +1227,6 @@ class DiscoveryTestCase(UITestCase):
                 self.assertTrue(
                     self.discoveredhosts.waitfordiscoveredhost(host_name)
                 )
-                self.assertIsNotNone(self.discoveredhosts.search(host_name))
                 self.discoveredhosts.provision_discoveredhost(
                     hostname=host_name,
                     hostgroup=self.config_env['host_group'],
