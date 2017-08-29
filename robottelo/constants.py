@@ -405,6 +405,9 @@ FAKE_5_YUM_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
 FAKE_6_YUM_REPO = (
     u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
 )
+FAKE_7_YUM_REPO = (
+    u'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
+)
 FAKE_YUM_DRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
 )
@@ -443,7 +446,9 @@ REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
 FAKE_0_YUM_ERRATUM_COUNT = 4
 FAKE_1_YUM_ERRATUM_COUNT = 4
+FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_ERRATUM_COUNT = 79
+FAKE_3_YUM_REPOS_COUNT = 136
 FAKE_6_YUM_ERRATUM_COUNT = 4
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
@@ -455,7 +460,14 @@ FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'stork-0.12-2.noarch',
 ]
 
+FAKE_1_YUM_REPO_RPMS = [
+    'bear-4.1-1.noarch.rpm',
+    'camel-0.1-1.noarch.rpm',
+    'cat-1.0-1.noarch.rpm',
+]
 FAKE_0_PUPPET_MODULE = 'httpd'
+
+PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
 
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.

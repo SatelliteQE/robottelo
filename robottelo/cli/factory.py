@@ -3543,9 +3543,18 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
         raise CLIFactoryError(result.return_code, result.stderr,
                               u'foreman installer failed at capsule host')
 
+    # manually start pulp_celerybeat service if BZ1446930 is open
     result = capsule_vm.run('systemctl status pulp_celerybeat.service')
     if 'inactive (dead)' in '\n'.join(result.stdout):
-        raise CLIFactoryError('pulp_celerybeat service not running')
+        if bz_bug_is_open(1446930):
+            result = capsule_vm.run('systemctl start pulp_celerybeat.service')
+            if result.return_code != 0:
+                raise CLIFactoryError(
+                    'Failed to start pulp_celerybeat service\n{}'.format(
+                        result.stderr)
+                )
+        else:
+            raise CLIFactoryError('pulp_celerybeat service not running')
 
     capsule = Capsule.info({'name': capsule_vm.hostname})
 
