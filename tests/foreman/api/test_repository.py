@@ -66,6 +66,7 @@ from robottelo.decorators import (
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
+from robottelo.api.utils import call_entity_method_with_timeout
 
 
 class RepositoryTestCase(APITestCase):
@@ -1380,7 +1381,8 @@ class OstreeRepositoryTestCase(APITestCase):
             releasever=None,
             basearch=None,
         )
-        entities.Repository(id=repo_id).sync()
+        call_entity_method_with_timeout(
+            entities.Repository(id=repo_id).sync, timeout=1500)
 
 
 class SRPMRepositoryTestCase(APITestCase):
