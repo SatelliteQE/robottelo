@@ -1544,6 +1544,28 @@ class HostTestCase(APITestCase):
         self.assertIn('puppet_ca_proxy_name', host)
         self.assertEqual(proxy.name, host['puppet_ca_proxy_name'])
 
+    @tier2
+    def test_positive_search_by_org_id(self):
+        """Search for host by specifying host's organization id
+
+        :id: 56353f7c-b77e-4b6c-9ec3-51b58f9a18d8
+
+        :expectedresults: Search functionality works as expected and correct
+            result is returned
+
+        :BZ: 1447958
+
+        :CaseLevel: Integration
+        """
+        host = entities.Host().create()
+        # adding org id as GET parameter for correspondence with BZ
+        query = entities.Host()
+        query._meta['api_path'] += '?organization_id={}'.format(
+            host.organization.id)
+        results = query.search()
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].id, host.id)
+
 
 class HostInterfaceTestCase(APITestCase):
     """Tests for Host Interfaces"""

@@ -27,6 +27,7 @@ from robottelo.cli.contentview import ContentView as cli_ContentView
 from robottelo.cli.proxy import Proxy as cli_Proxy
 from robottelo.config import settings
 from robottelo.constants import (
+    ANY_CONTEXT,
     DEFAULT_CV,
     DEFAULT_PTABLE,
     ENVIRONMENT,
@@ -926,6 +927,30 @@ class HostTestCase(UITestCase):
             self.assertIsNotNone(self.hosts.search(host.name))
             self.assertIsNotNone(
                 self.hosts.search(host.name, _raw_query=host.name))
+
+    @tier2
+    def test_positive_search_by_org(self):
+        """Search for host by specifying host's organization name
+
+        :id: a3bb5bc5-cb9c-4b56-b383-f3e4d3d4d222
+
+        :expectedresults: Search functionality works as expected and correct
+            result is returned
+
+        :BZ: 1447958
+
+        :CaseLevel: Integration
+        """
+        host = entities.Host().create()
+        with Session(self) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.assertIsNotNone(
+                self.hosts.search(
+                    host.name,
+                    _raw_query='organization = {}'.format(
+                        host.organization.read().name)
+                )
+            )
 
     @tier2
     def test_positive_validate_inherited_cv_lce(self):
