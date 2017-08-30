@@ -581,7 +581,7 @@ class RepositoryTestCase(UITestCase):
         5. Add latest version of the puppet module from Step 3
         6. View puppet repo details, it should show "Latest (Currently X.Y.Z)"
         7. Go back to product, drill down into repo and delete the puppet
-        module from Step 3
+            module from Step 3
         8. Go back to same CV puppet module details page
 
         @expectedresults: Proper error message saying that the puppet module
