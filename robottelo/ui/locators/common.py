@@ -124,6 +124,10 @@ common_locators = LocatorDict({
 
     "application_logo": (
         By.XPATH, "//img[contains(@alt, 'Header logo')]"),
+    "permission_denied": (
+        By.XPATH,
+        "//h1[contains(.,'Permission denied')]"
+    ),
 
     # Katello Common Locators
     "confirm_remove": (
