@@ -786,7 +786,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 ['fakerepo01/'],
                 gpg_key=name,
                 new_product=True,
-                product=gen_string('alpha'),
+                product=product_name,
             )
             self.assertIsNotNone(
                 self.gpgkey.get_product_repo(name, product_name)
@@ -1107,7 +1107,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 ['fakerepo01/'],
                 gpg_key=name,
                 new_product=True,
-                product=gen_string('alpha'),
+                product=product_name,
             )
             self.assertIsNotNone(
                 self.gpgkey.get_product_repo(name, product_name)
