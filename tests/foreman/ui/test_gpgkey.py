@@ -1391,6 +1391,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             prd_element = self.products.search(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
+            prd_element = self.products.search(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(
                     name, prd_element, repo.name)
@@ -1575,6 +1576,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             prd_element = self.products.search(product.name)
             self.assertIsNone(self.gpgkey.assert_key_from_product(
                 name, prd_element))
+            prd_element = self.products.search(product.name)
             self.assertIsNone(self.gpgkey.assert_key_from_product(
                 name, prd_element, repo.name))
 
