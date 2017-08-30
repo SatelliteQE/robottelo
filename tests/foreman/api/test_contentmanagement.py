@@ -101,6 +101,12 @@ class CapsuleContentManagementTestCase(APITestCase):
         cls.capsule_vm.destroy()
         super(CapsuleContentManagementTestCase, cls).tearDownClass()
 
+    def update_capsule_download_policy(self, capsule_id, download_policy):
+        """Updates capsule's download policy to desired value"""
+        proxy = entities.SmartProxy(id=capsule_id).read()
+        proxy.download_policy = download_policy
+        proxy.update(['download_policy'])
+
     @tier4
     def test_positive_capsule_sync(self):
         """Create repository, add it to lifecycle environment, assign lifecycle
@@ -600,7 +606,6 @@ class CapsuleContentManagementTestCase(APITestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(package_name, result.stdout[0])
 
-    @skip_if_bug_open('bugzilla', 1486277)
     @tier4
     def test_positive_update_with_immediate_sync(self):
         """Create a repository with on_demand download policy, associate it
@@ -609,7 +614,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :id: 511b531d-1fbe-4d64-ae31-0f9eb6625e7f
 
-        :BZ: 1315752, 1486277
+        :BZ: 1315752
 
         :expectedresults: content was successfully synchronized - capsule
             filesystem contains valid links to packages
@@ -629,6 +634,9 @@ class CapsuleContentManagementTestCase(APITestCase):
             url=repo_url,
         ).create()
         lce = entities.LifecycleEnvironment(organization=org).create()
+        # Update capsule's download policy to on_demand to match repository's
+        # policy
+        self.update_capsule_download_policy(self.capsule_id, 'on_demand')
         # Associate the lifecycle environment with the capsule
         capsule = entities.Capsule(id=self.capsule_id).read()
         capsule.content_add_lifecycle_environment(data={
@@ -671,6 +679,12 @@ class CapsuleContentManagementTestCase(APITestCase):
         repo.download_policy = 'immediate'
         repo = repo.update(['download_policy'])
         self.assertEqual(repo.download_policy, 'immediate')
+        # Update capsule's download policy as well
+        self.update_capsule_download_policy(self.capsule_id, 'immediate')
+        # Make sure to revert capsule's download policy after the test as the
+        # capsule is shared among other tests
+        self.addCleanup(
+            self.update_capsule_download_policy, self.capsule_id, 'on_demand')
         # Sync repository once again
         repo.sync()
         repo = repo.read()
