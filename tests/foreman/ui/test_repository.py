@@ -1743,6 +1743,49 @@ class RepositoryTestCase(UITestCase):
                 ).is_selected()
             )
 
+    @run_in_one_thread
+    @tier2
+    def test_positive_reposet_disable_after_manifest_deleted(self):
+        """Enable RH repo and sync it. Remove manifest and then disable
+        repository
+
+        :id: f22baa8e-80a4-4487-b1bd-f7265555d9a3
+
+        :expectedresults: RH repo was disabled
+
+        :BZ: 1344391
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        sub = entities.Subscription(organization=org)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        with Session(self) as session:
+            repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
+            session.nav.go_to_select_org(org.name)
+            # Enable RH repository
+            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
+            session.nav.go_to_sync_status()
+            # Sync the repo and verify sync was successful
+            self.assertTrue(self.sync.sync_noversion_rh_repos(
+                PRDS['rhel'], [REPOS['rhst6']['name']]
+            ))
+            # Delete manifest
+            sub.delete_manifest(data={'organization_id': org.id})
+            # Disable the repo
+            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
+            # Verify that product name is correct
+            prod_loc = 'rh.{0}_prd_expander'.format(REPO_TAB['rpms'].lower())
+            self.assertIsNotNone(self.sync.wait_until_element(
+                locators[prod_loc] % (PRDS['rhel'] + ' (Orphaned)')))
+            # Verify the repo is disabled
+            self.assertFalse(
+                self.sync.wait_until_element(
+                    locators['rh.repo_checkbox'] % repos[0][0][0]['repo_name']
+                ).is_selected()
+            )
+
     @tier1
     @skip_if_bug_open('bugzilla', 1394390)
     def test_positive_upload_rpm(self):
