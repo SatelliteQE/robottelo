@@ -102,7 +102,7 @@ class SyncTestCase(UITestCase):
             # syn.sync_rh_repos returns boolean values and not objects
             self.assertTrue(sync)
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_sync_disconnected_to_connected_rh_repos(self):
         """Migrating from disconnected to connected satellite.
@@ -110,13 +110,14 @@ class SyncTestCase(UITestCase):
         @id: 03b3d904-1697-441b-bb12-8b353a556218
 
         @Steps:
-        1. Update the link to an internal http link where the content has been
-           extracted from ISO's.
-        2. Import a valid manifest.
-        3. Enable few RedHat repos and Sync them.
-        4. Now let's revert back the link to CDN's default link which is,
-           'https://cdn.redhat.com'.
-        5. Now Navigate to the 'Sync Page' and resync the repos synced earlier.
+            1. Update the link to an internal http link where the content has
+                been extracted from ISO's.
+            2. Import a valid manifest.
+            3. Enable few RedHat repos and Sync them.
+            4. Now let's revert back the link to CDN's default link which is,
+               'https://cdn.redhat.com'.
+            5. Now Navigate to the 'Sync Page' and resync the repos
+                synced earlier.
 
         @expectedresults: 1. Syncing should work fine without any issues. 2.
         Only the deltas are re-downloaded and not the entire repo. [ Could be

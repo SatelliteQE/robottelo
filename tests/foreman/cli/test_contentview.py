@@ -298,7 +298,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(con_view['name'], new_name)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_update_filter(self):
         # Variations might be:
         # * A filter on errata date (only content that matches date
@@ -1265,7 +1265,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(environment, new_cv['lifecycle-environments'])
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_promote_rh_and_custom_content(self):
         """attempt to promote a content view containing RH content and
         custom content using filters
@@ -1485,7 +1485,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_publish_rh_and_custom_content(self):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
@@ -2340,7 +2340,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_restart_dynflow_promote(self):
         """attempt to restart a failed content view promotion
 
@@ -2357,7 +2357,7 @@ class ContentViewTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_restart_dynflow_publish(self):
         """attempt to restart a failed content view publish
 

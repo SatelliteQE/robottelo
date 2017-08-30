@@ -720,7 +720,7 @@ class DiscoveryTestCase(UITestCase):
                     self.discoveredhosts.update_org(hostnames, new_org)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_update_default_location(self):
         """Change the default location of more than one discovered hosts

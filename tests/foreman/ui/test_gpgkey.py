@@ -1265,7 +1265,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 )
             )
 
-    @stubbed
+    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_repos_using_repo_discovery(self):

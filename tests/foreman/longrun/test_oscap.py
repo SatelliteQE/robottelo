@@ -286,7 +286,7 @@ class OpenScapTestCase(UITestCase):
                     self.assertTrue(self.oscapreports.search(host))
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_has_arf_report_summary_page(self):
         """OSCAP ARF Report now has summary page
@@ -306,7 +306,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_view_full_report_button(self):
         """'View full Report' button should exist for OSCAP Reports.
@@ -327,7 +327,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_download_xml_button(self):
         """'Download xml' button should exist for OSCAP Reports
@@ -349,7 +349,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_select_oscap_proxy(self):
         """Oscap-Proxy select box should exist while filling hosts
@@ -370,7 +370,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_delete_multiple_arf_reports(self):
         """Multiple arf reports deletion should be possible.
@@ -392,7 +392,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_reporting_emails_of_oscap_reports(self):
         """Email Reporting of oscap reports should be possible.

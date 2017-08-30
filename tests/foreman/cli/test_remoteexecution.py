@@ -535,7 +535,7 @@ class RemoteExecutionTestCase(CLITestCase):
         self.assertEqual(rec_logic['state'], u'finished')
         self.assertEqual(rec_logic['iteration'], u'2')
 
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_run_job_multiple_hosts_time_span(self):
         """Run job against multiple hosts with time span setting
@@ -548,7 +548,7 @@ class RemoteExecutionTestCase(CLITestCase):
         # currently it is not possible to get subtasks from
         # a task other than via UI
 
-    @stubbed
+    @stubbed()
     @tier3
     @upgrade
     def test_positive_run_job_multiple_hosts_concurrency(self):
