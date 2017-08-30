@@ -17,6 +17,8 @@
 """
 
 from fauxfactory import gen_string
+from nailgun import entities
+
 from robottelo import manifests, ssh
 from robottelo.constants import (
     ENVIRONMENT,
@@ -129,19 +131,22 @@ class RepositoryExportTestCase(CLITestCase):
             'organization-id': self.org['id'],
             'product-id': product['id'],
         })
-        repo_export_dir = '/mnt/{0}/{1}-{2}-{3}/{1}/{4}/custom/{2}/{3}'.format(
+        backend_identifier = entities.Repository(
+            id=repo['id']).read().backend_identifier
+        repo_export_dir = '/mnt/{0}/{1}/{2}/{3}/custom/{4}/{5}'.format(
             self.export_dir,
+            backend_identifier,
             self.org['label'],
+            ENVIRONMENT,
             product['label'],
             repo['label'],
-            ENVIRONMENT,
         )
 
         # Export the repository
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command('ls -l {0} | grep .rpm'.format(repo_export_dir))
+        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
         self.assertEqual(len(result.stdout), 0)
 
         # Synchronize the repository
@@ -151,7 +156,7 @@ class RepositoryExportTestCase(CLITestCase):
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command('ls -l {0} | grep .rpm'.format(repo_export_dir))
+        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
@@ -186,14 +191,15 @@ class RepositoryExportTestCase(CLITestCase):
             'organization-id': self.org['id'],
             'product': PRDS['rhel'],
         })
+        backend_identifier = entities.Repository(
+            id=repo['id']).read().backend_identifier
         repo_export_dir = (
-            '/mnt/{0}/{1}-{2}-{3}/{1}/{4}/content/dist/rhel/server/6/6Server/'
+            '/mnt/{0}/{1}/{2}/{3}/content/dist/rhel/server/6/6Server/'
             'x86_64/rhev-agent/3/os'
             .format(
                 self.export_dir,
+                backend_identifier,
                 self.org['label'],
-                PRDS['rhel'].replace(' ', '_'),
-                repo['label'],
                 ENVIRONMENT,
             )
         )
@@ -208,7 +214,7 @@ class RepositoryExportTestCase(CLITestCase):
         Repository.export({'id': repo['id']})
 
         # Verify export directory is empty
-        result = ssh.command('ls -l {0} | grep .rpm'.format(repo_export_dir))
+        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
         self.assertEqual(len(result.stdout), 0)
 
         # Synchronize the repository
@@ -218,7 +224,7 @@ class RepositoryExportTestCase(CLITestCase):
         Repository.export({'id': repo['id']})
 
         # Verify RPMs were successfully exported
-        result = ssh.command('ls -l {0} | grep .rpm'.format(repo_export_dir))
+        result = ssh.command("find {} -name '*.rpm'".format(repo_export_dir))
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
