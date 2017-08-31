@@ -996,6 +996,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(comp_cv['components']), 0)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1487265)
     @run_only_on('sat')
     def test_positive_create_composite_with_component_ids(self):
         """create a composite content view with a component_ids option
@@ -1004,6 +1005,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Composite content view component ids are similar to
             the nested content view versions ids
+
+        :BZ: 1487265
 
         :CaseLevel: Integration
         """
