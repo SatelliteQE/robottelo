@@ -44,6 +44,7 @@ from robottelo.decorators import (
     tier2,
     upgrade
 )
+from robottelo.decorators.func_locker import lock_function
 from robottelo.test import CLITestCase
 
 
@@ -51,6 +52,7 @@ class SmartVariablesTestCase(CLITestCase):
     """Implements Smart Variables tests in CLI"""
 
     @classmethod
+    @lock_function
     def setUpClass(cls):
         """Import some parametrized puppet classes. This is required to make
         sure that we have data to be able to perform interactions with smart
