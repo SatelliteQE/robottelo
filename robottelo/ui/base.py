@@ -211,7 +211,7 @@ class Base(object):
             if really:
                 self.click(common_locators['confirm_remove'])
             else:
-                self.click(common_locators['cancel'])
+                self.click(common_locators['close'])
         else:
             if dropdown_present:
                 if self.actions_dropdown_locator:

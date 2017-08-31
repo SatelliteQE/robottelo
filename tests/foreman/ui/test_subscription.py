@@ -134,7 +134,7 @@ class SubscriptionTestCase(UITestCase):
                 for line in expected_message:
                     self.assertIn(line, actual_message)
             finally:
-                self.subscriptions.click(common_locators['cancel'])
+                self.subscriptions.click(common_locators['close'])
 
     @stubbed()
     @tier1

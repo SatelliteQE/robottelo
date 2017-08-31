@@ -63,7 +63,7 @@ class ContentHost(Base):
         if really:
             self.click(common_locators['confirm_remove'])
         else:
-            self.click(common_locators['cancel'])
+            self.click(common_locators['close'])
 
     def delete(self, name, really=True):
         """Unregisters and completely deletes content host. Custom helper is
@@ -76,7 +76,7 @@ class ContentHost(Base):
         if really:
             self.click(common_locators['confirm_remove'])
         else:
-            self.click(common_locators['cancel'])
+            self.click(common_locators['close'])
         # Make sure that element is really removed from UI
         self.button_timeout = 3
         self.result_timeout = 1

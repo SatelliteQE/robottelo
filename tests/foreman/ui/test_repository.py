@@ -34,6 +34,7 @@ from robottelo.constants import (
     FAKE_YUM_SRPM_REPO,
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
+    INVALID_URL,
     PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
     REPO_DISCOVERY_URL,
@@ -759,6 +760,52 @@ class RepositoryTestCase(UITestCase):
                     )
                     # prd_sync_is_ok returns boolean values and not objects
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_resync_custom_repo_after_invalid_update(self):
+        """Create Custom yum repo and sync it via the repos page. Then try to
+        change repo url to invalid one and re-sync that repository
+
+        :id: 089b1e41-2017-429a-9c3f-b0291007a78f
+
+        :expectedresults: Repository URL is not changed to invalid value and
+            resync procedure for specific yum repository is successful
+
+        :BZ: 1487173, 1262313
+
+        :CaseLevel: Integration
+        """
+        product = entities.Product(organization=self.session_org).create()
+        repo_name = gen_string('alpha')
+        with Session(self) as session:
+            self.products.search_and_click(product.name)
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_1_YUM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
+            self.repository.update(repo_name, new_url=INVALID_URL)
+            if not bz_bug_is_open(1487173):
+                self.assertIsNotNone(self.user.wait_until_element(
+                    common_locators['alert.error_sub_form']))
+            self.repository.click(common_locators['cancel'])
+            self.products.search_and_click(product.name)
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'url', FAKE_1_YUM_REPO))
+            self.setup_navigate_syncnow(
+                session,
+                product.name,
+                repo_name,
+            )
+            self.assertTrue(self.prd_sync_is_ok(repo_name))
 
     @run_only_on('sat')
     @tier2

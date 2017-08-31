@@ -132,7 +132,12 @@ common_locators = LocatorDict({
     "save": (
         By.XPATH, ("//button[contains(@ng-click,'save')"
                    "and not(contains(@class,'ng-hide'))]")),
-    "cancel": (By.XPATH, "//button[@aria-label='Close']"),
+    "close": (By.XPATH, "//button[@aria-label='Close']"),
+    "cancel": (
+        By.XPATH,
+        "//button[contains(@ng-click,'cancel') and "
+        "not(contains(@class,'ng-hide'))][contains(., 'Cancel')]"
+    ),
     "name": (By.ID, "name"),
     "label": (By.ID, "label"),
     "description": (By.ID, "description"),
