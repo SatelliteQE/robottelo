@@ -30,6 +30,7 @@ from robottelo.constants import (
     FAKE_3_YUM_REPO,
     FAKE_3_YUM_REPOS_COUNT,
     FAKE_7_YUM_REPO,
+    FAKE_8_YUM_REPO,
     PULP_PUBLISHED_YUM_REPOS_PATH,
 )
 from robottelo.decorators import (
@@ -75,6 +76,28 @@ class ContentManagementTestCase(APITestCase):
             ).create()
             with self.assertNotRaises(TaskFailedError):
                 repo.sync()
+
+    @tier2
+    def test_positive_sync_repos_with_lots_files(self):
+        """Attempt to synchronize repository containing a lot of files inside
+        rpms.
+
+        :id: 2cc09ce3-d5df-4caa-956a-78f83a7735ca
+
+        :BZ: 1404345
+
+        :CaseLevel: Integration
+
+        :expectedresults: repository was successfully synchronized
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            product=product,
+            url=FAKE_8_YUM_REPO,
+        ).create()
+        with self.assertNotRaises(TaskFailedError):
+            repo.sync()
 
 
 @run_in_one_thread

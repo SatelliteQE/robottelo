@@ -408,6 +408,7 @@ FAKE_6_YUM_REPO = (
 FAKE_7_YUM_REPO = (
     u'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
 )
+FAKE_8_YUM_REPO = u'https://abalakht.fedorapeople.org/test_repos/lots_files/'
 FAKE_YUM_DRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
 )
