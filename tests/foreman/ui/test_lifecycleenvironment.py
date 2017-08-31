@@ -323,7 +323,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         # ensure the created user also can find the created life cycle
         # environment link
-        with Session(self, user=user_login, password=user_password):
+        with Session(self, user=user_login, password=user_password) as session:
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
