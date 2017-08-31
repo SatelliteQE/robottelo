@@ -31,13 +31,11 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
     org = None
 
-    def setUp(self):
-        """Tests for Lifecycle Environment via Hammer CLI"""
-
-        super(LifeCycleEnvironmentTestCase, self).setUp()
-
-        if LifeCycleEnvironmentTestCase.org is None:
-            LifeCycleEnvironmentTestCase.org = make_org()
+    @classmethod
+    def setUpClass(cls):
+        """Create a new Test Case Organization"""
+        super(LifeCycleEnvironmentTestCase, cls).setUpClass()
+        cls.org = make_org()
 
     # Issues validation
     @run_only_on('sat')
