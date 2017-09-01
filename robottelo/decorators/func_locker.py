@@ -85,12 +85,19 @@ def _get_default_scope():
         return LOCK_DEFAULT_SCOPE
 
 
+def get_temp_dir():
+    tmp_dir = settings.tmp_dir
+    if not tmp_dir:
+        tmp_dir = tempfile.gettempdir()
+    return tmp_dir
+
+
 def _get_temp_lock_function_dir(create=True):
     global LOCK_DIR
     if LOCK_DIR is not None:
         return LOCK_DIR
-    tmp_lock_dir = os.path.join(tempfile.gettempdir(), TEMP_ROOT_DIR,
-                                TEMP_FUNC_LOCK_DIR)
+    tmp_dir = get_temp_dir()
+    tmp_lock_dir = os.path.join(tmp_dir, TEMP_ROOT_DIR, TEMP_FUNC_LOCK_DIR)
     if create and not os.path.exists(tmp_lock_dir):
         try:
             # it can happen that the workers try to create this path at the

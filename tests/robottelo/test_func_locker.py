@@ -7,6 +7,7 @@ import tempfile
 
 from unittest2 import TestCase
 from robottelo.decorators.func_locker import (
+    get_temp_dir,
     lock_function,
     locking_function,
     set_default_scope,
@@ -38,7 +39,7 @@ def _init_counter_file():
 
     global _counter_file_name
 
-    tmp_root_path = os.path.join(tempfile.gettempdir(), TEMP_ROOT_DIR)
+    tmp_root_path = os.path.join(get_temp_dir(), TEMP_ROOT_DIR)
     if not os.path.exists(tmp_root_path):
         os.mkdir(tmp_root_path)
 
@@ -75,7 +76,7 @@ def _get_function_name_string(name, class_name=None):
 
 
 def _get_function_lock_path(name, scope_context=None, class_name=None):
-    ls = [tempfile.gettempdir(), TEMP_ROOT_DIR, TEMP_FUNC_LOCK_DIR,
+    ls = [get_temp_dir(), TEMP_ROOT_DIR, TEMP_FUNC_LOCK_DIR,
           NAMESPACE_SCOPE]
     if scope_context:
         ls.append(scope_context)
@@ -424,7 +425,7 @@ class FuncLockerTestCase(TestCase):
         # call the function
         simple_scoped_lock_function()
         lock_file_path = os.path.join(
-            tempfile.gettempdir(),
+            get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_LOCK_DIR,
             NAMESPACE_SCOPE_TEST,
@@ -438,7 +439,7 @@ class FuncLockerTestCase(TestCase):
         """Ensure that the lock file was created at the right location"""
         simple_scoped_locking_function()
         lock_file_path = os.path.join(
-            tempfile.gettempdir(),
+            get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_LOCK_DIR,
             NAMESPACE_SCOPE_TEST_2,
