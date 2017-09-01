@@ -792,6 +792,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_environment_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "host.fetch_puppet_environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_environment_id')]/a"
+         "/span[contains(@class, 'chosen')]")),
     "host.inherit_puppet_environment": (
         By.XPATH,
         ("//div[contains(@id, 'host_environment_id')]/following-sibling::"
@@ -993,6 +997,8 @@ locators = LocatorDict({
         By.XPATH,
         ("//form[contains(@action, 'multiple')]/../../../"
          "div/button[contains(@class,'primary')]")),
+    "host.select_host_group": (By.ID, "hostgroup_id"),
+    "host.select_environment": (By.ID, "environment_id"),
 
     # Provisions
 
@@ -1107,6 +1113,10 @@ locators = LocatorDict({
     "hostgroups.content_view": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_content_view')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.puppet_environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_environment_id')]/a"
          "/span[contains(@class, 'arrow')]")),
     "hostgroups.puppet_ca": (
         By.XPATH,
