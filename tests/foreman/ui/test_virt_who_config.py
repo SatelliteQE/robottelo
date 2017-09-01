@@ -13,8 +13,9 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
-from robottelo.test import UITestCase, TestCase, APITestCase
+from robottelo.decorators import run_only_on, stubbed, tier1
+from robottelo.test import UITestCase
+
 
 class VirtWhoConfigUITestCase(UITestCase):
     """Implements Virt-who-configure UI tests"""
@@ -34,16 +35,16 @@ class VirtWhoConfigUITestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_configurations_page(self):
-        """
+        """ config page listings
         :id: fa6d5ce4-08b7-41fa-b7ab-ac5a018cf68a
 
         :steps:
             1. Create virt-who-configurations
-            2. Verify the new virt-who Configurations UI (the page which lists all virt-who configurations)
+            2. Verify the new virt-who Configurations UI (the page
+               which lists all virt-who configurations)
 
 
         """
-
 
     @run_only_on('sat')
     @stubbed()
@@ -54,22 +55,26 @@ class VirtWhoConfigUITestCase(UITestCase):
         :id: 466d07b3-3cc7-43ef-b820-a5510b43e4dd
 
         :steps:
-            1. Edit virt-who configuration and verify the updated shell script, redeploy the script
+            1. Edit virt-who configuration and verify the updated shell script,
+               redeploy the script
         """
-
 
     @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_virt_who_user_login(self):
-        """ Make sure the users created by virt-who config is not able to access UI/CLI
+        """ Verify users created by virt-who config is not able to access UI/CLI
+
         :id: 9a8bb27a-af91-47cc-9004-6e3497363dbb
 
         :steps:
             1. Create a virt-who configuration
-            2. Attempt to login the UI with the user created by the virt-who configurator. Verify the login is blocked
-            3. Attempt to login using Hammer with the user created by the virt-who configurator. Verify the login is blocked
-            4. Attempt to click the username link displayed in related task details.
+            2. Attempt to login the UI with the user created by the
+            virt-who configurator. Verify the login is blocked
+            3. Attempt to login using Hammer with the user created by the
+               virt-who configurator. Verify the login is blocked
+            4. Attempt to click the username link displayed in related task
+               details.
         """
 
     @run_only_on('sat')
@@ -102,7 +107,7 @@ class VirtWhoConfigUITestCase(UITestCase):
         :steps:
             1. Create multiple virt-who configurations
         """
-        pass
+
 
 class VirtWhoConfigDashboardUITestCase(UITestCase):
     """
@@ -126,7 +131,6 @@ class VirtWhoConfigDashboardUITestCase(UITestCase):
             1. Verify VirtWho Config Dashboard when there are No Reports.
 
         """
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -137,10 +141,9 @@ class VirtWhoConfigDashboardUITestCase(UITestCase):
         :id: de39275f-4534-49ad-8389-f7e8b405d6b6
 
         :steps:
-            1. Verify VirtWho Config Dashboard when there are Out of Date Reports.
-
+            1. Verify VirtWho Config Dashboard when there are Out of Date
+               Reports.
         """
-
 
     @run_only_on('sat')
     @stubbed()
@@ -151,7 +154,8 @@ class VirtWhoConfigDashboardUITestCase(UITestCase):
         :id: 5ac051f0-4540-46e5-ac3b-367721625ebb
 
         :steps:
-            1. Verify VirtWho Config Dashboard when there are Up to Date Reports.
+            1. Verify VirtWho Config Dashboard when there are Up to Date
+               Reports.
 
         """
     @run_only_on('sat')
