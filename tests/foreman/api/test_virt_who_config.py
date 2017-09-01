@@ -23,7 +23,7 @@ class VirtWhoConfigAPI(APITestCase):
     @stubbed()
     @tier1
     def test_positive_vm_create(self):
-        """ Register a vm on virt-who hyper visor
+        """ Register a vm on virt-who hypervisor
         :id: 701b22b8-fe92-4dd3-8d7d-c7b5efb7281b
 
         :steps:
@@ -82,7 +82,7 @@ class VirtWhoConfigRoleApiTests(APITestCase):
     @stubbed()
     @tier1
     def test_positive_role_manager(self):
-        """virt-who Manager
+        """virt-who Manager allowed functions
 
         :id: 4164bdde-f532-480c-b41e-747e87cf7d05
         :steps:
@@ -91,20 +91,20 @@ class VirtWhoConfigRoleApiTests(APITestCase):
             3. Verify the user can edit an existing virt-who configuration
             4. Verify the user can delete a virt-who configuration
             5. Verify the user can see reporting info via the dashboard widget.
-            6. Verify the user can do no other actions
         """
 
     @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_role_manager(self):
-        """
+        """virt-who Manager disallowed functions
 
         :id: e93b415a-7442-4f27-9c52-15c72f3e1414
-        :steps:
-            1. Verify the user can do no other actions
 
-        :return:
+        :steps:
+            1. Create a user with ONLY the virt-who manager role.
+            2. Verify the user can do no other actions other then those in test_positive_role_manager
+
         """
 
     @run_only_on('sat')
@@ -127,12 +127,12 @@ class VirtWhoConfigRoleApiTests(APITestCase):
     @tier1
     def test_negative_role_reporter(self):
         """Verify virt-who Reporter role
-            :id: 7dee0965-9ec4-4d76-a6ae-f2eec1960bac
 
-            :steps:
-                1. Verify the user can do no other actions other then those in test_positive_role_reporter
+        :id: 7dee0965-9ec4-4d76-a6ae-f2eec1960bac
 
-        :return:
+        :steps:
+            1. Verify the user can do no other actions other then those in test_positive_role_reporter
+
         """
 
     @run_only_on('sat')
@@ -144,23 +144,24 @@ class VirtWhoConfigRoleApiTests(APITestCase):
         :id: 43314ae3-6768-44b5-a6bb-ee64ae381cd0
 
         :steps:
-            a. Create a user with ONLY the virt-who Viewer role.
-            b. Verify the user can view virt-who configurations.
-            c. Verify the user CANNOT delete or modify virt-who configurations
+            1. Create a user with ONLY the virt-who Viewer role.
+            2. Verify the user can view virt-who configurations.
+            3.
         """
 
     @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_role_viewer(self):
-        """Verify virt-who viewer role
+        """ Verify virt-who viewer role
 
         :id: 6919a748-423e-4843-bafe-eb98b7159c90
 
         :steps:
-            d. Verify the user can do no other actions other then those in test_positive_role_viewer
+            1. Create a user with ONLY the virt-who Viewer role.
+            2. Verify the user CANNOT delete or modify virt-who configurations
+            3. Verify the user can do no other actions other then those in test_positive_role_viewer
 
-        :return:
         """
         pass
 
@@ -186,6 +187,7 @@ class VirtWhoConfigUpgrade(APITestCase):
         7. Create a guest on VP1
         8. Create a guest on VP2
         9. verify that that reports on VP1 and VP2 are correct.
+
         """
 
 
@@ -336,7 +338,7 @@ class VirtWhoConfigGeneralTestcase(TestCase):
         :id: 9e823d10-1b67-45ea-b13d-75dd058de3d6
 
         :setup:
-            Create a virt-who configuration with a pointing to a virtualization provider with 3 hypervisor hosts.
+            Create a virt-who configuration with a virtualization provider with 3 hypervisor hosts.
 
         :steps:
                 a. Create a blacklist that specifies 2 hypervisor hosts using UUID hypervisor ids.
