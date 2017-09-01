@@ -27,7 +27,7 @@ class VirtWhoConfigUITestCase(UITestCase):
         :id: e25804fd-98cb-46bb-aa29-958ceb361292
 
         :steps:
-            1. Verify UI Elements on welcome page welcome page
+            1. Verify UI Elements on welcome page
         """
 
     @run_only_on('sat')
@@ -76,7 +76,7 @@ class VirtWhoConfigUITestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_config_page_populated(self):
-        """DESCRIPTION
+        """ verify page when populated
 
         :id: db6bbc68-2047-4c7d-af5b-31aee0030318
 
@@ -95,7 +95,7 @@ class VirtWhoConfigUITestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_config_page_empty(self):
-        """
+        """ verify page when empty
 
         :id: bb208160-9bd0-49ee-8971-6f71d48808fb
 
