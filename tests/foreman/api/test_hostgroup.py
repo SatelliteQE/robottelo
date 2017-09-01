@@ -45,7 +45,7 @@ class HostGroupTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
 
-    @skip_if_bug_open('bugzilla', 1222118)
+    @skip_if_bug_open('bugzilla', 1487586)
     @upgrade
     @tier3
     def test_verify_bugzilla_1107708(self):
@@ -57,6 +57,8 @@ class HostGroupTestCase(APITestCase):
 
         :expectedresults: Host inherited 'all_puppetclasses' details from
             HostGroup that was used for such Host create procedure
+
+        :BZ: 1222118, 1487586
 
         :CaseLevel: System
         """
@@ -111,7 +113,7 @@ class HostGroupTestCase(APITestCase):
         # We have two environments (one created after publishing and one more
         # was created after promotion), so we need to select promoted one
         environments = entities.Environment().search(
-            query={'search': 'organization_id={0}'.format(org.id)}
+            query={'organization_id': org.id}
         )
         self.assertEqual(len(environments), 2)
         environments = [
