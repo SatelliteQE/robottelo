@@ -13,6 +13,14 @@ class Settings(Base):
         """Navigate to Settings entity page"""
         Navigator(self.browser).go_to_settings()
 
+    def remove_parameter(self, tab_locator, param_name):
+        """Removes the value of selected parameter under settings"""
+        self.click(tab_locator)
+        loc = locators['settings.edit_param']
+        self.click(loc % param_name)
+        self.click(locators['settings.remove'])
+        self.click(locators['settings.save'])
+
     def _search_locator(self):
         """Specify locator for Settings entity search procedure"""
         return locators['settings.param']
