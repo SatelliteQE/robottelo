@@ -60,7 +60,7 @@ class Subscriptions(Base):
                 timeout = 1500
             self.wait_until_element(common_locators['alert.success'], timeout)
         else:
-            self.click(common_locators['cancel'])
+            self.click(common_locators['close'])
         # if no subscriptions are present, user is automatically redirected to
         # manifest upload page, meaning search will fail with
         # UINoSuchElementError as searchbox can't be found there
