@@ -10,6 +10,9 @@
 
 :CaseImportance: High
 
+:CaseAutomation: notautomated
+
+
 :Upstream: No
 """
 
@@ -36,6 +39,7 @@ class VirtWhoConfigUITestCase(UITestCase):
     @tier1
     def test_positive_configurations_page(self):
         """ config page listings
+
         :id: fa6d5ce4-08b7-41fa-b7ab-ac5a018cf68a
 
         :steps:
@@ -70,7 +74,7 @@ class VirtWhoConfigUITestCase(UITestCase):
         :steps:
             1. Create a virt-who configuration
             2. Attempt to login the UI with the user created by the
-            virt-who configurator. Verify the login is blocked
+               virt-who configurator. Verify the login is blocked
             3. Attempt to login using Hammer with the user created by the
                virt-who configurator. Verify the login is blocked
             4. Attempt to click the username link displayed in related task
