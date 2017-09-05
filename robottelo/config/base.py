@@ -490,6 +490,35 @@ class LDAPSettings(FeatureSettings):
         return validation_errors
 
 
+class LDAPIPASettings(FeatureSettings):
+    """LDAP freeIPA settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(LDAPIPASettings, self).__init__(*args, **kwargs)
+        self.basedn_ipa = None
+        self.grpbasedn_ipa = None
+        self.hostname_ipa = None
+        self.password_ipa = None
+        self.username_ipa = None
+
+    def read(self, reader):
+        """Read LDAP freeIPA settings."""
+        self.basedn_ipa = reader.get('ipa', 'basedn_ipa')
+        self.grpbasedn_ipa = reader.get('ipa', 'grpbasedn_ipa')
+        self.hostname_ipa = reader.get('ipa', 'hostname_ipa')
+        self.password_ipa = reader.get('ipa', 'password_ipa')
+        self.username_ipa = reader.get('ipa', 'username_ipa')
+
+    def validate(self):
+        """Validate LDAP freeIPA settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [ipa] basedn_ipa, grpbasedn_ipa, hostname_ipa,'
+                ' password_ipa, username_ipa options must be provided.'
+            )
+        return validation_errors
+
+
 class LibvirtHostSettings(FeatureSettings):
     """Libvirt host settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -897,6 +926,7 @@ class Settings(object):
         self.fake_capsules = FakeCapsuleSettings()
         self.fake_manifest = FakeManifestSettings()
         self.ldap = LDAPSettings()
+        self.ipa = LDAPIPASettings()
         self.oscap = OscapSettings()
         self.ostree = OstreeSettings()
         self.performance = PerformanceSettings()
