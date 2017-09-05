@@ -31,7 +31,6 @@ class VirtWhoConfigAPI(APITestCase):
             2. Wait until the next virt-who report comes in.
             3. Verify the VM is reported to satellite
 
-
         """
 
     @run_only_on('sat')
@@ -44,7 +43,7 @@ class VirtWhoConfigAPI(APITestCase):
 
         :steps:
             1. Verify there are no virt-who reports reported if there is no 
-                change in guest-host mapping in hypervisor
+               change in guest-host mapping in hypervisor
 
         """
 
@@ -69,8 +68,8 @@ class VirtWhoConfigAPI(APITestCase):
         :id: 7e1bb498-4e63-44e8-be97-83e07601f56d
 
         :steps:
-            1. Create a virt-who configuration set reporting interval to 1 hour.
-            2. Verify a Virt-who configuration are the interval is 1 hour.
+            1. Create virt-who configuration, set reporting interval to 1 hour.
+            2. Verify Virt-who  interval is 1 hour in config file.
             3. Verify a report is sent every hour
             4. Repeat for each supported interval.
         """
@@ -182,7 +181,7 @@ class VirtWhoConfigUpgrade(APITestCase):
 
         :steps:
             1. Start with a satellite version before the virt-who config plugin
-            2. Configure a virt-who server with virtualization provider (VP1) to
+            2. Configure virt-who server with virtualization provider (VP1) to
                send reports to the satellite.
             3. Upgrade the satellite to a version with virt-who config plugin.
             4. Configure a new virtualization provider (VP2) with a VDC
@@ -341,9 +340,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
         :steps:
             1. Create a whitelist that specifies 2 hypervisor hosts using UUID
                hypervisor ids.
-            2. Create a guests on the 2 hypervisors that match the whitelist,
+            2. Create guests on the 2 hypervisors that match the whitelist,
                verify they are reported and can attach to a VDC subscriptions.
-            3. Create a guest on a hypervisor that does not match the whitelist,
+            3. Create guest on a hypervisor that does not match the whitelist,
                verify it CANNOT get a VDC subscription
 
         :expectedresult:
@@ -424,13 +423,3 @@ class VirtWhoConfigGeneralTestcase(TestCase):
                RHEL6 Server
 
         """
-
-
-
-
-
-
-
-
-
-
