@@ -799,6 +799,62 @@ class ContentViewTestCase(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['versions']), 0)
 
+    @tier1
+    @run_only_on('sat')
+    def test_positive_remove_repository_by_id(self):
+        """Remove associated repository from content view by id
+
+        :id: 90703181-b3f8-44f6-959a-b65c79b6b6ee
+
+        :expectedresults: Content view repository removed successfully
+
+        :CaseImportance: Critical
+        """
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['yum-repositories']), 1)
+        ContentView.remove_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['yum-repositories']), 0)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_remove_repository_by_name(self):
+        """Remove associated repository from content view by name
+
+        :id: dc952fe7-eb89-4760-889b-6a3fa17c3e75
+
+        :expectedresults: Content view repository removed successfully
+
+        :CaseImportance: Critical
+        """
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['yum-repositories']), 1)
+        ContentView.remove_repository({
+            u'id': new_cv['id'],
+            u'repository': new_repo['name'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['yum-repositories']), 0)
+
     @tier2
     @run_only_on('sat')
     def test_positive_create_composite(self):
@@ -2058,7 +2114,6 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: Content view can be published
 
-
         :CaseLevel: Integration
         """
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -2084,6 +2139,77 @@ class ContentViewTestCase(CLITestCase):
             u'1.0',
             'Publishing new version of CV was not successful',
         )
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_republish_after_content_removed(self):
+        """Attempt to re-publish content view after all associated content
+        were removed from that CV
+
+        :id: 8d67cc35-afd5-49f9-8049-fe1fd2c8cf98
+
+        :setup: Create content of different types and sync it
+
+        :expectedresults: Content view re-published successfully and no error
+            is raised
+
+        :BZ: 1323751
+
+        :CaseLevel: Integration
+        """
+        # Create new Yum repository
+        yum_repo = make_repository({u'product-id': self.product['id']})
+        # Create new Ostree repository
+        ostree_repo = make_repository({
+            u'product-id': self.product['id'],
+            u'content-type': u'ostree',
+            u'publish-via-http': u'false',
+            u'url': FEDORA23_OSTREE_REPO,
+        })
+        # Create new Docker repository
+        docker_repo = make_repository({
+            u'content-type': u'docker',
+            u'docker-upstream-name': u'busybox',
+            u'product-id': self.product['id'],
+            u'url': DOCKER_REGISTRY_HUB,
+        })
+        # Sync all three repos
+        for repo_id in [yum_repo['id'], docker_repo['id'], ostree_repo['id']]:
+            Repository.synchronize({'id': repo_id})
+        # Create CV with different content types
+        new_cv = make_content_view({
+            u'organization-id': self.org['id'],
+            u'repository-ids': [
+                yum_repo['id'], docker_repo['id'], ostree_repo['id']]
+        })
+        # Check that repos were actually assigned to CV
+        for repo_type in [
+            'yum-repositories',
+            'docker-repositories',
+            'ostree-repositories',
+        ]:
+            self.assertEqual(len(new_cv[repo_type]), 1)
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 1)
+        # Remove content from CV
+        for repo_id in [yum_repo['id'], docker_repo['id'], ostree_repo['id']]:
+            ContentView.remove_repository({
+                u'id': new_cv['id'],
+                u'repository-id': repo_id,
+            })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        for repo_type in [
+            'yum-repositories',
+            'docker-repositories',
+            'ostree-repositories',
+        ]:
+            self.assertEqual(len(new_cv[repo_type]), 0)
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 2)
 
     @tier2
     @run_only_on('sat')

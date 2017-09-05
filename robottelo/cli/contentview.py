@@ -216,3 +216,10 @@ class ContentView(Base):
         cls.command_sub = 'remove-version'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def remove_repository(cls, options):
+        """Remove repository from content view"""
+        cls.command_sub = 'remove-repository'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
