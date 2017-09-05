@@ -10,15 +10,16 @@
 
 :CaseImportance: High
 
+:CaseAutomation: notautomated
+
 :Upstream: No
 """
 
-from robottelo.decorators import  stubbed, tier1
+from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
 
 
 class UICSVExportHosts(UITestCase):
-
 
     @stubbed
     @tier1
@@ -52,6 +53,7 @@ class UICSVExportHosts(UITestCase):
     def test_positive_organization_filter(self):
         """
         :id: 76756510-eaf1-48be-bd87-8f218c5378cb
+
         :setup:
             1. Create hosts in orgA and orgB
 
@@ -62,7 +64,9 @@ class UICSVExportHosts(UITestCase):
             4. Export Host page to CSV
 
 
-        :expectedresults: Only Org A hosts are show in OrgA CSV and only orgB hosts are show in orgB csv.
+        :expectedresults:
+            Only Org A hosts are show in OrgA CSV and
+            only orgB hosts are show in orgB csv.
         """
 
     @tier1
@@ -96,7 +100,9 @@ class UICSVExportHosts(UITestCase):
             4. Export Host page to CSV
 
 
-        :expectedresults: Only Org A hosts are show in locA CSV and only locB hosts are show in locB csv.
+        :expectedresults:
+            Only Org A hosts are show in locA CSV
+            and only locB hosts are show in locB csv.
         """
 
     @tier1
@@ -122,7 +128,8 @@ class UICSVExportHosts(UITestCase):
 
         :setup:
             1. Chose some host filter (filterA)
-            2. Create multiple hosts, such that some match filterA and some dont
+            2. Create multiple hosts, such that some match
+               filterA and some dont
 
         :steps:
             1. Filter the host page with filterA
@@ -139,7 +146,8 @@ class UICSVExportHosts(UITestCase):
 
         :setup:
             1. Chose some host filter (filterA)
-            2. Create greater then per page max of hosts, such that some match filterA and some dont
+            2. Create greater then per page max of hosts, such that
+               some match filterA and some dont
         :steps:
             1. Filter the host page with filterA
             2. Export the host page to CSV
@@ -151,11 +159,13 @@ class UICSVExportHosts(UITestCase):
     @stubbed
     def test_positive_filter_single_page(self):
         """
+
         :id: 67f0bf54-0db9-45f4-899b-081ed1c83e70
 
         :setup:
             1. Chose some host filter (filterA)
-            2. Create less then per page max of hosts, such that some match filterA and some dont
+            2. Create less then per page max of hosts, such that
+               some match filterA and some dont
         :steps:
             1. Filter the host page with filterA
             2. Export the host page to CSV
@@ -171,14 +181,18 @@ class UICSVExportHostsColumns(UITestCase):
     def test_positive_column_contents(self):
         """
         :id: 2f86176d-f90a-4589-ab52-a56fbd5fc713
+
         :setup:
-            Populate hosts multiple hosts with a mix of Puppet Enviromets, Hostgroups, OS, etc
+            Populate hosts multiple hosts with a mix of Puppet Enviromets,
+            Hostgroups, OS, etc
+
         :steps:
             1. Export the CSV Page in the UI
 
-        :expectedresults: Exported CSV will contain text representations of all columns.
+        :expectedresults:
+            Exported CSV will contain text representations of all columns.
 
-        :return:
+
         """
 
     @tier1
@@ -192,7 +206,7 @@ class UICSVExportHostsColumns(UITestCase):
         :steps:
             1. Export the CSV page in the UI.
 
-        :expectedresults: Exported CSV will contain the correct text for Hostname
+        :expectedresults: Exported CSV contains the correct text for Hostname
         """
 
     @tier1
@@ -218,7 +232,7 @@ class UICSVExportHostsColumns(UITestCase):
         :steps:
             1. Export the CSV page in the UI.
 
-        :expectedresults: Exported CSV will contain the correct text for Enviroment
+        :expectedresults: Exported CSV contains the correct text for Enviroment
         """
 
     @tier1
@@ -246,7 +260,7 @@ class UICSVExportHostsColumns(UITestCase):
         :steps:
             1. Export the CSV page in the UI.
 
-        :expectedresults: Verify the hardware model info is included in the CSV file
+        :expectedresults: Hardware model info is included in the CSV file
         """
 
     @tier1
@@ -261,9 +275,8 @@ class UICSVExportHostsColumns(UITestCase):
         :steps:
             1. Export Hosts page to CSV
 
-        :expectedresults: Verify the compute resource name is in the model column in the exported CSV
-
-        :return:
+        :expectedresults:
+            Compute resource name is in the model column in the exported CSV
         """
 
     @tier1
@@ -277,7 +290,8 @@ class UICSVExportHostsColumns(UITestCase):
         :steps:
             1. Export Host CSV page in the UI
 
-        :expectedresults: verify the lasted reported time is in the correct format in the CSV.
+        :expectedresults:
+            Last reported time is in the correct format in the CSV.
 
         """
 
@@ -292,7 +306,8 @@ class UICSVExportHostsColumns(UITestCase):
         :steps:
             1. Export CSV page in the UI
 
-        :expectedresults: verify the lasted reported time is in the correct format in the CSV.
+        :expectedresults:
+            Last reported time is in the correct format in the CSV.
         """
 
 
@@ -315,7 +330,7 @@ class UICSVExportFacts(UITestCase):
     @stubbed
     def test_positive_multipage(self):
         """
-        :id: cb615ed3-2f4c-45b5-904e-890ccb587842
+        :id: 178bc116-961b-47e2-8b39-3d0a13cfb96e
 
         :setup:
             1. Populate page with >20 (or max# per-page) items. For example 30
@@ -342,7 +357,10 @@ class UICSVExportFacts(UITestCase):
             4. Export Facts page to CSV
 
 
-        :expectedresults: Only Org A hosts are show in OrgA CSV and only orgB hosts are show in orgB csv.        """
+        :expectedresults:
+            Only Org A hosts are show in OrgA CSV and only orgB hosts
+            are show in orgB csv.
+        """
 
     def test_negative_organization_filter(self):
         """
@@ -372,8 +390,9 @@ class UICSVExportFacts(UITestCase):
             4. Export facts page to CSV
 
 
-        :expectedresults: Only Org A facts are show in locA CSV and only locB facts are show in locB csv.
-        :return:
+        :expectedresults:
+            Only Org A facts are show in locA CSV and
+            only locB facts are show in locB csv.
         """
 
     def test_negative_location_filter(self):
@@ -392,11 +411,13 @@ class UICSVExportFacts(UITestCase):
 
     def test_combo_filter(self):
         """
+
         :id: 001ff58d-4405-45b5-8c6a-cbbb035852f0
 
         :setup:
             1. Chose some facts filter (filterA)
-            2. Create multiple hosts with facts, such that some match filterA and some dont
+            2. Create multiple hosts with facts, such that
+               some match filterA and some dont
 
         :steps:
             1. Filter the facts page with filterA
@@ -413,7 +434,9 @@ class UICSVExportFacts(UITestCase):
 
         :setup:
             1. Chose some host filter (filterA)
-            2. Create greater then per page max of hosts, such that some match filterA and some dont
+            2. Create greater then per page max of hosts, such that some match
+               filterA and some dont
+
         :steps:
             1. Filter the host page with filterA
             2. Export the host page to CSV
@@ -425,11 +448,14 @@ class UICSVExportFacts(UITestCase):
     @stubbed
     def test_positive_filter_single_page(self):
         """
+
         :id: 9d0e9f54-5c65-4ba7-b786-31196dbe549f
 
         :setup:
             1. Chose some facts filter (filterA)
-            2. Create less then per page max of facts, such that some match filterA and some dont
+            2. Create less then per page max of facts, such that some match
+               filterA and some dont
+
         :steps:
             1. Filter the facts page with filterA
             2. Export the facts page to CSV
@@ -438,20 +464,25 @@ class UICSVExportFacts(UITestCase):
         """
 
 
-
 class UICSVExportFactsColumns(UITestCase):
 
     def setUp(self):
         pass
+
     def test_positive_host(self):
         """
         :id: 01db2369-afe8-4390-9877-715c2b0e775d
 
         :setup:
+            Populate system facts with variations of hostnames
 
         :steps:
+            1. Export Facts page
+
+        :expectedresults: Hostname column has all correct values.
 
         """
+
     def test_positive_name(self):
         """
         :id: ce8bca9d-228d-478e-840d-76d31801dd01
@@ -501,7 +532,6 @@ class UICSVExportFactsColumns(UITestCase):
         :expectedresults: Reported time is correct for all values
         """
 
-
     @tier1
     @stubbed
     def test_postive_nested_value(self):
@@ -509,7 +539,8 @@ class UICSVExportFactsColumns(UITestCase):
         :id: 558eb900-c39e-4f8a-a816-4b935ca4aa17
 
         :steps:
-            1. Verify what ever the end result of https://bugzilla.redhat.com/show_bug.cgi?id=1477341 is.
+            1. Verify what ever the end result of
+               https://bugzilla.redhat.com/show_bug.cgi?id=1477341 is.
 
         """
 
@@ -528,7 +559,6 @@ class UICSVExportFactsNested(UITestCase):
         """
 
 
-
 class UICSVExportConfigMgmtReports(UITestCase):
 
     @stubbed
@@ -544,7 +574,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
     @tier1
     def test_positive_multi_page(self):
         """
-        :id:
+        :id: ce093a5f-3538-452c-9397-c50479433bbd
 
         :steps:
             1. Populate page with >20 (or max# per-page) items. For example 30
@@ -570,7 +600,9 @@ class UICSVExportConfigMgmtReports(UITestCase):
             4. Export Host page to CSV
 
 
-        :expectedresults: Only Org A hosts are show in OrgA CSV and only orgB hosts are show in orgB csv.
+        :expectedresults:
+            Only Org A hosts are show in OrgA CSV and only orgB hosts are
+            show in orgB csv.
         """
 
     @tier1
@@ -605,14 +637,17 @@ class UICSVExportConfigMgmtReports(UITestCase):
             4. Export Host page to CSV
 
 
-        :expectedresults: Only Org A hosts are show in locA CSV and only locB hosts are show in locB csv.
+        :expectedresults:
+            Only Org A hosts are show in locA CSV and
+            only locB hosts are show in locB csv.
         """
 
     @tier1
     @stubbed
     def test_negative_location_filter(self):
         """
-        :id:
+        :id: feb300bd-c256-4564-8604-cba2ba0b34d6
+
         :setup:
             1. Create hosts in locA and locB
 
@@ -627,11 +662,12 @@ class UICSVExportConfigMgmtReports(UITestCase):
     @stubbed
     def test_combo_filter(self):
         """
-        :id:
+        :id: 18be8590-99a0-4e5e-a35b-5dce0197bb5e
 
         :setup:
             1. Chose some host filter (filterA)
-            2. Create multiple hosts, such that some match filterA and some dont
+            2. Create multiple hosts, such that some match filterA and
+               some dont
 
         :steps:
             1. Filter the host page with filterA
@@ -644,11 +680,13 @@ class UICSVExportConfigMgmtReports(UITestCase):
     @stubbed
     def test_positive_filter_multi_page(self):
         """
-        :id:
+
+        :id: 815a3caf-5d7b-4ff2-91d0-6bcbc47b7e67
 
         :setup:
             1. Chose some host filter (filterA)
-            2. Create greater then per page max of hosts, such that some match filterA and some dont
+            2. Create greater then per page max of hosts, such that some
+               match filterA and some dont
         :steps:
             1. Filter the host page with filterA
             2. Export the host page to CSV
@@ -660,11 +698,13 @@ class UICSVExportConfigMgmtReports(UITestCase):
     @stubbed
     def test_positive_filter_single_page(self):
         """
-        :id:
+
+        :id: 50ad42ac-cfcd-4ae1-9836-a974512b57bf
 
         :setup:
             1. Chose some host filter (filterA)
-            2. Create less then per page max of hosts, such that some match filterA and some dont
+            2. Create less then per page max of hosts, such that some match
+               filterA and some dont
         :steps:
             1. Filter the host page with filterA
             2. Export the host page to CSV
@@ -672,21 +712,21 @@ class UICSVExportConfigMgmtReports(UITestCase):
         :expectedresults: CSV contains filtered hosts from page.
         """
 
+
 class UICSVExportConfigMgmtColumns(UITestCase):
     @tier1
     @stubbed
     def test_positive_column_values(self):
         """
+
         :id: e01e604c-40dc-48b1-9f4c-e045aa7936a3
 
         :setup:
-            Cause a number of Configuration Managment reports to be generated of each type
-             (Host,Reported At,Applied,Restarted,Failed,Failed Restarts,Skipped,Pending)
+            Cause a number of Configuration Managment reports to be generated
+            of each type (Host,Reported At,Applied,Restarted,
+            Failed,Failed Restarts,Skipped,Pending)
         :steps:
             1. Export the Reports page to CSV
 
         :expectedresults: The column values are correct.
         """
-
-
-
