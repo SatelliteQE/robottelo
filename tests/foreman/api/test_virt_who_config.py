@@ -45,7 +45,7 @@ class VirtWhoConfigAPI(APITestCase):
         :id: abecc851-2475-4455-9c12-63a73fcb09bb
 
         :steps:
-            1. Verify there are no virt-who reports reported if there is no 
+            1. Verify there are no virt-who reports reported if there is no
                change in guest-host mapping in hypervisor
         """
 
