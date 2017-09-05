@@ -10,6 +10,8 @@
 
 :CaseImportance: High
 
+:CaseAutomation: notautomated
+
 :Upstream: No
 """
 
@@ -24,6 +26,7 @@ class VirtWhoConfigAPI(APITestCase):
     @tier1
     def test_positive_vm_create(self):
         """ Register a vm on virt-who hypervisor
+
         :id: 701b22b8-fe92-4dd3-8d7d-c7b5efb7281b
 
         :steps:
@@ -44,7 +47,6 @@ class VirtWhoConfigAPI(APITestCase):
         :steps:
             1. Verify there are no virt-who reports reported if there is no 
                change in guest-host mapping in hypervisor
-
         """
 
     @run_only_on('sat')
@@ -148,7 +150,6 @@ class VirtWhoConfigRoleApiTests(APITestCase):
         :steps:
             1. Create a user with ONLY the virt-who Viewer role.
             2. Verify the user can view virt-who configurations.
-            3.
         """
 
     @run_only_on('sat')
@@ -345,7 +346,7 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             3. Create guest on a hypervisor that does not match the whitelist,
                verify it CANNOT get a VDC subscription
 
-        :expectedresult:
+        :expectedresults:
             Correct config file generated, non-whitelisted servers are not
             reported.
         """
@@ -372,7 +373,7 @@ class VirtWhoConfigGeneralTestcase(TestCase):
                blacklist, verify it can attach to a VDC subscription
             4. Repeat with each Hypervisor ID types (Hostname, hwuuid)
 
-        :expectedresult:
+        :expectedresults:
             Correct config file generated, Blacklisted Hypervisors are not
             reported.
         """
@@ -397,6 +398,7 @@ class VirtWhoConfigGeneralTestcase(TestCase):
     @tier1
     def test_positive_intervals(self):
         """ Verify Intervals
+
         :id: 76a31b43-1738-4e6a-acd7-604fff19ae79
 
         :steps:
@@ -407,7 +409,7 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             3. Verify a report is sent every hour
             4. Repeat for each supported interval.
 
-        :expectedresult: Config file is generaled with correct interval set.
+        :expectedresults: Config file is generaled with correct interval set.
 
         """
 

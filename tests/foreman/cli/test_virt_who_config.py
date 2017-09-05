@@ -10,6 +10,8 @@
 
 :CaseImportance: High
 
+:CaseAutomation: No
+
 :Upstream: No
 """
 
@@ -25,7 +27,7 @@ class VirtWhoConfigCLITestCase(CLITestCase):
         :id: e273e2b3-79dc-46f5-8925-688f45f6b192
 
         :steps:
-            1. Create config in UI, deploy using “hammer virt-who-config deploy”
+            1. Create config in UI, deploy with "hammer virt-who-config deploy"
         """
 
     @run_only_on('sat')
