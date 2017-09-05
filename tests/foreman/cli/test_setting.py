@@ -15,8 +15,12 @@
 
 :Upstream: No
 """
-
-from robottelo.decorators import tier1, stubbed
+from robottelo.cli.settings import Settings
+from robottelo.datafactory import (
+    gen_string,
+    valid_data_list,
+)
+from robottelo.decorators import stubbed, tier1
 from robottelo.test import CLITestCase
 
 
@@ -36,7 +40,6 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed()
     @tier1
     def test_positive_update_hostname_prefix_without_value(self):
         """Update the Hostname_prefix settings without any string(empty values)
@@ -44,11 +47,13 @@ class SettingTestCase(CLITestCase):
         :id: a84c28ea-6821-4c31-b4ab-8662c22c9135
 
         :expectedresults: Hostname_prefix should be set without any text
-
-        :caseautomation: notautomated
         """
+        Settings.set({'name': "discovery_prefix", 'value': ""})
+        discovery_prefix = Settings.list({
+            'search': 'name=discovery_prefix'
+        })[0]
+        self.assertEqual('', discovery_prefix['value'])
 
-    @stubbed()
     @tier1
     def test_positive_update_hostname_default_prefix(self):
         """Update the default set prefix of hostname_prefix setting
@@ -56,9 +61,16 @@ class SettingTestCase(CLITestCase):
         :id: a6e46e53-6273-406a-8009-f184d9551d66
 
         :expectedresults: Default set prefix should be updated with new value
-
-        :caseautomation: notautomated
         """
+        hostname_prefix_value = gen_string('alpha')
+        Settings.set({
+            'name': "discovery_prefix",
+            'value': hostname_prefix_value
+        })
+        discovery_prefix = Settings.list({
+            'search': 'name=discovery_prefix'
+        })[0]
+        self.assertEqual(hostname_prefix_value, discovery_prefix['value'])
 
     @stubbed()
     @tier1
@@ -87,7 +99,6 @@ class SettingTestCase(CLITestCase):
         :caseautomation: notautomated
         """
 
-    @stubbed()
     @tier1
     def test_positive_update_login_page_footer_text(self):
         """Updates parameter "login_text" in settings
@@ -100,11 +111,13 @@ class SettingTestCase(CLITestCase):
             with any string
 
         :expectedresults: Parameter is updated successfully
-
-        :caseautomation: notautomated
         """
+        for login_text_value in valid_data_list():
+            with self.subTest(login_text_value):
+                Settings.set({'name': "login_text", 'value': login_text_value})
+                login_text = Settings.list({'search': 'name=login_text'})[0]
+                self.assertEqual(login_text_value, login_text['value'])
 
-    @stubbed()
     @tier1
     def test_positive_update_login_page_footer_text_without_value(self):
         """Updates parameter "login_text" without any string (empty value)
@@ -117,9 +130,10 @@ class SettingTestCase(CLITestCase):
             without any string(empty value) in value parameter
 
         :expectedresults: Message on login screen should be removed
-
-        :caseautomation: notautomated
         """
+        Settings.set({'name': "login_text", 'value': ""})
+        login_text = Settings.list({'search': 'name=login_text'})[0]
+        self.assertEqual('', login_text['value'])
 
     @stubbed()
     @tier1
