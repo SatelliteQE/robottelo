@@ -19,9 +19,9 @@ from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
 
 
-class UICSVExportHosts(UITestCase):
+class CSVExportHosts(UITestCase):
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_single_page(self):
         """
@@ -34,7 +34,7 @@ class UICSVExportHosts(UITestCase):
         :expectedresults: Exported CSV will have all rows
         """
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_multi_page(self):
         """
@@ -49,7 +49,7 @@ class UICSVExportHosts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_organization_filter(self):
         """
         :id: 76756510-eaf1-48be-bd87-8f218c5378cb
@@ -70,7 +70,7 @@ class UICSVExportHosts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_negative_organization_filter(self):
         """
         :id: dee26a14-3e8f-4e12-a3ac-e09205c702cc
@@ -85,7 +85,7 @@ class UICSVExportHosts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_location_filter(self):
         """
         :id: d526794c-07a2-4db2-a737-01c2827d5cec
@@ -106,7 +106,7 @@ class UICSVExportHosts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_negative_location_filter(self):
         """
         :id: 0d6da07f-b5df-49a9-816d-033daa504482
@@ -121,7 +121,7 @@ class UICSVExportHosts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_combo_filter(self):
         """
         :id: 46b61542-994a-48ca-b4b0-90c886158614
@@ -139,7 +139,7 @@ class UICSVExportHosts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_filter_multi_page(self):
         """
         :id: c506d83f-de27-43cd-840c-dae57b889a8f
@@ -156,7 +156,7 @@ class UICSVExportHosts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_filter_single_page(self):
         """
 
@@ -177,7 +177,7 @@ class UICSVExportHosts(UITestCase):
 class UICSVExportHostsColumns(UITestCase):
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_column_contents(self):
         """
         :id: 2f86176d-f90a-4589-ab52-a56fbd5fc713
@@ -196,7 +196,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_name(self):
         """
         :id: b3a189c4-3f08-41e0-a1d3-e8f1a0b1f60c
@@ -210,7 +210,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_os(self):
         """
         :id: cb9ac24e-9a25-4641-ace3-370c74ecf91f
@@ -223,7 +223,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_enviroment(self):
         """
         :id: 099f253a-ec8f-4544-bb28-988c9ab03d5d
@@ -236,7 +236,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_negative_enviroment(self):
         """
         :id: d25760e6-4111-4f84-9447-db548ccb43f4
@@ -250,7 +250,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_model_baremetal(self):
         """
         :id: 517095bc-8903-431e-9100-970b06be35ea
@@ -264,7 +264,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_compute_resource(self):
         """
         :id: 81fdde68-cd63-4793-9a44-f26b5098fbd9
@@ -280,7 +280,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_last_report(self):
         """
         :id: ae283c17-75b8-4933-acbe-af5a6fa5b145
@@ -296,7 +296,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_negative_last_report(self):
         """
         :id: c4293168-8217-447f-add2-e5ab495f9acd
@@ -314,7 +314,7 @@ class UICSVExportHostsColumns(UITestCase):
 class UICSVExportFacts(UITestCase):
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_single_page(self):
         """
         :id: 87229ff1-f80a-43a3-ad66-eab16eb7786d
@@ -327,7 +327,7 @@ class UICSVExportFacts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_multipage(self):
         """
         :id: 178bc116-961b-47e2-8b39-3d0a13cfb96e
@@ -427,7 +427,7 @@ class UICSVExportFacts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_filter_multi_page(self):
         """
         :id: c83ae156-6582-4b54-a6d5-f6e83f921b91
@@ -445,7 +445,7 @@ class UICSVExportFacts(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_filter_single_page(self):
         """
 
@@ -533,7 +533,7 @@ class UICSVExportFactsColumns(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_postive_nested_value(self):
         """
         :id: 558eb900-c39e-4f8a-a816-4b935ca4aa17
@@ -561,7 +561,7 @@ class UICSVExportFactsNested(UITestCase):
 
 class UICSVExportConfigMgmtReports(UITestCase):
 
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_single_page(self):
         """
@@ -570,7 +570,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         :step
 
         """
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_multi_page(self):
         """
@@ -585,7 +585,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_organization_filter(self):
         """
         :id: ce83dace-5349-4627-b9d4-e116df46a986
@@ -606,7 +606,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_negative_organization_filter(self):
         """
         :id: 79f50ca9-61fe-4e0c-a098-bf5c0bfb4b9c
@@ -622,7 +622,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_location_filter(self):
         """
         :id: d61aec9a-4e9d-4705-9bdd-abe9acdbe465
@@ -643,7 +643,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_negative_location_filter(self):
         """
         :id: feb300bd-c256-4564-8604-cba2ba0b34d6
@@ -659,7 +659,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_combo_filter(self):
         """
         :id: 18be8590-99a0-4e5e-a35b-5dce0197bb5e
@@ -677,7 +677,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_filter_multi_page(self):
         """
 
@@ -695,7 +695,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_filter_single_page(self):
         """
 
@@ -713,9 +713,9 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
 
-class UICSVExportConfigMgmtColumns(UITestCase):
+class CSVExportConfigMgmtColumns(UITestCase):
     @tier1
-    @stubbed
+    @stubbed()
     def test_positive_column_values(self):
         """
 
