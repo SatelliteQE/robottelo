@@ -91,7 +91,13 @@ class ContentViewTestCase(CLITestCase):
     rhel_repo_name = None
     rhel_repo = None
 
-    def create_rhel_content(self):
+    def create_rhel_content(
+            self,
+            product=PRDS['rhel'],
+            reposet=REPOSET['rhva6'],
+            repo=REPOS['rhva6'],
+            release_ver='6Server',
+    ):
         """Enable/Synchronize rhel content"""
         if ContentViewTestCase.rhel_content_org is not None:
             return
@@ -106,24 +112,24 @@ class ContentViewTestCase(CLITestCase):
             })
 
             RepositorySet.enable({
-                'name': REPOSET['rhva6'],
+                'name': reposet,
                 'organization-id': ContentViewTestCase.rhel_content_org['id'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
+                'product': product,
+                'releasever': release_ver,
                 'basearch': 'x86_64',
             })
-            ContentViewTestCase.rhel_repo_name = REPOS['rhva6']['name']
+            ContentViewTestCase.rhel_repo_name = repo['name']
 
             ContentViewTestCase.rhel_repo = Repository.info({
                 u'name': ContentViewTestCase.rhel_repo_name,
                 u'organization-id': self.rhel_content_org['id'],
-                u'product': PRDS['rhel'],
+                u'product': product,
             })
 
             Repository.synchronize({
                 'name': ContentViewTestCase.rhel_repo_name,
                 'organization-id': ContentViewTestCase.rhel_content_org['id'],
-                'product': PRDS['rhel'],
+                'product': product,
             })
         except CLIReturnCodeError:
             # Make sure to reset rhel_content_org and let the exception
@@ -820,6 +826,7 @@ class ContentViewTestCase(CLITestCase):
         })
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['yum-repositories']), 1)
+        # Remove repository from CV
         ContentView.remove_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
@@ -848,6 +855,7 @@ class ContentViewTestCase(CLITestCase):
         })
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['yum-repositories']), 1)
+        # Remove repository from CV
         ContentView.remove_repository({
             u'id': new_cv['id'],
             u'repository': new_repo['name'],
@@ -2207,6 +2215,56 @@ class ContentViewTestCase(CLITestCase):
         ]:
             self.assertEqual(len(new_cv[repo_type]), 0)
         # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 2)
+
+    @run_in_one_thread
+    @tier2
+    def test_positive_republish_after_rh_content_removed(self):
+        """Attempt to re-publish content view after all RH associated content
+        was removed from that CV
+
+        :id: 9c6b7678-bb72-4e95-855f-64ad04195661
+
+        :setup: Create RH content
+
+        :expectedresults: Content view re-published successfully and no error
+            is raised
+
+        :BZ: 1323751
+
+        :CaseLevel: Integration
+        """
+        self.create_rhel_content(
+            reposet=REPOSET['rhst7'],
+            repo=REPOS['rhst7'],
+            release_ver=None,
+        )
+        # Create CV
+        new_cv = make_content_view({
+            u'organization-id': self.rhel_content_org['id']
+        })
+        # Associate repo to CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'organization-id': ContentViewTestCase.rhel_content_org['id'],
+            u'repository-id': ContentViewTestCase.rhel_repo['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['yum-repositories']), 1)
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 1)
+        # Remove content from CV
+        ContentView.remove_repository({
+            u'id': new_cv['id'],
+            u'repository-id': ContentViewTestCase.rhel_repo['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['yum-repositories']), 0)
+        # Publish a new version of CV once more
         ContentView.publish({u'id': new_cv['id']})
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['versions']), 2)
