@@ -330,14 +330,14 @@ class HostCreateTestCase(CLITestCase):
         })
         self.assertEqual(new_host['organization'], self.new_org['name'])
 
-    @skip_if_bug_open('bugzilla', 1488150)
+    @skip_if_bug_open('bugzilla', 1483252)
     @tier1
     def test_positive_create_with_content_source(self):
         """Create a host with content source specified
 
         :id: 6068bd4d-18d8-47a2-99f4-3e0ee9208104
 
-        :BZ: 1260697, 1488150
+        :BZ: 1260697, 1483252
 
         :expectedresults: A host is created with expected content source
             assigned
@@ -375,7 +375,7 @@ class HostCreateTestCase(CLITestCase):
                 'organization': self.new_org['name'],
             })
 
-    @skip_if_bug_open('bugzilla', 1488150)
+    @skip_if_bug_open('bugzilla', 1483252)
     @skip_if_bug_open('bugzilla', 1488465)
     @tier1
     def test_positive_update_content_source(self):
@@ -383,7 +383,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 2364dbb7-2ccd-46c0-baf1-5e179a157027
 
-        :BZ: 1260697, 1488150, 1488465
+        :BZ: 1260697, 1483252, 1488465
 
         :expectedresults: Content source was successfully updated
 
@@ -408,14 +408,14 @@ class HostCreateTestCase(CLITestCase):
         host = Host.info({'id': host['id']})
         self.assertEqual(host['content-source'], new_content_source['name'])
 
-    @skip_if_bug_open('bugzilla', 1488150)
+    @skip_if_bug_open('bugzilla', 1483252)
     @tier1
     def test_negative_update_content_source(self):
         """Attempt to update host's content source with invalid value
 
         :id: 03243c56-3835-4b15-94df-15d436bbda87
 
-        :BZ: 1260697, 1488150
+        :BZ: 1260697, 1483252
 
         :expectedresults: Host was not updated. Content source remains the same
             as it was before update
