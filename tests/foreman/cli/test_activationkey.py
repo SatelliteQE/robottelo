@@ -310,8 +310,15 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
+        # exclude numeric values from invalid values list
+        invalid_values = [
+            value
+            for value in invalid_values_list()
+            if not value.isdigit()
+        ]
+        invalid_values.append(0.5)
         self.assert_negative_create_with_usage_limit(
-            invalid_values_list() + [0.5],
+            invalid_values,
             u"Error: option '--max-hosts': numeric value is required"
         )
 
