@@ -904,6 +904,7 @@ class Settings(object):
         self.capsule_repo = None
         self.sattools_repo = None
         self.screenshots_path = None
+        self.tmp_dir = None
         self.saucelabs_key = None
         self.saucelabs_user = None
         self.server = ServerSettings()
@@ -1011,6 +1012,7 @@ class Settings(object):
             'robottelo', 'sattools_repo', None, dict)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
+        self.tmp_dir = self.reader.get('robottelo', 'tmp_dir', '/var/tmp')
         self.run_one_datapoint = self.reader.get(
             'robottelo', 'run_one_datapoint', False, bool)
         self.cleanup = self.reader.get('robottelo', 'cleanup', False, bool)

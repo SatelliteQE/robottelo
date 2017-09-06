@@ -44,6 +44,8 @@ ssh_key=
 # upstream=true
 # Logging verbosity, one of debug, info, warning, error, critical
 # verbosity=debug
+# Directory for temporary files
+# tmp_dir=/var/tmp
 
 # Webdriver logging options
 # A list of commands to be logged

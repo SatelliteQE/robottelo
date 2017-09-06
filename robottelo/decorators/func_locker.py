@@ -24,7 +24,8 @@ Usage::
         @classmethod
         def setUpClass(cls):
 
-            with locking_function(cls.setUpClass, 'publish_puppet_class'):
+            with locking_function(cls.setUpClass,
+                                  scope_context='publish_puppet_class'):
                 # call the publish function
 
 
@@ -40,28 +41,63 @@ Usage::
                 # do some operations that conflict with test_to_lock
 """
 import functools
+import inspect
 import logging
 import os
 import tempfile
-import unittest2
 
 from contextlib import contextmanager
 
 from pytest_services.locks import file_lock
+
+from robottelo.config import settings
 
 logger = logging.getLogger(__name__)
 
 TEMP_ROOT_DIR = 'robottelo'
 TEMP_FUNC_LOCK_DIR = 'lock_functions'
 LOCK_DIR = None
+LOCK_DEFAULT_TIMEOUT = 1800  # 30 minutes
+LOCK_FILE_NAME_EXT = 'lock'
+LOCK_DEFAULT_SCOPE = None
+
+_DEFAULT_CLASS_NAME_DEPTH = 3
+
+
+class FunctionLockerError(Exception):
+    """the default function locker error"""
+
+
+def set_default_scope(value):
+    """Set the default namespace scope
+
+    :type value: str or callable
+    """
+    global LOCK_DEFAULT_SCOPE
+    LOCK_DEFAULT_SCOPE = value
+
+
+def _get_default_scope():
+    # this is the default locking scope
+    if LOCK_DEFAULT_SCOPE is None:
+        return settings.server.hostname
+    else:
+        return LOCK_DEFAULT_SCOPE
+
+
+def get_temp_dir():
+    tmp_dir = settings.tmp_dir
+    if not tmp_dir:
+        tmp_dir = tempfile.gettempdir()
+    return tmp_dir
 
 
 def _get_temp_lock_function_dir(create=True):
     global LOCK_DIR
     if LOCK_DIR is not None:
         return LOCK_DIR
-    tmp_lock_dir = os.path.join(tempfile.gettempdir(), TEMP_ROOT_DIR,
-                                TEMP_FUNC_LOCK_DIR)
+    tmp_dir = get_temp_dir()
+    tmp_lock_dir = os.path.join(tmp_dir, TEMP_ROOT_DIR, TEMP_FUNC_LOCK_DIR)
     if create and not os.path.exists(tmp_lock_dir):
         try:
             # it can happen that the workers try to create this path at the
@@ -76,96 +112,216 @@ def _get_temp_lock_function_dir(create=True):
     return LOCK_DIR
 
 
-def _get_function_name(function, context=None):
-    """Return a string representation of the function as
-     module_path.Class_name.function_name, if context is defined return
-     module_path.Class_name.function_name.context
-     """
-    names = [function.__module__]
-    if hasattr(function, 'im_self'):
+def _get_scope_path(scope, scope_kwargs=None, scope_context=None, create=True):
+    """Returns the scopes path and create it if create is true"""
+    if scope_kwargs is None:
+        scope_kwargs = {}
 
-        self = function.im_self
-        if isinstance(self, type):
-            # this is a class method
-            names.append(self.__name__)
+    scope_path_list = [_get_temp_lock_function_dir(create=create)]
+    if scope:
+        if callable(scope):
+            scope_dir_name = scope(**scope_kwargs)
         else:
-            # this is an instance
-            names.append(self.__class__.__name__)
+            scope_dir_name = scope
+        if scope_dir_name:
+            scope_path_list.append(scope_dir_name)
+    if scope_context:
+        scope_path_list.append(scope_context)
 
-    names.append(function.__name__)
-    if context is not None:
-        names.append(context)
-    return '.'.join(names)
+    scope_path = os.path.join(*scope_path_list)
+
+    if create and not os.path.exists(scope_path):
+        try:
+            # it can happen that the workers try to create this path at the
+            # same time
+            os.makedirs(scope_path)
+        except OSError:
+            if not os.path.exists(scope_path):
+                raise
+
+    return scope_path
 
 
-def _get_context_function_name(context, function):
+def _get_function_name(function, class_name=None):
     """Return a string representation of the function as
     module_path.Class_name.function_name
+
+    note: the class name is the first parent class
     """
     names = [function.__module__]
-    if context and hasattr(context, function.__name__):
-
-        if isinstance(context, type):
-            context_class = context
-        else:
-            context_class = context.__class__
-
-        if issubclass(context_class, unittest2.TestCase):
-            names.append(context_class.__name__)
+    if class_name:
+        names.append(class_name)
 
     names.append(function.__name__)
     return '.'.join(names)
 
 
-def _get_function_lock_path(function, context=None):
+def _get_function_name_lock_path(function_name, scope=None, scope_kwargs=None,
+                                 scope_context=None):
     """Return the path of the file to lock"""
     return os.path.join(
-        _get_temp_lock_function_dir(),
-        _get_function_name(function, context=context)
+        _get_scope_path(scope, scope_kwargs=scope_kwargs,
+                        scope_context=scope_context),
+        '{0}.{1}'.format(function_name, LOCK_FILE_NAME_EXT)
     )
 
 
-def _get_context_function_lock_path(context, function):
-    """Return the path of the file to lock"""
-    return os.path.join(
-        _get_temp_lock_function_dir(),
-        _get_context_function_name(context, function)
-    )
+def _check_deadlock(lock_file_path, process_id):
+    """To prevent process deadlock, raise exception if the file content is the
+    same as process_id
+
+    note: this function is called before the lock
+
+    :type lock_file_path: str
+    :type process_id: str
+    """
+    if os.path.exists(lock_file_path):
+        try:
+            lock_file_handler = open(lock_file_path, 'r')
+            lock_file_content = lock_file_handler.read()
+        except (OSError, IOError) as exp:
+            # do nothing, but anyway log the exception
+            logger.exception(exp)
+            lock_file_content = None
+
+        if lock_file_content and lock_file_content == process_id:
+            raise FunctionLockerError(
+                'recursion detected: the function file already '
+                'locked by the same process'
+            )
 
 
-def lock_function(func):
-    """Generic function locker, lock any decorated function, any parallel
-     pytest xdist worker will wait for this function to finish"""
+def _write_content(handler, content):
+    """write content to locked file"""
+    handler.seek(0)
+    handler.truncate()
+    if content:
+        handler.write(content)
+    handler.flush()
 
-    @functools.wraps(func)
-    def function_wrapper(*args, **kwargs):
-        if len(args) > 0:
-            context = args[0]
-        else:
-            context = None
 
-        lock_file_path = _get_context_function_lock_path(context, func)
-        with file_lock(lock_file_path):
-            logger.info('lock function using file path:{}'.format(
-                lock_file_path))
-            res = func(*args, **kwargs)
+def lock_function(function=None, scope=_get_default_scope, scope_context=None,
+                  scope_kwargs=None, timeout=LOCK_DEFAULT_TIMEOUT):
+    """Generic function locker, lock any decorated function. Any parallel
+     pytest xdist worker will wait for this function to finish
 
-        return res
+    :type function: callable
+    :type scope: str or callable
+    :type scope_kwargs: dict
+    :type scope_context: str
+    :type timeout: int
 
-    return function_wrapper
+    :param function: the function that is intended to be locked
+    :param scope: this parameter will define the namespace of locking
+    :param scope_context: an added context string if applicable, of a concrete
+           lock in combination with scope and function.
+    :param scope_kwargs: kwargs to be passed to scope if is a callable
+    :param timeout: the time in seconds to wait for acquiring the lock
+    """
+    class_names = []
+    class_name = None
+    index = 1
+    while class_name != '<module>' and index <= _DEFAULT_CLASS_NAME_DEPTH:
+        if class_name:
+            class_names.append(class_name)
+        class_name = inspect.getouterframes(inspect.currentframe())[index][3]
+        index += 1
+
+    class_names.reverse()
+    class_name = '.'.join(class_names)
+
+    def main_wrapper(func):
+
+        setattr(func, '__class_name__', class_name)
+        setattr(func, '__function_locked__', True)
+
+        @functools.wraps(func)
+        def function_wrapper(*args, **kwargs):
+            function_name = _get_function_name(func, class_name=class_name)
+            lock_file_path = _get_function_name_lock_path(
+                function_name,
+                scope=scope,
+                scope_kwargs=scope_kwargs,
+                scope_context=scope_context
+                )
+            process_id = str(os.getpid())
+            # to prevent dead lock when recursively calling this function
+            # check if the same process is trying to acquire the lock
+            _check_deadlock(lock_file_path, process_id)
+
+            with file_lock(lock_file_path, remove=False,
+                           timeout=timeout) as handler:
+                logger.info(
+                    'process id: {0} lock function using file path: {1}'
+                    .format(process_id, lock_file_path)
+                )
+                # write the process id that locked this function
+                _write_content(handler, process_id)
+                # call the locked function
+                try:
+                    res = func(*args, **kwargs)
+                finally:
+                    # clear the file
+                    _write_content(handler, None)
+
+            return res
+
+        return function_wrapper
+
+    def wait_function(func):
+        return main_wrapper(func)
+
+    if function:
+        return main_wrapper(function)
+    else:
+        return wait_function
 
 
 @contextmanager
-def locking_function(function, context=None):
-    """Lock Lock a function in combination with a context
+def locking_function(function, scope=_get_default_scope, scope_context=None,
+                     scope_kwargs=None, timeout=LOCK_DEFAULT_TIMEOUT):
+    """Lock a function in combination with a scope and scope_context.
+    Any parallel pytest xdist worker will wait for this function to finish.
+
     :type function: callable
-    :type context: str
+    :type scope: str or callable
+    :type scope_kwargs: dict
+    :type scope_context: str
+    :type timeout: int
+
     :param function: the function that is intended to be locked
-    :param context: an added context string if applicable, of a concrete lock
-    in combination with function.
+    :param scope: this parameter will define the namespace of locking
+    :param scope_context: an added context string if applicable, of a concrete
+           lock in combination with scope and function.
+    :param scope_kwargs: kwargs to be passed to scope if is a callable
+    :param timeout: the time in seconds to wait for acquiring the lock
     """
-    lock_file_path = _get_function_lock_path(function, context=context)
-    with file_lock(lock_file_path) as lock_handler:
-        logger.info('locking function using file path:{}'.format(
-            lock_file_path))
-        yield lock_handler
+    if not getattr(function, '__function_locked__', False):
+        raise FunctionLockerError(
+            'Cannot ensure locking when using a non locked function')
+    class_name = getattr(function, '__class_name__', None)
+    function_name = _get_function_name(function, class_name=class_name)
+    lock_file_path = _get_function_name_lock_path(
+        function_name,
+        scope=scope,
+        scope_kwargs=scope_kwargs,
+        scope_context=scope_context
+    )
+    process_id = str(os.getpid())
+    # to prevent dead lock when recursively calling this function
+    # check if the same process is trying to acquire the lock
+    _check_deadlock(lock_file_path, process_id)
+
+    with file_lock(lock_file_path, remove=False, timeout=timeout) as handler:
+        logger.info(
+            'process id: {0} - lock function name:{1}  - using file path: {2}'
+            .format(process_id, function_name, lock_file_path)
+        )
+        # write the process id that locked this function
+        _write_content(handler, process_id)
+        # let the locked code run
+        try:
+            yield handler
+        finally:
+            # clear the file
+            _write_content(handler, None)
