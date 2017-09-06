@@ -48,8 +48,12 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators, tab_locators
-from robottelo.ui.factory import make_host, set_context
+from robottelo.ui.factory import (
+    make_host,
+    make_hostgroup,
+    set_context,
+)
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 import robottelo.cli.factory as cli_factory
@@ -1015,6 +1019,110 @@ class HostTestCase(UITestCase):
             )
             self.assertEqual(result['Lifecycle Environment'], new_lce['name'])
             self.assertEqual(result['Content View'], new_cv['name'])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_inherit_puppet_env_from_host_group_when_create(self):
+        """Host group puppet environment is inherited to host in create
+        procedure
+
+        :id: 05831ecc-3132-4eb7-ad90-155470f331b6
+
+        :expectedresults: Expected puppet environment is inherited to the form
+
+        :BZ: 1414914
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        hg_name = gen_string('alpha')
+        env = entities.Environment(
+            name=gen_string('alpha'), organization=[org]).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            make_hostgroup(
+                session,
+                name=hg_name,
+                parameters_list=[
+                    ['Host Group', 'Puppet Environment', env.name],
+                ],
+            )
+            self.assertIsNotNone(self.hostgroup.search(hg_name))
+            self.hosts.navigate_to_entity()
+            self.hosts.click(locators['host.new'])
+            self.hosts.assign_value(locators['host.host_group'], hg_name)
+            self.assertEqual(
+                self.hosts.wait_until_element(
+                    locators['host.fetch_puppet_environment']).text,
+                env.name
+            )
+            self.hosts.click(locators['host.inherit_puppet_environment'])
+            self.assertEqual(
+                self.hosts.wait_until_element(
+                    locators['host.fetch_puppet_environment']).text,
+                env.name
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_inherit_puppet_env_from_host_group_when_action(self):
+        """Host group puppet environment is inherited to already created
+        host when corresponding action is applied to that host
+
+        :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
+
+        :expectedresults: Expected puppet environment is inherited to the host
+
+        :BZ: 1414914
+
+        :CaseLevel: Integration
+        """
+        host_name = gen_string('alpha').lower()
+        org = entities.Organization().create()
+        host = entities.Host(organization=org, name=host_name).create()
+        env = entities.Environment(
+            name=gen_string('alpha'), organization=[org]).create()
+        hostgroup = entities.HostGroup(
+            environment=env, organization=[org]).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            self.hosts.update_host_bulkactions(
+                [host_name],
+                action='Change Environment',
+                parameters_list=[{
+                    'puppet_env_name': '*Clear environment*',
+                }],
+            )
+            self.assertEqual(
+                self.hosts.wait_until_element(
+                    common_locators['table_cell_value'] %
+                    (host_name, 'Environment')).text,
+                ''
+            )
+            self.hosts.update_host_bulkactions(
+                [host_name],
+                action='Change Group',
+                parameters_list=[{'host_group_name': hostgroup.name}],
+            )
+            self.hosts.update_host_bulkactions(
+                [host_name],
+                action='Change Environment',
+                parameters_list=[{
+                    'puppet_env_name': '*Inherit from host group*',
+                }],
+            )
+            self.assertEqual(
+                self.hosts.wait_until_element(
+                    common_locators['table_cell_value'] %
+                    (host_name, 'Environment')).text,
+                env.name
+            )
+            result = self.hosts.fetch_host_parameters(
+                host_name,
+                host.domain.read().name,
+                [['Host', 'Puppet Environment']],
+            )
+            self.assertEqual(result['Puppet Environment'], env.name)
 
     @stubbed()
     @tier3

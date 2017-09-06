@@ -248,8 +248,13 @@ class Hosts(Base):
         """Updates host via bulkactions
 
         :param hosts: List of hosts that should be selected for action
-        :param action: Specify exact action to perform according to UI list. At
-            that moment we support only Assign Organization and Run Job actions
+        :param action: Specify exact action to perform according to UI list.
+            At that moment we support next actions::
+            - Assign Organization
+            - Run Job
+            - Delete Hosts
+            - Change Group
+            - Change Environment
         :param parameters_list: List of parameters that are needed for the
             dialogs that go after necessary action was selected. For example::
 
@@ -282,6 +287,18 @@ class Hosts(Base):
                         locators['task.finished_state'],
                         timeout=parameter['timeout'],
                     )
+                if action == 'Change Group':
+                    self.assign_value(
+                        locators['host.select_host_group'],
+                        parameter['host_group_name']
+                    )
+                    self.click(locators['host.bulk_submit'])
+                if action == 'Change Environment':
+                    self.assign_value(
+                        locators['host.select_environment'],
+                        parameter['puppet_env_name']
+                    )
+                    self.click(locators['host.bulk_submit'])
 
     def get_yaml_output(self, name):
         """Return YAML output for specific host

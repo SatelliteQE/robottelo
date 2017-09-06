@@ -121,6 +121,13 @@ common_locators = LocatorDict({
         "/parent::tr"
         "/td[count(//thead//tr/th[.='%s']/preceding-sibling::*)+1]/a"
     ),
+    "table_cell_value": (
+        By.XPATH,
+        "//table[contains(@class, 'table')]"
+        "//td[contains(normalize-space(.), '%s')]"
+        "/parent::tr"
+        "/td[count(//thead//tr/th[.='%s']/preceding-sibling::*)+1]"
+    ),
 
     "application_logo": (
         By.XPATH, "//img[contains(@alt, 'Header logo')]"),
