@@ -51,7 +51,10 @@ class OstreeBranchTestCase(CLITestCase):
             u'url': FEDORA23_OSTREE_REPO,
         })
         Repository.synchronize({'id': cls.ostree_repo['id']})
-        cls.cv = make_content_view({u'organization-id': cls.org['id']})
+        cls.cv = make_content_view({
+            u'organization-id': cls.org['id'],
+            u'repository-ids': [cls.ostree_repo['id']],
+        })
         ContentView.publish({u'id': cls.cv['id']})
         cls.cv = ContentView.info({u'id': cls.cv['id']})
 
