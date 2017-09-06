@@ -393,25 +393,6 @@ class VirtWhoConfigGeneralTestcase(TestCase):
                attach to VDC subscriptions.
         """
 
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_intervals(self):
-        """ Verify Intervals
-
-        :id: 76a31b43-1738-4e6a-acd7-604fff19ae79
-
-        :steps:
-            1. Create a virt-who configuration with a reporting interval of
-               every 1 hour.
-            2. Verify a Virt-who configuration is created that sets the
-               interval to 1 hour
-            3. Verify a report is sent every hour
-            4. Repeat for each supported interval.
-
-        :expectedresults: Config file is generaled with correct interval set.
-
-        """
 
     @run_only_on('sat')
     @stubbed()
