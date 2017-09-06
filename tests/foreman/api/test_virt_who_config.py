@@ -19,7 +19,7 @@ from robottelo.decorators import run_only_on, stubbed, tier1
 from robottelo.test import TestCase, APITestCase
 
 
-class VirtWhoConfigAPI(APITestCase):
+class VirtWhoConfigTestCase(APITestCase):
 
     @run_only_on('sat')
     @stubbed()
@@ -32,7 +32,8 @@ class VirtWhoConfigAPI(APITestCase):
         :steps:
             1. Create new VM in a supported hypervisor
             2. Wait until the next virt-who report comes in.
-            3. Verify the VM is reported to satellite
+
+        :expectedresults: Verify the VM is reported to satellite
 
         """
 
@@ -45,8 +46,11 @@ class VirtWhoConfigAPI(APITestCase):
         :id: abecc851-2475-4455-9c12-63a73fcb09bb
 
         :steps:
-            1. Verify there are no virt-who reports reported if there is no
-               change in guest-host mapping in hypervisor
+            1. Register a vm on non-virt-who hypervisor
+
+        :expectedresults:
+            Verify there are no virt-who reports reported if there is no
+            change in guest-host mapping in hypervisor
         """
 
     @run_only_on('sat')
@@ -58,7 +62,10 @@ class VirtWhoConfigAPI(APITestCase):
         :id: 6b2cc2c3-959b-468b-9865-0f01decd2249
 
         :steps:
-            1. Update a config, verify it it changed and redploy it
+            1. Update a config,
+
+        :expectedresults:
+            verify it changed and redeploy it
         """
 
     @run_only_on('sat')
@@ -71,13 +78,16 @@ class VirtWhoConfigAPI(APITestCase):
 
         :steps:
             1. Create virt-who configuration, set reporting interval to 1 hour.
-            2. Verify Virt-who  interval is 1 hour in config file.
-            3. Verify a report is sent every hour
-            4. Repeat for each supported interval.
+            2. Repeat for each supported interval.
+
+        :expectedresults:
+            1. Verify Virt-who  interval is correct in config file.
+            2. Verify a report is sent every interval
+
         """
 
 
-class VirtWhoConfigRoleApiTests(APITestCase):
+class VirtWhoConfigRoleTestCase(APITestCase):
 
     @run_only_on('sat')
     @stubbed()
@@ -86,12 +96,17 @@ class VirtWhoConfigRoleApiTests(APITestCase):
         """virt-who Manager allowed functions
 
         :id: 4164bdde-f532-480c-b41e-747e87cf7d05
+
         :steps:
             1. Create a user with ONLY the virt-who manager role.
-            2. Verify the user can create virt-who configurations
-            3. Verify the user can edit an existing virt-who configuration
-            4. Verify the user can delete a virt-who configuration
-            5. Verify the user can see reporting info via the dashboard widget.
+
+        :expectedresults:
+            1. Verify the user can create virt-who configurations
+            2. Verify the user can edit an existing virt-who configuration
+            3. Verify the user can delete a virt-who configuration
+            4. Verify the user can see reporting info via the dashboard widget.
+
+
         """
 
     @run_only_on('sat')
@@ -104,7 +119,9 @@ class VirtWhoConfigRoleApiTests(APITestCase):
 
         :steps:
             1. Create a user with ONLY the virt-who manager role.
-            2. Verify the user can do no other actions other then those
+
+        :expectedresults:
+            1. Verify the user can do no other actions other then those
                in test_positive_role_manager
 
         """
@@ -122,7 +139,9 @@ class VirtWhoConfigRoleApiTests(APITestCase):
             2. Configure virt-who with the user, WITHOUT using the
                virt-who config plugin.
             3. Create a vm to cause virt-who to send a report to satellite.
-            4. Verify the virt-who server send a report to the satellite.
+
+        :expectedresults:
+            1. Verify the virt-who server send a report to the satellite.
         """
 
     @run_only_on('sat')
@@ -134,6 +153,9 @@ class VirtWhoConfigRoleApiTests(APITestCase):
         :id: 7dee0965-9ec4-4d76-a6ae-f2eec1960bac
 
         :steps:
+            1. Create a user with ONLY the virt-who reporter role.
+
+        :expectedresults:
             1. Verify the user can do no other actions other then those
                in test_positive_role_reporter
 
@@ -149,7 +171,9 @@ class VirtWhoConfigRoleApiTests(APITestCase):
 
         :steps:
             1. Create a user with ONLY the virt-who Viewer role.
-            2. Verify the user can view virt-who configurations.
+
+        :expectedresults:
+            1. Verify the user can view virt-who configurations.
         """
 
     @run_only_on('sat')
@@ -162,15 +186,16 @@ class VirtWhoConfigRoleApiTests(APITestCase):
 
         :steps:
             1. Create a user with ONLY the virt-who Viewer role.
-            2. Verify the user CANNOT delete or modify virt-who configurations
-            3. Verify the user can do no other actions other then those
+
+        :expectedresults:
+            1. Verify the user CANNOT delete or modify virt-who configurations
+            2. Verify the user can do no other actions other then those
                in test_positive_role_viewer
 
         """
-        pass
 
 
-class VirtWhoConfigUpgrade(APITestCase):
+class VirtWhoConfigUpgradeTestCase(APITestCase):
 
     @run_only_on('sat')
     @stubbed()
@@ -192,12 +217,14 @@ class VirtWhoConfigUpgrade(APITestCase):
             6. Deploy the configuration to the virt-who server
             7. Create a guest on VP1
             8. Create a guest on VP2
-            9. verify that that reports on VP1 and VP2 are correct.
+
+        :expectedresults:
+            1. verify that that reports on VP1 and VP2 are correct.
 
         """
 
 
-class VirtWhoConfigGeneralTestcase(TestCase):
+class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
@@ -217,9 +244,11 @@ class VirtWhoConfigGeneralTestcase(TestCase):
                associate subscription.
             6. Register  VM using the activation key.
             7. Wait until the next report comes to the satellite
-            8. Verify the VM is report to the Satellite, and the VDC
+
+        :expectedresults:
+            1. Verify the VM is report to the Satellite, and the VDC
                subscription is applied to it.
-            9. Repeat for each supported hypervisor (Libvirt, vmware, RHEV,
+            2. Repeat for each supported hypervisor (Libvirt, vmware, RHEV,
                Hyper-V, Xen)
         """
 
@@ -236,7 +265,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             2. Create a virt-who config (VHCONFIG2) for RHV
             3. Deploy VHCONFIG1 and VHCONFIG2 to the same virt-who server
             4. Create guests on the VMware and RHV hypervisors
-            5. Verify the correct information is reported to the Satellite.
+
+        :expectedresults:
+            1. Verify the correct information is reported to the Satellite.
 
         """
 
@@ -254,8 +285,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             3. Deploy VHCONFIG1 and VHCONFIG2 to the 2 different
                virt-who servers
             4. Create guests on the VMware and RHV hypervisors
-            5. Verify the correct information is reported to the Satellite.
 
+        :expectedresults:
+            1. Verify the correct information is reported to the Satellite.
 
         """
 
@@ -271,7 +303,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             1. Create a virt-who configuration and deploy it to a
                virt-who server.
             2. Delete the configuration on the Satellite.
-            3. Verify the virt-who server can no longer send reports to the
+
+        :expectedresults:
+            1. Verify the virt-who server can no longer send reports to the
                Satellite.
 
         """
@@ -290,7 +324,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             3. Attempt to register the guest using the admin
                username/password .
             4. Create a user with a content host registration role (REGUSER)
-            5. Verify a guest can be registered using the REGUSER user.
+
+        :expectedresults:
+            1. Verify a guest can be registered using the REGUSER user.
 
         """
 
@@ -306,7 +342,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             1. Create a virt-who configuration for a hypervisor
             2. Create a activation key with no subscription configuration
             3. Create a guest on a hypervisor
-            4. Verify the guest can be registered using the activation key.
+
+        :expectedresults:
+            1. Verify the guest can be registered using the activation key.
 
         """
 
@@ -323,7 +361,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
             2. Setup a Satellite and virt-who server such that the virt-who
                server can only reach the satellite via the web proxy.
             3. Deploy the configuration to the virt-who server.
-            4. Verify that reports are sent to the virt-who server.
+
+        :expectedresults:
+            1. Verify that reports are sent to the virt-who server.
         """
 
     @run_only_on('sat')
@@ -389,6 +429,8 @@ class VirtWhoConfigGeneralTestcase(TestCase):
         :steps:
             1. Create a configuration with unlimited filtering pointing to a
                virtualization provider with 3 hypervisor hosts
+
+        :expectedresults:
             2. Verify all hypervisors hosts are reported to Satellite and
                attach to VDC subscriptions.
         """
@@ -402,6 +444,9 @@ class VirtWhoConfigGeneralTestcase(TestCase):
         :id: f0453a2d-fa81-40ae-81a9-330b529a3062
 
         :steps:
+            1. Install VirtWho on a RHEL6 server
+
+        :expectedresults:
             1. Verify a virt-who configuration script can be deployed on
                RHEL6 Server
 

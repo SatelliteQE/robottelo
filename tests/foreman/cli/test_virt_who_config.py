@@ -19,7 +19,7 @@ from robottelo.decorators import run_only_on, stubbed, tier1
 from robottelo.test import CLITestCase
 
 
-class VirtWhoConfigCLITestCase(CLITestCase):
+class VirtWhoConfigTestCase(CLITestCase):
 
     def test_positive_create_cli_deploy_ui(self):
         """ Verify "hammer virt-who-config"

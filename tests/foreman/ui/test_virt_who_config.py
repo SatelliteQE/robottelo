@@ -20,7 +20,7 @@ from robottelo.decorators import run_only_on, stubbed, tier1
 from robottelo.test import UITestCase
 
 
-class VirtWhoConfigUITestCase(UITestCase):
+class VirtWhoConfigTestCase(UITestCase):
     """Implements Virt-who-configure UI tests"""
 
     @run_only_on('sat')
@@ -113,7 +113,7 @@ class VirtWhoConfigUITestCase(UITestCase):
         """
 
 
-class VirtWhoConfigDashboardUITestCase(UITestCase):
+class VirtWhoConfigDashboardTestCase(UITestCase):
     """
     6. Review UI Dashboard
         - No reports
