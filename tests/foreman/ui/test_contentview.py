@@ -22,9 +22,10 @@ import random
 
 from datetime import date, timedelta
 from fauxfactory import gen_string
-from nailgun import entities, entity_mixins
+from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import (
+    call_entity_method_with_timeout,
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
@@ -124,12 +125,10 @@ class ContentViewTestCase(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        # Sync repository
-        entities.Repository(id=repo_id).sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+
+        # Sync repository with custom timeout
+        call_entity_method_with_timeout(
+            entities.Repository(id=repo_id).sync, timeout=1500)
         return repo_id
 
     def _get_cv_version_environments(self, cv_version):
@@ -3693,11 +3692,8 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        ostree_repo.sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        # sync repository with custom timeout
+        call_entity_method_with_timeout(ostree_repo.sync, timeout=1500)
         yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
             product=prod,
@@ -3729,11 +3725,6 @@ class ContentViewTestCase(UITestCase):
                 puppet_module,
                 filter_term='Latest',
             )
-        # Workaround to fetch added puppet module name:
-        # UI doesn't refresh and populate the added module name
-        # until we logout and navigate again to puppet-module tab
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.organization.name)
             module = self.content_views.fetch_puppet_module(
                 cv_name, puppet_module)
             self.assertIsNotNone(module)
@@ -3782,12 +3773,9 @@ class ContentViewTestCase(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
-            old_task_timeout = entity_mixins.TASK_TIMEOUT
-            # Update timeout to 10 minutes to finish sync
-            entity_mixins.TASK_TIMEOUT = 600
-            # Sync repository
-            entities.Repository(id=repo_id).sync()
-            entity_mixins.TASK_TIMEOUT = old_task_timeout
+            # sync repository with custom timeout
+            call_entity_method_with_timeout(
+                entities.Repository(id=repo_id).sync, timeout=1500)
         with Session(self) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
@@ -3824,11 +3812,8 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        ostree_repo.sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        # sync repository with custom timeout
+        call_entity_method_with_timeout(ostree_repo.sync, timeout=1500)
         cv = entities.ContentView(organization=self.organization).create()
         with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -3866,11 +3851,8 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        ostree_repo.sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        # sync repository with custom timeout
+        call_entity_method_with_timeout(ostree_repo.sync, timeout=1500)
         cv = entities.ContentView(organization=org).create()
         cv.repository = [ostree_repo]
         cv = cv.update(['repository'])
@@ -3908,11 +3890,8 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        ostree_repo.sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        # sync repository with custom timeout
+        call_entity_method_with_timeout(ostree_repo.sync, timeout=1500)
         cv = entities.ContentView(organization=self.organization).create()
         with Session(self) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -3955,11 +3934,8 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        ostree_repo.sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        # sync repository with custom timeout
+        call_entity_method_with_timeout(ostree_repo.sync, timeout=1500)
         cv = entities.ContentView(organization=org).create()
         cv.repository = [ostree_repo]
         cv = cv.update(['repository'])
@@ -4003,11 +3979,8 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        ostree_repo.sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        # sync repository with custom timeout
+        call_entity_method_with_timeout(ostree_repo.sync, timeout=1500)
         yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
             product=prod,
@@ -4029,11 +4002,6 @@ class ContentViewTestCase(UITestCase):
                 puppet_module,
                 filter_term='Latest',
             )
-        # Workaround to fetch added puppet module name:
-        # UI doesn't refresh and populate the added module name
-        # until we logout and navigate again to puppet-module tab
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.organization.name)
             module = self.content_views.fetch_puppet_module(
                 cv.name, puppet_module)
             self.assertIsNotNone(module)
@@ -4070,11 +4038,8 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
-        old_task_timeout = entity_mixins.TASK_TIMEOUT
-        # Update timeout to 10 minutes to finish sync
-        entity_mixins.TASK_TIMEOUT = 600
-        ostree_repo.sync()
-        entity_mixins.TASK_TIMEOUT = old_task_timeout
+        # sync repository with custom timeout
+        call_entity_method_with_timeout(ostree_repo.sync, timeout=1500)
         # Create new yum repository
         yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
@@ -4322,12 +4287,9 @@ class ContentViewTestCase(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
-            old_task_timeout = entity_mixins.TASK_TIMEOUT
-            # Update timeout to 10 minutes to finish sync
-            entity_mixins.TASK_TIMEOUT = 600
-            # Sync repository
-            entities.Repository(id=repo_id).sync()
-            entity_mixins.TASK_TIMEOUT = old_task_timeout
+            # sync repository with custom timeout
+            call_entity_method_with_timeout(
+                entities.Repository(id=repo_id).sync, timeout=1500)
 
         cv = entities.ContentView(organization=org).create()
         with Session(self) as session:
