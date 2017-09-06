@@ -19,7 +19,7 @@ from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
 
 
-class CSVExportHosts(UITestCase):
+class CSVExportHostsTestCase(UITestCase):
 
     @stubbed()
     @tier1
@@ -174,7 +174,7 @@ class CSVExportHosts(UITestCase):
         """
 
 
-class UICSVExportHostsColumns(UITestCase):
+class UICSVExportHostsColumnsTestCase(UITestCase):
 
     @tier1
     @stubbed()
@@ -311,7 +311,7 @@ class UICSVExportHostsColumns(UITestCase):
         """
 
 
-class UICSVExportFacts(UITestCase):
+class UICSVExportFactsTestCase(UITestCase):
 
     @tier1
     @stubbed()
@@ -464,7 +464,7 @@ class UICSVExportFacts(UITestCase):
         """
 
 
-class UICSVExportFactsColumns(UITestCase):
+class UICSVExportFactsColumnsTestCase(UITestCase):
 
     def setUp(self):
         pass
@@ -545,7 +545,7 @@ class UICSVExportFactsColumns(UITestCase):
         """
 
 
-class UICSVExportFactsNested(UITestCase):
+class UICSVExportFactsNestedTestCase(UITestCase):
     @tier1
     def test_positive_nested_facts(self):
         """
@@ -559,7 +559,7 @@ class UICSVExportFactsNested(UITestCase):
         """
 
 
-class UICSVExportConfigMgmtReports(UITestCase):
+class UICSVExportConfigMgmtReportsTestCase(UITestCase):
 
     @stubbed()
     @tier1
@@ -567,7 +567,11 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
         :id: 9006c4fa-1e46-4f9f-bb22-5b5fb96ba94b
 
-        :step
+        :steps:
+            1. Populate page with <20 (or max# per-page) items. ie 15
+            2. Press export CSV button
+
+        :expectedresults: Exported CSV will have all rows (15)
 
         """
     @stubbed()
@@ -713,7 +717,7 @@ class UICSVExportConfigMgmtReports(UITestCase):
         """
 
 
-class CSVExportConfigMgmtColumns(UITestCase):
+class CSVExportConfigMgmtColumnsTestCase(UITestCase):
     @tier1
     @stubbed()
     def test_positive_column_values(self):
@@ -725,6 +729,7 @@ class CSVExportConfigMgmtColumns(UITestCase):
             Cause a number of Configuration Managment reports to be generated
             of each type (Host,Reported At,Applied,Restarted,
             Failed,Failed Restarts,Skipped,Pending)
+
         :steps:
             1. Export the Reports page to CSV
 
