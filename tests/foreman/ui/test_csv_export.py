@@ -343,6 +343,8 @@ class UICSVExportFactsTestCase(UITestCase):
 
         """
 
+    @tier1
+    @stubbed()
     def test_positive_organization_filter(self):
         """
         :id: 36292666-229a-468c-9ef8-d3d9ce138dcf
@@ -362,6 +364,8 @@ class UICSVExportFactsTestCase(UITestCase):
             are show in orgB csv.
         """
 
+    @tier1
+    @stubbed()
     def test_negative_organization_filter(self):
         """
         :id: cbdd8eb3-2b90-48ea-8548-3c07b36eb93f
@@ -376,6 +380,8 @@ class UICSVExportFactsTestCase(UITestCase):
         :expectedresults: All hosts are listed in CSV file.
         """
 
+    @tier1
+    @stubbed()
     def test_positive_location_filter(self):
         """
         :id: 3bae203c-0343-43fc-873e-a187d6ba023a
@@ -395,6 +401,8 @@ class UICSVExportFactsTestCase(UITestCase):
             only locB facts are show in locB csv.
         """
 
+    @tier1
+    @stubbed()
     def test_negative_location_filter(self):
         """
         :id: 8971a782-6995-4e8a-bfbd-3b0ecd7dc484
@@ -409,6 +417,8 @@ class UICSVExportFactsTestCase(UITestCase):
         :expectedresults: All facts are listed in CSV file.
         """
 
+    @tier1
+    @stubbed()
     def test_combo_filter(self):
         """
 
@@ -469,6 +479,8 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
     def setUp(self):
         pass
 
+    @tier1
+    @stubbed()
     def test_positive_host(self):
         """
         :id: 01db2369-afe8-4390-9877-715c2b0e775d
@@ -483,6 +495,8 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
 
         """
 
+    @tier1
+    @stubbed()
     def test_positive_name(self):
         """
         :id: ce8bca9d-228d-478e-840d-76d31801dd01
@@ -496,6 +510,8 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
         :expectedresults: Facts name column has all correct values.
         """
 
+    @tier1
+    @stubbed()
     def test_positive_value(self):
         """
         :id: 591a9da2-2c2e-488e-8e13-487053bbf730
@@ -509,6 +525,8 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
         :expectedresults: Facts value column has all correct values.
         """
 
+    @tier1
+    @stubbed()
     def test_positive_origin(self):
         """
         :id: 3637aa16-5eb4-44b8-94b2-7546d8c78161
@@ -520,6 +538,8 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
         :expectedresults: Orgin column is correct for all rows.
         """
 
+    @tier1
+    @stubbed()
     def test_positive_reported(self):
         """
         :id: 4367aaa9-4b30-458b-8573-e5dc285b18fb
@@ -549,7 +569,9 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
 
 
 class UICSVExportFactsNestedTestCase(UITestCase):
+
     @tier1
+    @stubbed()
     def test_positive_nested_facts(self):
         """
         :id: 7732f49c-8d29-4548-a20c-5955cdfa2a14
