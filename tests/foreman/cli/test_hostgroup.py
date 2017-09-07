@@ -52,6 +52,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     tier1,
@@ -668,6 +669,7 @@ class HostGroupTestCase(CLITestCase):
                 'organization-ids': self.org['id'],
             })
 
+    @run_in_one_thread
     @tier1
     def test_positive_update_content_source(self):
         """Update hostgroup's content source

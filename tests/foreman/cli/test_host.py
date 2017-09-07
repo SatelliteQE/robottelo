@@ -361,7 +361,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: d92d6aff-4ad3-467c-88a8-5a5e56614f58
 
-        :BZ: 126069
+        :BZ: 1260697
 
         :expectedresults: Host was not created
 
@@ -375,6 +375,7 @@ class HostCreateTestCase(CLITestCase):
                 'organization': self.new_org['name'],
             })
 
+    @run_in_one_thread
     @skip_if_bug_open('bugzilla', 1483252)
     @skip_if_bug_open('bugzilla', 1488465)
     @tier1
