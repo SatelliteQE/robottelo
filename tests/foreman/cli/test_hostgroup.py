@@ -17,8 +17,9 @@
 """
 from random import choice
 
-from fauxfactory import gen_string
-from robottelo.cli.base import CLIReturnCodeError
+from fauxfactory import gen_integer, gen_string
+from robottelo.cleanup import capsule_cleanup
+from robottelo.cli.base import CLIBaseError, CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
@@ -33,6 +34,7 @@ from robottelo.cli.factory import (
     make_org,
     make_os,
     make_partition_table,
+    make_proxy,
     make_smart_variable,
     make_subnet,
     publish_puppet_module,
@@ -50,6 +52,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     tier1,
@@ -625,6 +628,107 @@ class HostGroupTestCase(CLITestCase):
             exception.exception.stderr,
             'Could not find architecture {0}'.format(arch_id)
         )
+
+    @tier1
+    def test_positive_create_with_content_source(self):
+        """Create a hostgroup with content source specified
+
+        :id: 49ba2e4e-7772-4e5f-ac49-33f3a4966110
+
+        :BZ: 1260697
+
+        :expectedresults: A hostgroup is created with expected content source
+            assigned
+
+        :CaseImportance: High
+        """
+        content_source = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        hostgroup = make_hostgroup({
+            'content-source-id': content_source['id'],
+            'organization-ids': self.org['id'],
+        })
+        self.assertEqual(hostgroup['content-source'], content_source['name'])
+
+    @tier1
+    def test_negative_create_with_content_source(self):
+        """Attempt to create a hostgroup with invalid content source specified
+
+        :id: 9fc1b777-36a3-4940-a9c8-aed7ff725371
+
+        :BZ: 1260697
+
+        :expectedresults: Hostgroup was not created
+
+        :CaseImportance: Medium
+        """
+        with self.assertRaises(CLIBaseError):
+            make_hostgroup({
+                'content-source-id': gen_integer(10000, 99999),
+                'organization-ids': self.org['id'],
+            })
+
+    @run_in_one_thread
+    @tier1
+    def test_positive_update_content_source(self):
+        """Update hostgroup's content source
+
+        :id: c22218a1-4d86-4ac1-ad4b-79b10c9adcde
+
+        :BZ: 1260697
+
+        :expectedresults: Hostgroup was successfully updated with new content
+            source
+
+        :CaseImportance: High
+        """
+        content_source = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        hostgroup = make_hostgroup({
+            'content-source-id': content_source['id'],
+            'organization-ids': self.org['id'],
+        })
+        new_content_source = make_proxy()
+        self.addCleanup(capsule_cleanup, new_content_source['id'])
+        self.addCleanup(HostGroup.delete, {'id': hostgroup['id']})
+        HostGroup.update({
+            'id': hostgroup['id'],
+            'content-source-id': new_content_source['id'],
+        })
+        hostgroup = HostGroup.info({'id': hostgroup['id']})
+        self.assertEqual(
+            hostgroup['content-source'], new_content_source['name'])
+
+    @tier1
+    def test_negative_update_content_source(self):
+        """Attempt to update hostgroup's content source with invalid value
+
+        :id: 4ffe6d18-3899-4bf1-acb2-d55ea09b7a26
+
+        :BZ: 1260697
+
+        :expectedresults: Host group was not updated. Content source remains
+            the same as it was before update
+
+        :CaseImportance: Medium
+        """
+        content_source = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        hostgroup = make_hostgroup({
+            'content-source-id': content_source['id'],
+            'organization-ids': self.org['id'],
+        })
+        with self.assertRaises(CLIBaseError):
+            HostGroup.update({
+                'id': hostgroup['id'],
+                'content-source-id': gen_integer(10000, 99999),
+            })
+        hostgroup = HostGroup.info({'id': hostgroup['id']})
+        self.assertEqual(
+            hostgroup['content-source'], content_source['name'])
 
     @tier1
     def test_positive_update_name(self):

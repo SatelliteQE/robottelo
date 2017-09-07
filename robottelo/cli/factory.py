@@ -1312,6 +1312,7 @@ def make_host(options=None):
         u'compute-profile-id': None,
         u'compute-resource': None,
         u'compute-resource-id': None,
+        u'content-source-id': None,
         u'content-view': None,
         u'content-view-id': None,
         u'domain': None,

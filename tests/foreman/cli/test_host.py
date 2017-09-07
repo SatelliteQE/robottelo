@@ -16,12 +16,12 @@
 """
 from random import choice
 
-from fauxfactory import gen_ipaddr, gen_mac, gen_string
+from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import entities
 from robottelo import ssh
-from robottelo.cleanup import vm_cleanup
+from robottelo.cleanup import capsule_cleanup, vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
-from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.base import CLIBaseError, CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
@@ -39,6 +39,7 @@ from robottelo.cli.factory import (
     make_medium,
     make_org,
     make_os,
+    make_proxy,
     make_smart_variable,
     publish_puppet_module,
     setup_org_for_a_custom_repo,
@@ -328,6 +329,116 @@ class HostCreateTestCase(CLITestCase):
             'organization': self.new_org['name'],
         })
         self.assertEqual(new_host['organization'], self.new_org['name'])
+
+    @skip_if_bug_open('bugzilla', 1483252)
+    @tier1
+    def test_positive_create_with_content_source(self):
+        """Create a host with content source specified
+
+        :id: 6068bd4d-18d8-47a2-99f4-3e0ee9208104
+
+        :BZ: 1260697, 1483252
+
+        :expectedresults: A host is created with expected content source
+            assigned
+
+        :CaseImportance: High
+        """
+        content_source = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        host = make_fake_host({
+            'content-source-id': content_source['id'],
+            'content-view-id': self.DEFAULT_CV['id'],
+            'lifecycle-environment-id': self.LIBRARY['id'],
+            'organization': self.new_org['name'],
+        })
+        self.assertEqual(host['content-source'], content_source['name'])
+
+    @tier1
+    def test_negative_create_with_content_source(self):
+        """Attempt to create a host with invalid content source specified
+
+        :id: d92d6aff-4ad3-467c-88a8-5a5e56614f58
+
+        :BZ: 1260697
+
+        :expectedresults: Host was not created
+
+        :CaseImportance: Medium
+        """
+        with self.assertRaises(CLIBaseError):
+            make_fake_host({
+                'content-source-id': gen_integer(10000, 99999),
+                'content-view-id': self.DEFAULT_CV['id'],
+                'lifecycle-environment-id': self.LIBRARY['id'],
+                'organization': self.new_org['name'],
+            })
+
+    @run_in_one_thread
+    @skip_if_bug_open('bugzilla', 1483252)
+    @skip_if_bug_open('bugzilla', 1488465)
+    @tier1
+    def test_positive_update_content_source(self):
+        """Update host's content source
+
+        :id: 2364dbb7-2ccd-46c0-baf1-5e179a157027
+
+        :BZ: 1260697, 1483252, 1488465
+
+        :expectedresults: Content source was successfully updated
+
+        :CaseImportance: High
+        """
+        content_source = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        host = make_fake_host({
+            'content-source-id': content_source['id'],
+            'content-view-id': self.DEFAULT_CV['id'],
+            'lifecycle-environment-id': self.LIBRARY['id'],
+            'organization': self.new_org['name'],
+        })
+        new_content_source = make_proxy()
+        self.addCleanup(capsule_cleanup, new_content_source['id'])
+        self.addCleanup(Host.delete, {'id': host['id']})
+        Host.update({
+            'id': host['id'],
+            'content-source-id': new_content_source['id'],
+        })
+        host = Host.info({'id': host['id']})
+        self.assertEqual(host['content-source'], new_content_source['name'])
+
+    @skip_if_bug_open('bugzilla', 1483252)
+    @tier1
+    def test_negative_update_content_source(self):
+        """Attempt to update host's content source with invalid value
+
+        :id: 03243c56-3835-4b15-94df-15d436bbda87
+
+        :BZ: 1260697, 1483252
+
+        :expectedresults: Host was not updated. Content source remains the same
+            as it was before update
+
+        :CaseImportance: Medium
+        """
+        content_source = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+        host = make_fake_host({
+            'content-source-id': content_source['id'],
+            'content-view-id': self.DEFAULT_CV['id'],
+            'lifecycle-environment-id': self.LIBRARY['id'],
+            'organization': self.new_org['name'],
+        })
+        with self.assertRaises(CLIBaseError):
+            Host.update({
+                'id': host['id'],
+                'content-source-id': gen_integer(10000, 99999),
+            })
+        host = Host.info({'id': host['id']})
+        self.assertEqual(host['content-source'], content_source['name'])
 
     @run_only_on('sat')
     @tier1
