@@ -28,6 +28,10 @@ class VirtWhoConfigTestCase(CLITestCase):
 
         :steps:
             1. Create config in UI, deploy with "hammer virt-who-config deploy"
+
+        :expectedresults:
+            Virt-who is correclty configured, and sends reports to satellite.
+
         """
 
     @run_only_on('sat')
@@ -40,6 +44,9 @@ class VirtWhoConfigTestCase(CLITestCase):
 
         :steps:
             1. Create config using hammer, deploy using hammer.
+
+        :expectedresults:
+            Virt-who is correclty configured, and sends reports to satellite.
         """
 
     @run_only_on('sat')
@@ -47,7 +54,7 @@ class VirtWhoConfigTestCase(CLITestCase):
     @tier1
     def test_negative_virt_who_user_login(self):
         """ Make sure users created by virt-who config plugin
-         is not able to access UI/CLI
+         is not able to access CLI
 
         :id: 1fe2daec-b1b0-4dd9-bfa2-cd81ee13977b
 
@@ -59,4 +66,7 @@ class VirtWhoConfigTestCase(CLITestCase):
                virt-who config plugin. Verify the login is blocked
             4. Attempt to click the username link displayed in related
                task details.
+
+        :expectedresults:
+            Users created by virt-who config plugin is not able to access CLI
         """

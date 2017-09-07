@@ -15,7 +15,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1
+from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
 from robottelo.test import TestCase, APITestCase
 
 
@@ -216,7 +216,8 @@ class VirtWhoConfigUpgradeTestCase(APITestCase):
         :id: 0e301c08-8bef-4bea-a690-d4b0760949e8
 
         :steps:
-            1. Start with a satellite version before the virt-who config plugin
+            1. Start with a satellite version before the virt-who config
+               plugin (eg. 6.2)
             2. Configure virt-who server with virtualization provider (VP1) to
                send reports to the satellite.
             3. Upgrade the satellite to a version with virt-who config plugin.
@@ -444,7 +445,6 @@ class VirtWhoConfigGeneralTestCase(TestCase):
             2. Verify all hypervisors hosts are reported to Satellite and
                attach to VDC subscriptions.
         """
-
 
     @run_only_on('sat')
     @stubbed()

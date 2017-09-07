@@ -16,7 +16,7 @@
 :Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1
+from robottelo.decorators import run_only_on, stubbed, tier1, tier4
 from robottelo.test import UITestCase
 
 
@@ -32,6 +32,12 @@ class VirtWhoConfigTestCase(UITestCase):
 
         :steps:
             1. Verify UI Elements on welcome page
+
+        :expectedresults:
+            UI Welcome page describes the feature and includes a button
+            to create the first config. The button brings the use to the
+            config page
+
         """
 
     @run_only_on('sat')
@@ -43,9 +49,10 @@ class VirtWhoConfigTestCase(UITestCase):
         :id: fa6d5ce4-08b7-41fa-b7ab-ac5a018cf68a
 
         :steps:
-            1. Create virt-who-configurations
-            2. Verify the new virt-who Configurations UI (the page
-               which lists all virt-who configurations)
+            1. Create virt-who-configuration
+
+        :expectedresults:
+            Verify list the created configuration
 
 
         """
@@ -61,13 +68,17 @@ class VirtWhoConfigTestCase(UITestCase):
         :steps:
             1. Edit virt-who configuration and verify the updated shell script,
                redeploy the script
+
+        :expectedresults:
+            Verify the script correctly configures virt-who.
+
         """
 
     @run_only_on('sat')
     @stubbed()
     @tier1
     def test_negative_virt_who_user_login(self):
-        """ Verify users created by virt-who config is not able to access UI/CLI
+        """ Verify users created by virt-who config is not able to access UI
 
         :id: 9a8bb27a-af91-47cc-9004-6e3497363dbb
 
@@ -79,6 +90,9 @@ class VirtWhoConfigTestCase(UITestCase):
                virt-who configurator. Verify the login is blocked
             4. Attempt to click the username link displayed in related task
                details.
+
+        :expectedresults:
+            users created by virt-who config is not able to access UI
         """
 
     @run_only_on('sat')
@@ -95,9 +109,6 @@ class VirtWhoConfigTestCase(UITestCase):
 
         :expectedresults: All configurations are listed on the config page
 
-        :Caseautomation: notautomated
-
-        :CaseImportance: Critical
         """
 
     @run_only_on('sat')
@@ -110,6 +121,10 @@ class VirtWhoConfigTestCase(UITestCase):
 
         :steps:
             1. Create multiple virt-who configurations
+            2. Delete all configurations
+
+        :expectedresults:
+            The welcome page is shown when no configs are present.
         """
 
 
@@ -132,34 +147,46 @@ class VirtWhoConfigDashboardTestCase(UITestCase):
         :id: 28720130-746b-4646-830e-bff8d735ef3c
 
         :steps:
-            1. Verify VirtWho Config Dashboard when there are No Reports.
+            1. Create 2 virt-who configurations.
+            2. Ensure there are no reports from any of the configs
+
+        :expectedresults:
+            Dashboard widget "No Reports" count is 2 (number of configs)
 
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier4
     def test_positive_dashboard_out_of_date(self):
         """ Out of Date
 
         :id: de39275f-4534-49ad-8389-f7e8b405d6b6
 
         :steps:
-            1. Verify VirtWho Config Dashboard when there are Out of Date
-               Reports.
+            1. Create 2 virt-who configurations.
+            2. Cause virt-who reports to be out of date
+
+        :expectedresults:
+            Dashboard widget  "No Change" count is 2 (number of configs)
+
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier4
     def test_positive_dashboard_up_to_date(self):
         """ Up to Date
 
         :id: 5ac051f0-4540-46e5-ac3b-367721625ebb
 
         :steps:
-            1. Verify VirtWho Config Dashboard when there are Up to Date
-               Reports.
+            1. Create 2 virt-who configurations.
+            2. Ensure virt-who reports are up to date.
+
+        :expectedresults:
+            Dashboard widget  "OK" count is 2 (number of configs)
+
 
         """
     @run_only_on('sat')
@@ -171,5 +198,10 @@ class VirtWhoConfigDashboardTestCase(UITestCase):
         :id: 1df6d171-df57-41ef-9443-c7bb15aab473
 
         :steps:
-            1.Latest out of date Configurations
+            1. Create 2 virt-who configurations.
+            2. Cause virt-who reports to be out of date
+
+        :expectedresults:
+            The 2 virt-who configs are list in the latest out of date section
+            of the widget.
         """
