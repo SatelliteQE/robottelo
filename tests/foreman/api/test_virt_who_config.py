@@ -30,10 +30,14 @@ class VirtWhoConfigTestCase(APITestCase):
         :id: 701b22b8-fe92-4dd3-8d7d-c7b5efb7281b
 
         :steps:
-            1. Create new VM in a supported hypervisor
-            2. Wait until the next virt-who report comes in.
+            1. Configure Virt-who using Virt-who config plugin
+            2. Associate VDC subscription to hypervisor tied to virt-who
+            3. Create new VM in a hypervisor
+            4. Wait until the next virt-who report comes in.
 
-        :expectedresults: Verify the VM is reported to satellite
+        :expectedresults:
+            Verify the VM is reported to satellite and is tied to the correct
+            VDC subscription
 
         """
 
@@ -61,24 +65,30 @@ class VirtWhoConfigTestCase(APITestCase):
 
         :id: 6b2cc2c3-959b-468b-9865-0f01decd2249
 
+        :setup:
+            Use 2 hypervisors of the same type (HV1 and HV2)
+
         :steps:
-            1. Update a config,
+            1. Create a virt-who configuration tied to HV1
+            2. Update the config by changing the hostname to HV2
+            3. Deploy the configuration.
 
         :expectedresults:
-            verify it changed and redeploy it
+            Verify the configuration file change and virt-who is configured
+            properly.
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier4
     def test_postive_config_intervals(self):
         """ Verify intervals Intervals
 
         :id: 7e1bb498-4e63-44e8-be97-83e07601f56d
 
         :steps:
-            1. Create virt-who configuration, set reporting interval to 1 hour.
-            2. Repeat for each supported interval.
+            1. Create virt-who configuration with reporting interval to 1 hour.
+            2. Repeat for each supported interval (1, 2, 4, 8, 12) hours.
 
         :expectedresults:
             1. Verify Virt-who  interval is correct in config file.
@@ -199,7 +209,7 @@ class VirtWhoConfigUpgradeTestCase(APITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_satellite_upgrade(self):
         """ Satellite upgrade
 
@@ -228,7 +238,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_hypervisors(self):
         """End to End scenarios. For all supported Hypervisors
            (Libvirt, vmware, RHEV, Hyper-V, Xen)
@@ -254,7 +264,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_multiple_config_single_instance(self):
         """ Create multiple configs, add to same virt-who instance
 
@@ -273,7 +283,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_multiple_config_same_instance(self):
         """Create multiple configs for multiple virt-who instances
 
@@ -293,7 +303,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_delete_config_delete_user(self):
         """Verify when a config is deleted the associated user is deleted.
 
@@ -312,7 +322,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_register_user_password(self):
         """Register guest with username/password
 
@@ -332,7 +342,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_register_guess_no_subs(self):
         """Register guest with activation key with no subscriptions
 
@@ -350,7 +360,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_virt_who_proxy(self):
         """ Test virt-who with web proxy
 
@@ -368,7 +378,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_filtering_whitelist(self):
         """ Whitelist filters
 
@@ -393,7 +403,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_filtering_blacklist(self):
         """ Blacklist filters
 
@@ -420,7 +430,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_filtering_unlimited(self):
         """Unlimited filters
 
@@ -438,7 +448,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_rhel6(self):
         """
         :id: f0453a2d-fa81-40ae-81a9-330b529a3062
