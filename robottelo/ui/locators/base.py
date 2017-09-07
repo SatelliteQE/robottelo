@@ -854,7 +854,7 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_puppet_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.openscap_proxy": (
+    "host.openscap_capsule": (
         By.XPATH,
         ("//div[contains(@id, 'host_openscap_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
@@ -1062,6 +1062,7 @@ locators = LocatorDict({
          "div/button[contains(@class,'primary')]")),
     "host.select_host_group": (By.ID, "hostgroup_id"),
     "host.select_environment": (By.ID, "environment_id"),
+    "host.select_policy": (By.ID, "policy_id"),
 
     # Provisions
 
@@ -2594,6 +2595,14 @@ locators = LocatorDict({
     "oscap.profile_policy": (
         By.XPATH,
         ("//div[contains(@id, 'policy_scap_content_profile_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "oscap.tailoring_file_policy": (
+        By.XPATH,
+        ("//div[contains(@id, 'policy_tailoring_file_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "oscap.tailoring_profile_policy": (
+        By.XPATH,
+        ("//div[contains(@id, 'policy_tailoring_file_profile_id')]/a"
          "/span[contains(@class, 'arrow')]")),
     "oscap.period_policy": (
         By.XPATH,

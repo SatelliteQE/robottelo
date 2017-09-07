@@ -19,9 +19,8 @@ import os
 from fauxfactory import gen_string
 from nailgun import client, entities
 from nailgun.entity_mixins import TaskFailedError
-from robottelo import ssh
+from robottelo import ssh, manifests
 from robottelo.api.utils import (
-    manifests,
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,

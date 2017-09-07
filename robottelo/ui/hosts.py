@@ -299,6 +299,13 @@ class Hosts(Base):
                         parameter['puppet_env_name']
                     )
                     self.click(locators['host.bulk_submit'])
+                if action == 'Assign Compliance Policy':
+                    self.click(locators['host.select_policy'])
+                    self.assign_value(
+                        locators['host.select_policy'],
+                        parameter['policy']
+                    )
+                    self.click(locators['host.bulk_submit'])
 
     def get_yaml_output(self, name):
         """Return YAML output for specific host
