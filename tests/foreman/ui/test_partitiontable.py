@@ -22,6 +22,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_names_list,
     invalid_values_list,
+    valid_data_list,
 )
 from robottelo.decorators import (
     run_only_on,
@@ -32,7 +33,7 @@ from robottelo.decorators import (
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable
-from robottelo.ui.locators import common_locators, tab_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -77,7 +78,7 @@ class PartitionTableTestCase(UITestCase):
         :CaseImportance: Critical
         """
         with Session(self) as session:
-            for name in generate_strings_list():
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_partitiontable(
                         session,
@@ -86,6 +87,36 @@ class PartitionTableTestCase(UITestCase):
                         os_family='Red Hat',
                     )
                     self.assertIsNotNone(self.partitiontable.search(name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_view_with_html_name(self):
+        """Create a new partition table that has html tags in its name. Then
+        open it for preview
+
+        :id: 2d0c8bff-52fc-43a8-9820-147b125c1bc9
+
+        :expectedresults: Partition table is opened successfully and has
+            correct name
+
+        :BZ: 1225857
+
+        :CaseImportance: Critical
+        """
+        name = gen_string('html')
+        with Session(self) as session:
+            make_partitiontable(
+                session,
+                name=name,
+                template_path=PARTITION_SCRIPT_DATA_FILE,
+                os_family='Red Hat',
+            )
+            self.partitiontable.search_and_click(name)
+            self.assertEqual(
+                self.partitiontable.wait_until_element(
+                    locators['ptable.name']).get_attribute('value'),
+                name
+            )
 
     @run_only_on('sat')
     @tier1
@@ -347,7 +378,7 @@ class PartitionTableTestCase(UITestCase):
         :CaseImportance: Critical
         """
         with Session(self) as session:
-            for name in generate_strings_list():
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_partitiontable(
                         session,
