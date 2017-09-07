@@ -539,8 +539,11 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
         :id: 558eb900-c39e-4f8a-a816-4b935ca4aa17
 
         :steps:
-            1. Verify what ever the end result of
-               https://bugzilla.redhat.com/show_bug.cgi?id=1477341 is.
+            1. reproduce:
+               https://bugzilla.redhat.com/show_bug.cgi?id=1477341
+
+        :expectedresult:
+            What ever the decision from the BZ is.
 
         """
 
@@ -559,7 +562,7 @@ class UICSVExportFactsNestedTestCase(UITestCase):
         """
 
 
-class UICSVExportConfigMgmtReportsTestCase(UITestCase):
+class CSVExportConfigMgmtReportsTestCase(UITestCase):
 
     @stubbed()
     @tier1
