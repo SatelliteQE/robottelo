@@ -309,9 +309,9 @@ class ContentViewTestCase(UITestCase):
         repo_url = FAKE_0_PUPPET_REPO
         cv_name = gen_string('alpha')
         puppet_module = 'httpd'
+        self.setup_to_create_cv(
+            repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
         with Session(self) as session:
-            self.setup_to_create_cv(
-                repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -365,8 +365,8 @@ class ContentViewTestCase(UITestCase):
         cv_name = gen_string('alpha')
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -403,8 +403,8 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         package1_name = 'cow'
         package2_name = 'bear'
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -462,8 +462,8 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         package1_name = 'cow'
         package2_name = 'bear'
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -521,8 +521,8 @@ class ContentViewTestCase(UITestCase):
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         package_name = 'cow'
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -591,8 +591,8 @@ class ContentViewTestCase(UITestCase):
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         package_name = 'walrus'
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -678,8 +678,8 @@ class ContentViewTestCase(UITestCase):
         filter_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         package_name = 'walrus'
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -808,10 +808,10 @@ class ContentViewTestCase(UITestCase):
         repo2_name = gen_string('alpha')
         repo1_package_name = 'walrus'
         repo2_package_name = 'Walrus'
+        self.setup_to_create_cv(repo_name=repo1_name)
+        self.setup_to_create_cv(
+            repo_name=repo2_name, repo_url=FAKE_3_YUM_REPO)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo1_name)
-            self.setup_to_create_cv(
-                repo_name=repo2_name, repo_url=FAKE_3_YUM_REPO)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -1096,8 +1096,8 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
+        self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
         with Session(self) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -1181,16 +1181,16 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
+        self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+        self.setup_to_create_cv(
+            repo_url=FAKE_0_PUPPET_REPO,
+            repo_type=REPO_TYPE['puppet'],
+            org_id=org.id,
+        )
         with Session(self) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name2)
             self.assertIsNotNone(self.content_views.search(cv_name2))
-            self.setup_to_create_cv(
-                repo_url=FAKE_0_PUPPET_REPO,
-                repo_type=REPO_TYPE['puppet'],
-                org_id=org.id,
-            )
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name1)
             self.assertIsNotNone(self.content_views.search(cv_name1))
@@ -1276,8 +1276,8 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
+        self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
         with Session(self) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -1324,8 +1324,8 @@ class ContentViewTestCase(UITestCase):
         """
         cv_name = gen_string('alpha')
         repo_name = gen_string('alpha')
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -1909,8 +1909,8 @@ class ContentViewTestCase(UITestCase):
         }
         # Create new org to import manifest
         org = entities.Organization().create()
+        self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
         with Session(self) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -2299,8 +2299,8 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         cv_name = gen_string('alpha')
         copy_cv_name = gen_string('alpha')
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
@@ -2340,9 +2340,9 @@ class ContentViewTestCase(UITestCase):
         env_name = gen_string('alpha')
         copy_cv_name = gen_string('alpha')
         copy_env_name = gen_string('alpha')
+        # create a repository
+        self.setup_to_create_cv(repo_name=repo_name)
         with Session(self) as session:
-            # create a repository
-            self.setup_to_create_cv(repo_name=repo_name)
             # create a lifecycle environment
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
@@ -2723,13 +2723,13 @@ class ContentViewTestCase(UITestCase):
             login=user_login,
             password=user_password
         ).create()
+        # create a repository
+        self.setup_to_create_cv(repo_name=repo_name)
         # create a content view with the main admin account
         with Session(self) as session:
             # create a lifecycle environment
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
-            # create a repository
-            self.setup_to_create_cv(repo_name=repo_name)
             # create the first content view
             make_contentview(
                 session, org=self.organization.name, name=cv_name)
@@ -2740,7 +2740,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.copy_view(cv_name, cv_copy_name)
             self.assertIsNotNone(self.content_views.search(cv_copy_name))
         # login as the user created above
-        with Session(self, user_login, user_password):
+        with Session(self, user_login, user_password) as session:
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
@@ -2921,10 +2921,10 @@ class ContentViewTestCase(UITestCase):
             login=user_login,
             password=user_password
         ).create()
+        # create a repository
+        self.setup_to_create_cv(repo_name=repo_name)
         # create a content view with the main admin account
         with Session(self) as session:
-            # create a repository
-            self.setup_to_create_cv(repo_name=repo_name)
             # create the first content view
             make_contentview(
                 session, org=self.organization.name, name=cv_name)
@@ -2932,7 +2932,7 @@ class ContentViewTestCase(UITestCase):
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
         # login as the user created above
-        with Session(self, user_login, user_password):
+        with Session(self, user_login, user_password) as session:
             # to ensure that the created user has only the assigned
             # permissions, check that hosts menu tab does not exist
             self.assertIsNone(
@@ -4420,13 +4420,13 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         # create a new organization
         org = entities.Organization().create()
+        # create a yum repository
+        self.setup_to_create_cv(
+            repo_name=repo_name,
+            repo_url=FAKE_0_YUM_REPO,
+            org_id=org.id
+        )
         with Session(self) as session:
-            # create a yum repository
-            self.setup_to_create_cv(
-                repo_name=repo_name,
-                repo_url=FAKE_0_YUM_REPO,
-                org_id=org.id
-            )
             # create a content view
             make_contentview(
                 session, org=org.name, name=cv_name)
@@ -4471,13 +4471,13 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         # create a new organization
         org = entities.Organization().create()
+        # create a yum repository
+        self.setup_to_create_cv(
+            repo_name=repo_name,
+            repo_url=FAKE_0_YUM_REPO,
+            org_id=org.id
+        )
         with Session(self) as session:
-            # create a yum repository
-            self.setup_to_create_cv(
-                repo_name=repo_name,
-                repo_url=FAKE_0_YUM_REPO,
-                org_id=org.id
-            )
             # create a content view
             make_contentview(
                 session, org=org.name, name=cv_name)
