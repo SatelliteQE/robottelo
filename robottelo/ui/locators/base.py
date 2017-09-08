@@ -1983,6 +1983,13 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='removeContentViews()']"),
     "contentviews.add_cv_version_dropdown": (
         By.XPATH, "//select[contains(@name, 'version')]"),
+    "contentviews.composite_list_cv_version_text": (
+        By.XPATH,
+        ("//div[@bst-table='table']"
+         "//tr[contains(@row-select, 'View')]"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/following-sibling::td"
+         "//div[contains(@ng-if, 'content_view.version_count')]/span")),
     "contentviews.cv_filter": (
         By.XPATH, "//input[@ng-model='contentViewVersionFilter']"),
     "contentviews.content_filters": (
