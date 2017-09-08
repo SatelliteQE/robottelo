@@ -292,6 +292,45 @@ class HostgroupTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    def test_negative_delete_with_discovery_rule(self):
+        """Attempt to delete hostgroup which has dependent discovery rule
+
+        :id: bd046e9a-f0d0-4110-8f94-fd04193cb3af
+
+        :BZ: 1254102
+
+        :expectedresults: Hostgroup was not deleted. Informative error message
+            was shown
+
+        :CaseImportance: High
+        """
+        hostgroup = entities.HostGroup(
+            organization=[self.session_org]).create()
+        entities.DiscoveryRule(
+            hostgroup=hostgroup,
+            organization=[self.session_org],
+        ).create()
+        with Session(self):
+            self.hostgroup.search(hostgroup.name)
+            self.hostgroup.click(
+                common_locators['select_action_dropdown'] % hostgroup.name)
+            self.hostgroup.click(
+                common_locators['delete_button'] % hostgroup.name,
+                wait_for_ajax=False
+            )
+            self.hostgroup.handle_alert(True)
+            error = self.hostgroup.wait_until_element(
+                common_locators['alert.error'])
+            self.assertIsNotNone(error)
+            self.assertEqual(
+                error.text,
+                'Error: Cannot delete record because dependent discovery '
+                'rules exist'
+            )
+            self.assertIsNotNone(self.hostgroup.search(hostgroup.name))
+
+    @run_only_on('sat')
+    @tier1
     def test_positive_redirection_for_multiple_hosts(self):
         """Create new hostgroup with whitespaces in its name for specific
         organization and location. After that create some hosts using already
