@@ -293,7 +293,14 @@ class ContentHostTestCase(UITestCase):
         user_password = gen_string('alpha')
         default_loc = entities.Location().search(
             query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
-        role = entities.Role().search(query={'search': 'name="Manager"'})[0]
+        role = entities.Role().create()
+        for permission_name in (
+                'view_hosts', 'view_lifecycle_environments',
+                'view_content_views', 'view_organizations'):
+            entities.Filter(
+                permission=entities.Permission(name=permission_name).search(),
+                role=role,
+            ).create()
         entities.User(
             role=[role],
             admin=False,
