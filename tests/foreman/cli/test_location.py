@@ -369,6 +369,23 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(loc['installation-media'][0], medium['name'])
 
     @tier1
+    def test_positive_create_with_parent(self):
+        """Create new location with parent location specified
+
+        :id: 49b34733-103a-4fee-818b-6a3386253af1
+
+        :BZ: 1299802
+
+        :expectedresults: Location created successfully and has correct and
+            expected parent location set
+
+        :CaseImportance: High
+        """
+        parent_loc = make_location()
+        loc = make_location({'parent-id': parent_loc['id']})
+        self.assertEqual(loc['parent'], parent_loc['name'])
+
+    @tier1
     @upgrade
     def test_positive_create_with_environments_by_id(self):
         """Basically, verifying that location with multiple entities
@@ -883,6 +900,72 @@ class LocationTestCase(CLITestCase):
         self.assertEqual(len(location['parameters']), 1)
         self.assertEqual(
             param_new_value, location['parameters'][param_name.lower()])
+
+    @tier1
+    def test_positive_update_parent(self):
+        """Update location's parent location
+
+        :id: 34522d1a-1190-48d8-9285-fc9a9bcf6c6a
+
+        :BZ: 1299802
+
+        :expectedresults: Location was updated successfully
+
+        :CaseImportance: High
+        """
+        parent_loc = make_location()
+        loc = make_location({'parent-id': parent_loc['id']})
+        new_parent_loc = make_location()
+        Location.update({
+            'id': loc['id'],
+            'parent-id': new_parent_loc['id'],
+        })
+        loc = Location.info({'id': loc['id']})
+        self.assertEqual(loc['parent'], new_parent_loc['name'])
+
+    @tier1
+    def test_negative_update_parent_with_child(self):
+        """Attempt to set child location as a parent
+
+        :id: fd4cb1cf-377f-4b48-b7f4-d4f6ca56f544
+
+        :BZ: 1299802
+
+        :expectedresults: Location was not updated
+
+        :CaseImportance: High
+        """
+        parent_loc = make_location()
+        loc = make_location({'parent-id': parent_loc['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Location.update({
+                'id': parent_loc['id'],
+                'parent-id': loc['id'],
+            })
+        parent_loc = Location.info({'id': parent_loc['id']})
+        self.assertIsNone(parent_loc.get('parent'))
+
+    @tier1
+    def test_negative_update_parent_with_self(self):
+        """Attempt to set a location as its own parent
+
+        :id: 26e07124-9043-4597-8513-7147135a8426
+
+        :BZ: 1299802
+
+        :expectedresults: Location was not updated
+
+        :CaseImportance: High
+        """
+        parent_loc = make_location()
+        loc = make_location({'parent-id': parent_loc['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Location.update({
+                'id': loc['id'],
+                'parent-id': loc['id'],
+            })
+        loc = Location.info({'id': loc['id']})
+        self.assertEqual(loc['parent'], parent_loc['name'])
 
     @tier1
     @upgrade
