@@ -997,6 +997,30 @@ ROLES = [
     'Viewer',
 ]
 
+ROLES_UNLOCKED = [
+    'Access Insights Admin',
+    'Access Insights Viewer',
+    'Boot disk access',
+    'Compliance manager',
+    'Compliance viewer',
+    'Red Hat Access Logs',
+    'Remote Execution Manager',
+    'Remote Execution User',
+    'Tasks Manager',
+    'Tasks Reader',
+]
+
+ROLES_LOCKED = [
+    'Discovery Manager',
+    'Discovery Reader',
+    'Edit hosts',
+    'Edit partition tables',
+    'Manager',
+    'Site manager',
+    'View hosts',
+    'Viewer',
+]
+
 BOOKMARK_ENTITIES = [
     {'name': 'ActivationKey', 'controller': 'katello_activation_keys'},
     {'name': 'Dashboard', 'controller': 'dashboard', 'skip_for_ui': True},
