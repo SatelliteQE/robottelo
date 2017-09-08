@@ -419,7 +419,7 @@ class UICSVExportFactsTestCase(UITestCase):
 
     @tier1
     @stubbed()
-    def test_combo_filter(self):
+    def test_positive_combo_filter(self):
         """
 
         :id: 001ff58d-4405-45b5-8c6a-cbbb035852f0
@@ -434,6 +434,25 @@ class UICSVExportFactsTestCase(UITestCase):
             2. Export the facts page to CSV
 
         :expectedresults: CSV only contains filtered facts
+        """
+
+    @tier1
+    @stubbed()
+    def test_negitive_combo_filter(self):
+        """ Test filter which results in empty list.
+
+        :id: 5f265a5c-6d0a-45d3-a7ef-6397ad513053
+
+        :setup:
+            1. Chose some facts filter (filterA)
+            2. Create multiple hosts with facts, such that NO hosts are matched
+               by filterA
+
+        :steps:
+            1. Filter the facts page with filterA
+            2. Export the facts page to CSV
+
+        :expectedresults: CSV Contains only the header row, and nothing else
         """
 
     @tier1
