@@ -562,7 +562,7 @@ class UICSVExportFactsColumnsTestCase(UITestCase):
             1. reproduce:
                https://bugzilla.redhat.com/show_bug.cgi?id=1477341
 
-        :expectedresult:
+        :expectedresults:
             What ever the decision from the BZ is.
 
         """
