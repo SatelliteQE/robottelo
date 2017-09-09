@@ -1362,7 +1362,6 @@ def make_host(options=None):
         u'pxe-loader': None,
         u'realm': None,
         u'realm-id': None,
-        u'root-pass': None,
         u'root-password': gen_string('alpha', 8),
         u'service-level': None,
         u'subnet': None,

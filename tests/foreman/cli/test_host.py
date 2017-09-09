@@ -177,7 +177,7 @@ class HostCreateTestCase(CLITestCase):
                     u'organization-id': host.organization.id,
                     u'partition-table-id': host.ptable.id,
                     u'puppet-proxy-id': self.puppet_proxy['id'],
-                    u'root-pass': host.root_pass,
+                    u'root-password': host.root_pass,
                 })
                 self.assertEqual(
                     '{0}.{1}'.format(name, host.domain.read().name),
@@ -860,7 +860,7 @@ class HostCreateTestCase(CLITestCase):
             u'organization-id': host.organization.id,
             u'partition-table-id': host.ptable.id,
             u'puppet-proxy-id': self.puppet_proxy['id'],
-            u'root-pass': host.root_pass,
+            u'root-password': host.root_pass,
         })
         self.assertEqual(result['name'], host.name + '.' + host.domain.name)
         Host.delete({'id': result['id']})
@@ -1004,7 +1004,7 @@ class HostDeleteTestCase(CLITestCase):
             u'organization-id': self.host.organization.id,
             u'partition-table-id': self.host.ptable.id,
             u'puppet-proxy-id': self.puppet_proxy['id'],
-            u'root-pass': self.host.root_pass,
+            u'root-password': self.host.root_pass,
         })
 
     @tier1
@@ -1061,7 +1061,7 @@ class HostUpdateTestCase(CLITestCase):
             u'organization-id': self.host_args.organization.id,
             u'partition-table-id': self.host_args.ptable.id,
             u'puppet-proxy-id': self.puppet_proxy['id'],
-            u'root-pass': self.host_args.root_pass,
+            u'root-password': self.host_args.root_pass,
         })
 
     @skip_if_bug_open('bugzilla', '1343392')
@@ -1539,7 +1539,7 @@ class HostParameterTestCase(CLITestCase):
             u'organization-id': cls.host.organization.id,
             u'partition-table-id': cls.host.ptable.id,
             u'puppet-proxy-id': cls.puppet_proxy['id'],
-            u'root-pass': cls.host.root_pass,
+            u'root-password': cls.host.root_pass,
         })
 
     @tier1
