@@ -448,7 +448,8 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                     parameters_list=[{'organization': org_name}],
                 )
                 self.hosts.update(
-                    name=host,
+                    name=host.split('.')[0],
+                    domain_name=vm.domain,
                     parameters_list=[
                         ['Host', 'Lifecycle Environment', env_name],
                         ['Host', 'Content View', cv_name],
