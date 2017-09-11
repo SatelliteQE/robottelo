@@ -1935,6 +1935,7 @@ class DockerRegistryTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1489322)
     def test_positive_update_url_by_id(self):
         """Create an external docker registry and update its URL. Use registry
         ID to search by
@@ -1942,6 +1943,8 @@ class DockerRegistryTestCase(CLITestCase):
         :id: 71e8c75a-ce5d-4e8a-9564-2c6d9084f8fc
 
         :expectedresults: the external registry is updated with the new URL
+
+        :BZ: 1489322
 
         :CaseImportance: Critical
         """
@@ -1959,6 +1962,7 @@ class DockerRegistryTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1489322)
     def test_positive_update_url_by_name(self):
         """Create an external docker registry and update its URL. Use registry
         name to search by
@@ -1966,6 +1970,8 @@ class DockerRegistryTestCase(CLITestCase):
         :id: 7d4fcdb3-c66f-4d0b-9df0-7a105ab29cb2
 
         :expectedresults: the external registry is updated with the new URL
+
+        :BZ: 1489322
 
         :CaseImportance: Critical
         """

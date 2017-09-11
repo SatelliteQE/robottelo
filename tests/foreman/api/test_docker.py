@@ -319,6 +319,7 @@ class DockerRepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1489322)
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
@@ -326,6 +327,8 @@ class DockerRepositoryTestCase(APITestCase):
 
         :expectedresults: A repository is created with a Docker upstream
             repository and that its URL can be updated.
+
+        :BZ: 1489322
 
         :CaseLevel: Integration
         """
