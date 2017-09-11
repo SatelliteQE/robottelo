@@ -9,7 +9,9 @@ from robottelo import manifests
 from robottelo import ssh
 from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
+from robottelo.config.base import ImproperlyConfigured
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
     DEFAULT_LOC,
     DEFAULT_PTABLE,
     DEFAULT_PXE_TEMPLATE,
@@ -245,6 +247,9 @@ def configure_provisioning(org=None, loc=None, compute=False):
         org = entities.Organization().create()
     if loc is None:
         loc = entities.Location(organization=[org]).create()
+    if settings.rhel7_os is None:
+        raise ImproperlyConfigured(
+            'settings file is not configured for rhel os')
     # Create a new Life-Cycle environment
     lc_env = entities.LifecycleEnvironment(organization=org).create()
     # Create a Product, Repository for custom RHEL6 contents
@@ -254,7 +259,7 @@ def configure_provisioning(org=None, loc=None, compute=False):
         url=settings.rhel7_os
     ).create()
 
-    # Increased timeout value for repo sync
+    # Increased timeout value for repo sync and CV publishing and promotion
     try:
         old_task_timeout = entity_mixins.TASK_TIMEOUT
         entity_mixins.TASK_TIMEOUT = 3600
@@ -283,9 +288,8 @@ def configure_provisioning(org=None, loc=None, compute=False):
     )
     proxy = proxy[0].read()
     proxy.location.append(loc)
-    proxy = proxy.update(['location'])
     proxy.organization.append(org)
-    proxy = proxy.update(['organization'])
+    proxy = proxy.update(['location', 'organization'])
 
     # Search for existing domain or create new otherwise. Associate org,
     # location and dns to it
@@ -326,12 +330,12 @@ def configure_provisioning(org=None, loc=None, compute=False):
         subnet.discovery = proxy
         subnet = subnet.update([
             'domain',
-            'dhcp',
-            'tftp',
-            'dns',
             'discovery',
+            'dhcp',
+            'dns',
             'location',
             'organization',
+            'tftp',
         ])
     else:
         # Create new subnet
@@ -377,12 +381,16 @@ def configure_provisioning(org=None, loc=None, compute=False):
                 location=[loc.id],
                 organization=[org.id],
             ).create()
+
     # Get the Partition table ID
     ptable = entities.PartitionTable().search(
         query={
             u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
         }
     )[0].read()
+    ptable.location.append(loc)
+    ptable.organization.append(org)
+    ptable = ptable.update(['location', 'organization'])
 
     # Get the OS ID
     os = entities.OperatingSystem().search(query={
@@ -422,18 +430,27 @@ def configure_provisioning(org=None, loc=None, compute=False):
 
     # Get the arch ID
     arch = entities.Architecture().search(
-        query={u'search': u'name="x86_64"'}
+        query={
+            u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)
+        }
     )[0].read()
 
+    # Get the media and update its location
+    media = entities.Media(organization=[org]).search()[0].read()
+    media.location.append(loc)
+    media.organization.append(org)
+    media = media.update(['location', 'organization'])
     # Update the OS to associate arch, ptable, templates
     os.architecture.append(arch)
     os.ptable.append(ptable)
     os.config_template.append(provisioning_template)
     os.config_template.append(pxe_template)
+    os.medium.append(media)
     os = os.update([
         'architecture',
         'config_template',
         'ptable',
+        'medium',
     ])
 
     # Create Hostgroup
@@ -448,6 +465,7 @@ def configure_provisioning(org=None, loc=None, compute=False):
         puppet_proxy=proxy,
         puppet_ca_proxy=proxy,
         content_source=proxy,
+        medium=media,
         root_pass=gen_string('alphanumeric'),
         operatingsystem=os.id,
         organization=[org.id],
