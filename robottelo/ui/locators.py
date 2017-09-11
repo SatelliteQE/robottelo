@@ -1495,7 +1495,7 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_puppet_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.openscap_proxy": (
+    "host.openscap_capsule": (
         By.XPATH,
         ("//div[contains(@id, 'host_openscap_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
