@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
 from six.moves.urllib.parse import urljoin
 from nailgun import entities
 
@@ -25,6 +26,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_LOC,
     DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
@@ -272,6 +274,46 @@ class ContentHostTestCase(UITestCase):
             self.assertEqual(result, 'success')
             self.assertIsNotNone(self.contenthost.package_search(
                 self.client.hostname, FAKE_2_CUSTOM_PACKAGE))
+
+    @tier3
+    def test_positive_search_errata_non_admin(self):
+        """Search for host's errata by non-admin user with enough permissions
+
+        :id: 5b8887d2-987f-4bce-86a1-8f65ca7e1195
+
+        :BZ: 1255515
+
+        :expectedresults: User can access errata page and proper errata is
+            listed
+
+        :CaseLevel: System
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        default_loc = entities.Location().search(
+            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
+        role = entities.Role().create()
+        for permission_name in (
+                'view_hosts', 'view_lifecycle_environments',
+                'view_content_views', 'view_organizations'):
+            entities.Filter(
+                permission=entities.Permission(name=permission_name).search(),
+                role=role,
+            ).create()
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[self.session_org],
+            location=[default_loc],
+            default_organization=self.session_org,
+        ).create()
+        with Session(self, user=user_login, password=user_password):
+            result = self.contenthost.errata_search(
+                self.client.hostname, FAKE_2_ERRATA_ID)
+            self.assertIsNotNone(result)
 
     @tier3
     def test_positive_fetch_registered_by(self):
