@@ -285,7 +285,7 @@ class VirtWhoConfigGeneralTestCase(TestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_multiple_config_same_instance(self):
+    def test_positive_multiple_config_multi_instance(self):
         """Create multiple configs for multiple virt-who instances
 
         :id: 053473df-7a83-4727-a96b-385fa87db1c9
