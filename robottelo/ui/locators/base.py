@@ -2928,4 +2928,16 @@ locators = LocatorDict({
 
     "sc_parameters.matcher_error": (By.XPATH, "//tr[@class='has-error']"),
     "sc_parameters.table_value": (By.XPATH, "//td[contains(., '%s')]"),
+
+    # Statistics
+    "statistic.chart_title_text": (
+        By.XPATH,
+        "//div[h3[text()='%s']]/following-sibling::div//*[name()='svg']"
+        "//*[name()='tspan'][contains(@class,'donut-title-small-pf')]"
+    ),
+    "statistic.chart_title_value": (
+        By.XPATH,
+        "//div[h3[text()='%s']]/following-sibling::div//*[name()='svg']"
+        "//*[name()='tspan'][contains(@class,'donut-title-big-pf')]"
+    ),
 })

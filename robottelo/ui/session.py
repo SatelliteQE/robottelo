@@ -57,6 +57,7 @@ from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
 from robottelo.ui.scparams import SmartClassParameter
 from robottelo.ui.smart_variable import SmartVariable
+from robottelo.ui.statistic import Statistic
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.subscription import Subscriptions
 from robottelo.ui.sync import Sync
@@ -171,6 +172,7 @@ class Session(object):
         self.settings = Settings(self.browser)
         self.sc_parameters = SmartClassParameter(self.browser)
         self.smart_variable = SmartVariable(self.browser)
+        self.statistic = Statistic(self.browser)
         self.subnet = Subnet(self.browser)
         self.subscriptions = Subscriptions(self.browser)
         self.sync = Sync(self.browser)
@@ -194,9 +196,9 @@ class Session(object):
                 'oscaptailoringfile', 'package', 'partitiontable',
                 'puppetclasses', 'puppetmodule',
                 'products', 'registry', 'repository', 'rhai', 'role',
-                'settings', 'sc_parameters', 'smart_variable', 'subnet',
-                'subscriptions', 'sync', 'syncplan', 'task', 'template',
-                'trend', 'usergroup', 'globalparameters'):
+                'settings', 'sc_parameters', 'smart_variable', 'statistic',
+                'subnet', 'subscriptions', 'sync', 'syncplan', 'task',
+                'template', 'trend', 'usergroup', 'globalparameters'):
             setattr(self.test, attr, getattr(self, attr))
 
         self.login.login(self._user, self._password)

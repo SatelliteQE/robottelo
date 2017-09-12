@@ -258,6 +258,11 @@
 
 .. automodule:: robottelo.ui.smart_variable
 
+:mod:`robottelo.ui.statistic`
+-----------------------------
+
+.. automodule:: robottelo.ui.statistic
+
 :mod:`robottelo.ui.subnet`
 --------------------------
 
