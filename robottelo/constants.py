@@ -336,6 +336,7 @@ DEFAULT_TEMPLATE = "Satellite Kickstart Default"
 DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
+DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Anonymous'
 
 SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
@@ -422,6 +423,7 @@ FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
 FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
+REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
