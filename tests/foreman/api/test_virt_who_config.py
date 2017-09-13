@@ -387,18 +387,15 @@ class VirtWhoConfigGeneralTestCase(TestCase):
 
         :setup:
             Create a virt-who configuration with a pointing to a virtualization
-            provider with 3 hypervisor hosts.
+            provider with 3 hypervisor hosts using UUID ids.
 
         :steps:
-            1. Create a whitelist that specifies 2 hypervisor hosts using UUID
-               hypervisor ids.
-            2. Create guests on the 2 hypervisors that match the whitelist,
-               verify they are reported and can attach to a VDC subscriptions.
-            3. Create guest on a hypervisor that does not match the whitelist,
-               verify it CANNOT get a VDC subscription
+            1. Create a config with a whitelist that specifies 2 hypervisors.
+            2. Deploy the config
+            3. Repeat for each hypervisor id type (Hostname, Hwuuid)
 
         :expectedresults:
-            Correct config file generated, non-whitelisted servers are not
+            Correct config file generated, non-whitelisted hypervisors are not
             reported.
         """
 
@@ -415,14 +412,10 @@ class VirtWhoConfigGeneralTestCase(TestCase):
             3 hypervisor hosts.
 
         :steps:
-            1. Create a blacklist that specifies 2 hypervisor hosts using UUID
+            1. Create a config with a blacklist that specifies 2 hypervisor hosts using UUID
                hypervisor ids.
-            2. Create whitelist with 2 hypervisors that match the blacklist,
-               verify they are not reported and CANNOT attach to a VDC
-               subscriptions.
-            3. Create guest on a hypervisor that does not match the
-               blacklist, verify it can attach to a VDC subscription
-            4. Repeat with each Hypervisor ID types (Hostname, hwuuid)
+            2. Deploy the config
+            3. Repeat with each Hypervisor ID types (Hostname, hwuuid)
 
         :expectedresults:
             Correct config file generated, Blacklisted Hypervisors are not
