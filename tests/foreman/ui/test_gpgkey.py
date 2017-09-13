@@ -508,7 +508,8 @@ class GPGKey(UITestCase):
         with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             # Download and Install rpm
             result = vm.run(
-                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                "wget -nd -r -l1 --no-parent -A '*-latest.noarch.rpm'"
+                " http://{0}/pub/"
                 .format(settings.server.hostname)
             )
             self.assertEqual(result.return_code, 0)
