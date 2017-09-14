@@ -303,6 +303,11 @@
 
 .. automodule:: tests.foreman.ui.test_sso
 
+:mod:`tests.foreman.ui.test_statistic`
+--------------------------------------
+
+.. automodule:: tests.foreman.ui.test_statistic
+
 :mod:`tests.foreman.ui.test_subnet`
 -----------------------------------
 
