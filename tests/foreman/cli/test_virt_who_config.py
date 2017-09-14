@@ -31,7 +31,7 @@ class VirtWhoConfigTestCase(CLITestCase):
             2. Deploy with "hammer virt-who-config deploy"
 
         :expectedresults:
-            Virt-who is correclty configured, and sends reports to satellite.
+            Virt-who is correctly configured, and sends reports to satellite.
 
         """
 
