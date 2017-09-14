@@ -630,8 +630,8 @@ locators = LocatorDict({
          "'host.subscription_status') and  contains(@class, 'red')]")),
     "contenthost.subscription_select": (
         By.XPATH,
-        ("//tr[//a[contains(@href,'info') and contains(.,'%s')]]"
-         "/following-sibling::tr[1]/td/input[@type='checkbox']")),
+        ("//td[b[contains(.,'%s')]]"
+         "/../following-sibling::tr/td/input[@type='checkbox']")),
     "contenthost.errata_select": (
         By.XPATH,
         ("//tr[td/a[@ng-click='transitionToErratum(erratum)' and "
