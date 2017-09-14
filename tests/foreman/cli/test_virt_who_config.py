@@ -48,7 +48,7 @@ class VirtWhoConfigTestCase(CLITestCase):
             2. Deploy using hammer.
 
         :expectedresults:
-            Virt-who is correclty configured, and sends reports to satellite.
+            Virt-who is correctly configured, and sends reports to satellite.
         """
 
     @run_only_on('sat')
