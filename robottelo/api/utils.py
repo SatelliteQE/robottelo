@@ -661,3 +661,27 @@ def configure_puppet_test():
         'ak_name': ak_name,
         'env_name': env.name,
     }
+
+
+def wait_for_tasks(query, search_rate=1, max_tries=10):
+    """Search for tasks by specified search query and poll them to ensure that
+    task has finished.
+
+    :param query: Search query that will be passed to API call.
+    :param search_rate: Delay between searches.
+    :param max_tries: How many times search should be executed.
+    :raises: ``AssertionError``. If not tasks were found until timeout.
+    :return: List of ``nailgun.entities.ForemanTasks`` entities.
+    """
+    for _ in range(max_tries):
+        tasks = entities.ForemanTask().search(query={'search': query})
+        if len(tasks) > 0:
+            for task in tasks:
+                task.poll()
+            break
+        else:
+            time.sleep(search_rate)
+    else:
+        raise AssertionError(
+            "No task was found using query '{}'".format(query))
+    return tasks

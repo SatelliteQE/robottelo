@@ -15,26 +15,16 @@
 :Upstream: No
 """
 
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from fauxfactory import gen_alpha
+from nailgun import entities
 from nailgun import entity_mixins
-from nailgun.entities import (
-    ActivationKey,
-    ContentView,
-    ContentViewFilterRule,
-    ContentViewVersion,
-    Errata,
-    ErratumContentViewFilter,
-    Host,
-    HostCollection,
-    LifecycleEnvironment,
-    Organization,
-    Repository,
-    Subscription,
-)
 from robottelo import manifests
 from robottelo.api.utils import (
-    enable_rhrepo_and_fetchid, promote, upload_manifest
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+    wait_for_tasks,
 )
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.contentview import ContentView as ContentViewCLI
@@ -70,14 +60,14 @@ class IncrementalUpdateTestCase(TestCase):
         all test"""
         super(IncrementalUpdateTestCase, cls).setUpClass()
         # Create a new Organization
-        cls.org = Organization(name=gen_alpha()).create()
+        cls.org = entities.Organization(name=gen_alpha()).create()
 
         # Create two lifecycle environments - DEV, QE
-        cls.dev_lce = LifecycleEnvironment(
+        cls.dev_lce = entities.LifecycleEnvironment(
             name='DEV',
             organization=cls.org
         ).create()
-        cls.qe_lce = LifecycleEnvironment(
+        cls.qe_lce = entities.LifecycleEnvironment(
             name='QE',
             prior=cls.dev_lce,
             organization=cls.org
@@ -106,8 +96,8 @@ class IncrementalUpdateTestCase(TestCase):
         )
 
         # Read the repositories
-        cls.rhva_6_repo = Repository(id=rhva_6_repo_id).read()
-        cls.rhel6_sat6tools_repo = Repository(
+        cls.rhva_6_repo = entities.Repository(id=rhva_6_repo_id).read()
+        cls.rhel6_sat6tools_repo = entities.Repository(
             id=rhel6_sat6tools_repo_id
         ).read()
 
@@ -117,7 +107,7 @@ class IncrementalUpdateTestCase(TestCase):
             # Update timeout to 15 minutes to finish sync
             entity_mixins.TASK_TIMEOUT = 900
             for repo in [cls.rhva_6_repo, cls.rhel6_sat6tools_repo]:
-                assert Repository(id=repo.id).sync()['result'] == u'success'
+                assert repo.sync()['result'] == u'success'
         finally:
             entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
 
@@ -126,14 +116,14 @@ class IncrementalUpdateTestCase(TestCase):
         each test"""
         super(IncrementalUpdateTestCase, self).setUp()
         # Create content view that will be used filtered erratas
-        self.rhel_6_partial_cv = ContentView(
+        self.rhel_6_partial_cv = entities.ContentView(
             organization=self.org,
             name=gen_alpha(),
             repository=[self.rhva_6_repo, self.rhel6_sat6tools_repo]
         ).create()
 
         # Create a content view filter to filter out errata
-        rhel_6_partial_cvf = ErratumContentViewFilter(
+        rhel_6_partial_cvf = entities.ErratumContentViewFilter(
             content_view=self.rhel_6_partial_cv,
             type='erratum',
             name='rhel_6_partial_cv_filter',
@@ -143,7 +133,7 @@ class IncrementalUpdateTestCase(TestCase):
         # Create a content view filter rule - filtering out errata in the last
         # 365 days
         start_date = (date.today() - timedelta(days=365)).strftime('%Y-%m-%d')
-        ContentViewFilterRule(
+        entities.ContentViewFilterRule(
             content_view_filter=rhel_6_partial_cvf,
             types=['security', 'enhancement', 'bugfix'],
             start_date=start_date,
@@ -161,12 +151,12 @@ class IncrementalUpdateTestCase(TestCase):
             promote(self.rhel_6_partial_cv.version[0], env.id)
 
         # Create host collection
-        self.rhel_6_partial_hc = HostCollection(
+        self.rhel_6_partial_hc = entities.HostCollection(
             organization=self.org, name=gen_alpha(), max_hosts=5).create()
 
         # Create activation key for content view
         kwargs = {'organization': self.org, 'environment': self.qe_lce.id}
-        rhel_6_partial_ak = ActivationKey(
+        rhel_6_partial_ak = entities.ActivationKey(
             name=gen_alpha(),
             content_view=self.rhel_6_partial_cv,
             host_collection=[self.rhel_6_partial_hc],
@@ -174,7 +164,7 @@ class IncrementalUpdateTestCase(TestCase):
         ).create()
 
         # Assign subscription to activation key. Fetch available subscriptions
-        subs = Subscription(organization=self.org).search()
+        subs = entities.Subscription(organization=self.org).search()
         assert len(subs) > 0
 
         # Add subscription to activation key
@@ -199,13 +189,18 @@ class IncrementalUpdateTestCase(TestCase):
         self.addCleanup(vm_cleanup, self.vm)
         self.setup_vm(self.vm, rhel_6_partial_ak.name, self.org.label)
         self.vm.enable_repo(REPOS['rhva6']['id'])
+        timestamp = datetime.utcnow()
         self.vm.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
 
-        # Find the content hosts and save them
-        hosts = Host(organization=str(self.org.id)).search()
-        self.partial_hosts = []
-        for host in hosts:
-            self.partial_hosts.append(host)
+        # Find the content host and ensure that tasks started by package
+        # installation has finished
+        host = entities.Host().search(
+            query={'search': 'name={}'.format(self.vm.hostname)})
+        wait_for_tasks(
+            query='label = Actions::Katello::Host::UploadPackageProfile'
+                  ' and resource_id = {}'
+                  ' and started_at >= {}'.format(host[0].id, timestamp)
+        )
 
     @staticmethod
     def setup_vm(client, act_key, org_name):
@@ -226,7 +221,7 @@ class IncrementalUpdateTestCase(TestCase):
     @staticmethod
     def get_applicable_errata(repo):
         """Retrieves applicable errata for the given repo"""
-        return Errata(repository=repo).search(
+        return entities.Errata(repository=repo).search(
             query={'errata_restrict_applicable': True}
         )
 
@@ -263,7 +258,7 @@ class IncrementalUpdateTestCase(TestCase):
         self.assertGreater(len(errata_list), 0)
 
         # Apply incremental update using the first applicable errata
-        ContentViewVersion().incremental_update(data={
+        entities.ContentViewVersion().incremental_update(data={
             'content_view_version_environments': [{
                 'content_view_version_id': cv_versions[-1].id,
                 'environment_ids': [self.qe_lce.id]
