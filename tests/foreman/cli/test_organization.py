@@ -222,10 +222,33 @@ class OrganizationTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         org = make_org()
-        result_list = Org.list({
-            'search': 'name=%s' % org['name']})
+        result_list = Org.list({'search': 'name=%s' % org['name']})
         self.assertTrue(len(result_list) > 0)
         self.assertEqual(result_list[0]['name'], org['name'])
+
+    @tier1
+    def test_positive_search_scoped(self):
+        """Check if scoped search work properly for organization entity
+
+        :id: d66ebe1d-aba1-4042-87e4-7de8ea0f8fc8
+
+        :expectedresults: Necessary organization is listed
+
+        :BZ: 1259374
+
+        :CaseImportance: High
+        """
+        label = gen_string('alpha')
+        desc = gen_string('alpha', 15)
+        org = make_org({'label': label, 'description': desc})
+        for query in [
+            'label = {}'.format(label),
+            'description ~ {}'.format(desc[:-5]),
+            'name ^ "{}"'.format(org['name']),
+        ]:
+            result_list = Org.list({'search': query})
+            self.assertTrue(len(result_list), 1)
+            self.assertEqual(result_list[0]['name'], org['name'])
 
     @run_only_on('sat')
     @tier2

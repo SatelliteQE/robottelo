@@ -235,6 +235,49 @@ class ActivationKeyTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.activationkey.search(name))
 
+    @run_only_on('sat')
+    @tier2
+    @upgrade
+    def test_positive_search_scoped(self):
+        """Test scoped search for different activation key parameters
+
+        :id: 2c2ee1d7-0997-4a89-8f0a-b04e4b6177c0
+
+        :expectedresults: Search functionality returns correct activation key
+
+        :BZ: 1259374
+
+        :CaseLevel: Integration
+
+        :CaseImportance: High
+        """
+        name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        description = gen_string('alpha')
+        repo_id = self.create_sync_custom_repo()
+        self.cv_publish_promote(cv_name, env_name, repo_id)
+        with Session(self) as session:
+            make_activationkey(
+                session,
+                org=self.organization.name,
+                description=description,
+                name=name,
+                env=env_name,
+                content_view=cv_name,
+            )
+            for query_type, query_value in [
+                ('content_view', cv_name),
+                ('environment', env_name),
+                ('description', description)
+            ]:
+                self.assertIsNotNone(
+                    self.activationkey.search(
+                        name,
+                        _raw_query='{} = {}'.format(query_type, query_value)
+                    )
+                )
+
     @tier2
     @upgrade
     def test_positive_create_with_host_collection(self):
