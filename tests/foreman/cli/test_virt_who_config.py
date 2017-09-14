@@ -21,13 +21,14 @@ from robottelo.test import CLITestCase
 
 class VirtWhoConfigTestCase(CLITestCase):
 
-    def test_positive_create_cli_deploy_ui(self):
+    def test_positive_create_ui_deploy_cli(self):
         """ Verify "hammer virt-who-config"
 
         :id: e273e2b3-79dc-46f5-8925-688f45f6b192
 
         :steps:
-            1. Create config in UI, deploy with "hammer virt-who-config deploy"
+            1. Create config in UI.
+            2. Deploy with "hammer virt-who-config deploy"
 
         :expectedresults:
             Virt-who is correclty configured, and sends reports to satellite.
@@ -43,7 +44,8 @@ class VirtWhoConfigTestCase(CLITestCase):
         :id: 776abf86-a96a-4b3a-8a6e-92face670471
 
         :steps:
-            1. Create config using hammer, deploy using hammer.
+            1. Create config using hammer.
+            2. Deploy using hammer.
 
         :expectedresults:
             Virt-who is correclty configured, and sends reports to satellite.
