@@ -103,6 +103,30 @@ class OrganizationTestCase(UITestCase):
             self.assertIsNotNone(auto_search)
 
     @tier1
+    def test_positive_search_scoped(self):
+        """Test scoped search functionality for organization by label
+
+        :id: 18ad9aad-335a-414e-843e-e1c05ec6bcbb
+
+        :expectedresults: Proper organization is found
+
+        :BZ: 1259374
+
+        :CaseImportance: Critical
+        """
+        org_name = gen_string('alpha')
+        label = gen_string('alpha')
+        with Session(self) as session:
+            make_org(session, org_name=org_name, label=label)
+            for query in [
+                'label = {}'.format(label),
+                'label ~ {}'.format(label[:-5]),
+                'label ^ "{}"'.format(label),
+            ]:
+                self.assertIsNotNone(
+                    self.org.search(org_name, _raw_query=query))
+
+    @tier1
     def test_positive_create_with_name(self):
         """Create organization with valid name only.
 

@@ -1210,6 +1210,32 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_cv(
                 composite_name, [cv_name1, cv_name2])
 
+    @run_only_on('sat')
+    @tier1
+    def test_positive_search_composite(self):
+        """Search for content view by its composite property criteria
+
+        :id: 214a721b-3993-4251-9b7c-0f6d2446c1d1
+
+        :expectedresults: Composite content view is successfully found
+
+        :BZ: 1259374
+
+        :CaseImportance: High
+        """
+        composite_name = gen_string('alpha')
+        with Session(self) as session:
+            make_contentview(
+                session,
+                org=self.organization.name,
+                name=composite_name,
+                is_composite=True
+            )
+            self.assertIsNotNone(
+                self.content_views.search(
+                    composite_name, _raw_query='composite = true')
+            )
+
     @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')

@@ -61,6 +61,32 @@ class PuppetModuleTestCase(UITestCase):
             self.assertIsNotNone(self.puppetmodule.search('ntp'))
 
     @tier1
+    def test_positive_search_scoped(self):
+        """Create product with puppet repository assigned to it. Search for
+        modules inside of it using different criteria (e.g. 'author')
+
+        :id: eb1318dd-0268-48c1-8e62-9747207698b2
+
+        :expectedresults: Scoped search functionality works as intended
+
+        :BZ: 1259374
+
+        :CaseImportance: High
+        """
+        with Session(self):
+            for query_type, query_value in [
+                ('author', 'puppetlabs'),
+                ('version', '3.2.1'),
+                ('summary', 'NTP Module')
+            ]:
+                self.assertIsNotNone(
+                    self.puppetmodule.search(
+                        'ntp',
+                        _raw_query='{} = "{}"'.format(query_type, query_value)
+                    )
+                )
+
+    @tier1
     def test_positive_check_puppet_details(self):
         """Create product with puppet repository assigned to it. Search for
         module inside of it and then open it. Check all the details about that

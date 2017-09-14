@@ -400,6 +400,10 @@ class HostCollectionTestCase(UITestCase):
             make_host_collection(
                 session, org=self.organization.name, name=name)
             self.hostcollection.add_host(name, new_system['name'])
+            self.assertIsNotNone(
+                self.hostcollection.search(
+                    name, _raw_query='host = {}'.format(new_system['name']))
+            )
 
     @tier3
     def test_negative_hosts_limit(self):
