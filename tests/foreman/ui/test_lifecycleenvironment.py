@@ -354,22 +354,24 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
-    def test_positive_search_lce_content_view_packages(self):
-        """Search Lifecycle Environment content view packages
+    def test_positive_search_lce_content_view_packages_by_full_name(self):
+        """Search Lifecycle Environment content view packages by full name
 
-        :id: bceb97ac-cd20-4a45-a250-f26c194f651a
+        Note: if package full name looks like "bear-4.1-1.noarch",
+            eg. name-version-release-arch, the package name is "bear"
+
+        :id: fad05fe9-b673-4384-b65a-926d4a0d2598
 
         :steps:
             1. Create a product with a repository synchronized
                 - The repository must contain at least two package names P1 and
                   P2
-                - P1 has only one package version
-                - P2 has two package versions
+                - P1 has only one package
+                - P2 has two packages
             2. Create a content view with the repository and publish it
             3. Go to Lifecycle Environment > Library > Packages
             4. Select the content view
-            5. Search by exact package names with versions
-            6. Search by package names
+            5. Search by packages using full names
 
         :expectedresults: only the searched packages where found
 
@@ -379,42 +381,79 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         """
         packages = [
             {'name': FAKE_0_CUSTOM_PACKAGE_NAME,
-             'versions': [FAKE_0_CUSTOM_PACKAGE]},
+             'full_names': [FAKE_0_CUSTOM_PACKAGE]},
             {'name': FAKE_1_CUSTOM_PACKAGE_NAME,
-             'versions': [FAKE_1_CUSTOM_PACKAGE, FAKE_2_CUSTOM_PACKAGE]},
+             'full_names': [FAKE_1_CUSTOM_PACKAGE, FAKE_2_CUSTOM_PACKAGE]},
         ]
-        org = entities.Organization().create()
-        product = entities.Product(organization=org).create()
+        product = entities.Product(organization=self.organization).create()
         repository = entities.Repository(
             product=product, url=FAKE_0_YUM_REPO).create()
         repository.sync()
         content_view = entities.ContentView(
-            organization=org, repository=[repository]).create()
+            organization=self.organization, repository=[repository]).create()
         content_view.publish()
         with Session(self) as session:
-            set_context(session, org=org.name)
+            set_context(session, org=self.organization.name)
             for package in packages:
-                for package_version in package['versions']:
-                    package_elm = self.lifecycleenvironment.fetch_yum_package(
+                for package_full_name in package['full_names']:
+                    names_found = self.lifecycleenvironment.get_package_names(
                         ENVIRONMENT,
-                        package_version,
-                        package_name=package['name'],
+                        package_full_name,
                         cv_name=content_view.name
                     )
-                    self.assertIsNotNone(package_elm)
-                    self.assertEqual(package_elm.text, package['name'])
-                    self.assertEqual(
-                        len(self.lifecycleenvironment.get_yum_packages(
-                            ENVIRONMENT,
-                            package_version,
-                            cv_name=content_view.name
-                        )),
-                        1
-                    )
+                    self.assertEqual(len(names_found), 1)
+                    self.assertEqual(names_found[0], package['name'])
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_search_lce_content_view_packages_by_name(self):
+        """Search Lifecycle Environment content view packages by name
+
+        Note: if package full name looks like "bear-4.1-1.noarch",
+            eg. name-version-release-arch, the package name is "bear"
+
+        :id: f8dec2a8-8971-44ad-a4d5-1eb5d2eb62f6
+
+        :steps:
+            1. Create a product with a repository synchronized
+                - The repository must contain at least two package names P1 and
+                  P2
+                - P1 has only one package
+                - P2 has two packages
+            2. Create a content view with the repository and publish it
+            3. Go to Lifecycle Environment > Library > Packages
+            4. Select the content view
+            5. Search by package names
+
+        :expectedresults: only the searched packages where found
+
+        :BZ: 1432155
+
+        :CaseLevel: System
+        """
+        packages = [
+            {'name': FAKE_0_CUSTOM_PACKAGE_NAME,
+             'packages_count': 1},
+            {'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+             'packages_count': 2},
+        ]
+        product = entities.Product(organization=self.organization).create()
+        repository = entities.Repository(
+            product=product, url=FAKE_0_YUM_REPO).create()
+        repository.sync()
+        content_view = entities.ContentView(
+            organization=self.organization, repository=[repository]).create()
+        content_view.publish()
+        with Session(self) as session:
+            set_context(session, org=self.organization.name)
             for package in packages:
-                names_found = self.lifecycleenvironment.get_yum_packages(
-                    ENVIRONMENT, package['name'], cv_name=content_view.name)
-                self.assertEqual(len(names_found), len(package['versions']))
+                names_found = self.lifecycleenvironment.get_package_names(
+                    ENVIRONMENT,
+                    package['name'],
+                    cv_name=content_view.name
+                )
+                self.assertEqual(
+                    len(names_found), package['packages_count'])
                 for name_found in names_found:
                     self.assertTrue(
                         name_found.startswith(package['name']))

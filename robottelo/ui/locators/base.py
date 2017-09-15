@@ -1802,9 +1802,6 @@ locators = LocatorDict({
     "content_env.package.select_cv": (
         By.XPATH,
         "//select[contains(@ng-model, 'contentView')]"),
-    "content_env.package.get_name": (
-        By.XPATH, "//tr[contains(@ng-repeat, 'package')]/td[contains(., '%s')]"
-    ),
     "content_env.package.get_names": (
         By.XPATH, "//tr[contains(@ng-repeat, 'package')]/td[1]"),
 
