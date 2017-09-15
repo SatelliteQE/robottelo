@@ -301,15 +301,15 @@ class ConfigTemplateTestCase(APITestCase):
         template_origin = template.read_json()
 
         # remove unique keys
-        uniqe_keys = (u'updated_at', u'created_at', u'id', u'name')
-        for key in uniqe_keys:
+        unique_keys = (u'updated_at', u'created_at', u'id', u'name')
+        for key in unique_keys:
             del template_origin[key]
 
         for name in valid_data_list():
             with self.subTest(name):
                 new_template = entities.ConfigTemplate(
                     id=template.clone(data={u'name': name})['id']).read_json()
-                for key in uniqe_keys:
+                for key in unique_keys:
                     del new_template[key]
                 self.assertEqual(template_origin, new_template)
 
@@ -326,16 +326,28 @@ class TemplateSyncTestCase(APITestCase):
             1. Git repository must exist (in gitlab or github) and its url
                set in ssh:// form in robottelo.constants.
                (note: git@git... form does not work, should start with ssh://)
+
             2. SSH key must be set to `foreman` user to access that git host
                via ssh://.
-            3. Local directory /var/tmp/templatesync-{random}/ must be created.
+
+            3. Local directory /usr/share/foreman_templates must be created
+               with permissions set to `foreman` user:
+               mkdir -p \
+                 /usr/share/foreman_templates/provisioning_templates/script/
+               chown foreman /usr/share/foreman_templates/ -R
+               chmod u+rwx /usr/share/foreman_templates/ -R
+               chcon -t \
+                 httpd_sys_rw_content_t /usr/share/foreman_templates/ -R
+
             4. Organization and Location must be created to isolate the
                templates ownership.
+
             5. Administer -> Settings -> TemplateSync settings must be set
                for default options:
                branch -> develop
                repo -> e.g: ssh://git@github.com/username/community-templates
-               prefix - > robottelo (or something else easy to test)
+               prefix - > Community (or something else easy to test)
+
             6. The git repository must be populated with some dummy templates
                for testing and that repo must have content in different
                branches and diverse directory roots. Based on
@@ -350,10 +362,11 @@ class TemplateSyncTestCase(APITestCase):
                     in the above directory there are templates prefixed with
                     `alterator` `atomic` `coreos` `freebsd` etc..
 
-        :info:
+        Information:
             - https://theforeman.org/plugins/foreman_templates/5.0/index.html
             - /apidoc/v2/template/import.html
             - /apidoc/v2/template/export.html
+            - http://pastebin.test.redhat.com/516304
 
         """
 
@@ -517,6 +530,69 @@ class TemplateSyncTestCase(APITestCase):
         :CaseImportance: Critical
         """
 
+    @stubbed()
+    @tier1
+    def test_positive_file_based_sync(self):
+        """Assure template sync work from a local directory
+
+        :id: cb39b80f-9114-4da0-bf7d-f7ec2b71edc3
+
+        :steps:
+            1. Create a new template in local filesystem using $FOLDER=
+               '/usr/share/foreman_templates/provisioning_templates/script/'::
+
+                sudo -H -u foreman cat <<EOF > $FOLDER/community_test.erb
+                This is a test template
+                <%#
+                name: Community Test
+                snippet: false
+                model: ProvisioningTemplate
+                kind: script
+                %>
+                EOF
+
+            2. Call import API endpoint to import that specific template::
+
+                POST to /api/v2/templates/import passing data
+                {verbose: false, repo: /usr/share/foreman_templates/,
+                    filter: 'Community Test'}
+                Call the above using requests.post or nailgun
+
+            3. After asserting the template is imported, change its contents
+               using nailgun API::
+
+                obj = entities.ProvisioningTemplate().search(
+                    query={'search': 'name="Community Test"'}
+                )[0].read()
+                assert 'This is a test template' in obj.template
+                obj.template += 'imported template has been updated'
+                obj.update(['template'])
+
+            4. Export the template back to the $FOLDER::
+
+                POST to /api/v2/templates/export passing same data as in step 2
+
+            5. After asserting the template was exported, change its contents
+               directly in filesystem::
+
+                sudo -u foreman echo 'Hello World' >> $FOL../community_test.erb
+
+            6. Import the template again repeating step 2
+
+        :expectedresults:
+            1. After step 2, assert template was imported (use nailgun as in
+               step 3)
+            2. After step 4, assert template was exported and updated
+               `cat $FOLDER/community_test.erb | grep 'has been updated`
+            3. After step 6, assert template was imported again and the new
+               content is updated (use nailgun as in step 3)
+
+
+        The complete test script is available in
+        http://pastebin.test.redhat.com/516304
+
+        """
+
     # Export tests
 
     @stubbed()
@@ -542,7 +618,7 @@ class TemplateSyncTestCase(APITestCase):
 
     @stubbed()
     @tier1
-    def test_negative_export_filtered_templates_from_git(self):
+    def test_negative_export_filtered_templates_to_git(self):
         """Assure templates with a given filter regex are NOT pushed to
         git repo.
 
