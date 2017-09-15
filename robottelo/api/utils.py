@@ -435,22 +435,15 @@ def configure_provisioning(org=None, loc=None, compute=False):
         }
     )[0].read()
 
-    # Get the media and update its location
-    media = entities.Media(organization=[org]).search()[0].read()
-    media.location.append(loc)
-    media.organization.append(org)
-    media = media.update(['location', 'organization'])
     # Update the OS to associate arch, ptable, templates
     os.architecture.append(arch)
     os.ptable.append(ptable)
     os.config_template.append(provisioning_template)
     os.config_template.append(pxe_template)
-    os.medium.append(media)
     os = os.update([
         'architecture',
         'config_template',
         'ptable',
-        'medium',
     ])
 
     # Create Hostgroup
@@ -465,7 +458,7 @@ def configure_provisioning(org=None, loc=None, compute=False):
         puppet_proxy=proxy,
         puppet_ca_proxy=proxy,
         content_source=proxy,
-        medium=media,
+        kickstart_repository=repo.id,
         root_pass=gen_string('alphanumeric'),
         operatingsystem=os.id,
         organization=[org.id],
