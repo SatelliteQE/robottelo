@@ -19,7 +19,12 @@ from random import choice
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.constants import ROLES, ROLES_LOCKED, ROLES_UNLOCKED
+from robottelo.constants import (
+    PERMISSIONS_UI,
+    ROLES,
+    ROLES_LOCKED,
+    ROLES_UNLOCKED,
+)
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
 from robottelo.test import UITestCase
@@ -344,6 +349,51 @@ class RoleTestCase(UITestCase):
             self.assertIsNotNone(assigned_permissions)
             self.assertEqual(
                 set(permissions), set(assigned_permissions[resource_type]))
+
+    @tier2
+    def test_positive_create_with_21_filters(self):
+        """Make sure it's possible to create more than 20 filters inside single
+        role
+
+        :BZ: 1277444
+
+        :id: 6c36d382-9790-4d34-affa-e993764cef9a
+
+        :expectedresults: more than 20 filters are displayed
+
+        :CaseImportance: Medium
+        """
+        filters_number = 21
+        role_name = gen_string('alphanumeric')
+        with Session(self) as session:
+            make_role(session, name=role_name)
+            self.assertIsNotNone(self.role.search(role_name))
+            perms = (
+                (ptype, perm)
+                for ptype, plist in PERMISSIONS_UI.items()
+                for perm in plist
+            )
+            used_ptypes = []
+            for _ in range(filters_number):
+                ptype, perm = next(perms)
+                if ptype not in used_ptypes:
+                    used_ptypes.append(ptype)
+                self.role.add_permission(
+                    role_name,
+                    resource_type=ptype,
+                    permission_list=[perm],
+                )
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            assigned_permissions = self.role.get_permissions(
+                role_name, used_ptypes)
+            self.assertIsNotNone(assigned_permissions)
+            assigned_permissions_count = len([
+                perm
+                for ptype in assigned_permissions.values()
+                for perm in ptype
+            ])
+            self.assertEqual(assigned_permissions_count, filters_number)
 
 
 class CannedRoleTestCases(UITestCase):
