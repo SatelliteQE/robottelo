@@ -201,6 +201,11 @@ class ContentViews(Base):
             self.wait_for_ajax()
             if add_repo:
                 self.click(locators['contentviews.add_repo'])
+                if not self.wait_until_element(
+                        common_locators['alert.success_sub_form']):
+                    raise UIError(
+                        'Failed to add repo "{0}" to CV'.format(repo_name)
+                    )
                 self.click(tab_locators['contentviews.tab_repo_remove'])
                 element = self.wait_until_element(
                     (strategy, value % repo_name))
@@ -209,6 +214,11 @@ class ContentViews(Base):
                         "Adding repo {0} failed".format(repo_name))
             else:
                 self.click(locators['contentviews.remove_repo'])
+                if not self.wait_until_element(
+                        common_locators['alert.success_sub_form']):
+                    raise UIError(
+                        'Failed to remove repo "{0}" from CV'.format(repo_name)
+                    )
                 self.click(tab_locators['contentviews.tab_repo_add'])
                 element = self.wait_until_element(
                     (strategy, value % repo_name))
