@@ -25,15 +25,17 @@ from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
-    add_permissions_to_user,
+    add_role_permissions,
     make_hostgroup,
     make_org,
+    make_role,
     make_user,
     publish_puppet_module,
 )
 from robottelo.cli.host import Host
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
+from robottelo.cli.user import User
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
@@ -417,21 +419,22 @@ class SmartClassParametersTestCase(CLITestCase):
         """
         password = gen_string('alpha')
         required_user_permissions = {
-            'Puppetclass': [
-                'view_puppetclasses',
-            ],
-            'PuppetclassLookupKey': [
-                'view_external_parameters',
-                'create_external_parameters',
-                'edit_external_parameters',
-                'destroy_external_parameters',
-            ],
+            'Puppetclass': {'permissions': ['view_puppetclasses']},
+            'PuppetclassLookupKey': {'permissions': [
+                    'view_external_parameters',
+                    'create_external_parameters',
+                    'edit_external_parameters',
+                    'destroy_external_parameters',
+                ]},
         }
         user = make_user({
             'admin': '0',
             'password': password,
         })
-        add_permissions_to_user(user['id'], required_user_permissions)
+        role = make_role()
+        add_role_permissions(role['id'], required_user_permissions)
+        # Add the created and initiated role with permissions to user
+        User.add_role({'id': user['id'], 'role-id': role['id']})
         sc_params = SmartClassParameter.with_user(
             user['login'],
             password,

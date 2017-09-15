@@ -3572,11 +3572,29 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
     return capsule, capsule_org, capsule_lce
 
 
-def add_permissions_to_user(user_id, permissions_list):
-    """Assign specific permissions to custom user"""
-    # Create a new role
-    role = make_role()
-    # Get the available permissions
+def add_role_permissions(role_id, resource_permissions):
+    """Create role permissions found in resource permissions dict
+
+    :param role_id: The role id
+    :param resource_permissions: a dict containing resources with permission
+        names and other Filter options
+
+    Usage::
+
+        role = make_role({'organization-id': org['id']})
+        resource_permissions = {
+            'Katello::ActivationKey': {
+                'permissions': [
+                    'view_activation_keys',
+                    'create_activation_keys',
+                    'edit_activation_keys',
+                    'destroy_activation_keys'
+                ],
+                'search': "name ~ {}".format(ak_name_like)
+            },
+        }
+        add_role_permissions(role['id'], resource_permissions)
+    """
     available_permissions = Filter.available_permissions()
     # group the available permissions by resource type
     available_rc_permissions = {}
@@ -3584,14 +3602,35 @@ def add_permissions_to_user(user_id, permissions_list):
         permission_resource = permission['resource']
         if permission_resource not in available_rc_permissions:
             available_rc_permissions[permission_resource] = []
-        available_rc_permissions[permission_resource].append(
-            permission)
+        available_rc_permissions[permission_resource].append(permission)
     # create only the required role permissions per resource type
-    for resource_type, permission_names in permissions_list.items():
+    for resource_type, permission_data in resource_permissions.items():
+        permission_names = permission_data.get('permissions')
+        if permission_names is None:
+            raise CLIFactoryError(
+                'Permissions not provided for resource: {0}'
+                .format(resource_type)
+            )
+        # ensure  that the required resource type is available
+        if resource_type not in available_rc_permissions:
+            raise CLIFactoryError(
+                'Resource "{0}" not in the list of available resources'
+                .format(resource_type)
+            )
+        available_permission_names = [
+            permission['name']
+            for permission in available_rc_permissions[resource_type]
+            if permission['name'] in permission_names
+            ]
+        # ensure that all the required permissions are available
+        missing_permissions = set(
+            permission_names).difference(set(available_permission_names))
+        if missing_permissions:
+            raise CLIFactoryError(
+                'Permissions "{0}" are not available in Resource "{1}"'
+                .format(list(missing_permissions), resource_type)
+            )
         # Create the current resource type role permissions
-        make_filter({
-            'role-id': role['id'],
-            'permissions': permission_names,
-        })
-    # Add the created and initiated role with permissions to user
-    User.add_role({'id': user_id, 'role-id': role['id']})
+        options = {'role-id': role_id}
+        options.update(permission_data)
+        make_filter(options=options)

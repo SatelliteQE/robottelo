@@ -16,8 +16,9 @@
 
 :Upstream: No
 """
+from random import choice
 
-from fauxfactory import gen_string
+from fauxfactory import gen_string, gen_alphanumeric
 
 from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
@@ -25,12 +26,14 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import (
+    add_role_permissions,
     CLIFactoryError,
     make_activation_key,
     make_content_view,
     make_host_collection,
     make_lifecycle_environment,
     make_org,
+    make_role,
     make_user,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
@@ -1452,3 +1455,116 @@ class ActivationKeyTestCase(CLITestCase):
             ActivationKey.info({'id': ak['id']})
         except CLIReturnCodeError:
             self.fail("Activation Key can't be read")
+
+    @run_in_one_thread
+    @tier3
+    def test_positive_view_subscriptions_by_non_admin_user(self):
+        """Attempt to read activation key subscriptions by non admin user
+
+        :id: af75b640-97be-431b-8ac0-a6367f8f1996
+
+        :steps:
+
+            1. As admin user create an activation
+            2. As admin user add a subscription to activation key
+            3. Setup a non admin User with the following permissions
+                Katello::ActivationKey:
+                    view_activation_keys, create_activation_keys,
+                    edit_activation_keys, destroy_activation_keys
+                    Search: "name ~ ak_test"
+                Katello::HostCollection:
+                    view_host_collections, edit_host_collections
+                    Search: "name ~ "Test_*_Dev" || name ~ "Test_*_QA"
+                Organization:
+                    view_organizations, assign_organizations,
+                Katello::Subscription:
+                    view_subscriptions, attach_subscriptions,
+                    unattach_subscriptions
+
+
+        :expectedresults: The non admin user can view the activation key
+            subscription
+
+        :BZ: 1406076
+
+        :CaseLevel: System
+        """
+        user_name = gen_alphanumeric()
+        user_password = gen_alphanumeric()
+        ak_name_like = 'ak_{0}'.format(gen_string('alpha'))
+        hc_names_like = (
+            'Test_*_{0}'.format(gen_string('alpha')),
+            'Test_*_{0}'.format(gen_string('alpha'))
+        )
+        ak_name = '{0}_{1}'.format(ak_name_like, gen_string('alpha'))
+        org = make_org()
+        self.upload_manifest(org['id'], manifests.clone())
+        available_subscriptions = Subscription.list(
+            {'organization-id': org['id']}, per_page=False)
+        self.assertGreater(len(available_subscriptions), 0)
+        available_subscription_ids = [
+            subscription['id']
+            for subscription in available_subscriptions
+        ]
+        subscription_id = choice(available_subscription_ids)
+        activation_key = self._make_activation_key({
+            'name': ak_name,
+            'organization-id': org['id']
+        })
+        ActivationKey.add_subscription({
+            u'id': activation_key['id'],
+            u'subscription-id': subscription_id,
+        })
+        subscriptions = ActivationKey.subscriptions({
+            'organization-id': org['id'],
+            'id': activation_key['id'],
+        }, output_format='csv')
+        self.assertEqual(len(subscriptions), 1)
+        role = make_role({'organization-id': org['id']})
+        resource_permissions = {
+            'Katello::ActivationKey': {
+                'permissions': [
+                    'view_activation_keys',
+                    'create_activation_keys',
+                    'edit_activation_keys',
+                    'destroy_activation_keys'
+                ],
+                'search': "name ~ {}".format(ak_name_like)
+            },
+            'Katello::HostCollection': {
+                'permissions': [
+                    'view_host_collections',
+                    'edit_host_collections'
+                ],
+                'search': "name ~ {0} || name ~ {1}".format(*hc_names_like)
+            },
+            'Organization': {
+                'permissions': [
+                    'view_organizations',
+                    'assign_organizations',
+                ],
+            },
+            'Katello::Subscription': {
+                'permissions': [
+                    'view_subscriptions',
+                    'attach_subscriptions',
+                    'unattach_subscriptions'
+                ],
+            }
+        }
+        add_role_permissions(role['id'], resource_permissions)
+        user = make_user({
+            'admin': False,
+            'default-organization-id': org['id'],
+            'organization-ids': [org['id']],
+            'login': user_name,
+            'password': user_password,
+        })
+        User.add_role({'id': user['id'], 'role-id': role['id']})
+        ak_user_cli_session = ActivationKey.with_user(user_name, user_password)
+        subscriptions = ak_user_cli_session.subscriptions({
+            'organization-id': org['id'],
+            'id': activation_key['id'],
+        }, output_format='csv')
+        self.assertEqual(len(subscriptions), 1)
+        self.assertEqual(subscriptions[0]['id'], subscription_id)
