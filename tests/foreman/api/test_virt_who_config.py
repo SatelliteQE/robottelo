@@ -412,8 +412,8 @@ class VirtWhoConfigGeneralTestCase(TestCase):
             3 hypervisor hosts.
 
         :steps:
-            1. Create a config with a blacklist that specifies 2 hypervisor hosts using UUID
-               hypervisor ids.
+            1. Create a config with a blacklist that specifies 2 hypervisor
+               hosts using UUID hypervisor ids.
             2. Deploy the config
             3. Repeat with each Hypervisor ID types (Hostname, hwuuid)
 
