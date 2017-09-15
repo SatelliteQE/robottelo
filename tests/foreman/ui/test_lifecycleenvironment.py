@@ -21,18 +21,33 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import create_role_permissions
-from robottelo.constants import FAKE_0_PUPPET_REPO, REPO_TYPE
+from robottelo.constants import (
+    ENVIRONMENT,
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_0_PUPPET_REPO,
+    FAKE_0_YUM_REPO,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    REPO_TYPE,
+)
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     run_only_on,
     stubbed,
     tier1,
     tier2,
+    tier3,
     upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
-from robottelo.ui.factory import make_contentview, make_lifecycle_environment
+from robottelo.ui.factory import (
+    make_contentview,
+    make_lifecycle_environment,
+    set_context,
+)
 from robottelo.ui.locators import common_locators, locators, menu_locators
 from robottelo.ui.session import Session
 
@@ -336,3 +351,70 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                 session.nav.go_to_users()
             # assert that the user can view the lvce created by admin user
             self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_search_lce_content_view_packages(self):
+        """Search Lifecycle Environment content view packages
+
+        :id: bceb97ac-cd20-4a45-a250-f26c194f651a
+
+        :steps:
+            1. Create a product with a repository synchronized
+                - The repository must contain at least two package names P1 and
+                  P2
+                - P1 has only one package version
+                - P2 has two package versions
+            2. Create a content view with the repository and publish it
+            3. Go to Lifecycle Environment > Library > Packages
+            4. Select the content view
+            5. Search by exact package names with versions
+            6. Search by package names
+
+        :expectedresults: only the searched packages where found
+
+        :BZ: 1432155
+
+        :CaseLevel: System
+        """
+        packages = [
+            {'name': FAKE_0_CUSTOM_PACKAGE_NAME,
+             'versions': [FAKE_0_CUSTOM_PACKAGE]},
+            {'name': FAKE_1_CUSTOM_PACKAGE_NAME,
+             'versions': [FAKE_1_CUSTOM_PACKAGE, FAKE_2_CUSTOM_PACKAGE]},
+        ]
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        repository = entities.Repository(
+            product=product, url=FAKE_0_YUM_REPO).create()
+        repository.sync()
+        content_view = entities.ContentView(
+            organization=org, repository=[repository]).create()
+        content_view.publish()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            for package in packages:
+                for package_version in package['versions']:
+                    package_elm = self.lifecycleenvironment.fetch_yum_package(
+                        ENVIRONMENT,
+                        package_version,
+                        package_name=package['name'],
+                        cv_name=content_view.name
+                    )
+                    self.assertIsNotNone(package_elm)
+                    self.assertEqual(package_elm.text, package['name'])
+                    self.assertEqual(
+                        len(self.lifecycleenvironment.get_yum_packages(
+                            ENVIRONMENT,
+                            package_version,
+                            cv_name=content_view.name
+                        )),
+                        1
+                    )
+            for package in packages:
+                names_found = self.lifecycleenvironment.get_yum_packages(
+                    ENVIRONMENT, package['name'], cv_name=content_view.name)
+                self.assertEqual(len(names_found), len(package['versions']))
+                for name_found in names_found:
+                    self.assertTrue(
+                        name_found.startswith(package['name']))

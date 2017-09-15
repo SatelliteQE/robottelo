@@ -74,3 +74,35 @@ class LifecycleEnvironment(Base):
         self.click(common_locators['kt_search_button'])
         return self.wait_until_element(
             locators['content_env.puppet_module.get_name'] % module_name)
+
+    def fetch_yum_package(self, lce_name, package, package_name=None,
+                          cv_name=None):
+        """Get yum package name from selected lifecycle environment and
+        content-view
+        """
+        if package_name is None:
+            package_name = package
+        self.search_and_click(lce_name)
+        self.click(tab_locators['lce.tab_packages'])
+        if cv_name:
+            self.assign_value(
+                locators['content_env.package.select_cv'], cv_name)
+        self.assign_value(common_locators['kt_search'], package)
+        self.click(common_locators['kt_search_button'])
+        return self.wait_until_element(
+            locators['content_env.package.get_name'] % package_name)
+
+    def get_yum_packages(self, lce_name, package_name=None, cv_name=None):
+        """Get yum package names from selected lifecycle environment and
+        content-view
+        """
+
+        self.search_and_click(lce_name)
+        self.click(tab_locators['lce.tab_packages'])
+        if cv_name:
+            self.assign_value(
+                locators['content_env.package.select_cv'], cv_name)
+        self.assign_value(common_locators['kt_search'], package_name)
+        self.click(common_locators['kt_search_button'])
+        return [element.text for element in
+                self.find_elements(locators['content_env.package.get_names'])]
