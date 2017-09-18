@@ -25,6 +25,7 @@ from robottelo.cli.base import CLIBaseError, CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import (
+    add_role_permissions,
     CLIFactoryError,
     make_activation_key,
     make_architecture,
@@ -40,7 +41,9 @@ from robottelo.cli.factory import (
     make_org,
     make_os,
     make_proxy,
+    make_role,
     make_smart_variable,
+    make_user,
     publish_puppet_module,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
@@ -54,6 +57,7 @@ from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.subscription import Subscription
+from robottelo.cli.user import User
 from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
@@ -1526,17 +1530,19 @@ class HostParameterTestCase(CLITestCase):
         # using nailgun to create dependencies
         cls.host = entities.Host()
         cls.host.create_missing()
+        cls.org_id = cls.host.organization.id
+        cls.loc_id = cls.host.location.id
         # using CLI to create host
         cls.host = make_host({
             u'architecture-id': cls.host.architecture.id,
             u'domain-id': cls.host.domain.id,
             u'environment-id': cls.host.environment.id,
-            u'location-id': cls.host.location.id,
+            u'location-id': cls.loc_id,
             u'mac': cls.host.mac,
             u'medium-id': cls.host.medium.id,
             u'name': cls.host.name,
             u'operatingsystem-id': cls.host.operatingsystem.id,
-            u'organization-id': cls.host.organization.id,
+            u'organization-id': cls.org_id,
             u'partition-table-id': cls.host.ptable.id,
             u'puppet-proxy-id': cls.puppet_proxy['id'],
             u'root-password': cls.host.root_pass,
@@ -1744,6 +1750,186 @@ class HostParameterTestCase(CLITestCase):
                     })
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
+
+    @tier3
+    def test_negative_view_parameter_by_non_admin_user(self):
+        """Attempt to view parameters with non admin user without Parameter
+         permissions
+
+        :id: 65ba89f0-9bee-43d9-814b-9f5a194558f8
+
+        :steps:
+            1. As admin user create a host
+            2. Set a host parameter name and value
+            3. Create a non admin user with the following permissions:
+                Host: [view_hosts],
+                Organization: [view_organizations],
+            4. Get the host info as the non admin user
+
+        :expectedresults: The non admin user is not able to read the parameters
+
+        :BZ: 1296662
+
+        :CaseImportance: System
+        """
+        param_name = gen_string('alpha').lower()
+        param_value = gen_string('alphanumeric')
+        user_name = gen_string('alphanumeric')
+        user_password = gen_string('alphanumeric')
+        Host.set_parameter({
+            'host-id': self.host['id'],
+            'name': param_name,
+            'value': param_value,
+        })
+        host = Host.info({'id': self.host['id']})
+        self.assertEqual(host['parameters'][param_name], param_value)
+        role = make_role()
+        add_role_permissions(
+            role['id'],
+            resource_permissions={
+                'Host': {'permissions': ['view_hosts']},
+                'Organization': {'permissions': ['view_organizations']},
+            }
+        )
+        user = make_user({
+            'admin': False,
+            'default-organization-id': self.org_id,
+            'organization-ids': [self.org_id],
+            'default-location-id': self.loc_id,
+            'location-ids': [self.loc_id],
+            'login': user_name,
+            'password': user_password,
+        })
+        User.add_role({'id': user['id'], 'role-id': role['id']})
+        host = Host.with_user(
+            username=user_name,
+            password=user_password
+        ).info({'id': self.host['id']})
+        self.assertFalse(host.get('parameters'))
+
+    @tier3
+    def test_positive_view_parameter_by_non_admin_user(self):
+        """Attempt to view parameters with non admin user that has
+        Parameter::vew_params permission
+
+        :id: 22d7d7cf-3d4f-4ae2-beaf-c11e41f2d439
+
+        :steps:
+            1. As admin user create a host
+            2. Set a host parameter name and value
+            3. Create a non admin user with the following permissions:
+                Host: [view_hosts],
+                Organization: [view_organizations],
+                Parameter: [view_params]
+            4. Get the host info as the non admin user
+
+        :expectedresults: The non admin user is able to read the parameters
+
+        :BZ: 1296662
+
+        :CaseImportance: System
+        """
+        param_name = gen_string('alpha').lower()
+        param_value = gen_string('alphanumeric')
+        user_name = gen_string('alphanumeric')
+        user_password = gen_string('alphanumeric')
+        Host.set_parameter({
+            'host-id': self.host['id'],
+            'name': param_name,
+            'value': param_value,
+        })
+        host = Host.info({'id': self.host['id']})
+        self.assertEqual(host['parameters'][param_name], param_value)
+        role = make_role()
+        add_role_permissions(
+            role['id'],
+            resource_permissions={
+                'Host': {'permissions': ['view_hosts']},
+                'Organization': {'permissions': ['view_organizations']},
+                'Parameter': {'permissions': ['view_params']},
+            }
+        )
+        user = make_user({
+            'admin': False,
+            'default-organization-id': self.org_id,
+            'organization-ids': [self.org_id],
+            'default-location-id': self.loc_id,
+            'location-ids': [self.loc_id],
+            'login': user_name,
+            'password': user_password,
+        })
+        User.add_role({'id': user['id'], 'role-id': role['id']})
+        host = Host.with_user(
+            username=user_name,
+            password=user_password
+        ).info({'id': self.host['id']})
+        self.assertIn(param_name, host['parameters'])
+        self.assertEqual(host['parameters'][param_name], param_value)
+
+    @tier3
+    def test_negative_edit_parameter_by_non_admin_user(self):
+        """Attempt to edit parameter with non admin user that has
+        Parameter::vew_params permission
+
+        :id: 2b40b3b9-42db-48c8-a9d7-7c308dc6add0
+
+        :steps:
+            1. As admin user create a host
+            2. Set a host parameter name and value
+            3. Create a non admin user with the following permissions:
+                Host: [view_hosts],
+                Organization: [view_organizations],
+                Parameter: [view_params]
+            4. Attempt to edit the parameter value as the non admin user
+
+        :expectedresults: The non admin user is not able to edit the parameter
+
+        :BZ: 1296662
+
+        :CaseImportance: System
+        """
+        param_name = gen_string('alpha').lower()
+        param_value = gen_string('alphanumeric')
+        user_name = gen_string('alphanumeric')
+        user_password = gen_string('alphanumeric')
+        Host.set_parameter({
+            'host-id': self.host['id'],
+            'name': param_name,
+            'value': param_value,
+        })
+        host = Host.info({'id': self.host['id']})
+        self.assertEqual(host['parameters'][param_name], param_value)
+        role = make_role()
+        add_role_permissions(
+            role['id'],
+            resource_permissions={
+                'Host': {'permissions': ['view_hosts']},
+                'Organization': {'permissions': ['view_organizations']},
+                'Parameter': {'permissions': ['view_params']},
+            }
+        )
+        user = make_user({
+            'admin': False,
+            'default-organization-id': self.org_id,
+            'organization-ids': [self.org_id],
+            'default-location-id': self.loc_id,
+            'location-ids': [self.loc_id],
+            'login': user_name,
+            'password': user_password,
+        })
+        User.add_role({'id': user['id'], 'role-id': role['id']})
+        param_new_value = gen_string('alphanumeric')
+        with self.assertRaises(CLIReturnCodeError):
+            Host.with_user(
+                username=user_name,
+                password=user_password
+            ).set_parameter({
+                'host-id': self.host['id'],
+                'name': param_name,
+                'value': param_new_value,
+            })
+        host = Host.info({'id': self.host['id']})
+        self.assertEqual(host['parameters'][param_name], param_value)
 
 
 class HostProvisionTestCase(CLITestCase):
