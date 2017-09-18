@@ -659,6 +659,7 @@ def make_location(options=None):
         u'hostgroups': None,
         u'medium-ids': None,
         u'name': gen_alphanumeric(),
+        u'parent-id': None,
         u'realm-ids': None,
         u'realms': None,
         u'smart-proxy-ids': None,

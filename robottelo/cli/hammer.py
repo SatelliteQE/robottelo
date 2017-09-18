@@ -157,7 +157,8 @@ def parse_info(output):
             # entity name like 'test::params::keys'
             if line.find(':') != -1 and not line.find('::') != -1:
                 key, value = line.lstrip().split(":", 1)
-            elif line.find('=>') != -1:
+            elif line.find('=>') != -1 and len(
+                    line.lstrip().split(" =>", 1)) == 2:
                 key, value = line.lstrip().split(" =>", 1)
             else:
                 key = value = None
