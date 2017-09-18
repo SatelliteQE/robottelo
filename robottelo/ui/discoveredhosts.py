@@ -87,11 +87,11 @@ class DiscoveredHosts(Base):
                 'Could not find the selected discovered host "{0}"'
                 .format(hostname)
             )
-        if not self.find_element(element):
+        web_element = self.find_element(element)
+        if not web_element:
             raise UIError(
                 'Could not find element from discovered host page'
             )
-        web_element = self.find_element(element)
         element_value = web_element.text
         return element_value
 
