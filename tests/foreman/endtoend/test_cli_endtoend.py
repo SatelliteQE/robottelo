@@ -418,14 +418,15 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'subnet-id': subnet['id'],
             }
         )
-        if not bz_bug_is_open('1326101'):
-            Org.with_user(
-                user['login'],
-                user['password']
-            ).add_hostgroup({
-                u'hostgroup-id': host_group['id'],
-                u'id': org['id'],
-            })
+        HostGroup.with_user(
+            user['login'],
+            user['password']
+        ).update({
+            'id': host_group['id'],
+            'organization-ids': org['id'],
+            'content-view-id': content_view['id'],
+            'lifecycle-environment-id': lifecycle_environment['id'],
+        })
 
         # step 2.20: Provision a client
         self.client_provisioning(activation_key['name'], org['label'])
