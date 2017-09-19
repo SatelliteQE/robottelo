@@ -87,7 +87,6 @@ def _create_repository(session, org, name, product, upstream_name=None):
     :param str product: Name of product where repository should be created.
     :param str upstream_name: A valid name for an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
-
     """
     if upstream_name is None:
         upstream_name = u'busybox'
@@ -134,7 +133,6 @@ class DockerTagTestCase(UITestCase):
 class DockerRepositoryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
-
     """
 
     @classmethod
@@ -1158,7 +1156,7 @@ class DockerComputeResourceTestCase(UITestCase):
             ).create()
             for _ in range(3)
         ]
-        with Session(self) as session:
+        with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             for container in containers:
                 result = self.compute_resource.search_container(
@@ -1318,7 +1316,7 @@ class DockerContainerTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        with Session(self) as session:
+        with Session(self.browser) as session:
             make_container(
                 session,
                 org=self.organization.name,
@@ -1341,7 +1339,7 @@ class DockerContainerTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        with Session(self) as session:
+        with Session(self.browser) as session:
             name = gen_string('alphanumeric')
             make_container(
                 session,
@@ -1412,7 +1410,7 @@ class DockerContainerTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        with Session(self) as session:
+        with Session(self.browser) as session:
             name = gen_string('alphanumeric')
             make_container(
                 session,
@@ -1430,7 +1428,6 @@ class DockerContainerTestCase(UITestCase):
 class DockerUnixSocketContainerTestCase(UITestCase):
     """Tests specific to using ``Containers`` in local Docker Compute Resource
       accessed via unix socket
-
     """
 
     @classmethod
@@ -1458,7 +1455,7 @@ class DockerUnixSocketContainerTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        with Session(self) as session:
+        with Session(self.browser) as session:
             make_container(
                 session,
                 org=self.organization.name,

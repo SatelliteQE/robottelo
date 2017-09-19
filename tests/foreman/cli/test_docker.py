@@ -69,7 +69,6 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
     :param str upstream_name: A valid name of an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
     :return: A ``Repository`` object.
-
     """
     return make_repository({
         'content-type': REPO_CONTENT_TYPE,
@@ -129,7 +128,6 @@ class DockerManifestTestCase(CLITestCase):
 class DockerRepositoryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
-
     """
 
     @classmethod
@@ -170,7 +168,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: Multiple docker repositories are created with a
         Docker upstream repository and they all belong to the same product.
-
         """
         product = make_product_wait({'organization-id': self.org_id})
         repo_names = set()
@@ -197,7 +194,6 @@ class DockerRepositoryTestCase(CLITestCase):
         @expectedresults: Multiple docker repositories are created with a
         Docker upstream repository and they all belong to their respective
         products.
-
         """
         for _ in range(randint(2, 5)):
             product = make_product_wait({'organization-id': self.org_id})
@@ -223,7 +219,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker repository and
         it is synchronized.
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -242,7 +237,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker upstream
         repository and that its name can be updated.
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -265,7 +259,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker upstream
         repository and that its upstream name can be updated.
-
         """
         new_upstream_name = 'fedora/ssh'
         repo = _make_docker_repo(
@@ -287,7 +280,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker upstream
         repository and that its URL can be updated.
-
         """
         new_url = gen_url()
         repo = _make_docker_repo(
@@ -308,7 +300,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository with a upstream repository is created
         and then deleted.
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -326,7 +317,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: Random repository can be deleted from random product
         without altering the other products.
-
         """
         products = [
             make_product_wait({'organization-id': self.org_id})
@@ -364,7 +354,6 @@ class DockerContentViewTestCase(CLITestCase):
     def _create_and_associate_repo_with_cv(self):
         """Create a Docker-based repository and content view and associate
         them.
-
         """
         self.repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -397,7 +386,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker repository and
         the product is added to a non-composite content view
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -424,7 +412,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         @expectedresults: Repositories are created with Docker upstream
         repositories and the product is added to a non-composite content view.
-
         """
         product = make_product_wait({'organization-id': self.org_id})
         repos = [
@@ -1510,7 +1497,6 @@ class DockerComputeResourceTestCase(CLITestCase):
 class DockerContainersTestCase(CLITestCase):
     """Tests specific to using ``Containers`` with external Docker Compute
     Resource
-
     """
 
     @classmethod
@@ -1734,7 +1720,6 @@ class DockerContainersTestCase(CLITestCase):
 class DockerUnixSocketContainerTestCase(CLITestCase):
     """Tests specific to using ``Containers`` with internal unix-socket
       Docker Compute Resource
-
     """
 
     @classmethod
@@ -1754,12 +1739,11 @@ class DockerUnixSocketContainerTestCase(CLITestCase):
     def test_positive_create_with_compresource(self):
         """Create containers on a docker compute resource
 
-        :id: 5ad180d5-ee36-440e-a0a0-130c7ebc8c8d
+        @id: 5ad180d5-ee36-440e-a0a0-130c7ebc8c8d
 
-        :expectedresults: The docker container is created
+        @expectedresults: The docker container is created
 
-
-        :CaseLevel: System
+        @CaseLevel: System
         """
         container = make_container({
             'compute-resource-id': self.cr_internal['id'],
