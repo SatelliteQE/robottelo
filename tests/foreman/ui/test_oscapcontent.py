@@ -15,11 +15,10 @@
 @Upstream: No
 """
 import unittest2
-
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.constants import OSCAP_DEFAULT_CONTENT
+from robottelo.constants import ANY_CONTEXT, OSCAP_DEFAULT_CONTENT
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
     skip_if_bug_open,
@@ -30,7 +29,7 @@ from robottelo.decorators import (
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_oscapcontent
+from robottelo.ui.factory import make_oscapcontent, set_context
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -146,6 +145,35 @@ class OpenScapContentTestCase(UITestCase):
             session.nav.go_to_select_org(org.name)
             self.assertIsNotNone(
                 self.oscapcontent.search(content_name))
+
+    @skip_if_bug_open('bugzilla', 1490348)
+    @tier2
+    def test_positive_update_org_default_content(self):
+        """Update's Org of default Openscap content
+
+        @id: ef888789-3642-46c5-b35f-4aafc0b91864
+
+        @Steps:
+
+        1. Update the openscap content, here the Org.
+
+        @expectedresults: The org for default Openscap content is updated.
+
+        @BZ: 1490348
+
+        @CaseLevel: Integration
+        """
+        org = entities.Organization(name=gen_string('alpha')).create()
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.oscapcontent.update(
+                OSCAP_DEFAULT_CONTENT['rhel6_content'],
+                content_org=org.name)
+            session.nav.go_to_select_org(org.name)
+            self.assertIsNotNone(
+                self.oscapcontent.search(
+                    OSCAP_DEFAULT_CONTENT['rhel6_content']
+                ))
 
     @tier1
     @upgrade
