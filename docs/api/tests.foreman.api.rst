@@ -13,6 +13,11 @@
 
 .. automodule:: tests.foreman.api.test_architecture
 
+:mod:`tests.foreman.api.test_audit`
+-----------------------------------
+
+.. automodule:: tests.foreman.api.test_audit
+
 :mod:`tests.foreman.api.test_bookmarks`
 ---------------------------------------
 
