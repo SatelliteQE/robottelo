@@ -593,6 +593,7 @@ class HostTestCase(UITestCase):
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alpha')
+        param_name = gen_string('alpha')
         default_loc = entities.Location().search(
             query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
         role = entities.Role().create()
@@ -613,7 +614,6 @@ class HostTestCase(UITestCase):
             location=[default_loc],
             default_organization=self.session_org,
         ).create()
-        param_name = gen_string('alpha')
         host = entities.Host(
             location=default_loc,
             organization=self.session_org,
@@ -642,6 +642,7 @@ class HostTestCase(UITestCase):
         """
         user_login = gen_string('alpha')
         user_password = gen_string('alpha')
+        param_name = gen_string('alpha')
         default_loc = entities.Location().search(
             query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
         role = entities.Role().create()
@@ -662,7 +663,6 @@ class HostTestCase(UITestCase):
             location=[default_loc],
             default_organization=self.session_org,
         ).create()
-        param_name = gen_string('alpha')
         host = entities.Host(
             location=default_loc,
             organization=self.session_org,
