@@ -387,7 +387,7 @@ class RoleTestCase(UITestCase):
                 self.role.wait_until_element(common_locators['alert.success']))
             assigned_permissions = self.role.get_permissions(
                 role_name, used_ptypes)
-            self.assertIsNotNone(assigned_permissions)
+            self.assertTrue(assigned_permissions)
             assigned_permissions_count = len([
                 perm
                 for ptype in assigned_permissions.values()
