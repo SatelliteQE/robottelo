@@ -48,7 +48,6 @@ DOCKER_PROVIDER = 'Docker'
 def _invalid_names():
     """Return a list of various kinds of invalid strings for Docker
     repositories.
-
     """
     return [
         # boundaries
@@ -89,7 +88,6 @@ def _invalid_names():
 @filtered_datapoint
 def _valid_names():
     """Return a list of various kinds of valid strings for Docker repositories.
-
     """
     return [
         # boundaries
@@ -123,7 +121,6 @@ def _create_repository(product, name=None, upstream_name=None):
     :param str upstream_name: A valid name of an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
     :return: A ``Repository`` object.
-
     """
     if name is None:
         name = choice(generate_strings_list(15, ['numeric', 'html']))
@@ -141,7 +138,6 @@ def _create_repository(product, name=None, upstream_name=None):
 class DockerRepositoryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
-
     """
 
     @classmethod
@@ -1212,7 +1208,6 @@ class DockerComputeResourceTestCase(APITestCase):
 class DockerContainerTestCase(APITestCase):
     """Tests specific to using ``Containers`` in an external Docker
     Compute Resource
-
     """
 
     @classmethod
@@ -1422,7 +1417,6 @@ class DockerContainerTestCase(APITestCase):
 class DockerUnixSocketContainerTestCase(APITestCase):
     """Tests specific to using ``Containers`` in local unix-socket
     Docker Compute Resource
-
     """
 
     @classmethod

@@ -74,7 +74,6 @@ def _make_docker_repo(product_id, name=None, upstream_name=None, url=None):
     :param str url: URL of repository. If ``None`` then defaults to
         DOCKER_REGISTRY_HUB constant.
     :return: A ``Repository`` object.
-
     """
     return make_repository({
         'content-type': REPO_CONTENT_TYPE,
@@ -96,7 +95,6 @@ class DockerManifestTestCase(CLITestCase):
 
         :expectedresults: docker manifest displays tags info for a docker
             manifest
-
 
         :CaseLevel: Integration
         """
@@ -134,7 +132,6 @@ class DockerManifestTestCase(CLITestCase):
 class DockerRepositoryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
-
     """
 
     @classmethod
@@ -176,7 +173,6 @@ class DockerRepositoryTestCase(CLITestCase):
         :expectedresults: Multiple docker repositories are created with a
             Docker upstream repository and they all belong to the same product.
 
-
         :CaseImportance: Critical
         """
         product = make_product_wait({'organization-id': self.org_id})
@@ -205,7 +201,6 @@ class DockerRepositoryTestCase(CLITestCase):
             Docker upstream repository and they all belong to their respective
             products.
 
-
         :CaseImportance: Critical
         """
         for _ in range(randint(2, 5)):
@@ -233,7 +228,6 @@ class DockerRepositoryTestCase(CLITestCase):
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
 
-
         :CaseImportance: Critical
         """
         repo = _make_docker_repo(
@@ -253,7 +247,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :expectedresults: A repository is created with a Docker upstream
             repository and that its name can be updated.
-
 
         :CaseImportance: Critical
         """
@@ -278,7 +271,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :expectedresults: A repository is created with a Docker upstream
             repository and that its upstream name can be updated.
-
 
         :CaseImportance: Critical
         """
@@ -350,7 +342,6 @@ class DockerRepositoryTestCase(CLITestCase):
         :expectedresults: A repository is created with a Docker upstream
             repository and that its URL can be updated.
 
-
         :CaseImportance: Critical
         """
         new_url = gen_url()
@@ -373,7 +364,6 @@ class DockerRepositoryTestCase(CLITestCase):
         :expectedresults: A repository with a upstream repository is created
             and then deleted.
 
-
         :CaseImportance: Critical
         """
         repo = _make_docker_repo(
@@ -392,7 +382,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :expectedresults: Random repository can be deleted from random product
             without altering the other products.
-
 
         :CaseImportance: Critical
         """
@@ -432,7 +421,6 @@ class DockerContentViewTestCase(CLITestCase):
     def _create_and_associate_repo_with_cv(self):
         """Create a Docker-based repository and content view and associate
         them.
-
         """
         self.repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -466,7 +454,6 @@ class DockerContentViewTestCase(CLITestCase):
         :expectedresults: A repository is created with a Docker repository and
             the product is added to a non-composite content view
 
-
         :CaseImportance: Critical
         """
         repo = _make_docker_repo(
@@ -495,7 +482,6 @@ class DockerContentViewTestCase(CLITestCase):
         :expectedresults: Repositories are created with Docker upstream
             repositories and the product is added to a non-composite content
             view.
-
 
         :CaseImportance: Critical
         """
@@ -529,7 +515,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         :expectedresults: A repository is created with a Docker repository and
             it is synchronized.
-
 
         :CaseLevel: Integration
         """
@@ -1025,7 +1010,6 @@ class DockerActivationKeyTestCase(CLITestCase):
         :expectedresults: Docker-based content view can be added to activation
             key
 
-
         :CaseLevel: Integration
         """
         activation_key = make_activation_key({
@@ -1097,7 +1081,6 @@ class DockerActivationKeyTestCase(CLITestCase):
 
         :expectedresults: Docker-based content view can be added to activation
             key
-
 
         :CaseLevel: Integration
 
@@ -1426,7 +1409,6 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute Resource can be created and listed.
 
-
         :CaseLevel: System
         """
         for name in valid_data_list():
@@ -1527,7 +1509,6 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute Resource can be created and listed.
 
-
         :CaseLevel: System
         """
         docker_image = settings.docker.docker_image
@@ -1559,7 +1540,6 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute Resource can be created, listed and deleted.
 
-
         :CaseLevel: System
         """
         docker_image = settings.docker.docker_image
@@ -1580,7 +1560,6 @@ class DockerComputeResourceTestCase(CLITestCase):
 class DockerContainersTestCase(CLITestCase):
     """Tests specific to using ``Containers`` with external Docker Compute
     Resource
-
     """
 
     @classmethod
@@ -1619,7 +1598,6 @@ class DockerContainersTestCase(CLITestCase):
         :id: aa1d5216-deaf-403e-9d4c-60157a251762
 
         :expectedresults: The docker container is created
-
 
         :CaseLevel: System
         """
@@ -1696,7 +1674,6 @@ class DockerContainersTestCase(CLITestCase):
 
         :BZ: 1230915, 1269196
 
-
         :CaseLevel: System
         """
         # testing the text status may fail i18n tests but for now there is
@@ -1738,7 +1715,6 @@ class DockerContainersTestCase(CLITestCase):
             resource and its log can be read
 
         :BZ: 1230915, 1479291
-
 
         :CaseLevel: System
         """
@@ -1790,7 +1766,6 @@ class DockerContainersTestCase(CLITestCase):
 
         :BZ: 1230915
 
-
         :CaseLevel: System
         """
         container = make_container({
@@ -1806,7 +1781,6 @@ class DockerContainersTestCase(CLITestCase):
 class DockerUnixSocketContainerTestCase(CLITestCase):
     """Tests specific to using ``Containers`` with internal unix-socket
       Docker Compute Resource
-
     """
 
     @classmethod
@@ -1830,7 +1804,6 @@ class DockerUnixSocketContainerTestCase(CLITestCase):
         :id: 5ad180d5-ee36-440e-a0a0-130c7ebc8c8d
 
         :expectedresults: The docker container is created
-
 
         :CaseLevel: System
         """

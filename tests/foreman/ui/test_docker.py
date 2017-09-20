@@ -88,7 +88,6 @@ def _create_repository(session, org, name, product, upstream_name=None):
     :param str product: Name of product where repository should be created.
     :param str upstream_name: A valid name for an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
-
     """
     if upstream_name is None:
         upstream_name = u'busybox'
@@ -135,7 +134,6 @@ class DockerTagTestCase(UITestCase):
 class DockerRepositoryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
-
     """
 
     @classmethod
@@ -756,7 +754,6 @@ class DockerContentViewTestCase(UITestCase):
             added to a composite content view which is then published multiple
             times.
 
-
         :CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
@@ -873,7 +870,6 @@ class DockerContentViewTestCase(UITestCase):
 
         :expectedresults: Docker-type repository is promoted to content view
             found in the specific lifecycle-environment.
-
 
         :CaseLevel: Integration
         """
@@ -1456,7 +1452,6 @@ class DockerContainerTestCase(UITestCase):
 class DockerUnixSocketContainerTestCase(UITestCase):
     """Tests specific to using ``Containers`` in local Docker Compute Resource
       accessed via unix socket
-
     """
 
     @classmethod
