@@ -660,6 +660,60 @@ class HostCreateTestCase(CLITestCase):
             # host being already registered.
             self.assertEqual(result.return_code, 64)
 
+    def test_positive_register_twice_with_uppercase_chars_in_hostname(self):
+        """Register twice a client host that contain upper case chars in
+        hostname.
+
+        :id: 59c20379-b878-46ce-ad3e-ed6969ea6a5f
+
+        :steps:
+            1. Create a client host with upper case chars in hostname
+            2. register the host with command "subscription-manager register"
+            3. register the host a second time with command
+                "subscription-manager register --force"
+
+        :expectedresults: host registered the second time, without error
+
+        :BZ: 1361309
+
+        :CaseLevel: System
+        """
+        activation_key = make_activation_key({
+            'content-view-id': self.promoted_cv['id'],
+            'lifecycle-environment-id': self.new_lce['id'],
+            'organization-id': self.new_org['id'],
+        })
+        name = gen_string('alpha')
+        # make all the odd chars as upper case and the even one lower case
+        # to have a name like OpQrSTuVw
+        name_chars = list(name.lower())
+        for i in range(len(name_chars)):
+            if i % 2 == 0:
+                name_chars[i] = name_chars[i].upper()
+        target_image = ''.join(name_chars)
+        with VirtualMachine(
+                distro=DISTRO_RHEL7, target_image=target_image) as client:
+            self.assertIn(target_image, client.hostname)
+            result = client.run('hostname')
+            self.assertIn(target_image, '\n'.join(result.stdout))
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.new_org['label'],
+                activation_key['name'],
+                force=False,
+            )
+            self.assertTrue(client.subscribed)
+            result = client.register_contenthost(
+                    self.new_org['label'],
+                    activation_key['name'],
+                    force=True,
+                )
+            self.assertFalse(result.stderr)
+            self.assertIn(
+                'The system has been registered with ID',
+                '\n'.join(result.stdout)
+            )
+
     @run_only_on('sat')
     @tier2
     def test_positive_list_scparams_by_id(self):
