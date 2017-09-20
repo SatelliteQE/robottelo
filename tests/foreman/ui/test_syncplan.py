@@ -588,8 +588,8 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[product.name])
             # Verify product has not been synced yet
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was not synced'.format(delay/4, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was not synced'.format(delay/4, product.name))
             sleep(delay/4)
             self.validate_repo_content(
                 product, repo,
@@ -597,8 +597,8 @@ class SyncPlanTestCase(UITestCase):
                 after_sync=False,
             )
             # Wait until the next recurrence
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was synced'.format(delay, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was synced'.format(delay, product.name))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
@@ -643,8 +643,8 @@ class SyncPlanTestCase(UITestCase):
             # Associate sync plan with product
             self.syncplan.update(plan_name, add_products=[product.name])
             # Wait half of expected time
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was not synced'.format(delay/2, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was not synced'.format(delay/2, product.name))
             sleep(delay / 2)
             # Verify product has not been synced yet
             self.validate_repo_content(
@@ -654,8 +654,8 @@ class SyncPlanTestCase(UITestCase):
                 after_sync=False,
             )
             # Wait the rest of expected time
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was synced'.format(delay/2, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was synced'.format(delay/2, product.name))
             sleep(delay/2)
             # Verify product was synced successfully
             self.validate_repo_content(
@@ -711,8 +711,8 @@ class SyncPlanTestCase(UITestCase):
                 plan_name, add_products=[product.name for product in products])
             # Wait third part of expected time, because it will take a while to
             # verify each product and repository
-            self.logger.info('Waiting {0} seconds to check \
-                products were not synced'.format(delay/3))
+            self.logger.info('Waiting {0} seconds to check products'
+                             ' were not synced'.format(delay/3))
             sleep(delay / 3)
             # Verify products has not been synced yet
             for repo in repos:
@@ -723,8 +723,8 @@ class SyncPlanTestCase(UITestCase):
                     after_sync=False,
                 )
             # Wait the rest of expected time
-            self.logger.info('Waiting {0} seconds to check \
-                products were synced'.format(delay*2/3))
+            self.logger.info('Waiting {0} seconds to check products'
+                             ' were synced'.format(delay*2/3))
             sleep(delay * 2 / 3)
             # Verify product was synced successfully
             for repo in repos:
@@ -784,8 +784,8 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[PRDS['rhel']])
             # Verify product has not been synced yet
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was not synced'.format(delay/4, PRDS['rhel']))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was not synced'.format(delay/4, PRDS['rhel']))
             sleep(delay/4)
             self.validate_repo_content(
                 repo.product,
@@ -794,8 +794,8 @@ class SyncPlanTestCase(UITestCase):
                 after_sync=False,
             )
             # Wait until the first recurrence
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was synced'.format(delay, PRDS['rhel']))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was synced'.format(delay, PRDS['rhel']))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
@@ -849,8 +849,8 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[PRDS['rhel']])
             # Wait half of expected time
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was not synced'.format(delay/2, PRDS['rhel']))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was not synced'.format(delay/2, PRDS['rhel']))
             sleep(delay / 2)
             # Verify product has not been synced yet
             self.validate_repo_content(
@@ -860,8 +860,8 @@ class SyncPlanTestCase(UITestCase):
                 after_sync=False,
             )
             # Wait the rest of expected time
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was synced'.format(delay/2, PRDS['rhel']))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was synced'.format(delay/2, PRDS['rhel']))
             sleep(delay / 2)
             # Verify product was synced successfully
             self.validate_repo_content(
@@ -903,8 +903,8 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[product.name])
             # Verify product has not been synced yet
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was not synced'.format(delay/4, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was not synced'.format(delay/4, product.name))
             sleep(delay/4)
             self.validate_repo_content(
                 product, repo,
@@ -912,8 +912,8 @@ class SyncPlanTestCase(UITestCase):
                 after_sync=False,
             )
             # Wait until the next recurrence
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was synced'.format(delay, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was synced'.format(delay, product.name))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
@@ -960,8 +960,8 @@ class SyncPlanTestCase(UITestCase):
             self.syncplan.update(
                 plan_name, add_products=[product.name])
             # Verify product has not been synced yet
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was not synced'.format(delay/4, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was not synced'.format(delay/4, product.name))
             sleep(delay/4)
             self.validate_repo_content(
                 product, repo,
@@ -969,8 +969,8 @@ class SyncPlanTestCase(UITestCase):
                 after_sync=False,
             )
             # Wait until the next recurrence
-            self.logger.info('Waiting {0} seconds to check \
-                product {1} was synced'.format(delay, product.name))
+            self.logger.info('Waiting {0} seconds to check product {1}'
+                             ' was synced'.format(delay, product.name))
             sleep(delay)
             # Verify product was synced successfully
             self.validate_repo_content(
