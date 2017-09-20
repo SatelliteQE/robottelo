@@ -161,10 +161,10 @@ class DockerRepositoryTestCase(CLITestCase):
                     make_product_wait({'organization-id': self.org_id})['id'],
                     name,
                 )
-        self.assertEqual(repo['name'], name)
-        self.assertEqual(
-            repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
-        self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
+                self.assertEqual(repo['name'], name)
+                self.assertEqual(
+                    repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
+                self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
 
     @tier1
     @run_only_on('sat')
