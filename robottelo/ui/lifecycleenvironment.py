@@ -74,3 +74,21 @@ class LifecycleEnvironment(Base):
         self.click(common_locators['kt_search_button'])
         return self.wait_until_element(
             locators['content_env.puppet_module.get_name'] % module_name)
+
+    def get_package_names(self, lce_name, search_string, cv_name=None):
+        """Get yum package names from selected lifecycle environment and
+        content-view
+
+        :param lce_name: the Lifecycle environment name
+        :param search_string: a string to search by the package names
+        :param cv_name: the content view name if applicable
+        """
+        self.search_and_click(lce_name)
+        self.click(tab_locators['lce.tab_packages'])
+        if cv_name:
+            self.assign_value(
+                locators['content_env.package.select_cv'], cv_name)
+        self.assign_value(common_locators['kt_search'], search_string)
+        self.click(common_locators['kt_search_button'])
+        return [element.text for element in
+                self.find_elements(locators['content_env.package.get_names'])]
