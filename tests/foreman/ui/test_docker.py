@@ -1332,6 +1332,7 @@ class DockerContainerTestCase(UITestCase):
         super(DockerContainerTestCase, cls).tearDownClass()
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1347658)
     @tier2
     @upgrade
     def test_positive_create_with_compresource(self):
@@ -1354,6 +1355,7 @@ class DockerContainerTestCase(UITestCase):
             )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1347658)
     @tier2
     def test_positive_power_on_off(self):
         """Create containers for a compute resource,
@@ -1428,6 +1430,7 @@ class DockerContainerTestCase(UITestCase):
             registry.delete()
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1347658)
     @tier2
     def test_positive_delete(self):
         """Delete containers in an external compute resource
