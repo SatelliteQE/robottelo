@@ -1562,3 +1562,82 @@ class ActivationKeyTestCase(UITestCase):
                     ak2.name)
                 self.assertEqual(len(ak2_hosts), 1)
                 self.assertIn(vm2.hostname, ak2_hosts)
+
+    @run_only_on('sat')
+    @skip_if_not_set('clients', 'fake_manifest')
+    @tier3
+    def test_positive_service_level_subscription_with_custom_product(self):
+        """Subscribe a host to activation key with Premium service level and
+         with custom product
+
+        :id: 195a8049-860e-494d-b7f0-0794384194f7
+
+        :steps:
+            1. Create a product with custom repository synchronized
+            2. Create and Publish a content view with the created repository
+            3. Create an activation key and assign the created content view
+            4. Add a RedHat subscription to activation key (The product
+               subscription should be added automatically)
+            5. Set the activation service_level to Premium
+            6. Register a host to activation key
+            7. List consumed subscriptions on host
+            8. List the subscription in Content Host UI
+
+        :expectedresults:
+            1. The product subscription is listed in consumed subscriptions on
+               host
+            2. The product subscription is listed in the contenthost
+               subscriptions UI
+
+        :BZ: 1394357
+
+        :CaseLevel: System
+        """
+        org = entities.Organization().create()
+        self.upload_manifest(org.id, manifests.clone())
+        subscription = entities.Subscription(organization=org)
+        entities_ids = setup_org_for_a_custom_repo({
+            'url': FAKE_1_YUM_REPO,
+            'organization-id': org.id,
+        })
+        product = entities.Product(id=entities_ids['product-id']).read()
+        activation_key = entities.ActivationKey(
+            id=entities_ids['activationkey-id']).read()
+        # add the default RH subscription
+        for sub in subscription.search():
+            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+                activation_key.add_subscriptions(data={
+                    'quantity': 1,
+                    'subscription_id': sub.id,
+                })
+                break
+        # ensure all the needed subscriptions are attached to activation key
+        results = activation_key.subscriptions()['results']
+        self.assertEqual(
+            {product.name, DEFAULT_SUBSCRIPTION_NAME},
+            {ak_subscription['name'] for ak_subscription in results}
+        )
+        activation_key.service_level = 'Premium'
+        activation_key = activation_key.update(['service_level'])
+        with VirtualMachine() as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(
+                org.label, activation_key=activation_key.name)
+            self.assertTrue(vm.subscribed)
+            result = vm.run('subscription-manager list --consumed')
+            self.assertEqual(result.return_code, 0)
+            self.assertIn('Subscription Name:   {0}'.format(product.name),
+                          '\n'.join(result.stdout))
+            with Session(self) as session:
+                set_context(session, org=org.name)
+                self.contenthost.search_and_click(vm.hostname)
+                self.contenthost.click(
+                    tab_locators['contenthost.tab_subscriptions'])
+                self.contenthost.click(
+                    tab_locators['contenthost.tab_subscriptions_subscriptions']
+                )
+                self.assertIsNotNone(
+                    self.contenthost.wait_until_element(
+                        locators['contenthost.subscription_select']
+                        % product.name)
+                )
