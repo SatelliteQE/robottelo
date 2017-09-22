@@ -119,6 +119,7 @@ common_locators = LocatorDict({
         By.XPATH, "//textarea[@placeholder='Value' and not(text())]"),
     "parameter_remove": (
         By.XPATH, "//tr/td/input[@value='%s']/following::td/a"),
+    "table_column_title": (By.XPATH, "//th[contains(., '%s')]/a"),
     "table_cell_link": (
         By.XPATH,
         "//table[contains(@class, 'table')]"
@@ -132,6 +133,11 @@ common_locators = LocatorDict({
         "//td[contains(normalize-space(.), '%s')]"
         "/parent::tr"
         "/td[count(//thead//tr/th[.='%s']/preceding-sibling::*)+1]"
+    ),
+    "table_column_values": (
+        By.XPATH,
+        "//table//td/parent::tr/td[count(//thead//tr/th[contains(., '%s')]"
+        "/preceding-sibling::*)+1]"
     ),
 
     "application_logo": (

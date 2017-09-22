@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+import six
 
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
@@ -24,11 +25,11 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
-    run_only_on, stubbed, tier1, tier2, tier3, upgrade
+    run_only_on, skip_if_bug_open, stubbed, tier1, tier2, tier3, upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
-from robottelo.ui.factory import make_subnet
+from robottelo.ui.factory import make_subnet, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -296,6 +297,78 @@ class SubnetTestCase(UITestCase):
             self.subnet.update(name, new_subnet_mask=new_mask)
             result_object = self.subnet.search_and_validate(name)
             self.assertEqual(new_mask, result_object['mask'])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_sort_by_name(self):
+        """Create some Subnet entities and sort them by name
+
+        :id: 0b07341c-717e-46a9-86cc-7192f3d8d449
+
+        :expectedresults: Subnet entities are sorted by name
+
+        :BZ: 1268085
+
+        :CaseImportance: Medium
+        """
+        organization = entities.Organization().create()
+        name_list = [gen_string('alpha', 20) for _ in range(5)]
+        with Session(self) as session:
+            set_context(session, org=organization.name)
+            for name in name_list:
+                make_subnet(
+                    session,
+                    subnet_name=name,
+                    subnet_network=gen_ipaddr(ip3=True),
+                    subnet_mask=gen_netmask(),
+                )
+            self.assertEqual(
+                self.subnet.sort_table_by_column('Name'),
+                sorted(name_list, key=six.text_type.lower)
+            )
+            self.assertEqual(
+                self.subnet.sort_table_by_column('Name'),
+                sorted(name_list, key=six.text_type.lower, reverse=True)
+            )
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1494180)
+    @tier1
+    def test_positive_sort_by_network(self):
+        """Create some Subnet entities and sort them by network address
+
+        :id: 63dc846e-7520-4e8c-8875-a0109d7e5df4
+
+        :expectedresults: Subnet entities are sorted by network address
+
+        :BZ: 1268085, 1494180
+
+        :CaseImportance: Medium
+        """
+        organization = entities.Organization().create()
+        network_list = [gen_ipaddr(ip3=True) for _ in range(5)]
+        network_list.sort(key=lambda s: map(int, s.split('.')), reverse=True)
+        with Session(self) as session:
+            set_context(session, org=organization.name)
+            for ip in network_list:
+                make_subnet(
+                    session,
+                    subnet_name=gen_string('alpha'),
+                    subnet_network=ip,
+                    subnet_mask=gen_netmask(),
+                )
+            sorted_list_asc = self.subnet.sort_table_by_column(
+                'Network address')
+            self.assertEqual(
+                [el.split('/', 1)[0] for el in sorted_list_asc],
+                network_list[::-1]
+            )
+            sorted_list_desc = self.subnet.sort_table_by_column(
+                'Network address')
+            self.assertEqual(
+                [el.split('/', 1)[0] for el in sorted_list_desc],
+                network_list
+            )
 
 
 class ParameterizedSubnetTestCase(UITestCase):
