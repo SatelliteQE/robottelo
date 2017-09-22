@@ -19,7 +19,6 @@ class ContentHost(Base):
     def add_subscriptions(self, subscriptions=None, tab_locator=None,
                           select_locator=None):
         """Add or remove subscription association for content host."""
-        strategy, value = locators['contenthost.subscription_select']
         self.click(tab_locators['contenthost.tab_subscriptions'])
         self.click(tab_locators['contenthost.tab_subscriptions_subscriptions'])
         if not self.wait_until_element(tab_locator):
@@ -27,7 +26,10 @@ class ContentHost(Base):
                           'Make sure content host is registered')
         self.click(tab_locators['contenthost.add_subscription'])
         for subscription in subscriptions:
-            self.click(strategy, value % subscription)
+            self.assign_value(
+                locators['contenthost.subscription_select'] % subscription,
+                True
+            )
         self.click(select_locator)
 
     def update(self, name, new_name=None, add_subscriptions=None,

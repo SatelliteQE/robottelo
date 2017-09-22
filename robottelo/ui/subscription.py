@@ -4,7 +4,7 @@ import os
 from robottelo.decorators import bz_bug_is_open
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -79,3 +79,19 @@ class Subscriptions(Base):
         if not self.wait_until_element(locators.subs.upload, timeout=1):
             self.click(locators.subs.manage_manifest)
         self.click(locators['subs.refresh_manifest'])
+
+    def get_provided_products(self, subscription_name):
+        """Return a list of product names provided by the subscription name"""
+        self.search_and_click(subscription_name)
+        self.click(tab_locators['subs.sub.tab_details'])
+        return [element.text
+                for element in
+                self.find_elements(locators['subs.sub.provided_products'])]
+
+    def get_content_products(self, subscription_name):
+        """Return a list of product names consumed by the subscription name"""
+        self.search_and_click(subscription_name)
+        self.click(tab_locators['subs.sub.product_content'])
+        return [element.text
+                for element in
+                self.find_elements(locators['subs.sub.content_products'])]
