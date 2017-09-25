@@ -41,7 +41,6 @@ class VirtWhoConfigTestCase(APITestCase):
 
         """
 
-
     @run_only_on('sat')
     @stubbed()
     @tier1
@@ -359,7 +358,28 @@ class VirtWhoConfigGeneralTestCase(TestCase):
             3. Deploy the configuration to the virt-who server.
 
         :expectedresults:
-            1. Verify that reports are sent to the virt-who server.
+            1. Verify that reports are sent to the virt-who server via the
+               proxy
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_virt_who_ignoreproxy(self):
+        """ Proxy configured with ignore proxy variable
+
+        :id: cf5b3039-2910-4cc6-adf1-f103ed3c478a
+
+        :steps:
+            1. Create a virt-who configuration with a web proxy, also
+               set the ignore proxy to a list of hostnames, one of which
+               is the satellite
+            2. Deploy the configuration to the virt-who server.
+
+        :expectedresults:
+            1. Verify that reports are sent to the satellite and the proxy is
+               not used.
+
         """
 
     @run_only_on('sat')
