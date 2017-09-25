@@ -41,21 +41,6 @@ class VirtWhoConfigTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_negative_vm_create(self):
-        """ Register a vm on non-virt-who hypervisor
-
-        :id: abecc851-2475-4455-9c12-63a73fcb09bb
-
-        :steps:
-            1. Register a vm on non-virt-who hypervisor
-
-        :expectedresults:
-            Verify there are no virt-who reports reported if there is no
-            change in guest-host mapping in hypervisor
-        """
 
     @run_only_on('sat')
     @stubbed()
