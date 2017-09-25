@@ -13,9 +13,20 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
+
 from robottelo import ssh
-from robottelo.cli.factory import make_scapcontent
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_scapcontent, make_user
+from robottelo.cli.role import Role
+from robottelo.cli.scapcontent import Scapcontent
+from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import OSCAP_DEFAULT_CONTENT
+from robottelo.datafactory import (
+    valid_data_list,
+    invalid_names_list,
+)
 from robottelo.decorators import (
     run_only_on,
     stubbed,
@@ -25,38 +36,39 @@ from robottelo.decorators import (
     upgrade,
     skip_if_bug_open,
 )
-from robottelo.datafactory import (
-    filtered_datapoint,
-    valid_data_list
-)
 from robottelo.test import CLITestCase
-
-
-@filtered_datapoint
-def valid_scapcontent_list():
-    """Returns a list of valid environment names"""
-    return[
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-        gen_string('alphanumeric', 255)
-    ]
 
 
 class OpenScapTestCase(CLITestCase):
     """Tests related to the oscap cli hammer plugin"""
 
     @classmethod
+    def create_test_user_viewer_role(cls):
+        """Create's a user with Viewer role"""
+        cls.login = gen_string('alpha')
+        cls.password = gen_string('alpha')
+        user = make_user({
+            'login': cls.login,
+            'password': cls.password,
+            'admin': False
+        })
+        role = Role.info({'name': 'Viewer'})
+        User.add_role({
+            'login': user['login'],
+            'role-id': role['id'],
+        })
+        return cls.login, cls.password
+
+    @classmethod
     def setUpClass(cls):
         super(OpenScapTestCase, cls).setUpClass()
         file_name = settings.oscap.content_path
         cls.file_name = file_name.split('/')[
-                        (file_name.split('/')).__len__() - 1]
+                     (file_name.split('/')).__len__() - 1]
         ssh.upload_file(local_file=settings.oscap.content_path,
                         remote_file="/tmp/{0}".format(cls.file_name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_list_default_content_with_admin(self):
         """List the default scap content with admin account
@@ -76,13 +88,17 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content are listed.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        result = Scapcontent.list()
+        self.assertIn(
+            OSCAP_DEFAULT_CONTENT['rhel7_content'],
+            [str(scap['title']) for scap in result]
+        )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_list_default_content_with_viewer_role(self):
         """List the default scap content by user with viewer role
@@ -102,13 +118,15 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not listed.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        login, password = self.create_test_user_viewer_role()
+        result = Scapcontent.with_user(login, password).list()
+        self.assertEqual(len(result), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_view_scap_content_info_admin(self):
         """View info of scap content with admin account
@@ -129,13 +147,18 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The info of the scap-content is listed.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        title = gen_string('alpha')
+        make_scapcontent({
+            'title': title,
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        result = Scapcontent.info({'title': title})
+        self.assertEqual(result['title'], title)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_info_scap_content_viewer_role(self):
         """View info of scap content with viewer role
@@ -156,13 +179,19 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The info of the scap-content is not listed.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        title = gen_string('alpha')
+        make_scapcontent({
+            'title': title,
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        login, password = self.create_test_user_viewer_role()
+        with self.assertRaises(CLIReturnCodeError):
+            Scapcontent.with_user(login, password).info({'title': title})
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_info_scap_content(self):
         """View info of scap content with invalid ID as parameter
@@ -183,12 +212,14 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The info of the scap-content is not listed.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        scap_id = gen_string('alphanumeric')
+        with self.assertRaises(CLIReturnCodeError):
+            Scapcontent.info({'id': scap_id})
 
-    @skip_if_bug_open('bugzilla', 1471801)
     @run_only_on('sat')
     @tier1
     def test_positive_create_scap_content_with_valid_title(self):
@@ -210,19 +241,20 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is created successfully.
 
-        :caseautomation: notautomated
+        :BZ: 1471801
+
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
         for title in valid_data_list():
             with self.subTest(title):
-                scap_content = make_scapcontent({'title': title,
-                                                'scap-file': '/tmp/{0}'.format(
-                                                   self.file_name)})
+                scap_content = make_scapcontent({
+                    'title': title,
+                    'scap-file': '/tmp/{0}'.format(self.file_name)})
                 self.assertEqual(scap_content['title'], title)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_scap_content_with_invalid_title(self):
         """Create scap-content with invalid title
@@ -243,13 +275,18 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not created.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        for title in invalid_names_list():
+            with self.subTest(title):
+                with self.assertRaises(CLIFactoryError):
+                    make_scapcontent({
+                        'title': title,
+                        'scap-file': '/tmp/{0}'.format(self.file_name)})
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_scap_content_with_valid_originalfile_name(self):
         """Create scap-content with valid original file name
@@ -268,15 +305,21 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "scap-content" command with "create" as sub-command.
             3. Pass valid parameters.
 
-        :expectedresults: The scap-content is not created.
+        :expectedresults: The scap-content is created.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        for name in valid_data_list():
+            with self.subTest(name):
+                scap_content = make_scapcontent({
+                    'original-filename': name,
+                    'scap-file': '/tmp/{0}'.format(self.file_name)})
+                self.assertEqual(scap_content['original-filename'], name)
 
+    @skip_if_bug_open('bugzilla', 1482395)
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_scap_content_with_invalid_originalfile_name(self):
         """Create scap-content with invalid original file name
@@ -297,40 +340,18 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not created.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        for name in invalid_names_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIFactoryError):
+                    make_scapcontent({
+                        'original-filename': name,
+                        'scap-file': '/tmp/{0}'.format(self.file_name)})
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_create_scap_content_with_dsfile(self):
-        """Create scap-content with scap data stream xml file
-
-        :id: 62f1a663-fe0f-4d02-9329-59fa044e2674
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Oscap-cli hammer plugin installed.
-            3. vaild Scap data stream ".xml" file.
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "scap-content" command with "create" as sub-command.
-            3. Pass valid parameters and valid scap ds file.
-
-        :expectedresults: The scap-content is created successfully.
-
-        :caseautomation: notautomated
-
-        :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_scap_content_without_dsfile(self):
         """Create scap-content without scap data stream xml file
@@ -350,13 +371,17 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not created.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        for title in valid_data_list():
+            with self.subTest(title):
+                with self.assertRaises(CLIFactoryError):
+                    make_scapcontent({'title': title})
 
+    @skip_if_bug_open('bugzilla', 1490302)
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_scap_content_with_newtitle(self):
         """Update scap content title
@@ -376,13 +401,22 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is updated successfully.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        title = gen_string('alpha')
+        new_title = gen_string('alpha')
+        scap_content = make_scapcontent({
+            'title': title,
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        self.assertEqual(scap_content['title'], title)
+        Scapcontent.update({
+            'title': title,
+            'new-title': new_title})
+        self.assertEqual(scap_content['title'], new_title)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_delete_scap_content_with_id(self):
         """Delete a scap content with id as parameter
@@ -402,16 +436,20 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is deleted successfully.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        scap_content = make_scapcontent({
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        Scapcontent.delete({'id': scap_content['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Scapcontent.info({'id': scap_content['id']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
-    def test_positive_delete_scap_content_with_name(self):
-        """Delete a scap content with name as parameter
+    def test_positive_delete_scap_content_with_title(self):
+        """Delete a scap content with title as parameter
 
         :id: aa4ca830-3250-4517-b40c-0256cdda5e0a
 
@@ -428,10 +466,15 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is deleted successfully.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
 
         :CaseImportance: Critical
         """
+        scap_content = make_scapcontent({
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        Scapcontent.delete({'title': scap_content['title']})
+        with self.assertRaises(CLIReturnCodeError):
+            Scapcontent.info({'title': scap_content['title']})
 
     @run_only_on('sat')
     @stubbed()
