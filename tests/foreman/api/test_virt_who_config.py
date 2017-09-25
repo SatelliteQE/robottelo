@@ -43,7 +43,7 @@ class VirtWhoConfigTestCase(APITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_config_update(self):
         """Update a config, verify it it changed and redploy it
 
