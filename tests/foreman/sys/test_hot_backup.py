@@ -31,9 +31,9 @@ from robottelo.test import TestCase
 from time import sleep
 
 BCK_MSG = 'BACKUP Complete, contents can be found in: /tmp/{0}'
-NODIR_MSG = 'ERROR: Please specify an export directory'
-NOPREV_MSG = 'Please specify the previous backup directory'
 BADPREV_MSG = 'Previous backup directory does not exist: {0}'
+NODIR_MSG = 'ERROR: Please specify an export directory'
+NOARG_MSG = 'missing argument'
 
 
 def make_random_tmp_directory(connection):
@@ -423,8 +423,8 @@ class HotBackupTestCase(TestCase):
                 'katello-backup --incremental',
                 output_format='plain'
             )
-            self.assertEqual(result.return_code, 1)
-            self.assertIn(NOPREV_MSG, result.stderr)
+            self.assertNotEqual(result.return_code, 0)
+            self.assertIn(NOARG_MSG, result.stdout)
             self.check_services_status()
 
     @destructive
