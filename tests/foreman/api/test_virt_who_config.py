@@ -23,7 +23,7 @@ class VirtWhoConfigTestCase(APITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier3
     def test_positive_vm_create(self):
         """ Register a vm on virt-who hypervisor
 
