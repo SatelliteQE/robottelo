@@ -1165,6 +1165,44 @@ class SmartClassParametersTestCase(UITestCase):
             self.assertEqual(output_scp, override_value)
 
     @run_only_on('sat')
+    @tier1
+    def test_positive_update_with_long_priority_list(self):
+        """Smart class parameter priority order list can contain more than 255
+        character inside of it
+
+        :id: f5e7847a-1f4b-455d-aa73-6b02774b6168
+
+        :steps:
+            1.  Check the Override checkbox.
+            2.  Set some default Value.
+            3.  Set long priority order list
+
+        :expectedresults: Smart class parameter is updated successfully and has
+            proper priority list
+
+        :BZ: 1458817
+
+        :CaseImportance: Medium
+        """
+        sc_param = self.sc_params_list.pop()
+        order_value = '\n'.join(
+            [gen_string('alpha').lower() for _ in range(60)])
+        self.assertGreater(len(order_value), 255)
+        with Session(self):
+            self.sc_parameters.update(
+                sc_param.parameter,
+                self.puppet_class.name,
+                override=True,
+                default_value=gen_string('alpha'),
+                matcher_priority=order_value,
+            )
+            self.sc_parameters.click(self.sc_parameters.search(
+                sc_param.parameter, self.puppet_class.name))
+            priority_list_value = self.sc_parameters.wait_until_element(
+                locators['sc_parameters.matcher_priority']).text
+            self.assertEqual(order_value, priority_list_value)
+
+    @run_only_on('sat')
     @tier2
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate priority.
