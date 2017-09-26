@@ -38,7 +38,7 @@ class LocationTestCase(unittest2.TestCase):
             capsules=None, all_capsules=None, domains=None, envs=None,
             hostgroups=None, medias=None, organizations=None, ptables=None,
             resources=None, select=True, subnets=None, templates=None,
-            users=None
+            users=None, params=None
         )
 
     def test_creation_with_parent_and_unassigned_host(self):
@@ -51,7 +51,7 @@ class LocationTestCase(unittest2.TestCase):
         configure_arguments = {
             arg: arg for arg in
             'capsules all_capsules domains hostgroups medias organizations '
-            'envs ptables resources select subnets templates users '
+            'envs ptables resources select subnets templates users params '
             'select'.split()
         }
         location.create('foo', 'parent', **configure_arguments)
