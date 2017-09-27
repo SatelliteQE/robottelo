@@ -1279,6 +1279,22 @@ locators = LocatorDict({
         "not(contains(@class, 'disabled'))]/a"
     ),
     "roles.filters.search": (By.XPATH, "//input[@type='search']"),
+    "roles.filters_button": (
+        By.XPATH,
+        "//td[contains(., '%s')]/following-sibling::td"
+        "//a[@data-id='aid_filters']"),
+
+    # Role Filters
+    "role_filters.resources": (
+        By.XPATH, "//table[contains(@class, 'table')]/tbody/tr/td[1]"),
+    "role_filters.permissions": (
+        By.XPATH, "//td[contains(text(), '%s')]/following-sibling::td[1]"),
+    "role_filters.pagination_next": (By.XPATH, "//li/a[@rel='next']"),
+    "role_filters.title": (
+        By.XPATH, "//div[@id='content']/div/h1[starts-with(., 'Filters')]"),
+    "role_filters.results_ready": (
+        By.XPATH,
+        "//div[@id='turbolinks-progress' and @style='display: none;']"),
 
     # Architecture
     "arch.new": (By.XPATH, "//a[contains(@href, '/architectures/new')]"),

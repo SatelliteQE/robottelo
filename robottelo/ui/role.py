@@ -83,21 +83,54 @@ class Role(Base):
         :param role_name: String with role name.
         :return: List of strings with resource names.
         """
-        self.search_and_click(role_name)
-        self.click(tab_locators['roles.tab_filters'])
+        self.search(role_name)
+        self.click(locators['roles.filters_button'] % role_name)
+        # make sure The role filter page is loaded
+        self.wait_until_element(locators['role_filters.title'])
         resources = [
             resource.text for resource in
-            self.find_elements(locators['roles.resources'])
+            self.find_elements(locators['role_filters.resources'])
         ]
-        next_ = self.find_element(locators["roles.filters.pagination_next"])
+        next_ = self.find_element(locators['role_filters.pagination_next'])
         while next_:
             self.click(next_)
-            next_ = self.find_element(
-                locators["roles.filters.pagination_next"])
+            self.wait_until_element(locators["role_filters.results_ready"])
             resources.extend(
                 [resource.text for resource in
-                    self.find_elements(locators['roles.resources'])])
-        return resources
+                 self.find_elements(locators['role_filters.resources'])])
+            next_ = self.find_element(locators['role_filters.pagination_next'])
+        # return only unique values
+        return list(set(resources))
+
+    def _get_page_resources_permissions(self, resource_types, permissions):
+        """Retrieve the permissions for each resource type in resource_types
+        on Role Filters page.
+
+         :param resource_types: the list of resource types to check on the
+            current page.
+        :param  permissions: a dict store to register the resource permissions
+            found.
+
+        Note: The resource is removed from resource_types when found
+        """
+        self.wait_until_element(locators["role_filters.results_ready"])
+        resources = {
+            resource.text for resource in
+            self.find_elements(locators['role_filters.resources'])
+            }
+        for res_type in resources:
+            if res_type in resource_types:
+                perm_elements = self.find_elements(
+                    locators['role_filters.permissions'] % res_type)
+                for perm_element in perm_elements:
+                    if res_type not in permissions:
+                        permissions[res_type] = []
+                    perms = [
+                        perm
+                        for perm in perm_element.text.split(', ')
+                        if perm and perm not in permissions[res_type]
+                    ]
+                    permissions[res_type].extend(perms)
 
     def get_permissions(self, role_name, resource_types):
         """Fetch permissions for provided resource types from role filters.
@@ -107,16 +140,27 @@ class Role(Base):
         :return: Dict with resource name as a key and list of strings with
             permissions names as a values.
         """
-        self.search_and_click(role_name)
-        self.click(tab_locators['roles.tab_filters'])
-        dict_permissions = {}
-        for res_type in resource_types:
-            self.assign_value(locators["roles.filters.search"], res_type)
-            permissions = self.wait_until_element(
-                locators['roles.permissions'] % res_type)
-            if permissions:
-                dict_permissions[res_type] = permissions.text.split(', ')
-        return dict_permissions
+        self.search(role_name)
+        self.click(locators['roles.filters_button'] % role_name)
+        # make sure The role filter page is loaded
+        self.wait_until_element(locators['role_filters.title'])
+        permissions = {}
+        # create a copy of unique resources types
+        resource_types = list(set(resource_types))
+        self._get_page_resources_permissions(resource_types, permissions)
+        next_ = self.find_element(locators['role_filters.pagination_next'])
+        while resource_types and next_:
+            self.click(next_)
+            self._get_page_resources_permissions(resource_types, permissions)
+            next_ = self.find_element(locators['role_filters.pagination_next'])
+        missing_resource_types = set(resource_types).difference(
+            set(permissions.keys()))
+        if missing_resource_types:
+            raise UIError(
+                'Not all resource types where found: {0} are missing'
+                .format(', '.join(missing_resource_types))
+            )
+        return permissions
 
     def clone(self, name, new_name, locations=None, organizations=None):
         """Clone role with name/location/organization."""

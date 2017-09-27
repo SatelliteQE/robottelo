@@ -19,7 +19,7 @@ from random import choice
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.constants import ROLES
+from robottelo.constants import ROLES, ROLES_LOCKED, ROLES_UNLOCKED
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import stubbed, tier1, tier2, tier3, upgrade
 from robottelo.test import UITestCase
@@ -139,30 +139,36 @@ class RoleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        builtin_name = choice(ROLES)
-        new_name = gen_string('alpha')
+        builtin_names = [choice(ROLES_LOCKED), choice(ROLES_UNLOCKED)]
         with Session(self):
-            self.role.clone(builtin_name, new_name)
-            self.assertIsNotNone(
-                self.role.wait_until_element(common_locators['alert.success']))
-            self.assertIsNotNone(self.role.search(new_name))
-            # Ensure that cloned role contains correct resource types
-            builtin_resources = self.role.get_resources(builtin_name)
-            cloned_resources = self.role.get_resources(new_name)
-            self.assertGreater(len(cloned_resources), 0)
-            self.assertEqual(set(builtin_resources), set(cloned_resources))
-            # And correct permissions for every resource type
-            builtin_perms = self.role.get_permissions(
-                builtin_name, builtin_resources)
-            cloned_perms = self.role.get_permissions(
-                new_name, cloned_resources)
-            self.assertEqual(builtin_perms.keys(), cloned_perms.keys())
-            for key in cloned_perms.keys():
-                self.assertEqual(
-                    set(builtin_perms[key]),
-                    set(cloned_perms[key]),
-                    "Permissions differs for {0} resource type".format(key)
-                )
+            for builtin_name in builtin_names:
+                new_name = gen_string('alpha')
+                with self.subTest(builtin_name):
+                    self.role.clone(builtin_name, new_name)
+                    self.assertIsNotNone(
+                        self.role.wait_until_element(
+                            common_locators['alert.success'])
+                    )
+                    self.assertIsNotNone(self.role.search(new_name))
+                    # Ensure that cloned role contains correct resource types
+                    builtin_resources = self.role.get_resources(builtin_name)
+                    cloned_resources = self.role.get_resources(new_name)
+                    self.assertGreater(len(cloned_resources), 0)
+                    self.assertEqual(
+                        set(builtin_resources), set(cloned_resources))
+                    # And correct permissions for every resource type
+                    builtin_perms = self.role.get_permissions(
+                        builtin_name, builtin_resources)
+                    cloned_perms = self.role.get_permissions(
+                        new_name, cloned_resources)
+                    self.assertEqual(builtin_perms.keys(), cloned_perms.keys())
+                    for key in cloned_perms.keys():
+                        self.assertEqual(
+                            set(builtin_perms[key]),
+                            set(cloned_perms[key]),
+                            "Permissions differs for {0} resource type"
+                            .format(key)
+                        )
 
     @tier1
     def test_positive_clone_custom(self):
