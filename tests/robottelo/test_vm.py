@@ -106,11 +106,14 @@ class VirtualMachineTestCase(unittest2.TestCase):
 
         ssh_command_args_list = [
             call('virsh destroy {0}'.format(vm.hostname),
-                 hostname=self.provisioning_server),
+                 hostname=self.provisioning_server,
+                 connection_timeout=30),
             call('virsh undefine {0}'.format(vm.hostname),
-                 hostname=self.provisioning_server),
+                 hostname=self.provisioning_server,
+                 connection_timeout=30),
             call('rm {0}/{1}.img'.format(image_dir, vm.hostname),
-                 hostname=self.provisioning_server),
+                 hostname=self.provisioning_server,
+                 connection_timeout=30),
         ]
 
         self.assertListEqual(ssh_command.call_args_list, ssh_command_args_list)
