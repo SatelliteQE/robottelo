@@ -389,9 +389,9 @@ class RoleTestCase(UITestCase):
                 role_name, used_ptypes)
             self.assertTrue(assigned_permissions)
             assigned_permissions_count = len([
-                perm
-                for ptype in assigned_permissions.values()
-                for perm in ptype
+                perm_
+                for ptype_ in assigned_permissions.values()
+                for perm_ in ptype_
             ])
             self.assertEqual(assigned_permissions_count, filters_number)
 
