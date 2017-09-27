@@ -29,6 +29,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_CV,
+    DEFAULT_LOC,
     DEFAULT_PTABLE,
     ENVIRONMENT,
     PRDS,
@@ -53,6 +54,7 @@ from robottelo.ui.factory import (
     make_hostgroup,
     set_context,
 )
+from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -577,6 +579,106 @@ class HostTestCase(UITestCase):
                 [['Interfaces', 'Primary Interface MAC']],
             )
             self.assertEqual(results['Primary Interface MAC'], host.mac)
+
+    @tier3
+    def test_positive_remove_parameter_non_admin_user(self):
+        """Remove a host parameter as a non-admin user with enough permissions
+
+        :id: 598111c1-fdb6-42e9-8c28-fae999b5d112
+
+        :expectedresults: user with sufficient permissions may remove host
+            parameter
+
+        :CaseLevel: System
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        param_name = gen_string('alpha')
+        default_loc = entities.Location().search(
+            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
+        role = entities.Role().create()
+        entities.Filter(
+            permission=entities.Permission(resource_type='Parameter').search(),
+            role=role,
+        ).create()
+        entities.Filter(
+            permission=entities.Permission(resource_type='Host').search(),
+            role=role,
+        ).create()
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[self.session_org],
+            location=[default_loc],
+            default_organization=self.session_org,
+        ).create()
+        host = entities.Host(
+            location=default_loc,
+            organization=self.session_org,
+            host_parameters_attributes=[
+                {'name': param_name, 'value': gen_string('alpha')}
+            ],
+        ).create()
+        with Session(self, user=user_login, password=user_password):
+            self.hosts.search_and_click(host.name)
+            self.hosts.click(locators['host.edit'])
+            self.hosts.remove_parameter(param_name)
+            self.hosts.click(locators['host.edit'])
+            self.assertIsNone(self.hosts.get_parameter(param_name))
+
+    @tier3
+    def test_negative_remove_parameter_non_admin_user(self):
+        """Attempt to remove host parameter as a non-admin user with
+        insufficient permissions
+
+        :BZ: 1317868
+
+        :id: 78fd230e-2ec4-4158-823b-ddbadd5e232f
+
+        :expectedresults: user with insufficient permissions is unable to
+            remove host parameter, 'Remove' link is not visible for him
+
+        :CaseLevel: System
+        """
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
+        default_loc = entities.Location().search(
+            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
+        role = entities.Role().create()
+        entities.Filter(
+            permission=entities.Permission(name='view_params').search(),
+            role=role,
+        ).create()
+        entities.Filter(
+            permission=entities.Permission(resource_type='Host').search(),
+            role=role,
+        ).create()
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[self.session_org],
+            location=[default_loc],
+            default_organization=self.session_org,
+        ).create()
+        host = entities.Host(
+            location=default_loc,
+            organization=self.session_org,
+            host_parameters_attributes=[
+                {'name': param_name, 'value': param_value}
+            ],
+        ).create()
+        with Session(self, user=user_login, password=user_password):
+            self.hosts.search_and_click(host.name)
+            self.hosts.click(locators['host.edit'])
+            self.assertEqual(self.hosts.get_parameter(param_name), param_value)
+            with self.assertRaises(UINoSuchElementError):
+                self.hosts.remove_parameter(param_name)
 
     @run_only_on('sat')
     @tier3
