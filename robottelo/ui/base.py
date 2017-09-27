@@ -504,13 +504,22 @@ class Base(object):
         txt_field.send_keys(newtext)
         self.wait_for_ajax()
 
+    def get_parameter(self, param_name):
+        """Function to get parameter value for different entities like OS and
+        Domain
+        """
+        self.click(common_locators['parameter_tab'])
+        value_elem = self.find_element(
+            common_locators['parameter_value'] % param_name)
+        return value_elem.text if value_elem else None
+
     def set_parameter(self, param_name, param_value):
         """Function to set parameters for different entities like OS and Domain
         """
         self.click(common_locators['parameter_tab'])
         self.click(common_locators['add_parameter'])
-        self.assign_value(common_locators['parameter_name'], param_name)
-        self.assign_value(common_locators['parameter_value'], param_value)
+        self.assign_value(common_locators['new_parameter_name'], param_name)
+        self.assign_value(common_locators['new_parameter_value'], param_value)
         self.click(common_locators['submit'])
         self.logger.debug(u'Param: %s set to: %s', param_name, param_value)
 

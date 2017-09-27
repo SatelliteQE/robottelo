@@ -625,6 +625,8 @@ class HostTestCase(UITestCase):
             self.hosts.search_and_click(host.name)
             self.hosts.click(locators['host.edit'])
             self.hosts.remove_parameter(param_name)
+            self.hosts.click(locators['host.edit'])
+            self.assertIsNone(self.hosts.get_parameter(param_name))
 
     @tier3
     def test_negative_remove_parameter_non_admin_user(self):
@@ -643,6 +645,7 @@ class HostTestCase(UITestCase):
         user_login = gen_string('alpha')
         user_password = gen_string('alpha')
         param_name = gen_string('alpha')
+        param_value = gen_string('alpha')
         default_loc = entities.Location().search(
             query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
         role = entities.Role().create()
@@ -667,12 +670,13 @@ class HostTestCase(UITestCase):
             location=default_loc,
             organization=self.session_org,
             host_parameters_attributes=[
-                {'name': param_name, 'value': gen_string('alpha')}
+                {'name': param_name, 'value': param_value}
             ],
         ).create()
         with Session(self, user=user_login, password=user_password):
             self.hosts.search_and_click(host.name)
             self.hosts.click(locators['host.edit'])
+            self.assertEqual(self.hosts.get_parameter(param_name), param_value)
             with self.assertRaises(UINoSuchElementError):
                 self.hosts.remove_parameter(param_name)
 
