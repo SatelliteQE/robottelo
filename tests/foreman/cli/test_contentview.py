@@ -2526,6 +2526,69 @@ class ContentViewTestCase(CLITestCase):
             'version1 still exists in the next env',
         )
 
+    @tier2
+    @run_only_on('sat')
+    def test_positive_auto_update_composite_to_latest_cv_version(self):
+        """Ensure that composite content view component is auto updated to the
+        latest content view version.
+
+        :id: c0726d16-1802-4b56-a850-d66948ab70e2
+
+        :steps:
+            1. Create a non composite content view and publish it
+            2. Create a composite content view
+            3. Add the non composite content view to composite one components
+                with latest option
+            4. Ensure that the published non composite content view version 1
+                is in composite content view components
+            5. Publish a second time the non composite content view
+
+        :expectedresults: The composite content view component was updated
+            to version 2 of the non composite one
+
+        :BZ: 1177766
+
+        :CaseLevel: Integration
+        """
+        content_view = make_content_view({'organization-id': self.org['id']})
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        version_1_id = content_view['versions'][0]['id']
+        composite_cv = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id']
+        })
+        ContentView.component_add({
+            'composite-content-view-id': composite_cv['id'],
+            'component-content-view-id': content_view['id'],
+            'latest': True,
+        })
+        # Ensure that version 1 is in  composite content view components
+        components = ContentView.component_list(
+            {'composite-content-view-id': composite_cv['id']})
+        self.assertEqual(len(components), 1)
+        component_id = components[0]['id']
+        self.assertEqual(
+            components[0]['version-id'], '{0} (Latest)'.format(version_1_id))
+        self.assertEqual(components[0]['current-version'], '1.0')
+        # Publish the content view a second time
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 2)
+        # Ensure that composite content view component has been updated to
+        # version 2
+        version_2_id = content_view['versions'][1]['id']
+        self.assertNotEqual(version_1_id, version_2_id)
+        components = ContentView.component_list(
+            {'composite-content-view-id': composite_cv['id']})
+        self.assertEqual(len(components), 1)
+        # Ensure that this is the same component that is updated
+        self.assertEqual(component_id, components[0]['id'])
+        self.assertEqual(
+            components[0]['version-id'], '{0} (Latest)'.format(version_2_id))
+        self.assertEqual(components[0]['current-version'], '2.0')
+
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_chost_by_id(self):
