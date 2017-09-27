@@ -170,7 +170,11 @@ class VirtualMachine(object):
             bridge=self.bridge
         )
 
-        result = ssh.command(command, self.provisioning_server)
+        result = ssh.command(
+                command,
+                self.provisioning_server,
+                connection_timeout=30
+        )
 
         if result.return_code != 0:
             raise VirtualMachineError(
@@ -182,7 +186,8 @@ class VirtualMachine(object):
         result = ssh.command(
             u'for i in {{1..60}}; do ping -c1 {0}.local && exit 0; sleep 1;'
             u' done; exit 1'.format(self._target_image),
-            self.provisioning_server
+            self.provisioning_server,
+            connection_timeout=30
         )
         if result.return_code != 0:
             logger.error('Failed to obtain VM IP, reverting changes')
@@ -194,7 +199,8 @@ class VirtualMachine(object):
         ssh_check = ssh.command(
             u'for i in {{1..60}}; do nc -vn {0} 22 <<< "" && exit 0; sleep 1;'
             u' done; exit 1'.format(self.ip_addr),
-            self.provisioning_server
+            self.provisioning_server,
+            connection_timeout=30
         )
         if ssh_check.return_code != 0:
             logger.error('Failed to SSH to the VM, reverting changes')
@@ -212,16 +218,19 @@ class VirtualMachine(object):
 
         ssh.command(
             u'virsh destroy {0}'.format(self.target_image),
-            hostname=self.provisioning_server
+            hostname=self.provisioning_server,
+            connection_timeout=30
         )
         ssh.command(
             u'virsh undefine {0}'.format(self.target_image),
-            hostname=self.provisioning_server
+            hostname=self.provisioning_server,
+            connection_timeout=30
         )
         image_name = u'{0}.img'.format(self.target_image)
         ssh.command(
             u'rm {0}'.format(os.path.join(self.image_dir, image_name)),
-            hostname=self.provisioning_server
+            hostname=self.provisioning_server,
+            connection_timeout=30
         )
 
     def download_install_rpm(self, repo_url, package_name):
