@@ -229,6 +229,9 @@ tab_locators = LocatorDict({
     "contentviews.tab_version_packages": (
         By.XPATH,
         "//a[contains(@ui-sref, 'content-view.version.packages')]"),
+    "contentviews.tab_version_errata": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'content-view.version.errata')]"),
     "contentviews.tab_version_puppet_modules": (
         By.XPATH,
         "//a[contains(@ui-sref, "

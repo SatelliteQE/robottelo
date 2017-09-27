@@ -31,6 +31,16 @@ from robottelo.api.utils import (
     upload_manifest,
     get_role_by_bz,
 )
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view,
+    make_content_view_filter,
+    make_content_view_filter_rule,
+    make_org,
+)
+from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
+from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
@@ -71,6 +81,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import read_data_file
+from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError, UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
@@ -503,6 +514,75 @@ class ContentViewTestCase(UITestCase):
                     package2_name,
                 )
             )
+
+    @skip_if_bug_open('bugzilla', 1455990)
+    @skip_if_bug_open('bugzilla', 1492114)
+    @run_in_one_thread
+    @tier2
+    def test_positive_publish_rh_content_with_errata_by_date_filter(self):
+        """Publish a CV, containing only RH repo, having errata excluding by
+        date filter
+
+        :BZ: 1455990, 1492114
+
+        :id: b4c120b6-129f-4344-8634-df5858c10fef
+
+        :expectedresults: Errata exclusion by date filter doesn't affect
+            packages - errata was successfully filtered out, however packages
+            are still present
+
+        :CaseImportance: High
+        """
+        org = make_org()
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
+        Subscription.upload({
+            'file': manifest.filename,
+            'organization-id': org['id'],
+        })
+        RepositorySet.enable({
+            'basearch': 'x86_64',
+            'name': REPOSET['rhst6'],
+            'organization-id': org['id'],
+            'product': PRDS['rhel'],
+        })
+        rhel_repo = Repository.info({
+            'name': REPOS['rhst6']['name'],
+            'organization-id': org['id'],
+            'product': PRDS['rhel'],
+        })
+        Repository.synchronize({
+            'name': REPOS['rhst6']['name'],
+            'organization-id': org['id'],
+            'product': PRDS['rhel'],
+        })
+        cv = make_content_view({'organization-id': org['id']})
+        ContentView.add_repository({
+            'id': cv['id'],
+            'repository-id': rhel_repo['id'],
+        })
+        cvf = make_content_view_filter({
+            'content-view-id': cv['id'],
+            'inclusion': False,
+            'repository-ids': rhel_repo['id'],
+            'type': 'erratum',
+        })
+        make_content_view_filter_rule({
+            'content-view-filter-id': cvf['filter-id'],
+            'start-date': '2015-05-01',
+            'types': ['enhancement', 'bugfix', 'security'],
+        })
+        ContentView.publish({'id': cv['id']})
+        version = 'Version {}'.format(
+            ContentView.info({'id': cv['id']})['versions'][-1]['version'])
+        with Session(self):
+            self.nav.go_to_select_org(org['name'])
+            packages = self.content_views.fetch_version_packages(
+                cv['name'], version)
+            self.assertGreaterEqual(len(packages), 1)
+            errata = self.content_views.fetch_version_errata(
+                cv['name'], version)
+            self.assertEqual(len(errata), 0)
 
     @run_only_on('sat')
     @tier2

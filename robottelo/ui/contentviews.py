@@ -646,6 +646,50 @@ class ContentViews(Base):
         return self.wait_until_element(
             locators['contentviews.version.package_name'] % package_name)
 
+    def fetch_version_packages(self, name, version_name):
+        """Return a list of all the packages inside specific content view
+        version"""
+        self.click(self.version_search(name, version_name))
+        self.click(tab_locators['contentviews.tab_version_packages'])
+        packages = []
+        while True:
+            names = self.find_elements(
+                locators['contentviews.version.package_name'] % '')
+            versions = self.find_elements(
+                locators['contentviews.version.package_version'] % '')
+            releases = self.find_elements(
+                locators['contentviews.version.package_release'] % '')
+            for name, version, release in zip(names, versions, releases):
+                packages.append((name.text, version.text, release.text))
+            next_ = self.find_element(
+                locators['contentviews.version.content_next_page'])
+            if next_ is None:
+                break
+            self.click(next_)
+        return packages
+
+    def fetch_version_errata(self, name, version_name):
+        """Return a list of all the errata inside specific content view
+        version"""
+        self.click(self.version_search(name, version_name))
+        self.click(tab_locators['contentviews.tab_version_errata'])
+        errata = []
+        while True:
+            ids = self.find_elements(
+                locators['contentviews.version.errata_id'] % '')
+            titles = self.find_elements(
+                locators['contentviews.version.errata_title'] % '')
+            types = self.find_elements(
+                locators['contentviews.version.errata_type'] % '')
+            for id_, title, type_ in zip(ids, titles, types):
+                errata.append((id_.text, title.text, type_.text))
+            next_ = self.find_element(
+                locators['contentviews.version.content_next_page'])
+            if next_ is None:
+                break
+            self.click(next_)
+        return errata
+
     def puppet_module_search(self, name, version, module_name):
         """Search for puppet module element in content view version"""
         self.click(self.version_search(name, version))

@@ -2131,10 +2131,27 @@ locators = LocatorDict({
     "contentviews.version.package_version": (
         By.XPATH,
         "//tr[contains(@ng-repeat,'package')]/td[2][contains(., '%s')]"),
+    "contentviews.version.package_release": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'package')]/td[3][contains(., '%s')]"),
+    "contentviews.version.errata_id": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[1][contains(., '%s')]"),
+    "contentviews.version.errata_title": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[2][contains(., '%s')]"),
+    "contentviews.version.errata_type": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[3][contains(., '%s')]"),
     "contentviews.version.puppet_module_name": (
         By.XPATH,
         ("//tr[contains(@ng-repeat, 'puppetModule')]"
          "/td[contains(., '%s')]")),
+    "contentviews.version.content_next_page": (
+        By.XPATH,
+        ("//ul[contains(@class, 'pagination-pf-forward')]"
+         "/li[not(contains(@class, 'disabled'))]"
+         "/a[span[contains(@class, 'fa-angle-right')]]")),
 
     # Packages
     "package.rpm_name": (By.XPATH, "//a[contains(., '%s')]"),
