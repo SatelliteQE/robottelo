@@ -161,6 +161,26 @@ class ContentHostTestCase(UITestCase):
                 self.client.hostname, FAKE_0_CUSTOM_PACKAGE_NAME))
 
     @tier3
+    def test_negative_install_package(self):
+        """Attempt to install non-existent package to a host remotely
+
+        :id: d60b70f9-c43f-49c0-ae9f-187ffa45ac97
+
+        :BZ: 1262940
+
+        :expectedresults: Task finished with warning
+
+        :CaseLevel: System
+        """
+        with Session(self):
+            result = self.contenthost.execute_package_action(
+                self.client.hostname,
+                'Package Install',
+                gen_string('alphanumeric'),
+            )
+            self.assertEqual(result, 'warning')
+
+    @tier3
     def test_positive_remove_package(self):
         """Remove a package from a host remotely
 
