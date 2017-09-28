@@ -11,9 +11,24 @@
 
 :CaseImportance: High
 
+:CaseAutomation: Automated
+
 :Upstream: No
 """
+import os
 
+from fauxfactory import gen_string
+
+from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_tailoringfile, CLIFactoryError
+from robottelo.cli.scap_tailoring_files import TailoringFiles
+from robottelo.config import settings
+from robottelo.constants import SNIPPET_DATA_FILE
+from robottelo.datafactory import (
+    valid_data_list,
+    invalid_names_list,
+)
 from robottelo.decorators import (
     run_only_on,
     stubbed,
@@ -22,14 +37,23 @@ from robottelo.decorators import (
     tier4,
     upgrade
 )
+from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
 
 class TailoringFilesTestCase(CLITestCase):
     """Implements Tailoring Files tests in CLI."""
 
+    @classmethod
+    def setUpClass(cls):
+        super(TailoringFilesTestCase, cls).setUpClass()
+        _, cls.file_name = os.path.split(settings.oscap.tailoring_path)
+        ssh.upload_file(
+            local_file=settings.oscap.tailoring_path,
+            remote_file="/tmp/{0}".format(cls.file_name)
+        )
+
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create(self):
         """Create new Tailoring Files using different values types as name
@@ -40,15 +64,18 @@ class TailoringFilesTestCase(CLITestCase):
 
             1. Create valid tailoring file with valid parameter
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring file will be added to satellite
 
         :CaseImportance: Critical
         """
+        for name in valid_data_list():
+            with self.subTest(name):
+                tailoring_file = make_tailoringfile({
+                    'name': name,
+                    'scap-file': '/tmp/{0}'.format(self.file_name)})
+                self.assertEqual(tailoring_file['name'], name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_with_space(self):
         """Create tailoring files with space in name
@@ -59,34 +86,17 @@ class TailoringFilesTestCase(CLITestCase):
 
             1. Create valid tailoring file with space in name
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring file will be added to satellite
 
         :CaseImportance: Critical
         """
+        name = gen_string('alphanumeric') + ' ' + gen_string('alphanumeric')
+        tailoring_file = make_tailoringfile({
+            'name': name,
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        self.assertEqual(tailoring_file['name'], name)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_create_with_valid_file(self):
-        """Create Tailoring files with valid file
-
-        :id: 6b85d215-ea5f-42a4-86fb-4c4bba7864cc
-
-        :steps:
-
-            1. Create tailoring file with valid tailoring file
-
-        :CaseAutomation: notautomated
-
-        :expectedresults: Tailoring file will be added to satellite
-
-        :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_get_info_of_tailoring_file(self):
         """Get information of tailoring file
@@ -101,15 +111,18 @@ class TailoringFilesTestCase(CLITestCase):
             2. Execute "tailoring-file" command with "info" as sub-command
                with valid parameter
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring file information should be displayed
 
         :CaseImportance: Critical
         """
+        name = gen_string('alphanumeric')
+        make_tailoringfile({
+            'name': name,
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        result = TailoringFiles.info({'name': name})
+        self.assertEqual(result['name'], name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_list_tailoring_file(self):
         """List all created tailoring files
@@ -123,15 +136,19 @@ class TailoringFilesTestCase(CLITestCase):
             1. Create different tailoring file with different valid name
             2. Execute "tailoring-file" command with "list" as sub-command
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring files list should be displayed
 
         :CaseImportance: Critical
         """
+        name = gen_string('alphanumeric')
+        make_tailoringfile({
+            'name': name,
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        result = TailoringFiles.list()
+        self.assertIn(
+             name, [tailoringfile['name'] for tailoringfile in result])
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_with_invalid_file(self):
         """Create Tailoring files with invalid file
@@ -142,15 +159,22 @@ class TailoringFilesTestCase(CLITestCase):
 
             1. Attempt to create tailoring file with invalid file
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring file will not be added to satellite
 
         :CaseImportance: Critical
         """
+        ssh.upload_file(
+            local_file=get_data_file(SNIPPET_DATA_FILE),
+            remote_file='/tmp/{0}'.format(SNIPPET_DATA_FILE)
+        )
+        name = gen_string('alphanumeric')
+        with self.assertRaises(CLIFactoryError):
+            make_tailoringfile({
+                'name': name,
+                'scap-file': '/tmp/{0}'.format(SNIPPET_DATA_FILE)
+            })
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create Tailoring files with invalid name
@@ -161,33 +185,16 @@ class TailoringFilesTestCase(CLITestCase):
 
             1. Attempt to create tailoring file with invalid name parameter
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring file will not be added to satellite
 
         :CaseImportance: Critical
         """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_positive_associate_tailoring_file_with_scap(self):
-        """ Associate a Tailoring file with it’s scap content
-
-        :id: e5b6ab52-83ba-4931-b654-6fa22de4c94d
-
-        :steps:
-
-            1. Execute "scap-content" command with "create" as sub-command
-            2. Execute "tailoring-file" command with "create" as sub-command
-            3. Associate scap content with it’s tailoring file
-
-        :CaseAutomation: notautomated
-
-        :expectedresults: Association should be successful
-
-        :CaseImportance: Critical
-        """
+        for name in invalid_names_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIFactoryError):
+                    make_tailoringfile({
+                        'name': name,
+                        'scap-file': '/tmp/{0}'.format(self.file_name)})
 
     @run_only_on('sat')
     @stubbed()
@@ -211,7 +218,6 @@ class TailoringFilesTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_download_tailoring_file(self):
 
@@ -224,36 +230,26 @@ class TailoringFilesTestCase(CLITestCase):
             1.Create valid tailoring file with valid name
             2.Execute "tailoring-file" command with "download" as sub-command
 
-        :CaseAutomation: notautomated
-
         :expectedresults: The tailoring file should be downloaded
 
         :CaseImportance: Critical
         """
+        name = gen_string('alphanumeric')
+        file_path = '/tmp/{0}.xml'.format(name)
+        tailoring_file = make_tailoringfile({
+            'name': name,
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        self.assertEqual(tailoring_file['name'], name)
+        result = TailoringFiles.download_tailoring_file({
+            'name': name,
+            'path': '/tmp/'
+        })
+        self.assertIn(file_path, result[0])
+        result = ssh.command('find {0}'.format(file_path))
+        self.assertEqual(result.return_code, 0)
+        self.assertIn(file_path, result.stdout)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_negative_download_tailoring_file(self):
-        """ Download the tailoring file from satellite
-
-        :id: 0febee0f-bc34-440c-b9f0-40b199523ee7
-
-        :steps:
-
-            1.Create valid tailoring file with valid name
-            2.Shutdown OSCAP proxy
-            3.Execute "tailoring-file" command with "download" as sub-command
-
-        :CaseAutomation: notautomated
-
-        :expectedresults: Get meaningful message about what went wrong
-
-        :CaseImportance: Critical
-        """
-
-    @run_only_on('sat')
-    @stubbed()
     @tier1
     @upgrade
     def test_positive_delete_tailoring_file(self):
@@ -266,12 +262,15 @@ class TailoringFilesTestCase(CLITestCase):
             1. Create valid tailoring file with valid parameter
             2. Execute "tailoring-file" command with "delete" as sub-command
 
-        :CaseAutomation: notautomated
-
         :expectedresults: Tailoring file should be deleted
 
         :CaseImportance: Critical
         """
+        tailoring_file = make_tailoringfile({
+            'scap-file': '/tmp/{0}'.format(self.file_name)})
+        TailoringFiles.delete({'id': tailoring_file['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            TailoringFiles.info({'id': tailoring_file['id']})
 
     @run_only_on('sat')
     @stubbed()
