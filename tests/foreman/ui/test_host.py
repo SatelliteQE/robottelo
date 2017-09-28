@@ -1078,8 +1078,22 @@ class HostTestCase(UITestCase):
         """
         org = entities.Organization().create()
         name_list = [gen_string('alpha', 20).lower() for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
         for name in name_list:
-            entities.Host(name=name, organization=org).create()
+            entities.Host(
+                name=name,
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
         with Session(self) as session:
             set_context(session, org=org.name)
             self.hosts.navigate_to_entity()
@@ -1112,9 +1126,22 @@ class HostTestCase(UITestCase):
         """
         org = entities.Organization().create()
         name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
         for name in name_list:
             os = entities.OperatingSystem(name=name).create()
-            entities.Host(operatingsystem=os, organization=org).create()
+            entities.Host(
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=os,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
         with Session(self) as session:
             set_context(session, org=org.name)
             self.hosts.navigate_to_entity()
@@ -1149,9 +1176,22 @@ class HostTestCase(UITestCase):
         """
         org = entities.Organization().create()
         name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
         for name in name_list:
             env = entities.Environment(name=name).create()
-            entities.Host(environment=env, organization=org).create()
+            entities.Host(
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=env,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
         with Session(self) as session:
             set_context(session, org=org.name)
             self.hosts.navigate_to_entity()
@@ -1182,9 +1222,23 @@ class HostTestCase(UITestCase):
         """
         org = entities.Organization().create()
         name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
         for name in name_list:
             model = entities.Model(name=name).create()
-            entities.Host(model=model, organization=org).create()
+            entities.Host(
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+                model=model
+            ).create()
         with Session(self) as session:
             set_context(session, org=org.name)
             self.hosts.navigate_to_entity()
@@ -1215,9 +1269,23 @@ class HostTestCase(UITestCase):
         """
         org = entities.Organization().create()
         name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
         for name in name_list:
             hg = entities.HostGroup(name=name, organization=[org]).create()
-            entities.Host(hostgroup=hg, organization=org).create()
+            entities.Host(
+                hostgroup=hg,
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
         with Session(self) as session:
             set_context(session, org=org.name)
             self.hosts.navigate_to_entity()
