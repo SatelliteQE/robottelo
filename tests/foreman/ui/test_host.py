@@ -66,8 +66,6 @@ import robottelo.cli.factory as cli_factory
 class LibvirtHostTestCase(UITestCase):
     """Implements Libvirt Host tests in UI"""
 
-    hostname = gen_string('numeric')
-
     @classmethod
     @skip_if_not_set('vlan_networking', 'compute_resources')
     def setUpClass(cls):
@@ -250,6 +248,8 @@ class LibvirtHostTestCase(UITestCase):
                 organization=[cls.org_.id],
             ).create()
 
+        cls.resource = u'{0} (Libvirt)'.format(cls.computeresource.name)
+
         # Get the Partition table ID
         cls.ptable = entities.PartitionTable().search(
             query={
@@ -314,6 +314,13 @@ class LibvirtHostTestCase(UITestCase):
             'medium',
         ])
 
+        cls.puppet_env = entities.Environment(
+            location=[cls.loc],
+            organization=[cls.org_],
+        ).create(True)
+
+        cls.root_pwd = gen_string('alpha', 15)
+
         # Create Hostgroup
         cls.host_group = entities.HostGroup(
             architecture=cls.arch,
@@ -333,15 +340,6 @@ class LibvirtHostTestCase(UITestCase):
             ptable=cls.ptable.id,
         ).create()
 
-    def tearDown(self):
-        """Delete the host to free the resources"""
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
-            if self.hosts.search(host_name):
-                self.hosts.delete(host_name, dropdown_present=True)
-        super(LibvirtHostTestCase, self).tearDown()
-
     @run_only_on('sat')
     @tier3
     def test_positive_create_libvirt(self):
@@ -353,37 +351,84 @@ class LibvirtHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        resource = u'{0} (Libvirt)'.format(self.computeresource.name)
-        root_pwd = gen_string('alpha', 15)
-        environment = entities.Environment(
-            location=[self.loc],
-            organization=[self.org_],
-        ).create(True)
+        hostname = gen_string('numeric')
         with Session(self) as session:
             make_host(
                 session,
-                name=self.hostname,
+                name=hostname,
                 org=self.org_name,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],
                     ['Host', 'Host group', self.host_group.name],
-                    ['Host', 'Deploy on', resource],
-                    ['Host', 'Puppet Environment', environment.name],
+                    ['Host', 'Deploy on', self.resource],
+                    ['Host', 'Puppet Environment', self.puppet_env.name],
                     ['Virtual Machine', 'Memory', '1 GB'],
                     ['Operating System', 'Media', self.media.name],
                     ['Operating System', 'Partition table', DEFAULT_PTABLE],
-                    ['Operating System', 'Root password', root_pwd],
+                    ['Operating System', 'Root password', self.root_pwd],
                 ],
                 interface_parameters=[
                     ['Network type', 'Physical (Bridge)'],
                     ['Network', settings.vlan_networking.bridge],
                 ],
             )
-            search = self.hosts.search(
-                u'{0}.{1}'.format(self.hostname, self.domain_name)
+            name = u'{0}.{1}'.format(hostname, self.domain_name)
+            self.assertIsNotNone(self.hosts.search(name))
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_delete_libvirt(self):
+        """Create a new Host on libvirt compute resource and delete it
+        afterwards
+
+        :id: 6a9175e7-bb96-4de3-bc45-ba6c10dd14a4
+
+        :expectedresults: Proper warning message is displayed on delete attempt
+            and host deleted successfully afterwards
+
+        :BZ: 1243223
+
+        :CaseLevel: System
+        """
+        hostname = gen_string('alpha').lower()
+        with Session(self) as session:
+            make_host(
+                session,
+                name=hostname,
+                org=self.org_name,
+                parameters_list=[
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', self.host_group.name],
+                    ['Host', 'Deploy on', self.resource],
+                    ['Host', 'Puppet Environment', self.puppet_env.name],
+                    ['Virtual Machine', 'Memory', '1 GB'],
+                    ['Operating System', 'Media', self.media.name],
+                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
+                    ['Operating System', 'Root password', self.root_pwd],
+                ],
+                interface_parameters=[
+                    ['Network type', 'Physical (Bridge)'],
+                    ['Network', settings.vlan_networking.bridge],
+                ],
             )
-            self.assertIsNotNone(search)
+            name = u'{0}.{1}'.format(hostname, self.domain_name)
+            self.assertIsNotNone(self.hosts.search(name))
+            self.hosts.click(common_locators['select_action_dropdown'] % name)
+            self.hosts.click(
+                common_locators['delete_button'] % name,
+                wait_for_ajax=False
+            )
+            text = self.hosts.get_alert_text()
+            self.assertIn(
+                'This will delete the virtual machine and its disks, and is '
+                'irreversible.',
+                text
+            )
+            self.hosts.handle_alert(True)
+            self.hosts.wait_for_ajax()
+            self.assertIsNone(self.hosts.search(name))
 
 
 class HostTestCase(UITestCase):

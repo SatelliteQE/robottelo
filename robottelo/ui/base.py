@@ -287,15 +287,17 @@ class Base(object):
         self.click(locators['bookmark.create'])
 
     def handle_alert(self, really):
-        """
-        Handles any alerts
-        """
+        """Handles any alerts"""
+        alert = self.browser.switch_to_alert()
         if really:
-            alert = self.browser.switch_to_alert()
             alert.accept()
         else:
-            alert = self.browser.switch_to_alert()
             alert.dismiss()
+
+    def get_alert_text(self):
+        """Get alert text"""
+        alert = self.browser.switch_to_alert()
+        return alert.text
 
     def select_deselect_entity(self, filter_key, loc, entity_list):
         """Function to select and deselect entity like OS, Partition Table,
