@@ -1038,6 +1038,43 @@ class SmartVariablesTestCase(UITestCase):
             self.assertEqual(output['parameters'][name], override_value)
 
     @run_only_on('sat')
+    @tier1
+    @upgrade
+    def test_positive_create_with_long_priority_list(self):
+        """Smart variable priority order list can contain more than 255
+        character inside of it
+
+        :id: 440923cb-9d81-40c8-9d81-7bf22f503cf5
+
+        :steps:
+            1.  Create variable with some default value.
+            2.  Set long priority order list
+
+        :expectedresults: Smart variable is created successfully and has proper
+            priority list
+
+        :BZ: 1458817
+
+        :CaseImportance: Medium
+        """
+        name = gen_string('alpha')
+        order_value = '\n'.join(
+            [gen_string('alpha').lower() for _ in range(60)])
+        self.assertGreater(len(order_value), 255)
+        with Session(self) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet_class.name,
+                default_value=gen_string('alpha'),
+                matcher_priority=order_value,
+            )
+            self.smart_variable.search_and_click(name)
+            priority_list_value = self.sc_parameters.wait_until_element(
+                locators['smart_variable.matcher_priority']).text
+            self.assertEqual(order_value, priority_list_value)
+
+    @run_only_on('sat')
     @tier2
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate
