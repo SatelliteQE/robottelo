@@ -10,31 +10,48 @@
 
 :CaseImportance: High
 
+:CaseAutomation: Automated
+
 :Upstream: No
 """
+import os
+
 from fauxfactory import gen_string
 
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_scapcontent, make_user
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_hostgroup,
+    make_scapcontent,
+    make_scap_policy,
+    make_tailoringfile,
+    make_user
+)
 from robottelo.cli.role import Role
+from robottelo.cli.scap_policy import Scappolicy
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.user import User
 from robottelo.config import settings
-from robottelo.constants import OSCAP_DEFAULT_CONTENT
+from robottelo.constants import (
+    OSCAP_DEFAULT_CONTENT,
+    OSCAP_PROFILE,
+    OSCAP_PERIOD,
+    OSCAP_WEEKDAY
+)
 from robottelo.datafactory import (
     valid_data_list,
-    invalid_names_list,
+    invalid_names_list
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_only_on,
+    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
     tier4,
-    upgrade,
-    skip_if_bug_open,
+    upgrade
 )
 from robottelo.test import CLITestCase
 
@@ -60,13 +77,45 @@ class OpenScapTestCase(CLITestCase):
         return cls.login, cls.password
 
     @classmethod
+    def fetch_scap_and_profile_id(cls, scap_name, scap_profile):
+        """Extracts the scap ID and scap profile id
+
+        :param scap_name: Scap title
+        :param scap_profile: Scap profile you want to select
+
+        :returns: scap_id and scap_profile_id
+        """
+        default_content = Scapcontent.info({'title': scap_name})
+        scap_id = default_content['id']
+        scap_profile_ids = [
+            profile['id']
+            for profile in default_content['scap-content-profiles']
+            if scap_profile in profile['title']
+        ]
+        return scap_id, scap_profile_ids
+
+    @classmethod
     def setUpClass(cls):
         super(OpenScapTestCase, cls).setUpClass()
-        file_name = settings.oscap.content_path
-        cls.file_name = file_name.split('/')[
-                     (file_name.split('/')).__len__() - 1]
-        ssh.upload_file(local_file=settings.oscap.content_path,
-                        remote_file="/tmp/{0}".format(cls.file_name))
+        _, cls.file_name = os.path.split(settings.oscap.content_path)
+        # uploads the scap content to satellite
+        ssh.upload_file(
+            local_file=settings.oscap.content_path,
+            remote_file="/tmp/{0}".format(cls.file_name)
+        )
+        cls.title = 'rhel-6-content'
+        result = Scapcontent.info({'title': cls.title})
+        if not result['title'] in cls.title:
+            make_scapcontent({
+                'title': cls.title,
+                'scap-file': '/tmp/{0}'.format(cls.file_name)
+            })
+        cls.scap_id_rhel6, cls.scap_profile_id_rhel6 = (
+            cls.fetch_scap_and_profile_id(
+                cls.title,
+                OSCAP_PROFILE['common']
+            )
+        )
 
     @run_only_on('sat')
     @tier1
@@ -87,8 +136,6 @@ class OpenScapTestCase(CLITestCase):
             2. Execute the scap-content command with list as sub-command.
 
         :expectedresults: The scap-content are listed.
-
-        :caseautomation: automated
 
         :CaseImportance: Critical
         """
@@ -118,8 +165,6 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not listed.
 
-        :caseautomation: automated
-
         :CaseImportance: Critical
         """
         login, password = self.create_test_user_viewer_role()
@@ -146,8 +191,6 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid "ID" of scap-content as argument.
 
         :expectedresults: The info of the scap-content is listed.
-
-        :caseautomation: automated
 
         :CaseImportance: Critical
         """
@@ -178,8 +221,6 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid parameters.
 
         :expectedresults: The info of the scap-content is not listed.
-
-        :caseautomation: automated
 
         :CaseImportance: Critical
         """
@@ -212,13 +253,11 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The info of the scap-content is not listed.
 
-        :caseautomation: automated
-
         :CaseImportance: Critical
         """
-        scap_id = gen_string('alphanumeric')
+        invalid_scap_id = gen_string('alpha')
         with self.assertRaises(CLIReturnCodeError):
-            Scapcontent.info({'id': scap_id})
+            Scapcontent.info({'id': invalid_scap_id})
 
     @run_only_on('sat')
     @tier1
@@ -242,8 +281,6 @@ class OpenScapTestCase(CLITestCase):
         :expectedresults: The scap-content is created successfully.
 
         :BZ: 1471801
-
-        :caseautomation: automated
 
         :CaseImportance: Critical
         """
@@ -317,8 +354,6 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not created.
 
-        :caseautomation: automated
-
         :CaseImportance: Critical
         """
         for title in invalid_names_list():
@@ -348,8 +383,6 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid parameters.
 
         :expectedresults: The scap-content is created.
-
-        :caseautomation: automated
 
         :CaseImportance: Critical
         """
@@ -382,8 +415,6 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not created.
 
-        :caseautomation: automated
-
         :CaseImportance: Critical
         """
         for name in invalid_names_list():
@@ -413,8 +444,6 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is not created.
 
-        :caseautomation: automated
-
         :CaseImportance: Critical
         """
         for title in valid_data_list():
@@ -443,8 +472,6 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The scap-content is updated successfully.
 
-        :caseautomation: automated
-
         :CaseImportance: Critical
         """
         title = gen_string('alpha')
@@ -453,10 +480,12 @@ class OpenScapTestCase(CLITestCase):
             'title': title,
             'scap-file': '/tmp/{0}'.format(self.file_name)})
         self.assertEqual(scap_content['title'], title)
-        Scapcontent.update({
+        result = Scapcontent.update({
             'title': title,
             'new-title': new_title})
-        self.assertEqual(scap_content['title'], new_title)
+        if bz_bug_is_open(1496810):
+            result = Scapcontent.info({'title': new_title})
+        self.assertEqual(result['title'], new_title)
 
     @run_only_on('sat')
     @tier1
@@ -477,8 +506,6 @@ class OpenScapTestCase(CLITestCase):
             3. Pass ID as parameter.
 
         :expectedresults: The scap-content is deleted successfully.
-
-        :caseautomation: automated
 
         :CaseImportance: Critical
         """
@@ -519,7 +546,6 @@ class OpenScapTestCase(CLITestCase):
             Scapcontent.info({'title': scap_content['title']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_postive_create_scap_policy_with_valid_name(self):
         """Create scap policy with valid name
@@ -538,12 +564,19 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid parameters and valid name.
 
         :expectedresults: The policy is created successfully.
-
-        :caseautomation: notautomated
         """
+        for name in valid_data_list():
+            with self.subTest(name):
+                scap_policy = make_scap_policy({
+                    'name': name,
+                    'scap-content-id': self.scap_id_rhel6,
+                    'scap-content-profile-id': self.scap_profile_id_rhel6,
+                    'period': OSCAP_PERIOD['weekly'].lower(),
+                    'weekday': OSCAP_WEEKDAY['friday'].lower()
+                })
+                self.assertEqual(scap_policy['name'], name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_negative_create_scap_policy_with_invalid_name(self):
         """Create scap policy with invalid name
@@ -562,12 +595,19 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid parameters and invalid name.
 
         :expectedresults: The policy is not created.
-
-        :caseautomation: notautomated
         """
+        for name in invalid_names_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIFactoryError):
+                    make_scap_policy({
+                        'name': name,
+                        'scap-content-id': self.scap_id_rhel6,
+                        'scap-content-profile-id': self.scap_profile_id_rhel6,
+                        'period': OSCAP_PERIOD['weekly'].lower(),
+                        'weekday': OSCAP_WEEKDAY['friday'].lower()
+                    })
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_negative_create_scap_policy_without_content(self):
         """Create scap policy without scap content
@@ -586,12 +626,15 @@ class OpenScapTestCase(CLITestCase):
             3. Pass valid parameters without passing the scap-content-id.
 
         :expectedresults: The policy is not created.
-
-        :caseautomation: notautomated
         """
+        with self.assertRaises(CLIFactoryError):
+            make_scap_policy({
+                'scap-content-profile-id': self.scap_profile_id_rhel6,
+                'period': OSCAP_PERIOD['weekly'].lower(),
+                'weekday': OSCAP_WEEKDAY['friday'].lower()
+            })
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_associate_scap_policy_with_hostgroups(self):
         """Associate hostgroups to scap policy
@@ -612,12 +655,20 @@ class OpenScapTestCase(CLITestCase):
             4. Associate multiple hostgroups with policy
 
         :expectedresults: The policy is created and associated successfully.
-
-        :caseautomation: notautomated
         """
+        hostgroup = make_hostgroup()
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'hostgroups': hostgroup['name']
+        })
+        self.assertEqual(scap_policy['hostgroups'][0], hostgroup['name'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_associate_scap_policy_with_tailoringfiles_id(self):
         """Associate tailoring file by id to scap policy
@@ -632,12 +683,30 @@ class OpenScapTestCase(CLITestCase):
             4. Associate tailoring file by "tailoring-file-id" with policy
 
         :expectedresults: The policy is created and associated successfully.
-
-        :caseautomation: notautomated
         """
+        _, file_name = os.path.split(settings.oscap.tailoring_path)
+        ssh.upload_file(
+            local_file=settings.oscap.tailoring_path,
+            remote_file="/tmp/{0}".format(file_name)
+        )
+        tailoring_file = make_tailoringfile({
+            'scap-file': '/tmp/{0}'.format(file_name)
+        })
+        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
+        scap_policy = make_scap_policy({
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'tailoring-file-id': tailoring_file['id'],
+            'tailoring-file-profile-id': tailor_profile_id
+        })
+        self.assertEqual(scap_policy['tailoring-file-id'],
+                         tailoring_file['id'])
+        self.assertEqual(scap_policy['tailoring-file-profile-id'],
+                         tailor_profile_id)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_associate_scap_policy_with_tailoringfiles_name(self):
         """Associate tailoring file by name to scap policy
@@ -652,38 +721,30 @@ class OpenScapTestCase(CLITestCase):
             4. Associate tailoring file by "tailoring-file" with policy
 
         :expectedresults: The policy is created and associated successfully.
-
-        :caseautomation: notautomated
         """
+        _, file_name = os.path.split(settings.oscap.tailoring_path)
+        ssh.upload_file(
+            local_file=settings.oscap.tailoring_path,
+            remote_file="/tmp/{0}".format(file_name)
+        )
+        tailoring_file = make_tailoringfile({
+            'scap-file': '/tmp/{0}'.format(file_name)
+        })
+        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
+        scap_policy = make_scap_policy({
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'tailoring-file': tailoring_file['name'],
+            'tailoring-file-profile-id': tailor_profile_id
+        })
+        self.assertEqual(scap_policy['tailoring-file-id'],
+                         tailoring_file['id'])
+        self.assertEqual(scap_policy['tailoring-file-profile-id'],
+                         tailor_profile_id)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier2
-    def test_positive_create_scap_policy_without_hostgroups(self):
-        """Create scap policy without hostgroups
-
-        :id: de705ba8-a946-4835-a79c-5da9510d591a
-
-        :setup:
-
-            1. Oscap should be enabled.
-            2. Oscap-cli hammer plugin installed.
-            3. More than 1 hostgroups.
-
-        :steps:
-
-            1. Login to hammer shell.
-            2. Execute "policy" command with "create" as sub-command.
-            3. Pass valid parameters.
-            4. Associate multiple hostgroups with policy.
-
-        :expectedresults: The policy is created.
-
-        :caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_list_scap_policy(self):
         """List all scap policies
@@ -702,12 +763,21 @@ class OpenScapTestCase(CLITestCase):
             2. Execute "policy" command with "list" as sub-command.
 
         :expectedresults: The policies are listed successfully.
-
-        :caseautomation: notautomated
         """
+        name = gen_string('alphanumeric')
+        make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower()
+        })
+        result = Scappolicy.list()
+        self.assertIn(name,
+                      [policy['name'] for policy in result]
+                      )
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_info_scap_policy_with_id(self):
         """View info of policy with id as parameter
@@ -727,12 +797,17 @@ class OpenScapTestCase(CLITestCase):
             3. Pass ID as the parameter.
 
         :expectedresults: The information is displayed.
-
-        :caseautomation: notautomated
         """
+        scap_policy = make_scap_policy({
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower()
+        })
+        result = Scappolicy.info({'id': scap_policy['id']})
+        self.assertEqual(result['id'], scap_policy['id'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_info_scap_policy_with_name(self):
         """View info of policy with name as parameter
@@ -752,12 +827,19 @@ class OpenScapTestCase(CLITestCase):
             3. Pass name as the parameter.
 
         :expectedresults: The information is displayed.
-
-        :caseautomation: notautomated
         """
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower()
+        })
+        result = Scappolicy.info({'name': scap_policy['name']})
+        self.assertEqual(result['name'], name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_update_scap_policy_with_hostgroup(self):
         """Update scap policy by addition of hostgroup
@@ -777,12 +859,27 @@ class OpenScapTestCase(CLITestCase):
             3. Pass hostgoups as the parameter.
 
         :expectedresults: The scap policy is updated.
-
-        :caseautomation: notautomated
         """
+        hostgroup = make_hostgroup()
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+            'hostgroups': hostgroup['name']
+        })
+        self.assertEqual(scap_policy['hostgroups'][0], hostgroup['name'])
+        new_hostgroup = make_hostgroup()
+        Scappolicy.update({
+            'id': scap_policy['id'],
+            'hostgroups': new_hostgroup['name']
+        })
+        scap_info = Scappolicy.info({'name': name})
+        self.assertEqual(scap_info['hostgroups'][0], new_hostgroup['name'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_update_scap_policy_period(self):
         """Update scap policy by updating the period strategy
@@ -803,12 +900,26 @@ class OpenScapTestCase(CLITestCase):
             3. Pass period as parameter and weekday as parameter.
 
         :expectedresults: The scap policy is updated.
-
-        :caseautomation: notautomated
         """
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+        })
+        self.assertEqual(scap_policy['period'], OSCAP_PERIOD['weekly'].lower())
+        Scappolicy.update({
+            'id': scap_policy['id'],
+            'period': OSCAP_PERIOD['monthly'].lower(),
+            'day-of-month': 15
+        })
+        scap_info = Scappolicy.info({'name': name})
+        self.assertEqual(scap_info['period'], OSCAP_PERIOD['monthly'].lower())
+        self.assertEqual(scap_info['day-of-month'], '15')
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_update_scap_policy_with_content(self):
         """Update the scap policy by updating the scap content
@@ -829,12 +940,32 @@ class OpenScapTestCase(CLITestCase):
             3. Pass scap-content-id as parameter.
 
         :expectedresults: The scap policy is updated.
-
-        :caseautomation: notautomated
         """
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+        })
+        self.assertEqual(scap_policy['scap-content-id'], self.scap_id_rhel6)
+        scap_id, scap_profile_id = self.fetch_scap_and_profile_id(
+                OSCAP_DEFAULT_CONTENT['rhel_firefox'],
+                OSCAP_PROFILE['firefox']
+        )
+
+        Scappolicy.update({
+            'name': name,
+            'scap-content-id': scap_id,
+            'scap-content-profile-id': scap_profile_id,
+        })
+        scap_info = Scappolicy.info({'name': name})
+        self.assertEqual(scap_info['scap-content-id'], scap_id)
+        self.assertEqual(scap_info['scap-content-profile-id'],
+                         scap_profile_id[0])
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_update_scap_policy_with_tailoringfiles_id(self):
         """Update the scap policy by updating the scap tailoring file id
@@ -849,12 +980,36 @@ class OpenScapTestCase(CLITestCase):
             3. Pass tailoring-file-id as parameter.
 
         :expectedresults: The scap policy is updated.
-
-        :caseautomation: notautomated
         """
+        _, file_name = os.path.split(settings.oscap.tailoring_path)
+        ssh.upload_file(
+            local_file=settings.oscap.tailoring_path,
+            remote_file="/tmp/{0}".format(file_name)
+        )
+        tailoring_file = make_tailoringfile({
+            'scap-file': '/tmp/{0}'.format(file_name)
+        })
+        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+        })
+        self.assertEqual(scap_policy['scap-content-id'], self.scap_id_rhel6)
+        Scappolicy.update({
+            'name': name,
+            'tailoring-file-id': tailoring_file['id'],
+            'tailoring-file-profile-id': tailor_profile_id
+        })
+        scap_info = Scappolicy.info({'name': name})
+        self.assertEqual(scap_info['tailoring-file-id'], tailoring_file['id'])
+        self.assertEqual(scap_info['tailoring-file-profile-id'],
+                         tailor_profile_id)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_update_scap_policy_with_tailoringfiles_name(self):
         """Update the scap policy by updating the scap tailoring file name
@@ -869,12 +1024,36 @@ class OpenScapTestCase(CLITestCase):
             3. Pass tailoring-file as parameter.
 
         :expectedresults: The scap policy is updated.
-
-        :caseautomation: notautomated
         """
+        _, file_name = os.path.split(settings.oscap.tailoring_path)
+        ssh.upload_file(
+            local_file=settings.oscap.tailoring_path,
+            remote_file="/tmp/{0}".format(file_name)
+        )
+        tailoring_file = make_tailoringfile({
+            'scap-file': '/tmp/{0}'.format(file_name)
+        })
+        tailor_profile_id = tailoring_file['tailoring-file-profiles'][0]['id']
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+        })
+        self.assertEqual(scap_policy['scap-content-id'], self.scap_id_rhel6)
+        Scappolicy.update({
+            'name': name,
+            'tailoring-file': tailoring_file['name'],
+            'tailoring-file-profile-id': tailor_profile_id
+        })
+        scap_info = Scappolicy.info({'name': name})
+        self.assertEqual(scap_info['tailoring-file-id'], tailoring_file['id'])
+        self.assertEqual(scap_info['tailoring-file-profile-id'],
+                         tailor_profile_id)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_delete_scap_policy_with_id(self):
         """Delete the scap policy with id as parameter
@@ -894,12 +1073,21 @@ class OpenScapTestCase(CLITestCase):
             3. Pass id as parameter.
 
         :expectedresults: The scap policy is deleted successfully.
-
-        :caseautomation: notautomated
         """
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+        })
+        self.assertEqual(scap_policy['name'], name)
+        Scappolicy.delete({'id': scap_policy['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Scapcontent.info({'id': scap_policy['id']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_delete_scap_policy_with_name(self):
         """Delete the scap policy with name as parameter
@@ -919,9 +1107,19 @@ class OpenScapTestCase(CLITestCase):
             3. Pass name as parameter.
 
         :expectedresults: The scap policy is deleted successfully.
-
-        :caseautomation: notautomated
         """
+        name = gen_string('alphanumeric')
+        scap_policy = make_scap_policy({
+            'name': name,
+            'scap-content-id': self.scap_id_rhel6,
+            'scap-content-profile-id': self.scap_profile_id_rhel6,
+            'period': OSCAP_PERIOD['weekly'].lower(),
+            'weekday': OSCAP_WEEKDAY['friday'].lower(),
+        })
+        self.assertEqual(scap_policy['name'], name)
+        Scappolicy.delete({'name': name})
+        with self.assertRaises(CLIReturnCodeError):
+            Scapcontent.info({'name': scap_policy['name']})
 
     @run_only_on('sat')
     @stubbed()

@@ -58,6 +58,8 @@ from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
+from robottelo.cli.scap_policy import Scappolicy
+from robottelo.cli.scap_tailoring_files import TailoringFiles
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
@@ -1030,6 +1032,121 @@ def make_filter(options=None):
         raise CLIFactoryError('Please provide a valid permissions field.')
 
     return create_object(Filter, args, options)
+
+
+@cacheable
+def make_scap_policy(options=None):
+    """
+    Usage::
+
+        policy create [OPTIONS]
+
+    Options::
+
+         --cron-line CRON_LINE                                 Policy schedule
+                                                               cron line
+         --day-of-month DAY_OF_MONTH                           Policy schedule
+                                                               day of month
+                                                               (only if period
+                                                               == “monthly”)
+         --description DESCRIPTION                             Policy
+                                                               description
+         --hostgroup-ids HOSTGROUP_IDS                         Apply policy to
+                                                               host groups
+                                                               Comma separated
+                                                               Values list of
+                                                               values.
+                                                               containing comma
+                                                               or should be
+                                                               quoted escaped
+                                                               with backslash
+         --hostgroups HOSTGROUP_NAMES                          Comma separated
+                                                               list of values.
+                                                               Values
+                                                               containing
+                                                               comma should be
+                                                               quoted or
+                                                               escaped with
+                                                               backslash
+         --location-ids LOCATION_IDS                           REPLACE
+                                                               locations
+                                                               with given ids
+                                                               Comma separated
+                                                               list of values.
+                                                               containing comma
+                                                               should be quoted
+                                                               escaped with
+                                                               backslash
+         --locations LOCATION_NAMES                            Comma separated
+                                                               list of values.
+                                                               containing comma
+                                                               should be quoted
+                                                               escaped with
+                                                               backslash
+         --name NAME                                           Policy name
+         --organization-ids ORGANIZATION_IDS                   REPLACE
+                                                               organizations
+                                                               with given ids.
+                                                               Comma separated
+                                                               list of values.
+                                                               containing comma
+                                                               should be quoted
+                                                               escaped with
+                                                               backslash
+         --organizations ORGANIZATION_NAMES                    Comma separated
+                                                               list of values.
+                                                               containing comma
+                                                               should be quoted
+                                                               escaped with
+                                                               backslash
+         --period PERIOD                                       Policy schedule
+                                                               period (weekly,
+                                                               monthly, custom)
+         --scap-content SCAP_CONTENT_TITLE                     SCAP content
+                                                               title
+         --scap-content-id SCAP_CONTENT_ID
+         --scap-content-profile-id SCAP_CONTENT_PROFILE_ID     Policy SCAP
+                                                               content
+                                                               profile ID
+         --tailoring-file TAILORING_FILE_NAME                  Tailoring file
+                                                               name
+         --tailoring-file-id TAILORING_FILE_ID
+         --tailoring-file-profile-id TAILORING_FILE_PROFILE_ID Tailoring file
+                                                               profile ID
+         --weekday WEEKDAY                                     Policy schedule
+                                                               weekday (only if
+                                                               period
+                                                               == “weekly”)
+         -h, --help                                            print help
+
+    """
+    # Assigning default values for attributes
+    # SCAP ID and SCAP profile ID is a required field.
+    if not options and not options.get('scap-content-id') and not options.get(
+            'scap-content-profile-id') and not options.get('period'):
+        raise CLIFactoryError('Please provide a valid SCAP ID or'
+                              ' SCAP Profile ID or Period')
+    args = {
+        u'description': None,
+        u'scap-content-id': None,
+        u'scap-content-profile-id': None,
+        u'period': None,
+        u'weekday': None,
+        u'day-of-month': None,
+        u'cron-line': None,
+        u'hostgroup-ids': None,
+        u'hostgroups': None,
+        u'locations': None,
+        u'organizations:': None,
+        u'tailoring-file': None,
+        u'tailoring-file-id': None,
+        u'tailoring-file-profile-id': None,
+        u'location-ids': None,
+        u'name': gen_alphanumeric().lower(),
+        u'organization-ids': None,
+    }
+
+    return create_object(Scappolicy, args, options)
 
 
 @cacheable
@@ -2470,6 +2587,50 @@ def make_lifecycle_environment(options=None):
     }
 
     return create_object(LifecycleEnvironment, args, options)
+
+
+@cacheable
+def make_tailoringfile(options=None):
+    """
+   Usage::
+
+        tailoring-file create [OPTIONS]
+
+   Options::
+
+         --location-ids LOCATION_IDS           REPLACE locations with given ids
+                                               Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted.
+         --locations LOCATION_NAMES            Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted
+         --name NAME                           Tailoring file name
+         --organization-ids ORGANIZATION_IDS   REPLACE organizations with given
+                                               ids.
+                                               Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted
+         --organizations ORGANIZATION_NAMES    Comma separated list of values.
+                                               Values containing comma should
+                                               be double quoted
+         --original-filename ORIGINAL_FILENAME Original file name of the XML
+                                               file
+         --scap-file SCAP_FILE                 Tailoring file content
+         -h, --help                            print help
+    """
+    # Assigning default values for attributes
+    args = {
+        u'scap-file': None,
+        u'original-filename': None,
+        u'location-ids': None,
+        u'locations': None,
+        u'name': gen_alphanumeric().lower(),
+        u'organization-ids': None,
+        u'organizations': None,
+    }
+
+    return create_object(TailoringFiles, args, options)
 
 
 @cacheable

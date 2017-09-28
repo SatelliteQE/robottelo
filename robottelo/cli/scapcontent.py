@@ -22,8 +22,6 @@ from robottelo.cli.base import Base
 
 
 class Scapcontent(Base):
-    """
-    Manipulates Satellite's scap-content.
-    """
+    """Manipulates Satellite's scap-content."""
 
     command_base = 'scap-content'
