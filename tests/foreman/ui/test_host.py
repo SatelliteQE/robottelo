@@ -15,6 +15,8 @@
 
 :Upstream: No
 """
+import six
+
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import (
@@ -1056,6 +1058,244 @@ class HostTestCase(UITestCase):
                     _raw_query='organization = {}'.format(
                         host.organization.read().name)
                 )
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_sort_by_name(self):
+        """Create some Host entities and sort them by name ascendingly and then
+        descendingly
+
+        :id: 12f75ef9-23e6-48be-80ed-b354e8ac212b
+
+        :expectedresults: Host entities are sorted properly
+
+        :CaseImportance: High
+
+        :BZ: 1268085
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        name_list = [gen_string('alpha', 20).lower() for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
+        for name in name_list:
+            entities.Host(
+                name=name,
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            self.hosts.navigate_to_entity()
+            sorted_list_asc = self.hosts.sort_table_by_column('Name')
+            self.assertEqual(
+                [el.split('.', 1)[0] for el in sorted_list_asc],
+                sorted(name_list)
+            )
+            sorted_list_desc = self.hosts.sort_table_by_column('Name')
+            self.assertEqual(
+                [el.split('.', 1)[0] for el in sorted_list_desc],
+                sorted(name_list, reverse=True)
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_sort_by_os(self):
+        """Create some Host entities and sort them by operation system
+        ascendingly and then descendingly
+
+        :id: 617e812d-258e-4ba4-8a9a-d7d02f2fb405
+
+        :expectedresults: Host entities are sorted properly
+
+        :CaseImportance: High
+
+        :BZ: 1268085
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
+        for name in name_list:
+            os = entities.OperatingSystem(name=name).create()
+            entities.Host(
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=os,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            self.hosts.navigate_to_entity()
+            sorted_list_asc = self.hosts.sort_table_by_column(
+                'Operating system')
+            self.assertEqual(
+                [el.split(' ', 1)[0] for el in sorted_list_asc],
+                sorted(name_list, key=six.text_type.lower)
+            )
+            sorted_list_desc = self.hosts.sort_table_by_column(
+                'Operating system')
+            self.assertEqual(
+                [el.split(' ', 1)[0] for el in sorted_list_desc],
+                sorted(name_list, key=six.text_type.lower, reverse=True)
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_sort_by_env(self):
+        """Create some Host entities and sort them by environment
+        ascendingly and then descendingly
+
+        :id: 8a1e8d6d-dc5f-4b78-9844-80355452c979
+
+        :expectedresults: Host entities are sorted properly
+
+        :CaseImportance: High
+
+        :BZ: 1268085
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
+        for name in name_list:
+            env = entities.Environment(name=name).create()
+            entities.Host(
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=env,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            self.hosts.navigate_to_entity()
+            self.assertEqual(
+                self.hosts.sort_table_by_column('Environment'),
+                sorted(name_list, key=six.text_type.lower)
+            )
+            self.assertEqual(
+                self.hosts.sort_table_by_column('Environment'),
+                sorted(name_list, key=six.text_type.lower, reverse=True)
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_sort_by_model(self):
+        """Create some Host entities and sort them by hardware model
+        ascendingly and then descendingly
+
+        :id: 56853ffb-47b2-47ce-89c5-d295c16200c8
+
+        :expectedresults: Host entities are sorted properly
+
+        :CaseImportance: High
+
+        :BZ: 1268085
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
+        for name in name_list:
+            model = entities.Model(name=name).create()
+            entities.Host(
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+                model=model
+            ).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            self.hosts.navigate_to_entity()
+            self.assertEqual(
+                self.hosts.sort_table_by_column('Model'),
+                sorted(name_list, key=six.text_type.lower)
+            )
+            self.assertEqual(
+                self.hosts.sort_table_by_column('Model'),
+                sorted(name_list, key=six.text_type.lower, reverse=True)
+            )
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_sort_by_hostgroup(self):
+        """Create some Host entities and sort them by host group ascendingly
+        and then descendingly
+
+        :id: d1ac744a-ff76-4afe-84a1-3a7e4b3ca3f1
+
+        :expectedresults: Host entities are sorted properly
+
+        :CaseImportance: High
+
+        :BZ: 1268085
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        name_list = [gen_string('alpha', 20) for _ in range(5)]
+        host = entities.Host(organization=org)
+        host.create_missing()
+        for name in name_list:
+            hg = entities.HostGroup(name=name, organization=[org]).create()
+            entities.Host(
+                hostgroup=hg,
+                organization=org,
+                architecture=host.architecture,
+                domain=host.domain,
+                environment=host.environment,
+                location=host.location,
+                mac=host.mac,
+                medium=host.medium,
+                operatingsystem=host.operatingsystem,
+                ptable=host.ptable,
+                root_pass=host.root_pass,
+            ).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            self.hosts.navigate_to_entity()
+            self.assertEqual(
+                self.hosts.sort_table_by_column('Host group'),
+                sorted(name_list, key=six.text_type.lower)
+            )
+            self.assertEqual(
+                self.hosts.sort_table_by_column('Host group'),
+                sorted(name_list, key=six.text_type.lower, reverse=True)
             )
 
     @tier2

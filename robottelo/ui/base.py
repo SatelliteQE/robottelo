@@ -5,7 +5,12 @@ import logging
 import time
 
 from robottelo.helpers import escape_search
-from robottelo.ui.locators import locators, common_locators, Locator
+from robottelo.ui.locators import (
+    common_locators,
+    menu_locators,
+    locators,
+    Locator,
+)
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
@@ -840,3 +845,18 @@ class Base(object):
         """
         self.click(common_locators['kt_select_action_dropdown'])
         self.click(common_locators['select_action'] % action_name)
+
+    def sort_table_by_column(self, column_name):
+        """Sort entity table by specific column name
+
+        :param str column_name: Name of the column which is used for sorting
+        :return: List of cell values after table is reordered
+        """
+        self.click(common_locators['table_column_title'] % column_name)
+        self.wait_until_element_is_not_visible(menu_locators['navbar.spinner'])
+        self.wait_for_ajax()
+        cell_values = [
+            element.text for element in self.find_elements(
+                common_locators['table_column_values'] % column_name)
+        ]
+        return cell_values

@@ -16,12 +16,13 @@
 :Upstream: No
 """
 
-from fauxfactory import gen_string
+from nailgun import entities
+from fauxfactory import gen_string, gen_url
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_media
+from robottelo.ui.factory import make_media, set_context
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -189,3 +190,34 @@ class MediumTestCase(UITestCase):
             self.assertIsNotNone(self.medium.search(name))
             self.medium.update(name, newname, newpath, 'Debian')
             self.assertTrue(self, self.medium.search(newname))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_sort_by_url(self):
+        """Create some medium entities and sort them by url path
+
+        :id: 6399f4ad-c081-46c4-89f6-70e552fb603a
+
+        :expectedresults: Medium entities are sorted properly
+
+        :CaseImportance: Medium
+        """
+        organization = entities.Organization().create()
+        path_list = [
+            gen_url(subdomain=gen_string('alpha', 20).lower(), scheme='https')
+            for _ in range(5)
+        ]
+        for url in path_list:
+            entities.Media(path_=url, organization=[organization]).create()
+        path_list.sort(key=lambda x: x.split('.', 1)[0], reverse=True)
+        with Session(self) as session:
+            set_context(session, org=organization.name)
+            self.medium.navigate_to_entity()
+            self.assertEqual(
+                self.medium.sort_table_by_column('Path'),
+                path_list[::-1]
+            )
+            self.assertEqual(
+                self.medium.sort_table_by_column('Path'),
+                path_list
+            )
