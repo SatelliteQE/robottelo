@@ -194,3 +194,39 @@ class HostCollection(Base):
         if result is None:
             raise UIError('Timeout waiting for errata installation to finish')
         return result.get_attribute('type')
+
+    def change_assigned_content(self, name, lce_name, cv_name, timeout=120):
+        """Change assigned life cycle environment and content view of host
+        collection
+
+        :param name: the host collection name
+        :param cv_name: the content view name to assign
+        :param lce_name: the life cycle environment to assign
+        :param timeout: Timeout in seconds for content change task to finish
+        :raise: UIError if remote task finished by timeout
+
+        :return: Returns a string containing task status
+        """
+        self.click(self.search(name))
+        self.click(tab_locators['hostcollection.details'])
+        self.click(locators['contenthost.bulk_actions.environment_content'])
+        self.click(
+            locators[
+                'contenthost.bulk_actions.environment_checkbox'] % lce_name,
+            lce_name
+        )
+        self.assign_value(
+            locators['contenthost.bulk_actions.content_view_select'],
+            cv_name
+        )
+        self.click(
+            locators['contenthost.bulk_actions.environment_content_assign'])
+        self.click(
+            locators['contenthost.bulk_actions.environment_content_confirm'])
+        result = self.wait_until_element(
+            locators['contenthost.remote_action_finished'],
+            timeout=timeout,
+        )
+        if result is None:
+            raise UIError('Timeout waiting for content change to finish')
+        return result.get_attribute('type')

@@ -56,7 +56,7 @@ from robottelo.decorators import (
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
-from robottelo.ui.factory import make_host_collection
+from robottelo.ui.factory import make_host_collection, set_context
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
@@ -690,8 +690,119 @@ class HostCollectionPackageManagementTest(UITestCase):
             self.assertEqual(result, 'success')
             self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
 
+    @tier3
+    def test_positive_change_assigned_content(self):
+        """Change Assigned Life cycle environment and content view of host
+        collection
+
+        :id: e426064a-db3d-4a94-822a-fc303defe1f9
+
+        :steps:
+            1. Setup activation key with content view that contain product
+               repositories
+            2. Prepare hosts (minimum 2) and subscribe them to activation key,
+               katello agent must be also installed and running on each host
+            3. Create a host collection and add the hosts to it
+            4. Run "subscription-manager repos" command on each host to notice
+               the repos urls current values
+            5. Create a new life cycle environment
+            6. Create a copy of content view and publish/promote it to the new
+               life cycle environment
+            7. Go to  Hosts => Hosts Collections and select the host collection
+            8. under host collection details tab notice the Actions Area and
+               click on the link
+               "Change assigned Lifecycle Environment or Content View"
+            9. When a dialog box is open, select the new life cycle environment
+               and the new content view
+            10. Click on "Assign" button and click "Yes" button on confirmation
+                dialog when it appears
+            11. After last step the host collection change task page will
+                appear
+            12. Run "subscription-manager refresh" command on each host
+            13. Run "subscription-manager repos" command on each host
+
+        :expectedresults:
+            1. The host collection change task successfully finished
+            2. The "subscription-manager refresh" command successfully executed
+               and "All local data refreshed" message is displayed
+            3. The urls listed by last command "subscription-manager repos" was
+               updated to the new Life cycle environment and content view
+               names
+
+        :BZ: 1315280
+
+        :CaseLevel: System
+        """
+        # create a clients variable here as self.hosts attribute will be
+        # overwritten by Session initialization
+        clients = self.hosts
+        new_lce_name = gen_string('alpha')
+        new_cv_name = gen_string('alpha')
+        new_lce = entities.LifecycleEnvironment(
+            name=new_lce_name, organization=self.session_org).create()
+        new_content_view = entities.ContentView(
+            id=self.content_view.copy(data={u'name': new_cv_name})['id']
+        )
+        new_content_view.publish()
+        new_content_view = new_content_view.read()
+        new_content_view_version = new_content_view.version[0]
+        new_content_view_version.promote(data={'environment_id': new_lce.id})
+        # repository urls listed by command "subscription-manager repos" looks
+        # like:
+        # Repo URL  : https://{host}/pulp/repos/{org}/{lce}/{cv}/custom
+        # /{product_name}/{repo_name}
+        # changing lce and content view should affect only the {lce}/{cv} part
+        repo_line_start_with = 'Repo URL:  '
+        # the lce and cv location part of the current repos urls
+        env_cv_repo_location = '{0}/{1}'.format(
+            self.env.name, self.content_view.name)
+        # the expected lce and cv location part of the expected repos urls when
+        # new lce and cv will be assigned
+        new_env_cv_repo_location = '{0}/{1}'.format(
+            new_lce_name, new_cv_name)
+        expected_repo_urls = {client.hostname: [] for client in clients}
+        for client in clients:
+            result = client.run("subscription-manager repos")
+            self.assertEqual(result.return_code, 0)
+            client_repo_urls = [
+                line.split(' ')[-1]
+                for line in result.stdout
+                if line.startswith(repo_line_start_with)
+            ]
+            self.assertGreater(len(client_repo_urls), 0)
+            # create the client expected repo urls by replacing the current
+            # {env}/{cv} repo location by the expected new one
+            expected_repo_urls[client.hostname] = [
+                repo_url.replace(env_cv_repo_location,
+                                 new_env_cv_repo_location)
+                for repo_url in client_repo_urls
+            ]
+        with Session(self) as session:
+            set_context(session, org=self.session_org.name)
+            result = session.hostcollection.change_assigned_content(
+                self.host_collection.name,
+                new_lce.name,
+                new_content_view.name
+            )
+            self.assertEqual(result, 'success')
+            for client in clients:
+                result = client.run("subscription-manager refresh")
+                self.assertEqual(result.return_code, 0)
+                self.assertIn('All local data refreshed', result.stdout)
+                result = client.run("subscription-manager repos")
+                self.assertEqual(result.return_code, 0)
+                client_repo_urls = [
+                    line.split(' ')[-1]
+                    for line in result.stdout
+                    if line.startswith(repo_line_start_with)
+                ]
+                self.assertEqual(
+                    set(expected_repo_urls[client.hostname]),
+                    set(client_repo_urls)
+                )
+
     @tier1
-    @stubbed
+    @stubbed()
     @upgrade
     def test_positive_add_subscription(self):
         """Try to add a subscription to a host collection
