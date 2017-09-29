@@ -35,11 +35,11 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
-    upgrade
+    upgrade,
 )
-from robottelo.helpers import install_katello_ca, remove_katello_ca
-from robottelo.host_info import get_host_os_version
 from robottelo.test import APITestCase
+from robottelo.vm import VirtualMachine
+from time import sleep
 
 DOCKER_PROVIDER = 'Docker'
 
@@ -48,7 +48,6 @@ DOCKER_PROVIDER = 'Docker'
 def _invalid_names():
     """Return a list of various kinds of invalid strings for Docker
     repositories.
-
     """
     return [
         # boundaries
@@ -89,7 +88,6 @@ def _invalid_names():
 @filtered_datapoint
 def _valid_names():
     """Return a list of various kinds of valid strings for Docker repositories.
-
     """
     return [
         # boundaries
@@ -123,7 +121,6 @@ def _create_repository(product, name=None, upstream_name=None):
     :param str upstream_name: A valid name of an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
     :return: A ``Repository`` object.
-
     """
     if name is None:
         name = choice(generate_strings_list(15, ['numeric', 'html']))
@@ -141,7 +138,6 @@ def _create_repository(product, name=None, upstream_name=None):
 class DockerRepositoryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
-
     """
 
     @classmethod
@@ -603,13 +599,13 @@ class DockerContentViewTestCase(APITestCase):
         # Not published yet?
         content_view = content_view.read()
         self.assertIsNone(content_view.last_published)
-        self.assertEqual(content_view.next_version, 1)
+        self.assertEqual(float(content_view.next_version), 1.0)
 
         # Publish it and check that it was indeed published.
         content_view.publish()
         content_view = content_view.read()
         self.assertIsNotNone(content_view.last_published)
-        self.assertGreater(content_view.next_version, 1)
+        self.assertGreater(float(content_view.next_version), 1.0)
 
     @tier2
     @run_only_on('sat')
@@ -640,13 +636,13 @@ class DockerContentViewTestCase(APITestCase):
         # Not published yet?
         content_view = content_view.read()
         self.assertIsNone(content_view.last_published)
-        self.assertEqual(content_view.next_version, 1)
+        self.assertEqual(float(content_view.next_version), 1.0)
 
         # Publish it and check that it was indeed published.
         content_view.publish()
         content_view = content_view.read()
         self.assertIsNotNone(content_view.last_published)
-        self.assertGreater(content_view.next_version, 1)
+        self.assertGreater(float(content_view.next_version), 1.0)
 
         # Create composite content view…
         comp_content_view = entities.ContentView(
@@ -664,7 +660,7 @@ class DockerContentViewTestCase(APITestCase):
         # … and check that it was indeed published
         comp_content_view = comp_content_view.read()
         self.assertIsNotNone(comp_content_view.last_published)
-        self.assertGreater(comp_content_view.next_version, 1)
+        self.assertGreater(float(comp_content_view.next_version), 1.0)
 
     @tier2
     @run_only_on('sat')
@@ -905,7 +901,7 @@ class DockerContentViewTestCase(APITestCase):
         for i in range(1, randint(3, 6)):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
             promote(comp_cvv, lce.id)
-            self.assertEqual(len(comp_cvv.read().environment), i+1)
+            self.assertEqual(len(comp_cvv.read().environment), i + 1)
 
 
 class DockerActivationKeyTestCase(APITestCase):
@@ -1111,7 +1107,7 @@ class DockerComputeResourceTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_list_containers_internal(self):
+    def test_positive_list_containers(self):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
@@ -1122,25 +1118,31 @@ class DockerComputeResourceTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        for url in (settings.docker.external_url,
-                    settings.docker.get_unix_socket_url()):
-            with self.subTest(url):
-                compute_resource = entities.DockerComputeResource(
-                    organization=[self.org],
-                    url=url,
-                ).create()
-                self.assertEqual(compute_resource.url, url)
-                self.assertEqual(len(entities.AbstractDockerContainer(
-                    compute_resource=compute_resource).search()), 0)
-                container = entities.DockerHubContainer(
-                    command='top',
-                    compute_resource=compute_resource,
-                    organization=[self.org],
-                ).create()
-                result = entities.AbstractDockerContainer(
-                    compute_resource=compute_resource).search()
-                self.assertEqual(len(result), 1)
-                self.assertEqual(result[0].name, container.name)
+        # Instantiate and setup a docker host VM + compute resource
+        docker_image = settings.docker.docker_image
+        with VirtualMachine(
+            source_image=docker_image,
+            tag=u'docker'
+        ) as docker_host:
+            docker_host.create()
+            docker_host.install_katello_ca()
+            url = 'http://{0}:2375'.format(docker_host.ip_addr)
+            compute_resource = entities.DockerComputeResource(
+                organization=[self.org],
+                url=url,
+            ).create()
+            self.assertEqual(compute_resource.url, url)
+            self.assertEqual(len(entities.AbstractDockerContainer(
+                compute_resource=compute_resource).search()), 0)
+            container = entities.DockerHubContainer(
+                command='top',
+                compute_resource=compute_resource,
+                organization=[self.org],
+            ).create()
+            result = entities.AbstractDockerContainer(
+                compute_resource=compute_resource).search()
+            self.assertEqual(len(result), 1)
+            self.assertEqual(result[0].name, container.name)
 
     @tier2
     @run_only_on('sat')
@@ -1186,9 +1188,8 @@ class DockerComputeResourceTestCase(APITestCase):
 
 
 class DockerContainerTestCase(APITestCase):
-    """Tests specific to using ``Containers`` in local and external Docker
-    Compute Resources
-
+    """Tests specific to using ``Containers`` in an external Docker
+    Compute Resource
     """
 
     @classmethod
@@ -1197,47 +1198,45 @@ class DockerContainerTestCase(APITestCase):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainerTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        cls.cr_internal = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[cls.org],
-            url=settings.docker.get_unix_socket_url(),
-        ).create()
-        cls.cr_external = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[cls.org],
-            url=settings.docker.external_url,
-        ).create()
-        install_katello_ca()
 
-    @classmethod
-    def tearDownClass(cls):
-        """Remove katello-ca certificate"""
-        remove_katello_ca()
-        super(DockerContainerTestCase, cls).tearDownClass()
+    def setUp(self):
+        """Instantiate and setup a docker host VM + compute resource"""
+        docker_image = settings.docker.docker_image
+        self.docker_host = VirtualMachine(
+            source_image=docker_image,
+            tag=u'docker'
+        )
+        self.docker_host.create()
+        self.docker_host.install_katello_ca()
+        self.compute_resource = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            organization=[self.org],
+            url='http://{0}:2375'.format(self.docker_host.ip_addr),
+        ).create()
+
+    def tearDown(self):
+        self.docker_host.destroy()
 
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_compresource(self):
-        """Create containers for local and external compute resources
+        """Create containers for docker compute resources
 
         @id: c57c261c-39cf-4a71-93a4-e01e3ec368a7
 
-        @expectedresults: The docker container is created for each compute
-        resource
+        @expectedresults: The docker container is created
 
         @CaseLevel: Integration
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource.url):
-                container = entities.DockerHubContainer(
-                    command='top',
-                    compute_resource=compute_resource,
-                    organization=[self.org],
-                ).create()
-                self.assertEqual(
-                    container.compute_resource.read().name,
-                    compute_resource.name,
-                )
+        container = entities.DockerHubContainer(
+            command='top',
+            compute_resource=self.compute_resource,
+            organization=[self.org],
+        ).create()
+        self.assertEqual(
+            container.compute_resource.read().name,
+            self.compute_resource.name,
+        )
 
     @upgrade
     @tier2
@@ -1245,13 +1244,11 @@ class DockerContainerTestCase(APITestCase):
     @skip_if_bug_open('bugzilla', 1282431)
     def test_positive_create_using_cv(self):
         """Create docker container using custom content view, lifecycle
-        environment and docker repository for local and external compute
-        resources
+        environment and docker repository for docker compute resource
 
         @id: 69f29cc8-45e0-4b3a-b001-2842c45617e0
 
-        @expectedresults: The docker container is created for each compute
-        resource
+        @expectedresults: The docker container is created
 
         @CaseLevel: Integration
         """
@@ -1269,77 +1266,81 @@ class DockerContainerTestCase(APITestCase):
         self.assertEqual(len(content_view.version), 1)
         cvv = content_view.read().version[0].read()
         promote(cvv, lce.id)
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource):
+
+        # publishing takes few seconds sometimes
+        retries = 10 if bz_bug_is_open(1452149) else 1
+        for i in range(retries):
+            try:
                 container = entities.DockerHubContainer(
                     command='top',
-                    compute_resource=compute_resource,
+                    compute_resource=self.compute_resource,
                     organization=[self.org],
                     repository_name=repo.container_repository_name,
                     tag='latest',
                     tty='yes',
                 ).create()
-                self.assertEqual(
-                    container.compute_resource.read().name,
-                    compute_resource.name
-                )
-                self.assertEqual(
-                    container.repository_name,
-                    repo.container_repository_name
-                )
-                self.assertEqual(container.tag, 'latest')
+            except HTTPError:
+                if i == retries - 1:
+                    raise
+                else:
+                    sleep(2)
+                    pass
+        self.assertEqual(
+            container.compute_resource.read().name,
+            self.compute_resource.name
+        )
+        self.assertEqual(
+            container.repository_name,
+            repo.container_repository_name
+        )
+        self.assertEqual(container.tag, 'latest')
 
     @tier2
     @run_only_on('sat')
     def test_positive_power_on_off(self):
-        """Create containers for local and external compute resource,
+        """Create containers for docker compute resource,
         then power them on and finally power them off
 
         @id: 6271afcf-698b-47e2-af80-1ce38c111742
 
-        @expectedresults: The docker container is created for each compute
-        resource and the power status is showing properly
+        @expectedresults: The docker container is created and the power status
+            is showing properly
 
         @CaseLevel: Integration
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource):
-                container = entities.DockerHubContainer(
-                    command='top',
-                    compute_resource=compute_resource,
-                    organization=[self.org],
-                ).create()
-                self.assertEqual(
-                    container.compute_resource.read().url,
-                    compute_resource.url,
-                )
-                self.assertTrue(container.power(
-                    data={u'power_action': 'status'})['running'])
-                container.power(data={u'power_action': 'stop'})
-                self.assertFalse(container.power(
-                    data={u'power_action': 'status'})['running'])
+        container = entities.DockerHubContainer(
+            command='top',
+            compute_resource=self.compute_resource,
+            organization=[self.org],
+        ).create()
+        self.assertEqual(
+            container.compute_resource.read().url,
+            self.compute_resource.url,
+        )
+        self.assertTrue(container.power(
+            data={u'power_action': 'status'})['running'])
+        container.power(data={u'power_action': 'stop'})
+        self.assertFalse(container.power(
+            data={u'power_action': 'status'})['running'])
 
     @tier2
     @run_only_on('sat')
     def test_positive_read_container_log(self):
-        """Create containers for local and external compute resource and
-        read their logs
+        """Create containers for docker compute resource and read their logs
 
         @id: ffeb3c57-c7dc-4cee-a087-b52daedd4485
 
-        @expectedresults: The docker container is created for each compute
-        resource and its log can be read
+        @expectedresults: The docker container is created and its log can be
+            read
 
         @CaseLevel: Integration
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource):
-                container = entities.DockerHubContainer(
-                    command='date',
-                    compute_resource=compute_resource,
-                    organization=[self.org],
-                ).create()
-                self.assertTrue(container.logs()['logs'])
+        container = entities.DockerHubContainer(
+            command='date',
+            compute_resource=self.compute_resource,
+            organization=[self.org],
+        ).create()
+        self.assertTrue(container.logs()['logs'])
 
     @upgrade
     @run_in_one_thread
@@ -1360,12 +1361,8 @@ class DockerContainerTestCase(APITestCase):
         registry = entities.Registry(
             url=settings.docker.external_registry_1).create()
         try:
-            compute_resource = entities.DockerComputeResource(
-                organization=[self.org],
-                url=settings.docker.get_unix_socket_url(),
-            ).create()
             container = entities.DockerRegistryContainer(
-                compute_resource=compute_resource,
+                compute_resource=self.compute_resource,
                 organization=[self.org],
                 registry=registry,
                 repository_name=repo_name,
@@ -1378,28 +1375,62 @@ class DockerContainerTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
-        """Delete containers in local and external compute resources
+        """Delete containers using docker compute resource
 
         @id: 12efdf50-9494-48c3-a181-01c495b48c19
 
-        @expectedresults: The docker containers are deleted in local and
-        external compute resources
+        @expectedresults: The docker containers are deleted
+
+        @CaseImportance: Critical
         """
-        cr_interfaces = [self.cr_external, self.cr_internal]
-        # there is some bugs affecting docker internal interface on RHEL7
-        if get_host_os_version().startswith('RHEL7'):
-            if bz_bug_is_open(1366573) or bz_bug_is_open(1414797):
-                cr_interfaces.pop()
-        for compute_resource in cr_interfaces:
-            with self.subTest(compute_resource.url):
-                container = entities.DockerHubContainer(
-                    command='top',
-                    compute_resource=compute_resource,
-                    organization=[self.org],
-                ).create()
-                container.delete()
-                with self.assertRaises(HTTPError):
-                    container.read()
+        container = entities.DockerHubContainer(
+            command='top',
+            compute_resource=self.compute_resource,
+            organization=[self.org],
+        ).create()
+        container.delete()
+        with self.assertRaises(HTTPError):
+            container.read()
+
+
+@skip_if_bug_open('bugzilla', 1414821)
+class DockerUnixSocketContainerTestCase(APITestCase):
+    """Tests specific to using ``Containers`` in local unix-socket
+    Docker Compute Resource
+    """
+
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        super(DockerUnixSocketContainerTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.compute_resource = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            organization=[cls.org],
+            url=settings.docker.get_unix_socket_url(),
+        ).create()
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_create_with_compresource(self):
+        """Create containers for docker compute resources
+
+        @id: 91a8a159-0f00-44b6-8ab7-dc8b1a5f1f37
+
+        @expectedresults: The docker container is created
+
+        @CaseLevel: Integration
+        """
+        container = entities.DockerHubContainer(
+            command='top',
+            compute_resource=self.compute_resource,
+            organization=[self.org],
+        ).create()
+        self.assertEqual(
+            container.compute_resource.read().name,
+            self.compute_resource.name,
+        )
 
 
 @run_in_one_thread
