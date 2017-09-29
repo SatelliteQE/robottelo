@@ -303,6 +303,49 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_positive_publish_with_repo_with_disabled_http(self):
+        """Attempt to publish content view with repository that set
+        'publish via http' to False
+
+        :id: 36ccb083-3433-4b54-911a-856e3dc85f39
+
+        :steps:
+            1.  Create a repo with 'publish via http' set to true, url set to
+                some upstream repo
+            2.  Sync the repo
+            3.  Create a content view
+            4.  Set 'publish via http' to false
+            5.  Add this repo to the content view
+            6.  Publish the content view
+
+        :expectedresults: Content view is published successfully
+
+        :BZ: 1355752
+
+        :CaseLevel: Integration
+        """
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        # Creates a CV along with product and sync'ed repository
+        repo_id = self.setup_to_create_cv(
+            repo_name=repo_name, repo_unprotected=True)
+        prod = entities.Repository(id=repo_id).read().product.read()
+        with Session(self) as session:
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Update repository publishing method
+            self.products.search_and_click(prod.name)
+            self.repository.update(repo_name, http=False)
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            # Publish content view
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_add_puppet_module(self):
         """create content view with puppet repository
 
