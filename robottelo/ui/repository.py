@@ -53,7 +53,7 @@ class Repos(Base):
         self.click(common_locators['create'])
 
     def update(self, name, new_name=None, new_url=None,
-               new_repo_checksum=None, new_gpg_key=None, http=False,
+               new_repo_checksum=None, new_gpg_key=None, http=None,
                new_upstream_name=None, new_upstream_username=None,
                new_upstream_password=None, download_policy=None):
         """Updates repositories from UI."""
@@ -74,9 +74,9 @@ class Repos(Base):
             self.click(locators['repo.gpg_key_edit'])
             self.select(locators['repo.gpg_key_update'], new_gpg_key)
             self.click(common_locators['save'])
-        if http:
+        if http is not None:
             self.click(locators['repo.via_http_edit'])
-            self.click(locators['repo.via_http_update'])
+            self.assign_value(locators['repo.via_http_toggle'], http)
             self.click(common_locators['save'])
         if new_upstream_name:
             self.click(locators['repo.upstream_edit'])
