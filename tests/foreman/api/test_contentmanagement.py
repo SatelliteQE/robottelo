@@ -139,15 +139,15 @@ class CapsuleContentManagementTestCase(APITestCase):
 
     @tier4
     def test_positive_uploaded_content_library_sync(self):
-        """Ensure custom repo with no upstream url (manually uploaded content)
-        published to Library is syncing to capsule automatically
+        """Ensure custom repo with no upstream url and manually uploaded
+        content after publishing to Library is synchronized to capsule
+        automatically
 
         :id: f5406312-dd31-4551-9f03-84eb9c3415f5
 
         :BZ: 1340686
 
-        :expectedresults: publishing custom repo with no upstream url triggers
-            capsule sync and custom content is present on capsule afterwards
+        :expectedresults: custom content is present on external capsule
 
         :CaseLevel: System
         """
@@ -188,8 +188,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         # is started (or finished already)
         sync_status = capsule.content_get_sync()
         self.assertTrue(
-            len(sync_status['active_sync_tasks']) >= 1 or
-            sync_status['last_sync_time']
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
         )
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
