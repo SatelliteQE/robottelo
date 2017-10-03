@@ -128,7 +128,7 @@ class RoleTestCase(UITestCase):
             )
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
-            assigned_permissions = self.role.get_permissions(
+            assigned_permissions = self.role.filters_get_permissions(
                 name, [resource_type])
             self.assertIsNotNone(assigned_permissions)
             self.assertEqual(
@@ -156,15 +156,17 @@ class RoleTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.role.search(new_name))
                     # Ensure that cloned role contains correct resource types
-                    builtin_resources = self.role.get_resources(builtin_name)
-                    cloned_resources = self.role.get_resources(new_name)
+                    builtin_resources = self.role.filters_get_resources(
+                        builtin_name)
+                    cloned_resources = self.role.filters_get_resources(
+                        new_name)
                     self.assertGreater(len(cloned_resources), 0)
                     self.assertEqual(
                         set(builtin_resources), set(cloned_resources))
                     # And correct permissions for every resource type
-                    builtin_perms = self.role.get_permissions(
+                    builtin_perms = self.role.filters_get_permissions(
                         builtin_name, builtin_resources)
-                    cloned_perms = self.role.get_permissions(
+                    cloned_perms = self.role.filters_get_permissions(
                         new_name, cloned_resources)
                     self.assertEqual(builtin_perms.keys(), cloned_perms.keys())
                     for key in cloned_perms.keys():
@@ -203,11 +205,11 @@ class RoleTestCase(UITestCase):
                 self.role.wait_until_element(common_locators['alert.success']))
             self.assertIsNotNone(self.role.search(new_name))
             # Ensure that cloned role contains correct resource types
-            cloned_resources = self.role.get_resources(new_name)
+            cloned_resources = self.role.filters_get_resources(new_name)
             self.assertGreater(len(cloned_resources), 0)
             self.assertEqual(resource_type, cloned_resources[0])
             # and all permissions
-            cloned_permissions = self.role.get_permissions(
+            cloned_permissions = self.role.filters_get_permissions(
                 new_name, [resource_type])
             self.assertIsNotNone(cloned_permissions)
             self.assertEqual(
@@ -296,7 +298,7 @@ class RoleTestCase(UITestCase):
             )
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
-            assigned_permissions = self.role.get_permissions(
+            assigned_permissions = self.role.filters_get_permissions(
                 role_name, [resource_type])
             self.assertIsNotNone(assigned_permissions)
             self.assertEqual(
@@ -344,7 +346,7 @@ class RoleTestCase(UITestCase):
             )
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
-            assigned_permissions = self.role.get_permissions(
+            assigned_permissions = self.role.filters_get_permissions(
                 role_name, [resource_type])
             self.assertIsNotNone(assigned_permissions)
             self.assertEqual(
@@ -385,8 +387,7 @@ class RoleTestCase(UITestCase):
                 )
             self.assertIsNotNone(
                 self.role.wait_until_element(common_locators['alert.success']))
-            assigned_permissions = self.role.get_permissions(
-                role_name, used_ptypes)
+            assigned_permissions = self.role.get_permissions(role_name)
             self.assertTrue(assigned_permissions)
             assigned_permissions_count = len([
                 perm_
