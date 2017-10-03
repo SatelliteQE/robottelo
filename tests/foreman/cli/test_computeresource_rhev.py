@@ -148,7 +148,7 @@ class RHEVComputeResourceTestCase(CLITestCase):
     def test_positive_add_image_rhev_with_name(self):
         """Add images to the RHEV compute resource
 
-        :id: 6c7f4169-2e78-44d6-87af-434146093bcc
+        :id: 2da84165-a56f-4282-9343-94828fa69c13
 
         :setup: Images/templates should be present in RHEV-M itself,
             so that satellite can use them.

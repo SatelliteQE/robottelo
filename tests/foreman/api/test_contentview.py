@@ -1441,7 +1441,7 @@ class ContentViewRolesTestCase(APITestCase):
     def test_negative_readonly_user_actions(self):
         """Attempt to manage content views
 
-        :id: aae6eede-b40e-4e06-a5f7-59d9251aa35d
+        :id: 8c8cc3a2-a356-4645-9517-ca5bce836969
 
         :setup:
 
@@ -1512,7 +1512,7 @@ class ContentViewRolesTestCase(APITestCase):
     def test_negative_non_readonly_user_actions(self):
         """Attempt to view content views
 
-        :id: 9cbc661a-dbe3-4b88-af27-4cf7b9544074
+        :id: b0a53c38-72f1-4731-881e-192134df6ef3
 
         :setup: create a user with all Content View permissions except 'view'
             role

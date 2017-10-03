@@ -291,7 +291,7 @@ class DiscoveryRuleTestCase(CLITestCase):
     def test_negative_create_with_same_name(self):
         """Create Discovery Rule with name that already exists
 
-        :id: 5a914e76-de01-406d-9860-0e4e1521b074
+        :id: 0906cf64-ed0b-49af-844f-1af22f81ab94
 
         :expectedresults: Error should be raised and rule should not be created
 
