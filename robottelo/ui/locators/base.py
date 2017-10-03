@@ -2217,6 +2217,12 @@ locators = LocatorDict({
         By.XPATH, "//td[text()[contains(., 'deleted')]]"),
     "subs.page_title": (
         By.XPATH, "//h2/span[contains(., 'Subscriptions')]"),
+    "subs.sub.provided_products": (
+        By.XPATH,
+        "//ul/li[contains(@ng-repeat, 'subscription.provided_products')]"),
+    "subs.sub.content_products": (
+        By.XPATH,
+        "//div[contains(@ng-repeat, 'products')]/b"),
 
     # Settings
     "settings.param": (

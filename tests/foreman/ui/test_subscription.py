@@ -18,8 +18,18 @@ from fauxfactory import gen_string
 
 from nailgun import entities
 from robottelo import manifests
-from robottelo.api.utils import create_role_permissions
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.api.utils import (
+    create_role_permissions,
+    enable_rhrepo_and_fetchid,
+    promote,
+)
+from robottelo.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    PRDS,
+    REPOS,
+    REPOSET,
+    VDC_SUBSCRIPTION_NAME,
+)
 
 from robottelo.decorators import (
     run_in_one_thread,
@@ -27,12 +37,15 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
-    upgrade
+    tier3,
+    upgrade,
 )
 
 from robottelo.test import UITestCase
+from robottelo.ui.factory import set_context
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
 @run_in_one_thread
@@ -228,3 +241,93 @@ class SubscriptionTestCase(UITestCase):
             self.assertFalse(self.browser.current_url.endswith('katello/403'))
             self.assertIsNotNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
+
+    @skip_if_not_set('fake_manifest')
+    @tier3
+    def test_positive_view_VDC_subscription_products(self):
+        """Ensure that Virtual Datacenters subscription provided products is
+        not empty and that a consumed product exist in content products.
+
+        :id: cc4593f0-66ab-4bf6-87d1-d4bd9c89eba5
+
+        :steps:
+            1. Upload a manifest with Virtual Datacenters subscription
+            2. Enable a products provided by Virtual Datacenters subscription,
+               and synchronize the auto created repository
+            3. Create content view with the product repository, and publish it
+            4. Create a lifecycle environment and promote the content view to
+               it.
+            5. Create an activation key with the content view and lifecycle
+               environment
+            6. Subscribe a host to the activation key
+            7. Goto Hosts -> Content hosts and select the created content host
+            8. Attach VDC subscription to content host
+            9. Goto Content -> Red Hat Subscription
+            10. Select Virtual Datacenters subscription
+
+        :expectedresults:
+            1. assert that the provided products is not empty
+            2. assert that the enabled product is in subscription Product
+                Content
+
+        :BZ: 1366327
+
+        :CaseLevel: System
+        """
+        org = entities.Organization().create()
+        subscription = entities.Subscription(organization=org)
+        self.upload_manifest(org.id, manifests.clone())
+        vds_product_name = PRDS['rhdt']
+        vdc_repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=vds_product_name,
+            repo=REPOS['rhdt7']['name'],
+            reposet=REPOSET['rhdt7'],
+            releasever=None,
+        )
+        vdc_repo = entities.Repository(id=vdc_repo_id)
+        vdc_repo.sync()
+        content_view = entities.ContentView(
+            organization=org, repository=[vdc_repo]).create()
+        content_view.publish()
+        content_view = content_view.read()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        promote(content_view.version[0], lce.id)
+        activation_key = entities.ActivationKey(
+            organization=org,
+            environment=lce,
+            content_view=content_view
+        ).create()
+        # add the default RH subscription
+        for sub in subscription.search():
+            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+                activation_key.add_subscriptions(data={
+                    'quantity': 1,
+                    'subscription_id': sub.id,
+                })
+                break
+        with VirtualMachine() as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(
+                org.label, activation_key=activation_key.name)
+            self.assertTrue(vm.subscribed)
+            with Session(self) as session:
+                set_context(session, org=org.name)
+                self.contenthost.update(
+                    vm.hostname,
+                    add_subscriptions=[VDC_SUBSCRIPTION_NAME],
+                )
+                self.assertIsNotNone(self.contenthost.wait_until_element(
+                    common_locators['alert.success_sub_form']))
+                # ensure that subscription provided products list is not empty
+                provided_products = self.subscriptions.get_provided_products(
+                    VDC_SUBSCRIPTION_NAME)
+                self.assertGreater(len(provided_products), 0)
+                # ensure that the product is in provided products
+                self.assertIn(vds_product_name, provided_products)
+                # ensure that product is in content products
+                content_products = self.subscriptions.get_content_products(
+                    VDC_SUBSCRIPTION_NAME)
+                self.assertEqual(len(content_products), 1)
+                self.assertIn(vds_product_name, content_products)

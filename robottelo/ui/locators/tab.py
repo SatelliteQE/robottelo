@@ -344,6 +344,10 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@ui-sref,'manifest.details')]"),
     "subs.tab_import_history": (
         By.XPATH, "//a[contains(@ui-sref,'manifest.history')]"),
+    "subs.sub.tab_details": (
+        By.XPATH, "//a[contains(@ui-sref,'subscription.info')]"),
+    "subs.sub.product_content": (
+        By.XPATH, "//a[contains(@ui-sref,'subscription.products')]"),
 
     # Oscap Policy
     "oscap.content": (
