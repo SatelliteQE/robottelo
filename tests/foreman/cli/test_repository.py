@@ -920,7 +920,7 @@ class RepositoryTestCase(CLITestCase):
         """Check that repository content is resynced after packages were
         removed from repository
 
-        :id: dc415563-c9b8-4e3c-9d2a-f4ac251c7d35
+        :id: a21b6710-4f12-4722-803e-3cb29d70eead
 
         :expectedresults: Repository has updated non-zero packages count
 

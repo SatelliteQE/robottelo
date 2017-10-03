@@ -184,7 +184,7 @@ class HotBackupTestCase(TestCase):
     def test_negative_backup_with_no_directory(self):
         """katello-backup with no directory specified
 
-        :id: e229a4e0-4944-4369-ab7f-0f4e65480e47
+        :id: 5b1efcc6-990c-43af-b6c5-1b9b40002cb0
 
         :Steps:
 

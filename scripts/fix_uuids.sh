@@ -63,7 +63,7 @@ else
    echo "No duplicated $ID_TOKEN was found"
 fi
 
-grep -r -i $ID_TOKEN tests/foreman/ --include=*.py | sort -n -k3 | uniq -d -f2 | grep $ID_TOKEN | while read -r line ; do
+grep -r -i $ID_TOKEN tests/foreman/ --include="*.py" | sort -k2 | uniq -d -f2 | while read -r line ; do
     OLDIFS=$IFS
     IFS=':' read -r dup_file dup_id <<< $line
     echo "filename: $dup_file"

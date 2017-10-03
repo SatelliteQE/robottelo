@@ -31,7 +31,7 @@ class TaskTest(UITestCase):
     def test_negative_search(self):
         """Attempt to find task using long integer number
 
-        :id: d0c040cf-8132-43cd-9569-26148b80a44b
+        :id: 4e4f92ca-0a9d-45f6-a602-641c5932362c
 
         :expectedresults: 'No entries found' message should be returned
 

@@ -560,7 +560,7 @@ class RepositoryTestCase(APITestCase):
         """Verify that YUM repository cannot be created with invalid
         download policy
 
-        :id: 3b143bf8-7056-4c94-910d-69a451071f26
+        :id: c39bf33a-26f6-411b-8658-eab1bb40ef84
 
         :expectedresults: YUM repository is not created with invalid download
             policy
@@ -579,7 +579,7 @@ class RepositoryTestCase(APITestCase):
         """Verify that YUM repository cannot be updated to invalid
         download policy
 
-        :id: 5bd6a2e4-7ff0-42ac-825a-6b2a2f687c89
+        :id: 24d36e79-855e-4832-a136-30cbd144de44
 
         :expectedresults: YUM repository is not updated to invalid download
             policy
@@ -992,7 +992,7 @@ class RepositoryTestCase(APITestCase):
         """Check that repository content is resynced after packages were
         removed from repository
 
-        :id: e3a62529-edbd-4062-9246-bef5f33bdcf0
+        :id: a5c056ab-16c3-4052-b53d-818163b9983e
 
         :expectedresults: Repository has updated non-zero packages count
 
