@@ -585,11 +585,12 @@ class HostTestCase(UITestCase):
             )
             actual_params = self.hosts.fetch_global_parameters(
                 host.name, host.domain.name)
-            actual_names, actual_values = zip(*actual_params)
+            self.assertEqual(len(actual_params), 2)
             self.assertEqual(
-                {org_param_name, loc_param_name}, set(actual_names))
-            self.assertEqual(
-                {org_param_value, loc_param_value}, set(actual_values))
+                {(org_param_name, org_param_value),
+                 (loc_param_name, loc_param_value)},
+                set(actual_params)
+            )
 
     @run_only_on('sat')
     @tier3

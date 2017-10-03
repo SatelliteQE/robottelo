@@ -287,13 +287,11 @@ class HostTestCase(APITestCase):
             location=loc,
             organization=org,
         ).create()
+        self.assertEqual(len(host.all_parameters), 2)
         self.assertEqual(
-            {org_param.name, loc_param.name},
-            {param['name'] for param in host.all_parameters}
-        )
-        self.assertEqual(
-            {org_param.value, loc_param.value},
-            {param['value'] for param in host.all_parameters}
+            {(org_param.name, org_param.value),
+             (loc_param.name, loc_param.value)},
+            {(param['name'], param['value']) for param in host.all_parameters}
         )
 
     @run_only_on('sat')
