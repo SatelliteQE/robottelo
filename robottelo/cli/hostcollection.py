@@ -93,3 +93,10 @@ class HostCollection(Base):
         cls.command_sub = 'package install'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def copy(cls, options):
+        """Clone existing host collection"""
+        cls.command_sub = 'copy'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
