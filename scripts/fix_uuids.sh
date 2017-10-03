@@ -49,12 +49,12 @@ done
 # sort the output and filters only the duplicated
 # then looks for existence of ":id:" in final output
 # NOTE: can't print the line number -n here because of uniq -d
-DUP_EXISTS=$(grep -r -i $ID_TOKEN tests/foreman/ --include=*.py | sort -n -k3 | uniq -d -f2 | grep $ID_TOKEN)
+DUP_EXISTS=$(grep -r -i $ID_TOKEN tests/foreman/ --include="*.py" | sort -k2 | uniq -d -f2)
 
 if [ -n "$DUP_EXISTS" ]; then
    if [ $CHECK_ONLY = true ]; then
        echo "Duplicate $ID_TOKEN found in testimony tags"
-       echo $DUP_EXISTS
+       echo -e "${DUP_EXISTS}"
        exit 1
    else
        echo "Generating new UUIDS for duplicated $ID_TOKEN tags..."
