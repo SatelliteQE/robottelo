@@ -166,13 +166,23 @@ class ContentHost(Base):
             raise UIError('Timeout waiting for errata installation to finish')
         return result.get_attribute('type')
 
-    def package_search(self, name, package_name):
-        """Search for installed package on specific content host"""
+    def package_search(self, name, package_name, package_tab="installed"):
+        """Search for package on specific content host
+
+        :param name: Content Host name.
+        :param package_name: Package name.
+        :param package_tab: Search for either `installed` packages
+            or `applicable` packages.
+        :return: WebElement containing package information.
+        """
         self.click(self.search(name))
         self.click(tab_locators['contenthost.tab_packages'])
-        self.assign_value(
-            locators['contenthost.package_search_box'], package_name)
-        self.click(locators['contenthost.package_search_button'])
+        if package_tab == 'installed':
+            self.click(tab_locators.contenthost.tab_packages.installed)
+        elif package_tab == 'applicable':
+            self.click(tab_locators.contenthost.tab_packages.applicable)
+        self.assign_value(common_locators.kt_search, package_name)
+        self.click(common_locators.kt_search_button)
         return self.wait_until_element(
             locators['contenthost.package_search_name'] % package_name)
 
