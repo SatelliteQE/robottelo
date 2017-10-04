@@ -32,6 +32,7 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_0_YUM_REPO,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
@@ -88,6 +89,13 @@ class ContentHostTestCase(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         }, force_manifest_upload=True)
+        setup_org_for_a_custom_repo({
+            'url': FAKE_0_YUM_REPO,
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        })
         setup_org_for_a_custom_repo({
             'url': FAKE_6_YUM_REPO,
             'organization-id': cls.session_org.id,
