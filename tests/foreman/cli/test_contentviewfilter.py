@@ -376,6 +376,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'content-view-id': self.content_view['id'],
             'inclusion': 'false',
             'name': cvf_name,
+            'product': self.product['name'],
             'repositories': self.repo['name'],
             'organization-id': self.org['id'],
             'type': 'rpm',
