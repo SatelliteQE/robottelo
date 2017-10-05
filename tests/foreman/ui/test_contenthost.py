@@ -118,6 +118,7 @@ class ContentHostTestCase(UITestCase):
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
 
+    @skip_if_bug_open('bugzilla', 1498827)
     @tier3
     def test_positive_search_by_subscription_status(self):
         """Register host into the system and search for it afterwards by
@@ -129,7 +130,7 @@ class ContentHostTestCase(UITestCase):
             subscription status and that host is not present in the list for
             invalid status
 
-        :BZ: 1406855
+        :BZ: 1406855, 1498827
 
         :CaseLevel: System
         """
