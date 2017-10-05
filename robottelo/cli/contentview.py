@@ -13,6 +13,7 @@ Subcommands::
 
     add-repository                Associate a resource
     add-version                   Update a content view
+    component                     View and manage components
     copy                          Copy a content view
     create                        Create a content view
     delete                        Delete a content view
@@ -221,5 +222,19 @@ class ContentView(Base):
     def remove_repository(cls, options):
         """Remove repository from content view"""
         cls.command_sub = 'remove-repository'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def component_add(cls, options=None):
+        """Add components to the content view"""
+        cls.command_sub = 'component add'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def component_list(cls, options=None):
+        """List components attached to the content view"""
+        cls.command_sub = 'component list'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
