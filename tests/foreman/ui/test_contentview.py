@@ -62,6 +62,8 @@ from robottelo.constants import (
     FILTER_TYPE,
     PERMISSIONS,
     PRDS,
+    PUPPET_MODULE_CUSTOM_FILE_NAME,
+    PUPPET_MODULE_CUSTOM_NAME,
     REPOS,
     REPOSET,
     REPO_TYPE,
@@ -80,11 +82,15 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import read_data_file
+from robottelo.helpers import get_data_file, read_data_file
 from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError, UINoSuchElementError
-from robottelo.ui.factory import make_contentview, make_lifecycle_environment
+from robottelo.ui.factory import (
+    make_contentview,
+    make_lifecycle_environment,
+    set_context,
+)
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.locators.menu import menu_locators
 from robottelo.ui.locators.tab import tab_locators
@@ -2177,6 +2183,67 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+
+    @tier2
+    def test_positive_publish_promote_with_custom_puppet_module(self):
+        """Ensure that a custom puppet module file can be added to an existent
+         puppet repo and it's module added to content view
+
+        :id: 9562c548-5b65-4b79-acc7-382f8a21249d
+
+        :steps:
+            1. Create a product with a puppet repository
+            2. Add a custom puppet module file
+            3. Create a content view and add The puppet module
+            4. Publish and promote the content view
+
+        :expectedresults:
+            1. Custom puppet module file successfully uploaded
+            2. Puppet module successfully added to content view
+            3. Content view successfully published and promoted
+
+        :BZ: 1335833
+
+        :CaseLevel: Integration
+        """
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        env = entities.LifecycleEnvironment(
+            organization=self.organization).create()
+        repo_id = self.setup_to_create_cv(
+            repo_name=repo_name,
+            repo_url=FAKE_0_PUPPET_REPO,
+            repo_type=REPO_TYPE['puppet'],
+            org_id=self.organization.id,
+        )
+        product = entities.Repository(id=repo_id).read().product.read()
+        with Session(self) as session:
+            set_context(session, org=self.organization.name)
+            session.products.search_and_click(product.name)
+            initial_modules_count = session.repository.fetch_content_count(
+                repo_name, 'puppet')
+            session.products.search_and_click(product.name)
+            session.repository.upload_content(
+                repo_name, get_data_file(PUPPET_MODULE_CUSTOM_FILE_NAME))
+            session.products.search_and_click(product.name)
+            self.assertEqual(
+                session.repository.fetch_content_count(repo_name, 'puppet'),
+                initial_modules_count + 1
+            )
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            session.content_views.add_puppet_module(
+                cv_name,
+                PUPPET_MODULE_CUSTOM_NAME,
+                filter_term='Latest'
+            )
+            self.assertIsNotNone(session.content_views.fetch_puppet_module(
+                cv_name, PUPPET_MODULE_CUSTOM_NAME))
+            cv_version = self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            self.content_views.promote(cv_name, cv_version, env.name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 

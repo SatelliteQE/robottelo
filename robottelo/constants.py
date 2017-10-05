@@ -464,6 +464,9 @@ FAKE_6_YUM_ERRATUM_COUNT = 4
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
 
+PUPPET_MODULE_CUSTOM_FILE_NAME = 'puppet_custom_selinux-0.3.1.tar.gz'
+PUPPET_MODULE_CUSTOM_NAME = 'selinux'
+
 FAKE_0_CUSTOM_PACKAGE_GROUP = [
     'cockateel-3.1-1.noarch',
     'duck-0.6-1.noarch',
