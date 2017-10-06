@@ -24,6 +24,7 @@ from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
+    ENVIRONMENT,
     FAKE_1_YUM_REPO,
     FAKE_1_YUM_REPO_RPMS,
     FAKE_1_YUM_REPOS_COUNT,
@@ -32,6 +33,7 @@ from robottelo.constants import (
     FAKE_7_YUM_REPO,
     FAKE_8_YUM_REPO,
     PULP_PUBLISHED_YUM_REPOS_PATH,
+    RPM_TO_UPLOAD,
 )
 from robottelo.decorators import (
     bz_bug_is_open,
@@ -41,7 +43,12 @@ from robottelo.decorators import (
     tier2,
     tier4,
 )
-from robottelo.helpers import create_repo, form_repo_path, md5_by_url
+from robottelo.helpers import (
+    create_repo,
+    form_repo_path,
+    get_data_file,
+    md5_by_url,
+)
 from robottelo.host_info import get_repo_rpms, get_repomd_revision
 from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
@@ -129,6 +136,76 @@ class CapsuleContentManagementTestCase(APITestCase):
         proxy = entities.SmartProxy(id=capsule_id).read()
         proxy.download_policy = download_policy
         proxy.update(['download_policy'])
+
+    @tier4
+    def test_positive_uploaded_content_library_sync(self):
+        """Ensure custom repo with no upstream url and manually uploaded
+        content after publishing to Library is synchronized to capsule
+        automatically
+
+        :id: f5406312-dd31-4551-9f03-84eb9c3415f5
+
+        :BZ: 1340686
+
+        :expectedresults: custom content is present on external capsule
+
+        :CaseLevel: System
+        """
+        # Create organization, product, repository with no upstream url
+        org = entities.Organization(smart_proxy=[self.capsule_id]).create()
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            product=product,
+            url=None,
+        ).create()
+        capsule = entities.Capsule(id=self.capsule_id).read()
+        # Find "Library" lifecycle env for specific organization
+        lce = entities.LifecycleEnvironment(organization=org).search(query={
+            'search': 'name={}'.format(ENVIRONMENT)
+        })[0]
+        # Associate the lifecycle environment with the capsule
+        capsule.content_add_lifecycle_environment(data={
+            'environment_id': lce.id,
+        })
+        result = capsule.content_lifecycle_environments()
+        self.assertGreaterEqual(len(result['results']), 1)
+        self.assertIn(
+            lce.id, [capsule_lce['id'] for capsule_lce in result['results']])
+        # Create a content view with the repository
+        cv = entities.ContentView(
+            organization=org,
+            repository=[repo],
+        ).create()
+        # Upload custom content into the repo
+        with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+        self.assertEqual(repo.read().content_counts['package'], 1)
+        # Publish new version of the content view
+        cv.publish()
+        cv = cv.read()
+        self.assertEqual(len(cv.version), 1)
+        # Assert that a task to sync lifecycle environment to the capsule
+        # is started (or finished already)
+        sync_status = capsule.content_get_sync()
+        self.assertTrue(
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
+        )
+        # Wait till capsule sync finishes
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll()
+        # Verify previously uploaded content is present on capsule
+        lce_repo_path = form_repo_path(
+            org=org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=product.label,
+            repo=repo.label,
+        )
+        capsule_rpms = get_repo_rpms(
+            lce_repo_path, hostname=self.capsule_hostname)
+        self.assertEqual(len(capsule_rpms), 1)
+        self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
     @tier4
     def test_positive_capsule_sync(self):
