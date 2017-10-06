@@ -182,11 +182,17 @@ class VirtualMachine(object):
         else:
             self._created = True
 
+        # outside of VLANs ping from hypervisor, in VLANs ping from SAT
+        if self.bridge == 'br0':
+            ping_from_hostname = self.provisioning_server
+        else:
+            ping_from_hostname = settings.server.hostname
+
         # Give some time to machine boot
         result = ssh.command(
             u'for i in {{1..60}}; do ping -c1 {0}.local && exit 0; sleep 1;'
             u' done; exit 1'.format(self._target_image),
-            self.provisioning_server,
+            ping_from_hostname,
             connection_timeout=30
         )
         if result.return_code != 0:
