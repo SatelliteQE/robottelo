@@ -345,6 +345,23 @@ class Hosts(Base):
             locators['host.smart_variable_value'] % sv_name, sv_value)
         self.click(common_locators['submit'])
 
+    def fetch_global_parameters(self, name, domain_name):
+        """Fetches hosts global parameters. Returns a list of name-value pairs.
+        """
+        host = self.search(u'{0}.{1}'.format(name, domain_name))
+        self.click(host)
+        self.click(locators['host.edit'])
+        self.click(tab_locators['host.tab_params'])
+        params = self.find_elements(
+            locators['host.global_parameter_name'] % '')
+        result = []
+        for param in params:
+            param_name = param.text
+            param_value = self.find_element(
+                locators['host.global_parameter_value'] % param_name).text
+            result.append((param_name, param_value))
+        return result
+
     def fetch_host_parameters(self, name, domain_name, parameters_list):
         """Fetches parameter values of specified host
 

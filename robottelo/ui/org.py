@@ -129,7 +129,8 @@ class Org(Base):
                        new_capsules=None, new_subnets=None, new_resources=None,
                        new_medias=None, new_templates=None, new_ptables=None,
                        new_domains=None, new_envs=None, new_hostgroups=None,
-                       new_locations=None, select=None):
+                       new_locations=None, params=None, new_params=None,
+                       select=None):
         """Configures different entities of selected organization."""
         if users or new_users:
             self.configure_entity(
@@ -201,11 +202,15 @@ class Org(Base):
                 new_entity_list=new_locations,
                 entity_select=select,
                 **self._entity_filter_and_locator_dct['locations'])
+        if params or new_params:
+            for param in (params or new_params):
+                self.set_parameter(*param, submit=False)
 
     def create(self, org_name=None, label=None, desc=None, users=None,
                capsules=None, all_capsules=None, subnets=None, resources=None,
                medias=None, templates=None, ptables=None, domains=None,
-               envs=None, hostgroups=None, locations=None, select=True):
+               envs=None, hostgroups=None, locations=None, params=None,
+               select=True):
         """Create Organization in UI."""
         self.click(locators['org.new'])
         self.assign_value(locators['org.name'], org_name)
@@ -222,7 +227,7 @@ class Org(Base):
                 subnets=subnets, resources=resources, medias=medias,
                 templates=templates, ptables=ptables, domains=domains,
                 envs=envs, hostgroups=hostgroups, locations=locations,
-                select=select,
+                select=select, params=params,
             )
             self.click(common_locators['submit'])
 
@@ -233,7 +238,8 @@ class Org(Base):
                new_users=None, new_capsules=None, new_subnets=None,
                new_resources=None, new_medias=None, new_templates=None,
                new_ptables=None, new_domains=None, new_envs=None,
-               new_hostgroups=None, select=False, new_desc=None):
+               new_hostgroups=None, select=False, new_desc=None,
+               new_params=None):
         """Update Organization in UI."""
         self.click(self.search(org_name))
         if new_name:
@@ -259,6 +265,7 @@ class Org(Base):
             new_domains=new_domains,
             new_envs=new_envs,
             new_hostgroups=new_hostgroups,
+            new_params=new_params,
             select=select,
         )
         self.click(common_locators['submit'])

@@ -520,14 +520,15 @@ class Base(object):
             common_locators['parameter_value'] % param_name)
         return value_elem.text if value_elem else None
 
-    def set_parameter(self, param_name, param_value):
+    def set_parameter(self, param_name, param_value, submit=True):
         """Function to set parameters for different entities like OS and Domain
         """
         self.click(common_locators['parameter_tab'])
         self.click(common_locators['add_parameter'])
         self.assign_value(common_locators['new_parameter_name'], param_name)
         self.assign_value(common_locators['new_parameter_value'], param_value)
-        self.click(common_locators['submit'])
+        if submit:
+            self.click(common_locators['submit'])
         self.logger.debug(u'Param: %s set to: %s', param_name, param_value)
 
     def remove_parameter(self, param_name):

@@ -134,6 +134,7 @@ def make_org(session, **kwargs):
         u'envs': None,
         u'hostgroups': None,
         u'locations': None,
+        u'params': None,
         u'select': True,
     }
     page = session.nav.go_to_org
@@ -158,6 +159,7 @@ def make_loc(session, **kwargs):
         u'envs': None,
         u'hostgroups': None,
         u'organizations': None,
+        u'params': None,
         u'select': True,
     }
     page = session.nav.go_to_loc

@@ -266,6 +266,34 @@ class HostTestCase(APITestCase):
             hostgroup.content_view.id
         )
 
+    @tier2
+    def test_positive_create_with_inherited_params(self):
+        """Create a new Host in organization and location with parameters
+
+        :BZ: 1287223
+
+        :id: 5e17e968-7fe2-4e5b-90ca-ae66f4e5307a
+
+        :expectedresults: Host has inherited parameters from organization and
+            location
+
+        :CaseImportance: High
+        """
+        org = entities.Organization().create()
+        org_param = entities.Parameter(organization=org).create()
+        loc = entities.Location().create()
+        loc_param = entities.Parameter(location=loc).create()
+        host = entities.Host(
+            location=loc,
+            organization=org,
+        ).create()
+        self.assertEqual(len(host.all_parameters), 2)
+        self.assertEqual(
+            {(org_param.name, org_param.value),
+             (loc_param.name, loc_param.value)},
+            {(param['name'], param['value']) for param in host.all_parameters}
+        )
+
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_puppet_proxy(self):

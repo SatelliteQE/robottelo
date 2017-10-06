@@ -26,7 +26,7 @@ class Location(Base):
                             new_medias=None, new_templates=None,
                             new_ptables=None, new_domains=None, new_envs=None,
                             new_hostgroups=None, new_organizations=None,
-                            select=None):
+                            params=None, new_params=None, select=None):
         """Configures different entities of selected location."""
 
         loc = tab_locators
@@ -89,11 +89,14 @@ class Location(Base):
                                   tab_locator=loc['context.tab_organizations'],
                                   new_entity_list=new_organizations,
                                   entity_select=select)
+        if params or new_params:
+            for param in (params or new_params):
+                self.set_parameter(*param, submit=False)
 
     def create(self, name, parent=None, users=None, capsules=None,
                all_capsules=None, subnets=None, resources=None, medias=None,
                templates=None, ptables=None, domains=None, envs=None,
-               hostgroups=None, organizations=None, select=True):
+               hostgroups=None, organizations=None, params=None, select=True):
         """Creates new Location from UI."""
         self.click(locators['location.new'])
         self.assign_value(locators['location.name'], name)
@@ -112,6 +115,7 @@ class Location(Base):
             ptables=ptables, domains=domains, envs=envs,
             hostgroups=hostgroups,
             organizations=organizations,
+            params=params,
             select=select,
         )
         self.click(common_locators['submit'])
@@ -123,7 +127,7 @@ class Location(Base):
                new_users=None, new_capsules=None, new_subnets=None,
                new_resources=None, new_medias=None, new_templates=None,
                new_ptables=None, new_domains=None, new_envs=None,
-               new_hostgroups=None, select=False):
+               new_hostgroups=None, new_params=None, select=False):
         """Update Location in UI."""
         self.search_and_click(loc_name)
         if new_name:
@@ -146,6 +150,7 @@ class Location(Base):
             new_domains=new_domains,
             new_envs=new_envs,
             new_hostgroups=new_hostgroups,
+            new_params=new_params,
             select=select
         )
         self.click(common_locators['submit'])

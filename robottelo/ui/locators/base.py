@@ -939,6 +939,15 @@ locators = LocatorDict({
         By.XPATH,
         "(//textarea[contains(@id, '_value') "
         "and contains(@name, 'parameters')])[%i]"),
+    "host.global_parameter_name": (
+        By.XPATH,
+        ("//table[@id='inherited_parameters']//tr/td"
+         "/span[contains(@id, 'name')][contains(., '%s')]")),
+    "host.global_parameter_value": (
+        By.XPATH,
+        ("//table[@id='inherited_parameters']//tr/"
+         "td[span[contains(@id, 'name')][contains(., '%s')]]"
+         "/following-sibling::td//textarea")),
     "host.smart_variable_value": (
         By.XPATH,
         "//*[ancestor::tr//td[contains(., '%s')] and @data-property='value']"),

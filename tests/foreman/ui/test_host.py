@@ -54,6 +54,8 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_host,
     make_hostgroup,
+    make_loc,
+    make_org,
     set_context,
 )
 from robottelo.ui.base import UINoSuchElementError
@@ -555,6 +557,85 @@ class HostTestCase(UITestCase):
                 u'{0}.{1}'.format(host.name, host.domain.name)
             )
             self.assertIsNotNone(search)
+
+    @tier3
+    def test_positive_create_with_inherited_params(self):
+        """Create a new Host in organization and location with parameters
+
+        :BZ: 1287223
+
+        :id: 628122f2-bda9-4aa1-8833-55debbd99072
+
+        :expectedresults: Host has inherited parameters from organization and
+            location
+
+        :CaseImportance: High
+        """
+        org_name = gen_string('alphanumeric')
+        loc_name = gen_string('alphanumeric')
+        org_param_name = gen_string('alphanumeric')
+        loc_param_name = gen_string('alphanumeric')
+        org_param_value = gen_string('alphanumeric')
+        loc_param_value = gen_string('alphanumeric')
+        with Session(self) as session:
+            make_org(
+                session,
+                org_name=org_name,
+                params=[(org_param_name, org_param_value)],
+            )
+            session.nav.go_to_select_org(org_name)
+            make_loc(
+                session,
+                name=loc_name,
+                params=[(loc_param_name, loc_param_value)],
+            )
+            session.nav.go_to_select_loc(loc_name)
+            org = entities.Organization().search(
+                query={'search': 'name={}'.format(org_name)})[0]
+            loc = entities.Location().search(
+                query={'search': 'name={}'.format(loc_name)})[0]
+            host = entities.Host(
+                location=loc,
+                organization=org,
+            )
+            host.create_missing()
+            os_name = u'{0} {1}'.format(
+                host.operatingsystem.name, host.operatingsystem.major)
+            make_host(
+                session,
+                name=host.name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            actual_params = self.hosts.fetch_global_parameters(
+                host.name, host.domain.name)
+            self.assertEqual(len(actual_params), 2)
+            self.assertEqual(
+                {(org_param_name, org_param_value),
+                 (loc_param_name, loc_param_value)},
+                set(actual_params)
+            )
 
     @run_only_on('sat')
     @tier3
