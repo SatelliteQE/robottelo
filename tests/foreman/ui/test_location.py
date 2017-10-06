@@ -26,12 +26,14 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
     upgrade,
 )
 from robottelo.constants import (
+    ANY_CONTEXT,
     DEFAULT_ORG,
     INSTALL_MEDIUM_URL,
     LIBVIRT_RESOURCE_URL,
@@ -39,7 +41,7 @@ from robottelo.constants import (
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_loc, make_templates
+from robottelo.ui.factory import make_loc, make_templates, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -354,6 +356,78 @@ class LocationTestCase(UITestCase):
                     element = session.nav.wait_until_element(
                         (strategy, value % user_name))
                     self.assertIsNotNone(element)
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1321543)
+    @tier2
+    def test_positive_update_with_all_users(self):
+        """Create location and add user to it. Check and uncheck 'all users'
+        setting. Verify that user is assigned to location and vice versa
+        location is assigned to user
+
+        :id: 17f85968-4aa6-4e2e-82d9-b01bc17031e7
+
+        :expectedresults: Location and user entities assigned to each other
+
+        :BZ: 1479736
+
+        :CaseLevel: Integration
+        """
+        loc_name = gen_string('alpha')
+        user = entities.User().create()
+        with Session(self) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_loc(session, name=loc_name)
+            self.location.update(loc_name, new_users=[user.login])
+            self.location.search_and_click(loc_name)
+            self.location.click(tab_locators['context.tab_users'])
+            self.assertIsNotNone(self.location.wait_until_element(
+                common_locators['entity_deselect'] % user.login))
+            for value in [True, False]:
+                self.location.assign_value(
+                    locators['location.all_users'], value)
+                self.location.click(common_locators['submit'])
+                self.user.search_and_click(user.login)
+                self.user.click(tab_locators['tab_loc'])
+                self.assertIsNotNone(self.user.wait_until_element(
+                    common_locators['entity_deselect'] % loc_name))
+                self.location.search_and_click(loc_name)
+                self.location.click(tab_locators['context.tab_users'])
+                self.assertIsNotNone(self.location.wait_until_element(
+                    common_locators['entity_deselect'] % user.login))
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1321543)
+    @tier2
+    def test_positive_update_with_all_users_setting_only(self):
+        """Create location and do not add user to it. Check and uncheck
+        'all users' setting. Verify that for both operation expected location
+        is assigned to user
+
+        :id: 6596962b-8fd0-4a82-bf54-fa6a31147311
+
+        :expectedresults: Location entity is assigned to user after checkbox
+            was enabled and then disabled afterwards
+
+        :BZ: 1321543
+
+        :CaseLevel: Integration
+        """
+        loc_name = gen_string('alpha')
+        user = entities.User().create()
+        with Session(self) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_loc(session, name=loc_name)
+            for value in [True, False]:
+                self.location.search_and_click(loc_name)
+                self.location.click(tab_locators['context.tab_users'])
+                self.location.assign_value(
+                    locators['location.all_users'], value)
+                self.location.click(common_locators['submit'])
+                self.user.search_and_click(user.login)
+                self.user.click(tab_locators['tab_loc'])
+                self.assertIsNotNone(self.user.wait_until_element(
+                    common_locators['entity_deselect'] % loc_name))
 
     @run_only_on('sat')
     @tier1

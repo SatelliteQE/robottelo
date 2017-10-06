@@ -40,7 +40,7 @@ from robottelo.decorators import (
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment, make_org
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -510,6 +510,39 @@ class OrganizationTestCase(UITestCase):
                         **kwargs))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1321543)
+    @tier2
+    def test_positive_create_with_all_users(self):
+        """Create organization with user. Check and uncheck 'all users'
+        setting. Verify that user is assigned to organization and vice
+        versa organization is assigned to user
+
+        :id: 5bfcbd10-750c-4ef6-87b6-a8eb2eae4ce7
+
+        :expectedresults: Organization and user entities assigned to each other
+
+        :BZ: 1321543
+
+        :CaseLevel: Integration
+        """
+        org_name = gen_string('alpha')
+        user = entities.User().create()
+        with Session(self):
+            self.assertIsNotNone(self.org.create_with_entity(
+                org_name, 'users', user.login))
+            for value in [True, False]:
+                self.org.assign_value(locators['org.all_users'], value)
+                self.org.click(common_locators['submit'])
+                self.user.search_and_click(user.login)
+                self.user.click(tab_locators['tab_org'])
+                self.assertIsNotNone(self.user.wait_until_element(
+                    common_locators['entity_deselect'] % org_name))
+                self.org.search_and_click(org_name)
+                self.org.click(tab_locators['context.tab_users'])
+                self.assertIsNotNone(self.org.wait_until_element(
+                    common_locators['entity_deselect'] % user.login))
+
+    @run_only_on('sat')
     @tier2
     def test_positive_create_with_hostgroup(self):
         """Add a hostgroup during organization creation.
@@ -863,6 +896,40 @@ class OrganizationTestCase(UITestCase):
                     }
                     self.assertIsNotNone(self.org.add_entity(**kwargs))
                     self.assertIsNotNone(self.org.remove_entity(**kwargs))
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1321543)
+    @tier2
+    def test_positive_create_with_all_environment(self):
+        """Create organization with environment. Check and uncheck
+        'all environments' setting. Verify that environment is assigned to
+        organization and vice versa organization is assigned to environment
+
+        :id: 7637d83b-3b40-4951-bdda-cdf78aa141f3
+
+        :expectedresults: Organization and environment entities assigned to
+            each other
+
+        :BZ: 1479736
+
+        :CaseLevel: Integration
+        """
+        org_name = gen_string('alpha')
+        env = entities.Environment().create()
+        with Session(self):
+            self.assertIsNotNone(self.org.create_with_entity(
+                org_name, 'envs', env.name))
+            for value in [True, False]:
+                self.org.assign_value(locators['org.all_environments'], value)
+                self.org.click(common_locators['submit'])
+                self.environment.search_and_click(env.name)
+                self.environment.click(tab_locators['tab_org'])
+                self.assertIsNotNone(self.environment.wait_until_element(
+                    common_locators['entity_deselect'] % org_name))
+                self.org.search_and_click(org_name)
+                self.org.click(tab_locators['context.tab_env'])
+                self.assertIsNotNone(self.org.wait_until_element(
+                    common_locators['entity_deselect'] % env.name))
 
     @run_only_on('sat')
     @stubbed()

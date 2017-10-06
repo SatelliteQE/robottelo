@@ -50,6 +50,9 @@ locators = LocatorDict({
     "location.all_capsules": (
         By.XPATH,
         "//input[@id='location_ignore_types_smartproxy']"),
+    "location.all_users": (
+        By.XPATH,
+        "//input[@id='location_ignore_types_user']"),
 
     # Login
     "login.username": (By.ID, "login_login"),
@@ -144,6 +147,12 @@ locators = LocatorDict({
     "org.all_capsules": (
         By.XPATH,
         "//input[@id='organization_ignore_types_smartproxy']"),
+    "org.all_environments": (
+        By.XPATH,
+        "//input[@id='organization_ignore_types_environment']"),
+    "org.all_users": (
+        By.XPATH,
+        "//input[@id='organization_ignore_types_user']"),
 
     # Trends
     "trend.new": (By.XPATH, "//a[contains(@href, '/trends/new')]"),

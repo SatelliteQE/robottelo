@@ -407,11 +407,10 @@ def make_discoveryrule(session, org=None, loc=None, force_context=True,
 
 def make_env(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates an Environment"""
-
     create_args = {
         u'name': None,
-        u'orgs': None,
-        u'org_select': False,
+        u'organizations': None,
+        u'locations': None,
     }
     page = session.nav.go_to_environments
     core_factory(create_args, kwargs, session, page,
