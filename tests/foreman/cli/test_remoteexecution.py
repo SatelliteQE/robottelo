@@ -25,27 +25,19 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.defaults import Defaults
 from robottelo.cli.factory import (
     CLIFactoryError,
-    make_activation_key,
-    make_content_view,
     make_job_invocation,
     make_job_template,
-    make_lifecycle_environment,
     make_location,
-    make_org,
-    make_subnet,
-    setup_org_for_a_custom_repo,
-    setup_org_for_a_rh_repo,
+    make_org
 )
 from robottelo.cli.host import Host
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
 from robottelo.cli.recurring_logic import RecurringLogic
 from robottelo.constants import (
+    DEFAULT_LOC_ID,
     DISTRO_RHEL7,
-    FAKE_0_YUM_REPO,
-    PRDS,
-    REPOS,
-    REPOSET
+    FAKE_0_YUM_REPO
 )
 from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import (
@@ -254,39 +246,35 @@ class RemoteExecutionTestCase(CLITestCase):
     """Implements job execution tests in CLI."""
 
     @classmethod
-    @skip_if_not_set('clients', 'fake_manifest')
+    @skip_if_not_set('clients', 'fake_manifest', 'vlan_networking')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key
         """
         super(RemoteExecutionTestCase, cls).setUpClass()
-        cls.org = make_org()
+        cls.org = entities.Organization().create()
         ssh.command(
             '''echo 'getenforce' > {0}'''.format(TEMPLATE_FILE)
         )
-        cls.env = make_lifecycle_environment({
-            u'organization-id': cls.org['id'],
-        })
-        cls.content_view = make_content_view({
-            u'organization-id': cls.org['id'],
-        })
-        cls.activation_key = make_activation_key({
-            u'lifecycle-environment-id': cls.env['id'],
-            u'organization-id': cls.org['id'],
-        })
-        # Add subscription to Satellite Tools repo to activation key
-        setup_org_for_a_rh_repo({
-            u'product': PRDS['rhel'],
-            u'repository-set': REPOSET['rhst7'],
-            u'repository': REPOS['rhst7']['name'],
-            u'organization-id': cls.org['id'],
-            u'content-view-id': cls.content_view['id'],
-            u'lifecycle-environment-id': cls.env['id'],
-            u'activationkey-id': cls.activation_key['id'],
-        })
+        # create subnet for current org, default loc and domain
+        cls.sn = entities.Subnet(
+            domain=[1],
+            gateway=settings.vlan_networking.gateway,
+            ipam='DHCP',
+            location=[DEFAULT_LOC_ID],
+            mask=settings.vlan_networking.netmask,
+            network=settings.vlan_networking.subnet,
+            organization=[cls.org.id]
+        ).create()
+        # add rex proxy to subnet, default is internal proxy (id 1)
+        if bz_bug_is_open(1328322):
+            cls.sn.remote_execution_proxy_ids = [1]
+            cls.sn.update(["remote_execution_proxy_ids"])
+        else:
+            cls.sn.remote_execution_proxy_id = 1
+            cls.sn.update(["remote_execution_proxy_id"])
 
     def setUp(self):
-        """Create VM, subscribe it to satellite-tools repo, install katello-ca
-            and katello-agent packages, add remote execution key
+        """Create VM, install katello-ca, register it, add remote execution key
         """
         super(RemoteExecutionTestCase, self).setUp()
         # Create VM and register content host
@@ -297,33 +285,17 @@ class RemoteExecutionTestCase(CLITestCase):
         self.addCleanup(vm_cleanup, self.client)
         self.client.create()
         self.client.install_katello_ca()
-        # Register content host, install katello-agent
+        # Register content host
         self.client.register_contenthost(
-            self.org['label'],
-            self.activation_key['name'],
+            org=self.org.label,
+            lce='Library'
         )
         self.assertTrue(self.client.subscribed)
-        self.client.enable_repo(REPOS['rhst7']['id'])
-        self.client.install_katello_agent()
         add_remote_execution_ssh_key(self.client.ip_addr)
-        # create subnet for current org, default loc and domain
-        subnet_options = {
-            u'domain-ids': 1,
-            u'organization-ids': self.org["id"],
-            u'location-ids': 2
-           }
-        if not bz_bug_is_open(1328322):
-            subnet_options[u'remote-execution-proxy-id'] = 1
-        new_sub = make_subnet(subnet_options)
-        # add rex proxy to subnet, default is internal proxy (id 1)
-        if bz_bug_is_open(1328322):
-            subnet = entities.Subnet(id=new_sub["id"])
-            subnet.remote_execution_proxy_ids = [1]
-            subnet.update(["remote_execution_proxy_ids"])
         # add host to subnet
         Host.update({
             'name': self.client.hostname,
-            'subnet-id': new_sub['id'],
+            'subnet-id': self.sn.id,
         })
 
     @stubbed()
@@ -417,7 +389,7 @@ class RemoteExecutionTestCase(CLITestCase):
         """
         template_name = gen_string('alpha', 7)
         make_job_template({
-            u'organizations': self.org[u'name'],
+            u'organizations': self.name,
             u'name': template_name,
             u'file': TEMPLATE_FILE
         })
@@ -494,7 +466,7 @@ class RemoteExecutionTestCase(CLITestCase):
               ) as client2:
             client2.install_katello_ca()
             client2.register_contenthost(
-                    self.org['label'], lce='Library')
+                    self.org.label, lce='Library')
             add_remote_execution_ssh_key(client2.ip_addr)
             invocation_command = make_job_invocation({
                 'job-template': 'Run Command - SSH Default',
@@ -528,13 +500,30 @@ class RemoteExecutionTestCase(CLITestCase):
         """
         packages = ["cow", "dog", "lion"]
         # Create a custom repo
-        setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': self.org['id'],
-            u'content-view-id': self.content_view['id'],
-            u'lifecycle-environment-id': self.env['id'],
-            u'activationkey-id': self.activation_key['id'],
-        })
+        repo = entities.Repository(
+                content_type='yum',
+                product=entities.Product(organization=self.org).create(),
+                url=FAKE_0_YUM_REPO,
+               ).create()
+        repo.sync()
+        prod = repo.product.read()
+        subs = entities.Subscription().search(
+                query={'search': 'name={0}'.format(prod.name)}
+             )
+        self.assertGreater(
+            len(subs), 0, 'No subscriptions matching the product returned'
+        )
+
+        ak = entities.ActivationKey(
+                organization=self.org,
+                content_view=self.org.default_content_view,
+                environment=self.org.library
+             ).create()
+        ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
+        self.client.register_contenthost(
+            org=self.org.label, activation_key=ak.name
+        )
+
         invocation_command = make_job_invocation({
             'job-template': 'Install Package - Katello SSH Default',
             'inputs': 'package={0} {1} {2}'.format(*packages),
@@ -727,7 +716,7 @@ class RemoteExecutionTestCase(CLITestCase):
         })
         template_name = gen_string('alpha', 7)
         make_job_template({
-            u'organizations': self.org[u'name'],
+            u'organizations': self.org.name,
             u'name': template_name,
             u'file': TEMPLATE_FILE
         })
@@ -767,7 +756,7 @@ class RemoteExecutionTestCase(CLITestCase):
               ) as client2:
             client2.install_katello_ca()
             client2.register_contenthost(
-                    self.org['label'], lce='Library')
+                    self.org.label, lce='Library')
             add_remote_execution_ssh_key(client2.ip_addr)
             Host.set_parameter({
                 'host': client2.hostname,
@@ -810,13 +799,30 @@ class RemoteExecutionTestCase(CLITestCase):
         })
         packages = ["cow", "dog", "lion"]
         # Create a custom repo
-        setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': self.org['id'],
-            u'content-view-id': self.content_view['id'],
-            u'lifecycle-environment-id': self.env['id'],
-            u'activationkey-id': self.activation_key['id'],
-        })
+        repo = entities.Repository(
+                content_type='yum',
+                product=entities.Product(organization=self.org).create(),
+                url=FAKE_0_YUM_REPO,
+               ).create()
+        repo.sync()
+        prod = repo.product.read()
+        subs = entities.Subscription().search(
+                query={'search': 'name={0}'.format(prod.name)}
+             )
+        self.assertGreater(
+            len(subs), 0, 'No subscriptions matching the product returned'
+        )
+
+        ak = entities.ActivationKey(
+                organization=self.org,
+                content_view=self.org.default_content_view,
+                environment=self.org.library
+             ).create()
+        ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
+        self.client.register_contenthost(
+            org=self.org.label, activation_key=ak.name
+        )
+
         invocation_command = make_job_invocation({
             'job-template': 'Install Package - Katello SSH Default',
             'inputs': 'package={0} {1} {2}'.format(*packages),
