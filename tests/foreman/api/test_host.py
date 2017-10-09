@@ -24,7 +24,7 @@ from nailgun import client, entities
 from requests.exceptions import HTTPError
 from six.moves import http_client
 
-from robottelo.api.utils import publish_puppet_module
+from robottelo.api.utils import promote, publish_puppet_module
 from robottelo.config import settings
 from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
 from robottelo.datafactory import (
@@ -1302,6 +1302,85 @@ class HostTestCase(APITestCase):
             host = host.update(['operatingsystem'])
         self.assertNotEqual(
             host.read().operatingsystem.read().name, new_os.name)
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_read_content_source_id(self):
+        """Read the host content_source_id attribute from the read request
+        response
+
+        :id: 0a7fd8d4-1ea8-4b21-8c46-10579644fd11
+
+        :expectedresults: content_source_id is present in GET host request
+            response
+
+        :BZ: 1339613, 1488130
+
+        :CaseLevel: System
+        """
+        proxy = entities.SmartProxy().search(
+            query={'url': 'https://{0}:9090'.format(settings.server.hostname)}
+        )[0].read()
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], environment_id=lce.id)
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            content_facet_attributes={
+                'content_source_id': proxy.id,
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': lce.id,
+            }
+        ).create()
+        content_facet_attributes = getattr(host, 'content_facet_attributes')
+        self.assertIsNotNone(content_facet_attributes)
+        content_source_id = content_facet_attributes.get('content_source_id')
+        self.assertIsNotNone(content_source_id)
+        self.assertEqual(content_source_id, proxy.id)
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_update_content_source_id(self):
+        """Read the host content_source_id attribute from the update request
+        response
+
+        :id: d47214d2-a54c-4385-abfb-a0607ecb6ec7
+
+        :expectedresults: content_source_id is present in PUT host request
+            response
+
+        :BZ: 1339613, 1488130
+
+        :CaseLevel: System
+        """
+        proxy = entities.SmartProxy().search(query={
+            'url': 'https://{0}:9090'.format(settings.server.hostname)})[0]
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], environment_id=lce.id)
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': lce.id,
+            }
+        ).create()
+        host.content_facet_attributes['content_source_id'] = proxy.id
+        # we need to ensure that content_source_id is returned by PUT request,
+        # we will use entity update_json as entity update method will invoke
+        # read method after PUT request completion
+        response = host.update_json(['content_facet_attributes'])
+        content_facet_attributes = response.get('content_facet_attributes')
+        self.assertIsNotNone(content_facet_attributes)
+        content_source_id = content_facet_attributes.get('content_source_id')
+        self.assertIsNotNone(content_source_id)
+        self.assertEqual(content_source_id, proxy.id)
 
     @run_only_on('sat')
     @tier2
