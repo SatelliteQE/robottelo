@@ -1901,6 +1901,18 @@ locators = LocatorDict({
         By.XPATH,
         ("//dd[@bst-edit-textarea='contentView.description']"
          "//button[@ng-click='save()']")),
+    "contentviews.edit_force_puppet": (
+        By.XPATH,
+        "//div[@bst-edit-checkbox='contentView.force_puppet_environment']"
+        "//div/span/i[contains(@class, 'fa-edit')]"),
+    "contentviews.edit_force_puppet_checkbox": (
+        By.XPATH,
+        "//div[@bst-edit-checkbox='contentView.force_puppet_environment']"
+        "/form/div/input"),
+    "contentviews.save_force_puppet": (
+        By.XPATH,
+        "//div[@bst-edit-checkbox='contentView.force_puppet_environment']"
+        "//button[@ng-click='save()']"),
     "contentviews.has_error": (
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
