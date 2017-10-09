@@ -2236,6 +2236,13 @@ locators = LocatorDict({
         By.XPATH, ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions') "
                    "and contains(., '%s')]/following-sibling::tr[1]/td/"
                    "a[contains(@href, '/subscriptions/')]")),
+    "subs.select_guests_of": (
+        By.XPATH,
+        ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions')"
+         " and contains(., '%s')]/following-sibling::tr/td"
+         "//a[contains(@ui-sref, 'content-hosts.details.info')"
+         " and contains(., '%s')]/ancestor::tr/td"
+         "/a[contains(@ui-sref, 'subscription.info')]")),
     "subs.delete_manifest": (
         By.XPATH,
         ("//button[contains(@ng-click,'openModal()')]"

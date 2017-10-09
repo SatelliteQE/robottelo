@@ -41,6 +41,14 @@ FOREMAN_PROVIDERS = {
     'docker': 'Docker',
 }
 
+VIRT_WHO_HYPERVISOR_TYPES = {
+    'esx': 'esx',
+    'hyperv': 'hyperv',
+    'libvirt': 'libvirt',
+    'rhevm': 'rhevm',
+    'xen': 'xen',
+}
+
 LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 
 AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'

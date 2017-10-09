@@ -95,3 +95,27 @@ class Subscriptions(Base):
         return [element.text
                 for element in
                 self.find_elements(locators['subs.sub.content_products'])]
+
+    def get_guests_provided_products(
+            self, subscription_name, hypervisor_hostname):
+        """Return a list of product names provided to hypervisor guests by the
+        subscription name"""
+        self.search(subscription_name)
+        self.click(locators['subs.select_guests_of'] % (
+            subscription_name, hypervisor_hostname))
+        self.click(tab_locators['subs.sub.tab_details'])
+        return [element.text
+                for element in
+                self.find_elements(locators['subs.sub.provided_products'])]
+
+    def get_guests_content_products(
+            self, subscription_name, hypervisor_hostname):
+        """Return a list of hypervisor guests consumed products of
+        subscription name"""
+        self.search(subscription_name)
+        self.click(locators['subs.select_guests_of'] % (
+            subscription_name, hypervisor_hostname))
+        self.click(tab_locators['subs.sub.product_content'])
+        return [element.text
+                for element in
+                self.find_elements(locators['subs.sub.content_products'])]
