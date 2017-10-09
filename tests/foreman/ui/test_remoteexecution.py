@@ -26,6 +26,7 @@ from robottelo.datafactory import (
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.decorators import (
     bz_bug_is_open,
+    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
@@ -448,6 +449,7 @@ class RemoteExecutionTestCase(UITestCase):
     """Test class for remote execution feature"""
 
     @classmethod
+    @skip_if_not_set('clients', 'fake_manifest', 'vlan_networking')
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
         super(RemoteExecutionTestCase, cls).setUpClass()
@@ -456,9 +458,14 @@ class RemoteExecutionTestCase(UITestCase):
         # add rex proxy to subnet, default is internal proxy (id 1)
         subnet_options = {
             u'domain-ids': 1,
-            u'organizations': cls.organization.name,
-            u'location-ids': 2
-           }
+            u'gateway': settings.vlan_networking.gateway,
+            u'ipam': u'DHCP',
+            u'location-ids': 2,
+            u'mask': settings.vlan_networking.netmask,
+            u'network': settings.vlan_networking.subnet,
+            u'network-type': 'IPv4',
+            u'organizations': cls.organization.name
+        }
         if not bz_bug_is_open(1328322):
             subnet_options[u'remote-execution-proxy-id'] = 1
         cls.new_sub = make_subnet(subnet_options)
@@ -511,7 +518,8 @@ class RemoteExecutionTestCase(UITestCase):
         """
         with VirtualMachine(
                 distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
                 ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
@@ -562,7 +570,8 @@ class RemoteExecutionTestCase(UITestCase):
         jobs_template_name = gen_string('alpha')
         with VirtualMachine(
                 distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
                 ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
@@ -625,12 +634,13 @@ class RemoteExecutionTestCase(UITestCase):
         """
         with VirtualMachine(
                 distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge
-                ) as client:
-            with VirtualMachine(
-                    distro=DISTRO_RHEL7,
-                    bridge=settings.vlan_networking.bridge
-                    ) as client2:
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
+             ) as client, VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
+             ) as client2:
                 for vm in client, client2:
                     vm.install_katello_ca()
                     vm.register_contenthost(
@@ -687,7 +697,8 @@ class RemoteExecutionTestCase(UITestCase):
         """
         with VirtualMachine(
                 distro=DISTRO_RHEL7,
-                bridge=settings.vlan_networking.bridge
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
                 ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')

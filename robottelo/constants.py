@@ -348,6 +348,7 @@ ATOMIC_HOST_TREE = [
     ('rhah', 'rhaht', 'rhaht', 'repo_ver', None),
 ]
 
+DEFAULT_LOC_ID = 2
 DEFAULT_ORG_ID = 1
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
