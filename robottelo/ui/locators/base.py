@@ -672,10 +672,6 @@ locators = LocatorDict({
         ("//div[contains(@class, 'progress') and "
          "@value='task.progressbar.value' and "
          "div[contains(@style, '100%')]]")),
-    "contenthost.package_search_box": (
-        By.XPATH, "//input[@ng-model='detailsTable.searchTerm']"),
-    "contenthost.package_search_button": (
-        By.XPATH, "//button[contains(@ng-click, 'detailsTable.search')]"),
     "contenthost.package_search_name": (
         By.XPATH,
         ("//tr[@class='ng-scope' and @row-select='package']"
