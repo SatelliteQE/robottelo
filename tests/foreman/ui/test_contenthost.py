@@ -87,7 +87,7 @@ class ContentHostTestCase(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         }, force_manifest_upload=True)
-        setup_org_for_a_custom_repo({
+        cls.setup_entities = setup_org_for_a_custom_repo({
             'url': FAKE_0_YUM_REPO,
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
@@ -96,12 +96,14 @@ class ContentHostTestCase(UITestCase):
         })
         setup_org_for_a_custom_repo({
             'url': FAKE_6_YUM_REPO,
+            'product': cls.setup_ents['product-id'],
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
-        cls.product = entities.Product(id=cls.entities['product-id']).read()
+        cls.product = entities.Product(
+            id=cls.setup_entities['product-id']).read()
 
     def setUp(self):
         """Create a VM, subscribe it to satellite-tools repo, install
