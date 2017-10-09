@@ -34,8 +34,9 @@ from robottelo.constants import (
     FAKE_0_YUM_REPO,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_1_ERRATA_ID,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_ERRATA_ID,
+    FAKE_6_YUM_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -86,6 +87,13 @@ class ContentHostTestCase(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         }, force_manifest_upload=True)
+        setup_org_for_a_custom_repo({
+            'url': FAKE_0_YUM_REPO,
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        })
         setup_org_for_a_custom_repo({
             'url': FAKE_6_YUM_REPO,
             'organization-id': cls.session_org.id,
@@ -170,7 +178,7 @@ class ContentHostTestCase(UITestCase):
         @CaseLevel: System
         """
         self.client.download_install_rpm(
-            FAKE_0_YUM_REPO,
+            FAKE_6_YUM_REPO,
             FAKE_0_CUSTOM_PACKAGE
         )
         with Session(self.browser):
@@ -268,7 +276,7 @@ class ContentHostTestCase(UITestCase):
         with Session(self.browser):
             result = self.contenthost.install_errata(
                 self.client.hostname,
-                FAKE_1_ERRATA_ID,
+                FAKE_2_ERRATA_ID,
             )
             self.assertEqual(result, 'success')
             self.assertIsNotNone(self.contenthost.package_search(
