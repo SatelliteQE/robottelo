@@ -400,6 +400,50 @@ class ContentHostTestCase(UITestCase):
 
     @tier3
     @upgrade
+    def test_positive_ensure_errata_applicability_with_host_reregistered(self):
+        """Ensure that errata remain available to install when content host is
+        re-registered
+
+        :id: 30b1e512-45e5-481e-845f-5344ed81450d
+
+        :steps:
+            1. Prepare an activation key with content view that contain a
+                repository with a package that has errata
+            2. Register the host to activation key
+            3. Install the package that has errata
+            4. Refresh content host subscription running:
+                "subscription-manager refresh  && yum repolist"
+            5. Ensure errata is available for installation
+            6. Refresh content host subscription running:
+                "subscription-manager refresh  && yum repolist"
+
+        :expectedresults: errata is available in installable errata list
+
+        :BZ: 1463818
+
+        :CaseLevel: System
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        result = self.client.run('rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.assertEqual(result.return_code, 0)
+        result = self.client.run(
+            'subscription-manager refresh  && yum repolist')
+        self.assertEqual(result.return_code, 0)
+        with Session(self):
+            self.assertIsNotNone(
+                self.contenthost.errata_search(
+                    self.client.hostname, FAKE_2_ERRATA_ID)
+            )
+            result = self.client.run(
+                'subscription-manager refresh  && yum repolist')
+            self.assertEqual(result.return_code, 0)
+            self.assertIsNotNone(
+                self.contenthost.errata_search(
+                    self.client.hostname, FAKE_2_ERRATA_ID)
+            )
+
+    @tier3
+    @upgrade
     @stubbed()
     def test_positive_bulk_add_subscriptions(self):
         """Add a subscription to more than one content host, using bulk actions.
