@@ -90,7 +90,8 @@ class ContentViews(Base):
         return self.wait_until_element(
             locators['contentviews.filter_name'] % filter_name)
 
-    def update(self, name, new_name=None, new_description=None):
+    def update(self, name, new_name=None, new_description=None,
+               force_puppet=None):
         """Updates an existing content view"""
         self.search_and_click(name)
         self.click(tab_locators['contentviews.tab_details'])
@@ -107,6 +108,13 @@ class ContentViews(Base):
                 locators['contentviews.edit_description_text'],
                 new_description,
                 locators['contentviews.save_description']
+            )
+        if force_puppet is not None:
+            self.edit_entity(
+                locators['contentviews.edit_force_puppet'],
+                locators['contentviews.edit_force_puppet_checkbox'],
+                force_puppet,
+                locators['contentviews.save_force_puppet']
             )
 
     def add_remove_repos(

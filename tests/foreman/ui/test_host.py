@@ -1592,6 +1592,55 @@ class HostTestCase(UITestCase):
             )
             self.assertEqual(result['Puppet Environment'], env.name)
 
+    @run_only_on('sat')
+    @tier2
+    def test_positive_reset_puppet_env_from_cv(self):
+        """Content View puppet environment is inherited to host in create
+        procedure and can be rolled back to its value at any moment using
+        'Reset Puppet Environment to match selected Content View' button
+
+        :id: f8f35bd9-9e7c-418f-837a-ccec21c05d59
+
+        :expectedresults: Expected puppet environment is inherited to the field
+
+        :BZ: 1336802
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        puppet_env = entities.Environment(
+            name=gen_string('alpha'), organization=[org]).create()
+        cv = entities.ContentView(organization=org).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            self.content_views.update(name=cv.name, force_puppet=True)
+            self.content_views.publish(cv.name)
+            published_puppet_env = [
+                env
+                for env in entities.Environment(organization=[org]).search()
+                if cv.name in env.name
+            ][0]
+            self.hosts.navigate_to_entity()
+            self.hosts.click(locators['host.new'])
+            self.hosts.assign_value(
+                locators['host.lifecycle_environment'], ENVIRONMENT)
+            self.hosts.assign_value(locators['host.content_view'], cv.name)
+            self.assertEqual(
+                self.hosts.wait_until_element(
+                    locators['host.fetch_puppet_environment']).text,
+                published_puppet_env.name
+            )
+            self.hosts.assign_value(
+                locators['host.puppet_environment'],
+                puppet_env.name
+            )
+            self.hosts.click(locators['host.reset_puppet_environment'])
+            self.assertEqual(
+                self.hosts.wait_until_element(
+                    locators['host.fetch_puppet_environment']).text,
+                published_puppet_env.name
+            )
+
     @stubbed()
     @tier3
     def test_positive_create_with_user(self):
