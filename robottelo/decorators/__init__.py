@@ -193,7 +193,7 @@ class ProjectModeError(Exception):
     """Indicates an error occurred while skipping based on Project Mode."""
 
 
-def run_only_on(project):
+def run_only_on(*projects):
     """Decorator to skip tests based on server mode.
 
     If the calling function -
@@ -202,13 +202,17 @@ def run_only_on(project):
 
     * uses 'sam' - test will be run for sam mode only
 
-    * does not use this decorator - test will be run for sat/sam modes
+    * uses 'upgrade' - test will be run for upgrade mode only
+
+    * uses ('sat', 'upgrade') - test will run for both sat and upgrade modes
+
+    * does not use this decorator - test will be run for sat/sam/upgrade modes
 
     Note: The server mode is identified by ``settings.project``.
 
     Usage:
 
-    To skip a specific test::
+    To skip a specific test on sam and upgrade both ::
 
         from robottelo.decorators import run_only_on
 
@@ -216,14 +220,23 @@ def run_only_on(project):
         def test_hostgroup_create():
             # test code continues here
 
-    :param str project: Enter 'sat' for Satellite and 'sam' for SAM
+    To run a specific test on sat and upgrade both ::
+
+        from robottelo.decorators import run_only_on
+
+        @run_only_on('sat','upgrade')
+        def test_hostgroup_create():
+            # test code continues here
+
+    :param str projects: Enter 'sat' for Satellite, 'sam' for SAM and
+        'upgrade' for upgrade, ('sat', 'upgrade') for sat and upgrade both
     :returns: ``unittest2.skipIf``
     :raises: :meth:`ProjectModeError` if invalid `project` is given or invalid
         mode is specified in ``robottelo.properties`` file
 
     """
-    allowed_project_modes = ('sat', 'sam')
-    project = project.lower()
+    allowed_project_modes = ('sat', 'sam', 'upgrade')
+    projects = [project.lower() for project in projects]
 
     def decorator(func):
         """Wrap test methods in order to skip the test if the test method
@@ -241,11 +254,13 @@ def run_only_on(project):
             else:
                 settings_project = 'sat'
 
-            if project not in allowed_project_modes:
-                raise ProjectModeError(
-                    '"{0}" is not a project mode. The allowed project modes '
-                    'are: {1}'.format(project, allowed_project_modes)
-                )
+            for project in projects:
+                if project not in allowed_project_modes:
+                    raise ProjectModeError(
+                        '"{0}" is not a project mode. The allowed project '
+                        'modes are: {1}'.format(
+                            project, allowed_project_modes)
+                    )
 
             # If robottelo.properties not present or does not specify a project
             # use sat
@@ -257,10 +272,11 @@ def run_only_on(project):
                 )
 
             # Preconditions PASS.  Now skip the test if modes does not match
-            if project != settings_project:
+            if settings_project not in projects:
                 raise unittest2.SkipTest(
-                    'Server runs in "{0}" mode and this test will run '
-                    'only on "{1}" mode.'.format(settings_project, project)
+                    'Server runs in {0} mode and this test will run '
+                    'only on "{1}" mode.'.format(
+                        settings_project, ', '.join(projects))
                 )
             else:
                 return func(*args, **kwargs)
