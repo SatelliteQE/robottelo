@@ -26,21 +26,18 @@ class Auth(Base):
         """Set credentials"""
         cls.command_sub = 'login'
         return cls.execute(
-            cls._construct_command(options), output_format='csv',
-            pass_credentials=False)
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def logout(cls, options=None):
         """Wipe credentials"""
         cls.command_sub = 'logout'
         return cls.execute(
-            cls._construct_command(options), output_format='csv',
-            pass_credentials=False)
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def status(cls, options=None):
         """Show login status"""
         cls.command_sub = 'status'
         return cls.execute(
-            cls._construct_command(options), output_format='csv',
-            pass_credentials=False)
+            cls._construct_command(options), output_format='csv')
