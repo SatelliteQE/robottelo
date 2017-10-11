@@ -77,7 +77,7 @@ class Role(Base):
             self.configure_entity(location, FILTER['filter_loc'])
         self.click(common_locators['submit'])
 
-    def get_resources(self, role_name):
+    def filters_get_resources(self, role_name):
         """Fetch resources from role filters.
 
         :param role_name: String with role name.
@@ -132,7 +132,7 @@ class Role(Base):
                     ]
                     permissions[res_type].extend(perms)
 
-    def get_permissions(self, role_name, resource_types):
+    def filters_get_permissions(self, role_name, resource_types):
         """Fetch permissions for provided resource types from role filters.
 
         :param role_name: String with role name.
@@ -161,6 +161,36 @@ class Role(Base):
                 .format(', '.join(missing_resource_types))
             )
         return permissions
+
+    def get_permissions(self, role_name):
+        """Fetch all assigned permissions from role page.
+
+        :param role_name: String with role name.
+        :return: Dict with resource name as a key and list of strings with
+            permissions names as a values.
+        """
+        self.search_and_click(role_name)
+        self.click(tab_locators['roles.tab_filters'])
+        dict_permissions = {}
+        while True:
+            resources = [
+                resource.text for resource in
+                self.find_elements(locators['roles.resources'])
+            ]
+            permissions = [
+                filter_.text for filter_ in
+                self.find_elements(locators['roles.permissions'] % '')
+            ]
+            for res_type, perms in zip(resources, permissions):
+                if res_type not in dict_permissions:
+                    dict_permissions[res_type] = []
+                dict_permissions[res_type] += perms.split(', ')
+            next_ = self.find_element(
+                locators["roles.filters.pagination_next"])
+            if not next_:
+                break
+            self.click(next_)
+        return dict_permissions
 
     def clone(self, name, new_name, locations=None, organizations=None):
         """Clone role with name/location/organization."""
