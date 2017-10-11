@@ -195,11 +195,11 @@ class IncrementalUpdateTestCase(TestCase):
         # Find the content host and ensure that tasks started by package
         # installation has finished
         host = entities.Host().search(
-            query={'search': 'name={}'.format(self.vm.hostname)})
+            search_query={'search': 'name={}'.format(self.vm.hostname)})
         wait_for_tasks(
-            query='label = Actions::Katello::Host::UploadPackageProfile'
-                  ' and resource_id = {}'
-                  ' and started_at >= {}'.format(host[0].id, timestamp)
+            search_query='label = Actions::Katello::Host::UploadPackageProfile'
+                         ' and resource_id = {}'
+                         ' and started_at >= {}'.format(host[0].id, timestamp)
         )
 
     @staticmethod
