@@ -25,6 +25,7 @@ from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
 )
+from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
@@ -39,6 +40,7 @@ from robottelo.constants import (
     PRDS,
     REPOS,
     REPOSET,
+    RHEL_7_MAJOR_VERSION,
 )
 from robottelo.datafactory import (
     invalid_names_list,
@@ -475,7 +477,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             environment=cls.env,
             organization=cls.session_org,
         ).create()
-        setup_org_for_a_rh_repo({
+        rh_tools_content_data = setup_org_for_a_rh_repo({
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
@@ -484,13 +486,25 @@ class HostCollectionPackageManagementTest(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
-        setup_org_for_a_custom_repo({
+        custom_content_data = setup_org_for_a_custom_repo({
             'url': FAKE_6_YUM_REPO,
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
+        cls.rh_sat_tools_custom_product = None
+        cls.rh_sat_tools_custom_repository = None
+        if not settings.cdn and settings.sattools_repo['rhel7']:
+            # RH sat tools repository was added as custom product and repo
+            cls.rh_sat_tools_custom_product = entities.Product(
+                id=rh_tools_content_data['product-id']).read()
+            cls.rh_sat_tools_custom_repository = entities.Repository(
+                id=rh_tools_content_data['repository-id']).read()
+        cls.custom_product = entities.Product(
+            id=custom_content_data['product-id']).read()
+        cls.custom_repository = entities.Repository(
+            id=custom_content_data['repository-id']).read()
 
     def setUp(self):
         """Create VMs, subscribe them to satellite-tools repo, install
@@ -541,6 +555,49 @@ class HostCollectionPackageManagementTest(UITestCase):
                         host.hostname,
                     )
                 )
+
+    def _get_content_repository_urls(self, lce, content_view):
+        """Returns a list of the content repository urls"""
+        custom_url_template = (
+            'https://{hostname}/pulp/repos/{org.label}/{lce.name}'
+            '/{content_view.name}/custom/{product.label}/{repository.name}'
+        )
+        rh_sat_tools_url_template = (
+            'https://{hostname}/pulp/repos/{org.label}/{lce.name}'
+            '/{content_view.name}/content/dist/rhel/server/{major_version}'
+            '/{major_version}Server/$basearch/sat-tools/{product_version}/os'
+        )
+        repos_urls = [
+            custom_url_template.format(
+                hostname=settings.server.hostname,
+                org=self.session_org,
+                lce=lce,
+                content_view=content_view,
+                product=self.custom_product,
+                repository=self.custom_repository
+            )
+        ]
+        if settings.cdn or not settings.sattools_repo['rhel7']:
+            # add the RH sat tools as cdn repository
+            repos_urls.append(rh_sat_tools_url_template.format(
+                hostname=settings.server.hostname,
+                org=self.session_org,
+                lce=lce,
+                content_view=content_view,
+                major_version=RHEL_7_MAJOR_VERSION,
+                product_version=REPOS['rhst7']['releasever'],
+            ))
+        else:
+            # add the RH sat tools as custom repository
+            repos_urls.append(custom_url_template.format(
+                hostname=settings.server.hostname,
+                org=self.session_org,
+                lce=lce,
+                content_view=content_view,
+                product=self.rh_sat_tools_custom_product,
+                repository=self.rh_sat_tools_custom_repository
+            ))
+        return repos_urls
 
     @tier3
     @upgrade
@@ -751,16 +808,9 @@ class HostCollectionPackageManagementTest(UITestCase):
         # like:
         # Repo URL  : https://{host}/pulp/repos/{org}/{lce}/{cv}/custom
         # /{product_name}/{repo_name}
-        # changing lce and content view should affect only the {lce}/{cv} part
         repo_line_start_with = 'Repo URL:  '
-        # the lce and cv location part of the current repos urls
-        env_cv_repo_location = '{0}/{1}'.format(
-            self.env.name, self.content_view.name)
-        # the expected lce and cv location part of the expected repos urls when
-        # new lce and cv will be assigned
-        new_env_cv_repo_location = '{0}/{1}'.format(
-            new_lce_name, new_cv_name)
-        expected_repo_urls = {client.hostname: [] for client in clients}
+        expected_repo_urls = self._get_content_repository_urls(
+            self.env, self.content_view)
         for client in clients:
             result = client.run("subscription-manager repos")
             self.assertEqual(result.return_code, 0)
@@ -770,13 +820,10 @@ class HostCollectionPackageManagementTest(UITestCase):
                 if line.startswith(repo_line_start_with)
             ]
             self.assertGreater(len(client_repo_urls), 0)
-            # create the client expected repo urls by replacing the current
-            # {env}/{cv} repo location by the expected new one
-            expected_repo_urls[client.hostname] = [
-                repo_url.replace(env_cv_repo_location,
-                                 new_env_cv_repo_location)
-                for repo_url in client_repo_urls
-            ]
+            self.assertEqual(
+                set(expected_repo_urls),
+                set(client_repo_urls)
+            )
         with Session(self) as session:
             set_context(session, org=self.session_org.name)
             result = session.hostcollection.change_assigned_content(
@@ -785,6 +832,8 @@ class HostCollectionPackageManagementTest(UITestCase):
                 new_content_view.name
             )
             self.assertEqual(result, 'success')
+            expected_repo_urls = self._get_content_repository_urls(
+                new_lce, new_content_view)
             for client in clients:
                 result = client.run("subscription-manager refresh")
                 self.assertEqual(result.return_code, 0)
@@ -796,8 +845,9 @@ class HostCollectionPackageManagementTest(UITestCase):
                     for line in result.stdout
                     if line.startswith(repo_line_start_with)
                 ]
+                self.assertGreater(len(client_repo_urls), 0)
                 self.assertEqual(
-                    set(expected_repo_urls[client.hostname]),
+                    set(expected_repo_urls),
                     set(client_repo_urls)
                 )
 
