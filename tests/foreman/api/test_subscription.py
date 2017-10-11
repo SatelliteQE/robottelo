@@ -70,6 +70,33 @@ class SubscriptionsTestCase(APITestCase):
 
     @skip_if_not_set('fake_manifest')
     @tier1
+    def test_positive_create_after_refresh(self):
+        """Upload a manifest,refresh it and upload a new manifest to an other
+         organization.
+
+        :id: 1869bbb6-c31b-49a9-bc92-402a90071a11
+
+        :expectedresults: the manifest is uploaded successfully to other org
+
+        :BZ: 1393442
+
+        :CaseImportance: Critical
+        """
+        org = entities.Organization().create()
+        org_sub = entities.Subscription(organization=org)
+        new_org = entities.Organization().create()
+        new_org_sub = entities.Subscription(organization=new_org)
+        self.upload_manifest(org.id, manifests.original_manifest())
+        try:
+            org_sub.refresh_manifest(data={'organization_id': org.id})
+            self.assertGreater(len(org_sub.search()), 0)
+            self.upload_manifest(new_org.id, manifests.clone())
+            self.assertGreater(len(new_org_sub.search()), 0)
+        finally:
+            org_sub.delete_manifest(data={'organization_id': org.id})
+
+    @skip_if_not_set('fake_manifest')
+    @tier1
     @upgrade
     def test_positive_delete(self):
         """Delete an Uploaded manifest.
