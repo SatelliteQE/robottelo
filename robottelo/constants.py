@@ -260,6 +260,7 @@ REPOS = {
         'name': (
             'Red Hat Satellite Tools 6.2 for RHEL 7 Server RPMs x86_64'
         ),
+        'releasever': '6.2',
     },
     'rhst6': {
         'id': 'rhel-6-server-satellite-tools-6.2-rpms',

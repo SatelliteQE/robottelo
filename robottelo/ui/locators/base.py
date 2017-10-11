@@ -725,6 +725,23 @@ locators = LocatorDict({
     "contenthost.bulk_actions.remote_action_scheduled": (
         By.XPATH, '//div[@bst-alert="success"]'),
 
+    "contenthost.bulk_actions.environment_content": (
+        By.XPATH, "//a[contains(@ng-click, 'Environment')]"),
+
+    "contenthost.bulk_actions.environment_checkbox": (
+        By.XPATH,
+        "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
+
+    "contenthost.bulk_actions.content_view_select": (
+        By.XPATH, "//select[contains(@ng-model, 'contentView')]"),
+
+    "contenthost.bulk_actions.environment_content_assign": (
+        By.XPATH, "//form//button[contains(@ng-click, 'showConfirm')]"),
+
+    "contenthost.bulk_actions.environment_content_confirm": (
+        By.XPATH, "//button[contains(@ng-click, 'performAction')]"),
+
+
     # Hosts
 
     # Default tab (Host)
