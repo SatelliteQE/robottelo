@@ -274,25 +274,23 @@ class Base(object):
         return (username, password)
 
     @classmethod
-    def execute(cls, command, user=None, password=None, output_format=None,
-                timeout=None, ignore_stderr=None, return_raw_response=None,
-                connection_timeout=None, pass_credentials=True):
+    def execute(cls, command, output_format=None, timeout=None,
+                ignore_stderr=None, return_raw_response=None,
+                connection_timeout=None):
         """Executes the cli ``command`` on the server via ssh"""
-        user, password = cls._get_username_password(user, password)
         time_hammer = False
         if settings.performance:
             time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
-        cmd = u'LANG={0} {1} hammer -v {2} {3} {4} {5}'.format(
+        cmd = u'LANG={0} {1} hammer -v {2} {3} {4}'.format(
             settings.locale,
             u'time -p' if time_hammer else '',
-            u'-u {0}'.format(user) if pass_credentials
-            else u'--interactive no',
-            u'-p {0}'.format(password) if pass_credentials else '',
+            command[1],
             u'--output={0}'.format(output_format) if output_format else u'',
-            command,
+            command[0],
         )
+
         response = ssh.command(
             cmd.encode('utf-8'),
             output_format=output_format,
@@ -358,7 +356,7 @@ class Base(object):
         return result
 
     @classmethod
-    def list(cls, options=None, per_page=True,  pass_credentials=True,
+    def list(cls, options=None, per_page=True,
              output_format='csv'):
         """
         List information.
@@ -381,8 +379,7 @@ class Base(object):
             )
 
         result = cls.execute(
-            cls._construct_command(options), output_format=output_format,
-            pass_credentials=pass_credentials)
+            cls._construct_command(options), output_format=output_format)
 
         return result
 
@@ -437,8 +434,7 @@ class Base(object):
         return result
 
     @classmethod
-    def update(cls, options=None, pass_credentials=True,
-               return_raw_response=None):
+    def update(cls, options=None, return_raw_response=None):
         """
         Updates existing record.
         """
@@ -448,7 +444,6 @@ class Base(object):
         result = cls.execute(
             cls._construct_command(options),
             output_format='csv',
-            pass_credentials=pass_credentials,
             return_raw_response=return_raw_response,
         )
 
@@ -475,6 +470,7 @@ class Base(object):
     @classmethod
     def _construct_command(cls, options=None):
         """Build a hammer cli command based on the options passed"""
+        head = u''
         tail = u''
 
         if options is None:
@@ -485,14 +481,36 @@ class Base(object):
                 continue
             if val is True:
                 tail += u' --{0}'.format(key)
-            elif val is not False:
+            elif val is not False and key is not 'hammer_options':
                 if isinstance(val, list):
                     val = ','.join(str(el) for el in val)
                 tail += u' --{0}="{1}"'.format(key, val)
+
         cmd = u'{0} {1} {2}'.format(
             cls.command_base,
             cls.command_sub,
             tail.strip()
         )
 
-        return cmd
+        user, password = cls._get_username_password()
+        default_hammer_options = {
+            'username': user,
+            'password': password,
+            'interactive': 'no'
+        }
+
+        if 'hammer_options' in options.keys():
+            h_options = default_hammer_options.copy()
+            h_options.update(options['hammer_options'])
+            set_uname = h_options['username']
+            set_pwd = h_options['username']
+            head = u' {0} {1} --interactive no'.format(
+                u'-u {0}'.format(set_uname) if set_uname else '',
+                u'-p {0}'.format(set_pwd) if set_pwd else '',
+            )
+        else:
+            head = u'-u {username} -p {password} \
+                    --interactive {interactive} '.format(
+                    **default_hammer_options)
+
+        return [cmd, head]

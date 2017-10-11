@@ -34,7 +34,7 @@ class BaseCliTestCase(unittest2.TestCase):
             u'flag-two': False,
             u'argument': u'value',
             u'ommited-arg': None,
-        }).split()
+        })[0].split()
 
         self.assertIn(u'basecommand', command_parts)
         self.assertIn(u'subcommand', command_parts)
@@ -290,9 +290,8 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check excuted build ssh method and returns raw response"""
         settings.locale = 'en_US'
         settings.performance = False
-        settings.server.admin_username = 'admin'
-        settings.server.admin_password = 'password'
-        response = Base.execute('some_cmd', return_raw_response=True)
+        response = Base.execute(['some_cmd', '-u admin -p password'],
+                                return_raw_response=True)
         ssh_cmd = u'LANG=en_US  hammer -v -u admin -p password  some_cmd'
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
@@ -309,9 +308,8 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check excuted build ssh method and delegate response handling"""
         settings.locale = 'en_US'
         settings.performance.timer_hammer = True
-        settings.server.admin_username = 'admin'
-        settings.server.admin_password = 'password'
-        response = Base.execute('some_cmd', output_format='json')
+        response = Base.execute(['some_cmd', '-u admin -p password'],
+                                output_format='json')
         ssh_cmd = (
             u'LANG=en_US time -p hammer -v -u admin -p password --output=json'
             u' some_cmd'
