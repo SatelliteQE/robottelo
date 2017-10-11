@@ -20,7 +20,12 @@ from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from robottelo import ssh
-from robottelo.api.utils import promote
+from robottelo.api.utils import (
+    manifests,
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+)
 from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
@@ -32,7 +37,11 @@ from robottelo.constants import (
     FAKE_3_YUM_REPOS_COUNT,
     FAKE_7_YUM_REPO,
     FAKE_8_YUM_REPO,
+    PRDS,
+    PULP_PUBLISHED_ISO_REPOS_PATH,
     PULP_PUBLISHED_YUM_REPOS_PATH,
+    REPOS,
+    REPOSET,
     RPM_TO_UPLOAD,
 )
 from robottelo.decorators import (
@@ -49,7 +58,7 @@ from robottelo.helpers import (
     get_data_file,
     md5_by_url,
 )
-from robottelo.host_info import get_repo_rpms, get_repomd_revision
+from robottelo.host_info import get_repo_files, get_repomd_revision
 from robottelo.vm import VirtualMachine
 from robottelo.vm_capsule import CapsuleVirtualMachine
 from robottelo.test import APITestCase
@@ -202,7 +211,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             prod=product.label,
             repo=repo.label,
         )
-        capsule_rpms = get_repo_rpms(
+        capsule_rpms = get_repo_files(
             lce_repo_path, hostname=self.capsule_hostname)
         self.assertEqual(len(capsule_rpms), 1)
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
@@ -329,8 +338,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         lce_revision_capsule = get_repomd_revision(
             lce_repo_path, hostname=self.capsule_hostname)
         self.assertEqual(
-            get_repo_rpms(lce_repo_path, hostname=self.capsule_hostname),
-            get_repo_rpms(cvv_repo_path)
+            get_repo_files(lce_repo_path, hostname=self.capsule_hostname),
+            get_repo_files(cvv_repo_path)
         )
         # Sync repository for a second time
         result = repo.sync()
@@ -404,8 +413,8 @@ class CapsuleContentManagementTestCase(APITestCase):
             cvv.package_count,
         )
         self.assertEqual(
-            get_repo_rpms(lce_repo_path),
-            get_repo_rpms(cvv_repo_path)
+            get_repo_files(lce_repo_path),
+            get_repo_files(cvv_repo_path)
         )
         # Wait till capsule sync finishes
         for task in sync_status['active_sync_tasks']:
@@ -413,9 +422,80 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Assert that the content published on the capsule is exactly the
         # same as in the repository
         self.assertEqual(
-            get_repo_rpms(lce_repo_path, hostname=self.capsule_hostname),
-            get_repo_rpms(cvv_repo_path)
+            get_repo_files(lce_repo_path, hostname=self.capsule_hostname),
+            get_repo_files(cvv_repo_path)
         )
+
+    @skip_if_bug_open('bugzilla', 1480358)
+    @tier4
+    def test_positive_iso_library_sync(self):
+        """Ensure RH repo with ISOs after publishing to Library is synchronized
+        to capsule automatically
+
+        :id: 221a2d41-0fef-46dd-a804-fdedd7187163
+
+        :BZ: 1303102, 1480358
+
+        :expectedresults: ISOs are present on external capsule
+
+        :CaseLevel: System
+        """
+        # Create organization, product, enable & sync RH repository with ISOs
+        org = entities.Organization(smart_proxy=[self.capsule_id]).create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        rh_repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhsc'],
+            repo=REPOS['rhsc7_iso']['name'],
+            reposet=REPOSET['rhsc7_iso'],
+            releasever=None,
+        )
+        rh_repo = entities.Repository(id=rh_repo_id).read()
+        rh_repo.sync()
+        capsule = entities.Capsule(id=self.capsule_id).read()
+        # Find "Library" lifecycle env for specific organization
+        lce = entities.LifecycleEnvironment(organization=org).search(query={
+            'search': 'name={}'.format(ENVIRONMENT)
+        })[0]
+        # Associate the lifecycle environment with the capsule
+        capsule.content_add_lifecycle_environment(data={
+            'environment_id': lce.id,
+        })
+        result = capsule.content_lifecycle_environments()
+        self.assertGreaterEqual(len(result['results']), 1)
+        self.assertIn(
+            lce.id, [capsule_lce['id'] for capsule_lce in result['results']])
+        # Create a content view with the repository
+        cv = entities.ContentView(
+            organization=org,
+            repository=[rh_repo],
+        ).create()
+        # Publish new version of the content view
+        cv.publish()
+        cv = cv.read()
+        self.assertEqual(len(cv.version), 1)
+        # Verify ISOs are present on satellite
+        repo_path = os.path.join(
+            PULP_PUBLISHED_ISO_REPOS_PATH, rh_repo.backend_identifier)
+        sat_isos = get_repo_files(repo_path, extension='iso')
+        self.assertGreater(len(result), 0)
+        # Assert that a task to sync lifecycle environment to the capsule
+        # is started (or finished already)
+        sync_status = capsule.content_get_sync()
+        self.assertTrue(
+            len(sync_status['active_sync_tasks']) >= 1
+            or sync_status['last_sync_time']
+        )
+        # Wait till capsule sync finishes
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll()
+        # Verify all the ISOs are present on capsule
+        capsule_isos = get_repo_files(
+            repo_path, extension='iso', hostname=self.capsule_hostname)
+        self.assertGreater(len(result), 0)
+        self.assertEqual(set(sat_isos), set(capsule_isos))
 
     @tier4
     def test_positive_on_demand_sync(self):

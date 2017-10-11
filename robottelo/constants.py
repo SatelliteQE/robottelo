@@ -221,6 +221,7 @@ REPOSET = {
         'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
     ),
     'rhsc7': 'Red Hat Satellite Capsule 6.2 (for RHEL 7 Server) (RPMs)',
+    'rhsc7_iso': 'Red Hat Satellite Capsule 6.2 (for RHEL 7 Server) (ISOs)',
     'rhsc6': 'Red Hat Satellite Capsule 6.2 (for RHEL 6 Server) (RPMs)',
     'rhst7': 'Red Hat Satellite Tools 6.2 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.2 (for RHEL 6 Server) (RPMs)',
@@ -240,6 +241,12 @@ REPOS = {
         'id': 'rhel-7-server-satellite-capsule-6.2-rpms',
         'name': (
             'Red Hat Satellite Capsule 6.2 for RHEL 7 Server RPMs x86_64'
+        ),
+    },
+    'rhsc7_iso': {
+        'id': 'rhel-7-server-satellite-capsule-6.2-isos',
+        'name': (
+            'Red Hat Satellite Capsule 6.2 for RHEL 7 Server ISOs x86_64'
         ),
     },
     'rhsc6': {
@@ -482,6 +489,7 @@ FAKE_1_YUM_REPO_RPMS = [
 ]
 FAKE_0_PUPPET_MODULE = 'httpd'
 
+PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
 
 #: All permissions exposed by the server.
