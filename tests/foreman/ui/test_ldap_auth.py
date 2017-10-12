@@ -14,7 +14,6 @@
 
 :Upstream: No
 """
-
 from robottelo.decorators import (
     skip_if_not_set,
     stubbed,
@@ -41,7 +40,6 @@ class LDAPAuthTestCase(UITestCase):
     # LDAP authentication:
     # http://theforeman.org/manuals/1.8/index.html#4.1.1LDAPAuthentication
     # LDAP Auth testing involves testing with RHDS(389), IdM(IPA) and AD ldap.
-
     @skip_if_not_set('ldap')
     @stubbed()
     @tier3
@@ -98,47 +96,6 @@ class LDAPAuthTestCase(UITestCase):
 
         :expectedresults: This is handled gracefully (user is logged out
             perhaps?) and no data corruption
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @skip_if_not_set('ldap')
-    @stubbed()
-    @tier3
-    def test_positive_ad_basic_no_roles(self):
-        """Login with LDAP Auth- AD for user with no roles/rights
-
-        :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
-
-        :setup: assure properly functioning AD server for authentication
-
-        :steps: Login to server with an AD user.
-
-        :expectedresults: Log in to foreman UI successfully but cannot access
-            functional areas of UI
-
-        :caseautomation: notautomated
-
-        :CaseLevel: System
-        """
-
-    @skip_if_not_set('ldap')
-    @stubbed()
-    @tier3
-    @upgrade
-    def test_positive_ad_basic_roles(self):
-        """Login with LDAP - AD for user with roles/rights
-
-        :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
-
-        :setup: assure properly functioning AD server for authentication
-
-        :steps: Login to server with an AD user.
-
-        :expectedresults: Log in to foreman UI successfully and can access
-            appropriate functional areas in UI
 
         :caseautomation: notautomated
 

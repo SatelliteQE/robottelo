@@ -22,6 +22,7 @@ from nailgun import entities
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import (
+    ANY_CONTEXT,
     DEFAULT_ORG,
     LANGUAGES,
     LDAP_ATTR,
@@ -38,6 +39,7 @@ from robottelo.datafactory import (
     valid_emails_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -46,7 +48,13 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_user, make_usergroup, set_context
+from robottelo.ui.factory import (
+    make_arch,
+    make_role,
+    make_user,
+    make_usergroup,
+    set_context,
+)
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 from robozilla.decorators import skip_if_bug_open
@@ -1284,6 +1292,7 @@ class UserTestCase(UITestCase):
         """
 
 
+@run_in_one_thread
 class ActiveDirectoryUserTestCase(UITestCase):
     """Implements Active Directory feature tests for user in UI."""
 
@@ -1316,6 +1325,23 @@ class ActiveDirectoryUserTestCase(UITestCase):
         ).create()
         cls.ldap_server_name = authsource_attrs.name
 
+    def check_external_user(self):
+        """Check whether external user is active and reachable. That
+        operation also add that user into application system for internal
+        configuration procedures
+        """
+        with Session(self, self.ldap_user_name, self.ldap_user_passwd):
+            self.assertIsNotNone(self.login.wait_until_element(
+                locators['login.loggedin'] % self.ldap_user_name
+            ))
+
+    def tearDown(self):
+        with Session(self) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            if self.user.search(self.ldap_user_name):
+                self.user.delete(self.ldap_user_name)
+        super(ActiveDirectoryUserTestCase, self).tearDown()
+
     @tier2
     @upgrade
     def test_positive_create_in_ldap_mode(self):
@@ -1338,13 +1364,85 @@ class ActiveDirectoryUserTestCase(UITestCase):
             )
             self.assertIsNotNone(self.user.search(user_name))
 
+    @skip_if_not_set('ldap')
+    @tier3
+    def test_positive_ad_basic_no_roles(self):
+        """Login with LDAP Auth- AD for user with no roles/rights
+
+        :id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
+
+        :setup: assure properly functioning AD server for authentication
+
+        :steps: Login to server with an AD user.
+
+        :expectedresults: Log in to foreman UI successfully but cannot access
+            functional areas of UI
+
+        :CaseLevel: System
+        """
+        self.check_external_user()
+        with Session(self, user=self.ldap_user_name,
+                     password=self.ldap_user_passwd):
+            self.assertIsNotNone(self.user.wait_until_element(
+                common_locators['permission_denied']))
+
+    @skip_if_not_set('ldap')
+    @tier3
+    @upgrade
+    def test_positive_ad_basic_roles(self):
+        """Login with LDAP - AD for user with roles/rights
+
+        :id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
+
+        :setup: assure properly functioning AD server for authentication
+
+        :steps: Login to server with an AD user.
+
+        :expectedresults: Log in to foreman UI successfully and can access
+            appropriate functional areas in UI
+
+        :CaseLevel: System
+        """
+        arch_name = gen_string('alphanumeric')
+        permissions = ['view_architectures', 'create_architectures']
+        resource_type = 'Architecture'
+        role_name = gen_string('alphanumeric')
+        self.check_external_user()
+        with Session(self) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_role(session, name=role_name)
+            self.assertIsNotNone(self.role.search(role_name))
+            self.role.add_permission(
+                role_name,
+                resource_type=resource_type,
+                permission_list=permissions,
+            )
+            self.assertIsNotNone(
+                self.role.wait_until_element(
+                    common_locators['alert.success']))
+            assigned_permissions = self.role.get_permissions(
+                role_name, [resource_type])
+            self.assertIsNotNone(assigned_permissions)
+            self.assertEqual(
+                set(permissions), set(assigned_permissions[resource_type]))
+            self.user.update(self.ldap_user_name, new_roles=[role_name])
+            self.user.click(self.user.search(self.ldap_user_name))
+            self.user.click(tab_locators['users.tab_roles'])
+            self.assertIsNotNone(
+                self.user.wait_until_element((
+                    common_locators['entity_deselect'] % role_name)))
+        with Session(self, user=self.ldap_user_name,
+                     password=self.ldap_user_passwd) as session:
+            make_arch(session, name=arch_name)
+            self.assertIsNotNone(self.architecture.search(arch_name))
+
 
 class SshKeyInUserTestCase(UITestCase):
     """Implements the SSH Key in User Tests"""
 
     @stubbed()
     @tier2
-    def test_postitive_ssh_key_tab_presence(self):
+    def test_positive_ssh_key_tab_presence(self):
         """SSH keys tab presence in User details page
 
         :id: a0c77cc1-0484-4290-b4b3-87ab3d0bde56
@@ -1360,7 +1458,7 @@ class SshKeyInUserTestCase(UITestCase):
 
     @stubbed()
     @tier2
-    def test_postitive_ssh_key_tab_presence_Super_Admin(self):
+    def test_positive_ssh_key_tab_presence_Super_Admin(self):
         """SSH keys tab presence in Super Admin details page
 
         :id: 72dc8c6e-3627-436a-adf3-f32d09b2f1c7
