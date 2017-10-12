@@ -17,8 +17,8 @@
 """
 import re
 from six.moves.urllib.parse import urljoin
-
 from nailgun import entities
+
 from robottelo.cleanup import vm_cleanup
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
@@ -34,8 +34,9 @@ from robottelo.constants import (
     FAKE_0_YUM_REPO,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_1_ERRATA_ID,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_ERRATA_ID,
+    FAKE_6_YUM_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -85,15 +86,24 @@ class ContentHostTestCase(UITestCase):
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
-        })
-        cls.entities = setup_org_for_a_custom_repo({
+        }, force_manifest_upload=True)
+        cls.setup_entities = setup_org_for_a_custom_repo({
             'url': FAKE_0_YUM_REPO,
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
-        cls.product = entities.Product(id=cls.entities['product-id']).read()
+        setup_org_for_a_custom_repo({
+            'url': FAKE_6_YUM_REPO,
+            'product': cls.setup_ents['product-id'],
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        })
+        cls.product = entities.Product(
+            id=cls.setup_entities['product-id']).read()
 
     def setUp(self):
         """Create a VM, subscribe it to satellite-tools repo, install
@@ -170,7 +180,7 @@ class ContentHostTestCase(UITestCase):
         @CaseLevel: System
         """
         self.client.download_install_rpm(
-            FAKE_0_YUM_REPO,
+            FAKE_6_YUM_REPO,
             FAKE_0_CUSTOM_PACKAGE
         )
         with Session(self.browser):
@@ -268,7 +278,7 @@ class ContentHostTestCase(UITestCase):
         with Session(self.browser):
             result = self.contenthost.install_errata(
                 self.client.hostname,
-                FAKE_1_ERRATA_ID,
+                FAKE_2_ERRATA_ID,
             )
             self.assertEqual(result, 'success')
             self.assertIsNotNone(self.contenthost.package_search(
