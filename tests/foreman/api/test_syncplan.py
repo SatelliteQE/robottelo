@@ -18,7 +18,6 @@ http://www.katello.org/docs/api/apidoc/sync_plans.html
 
 :Upstream: No
 """
-import random
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from nailgun import client, entities
@@ -581,8 +580,16 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         super(SyncPlanSynchronizeTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    def validate_repo_content(
-            self, repo, content_types, after_sync=True, max_attempts=10):
+    @staticmethod
+    def validate_task_status(repo_id, max_tries=10):
+        wait_for_tasks(
+            search_query='resource_type = Katello::Repository'
+                         ' and owner.login = foreman_admin'
+                         ' and resource_id = {}'.format(repo_id),
+            max_tries=max_tries
+        )
+
+    def validate_repo_content(self, repo, content_types, after_sync=True):
         """Check whether corresponding content is present in repository before
         or after synchronization is performed
 
@@ -591,30 +598,24 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             should be validated (e.g. package, erratum, puppet_module)
         :param bool after_sync: Specify whether you perform validation before
             synchronization procedure is happened or after
-        :param int max_attempts: That value is basically introduced for slow
-            systems when user sure that sync procedure can take more than 300
-            seconds (30*10 where 10 is a default value for max_attempts
-            variable)
-
         """
-        for _ in range(max_attempts):
-            try:
-                repo = repo.read()
-                for content in content_types:
-                    if after_sync:
-                        self.assertGreater(repo.content_counts[content], 0)
-                    else:
-                        self.assertFalse(repo.content_counts[content])
-                break
-            except AssertionError:
-                sleep(30)
-        else:
-            repo = repo.read()
-            self.assertNotEqual(
-                repo.last_sync,
-                None,
-                'Repository contains invalid number of content entities'
-            )
+        repo = repo.read()
+        for content in content_types:
+            if after_sync:
+                self.assertIsNotNone(
+                    repo.last_sync, 'Repository unexpectedly was not synced.')
+                self.assertGreater(
+                    repo.content_counts[content],
+                    0,
+                    'Repository contains invalid number of content entities.'
+                )
+            else:
+                self.assertIsNone(
+                    repo.last_sync, 'Repository was unexpectedly synced.')
+                self.assertFalse(
+                    repo.content_counts[content],
+                    'Repository contains invalid number of content entities.'
+                )
 
     @tier4
     def test_negative_synchronize_custom_product_past_sync_date(self):
@@ -638,26 +639,18 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         repo = entities.Repository(product=product).create()
         # Verify product is not synced and doesn't have any content
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Verify product was not synced right after it was added to sync plan
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
 
-    @tier2
+    @tier4
     def test_positive_synchronize_custom_product_past_sync_date(self):
         """Create a sync plan with past datetime as a sync date, add a
         custom product and verify the product gets synchronized on the next
@@ -672,12 +665,12 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
-        delay = 20
+        delay = 4 * 60
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
             interval=u'hourly',
-            sync_date=datetime.utcnow() - timedelta(seconds=interval - delay/2),
+            sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
         ).create()
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(product=product).create()
@@ -688,24 +681,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                          ' was not synced'.format(delay/4, product.name))
         sleep(delay/4)
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait until the next recurrence
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
-        sleep(delay)
+        sleep(delay * 3/4)
         # Verify product was synced successfully
-        wait_for_tasks(
-            search_query='resource_type = Katello::Repository'
-                         ' and owner.login = foreman_admin'
-                         ' and resource_id = {}'.format(repo.id)
-        )
+        self.validate_task_status(repo.id)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -720,7 +704,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        delay = 5 * 60  # delay for sync date in seconds
+        delay = 4 * 60  # delay for sync date in seconds
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
@@ -730,40 +714,26 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         repo = entities.Repository(product=product).create()
         # Verify product is not synced and doesn't have any content
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Wait half of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/2, product.name))
-        sleep(delay/2)
+                         ' was not synced'.format(delay/4, product.name))
+        sleep(delay/4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format(delay/2, product.name))
-        sleep(delay/2)
+                         ' was synced'.format(delay, product.name))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
-        wait_for_tasks(
-            search_query='resource_type = Katello::Repository'
-                         ' and owner.login = foreman_admin'
-                         ' and resource_id = {}'.format(repo.id)
-        )
+        self.validate_task_status(repo.id)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -779,7 +749,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        delay = 5 * 60  # delay for sync date in seconds
+        delay = 6 * 60  # delay for sync date in seconds
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
@@ -787,59 +757,35 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         ).create()
         products = [
             entities.Product(organization=self.org).create()
-            for _ in range(random.randint(3, 5))
+            for _ in range(3)
         ]
         repos = [
             entities.Repository(product=product).create()
             for product in products
-            for _ in range(random.randint(2, 3))
+            for _ in range(2)
         ]
         # Verify products have not been synced yet
         for repo in repos:
             with self.assertRaises(AssertionError):
-                wait_for_tasks(
-                    search_query='resource_type = Katello::Repository'
-                                 ' and owner.login = foreman_admin'
-                                 ' and resource_id = {}'.format(repo.id),
-                    max_tries=2
-                )
-            self.validate_repo_content(
-                repo,
-                ['erratum', 'package', 'package_group'],
-                after_sync=False,
-            )
+                self.validate_task_status(repo.id)
         # Associate sync plan with products
         sync_plan.add_products(data={
             'product_ids': [product.id for product in products]})
         # Wait half of expected time
         self.logger.info('Waiting {0} seconds to check products'
-                         ' were not synced'.format(delay/2))
-        sleep(delay/2)
+                         ' were not synced'.format(delay/4))
+        sleep(delay/4)
         # Verify products has not been synced yet
         for repo in repos:
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
-            self.validate_repo_content(
-                repo,
-                ['erratum', 'package', 'package_group'],
-                after_sync=False,
-            )
+            with self.assertRaises(AssertionError):
+                self.validate_task_status(repo.id, max_tries=2)
         # Wait the rest of expected time
         self.logger.info('Waiting {0} seconds to check products'
-                         ' were synced'.format(delay/2))
-        sleep(delay/2)
+                         ' were synced'.format(delay))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
         for repo in repos:
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id)
             self.validate_repo_content(
                 repo, ['erratum', 'package', 'package_group'])
 
@@ -859,7 +805,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         :CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
-        delay = 20
+        delay = 4 * 60
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             entities.Subscription().upload(
@@ -883,7 +829,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             organization=org,
             enabled=True,
             interval=u'hourly',
-            sync_date=datetime.utcnow() - timedelta(interval - delay/2),
+            sync_date=datetime.utcnow() - timedelta(seconds=interval - delay),
         ).create()
         # Associate sync plan with product
         sync_plan.add_products(data={'product_ids': [product.id]})
@@ -892,24 +838,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                          ' was not synced'.format(delay/4, product.name))
         sleep(delay/4)
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait until the next recurrence
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
-        sleep(delay)
+        sleep(delay * 3/4)
         # Verify product was synced successfully
-        wait_for_tasks(
-            search_query='resource_type = Katello::Repository'
-                         ' and owner.login = foreman_admin'
-                         ' and resource_id = {}'.format(repo.id)
-        )
+        self.validate_task_status(repo.id)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -926,7 +863,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        delay = 5 * 60  # delay for sync date in seconds
+        delay = 4 * 60  # delay for sync date in seconds
         org = entities.Organization().create()
         with manifests.clone() as manifest:
             entities.Subscription().upload(
@@ -956,38 +893,24 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         sync_plan.add_products(data={'product_ids': [product.id]})
         # Verify product is not synced and doesn't have any content
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait half of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was not synced'.format(delay/2, product.name))
-        sleep(delay/2)
+                         ' was not synced'.format(delay/4, product.name))
+        sleep(delay/4)
         # Verify product has not been synced yet
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
-                         ' was synced'.format(delay/2, product.name))
-        sleep(delay/2)
+                         ' was synced'.format(delay, product.name))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
-        wait_for_tasks(
-            search_query='resource_type = Katello::Repository'
-                         ' and owner.login = foreman_admin'
-                         ' and resource_id = {}'.format(repo.id)
-        )
+        self.validate_task_status(repo.id)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -1003,9 +926,9 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        delay = 5 * 60
+        delay = 4 * 60
         start_date = datetime.utcnow() - timedelta(days=1)\
-            + timedelta(seconds=delay/2)
+            + timedelta(seconds=delay)
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
@@ -1021,25 +944,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                          ' was not synced'.format(delay/4, product.name))
         sleep(delay/4)
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
-            self.validate_repo_content(
-                repo, ['erratum', 'package', 'package_group'], after_sync=False)
-
+            self.validate_task_status(repo.id, max_tries=2)
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
         # Wait the rest of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
-        sleep(delay)
+        sleep(delay * 3/4)
         # Verify product was synced successfully
-        wait_for_tasks(
-            search_query='resource_type = Katello::Repository'
-                         ' and owner.login = foreman_admin'
-                         ' and resource_id = {}'.format(repo.id)
-        )
+        self.validate_task_status(repo.id)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
@@ -1058,9 +971,9 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
         :CaseLevel: System
         """
-        delay = 61 * 60
+        delay = 4 * 60
         start_date = datetime.utcnow() - timedelta(weeks=1) \
-            + timedelta(seconds=delay/2)
+            + timedelta(seconds=delay)
         sync_plan = entities.SyncPlan(
             organization=self.org,
             enabled=True,
@@ -1076,25 +989,15 @@ class SyncPlanSynchronizeTestCase(APITestCase):
                          ' was not synced'.format(delay/4, product.name))
         sleep(delay/4)
         with self.assertRaises(AssertionError):
-            wait_for_tasks(
-                search_query='resource_type = Katello::Repository'
-                             ' and owner.login = foreman_admin'
-                             ' and resource_id = {}'.format(repo.id),
-                max_tries=2
-            )
+            self.validate_task_status(repo.id, max_tries=2)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'], after_sync=False)
-
         # Wait the rest of expected time
         self.logger.info('Waiting {0} seconds to check product {1}'
                          ' was synced'.format(delay, product.name))
-        sleep(delay)
+        sleep(delay * 3/4)
         # Verify product was synced successfully
-        wait_for_tasks(
-            search_query='resource_type = Katello::Repository'
-                         ' and owner.login = foreman_admin'
-                         ' and resource_id = {}'.format(repo.id)
-        )
+        self.validate_task_status(repo.id)
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
