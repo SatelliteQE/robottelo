@@ -79,7 +79,7 @@ class GPGKey(Base):
             self.click(tab_locators['prd.tab_repos'])
             self.click(locators['repo.select'] % repo)
             self.click(locators['repo.gpg_key_edit'])
-            element = self.get_selected_value(locators['repo.gpg_key_update'])
+            element = self.get_element_value(locators['repo.gpg_key_update'])
             if element != '':
                 raise UIError(
                     'GPGKey "{0}" is still assoc with selected repo'
@@ -88,7 +88,7 @@ class GPGKey(Base):
         else:
             self.click(tab_locators['prd.tab_details'])
             self.click(locators['prd.gpg_key_edit'])
-            element = self.get_selected_value(locators['prd.gpg_key_update'])
+            element = self.get_element_value(locators['prd.gpg_key_update'])
             if element != '':
                 raise UIError(
                     'GPG key "{0}" is still assoc with product'
