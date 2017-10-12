@@ -297,7 +297,10 @@ class VirtualMachine(object):
             gofer_start = self.run('service goferd start')
             if gofer_start.return_code != 0:
                 raise VirtualMachineError('Failed to start katello-agent')
-        gofer_check = self.run('service goferd status')
+        gofer_check = self.run(
+            u'for i in {1..5}; do service goferd status '
+            u'&& exit 0; sleep 1; done; exit 1'
+        )
         if gofer_check.return_code != 0:
             raise VirtualMachineError('katello-agent is not running')
 
