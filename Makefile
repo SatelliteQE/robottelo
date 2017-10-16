@@ -159,7 +159,7 @@ token-prefix-editor:
 
 gitflake8:
 	$(info "Checking style and syntax errors with flake8 linter...")
-	@flake8 $(shell git diff --name-only | grep ".py$$") --show-source
+	@flake8 $(shell git diff --name-only | grep ".py$$") robottelo/__init__.py --show-source
 
 can-i-push?: gitflake8 uuid-check test-docstrings test-robottelo
 	$(info "!!! Congratulations your changes are good to fly, make a great PR! ${USER}++ !!!")
