@@ -326,6 +326,7 @@ class RemoteExecutionTestCase(CLITestCase):
             'subnet-id': new_sub['id'],
         })
 
+    @stubbed()
     @tier2
     def test_positive_run_default_job_template(self):
         """Run default job template against a single host
@@ -350,6 +351,7 @@ class RemoteExecutionTestCase(CLITestCase):
                 )
             )
 
+    @stubbed()
     @tier2
     @skip_if_bug_open('bugzilla', 1451675)
     def test_positive_run_job_effective_user(self):
@@ -404,6 +406,7 @@ class RemoteExecutionTestCase(CLITestCase):
         # assert the file is owned by the effective user
         self.assertEqual(username, result.stdout[0])
 
+    @stubbed()
     @tier2
     def test_positive_run_custom_job_template(self):
         """Run custom job template against a single host
@@ -433,6 +436,7 @@ class RemoteExecutionTestCase(CLITestCase):
                 )
             )
 
+    @stubbed()
     @tier3
     def test_positive_run_scheduled_job_template(self):
         """Schedule a job to be ran against a host
@@ -473,6 +477,7 @@ class RemoteExecutionTestCase(CLITestCase):
                 )
             )
 
+    @stubbed()
     @tier3
     @upgrade
     def test_positive_run_default_job_template_multiple_hosts(self):
@@ -510,6 +515,7 @@ class RemoteExecutionTestCase(CLITestCase):
                 )
             self.assertEqual(invocation_command['success'], u'2', output_msgs)
 
+    @stubbed()
     @tier3
     @upgrade
     def test_positive_install_multiple_packages_with_a_job(self):
@@ -550,6 +556,7 @@ class RemoteExecutionTestCase(CLITestCase):
                 )
         self.assertEqual(result.return_code, 0)
 
+    @stubbed()
     @tier3
     def test_positive_run_recurring_job_with_max_iterations(self):
         """Run default job template multiple times with max iteration
@@ -874,3 +881,48 @@ class RemoteExecutionTestCase(CLITestCase):
                 'id': invocation_command['recurring-logic-id']})
         self.assertEqual(rec_logic['state'], u'finished')
         self.assertEqual(rec_logic['iteration'], u'2')
+
+    @tier3
+    def test_positive_run_scheduled_job_template_by_ip(self):
+        """Schedule a job to be ran against a host
+
+        :id: 0407e3de-ef59-4706-ae0d-b81172b81e5c
+
+        :expectedresults: Verify the job was successfully ran after the
+            designated time
+        """
+        system_current_time = ssh.command('date +"%b %d %Y %I:%M%p"').stdout[0]
+        current_time_object = datetime.strptime(
+            system_current_time, '%b %d %Y %I:%M%p')
+        plan_time = (current_time_object + timedelta(seconds=30)).strftime(
+            "%Y-%m-%d %H:%M")
+        Host.set_parameter({
+            'host': self.client.hostname,
+            'name': 'remote_execution_connect_by_ip',
+            'value': 'True',
+        })
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': 'command="ls"',
+            'start-at': plan_time,
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        # Wait until the job runs
+        pending_state = u'1'
+        while pending_state != u'0':
+            invocation_info = JobInvocation.info({
+                'id': invocation_command[u'id']})
+            pending_state = invocation_info[u'pending']
+            sleep(30)
+        invocation_info = JobInvocation.info({
+            'id': invocation_command[u'id']})
+        self.assertEqual(
+                invocation_info['success'],
+                u'1',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
+                    )
+                )
+            )
