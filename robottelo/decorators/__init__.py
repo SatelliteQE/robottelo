@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements various decorators"""
 import logging
+import os
 from functools import partial, wraps
 
 import pytest
@@ -317,20 +318,26 @@ class run_in_one_thread_if_bug_open(skip_if_bug_open, object):
 
 
 # Set the optional version and config pickers for robozilla decorators
+def get_sat_version():
+    """Try to read sat_version from envvar BUGZILLA_SAT_VERSION
+    if not available fallback to ssh connection to get it."""
+    return os.environ.get('BUGZILLA_SAT_VERSION') or get_host_sat_version()
+
+
 run_in_one_thread_if_bug_open = partial(
     run_in_one_thread_if_bug_open,
-    sat_version_picker=get_host_sat_version,
+    sat_version_picker=get_sat_version,
     config_picker=config_picker
 )
 
 bz_bug_is_open = partial(
     bz_bug_is_open,
-    sat_version_picker=get_host_sat_version,
+    sat_version_picker=get_sat_version,
     config_picker=config_picker
 )
 
 skip_if_bug_open = partial(
     skip_if_bug_open,
-    sat_version_picker=get_host_sat_version,
+    sat_version_picker=get_sat_version,
     config_picker=config_picker
 )
