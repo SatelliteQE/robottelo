@@ -1733,6 +1733,12 @@
                   "value": "LOCATION_IDS"
                 }, 
                 {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "location-titles", 
+                  "shortname": null, 
+                  "value": "LOCATION_TITLES"
+                }, 
+                {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
                   "name": "locations", 
                   "shortname": null, 
@@ -1755,6 +1761,12 @@
                   "name": "organization-ids", 
                   "shortname": null, 
                   "value": "ORGANIZATION_IDS"
+                }, 
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "organization-titles", 
+                  "shortname": null, 
+                  "value": "ORGANIZATION_TITLES"
                 }, 
                 {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -1862,6 +1874,12 @@
                   "value": "LOCATION_ID"
                 }, 
                 {
+                  "help": "Location title", 
+                  "name": "location-title", 
+                  "shortname": null, 
+                  "value": "LOCATION_TITLE"
+                }, 
+                {
                   "help": "sort results", 
                   "name": "order", 
                   "shortname": null, 
@@ -1878,6 +1896,12 @@
                   "name": "organization-id", 
                   "shortname": null, 
                   "value": "ORGANIZATION_ID"
+                }, 
+                {
+                  "help": "Organization title", 
+                  "name": "organization-title", 
+                  "shortname": null, 
+                  "value": "ORGANIZATION_TITLE"
                 }, 
                 {
                   "help": "paginate results", 
@@ -1989,6 +2013,12 @@
                   "value": "LOCATION_IDS"
                 }, 
                 {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "location-titles", 
+                  "shortname": null, 
+                  "value": "LOCATION_TITLES"
+                }, 
+                {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
                   "name": "locations", 
                   "shortname": null, 
@@ -2017,6 +2047,12 @@
                   "name": "organization-ids", 
                   "shortname": null, 
                   "value": "ORGANIZATION_IDS"
+                }, 
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "organization-titles", 
+                  "shortname": null, 
+                  "value": "ORGANIZATION_TITLES"
                 }, 
                 {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -2548,6 +2584,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -2564,6 +2606,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -2702,6 +2750,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -2718,6 +2772,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -2794,6 +2854,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -2816,6 +2882,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -2887,6 +2959,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -2903,6 +2981,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -3432,6 +3516,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -3448,6 +3538,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -3517,6 +3613,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -3539,6 +3641,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -7893,6 +8001,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -7915,6 +8029,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -8083,6 +8203,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -8111,6 +8237,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -8248,6 +8380,12 @@
                   "value": "LOCATION_IDS"
                 }, 
                 {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "location-titles", 
+                  "shortname": null, 
+                  "value": "LOCATION_TITLES"
+                }, 
+                {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
                   "name": "locations", 
                   "shortname": null, 
@@ -8270,6 +8408,12 @@
                   "name": "organization-ids", 
                   "shortname": null, 
                   "value": "ORGANIZATION_IDS"
+                }, 
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "organization-titles", 
+                  "shortname": null, 
+                  "value": "ORGANIZATION_TITLES"
                 }, 
                 {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -8832,6 +8976,12 @@
                   "value": "LOCATION_IDS"
                 }, 
                 {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "location-titles", 
+                  "shortname": null, 
+                  "value": "LOCATION_TITLES"
+                }, 
+                {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
                   "name": "locations", 
                   "shortname": null, 
@@ -8848,6 +8998,12 @@
                   "name": "organization-ids", 
                   "shortname": null, 
                   "value": "ORGANIZATION_IDS"
+                }, 
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "organization-titles", 
+                  "shortname": null, 
+                  "value": "ORGANIZATION_TITLES"
                 }, 
                 {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -8992,6 +9148,12 @@
                   "value": "LOCATION_IDS"
                 }, 
                 {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "location-titles", 
+                  "shortname": null, 
+                  "value": "LOCATION_TITLES"
+                }, 
+                {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
                   "name": "locations", 
                   "shortname": null, 
@@ -9014,6 +9176,12 @@
                   "name": "organization-ids", 
                   "shortname": null, 
                   "value": "ORGANIZATION_IDS"
+                }, 
+                {
+                  "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+                  "name": "organization-titles", 
+                  "shortname": null, 
+                  "value": "ORGANIZATION_TITLES"
                 }, 
                 {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -9289,6 +9457,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -9305,6 +9479,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -9425,6 +9605,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -9441,6 +9627,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -9559,6 +9751,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -9581,6 +9779,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -9622,6 +9826,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -9638,6 +9848,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -9721,6 +9937,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -9737,6 +9959,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -9849,6 +10077,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -9871,6 +10105,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -10233,6 +10473,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -10243,6 +10489,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -10387,6 +10639,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -10397,6 +10655,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -11285,6 +11549,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "required for managed host that is bare metal, not required if it's a virtual machine", 
               "name": "mac", 
               "shortname": null, 
@@ -11349,6 +11619,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "One of true/false, yes/no, 1/0. Default: \"true\"", 
@@ -12346,6 +12622,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -12362,6 +12644,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -13632,6 +13920,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "required for managed host that is bare metal, not required if it's a virtual machine", 
               "name": "mac", 
               "shortname": null, 
@@ -13702,6 +13996,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "One of true/false, yes/no, 1/0.", 
@@ -14176,6 +14476,12 @@
               "value": "HOSTGROUP_ID"
             }, 
             {
+              "help": "Hostgroup title", 
+              "name": "hostgroup-title", 
+              "shortname": null, 
+              "value": "HOSTGROUP_TITLE"
+            }, 
+            {
               "help": "Host Collection ID", 
               "name": "id", 
               "shortname": null, 
@@ -14198,7 +14504,13 @@
               "name": "location-id", 
               "shortname": null, 
               "value": "LOCATION_ID"
-            }, 
+            },
+            {
+              "help": "Location title",
+              "name": "location-title",
+              "shortname": null,
+              "value": "LOCATION_TITLE"
+            },
             {
               "help": "Host Collection Name", 
               "name": "name", 
@@ -14222,7 +14534,7 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
-            }, 
+            },
             {
               "help": "Organization label to search by", 
               "name": "organization-label", 
@@ -14973,6 +15285,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -15013,6 +15331,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -15259,6 +15583,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -15275,6 +15605,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -15648,6 +15984,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -15694,6 +16036,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -16942,6 +17290,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -16964,6 +17318,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -17096,6 +17456,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -17112,6 +17478,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -17187,6 +17559,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -17215,6 +17593,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -17634,6 +18018,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17671,6 +18061,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17708,6 +18104,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17745,6 +18147,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17788,6 +18196,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17825,6 +18239,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17858,10 +18278,22 @@
               "value": "ORGANIZATION_ID"
             }, 
             {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17899,6 +18331,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17936,6 +18374,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -17955,6 +18399,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "User's login to search by", 
@@ -18181,6 +18631,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -18204,6 +18660,12 @@
               "name": "location-id", 
               "shortname": null, 
               "value": "LOCATION_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
             }, 
             {
               "help": "parameter name", 
@@ -18241,6 +18703,12 @@
               "name": "show-hidden-parameters", 
               "shortname": null, 
               "value": "SHOW_HIDDEN_PARAMETERS"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -18317,6 +18785,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -18352,6 +18826,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -18391,6 +18871,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -18426,6 +18912,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -18475,6 +18967,12 @@
               "name": "help", 
               "shortname": "h", 
               "value": null
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }
           ], 
           "subcommands": []
@@ -18506,6 +19004,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -18545,6 +19049,18 @@
               "value": "ORGANIZATION_ID"
             }, 
             {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -18580,6 +19096,12 @@
               "name": "smart-proxy-id", 
               "shortname": null, 
               "value": "SMART_PROXY_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -18619,6 +19141,12 @@
               "value": "SUBNET_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -18642,6 +19170,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "User's login to search by", 
@@ -18685,6 +19219,12 @@
               "name": "location-id", 
               "shortname": null, 
               "value": "LOCATION_ID"
+            }, 
+            {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
             }, 
             {
               "help": "parameter name", 
@@ -18886,6 +19426,12 @@
               "value": "SUBNET_NAMES"
             }, 
             {
+              "help": "Location title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "User IDs Comma separated list of values. Values containing comma should be double quoted", 
               "name": "user-ids", 
               "shortname": null, 
@@ -18968,6 +19514,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -18996,6 +19548,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -19091,6 +19649,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Operating system title", 
               "name": "operatingsystem", 
               "shortname": null, 
@@ -19119,6 +19683,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -19201,6 +19771,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -19235,6 +19811,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -19493,6 +20075,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -19528,6 +20116,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -19567,6 +20161,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -19602,6 +20202,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -19647,6 +20253,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -19678,10 +20290,22 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Organization name", 
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -19721,6 +20345,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -19756,6 +20386,12 @@
               "name": "smart-proxy-id", 
               "shortname": null, 
               "value": "SMART_PROXY_ID"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -19795,6 +20431,12 @@
               "value": "SUBNET_ID"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -19818,6 +20460,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "User's login to search by", 
@@ -19903,7 +20551,13 @@
               "name": "hostgroup-ids", 
               "shortname": null, 
               "value": "HOSTGROUP_IDS"
-            }, 
+            },
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "hostgroup-titles",
+              "shortname": null,
+              "value": "HOSTGROUP_TITLES"
+            },
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "hostgroups", 
@@ -20044,6 +20698,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -20075,6 +20735,12 @@
               "value": "ORGANIZATION_ID"
             }, 
             {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -20104,6 +20770,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -20192,6 +20864,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -20227,6 +20905,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -20266,6 +20950,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -20301,6 +20991,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -20346,6 +21042,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -20377,10 +21079,22 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Organization name", 
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -20420,6 +21134,12 @@
               "value": "NAME"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -20455,6 +21175,12 @@
               "name": "smart-proxy-id", 
               "shortname": null, 
               "value": "SMART_PROXY_ID"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "print help", 
@@ -20494,6 +21220,12 @@
               "value": "SUBNET_ID"
             }, 
             {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -20517,6 +21249,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "User's login to search by", 
@@ -20566,6 +21304,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "parameter value", 
@@ -20783,6 +21527,12 @@
               "name": "subnets", 
               "shortname": null, 
               "value": "SUBNET_NAMES"
+            }, 
+            {
+              "help": "Organization  title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
             }, 
             {
               "help": "User IDs Comma separated list of values. Values containing comma should be double quoted", 
@@ -22282,6 +23032,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -22316,6 +23072,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -22436,6 +23198,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Operating system title", 
               "name": "operatingsystem", 
               "shortname": null, 
@@ -22464,6 +23232,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -22588,6 +23362,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -22628,6 +23408,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -23981,6 +24767,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -23997,6 +24789,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -24135,6 +24933,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -24151,6 +24955,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -24227,6 +25037,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -24249,6 +25065,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -24780,6 +25602,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -24796,6 +25624,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -24891,6 +25725,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -24907,6 +25747,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -24952,6 +25798,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -24974,6 +25826,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -26524,6 +27382,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -26546,6 +27410,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -26579,6 +27449,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -26595,6 +27471,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -26770,6 +27652,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -26792,6 +27680,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -28043,6 +28937,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -28077,6 +28977,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -28202,6 +29108,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -28218,6 +29130,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -28329,6 +29247,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -28369,6 +29293,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -29496,6 +30426,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -29530,6 +30466,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -29657,6 +30599,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "Operating system title", 
               "name": "operatingsystem", 
               "shortname": null, 
@@ -29685,6 +30633,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -29779,6 +30733,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -29819,6 +30779,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -30161,6 +31127,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -30183,6 +31155,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -30290,6 +31268,12 @@
               "value": "LOCATION_ID"
             }, 
             {
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
+              "value": "LOCATION_TITLE"
+            }, 
+            {
               "help": "sort results", 
               "name": "order", 
               "shortname": null, 
@@ -30306,6 +31290,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "paginate results", 
@@ -30478,6 +31468,12 @@
               "value": "LOCATION_IDS"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "location-titles", 
+              "shortname": null, 
+              "value": "LOCATION_TITLES"
+            }, 
+            {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
               "name": "locations", 
               "shortname": null, 
@@ -30506,6 +31502,12 @@
               "name": "organization-ids", 
               "shortname": null, 
               "value": "ORGANIZATION_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "organization-titles", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLES"
             }, 
             {
               "help": "Comma separated list of values. Values containing comma should be double quoted", 
@@ -31324,6 +32326,12 @@
               "value": "ORGANIZATION_ID"
             }, 
             {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
+            }, 
+            {
               "help": "HTTP Proxy that should be used for communication between the server on which virt-who is running and the hypervisors and virtualization managers.", 
               "name": "proxy", 
               "shortname": null, 
@@ -31580,6 +32588,12 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
+            }, 
+            {
+              "help": "Organization title", 
+              "name": "organization-title", 
+              "shortname": null, 
+              "value": "ORGANIZATION_TITLE"
             }, 
             {
               "help": "HTTP Proxy that should be used for communication between the server on which virt-who is running and the hypervisors and virtualization managers.", 
