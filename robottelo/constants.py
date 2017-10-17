@@ -427,6 +427,9 @@ FAKE_7_YUM_REPO = (
     u'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
 )
 FAKE_8_YUM_REPO = u'https://abalakht.fedorapeople.org/test_repos/lots_files/'
+FAKE_9_YUM_REPO = (
+    u'https://abalakht.fedorapeople.org/test_repos/multiple_errata/'
+)
 FAKE_YUM_DRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
 )
@@ -455,9 +458,27 @@ FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
 REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
+FAKE_9_YUM_OUTDATED_PACKAGES = [
+    'bear-4.0-1.noarch',
+    'crow-0.7-1.noarch',
+    'duck-0.5-1.noarch',
+    'gorilla-0.61-1.noarch',
+    'penguin-0.8.1-1.noarch',
+    'stork-0.11-1.noarch',
+    'walrus-0.71-1.noarch',
+]
+FAKE_9_YUM_UPDATED_PACKAGES = [
+    'bear-4.1-1.noarch',
+    'crow-0.8-1.noarch',
+    'duck-0.6-1.noarch',
+    'gorilla-0.62-1.noarch',
+    'penguin-0.9.1-1.noarch',
+    'stork-0.12-1.noarch',
+    'walrus-5.21-1.noarch',
+]
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
-FAKE_2_ERRATA_ID = 'RHEA-2012:0055'  # for FAKE_6_YUM_REPO
+FAKE_2_ERRATA_ID = 'RHEA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
 FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
 REAL_0_ERRATA_ID = 'RHBA-2016:1503'  # for rhst7
 REAL_1_ERRATA_ID = 'RHBA-2016:1357'  # for REAL_0_RH_PACKAGE
@@ -470,6 +491,13 @@ FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_ERRATUM_COUNT = 79
 FAKE_3_YUM_REPOS_COUNT = 136
 FAKE_6_YUM_ERRATUM_COUNT = 4
+FAKE_9_YUM_ERRATUM_COUNT = 4
+FAKE_9_YUM_ERRATUM = [
+    'RHEA-2012:0055',
+    'RHEA-2012:0056',
+    'RHEA-2012:0057',
+    'RHEA-2012:0058',
+]
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
 

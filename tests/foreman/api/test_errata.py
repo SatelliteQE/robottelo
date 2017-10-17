@@ -32,7 +32,9 @@ from robottelo.constants import (
     FAKE_2_ERRATA_ID,
     FAKE_3_ERRATA_ID,
     FAKE_3_YUM_REPO,
-    FAKE_6_YUM_REPO,
+    FAKE_9_YUM_ERRATUM,
+    FAKE_9_YUM_OUTDATED_PACKAGES,
+    FAKE_9_YUM_REPO,
     PRDS,
     REAL_0_ERRATA_ID,
     REAL_0_RH_PACKAGE,
@@ -54,7 +56,7 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
 from robottelo.vm import VirtualMachine
 from time import sleep
 
-CUSTOM_REPO_URL = FAKE_6_YUM_REPO
+CUSTOM_REPO_URL = FAKE_9_YUM_REPO
 CUSTOM_REPO_ERRATA_ID = FAKE_2_ERRATA_ID
 
 
@@ -86,7 +88,7 @@ class ErrataTestCase(APITestCase):
             'activationkey-id': cls.activation_key.id,
         }, force_manifest_upload=True)
         cls.custom_entities = setup_org_for_a_custom_repo({
-            'url': FAKE_6_YUM_REPO,
+            'url': FAKE_9_YUM_REPO,
             'organization-id': cls.org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
@@ -237,6 +239,45 @@ class ErrataTestCase(APITestCase):
             entities.Host(id=host_id).errata_apply(data={
                 'errata_ids': [CUSTOM_REPO_ERRATA_ID]})
             self._validate_package_installed([client], FAKE_2_CUSTOM_PACKAGE)
+
+    @tier3
+    def test_positive_install_multiple_in_host(self):
+        """For a host with multiple applicable errata install one and ensure
+        the rest of errata is still available
+
+        :id: 67b7e95b-9809-455a-a74e-f1815cc537fc
+
+        :BZ: 1469800
+
+        :expectedresults: errata installation task succeeded, available errata
+            counter decreased by one; it's possible to schedule another errata
+            installation
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.org.label, self.activation_key.name)
+            self.assertTrue(client.subscribed)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            host = entities.Host().search(query={
+                'search': 'name={0}'.format(client.hostname)})[0]
+            for package in FAKE_9_YUM_OUTDATED_PACKAGES:
+                self._install_package([client], [host.id], package)
+            host = host.read()
+            applicable_errata_count = host.content_facet_attributes[
+                'errata_counts']['total']
+            self.assertGreater(applicable_errata_count, 1)
+            for errata in FAKE_9_YUM_ERRATUM[:2]:
+                host.errata_apply(data={'errata_ids': [errata]})
+                host = host.read()
+                applicable_errata_count -= 1
+                self.assertEqual(
+                    host.content_facet_attributes['errata_counts']['total'],
+                    applicable_errata_count
+                )
 
     @tier3
     def test_positive_list(self):
