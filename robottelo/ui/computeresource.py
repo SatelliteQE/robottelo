@@ -16,9 +16,10 @@ class ResourceProfileFormBase(object):
     # please see how implemented in ResourceProfileFormEC2 for security_groups
     selector_fields = []
     # some fields can be part of sections that can be added
-    # like storage and networks, please how implemented in
+    # like storage and networks, please check how implemented in
     # ResourceProfileFormRHEV (implement network_interfaces and storage)
     group_fields_locators = {}
+    fetch_values_locators = {}
 
     def __init__(self, page):
         """Initiate compute resource profile form
@@ -98,6 +99,19 @@ class ResourceProfileFormBase(object):
         for key, value in kwargs.items():
             self.set_value(key, value)
 
+    def get_values(self, params_names):
+        """Get the values of the corresponding fields in UI"""
+        return_dict = {}
+        for param_name in params_names:
+            locator_attr = 'fetch_{0}_locator'.format(param_name)
+            if locator_attr not in self.fetch_values_locators:
+                raise UIError(
+                    'Field name: {0} not supported'.format(param_name))
+            field_locator = self.fetch_values_locators[locator_attr]
+            return_dict[param_name] = self.page.get_element_value(
+                field_locator)
+        return return_dict
+
     def submit(self):
         """Press the submit form button"""
         self.page.click(common_locators['submit'])
@@ -152,7 +166,21 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
             preallocate_disk=locators[
                 "resource.compute_profile.rhev_storage_preallocate"],
             bootable=locators["resource.compute_profile.rhev_storage_bootable"]
-        )
+        ),
+    )
+    fetch_values_locators = dict(
+        fetch_cluster_locator=locators[
+            "resource.compute_profile.fetch_rhev_cluster"],
+        fetch_cores_locator=locators["resource.compute_profile.rhev_cores"],
+        fetch_memory_locator=locators["resource.compute_profile.rhev_memory"],
+        fetch_size_locator=locators[
+            "resource.compute_profile.rhev_storage_size"],
+        fetch_storage_domain_locator=locators[
+            "resource.compute_profile.fetch_rhev_storage_domain"],
+        fetch_bootable_locator=locators[
+            "resource.compute_profile.rhev_storage_bootable"],
+        fetch_preallocate_disk_locator=locators[
+            "resource.compute_profile.rhev_storage_preallocate"],
     )
 
     def set_values(self, **kwargs):
@@ -499,6 +527,21 @@ class ComputeResource(Base):
         self.click(locators["resource.compute_profile"] % profile_name)
         return (resource_type,
                 self.wait_until_element(locators['profile.resource_form']))
+
+    def get_profile_values(self, resource_name, profile_name, params_name):
+        """Fetch provided compute profile parameters values
+
+        :param resource_name: Name of compute resource to select from the list
+        :param profile_name: Name of profile that contains required compute
+            resource (e.g. '2-Medium' or '1-Small')
+        :param params_name: the compute resource profile configuration
+            properties fields to get
+        :return: Dictionary of parameters names and their corresponding values
+        """
+        resource_type, _ = self.select_profile(resource_name, profile_name)
+        resource_profile_form = get_compute_resource_profile(
+            self, resource_type)
+        return resource_profile_form.get_values(params_name)
 
     def set_profile_values(self, resource_name, profile_name, **kwargs):
         """Fill and Submit the compute resource profile form configuration

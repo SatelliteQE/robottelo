@@ -1634,7 +1634,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.assign_value(
                 common_locators['kt_search'], non_composite_cv)
             self.content_views.click(common_locators['kt_search_button'])
-            version = self.content_views.get_selected_value(
+            version = self.content_views.get_element_value(
                 locators['contentviews.add_cv_version_dropdown'])
             self.assertEqual(version, 'Always Use Latest (Currently 2.0)')
 

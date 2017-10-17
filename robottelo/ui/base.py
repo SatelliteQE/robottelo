@@ -812,6 +812,34 @@ class Base(object):
             )
         self.logger.debug(u'Assigned value %s to %s', value, str(target))
 
+    def get_element_value(self, target):
+        """Get page element value depending on the type of that element
+
+        :param tuple || Locator || WebElement target: Either locator that
+            describes the element or element itself.
+        :raise: ValueError if the element type is unknown to our code.
+
+        """
+        element_type = self.element_type(target)
+        if isinstance(target, (tuple, Locator)):
+            element = self.wait_until_element(target)
+        else:
+            element = target
+        if element_type == 'input':
+            value = element.get_attribute('value')
+        elif element_type == 'span':
+            value = element.text
+        elif element_type == 'select':
+            value = Select(element).first_selected_option.text
+        elif element_type == 'checkbox' or element_type == 'radio':
+            value = element.is_selected()
+        else:
+            raise ValueError(
+                u'Provided target {0} is not supported by framework'
+                .format(str(target))
+            )
+        return value
+
     def clear_entity_value(self, target):
         """Clear current value for provided page element
 
@@ -824,20 +852,6 @@ class Base(object):
             self.input(target, '')
         elif element_type == 'abbr':
             self.click(target)
-
-    def get_selected_value(self, target):
-        """Get currently selected value for select list
-
-        :param tuple || Locator || WebElement target: Either locator that
-            describes the element or element itself.
-        :return: Currently selected list element text
-        """
-        if isinstance(target, (tuple, Locator)):
-            element = self.wait_until_element(target)
-        else:
-            element = target
-        selected_option = Select(element).first_selected_option
-        return selected_option.text
 
     def perform_entity_action(self, action_name):
         """Execute specified action from katello entity 'Select Action'

@@ -553,7 +553,10 @@ class RhevComputeResourceTestCase(UITestCase):
             4. Click Compute Profile tab.
             5. Edit (3-Large) with valid configurations and submit.
 
-        :expectedresults: The Compute Resource created and opened successfully
+        :expectedresults: The Compute Resource created and associated compute
+            profile has provided values
+
+        :BZ: 1286033
 
         :Caseautomation: Automated
         """
@@ -601,6 +604,27 @@ class RhevComputeResourceTestCase(UITestCase):
                     )
                 ]
             )
+            values = self.compute_resource.get_profile_values(
+                name,
+                COMPUTE_PROFILE_LARGE,
+                [
+                    'cluster',
+                    'cores',
+                    'memory',
+                    'size',
+                    'storage_domain',
+                    'bootable',
+                    'preallocate_disk'
+                ]
+            )
+            self.assertEqual(values['cluster'], self.rhev_datacenter)
+            self.assertEqual(values['cores'], '2')
+            self.assertEqual(values['memory'], '1 GB')
+            self.assertEqual(values['size'], '10')
+            self.assertEqual(
+                values['storage_domain'], self.rhev_storage_domain)
+            self.assertEqual(values['bootable'], True)
+            self.assertEqual(values['preallocate_disk'], True)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1452534)

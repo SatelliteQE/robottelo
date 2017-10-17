@@ -438,6 +438,11 @@ locators = LocatorDict({
         ("//div[@id='s2id_compute_attribute_vm_attrs_cluster']"
          "/a/span[contains(@class, 'arrow')]")
     ),
+    "resource.compute_profile.fetch_rhev_cluster": (
+        By.XPATH,
+        ("//div[@id='s2id_compute_attribute_vm_attrs_cluster']"
+         "/a/span[contains(@class, 'chosen')]")
+    ),
     "resource.compute_profile.rhev_template": (
         By.XPATH,
         ("//div[@id='s2id_compute_attribute_vm_attrs_template']"
@@ -486,6 +491,12 @@ locators = LocatorDict({
         ("//div/fieldset[@id='storage_volumes']"
          "//div[contains(@id, 'storage_domain')]"
          "/a/span[contains(@class, 'arrow')]")
+    ),
+    "resource.compute_profile.fetch_rhev_storage_domain": (
+        By.XPATH,
+        ("//div/fieldset[@id='storage_volumes']"
+         "//div[contains(@id, 'storage_domain')]"
+         "/a/span[contains(@class, 'chosen')]")
     ),
     "resource.compute_profile.rhev_storage_preallocate": (
         By.XPATH,
