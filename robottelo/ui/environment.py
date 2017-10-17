@@ -19,7 +19,7 @@ class Environment(Base):
         return locators['env.env_name']
 
     def _configure_taxonomies(self, locations=None, organizations=None):
-        """Associate role with organization or location"""
+        """Associate environment with organization or location"""
         if locations:
             self.configure_entity(
                 locations,
@@ -33,7 +33,7 @@ class Environment(Base):
                 tab_locator=tab_locators['tab_org'],
             )
 
-    def create(self, name, organizations, locations):
+    def create(self, name, organizations=None, locations=None):
         """Creates the environment."""
         self.click(locators['env.new'])
         self.assign_value(locators['env.name'], name)

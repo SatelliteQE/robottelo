@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Host Group UI."""
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -46,19 +47,40 @@ class Hostgroup(Base):
             else:
                 self.assign_value(locators[locator_name], parameter_value)
 
-    def create(self, name, parameters_list=None):
+    def _configure_taxonomies(self, locations=None, organizations=None):
+        """Associate host group with organization or location"""
+        if locations:
+            self.configure_entity(
+                locations,
+                FILTER['hg_loc'],
+                tab_locator=tab_locators['tab_loc'],
+            )
+        if organizations:
+            self.configure_entity(
+                organizations,
+                FILTER['hg_org'],
+                tab_locator=tab_locators['tab_org'],
+            )
+
+    def create(self, name, organizations=None, locations=None,
+               parameters_list=None):
         """Creates a new hostgroup from UI."""
         self.click(locators['hostgroups.new'])
         self.assign_value(locators['hostgroups.name'], name)
+        if locations or organizations:
+            self._configure_taxonomies(locations, organizations)
         if parameters_list is not None:
             self._configure_hostsgroup_parameters(parameters_list)
         self.click(common_locators['submit'])
 
-    def update(self, name, new_name=None, parameters_list=None):
+    def update(self, name, new_name=None, organizations=None, locations=None,
+               parameters_list=None):
         """Updates existing hostgroup from UI."""
         self.search_and_click(name)
         if new_name:
             self.assign_value(locators['hostgroups.name'], new_name)
+        if locations or organizations:
+            self._configure_taxonomies(locations, organizations)
         if parameters_list is not None:
             self._configure_hostsgroup_parameters(parameters_list)
         self.click(common_locators['submit'])

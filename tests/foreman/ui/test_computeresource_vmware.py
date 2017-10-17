@@ -31,8 +31,8 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_resource
-from robottelo.ui.locators import common_locators
+from robottelo.ui.factory import make_hostgroup, make_resource
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
@@ -476,7 +476,7 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :expectedresults: The Compute Resource created and opened successfully
 
-        :Caseautomation: notautomated
+        :Caseautomation: Automated
 
         :CaseLevel: Integration
         """
@@ -535,6 +535,108 @@ class VmwareComputeResourceTestCase(UITestCase):
                 ]
                 )
             self.assertIsNotNone(self.compute_resource.search(name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_apply_vmware_with_custom_profile_to_host(self):
+        """Associate custom default (3-Large) compute profile with hostgroup
+        and then inherit it to the host
+
+        :id: c16c6d42-3950-46a7-bfe6-5e19bcfa29d0
+
+        :setup: vmware hostname and credentials.
+
+        :steps:
+
+            1. Create a compute resource of type vmware.
+            2. Provide valid hostname, username and password.
+            3. Select the created vmware CR.
+            4. Click Compute Profile tab.
+            5. Edit (3-Large) with valid configurations and submit.
+            6. Create new host group with custom profile
+            7. Open new host page and put host group name into corresponding
+               field
+            8. Check that compute profile is inherited and then switch to
+               Virtual Machine tab
+
+        :expectedresults: All fields values for Virtual Machine tab are
+            inherited from custom profile and have non default values
+
+        :Caseautomation: Automated
+
+        :BZ: 1249744
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        hg_name = gen_string('alpha')
+        with Session(self) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                orgs=[org.name],
+                org_select=True,
+                parameter_list=parameter_list
+            )
+            self.compute_resource.set_profile_values(
+                name, COMPUTE_PROFILE_LARGE,
+                cpus=3,
+                corespersocket=4,
+                memory=2048,
+                cluster=VMWARE_CONSTANTS.get('cluster'),
+                folder=VMWARE_CONSTANTS.get('folder'),
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            make_hostgroup(
+                session,
+                name=hg_name,
+                organizations=[org.name],
+                parameters_list=[
+                    ['Host Group', 'Compute Profile', COMPUTE_PROFILE_LARGE],
+                ],
+            )
+            self.hosts.navigate_to_entity()
+            self.hosts.click(locators['host.new'])
+            self.hosts.assign_value(locators['host.organization'], org.name)
+            # Selecting host group and then compute resource. It is not
+            # possible to do it in opposite order as mentioned in initial BZ,
+            # because selecting host group will always reset most fields values
+            self.hosts.assign_value(locators['host.host_group'], hg_name)
+            self.hosts.click(locators['host.deploy_on'])
+            self.hosts.assign_value(
+                common_locators['select_list_search_box'], name)
+            self.hosts.click(
+                common_locators['entity_select_list'] %
+                '{} (VMware)'.format(name)
+            )
+            # Check that compute profile is inherited automatically from host
+            # group
+            self.assertEqual(
+                self.hosts.get_element_value(
+                    locators['host.fetch_compute_profile']),
+                COMPUTE_PROFILE_LARGE
+            )
+            # Open Virtual Machine tab
+            self.hosts.click(tab_locators['host.tab_virtual_machine'])
+            # Check that all values are inherited from custom profile
+            for locator, value in [
+                ['host.cpus', '3'],
+                ['host.cores', '4'],
+                ['host.memory', '2048'],
+                ['host.fetch_cluster', VMWARE_CONSTANTS.get('cluster')],
+                ['host.fetch_folder', VMWARE_CONSTANTS.get('folder')],
+
+            ]:
+                self.assertEqual(
+                    self.hosts.get_element_value(locators[locator]), value)
 
     @run_only_on('sat')
     @tier2

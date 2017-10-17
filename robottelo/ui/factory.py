@@ -362,6 +362,8 @@ def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a host_group"""
     create_args = {
         u'name': None,
+        u'organizations': None,
+        u'locations': None,
         u'parameters_list': None,
     }
     page = session.nav.go_to_host_groups
