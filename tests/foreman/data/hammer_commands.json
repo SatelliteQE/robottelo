@@ -14504,13 +14504,13 @@
               "name": "location-id", 
               "shortname": null, 
               "value": "LOCATION_ID"
-            },
+            }, 
             {
-              "help": "Location title",
-              "name": "location-title",
-              "shortname": null,
+              "help": "Location title", 
+              "name": "location-title", 
+              "shortname": null, 
               "value": "LOCATION_TITLE"
-            },
+            }, 
             {
               "help": "Host Collection Name", 
               "name": "name", 
@@ -14534,7 +14534,7 @@
               "name": "organization-id", 
               "shortname": null, 
               "value": "ORGANIZATION_ID"
-            },
+            }, 
             {
               "help": "Organization label to search by", 
               "name": "organization-label", 
@@ -28991,12 +28991,6 @@
               "value": "ORGANIZATION_NAMES"
             }, 
             {
-              "help": "Array of parameters (name, value) Comma separated list of values. Values containing comma should be double quoted", 
-              "name": "subnet-parameters-attributes", 
-              "shortname": null, 
-              "value": "SUBNET_PARAMETERS_ATTRIBUTES"
-            }, 
-            {
               "help": "TFTP Capsule ID to use within this subnet", 
               "name": "tftp-id", 
               "shortname": null, 
@@ -29038,6 +29032,37 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "print help", 
+              "name": "help", 
+              "shortname": "h", 
+              "value": null
+            }
+          ], 
+          "subcommands": []
+        }, 
+        {
+          "description": "Delete parameter for a subnet.", 
+          "name": "delete-parameter", 
+          "options": [
+            {
+              "help": "parameter name", 
+              "name": "name", 
+              "shortname": null, 
+              "value": "NAME"
+            }, 
+            {
+              "help": "Subnet name", 
+              "name": "subnet", 
+              "shortname": null, 
+              "value": "SUBNET_NAME"
+            }, 
+            {
+              "help": "", 
+              "name": "subnet-id", 
+              "shortname": null, 
+              "value": "SUBNET_ID"
             }, 
             {
               "help": "print help", 
@@ -29154,6 +29179,49 @@
               "name": "search", 
               "shortname": null, 
               "value": "SEARCH"
+            }, 
+            {
+              "help": "print help", 
+              "name": "help", 
+              "shortname": "h", 
+              "value": null
+            }
+          ], 
+          "subcommands": []
+        }, 
+        {
+          "description": "Create or update parameter for a subnet.", 
+          "name": "set-parameter", 
+          "options": [
+            {
+              "help": "should the value be hidden One of true/false, yes/no, 1/0.", 
+              "name": "hidden-value", 
+              "shortname": null, 
+              "value": "HIDDEN_VALUE"
+            }, 
+            {
+              "help": "parameter name", 
+              "name": "name", 
+              "shortname": null, 
+              "value": "NAME"
+            }, 
+            {
+              "help": "Subnet name", 
+              "name": "subnet", 
+              "shortname": null, 
+              "value": "SUBNET_NAME"
+            }, 
+            {
+              "help": "", 
+              "name": "subnet-id", 
+              "shortname": null, 
+              "value": "SUBNET_ID"
+            }, 
+            {
+              "help": "parameter value", 
+              "name": "value", 
+              "shortname": null, 
+              "value": "VALUE"
             }, 
             {
               "help": "print help", 
@@ -29305,12 +29373,6 @@
               "name": "organizations", 
               "shortname": null, 
               "value": "ORGANIZATION_NAMES"
-            }, 
-            {
-              "help": "Array of parameters (name, value) Comma separated list of values. Values containing comma should be double quoted", 
-              "name": "subnet-parameters-attributes", 
-              "shortname": null, 
-              "value": "SUBNET_PARAMETERS_ATTRIBUTES"
             }, 
             {
               "help": "TFTP Capsule ID to use within this subnet", 
