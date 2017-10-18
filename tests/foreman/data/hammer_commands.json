@@ -4649,6 +4649,18 @@
                   "value": "ORIGINAL_PACKAGES"
                 }, 
                 {
+                  "help": "Product name to search by", 
+                  "name": "product", 
+                  "shortname": null, 
+                  "value": "PRODUCT_NAME"
+                }, 
+                {
+                  "help": "product numeric identifier", 
+                  "name": "product-id", 
+                  "shortname": null, 
+                  "value": "PRODUCT_ID"
+                }, 
+                {
                   "help": "Comma separated list of values. Values containing comma should be double quoted", 
                   "name": "repositories", 
                   "shortname": null, 
@@ -4973,9 +4985,9 @@
                   "options": [
                     {
                       "help": "package: architecture", 
-                      "name": "arch", 
+                      "name": "architecture", 
                       "shortname": null, 
-                      "value": "ARCH"
+                      "value": "ARCHITECTURE"
                     }, 
                     {
                       "help": "Content view name to search by", 
@@ -5329,6 +5341,12 @@
                   "description": "Update a filter rule. The parameters included should be based upon the filter type.", 
                   "name": "update", 
                   "options": [
+                    {
+                      "help": "package: architecture", 
+                      "name": "architecture", 
+                      "shortname": null, 
+                      "value": "ARCHITECTURE"
+                    }, 
                     {
                       "help": "Content view name to search by", 
                       "name": "content-view", 
@@ -22592,6 +22610,12 @@
               "value": "BY"
             }, 
             {
+              "help": "Content view name to search by", 
+              "name": "content-view", 
+              "shortname": null, 
+              "value": "CONTENT_VIEW_NAME"
+            }, 
+            {
               "help": "Name to search by", 
               "name": "content-view-filter", 
               "shortname": null, 
@@ -22602,6 +22626,12 @@
               "name": "content-view-filter-id", 
               "shortname": null, 
               "value": "CONTENT_VIEW_FILTER_ID"
+            }, 
+            {
+              "help": "content view numeric identifier", 
+              "name": "content-view-id", 
+              "shortname": null, 
+              "value": "CONTENT_VIEW_ID"
             }, 
             {
               "help": "Content view version number", 
