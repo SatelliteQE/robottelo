@@ -1420,7 +1420,7 @@ class ActiveDirectoryUserTestCase(UITestCase):
             self.assertIsNotNone(
                 self.role.wait_until_element(
                     common_locators['alert.success']))
-            assigned_permissions = self.role.get_permissions(
+            assigned_permissions = self.role.filters_get_permissions(
                 role_name, [resource_type])
             self.assertIsNotNone(assigned_permissions)
             self.assertEqual(
