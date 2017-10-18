@@ -7913,6 +7913,12 @@
               "value": "PUPPETCLASS_IDS"
             }, 
             {
+              "help": "DHCP filename option (Grub2 or PXELinux by default)", 
+              "name": "pxe-loader", 
+              "shortname": null, 
+              "value": "PXE_LOADER"
+            }, 
+            {
               "help": "", 
               "name": "root-password", 
               "shortname": null, 
@@ -11004,6 +11010,25 @@
           "subcommands": []
         }
       ]
+    }, 
+    {
+      "description": "Print help for all hammer commands", 
+      "name": "full-help", 
+      "options": [
+        {
+          "help": "Format output in markdown", 
+          "name": "md", 
+          "shortname": null, 
+          "value": null
+        }, 
+        {
+          "help": "print help", 
+          "name": "help", 
+          "shortname": "h", 
+          "value": null
+        }
+      ], 
+      "subcommands": []
     }, 
     {
       "description": "Manipulate global parameters.", 
@@ -15274,7 +15299,7 @@
               "value": "COMPUTE_PROFILE_ID"
             }, 
             {
-              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
               "name": "config-group-ids", 
               "shortname": null, 
               "value": "CONFIG_GROUP_IDS"
