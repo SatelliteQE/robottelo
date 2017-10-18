@@ -31129,6 +31129,12 @@
               "value": "ADMIN"
             }, 
             {
+              "help": "One of true/false, yes/no, 1/0.", 
+              "name": "ask-password", 
+              "shortname": null, 
+              "value": "ASK_PW"
+            }, 
+            {
               "help": "", 
               "name": "auth-source-id", 
               "shortname": null, 
@@ -31456,6 +31462,12 @@
               "name": "admin", 
               "shortname": null, 
               "value": "ADMIN"
+            }, 
+            {
+              "help": "One of true/false, yes/no, 1/0.", 
+              "name": "ask-password", 
+              "shortname": null, 
+              "value": "ASK_PW"
             }, 
             {
               "help": "", 
