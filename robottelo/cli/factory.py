@@ -3717,9 +3717,199 @@ def add_role_permissions(role_id, resource_permissions):
         make_filter(options=options)
 
 
+def setup_cdn_and_custom_repos_content(
+        org_id, lce_id, repos, upload_manifest=True,
+        download_policy='on_demand', rh_subscriptions=None):
+    """Setup cdn and custom repositories, content view and activations key
+
+    :param int org_id: The organization id
+    :param int lce_id: the lifecycle environment id
+    :param list repos: a list of dict repositories options
+    :param bool upload_manifest: whether to upload the organization manifest
+    :param str download_policy: update the repositories with this download
+        policy
+    :param list rh_subscriptions: a list of RH subscription to attach to
+        activation key
+    :return: a dict containing the activation key, content view and repos info
+    """
+    if rh_subscriptions is None:
+        rh_subscriptions = []
+
+    if upload_manifest:
+        # Upload the organization manifest
+        try:
+            manifests.upload_manifest_locked(org_id, manifests.clone(),
+                                             interface=manifests.INTERFACE_CLI)
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                u'Failed to upload manifest\n{0}'.format(err.msg))
+
+    custom_product = None
+    repos_info = []
+    for repo in repos:
+        custom_repo_url = repo.get('url')
+        cdn = repo.get('cdn', False)
+        if not cdn and not custom_repo_url:
+            raise CLIFactoryError(u'Custom repository with url not supplied')
+        if cdn:
+            RepositorySet.enable({
+                u'organization-id': org_id,
+                u'product': repo['product'],
+                u'name': repo['repository-set'],
+                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                u'releasever': repo.get('releasever'),
+            })
+            repo_info = Repository.info({
+                    u'organization-id': org_id,
+                    u'name': repo['repository'],
+                    u'product': repo['product'],
+            })
+            if not rh_subscriptions:
+                rh_subscriptions.append(DEFAULT_SUBSCRIPTION_NAME)
+        else:
+            if custom_product is None:
+                custom_product = make_product_wait({
+                    'organization-id': org_id,
+                })
+            repo_info = make_repository({
+                'product-id': custom_product['id'],
+                'organization-id': org_id,
+                'url': custom_repo_url,
+            })
+        if download_policy:
+            # Set download policy
+            Repository.update({
+                'download-policy': download_policy,
+                'id': repo_info['id'],
+            })
+        repos_info.append(repo_info)
+    # Synchronize the repositories
+    for repo_info in repos_info:
+        Repository.synchronize({'id': repo_info['id']})
+    # Create a content view
+    content_view_id = make_content_view({u'organization-id': org_id})['id']
+    # Add repositories to content view
+    for repo_info in repos_info:
+        ContentView.add_repository({
+            u'id': content_view_id,
+            u'organization-id': org_id,
+            u'repository-id': repo_info['id'],
+        })
+    # Publish the content view
+    ContentView.publish({u'id': content_view_id})
+    # Get the latest content view version id
+    content_view_version = ContentView.info({
+            u'id': content_view_id
+        })['versions'][-1]
+    # Promote content view version to lifecycle environment
+    ContentView.version_promote({
+        u'id': content_view_version['id'],
+        u'organization-id': org_id,
+        u'to-lifecycle-environment-id': lce_id,
+    })
+    content_view = ContentView.info({u'id': content_view_id})
+    activation_key = make_activation_key({
+        u'organization-id': org_id,
+        u'lifecycle-environment-id': lce_id,
+        u'content-view-id': content_view_id,
+    })
+    # Get organization subscriptions
+    subscriptions = Subscription.list({
+        u'organization-id': org_id},
+        per_page=False
+    )
+    # Add subscriptions to activation-key
+    needed_subscription_names = list(rh_subscriptions)
+    if custom_product:
+        needed_subscription_names.append(custom_product['name'])
+    added_subscription_names = []
+    for subscription in subscriptions:
+        if subscription['name'] in needed_subscription_names:
+            ActivationKey.add_subscription({
+                u'id': activation_key['id'],
+                u'subscription-id': subscription['id'],
+                u'quantity': 1,
+            })
+            added_subscription_names.append(subscription['name'])
+            if (len(added_subscription_names)
+                    == len(needed_subscription_names)):
+                break
+    missing_subscription_names = set(
+        needed_subscription_names).difference(set(added_subscription_names))
+    if missing_subscription_names:
+        raise CLIFactoryError(
+            u'Missing subscriptions: {0}'.format(missing_subscription_names))
+
+    return dict(
+        activation_key=activation_key,
+        content_view=content_view,
+        repos=repos_info,
+    )
+
+
+def setup_vm_ssh_key_host_access(
+        vm, local_key_path=None, remote_key_name=None, remote_ssh_path=None,
+        access_hostname=None, access_user=None):
+    """Configure a Virtual machine to access a host using ssh key
+
+     :param robottelo.vm.VirtualMachine vm: Virtual machine instance
+     :param local_key_path: ssh key local file path
+     :param remote_key_name: the ssh key file name on remote location
+     :param remote_ssh_path: the remote ssh config path eg: $HOME/.ssh
+     :param access_hostname: the hostname that the virtual machine has to
+        access with ssh key
+     :param access_user: the user used to access the host
+    """
+    if access_user is None:
+        access_user = 'root'
+    if local_key_path is None:
+        local_key_path = settings.server.ssh_key
+    if remote_key_name is None:
+        remote_key_name = '{0}.key'.format(gen_string('alpha').lower())
+    if remote_ssh_path is None:
+        remote_ssh_path = '/root/.ssh'
+    remote_key_path = '{0}/{1}'.format(remote_ssh_path, remote_key_name)
+    upload_file(
+        local_file=local_key_path,
+        remote_file=remote_key_path,
+        hostname=vm.ip_addr
+    )
+    result = vm.run('chmod 600 {0}'.format(remote_key_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to chmod ssh key file:\n{}'.format(result.stderr))
+    result = vm.run('touch {0}/config'.format(remote_ssh_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to create ssh config file:\n{}'
+            .format(result.stderr)
+        )
+    if access_hostname:
+        result = vm.run(
+            'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
+            '\tIdentityFile {2}" >> {3}/config'
+            .format(
+                access_hostname, access_user, remote_key_path, remote_ssh_path)
+        )
+        if result.return_code != 0:
+            raise CLIFactoryError(
+                u'Failed to write to ssh config file:\n{}'
+                .format(result.stderr)
+            )
+        result = vm.run(
+            'ssh-keyscan {0} >> {1}/known_hosts'
+            .format(access_hostname, remote_ssh_path)
+        )
+        if result.return_code != 0:
+            raise CLIFactoryError(
+                u'Failed to put hostname in ssh known_hosts files:\n{}'
+                .format(result.stderr)
+            )
+
+
 def virt_who_hypervisor_config(
         config_id, virt_who_vm, org_id=None, lce_id=None,
-        hypervisor_hostname=None, configure_ssh=False,
+        hypervisor_hostname=None, configure_ssh=False, hypervisor_user=None,
         subscription_name=None, exec_one_shot=False, upload_manifest=True):
     """
     Configure virtual machine as hypervisor virt-who service
@@ -3730,6 +3920,7 @@ def virt_who_hypervisor_config(
     :param int org_id: the organization id
     :param int lce_id: the lifecycle environment id to use
     :param str hypervisor_hostname: the hypervisor hostname
+    :param str hypervisor_user: hypervisor user that connect with the ssh key
     :param bool configure_ssh: whether to configure the ssh key to allow this
         virtual machine to connect to hypervisor
     :param str subscription_name: the subscription name to assign to virt-who
@@ -3750,160 +3941,34 @@ def virt_who_hypervisor_config(
             'id': lce_id,
             'organization-id': org['id']
         })
-    if upload_manifest:
-        # Upload the org manifest
-        try:
-            manifests.upload_manifest_locked(org_id, manifests.clone(),
-                                             interface=manifests.INTERFACE_CLI)
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to upload manifest\n{0}'.format(err.msg))
-    # setup repositories
-    cdn_repos = []
-    # Red Hat Enterprise Linux 7 Server
     rh_product_arch = REPOS['rhel7']['arch']
     rh_product_releasever = REPOS['rhel7']['releasever']
-    cdn_repos.append({
-        'product': PRDS['rhel'],
-        'repository-set': REPOSET['rhel7'],
-        'repository': REPOS['rhel7']['name'],
-        'repository-id': REPOS['rhel7']['id'],
-        'releasever': rh_product_releasever,
-        'arch': rh_product_arch
-    })
-    # Red Hat Satellite Tools 6.2 for RHEL 7
-    if settings.cdn or not settings.sattools_repo['rhel7']:
-        cdn_repos.append({
+    repos = [
+        # Red Hat Enterprise Linux 7
+        {
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhel7'],
+            'repository': REPOS['rhel7']['name'],
+            'repository-id': REPOS['rhel7']['id'],
+            'releasever': rh_product_releasever,
+            'arch': rh_product_arch,
+            'cdn': True,
+        },
+        # Red Hat Satellite Tools
+        {
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
             'repository-id': REPOS['rhst7']['id'],
-        })
-    # # Enable the cdn RH products
-    for repo in cdn_repos:
-        try:
-            RepositorySet.enable({
-                u'basearch': rh_product_arch,
-                u'name': repo['repository-set'],
-                u'organization-id': org['id'],
-                u'product': repo['product'],
-                u'releasever': repo.get('releasever'),
-            })
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to enable repository set\n{0}'.format(err.msg))
-    # Retrieve the repositories info
-    repos_info = []
-    for repo in cdn_repos:
-        try:
-            repo_info = Repository.info({
-                u'name': repo['repository'],
-                u'organization-id': org['id'],
-                u'product': repo['product'],
-            })
-            repos_info.append(repo_info)
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to fetch repository info\n{0}'.format(err.msg))
-    custom_product = None
-    # If we aren't working with cdn, create custom repo
-    if not settings.cdn and settings.sattools_repo['rhel7']:
-        custom_product = make_product_wait({
-            'organization-id': org['id'],
-        })
-        sat_tools_repo = make_repository({
-            'product-id': custom_product['id'],
-            'organization-id': org['id'],
             'url': settings.sattools_repo['rhel7'],
-        })
-        repos_info.append(sat_tools_repo)
-    # Set download policy to 'on demand'
-    for repo in repos_info:
-        Repository.update({
-            'download-policy': 'on_demand',
-            'id': repo['id'],
-        })
-    # Synchronize the repositories
-    for repo in repos_info:
-        try:
-            Repository.synchronize({'id': repo['id']})
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to synchronize repository\n{0}'.format(err.msg))
-    # Create a content view
-    content_view_id = make_content_view({u'organization-id': org['id']})['id']
-    for repo_info in repos_info:
-        try:
-            ContentView.add_repository({
-                u'id': content_view_id,
-                u'organization-id': org['id'],
-                u'repository-id': repo_info['id'],
-            })
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to add repository to content view\n{0}'
-                .format(err.msg)
-            )
-    # Publish the content view
-    try:
-        ContentView.publish({u'id': content_view_id})
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to publish new version of content view\n{0}'
-            .format(err.msg)
-        )
-    # Get the latest content view version id
-    try:
-        content_view_version = ContentView.info({
-            u'id': content_view_id
-        })['versions'][-1]
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to fetch content view info\n{0}'.format(err.msg))
-    # Promote content view version to lifecycle environment
-    try:
-        ContentView.version_promote({
-            u'id': content_view_version['id'],
-            u'organization-id': org['id'],
-            u'to-lifecycle-environment-id': lce['id'],
-        })
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to promote version to next environment\n{0}'
-            .format(err.msg)
-        )
-    activation_key = make_activation_key({
-        u'organization-id': org['id'],
-        u'lifecycle-environment-id': lce['id'],
-        u'content-view-id': content_view_id,
-    })
-
-    # Get organization subscriptions
-    subscriptions = Subscription.list(
-        {u'organization-id': org['id']},
-        per_page=False
-    )
-    # Add subscriptions to activation-key
-    needed_subscription_names = [DEFAULT_SUBSCRIPTION_NAME]
-    if custom_product:
-        needed_subscription_names.append(custom_product['name'])
-    added_subscription_count = 0
-    for subscription in subscriptions:
-        if subscription['name'] in needed_subscription_names:
-            try:
-                ActivationKey.add_subscription({
-                    u'id': activation_key['id'],
-                    u'subscription-id': subscription['id'],
-                    u'quantity': 1,
-                })
-            except CLIReturnCodeError as err:
-                raise CLIFactoryError(
-                    u'Failed to add subscription to activation key\n{0}'
-                    .format(err.msg)
-                )
-            added_subscription_count += 1
-            if added_subscription_count == len(needed_subscription_names):
-                break
+            'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
+        },
+    ]
+    content_setup_data = setup_cdn_and_custom_repos_content(
+            org['id'], lce['id'], repos, upload_manifest=upload_manifest)
+    activation_key = content_setup_data['activation_key']
+    content_view = content_setup_data['content_view']
+    # Subscribe virt-who vm to Satellite
     virt_who_vm.install_katello_ca()
     virt_who_vm.register_contenthost(
         org['label'], activation_key=activation_key['name'])
@@ -3917,46 +3982,16 @@ def virt_who_hypervisor_config(
         .format(rh_product_releasever)
     )
     # Enable the repositories
-    for repo in cdn_repos:
-        virt_who_vm.enable_repo(repo['repository-id'])
+    for repo in repos:
+        if repo['cdn']:
+            virt_who_vm.enable_repo(repo['repository-id'])
 
     if hypervisor_hostname and configure_ssh:
-        remote_ssh_key_file = '/root/.ssh/hypervisor_key'
-        upload_file(
-            local_file=settings.server.ssh_key,
-            remote_file=remote_ssh_key_file,
-            hostname=virt_who_vm.ip_addr
+        setup_vm_ssh_key_host_access(
+            virt_who_vm,
+            access_hostname=hypervisor_hostname,
+            access_user=hypervisor_user,
         )
-        result = virt_who_vm.run('chmod 600 {0}'.format(remote_ssh_key_file))
-        if result.return_code != 0:
-            raise CLIFactoryError(
-                u'Virt-Who ssh config failed to chmod ssh key file:\n{}'
-                .format(result.stderr)
-            )
-        result = virt_who_vm.run('touch /root/.ssh/config')
-        if result.return_code != 0:
-            raise CLIFactoryError(
-                u'Virt-Who ssh config failed create ssh config file:\n{}'
-                .format(result.stderr)
-            )
-        result = virt_who_vm.run(
-            'echo "\nHost {0}\n\tHostname {0}\n\tUser root\n'
-            '\tIdentityFile {1}" >> /root/.ssh/config'
-            .format(hypervisor_hostname, remote_ssh_key_file)
-        )
-        if result.return_code != 0:
-            raise CLIFactoryError(
-                u'Virt-Who ssh config failed write to ssh config file:\n{}'
-                .format(result.stderr)
-            )
-        result = virt_who_vm.run(
-            'ssh-keyscan {0} >> ~/.ssh/known_hosts'.format(hypervisor_hostname)
-        )
-        if result.return_code != 0:
-            raise CLIFactoryError(
-                u'Virt-Who ssh config failed to put hypervisor hostname in ssh'
-                u' known_hosts files:\n{}'.format(result.stderr)
-            )
     # upload the virt-who config deployment script
     _, temp_virt_who_deploy_file_path = mkstemp(
         suffix='-virt_who_deploy-{0}'.format(config_id))
@@ -4033,6 +4068,10 @@ def virt_who_hypervisor_config(
     virt_who_hypervisor_host = org_hosts[0]
     subscription_id = None
     if hypervisor_hostname and subscription_name:
+        subscriptions = Subscription.list({
+            u'organization-id': org_id},
+            per_page=False
+        )
         for subscription in subscriptions:
             if subscription['name'] == subscription_name:
                 subscription_id = subscription['id']
@@ -4046,7 +4085,7 @@ def virt_who_hypervisor_config(
         'subscription_name': subscription_name,
         'activation_key_id': activation_key['id'],
         'organization_id': org['id'],
-        'content_view_id': content_view_id,
+        'content_view_id': content_view['id'],
         'lifecycle_environment_id': lce['id'],
         'virt_who_hypervisor_host': virt_who_hypervisor_host,
     }

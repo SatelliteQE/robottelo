@@ -358,9 +358,9 @@ class SubscriptionTestCase(UITestCase):
 
         :expectedresults:
             1. The Virtual Data Centers guests subscription Provided Products
-               is not empty
+               is not empty and one of the provided products exist
             2. The Virtual Data Centers guests subscription Product Content is
-               not empty
+               not empty and one of the consumed products exist
 
         :BZ: 1395788
 
