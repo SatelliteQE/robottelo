@@ -1787,6 +1787,12 @@
                   "value": "TLS"
                 }, 
                 {
+                  "help": "use NIS netgroups instead of posix groups, applicable only when is posix or free_ipa", 
+                  "name": "use-netgroups", 
+                  "shortname": null, 
+                  "value": "USE_NETGROUPS"
+                }, 
+                {
                   "help": "sync external user groups on login One of true/false, yes/no, 1/0.", 
                   "name": "usergroup-sync", 
                   "shortname": null, 
@@ -2071,6 +2077,12 @@
                   "name": "tls", 
                   "shortname": null, 
                   "value": "TLS"
+                }, 
+                {
+                  "help": "use NIS netgroups instead of posix groups, applicable only when is posix or free_ipa", 
+                  "name": "use-netgroups", 
+                  "shortname": null, 
+                  "value": "USE_NETGROUPS"
                 }, 
                 {
                   "help": "sync external user groups on login One of true/false, yes/no, 1/0.", 
