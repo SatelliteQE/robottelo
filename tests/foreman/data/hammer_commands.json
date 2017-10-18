@@ -3579,6 +3579,37 @@
           "subcommands": []
         }, 
         {
+          "description": "Show available networks", 
+          "name": "networks", 
+          "options": [
+            {
+              "help": "", 
+              "name": "cluster-id", 
+              "shortname": null, 
+              "value": "CLUSTER_ID"
+            }, 
+            {
+              "help": "", 
+              "name": "id", 
+              "shortname": null, 
+              "value": "ID"
+            }, 
+            {
+              "help": "Compute resource name", 
+              "name": "name", 
+              "shortname": null, 
+              "value": "NAME"
+            }, 
+            {
+              "help": "print help", 
+              "name": "help", 
+              "shortname": "h", 
+              "value": null
+            }
+          ], 
+          "subcommands": []
+        }, 
+        {
           "description": "Update a compute resource", 
           "name": "update", 
           "options": [
