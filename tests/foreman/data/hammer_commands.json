@@ -15274,6 +15274,18 @@
               "value": "COMPUTE_PROFILE_ID"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "config-group-ids", 
+              "shortname": null, 
+              "value": "CONFIG_GROUP_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "config-groups", 
+              "shortname": null, 
+              "value": "CONFIG_GROUP_NAMES"
+            }, 
+            {
               "help": "Content source ID", 
               "name": "content-source-id", 
               "shortname": null, 
@@ -15314,6 +15326,12 @@
               "name": "environment-id", 
               "shortname": null, 
               "value": "ENVIRONMENT_ID"
+            }, 
+            {
+              "help": "Array of parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "group-parameters-attributes", 
+              "shortname": null, 
+              "value": "GROUP_PARAMETERS_ATTRIBUTES"
             }, 
             {
               "help": "Kickstart repository ID", 
@@ -15368,6 +15386,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "ID of OpenSCAP Capsule", 
+              "name": "openscap-proxy-id", 
+              "shortname": null, 
+              "value": "OPENSCAP_PROXY_ID"
             }, 
             {
               "help": "Operating system title", 
@@ -15605,6 +15629,12 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
+            }, 
+            {
+              "help": "Display hidden parameter values", 
+              "name": "show-hidden-parameters", 
+              "shortname": null, 
+              "value": "SHOW_HIDDEN_PARAMETERS"
             }, 
             {
               "help": "Hostgroup title", 
@@ -15967,6 +15997,18 @@
               "value": "COMPUTE_PROFILE_ID"
             }, 
             {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "config-group-ids", 
+              "shortname": null, 
+              "value": "CONFIG_GROUP_IDS"
+            }, 
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "config-groups", 
+              "shortname": null, 
+              "value": "CONFIG_GROUP_NAMES"
+            }, 
+            {
               "help": "Content source ID", 
               "name": "content-source-id", 
               "shortname": null, 
@@ -16007,6 +16049,12 @@
               "name": "environment-id", 
               "shortname": null, 
               "value": "ENVIRONMENT_ID"
+            }, 
+            {
+              "help": "Array of parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash", 
+              "name": "group-parameters-attributes", 
+              "shortname": null, 
+              "value": "GROUP_PARAMETERS_ATTRIBUTES"
             }, 
             {
               "help": "", 
@@ -16073,6 +16121,12 @@
               "name": "new-name", 
               "shortname": null, 
               "value": "NEW_NAME"
+            }, 
+            {
+              "help": "ID of OpenSCAP Capsule", 
+              "name": "openscap-proxy-id", 
+              "shortname": null, 
+              "value": "OPENSCAP_PROXY_ID"
             }, 
             {
               "help": "Operating system title", 
