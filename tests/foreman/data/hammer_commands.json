@@ -1445,12 +1445,6 @@
               "value": "ID"
             }, 
             {
-              "help": "Name to search by", 
-              "name": "name", 
-              "shortname": null, 
-              "value": "NAME"
-            }, 
-            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -28168,6 +28162,37 @@
             }, 
             {
               "help": "Scap content title", 
+              "name": "title", 
+              "shortname": null, 
+              "value": "TITLE"
+            }, 
+            {
+              "help": "print help", 
+              "name": "help", 
+              "shortname": "h", 
+              "value": null
+            }
+          ], 
+          "subcommands": []
+        }, 
+        {
+          "description": "Show an SCAP content as XML", 
+          "name": "download", 
+          "options": [
+            {
+              "help": "", 
+              "name": "id", 
+              "shortname": null, 
+              "value": "ID"
+            }, 
+            {
+              "help": "Path to directory where downloaded file will be saved", 
+              "name": "path", 
+              "shortname": null, 
+              "value": "PATH"
+            }, 
+            {
+              "help": "SCAP content title", 
               "name": "title", 
               "shortname": null, 
               "value": "TITLE"
