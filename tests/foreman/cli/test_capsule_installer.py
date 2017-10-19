@@ -15,8 +15,24 @@
 
 :Upstream: No
 """
-from robottelo.decorators import stubbed, upgrade
+import os
+from tempfile import mkstemp
+
+from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.capsule import Capsule
+from robottelo.cli.factory import extract_capsule_satellite_installer_command
+from robottelo.config import settings
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier3,
+    upgrade,
+)
 from robottelo.test import CLITestCase
+from robottelo.vm_capsule import CapsuleVirtualMachine
 
 
 class CapsuleInstallerTestCase(CLITestCase):
@@ -147,3 +163,73 @@ class CapsuleInstallerTestCase(CLITestCase):
         :caseautomation: notautomated
 
         """
+
+    @run_in_one_thread
+    @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
+    @tier3
+    def test_positive_reinstall_on_same_node_after_remove(self):
+        """Reinstall capsule on the same node after remove
+
+        :id: fac35a44-0bc9-44e9-a2c3-398e1aa9900c
+
+        :expectedresults: The capsule successfully reinstalled
+
+        :BZ: 1327442
+
+        :CaseLevel: System
+        """
+        # Note: capsule-remove has been replaced by katello-remove
+        with CapsuleVirtualMachine() as capsule_vm:
+            # ensure that capsule refresh-features succeed
+            with self.assertNotRaises(CLIReturnCodeError):
+                Capsule.refresh_features(
+                    {'name': capsule_vm._capsule_hostname})
+            # katello-remove command request to confirm by typing Y and then by
+            # typing remove
+            result = capsule_vm.run("printf 'Y\nremove\n' | katello-remove")
+            self.assertEqual(result.return_code, 0)
+            # ensure that capsule refresh-features fail
+            with self.assertRaises(CLIReturnCodeError):
+                Capsule.refresh_features(
+                    {'name': capsule_vm._capsule_hostname})
+            # reinstall katello certs as they have been removed
+            capsule_vm.install_katello_ca()
+            # refresh subscription
+            capsule_vm.run('subscription-manager refresh')
+            # install satellite-capsule package
+            result = capsule_vm.run('yum install -y satellite-capsule')
+            self.assertEqual(result.return_code, 0)
+            # generate capsule certs and installer command
+            cert_file_path = '/tmp/{0}-certs.tar'.format(capsule_vm.hostname)
+            result = ssh.command(
+                'capsule-certs-generate '
+                '--foreman-proxy-fqdn {0} '
+                '--certs-tar {1}'
+                .format(capsule_vm.hostname, cert_file_path)
+            )
+            self.assertEqual(result.return_code, 0)
+            # retrieve the installer command from the result output
+            installer_cmd = extract_capsule_satellite_installer_command(
+                result.stdout
+            )
+            # copy the generated certs to capsule vm
+            _, temporary_local_cert_file_path = mkstemp(suffix='-certs.tar')
+            ssh.download_file(
+                remote_file=cert_file_path,
+                local_file=temporary_local_cert_file_path,
+                hostname=settings.server.hostname
+            )
+            ssh.upload_file(
+                local_file=temporary_local_cert_file_path,
+                remote_file=cert_file_path,
+                hostname=capsule_vm.hostname
+            )
+            # delete the temporary file
+            os.remove(temporary_local_cert_file_path)
+            result = capsule_vm.run(installer_cmd, timeout=1500)
+            self.assertEqual(result.return_code, 0)
+            # ensure that capsule refresh-features succeed
+            with self.assertNotRaises(CLIReturnCodeError):
+                Capsule.refresh_features(
+                    {'name': capsule_vm._capsule_hostname})
