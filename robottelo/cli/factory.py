@@ -3847,64 +3847,64 @@ def setup_cdn_and_custom_repos_content(
     )
 
 
-def setup_vm_ssh_key_host_access(
-        vm, local_key_path=None, remote_key_name=None, remote_ssh_path=None,
-        access_hostname=None, access_user=None):
-    """Configure a Virtual machine to access a host using ssh key
+def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
+    """Create host entry in vm ssh config and know_hosts files to allow vm
+    to access host via ssh without password prompt
 
-     :param robottelo.vm.VirtualMachine vm: Virtual machine instance
-     :param local_key_path: ssh key local file path
-     :param remote_key_name: the ssh key file name on remote location
-     :param remote_ssh_path: the remote ssh config path eg: $HOME/.ssh
-     :param access_hostname: the hostname that the virtual machine has to
-        access with ssh key
-     :param access_user: the user used to access the host
+    :param robottelo.vm.VirtualMachine vm: Virtual machine instance
+    :param str ssh_key_name: The ssh key file name to use to access host,
+        the file must already exist in /root/.ssh directory
+    :param str host: the hostname to setup that will be accessed from vm
+    :param str user: the user that will access the host
     """
-    if access_user is None:
-        access_user = 'root'
-    if local_key_path is None:
-        local_key_path = settings.server.ssh_key
-    if remote_key_name is None:
-        remote_key_name = '{0}.key'.format(gen_string('alpha').lower())
-    if remote_ssh_path is None:
-        remote_ssh_path = '/root/.ssh'
-    remote_key_path = '{0}/{1}'.format(remote_ssh_path, remote_key_name)
-    upload_file(
-        local_file=local_key_path,
-        remote_file=remote_key_path,
-        hostname=vm.ip_addr
-    )
-    result = vm.run('chmod 600 {0}'.format(remote_key_path))
-    if result.return_code != 0:
-        raise CLIFactoryError(
-            u'Failed to chmod ssh key file:\n{}'.format(result.stderr))
-    result = vm.run('touch {0}/config'.format(remote_ssh_path))
+    if user is None:
+        user = 'root'
+    ssh_path = '/root/.ssh'
+    ssh_key_file_path = '{0}/{1}'.format(ssh_path, ssh_key_name)
+    # setup the config file
+    ssh_config_file_path = '{0}/config'.format(ssh_path)
+    result = vm.run('touch {0}'.format(ssh_config_file_path))
     if result.return_code != 0:
         raise CLIFactoryError(
             u'Failed to create ssh config file:\n{}'
             .format(result.stderr)
         )
-    if access_hostname:
-        result = vm.run(
-            'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
-            '\tIdentityFile {2}" >> {3}/config'
-            .format(
-                access_hostname, access_user, remote_key_path, remote_ssh_path)
+    result = vm.run(
+        'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
+        '\tIdentityFile {2}\n" >> {3}'
+        .format(host, user, ssh_key_file_path, ssh_config_file_path)
+    )
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to write to ssh config file:\n{}'.format(result.stderr))
+    # add host entry to ssh known_hosts
+    result = vm.run(
+        'ssh-keyscan {0} >> {1}/known_hosts'.format(host, ssh_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to put hostname in ssh known_hosts files:\n{}'
+            .format(result.stderr)
         )
-        if result.return_code != 0:
-            raise CLIFactoryError(
-                u'Failed to write to ssh config file:\n{}'
-                .format(result.stderr)
-            )
-        result = vm.run(
-            'ssh-keyscan {0} >> {1}/known_hosts'
-            .format(access_hostname, remote_ssh_path)
-        )
-        if result.return_code != 0:
-            raise CLIFactoryError(
-                u'Failed to put hostname in ssh known_hosts files:\n{}'
-                .format(result.stderr)
-            )
+
+
+def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
+    """Copy ssh key to virtual machine ssh path and ensure proper permission is
+    set
+
+    :param robottelo.vm.VirtualMachine vm: Virtual machine instance
+    :param source_key_path: The ssh key file path to copy to vm
+    :param destination_key_name: The ssh key file name when copied to vm
+    """
+    destination_key_path = '/root/.ssh/{0}'.format(destination_key_name)
+    upload_file(
+        local_file=source_key_path,
+        remote_file=destination_key_path,
+        hostname=vm.ip_addr
+    )
+    result = vm.run('chmod 600 {0}'.format(destination_key_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to chmod ssh key file:\n{}'.format(result.stderr))
 
 
 def virt_who_hypervisor_config(
@@ -3987,11 +3987,16 @@ def virt_who_hypervisor_config(
             virt_who_vm.enable_repo(repo['repository-id'])
 
     if hypervisor_hostname and configure_ssh:
-        setup_vm_ssh_key_host_access(
-            virt_who_vm,
-            access_hostname=hypervisor_hostname,
-            access_user=hypervisor_user,
-        )
+        # configure ssh access of hypervisor from virt_who_vm
+        hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(
+            gen_string('alpha').lower())
+        # upload the ssh key
+        vm_upload_ssh_key(
+            virt_who_vm, settings.server.ssh_key, hypervisor_ssh_key_name)
+        # setup the ssh config and known_hosts files
+        vm_setup_ssh_config(virt_who_vm, hypervisor_ssh_key_name,
+                            hypervisor_hostname, user=hypervisor_user)
+
     # upload the virt-who config deployment script
     _, temp_virt_who_deploy_file_path = mkstemp(
         suffix='-virt_who_deploy-{0}'.format(config_id))
@@ -4014,36 +4019,35 @@ def virt_who_hypervisor_config(
         temp_virt_who_deploy_file_path))
     if result.return_code != 0:
         raise CLIFactoryError(
-            u'Virt-Who failed to set deployment script as executable:\n{}'
+            u'Failed to set deployment script as executable:\n{}'
             .format(result.stderr)
         )
     # execute the deployment script
     result = virt_who_vm.run('{0}'.format(temp_virt_who_deploy_file_path))
     if result.return_code != 0:
         raise CLIFactoryError(
-            u'Virt-Who deployment script failure:\n{}'.format(result.stderr)
-        )
+            u'Deployment script failure:\n{}'.format(result.stderr))
     # after this step, we should have virt-who service installed and started
     if exec_one_shot:
-        # some time to be sure that the virt-who generated the report, needed
+        # usually to be sure that the virt-who generated the report we need
         # to force a one shot report, for this we have to stop the virt-who
         # service
         result = virt_who_vm.run('service virt-who stop')
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Virt-Who failed to stop the virt-who service:\n{}'
+                u'Failed to stop the virt-who service:\n{}'
                 .format(result.stderr)
             )
         result = virt_who_vm.run('virt-who --one-shot')
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Virt-Who failed when executing virt-who --one-shot:\n{}'
+                u'Failed when executing virt-who --one-shot:\n{}'
                 .format(result.stderr)
             )
         result = virt_who_vm.run('service virt-who start')
         if result.return_code != 0:
             raise CLIFactoryError(
-                u'Virt-Who failed to start the virt-who service:\n{}'
+                u'Failed to start the virt-who service:\n{}'
                 .format(result.stderr)
             )
     # after this step the hypervisor as a content host should be created
@@ -4062,9 +4066,7 @@ def virt_who_hypervisor_config(
     })
     if len(org_hosts) == 0:
         raise CLIFactoryError(
-            u'Virt-Who failed to find hypervisor host:\n{}'
-            .format(result.stderr)
-        )
+            u'Failed to find hypervisor host:\n{}'.format(result.stderr))
     virt_who_hypervisor_host = org_hosts[0]
     subscription_id = None
     if hypervisor_hostname and subscription_name:

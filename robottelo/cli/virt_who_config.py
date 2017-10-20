@@ -30,5 +30,4 @@ class VirtWhoConfig(Base):
     def fetch(cls, options=None):
         """Renders a deploy script for the specified virt-who configuration"""
         cls.command_sub = 'fetch'
-        return cls.execute(
-            cls._construct_command(options))
+        return cls.execute(cls._construct_command(options))
