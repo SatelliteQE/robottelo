@@ -971,6 +971,17 @@ class HostCreateTestCase(CLITestCase):
         """
         options = entities.Host()
         options.create_missing()
+        lce = make_lifecycle_environment({
+            'organization-id': options.organization.id})
+        cv = make_content_view({'organization-id': options.organization.id})
+        ContentView.publish({'id': cv['id']})
+        version_id = ContentView.version_list({
+            'content-view-id': cv['id'],
+        })[0]['id']
+        ContentView.version_promote({
+            'id': version_id,
+            'to-lifecycle-environment-id': lce['id'],
+        })
         host_name = gen_string('alpha').lower()
         nested_hg_name = gen_string('alpha')
         parent_hostgroups = []
@@ -990,7 +1001,9 @@ class HostCreateTestCase(CLITestCase):
                 'medium-id': options.medium.id,
                 'operatingsystem-id': options.operatingsystem.id,
                 'partition-table-id': options.ptable.id,
-                'location-ids': options.location.id
+                'location-ids': options.location.id,
+                'content-view-id': cv['id'],
+                'lifecycle-environment-id': lce['id'],
             }))
 
         host = make_host({
@@ -1002,6 +1015,65 @@ class HostCreateTestCase(CLITestCase):
         self.assertEqual(
             '{0}.{1}'.format(host_name, options.domain.read().name),
             host['name'],
+        )
+
+    @tier3
+    def test_positive_list_with_nested_hostgroup(self):
+        """Create parent and nested host groups. Then create host using nested
+        hostgroup and then find created host using list command
+
+        :id: 50c964c3-d3d6-4832-a51c-62664d132229
+
+        :expectedresults: Host is successfully listed and has both parent and
+            nested host groups names in its hostgroup parameter
+
+        :BZ: 1427554
+
+        :CaseLevel: System
+        """
+        options = entities.Host()
+        options.create_missing()
+        host_name = gen_string('alpha').lower()
+        parent_hg_name = gen_string('alpha')
+        nested_hg_name = gen_string('alpha')
+        lce = make_lifecycle_environment({
+            'organization-id': options.organization.id})
+        cv = make_content_view({'organization-id': options.organization.id})
+        ContentView.publish({'id': cv['id']})
+        version_id = ContentView.version_list({
+            'content-view-id': cv['id'],
+        })[0]['id']
+        ContentView.version_promote({
+            'id': version_id,
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        make_hostgroup({
+            'name': parent_hg_name,
+            'organization-ids': options.organization.id,
+        })
+        nested_hostgroup = make_hostgroup({
+            'name': nested_hg_name,
+            'parent': parent_hg_name,
+            'organization-ids': options.organization.id,
+            'architecture-id': options.architecture.id,
+            'domain-id': options.domain.id,
+            'medium-id': options.medium.id,
+            'operatingsystem-id': options.operatingsystem.id,
+            'partition-table-id': options.ptable.id,
+            'location-ids': options.location.id,
+            'content-view-id': cv['id'],
+            'lifecycle-environment-id': lce['id'],
+        })
+        make_host({
+            'hostgroup-id': nested_hostgroup['id'],
+            'location-id': options.location.id,
+            'organization-id': options.organization.id,
+            'name': host_name,
+        })
+        hosts = Host.list({'organization-id': options.organization.id})
+        self.assertEqual(
+            '{0}/{1}'.format(parent_hg_name, nested_hg_name),
+            hosts[0]['host-group'],
         )
 
     @run_only_on('sat')
