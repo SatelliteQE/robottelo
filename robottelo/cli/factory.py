@@ -62,6 +62,7 @@ from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.cli.smart_variable import SmartVariable
+from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
@@ -2547,6 +2548,85 @@ def make_smart_variable(options=None):
     return create_object(SmartVariable, args, options)
 
 
+@cacheable
+def make_virt_who_config(options=None):
+    """
+    Usage::
+
+        hammer virt-who-config create [OPTIONS]
+
+    Options::
+
+        --blacklist BLACKLIST    Hypervisor blacklist, applicable only when
+                                 filtering mode is set to 2.
+                                 Wildcards and regular expressions are
+                                 supported, multiple records must be
+                                 separated by comma.
+        --debug DEBUG            Enable debugging output
+                                 One of true/false, yes/no, 1/0.
+        --filtering-mode MODE    Hypervisor filtering mode
+                                 Possible value(s): 'none', 'whitelist',
+                                 'blacklist'
+        --hypervisor-id HYPERVISOR_ID  Specifies how the hypervisor will be
+                                       identified.
+                                       Possible value(s): 'hostname', 'uuid',
+                                       'hwuuid'
+        --hypervisor-password HYPERVISOR_PASSWORD Hypervisor password, required
+                                                  for all hypervisor types
+                                                  except for libvirt
+        --hypervisor-server HYPERVISOR_SERVER     Fully qualified host name or
+                                                  IP address of the hypervisor
+        --hypervisor-type HYPERVISOR_TYPE         Hypervisor type
+                                                  Possible value(s): 'esx',
+                                                  'rhevm', 'hyperv', 'xen',
+                                                  'libvirt'
+        --hypervisor-username HYPERVISOR_USERNAME Account name by which
+                                                  virt-who is to connect to the
+                                                  hypervisor.
+        --interval INTERVAL   Configuration interval in minutes
+                              Possible value(s): '60', '120', '240', '480',
+                              '720'
+        --name NAME           Configuration name
+        --no-proxy NO_PROXY   Ignore Proxy. A comma-separated list of hostnames
+                              or domains or ip addresses to ignore proxy
+                              settings for. Optionally this may be set to * to
+                              bypass proxy settings for all hostnames domains
+                              or ip addresses.
+        --organization ORGANIZATION_NAME          Organization name
+        --organization-id ORGANIZATION_ID         organization ID
+        --organization-title ORGANIZATION_TITLE   Organization title
+        --proxy PROXY         HTTP Proxy that should be used for communication
+                              between the server on which virt-who is running
+                              and the hypervisors and virtualization managers.
+        --satellite-url SATELLITE_URL   Satellite server FQDN
+        --whitelist WHITELIST Hypervisor whitelist, applicable only when
+                              filtering mode is set to 1.
+                              Wildcards and regular expressions are supported,
+                              multiple records must be separated by comma.
+        -h, --help            print help
+    """
+    args = {
+        u'blacklist': None,
+        u'debug': None,
+        u'filtering-mode': 'none',
+        u'hypervisor-id': 'hostname',
+        u'hypervisor-password': None,
+        u'hypervisor-server': None,
+        u'hypervisor-type': None,
+        u'hypervisor-username': None,
+        u'interval': '60',
+        u'name': gen_alphanumeric(6),
+        u'no-proxy': None,
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-title': None,
+        u'proxy': None,
+        u'satellite-url': settings.server.hostname,
+        u'whitelist': None
+     }
+    return create_object(VirtWhoConfig, args, options)
+
+
 def activationkey_add_subscription_to_repo(options=None):
     """
     Adds subscription to activation key.
@@ -3635,3 +3715,379 @@ def add_role_permissions(role_id, resource_permissions):
         options = {'role-id': role_id}
         options.update(permission_data)
         make_filter(options=options)
+
+
+def setup_cdn_and_custom_repos_content(
+        org_id, lce_id, repos, upload_manifest=True,
+        download_policy='on_demand', rh_subscriptions=None):
+    """Setup cdn and custom repositories, content view and activations key
+
+    :param int org_id: The organization id
+    :param int lce_id: the lifecycle environment id
+    :param list repos: a list of dict repositories options
+    :param bool upload_manifest: whether to upload the organization manifest
+    :param str download_policy: update the repositories with this download
+        policy
+    :param list rh_subscriptions: a list of RH subscription to attach to
+        activation key
+    :return: a dict containing the activation key, content view and repos info
+    """
+    if rh_subscriptions is None:
+        rh_subscriptions = []
+
+    if upload_manifest:
+        # Upload the organization manifest
+        try:
+            manifests.upload_manifest_locked(org_id, manifests.clone(),
+                                             interface=manifests.INTERFACE_CLI)
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                u'Failed to upload manifest\n{0}'.format(err.msg))
+
+    custom_product = None
+    repos_info = []
+    for repo in repos:
+        custom_repo_url = repo.get('url')
+        cdn = repo.get('cdn', False)
+        if not cdn and not custom_repo_url:
+            raise CLIFactoryError(u'Custom repository with url not supplied')
+        if cdn:
+            RepositorySet.enable({
+                u'organization-id': org_id,
+                u'product': repo['product'],
+                u'name': repo['repository-set'],
+                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                u'releasever': repo.get('releasever'),
+            })
+            repo_info = Repository.info({
+                    u'organization-id': org_id,
+                    u'name': repo['repository'],
+                    u'product': repo['product'],
+            })
+            if not rh_subscriptions:
+                rh_subscriptions.append(DEFAULT_SUBSCRIPTION_NAME)
+        else:
+            if custom_product is None:
+                custom_product = make_product_wait({
+                    'organization-id': org_id,
+                })
+            repo_info = make_repository({
+                'product-id': custom_product['id'],
+                'organization-id': org_id,
+                'url': custom_repo_url,
+            })
+        if download_policy:
+            # Set download policy
+            Repository.update({
+                'download-policy': download_policy,
+                'id': repo_info['id'],
+            })
+        repos_info.append(repo_info)
+    # Synchronize the repositories
+    for repo_info in repos_info:
+        Repository.synchronize({'id': repo_info['id']})
+    # Create a content view
+    content_view_id = make_content_view({u'organization-id': org_id})['id']
+    # Add repositories to content view
+    for repo_info in repos_info:
+        ContentView.add_repository({
+            u'id': content_view_id,
+            u'organization-id': org_id,
+            u'repository-id': repo_info['id'],
+        })
+    # Publish the content view
+    ContentView.publish({u'id': content_view_id})
+    # Get the latest content view version id
+    content_view_version = ContentView.info({
+            u'id': content_view_id
+        })['versions'][-1]
+    # Promote content view version to lifecycle environment
+    ContentView.version_promote({
+        u'id': content_view_version['id'],
+        u'organization-id': org_id,
+        u'to-lifecycle-environment-id': lce_id,
+    })
+    content_view = ContentView.info({u'id': content_view_id})
+    activation_key = make_activation_key({
+        u'organization-id': org_id,
+        u'lifecycle-environment-id': lce_id,
+        u'content-view-id': content_view_id,
+    })
+    # Get organization subscriptions
+    subscriptions = Subscription.list({
+        u'organization-id': org_id},
+        per_page=False
+    )
+    # Add subscriptions to activation-key
+    needed_subscription_names = list(rh_subscriptions)
+    if custom_product:
+        needed_subscription_names.append(custom_product['name'])
+    added_subscription_names = []
+    for subscription in subscriptions:
+        if subscription['name'] in needed_subscription_names:
+            ActivationKey.add_subscription({
+                u'id': activation_key['id'],
+                u'subscription-id': subscription['id'],
+                u'quantity': 1,
+            })
+            added_subscription_names.append(subscription['name'])
+            if (len(added_subscription_names)
+                    == len(needed_subscription_names)):
+                break
+    missing_subscription_names = set(
+        needed_subscription_names).difference(set(added_subscription_names))
+    if missing_subscription_names:
+        raise CLIFactoryError(
+            u'Missing subscriptions: {0}'.format(missing_subscription_names))
+
+    return dict(
+        activation_key=activation_key,
+        content_view=content_view,
+        repos=repos_info,
+    )
+
+
+def vm_setup_ssh_config(vm, ssh_key_name, host, user=None):
+    """Create host entry in vm ssh config and know_hosts files to allow vm
+    to access host via ssh without password prompt
+
+    :param robottelo.vm.VirtualMachine vm: Virtual machine instance
+    :param str ssh_key_name: The ssh key file name to use to access host,
+        the file must already exist in /root/.ssh directory
+    :param str host: the hostname to setup that will be accessed from vm
+    :param str user: the user that will access the host
+    """
+    if user is None:
+        user = 'root'
+    ssh_path = '/root/.ssh'
+    ssh_key_file_path = '{0}/{1}'.format(ssh_path, ssh_key_name)
+    # setup the config file
+    ssh_config_file_path = '{0}/config'.format(ssh_path)
+    result = vm.run('touch {0}'.format(ssh_config_file_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to create ssh config file:\n{}'
+            .format(result.stderr)
+        )
+    result = vm.run(
+        'echo "\nHost {0}\n\tHostname {0}\n\tUser {1}\n'
+        '\tIdentityFile {2}\n" >> {3}'
+        .format(host, user, ssh_key_file_path, ssh_config_file_path)
+    )
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to write to ssh config file:\n{}'.format(result.stderr))
+    # add host entry to ssh known_hosts
+    result = vm.run(
+        'ssh-keyscan {0} >> {1}/known_hosts'.format(host, ssh_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to put hostname in ssh known_hosts files:\n{}'
+            .format(result.stderr)
+        )
+
+
+def vm_upload_ssh_key(vm, source_key_path, destination_key_name):
+    """Copy ssh key to virtual machine ssh path and ensure proper permission is
+    set
+
+    :param robottelo.vm.VirtualMachine vm: Virtual machine instance
+    :param source_key_path: The ssh key file path to copy to vm
+    :param destination_key_name: The ssh key file name when copied to vm
+    """
+    destination_key_path = '/root/.ssh/{0}'.format(destination_key_name)
+    upload_file(
+        local_file=source_key_path,
+        remote_file=destination_key_path,
+        hostname=vm.ip_addr
+    )
+    result = vm.run('chmod 600 {0}'.format(destination_key_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to chmod ssh key file:\n{}'.format(result.stderr))
+
+
+def virt_who_hypervisor_config(
+        config_id, virt_who_vm, org_id=None, lce_id=None,
+        hypervisor_hostname=None, configure_ssh=False, hypervisor_user=None,
+        subscription_name=None, exec_one_shot=False, upload_manifest=True):
+    """
+    Configure virtual machine as hypervisor virt-who service
+
+    :param int config_id: virt-who config id
+    :param robottelo.vm.VirtualMachine virt_who_vm: the Virtual machine
+        instance to use for configuration
+    :param int org_id: the organization id
+    :param int lce_id: the lifecycle environment id to use
+    :param str hypervisor_hostname: the hypervisor hostname
+    :param str hypervisor_user: hypervisor user that connect with the ssh key
+    :param bool configure_ssh: whether to configure the ssh key to allow this
+        virtual machine to connect to hypervisor
+    :param str subscription_name: the subscription name to assign to virt-who
+        hypervisor guests
+    :param bool exec_one_shot: whether to run the virt-who one-shot command
+        after startup
+    :param bool upload_manifest: whether to upload the organization manifest
+    """
+    if org_id is None:
+        org = make_org()
+    else:
+        org = Org.info({'id': org_id})
+
+    if lce_id is None:
+        lce = make_lifecycle_environment({'organization-id': org['id']})
+    else:
+        lce = LifecycleEnvironment.info({
+            'id': lce_id,
+            'organization-id': org['id']
+        })
+    rh_product_arch = REPOS['rhel7']['arch']
+    rh_product_releasever = REPOS['rhel7']['releasever']
+    repos = [
+        # Red Hat Enterprise Linux 7
+        {
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhel7'],
+            'repository': REPOS['rhel7']['name'],
+            'repository-id': REPOS['rhel7']['id'],
+            'releasever': rh_product_releasever,
+            'arch': rh_product_arch,
+            'cdn': True,
+        },
+        # Red Hat Satellite Tools
+        {
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'repository-id': REPOS['rhst7']['id'],
+            'url': settings.sattools_repo['rhel7'],
+            'cdn': bool(settings.cdn or not settings.sattools_repo['rhel7']),
+        },
+    ]
+    content_setup_data = setup_cdn_and_custom_repos_content(
+            org['id'], lce['id'], repos, upload_manifest=upload_manifest)
+    activation_key = content_setup_data['activation_key']
+    content_view = content_setup_data['content_view']
+    # Subscribe virt-who vm to Satellite
+    virt_who_vm.install_katello_ca()
+    virt_who_vm.register_contenthost(
+        org['label'], activation_key=activation_key['name'])
+    if not virt_who_vm.subscribed:
+        raise CLIFactoryError(
+            u'Virt-Who host failed to subscribe to satellite')
+    # Patch the os release version
+    virt_who_vm.run(
+        "touch /etc/yum/vars/releasever "
+        "&& echo '{0}' > /etc/yum/vars/releasever"
+        .format(rh_product_releasever)
+    )
+    # Enable the repositories
+    for repo in repos:
+        if repo['cdn']:
+            virt_who_vm.enable_repo(repo['repository-id'])
+
+    if hypervisor_hostname and configure_ssh:
+        # configure ssh access of hypervisor from virt_who_vm
+        hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(
+            gen_string('alpha').lower())
+        # upload the ssh key
+        vm_upload_ssh_key(
+            virt_who_vm, settings.server.ssh_key, hypervisor_ssh_key_name)
+        # setup the ssh config and known_hosts files
+        vm_setup_ssh_config(virt_who_vm, hypervisor_ssh_key_name,
+                            hypervisor_hostname, user=hypervisor_user)
+
+    # upload the virt-who config deployment script
+    _, temp_virt_who_deploy_file_path = mkstemp(
+        suffix='-virt_who_deploy-{0}'.format(config_id))
+    VirtWhoConfig.fetch({
+        'id': config_id,
+        'output': temp_virt_who_deploy_file_path
+    })
+    download_file(
+        remote_file=temp_virt_who_deploy_file_path,
+        local_file=temp_virt_who_deploy_file_path,
+        hostname=settings.server.hostname
+    )
+    upload_file(
+        local_file=temp_virt_who_deploy_file_path,
+        remote_file=temp_virt_who_deploy_file_path,
+        hostname=virt_who_vm.ip_addr
+    )
+    # ensure the virt-who config deploy script is executable
+    result = virt_who_vm.run('chmod +x {0}'.format(
+        temp_virt_who_deploy_file_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Failed to set deployment script as executable:\n{}'
+            .format(result.stderr)
+        )
+    # execute the deployment script
+    result = virt_who_vm.run('{0}'.format(temp_virt_who_deploy_file_path))
+    if result.return_code != 0:
+        raise CLIFactoryError(
+            u'Deployment script failure:\n{}'.format(result.stderr))
+    # after this step, we should have virt-who service installed and started
+    if exec_one_shot:
+        # usually to be sure that the virt-who generated the report we need
+        # to force a one shot report, for this we have to stop the virt-who
+        # service
+        result = virt_who_vm.run('service virt-who stop')
+        if result.return_code != 0:
+            raise CLIFactoryError(
+                u'Failed to stop the virt-who service:\n{}'
+                .format(result.stderr)
+            )
+        result = virt_who_vm.run('virt-who --one-shot')
+        if result.return_code != 0:
+            raise CLIFactoryError(
+                u'Failed when executing virt-who --one-shot:\n{}'
+                .format(result.stderr)
+            )
+        result = virt_who_vm.run('service virt-who start')
+        if result.return_code != 0:
+            raise CLIFactoryError(
+                u'Failed to start the virt-who service:\n{}'
+                .format(result.stderr)
+            )
+    # after this step the hypervisor as a content host should be created
+    # do not confuse virt-who host with hypervisor host as they can be
+    # diffrent hosts and as per this setup we have only registered the virt-who
+    # host, the hypervisor host should registered after virt-who send the
+    # first report when started or with one shot command
+    # the virt-who hypervisor will be registered to satellite with host name
+    # like "virt-who-{hypervisor_hostname}-{organization_id}"
+    virt_who_hypervisor_hostname = (
+        'virt-who-{0}-{1}'.format(hypervisor_hostname, org['id']))
+    # find the registered virt-who hypervisor host
+    org_hosts = Host.list({
+        'organization-id': org['id'],
+        'search': 'name={0}'.format(virt_who_hypervisor_hostname)
+    })
+    if len(org_hosts) == 0:
+        raise CLIFactoryError(
+            u'Failed to find hypervisor host:\n{}'.format(result.stderr))
+    virt_who_hypervisor_host = org_hosts[0]
+    subscription_id = None
+    if hypervisor_hostname and subscription_name:
+        subscriptions = Subscription.list({
+            u'organization-id': org_id},
+            per_page=False
+        )
+        for subscription in subscriptions:
+            if subscription['name'] == subscription_name:
+                subscription_id = subscription['id']
+                Host.subscription_attach({
+                    'host': virt_who_hypervisor_hostname,
+                    'subscription-id': subscription_id
+                })
+                break
+    return {
+        'subscription_id': subscription_id,
+        'subscription_name': subscription_name,
+        'activation_key_id': activation_key['id'],
+        'organization_id': org['id'],
+        'content_view_id': content_view['id'],
+        'lifecycle_environment_id': lce['id'],
+        'virt_who_hypervisor_host': virt_who_hypervisor_host,
+    }

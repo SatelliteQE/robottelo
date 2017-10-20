@@ -23,11 +23,17 @@ from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
 )
+from robottelo.cli.factory import (
+    make_virt_who_config,
+    virt_who_hypervisor_config,
+)
+from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     PRDS,
     REPOS,
     REPOSET,
+    VIRT_WHO_HYPERVISOR_TYPES,
     VDC_SUBSCRIPTION_NAME,
 )
 
@@ -43,7 +49,7 @@ from robottelo.decorators import (
 
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -331,3 +337,91 @@ class SubscriptionTestCase(UITestCase):
                     VDC_SUBSCRIPTION_NAME)
                 self.assertEqual(len(content_products), 1)
                 self.assertIn(vds_product_name, content_products)
+
+    @skip_if_not_set('fake_manifest')
+    @tier3
+    def test_positive_view_VDC_guest_subscription_products(self):
+        """Ensure that Virtual Data Centers guest subscription Provided
+        Products and Content Products are not empty.
+
+        :id: 4a6f6933-8e26-4c47-b544-a300e11a8454
+
+        :steps:
+            1. Upload a manifest with Virtual Datacenters subscription
+            2. Config a virtual machine virt-who service for a hypervisor
+            3. Ensure virt-who hypervisor host exist
+            4. Attach Virtual Datacenters subscription to the virt-who
+               hypervisor
+            5. Go to Content -> Red Hat Subscription
+            6. Select Virtual Datacenters subscription with type Guests of
+               virt-who hypervisor
+
+        :expectedresults:
+            1. The Virtual Data Centers guests subscription Provided Products
+               is not empty and one of the provided products exist
+            2. The Virtual Data Centers guests subscription Product Content is
+               not empty and one of the consumed products exist
+
+        :BZ: 1395788
+
+        :CaseLevel: System
+        """
+        # create a new organization and lifecycle environment
+        org = entities.Organization().create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        provisioning_server = settings.compute_resources.libvirt_hostname
+        # Create a new virt-who config
+        virt_who_config = make_virt_who_config({
+            'organization-id': org.id,
+            'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
+            'hypervisor-server': 'qemu+ssh://{0}/system'.format(
+                provisioning_server),
+            'hypervisor-username': 'root',
+        })
+        # create a virtual machine to host virt-who service
+        with VirtualMachine() as virt_who_vm:
+            # configure virtual machine and setup virt-who service
+            virt_who_data = virt_who_hypervisor_config(
+                virt_who_config['general-information']['id'],
+                virt_who_vm,
+                org_id=org.id,
+                lce_id=lce.id,
+                hypervisor_hostname=provisioning_server,
+                configure_ssh=True,
+                subscription_name=VDC_SUBSCRIPTION_NAME,
+                exec_one_shot=True,
+            )
+            virt_who_hypervisor_host = virt_who_data[
+                'virt_who_hypervisor_host']
+            # RHEL is a content product in this organization (as per virt-who
+            # config setup) and also provided by Virtual datacenters
+            # subscription then it must exist in provided and content products
+            rhel_product_name = PRDS['rhel']
+            with Session(self) as session:
+                set_context(session, org=org.name)
+                # ensure that VDS subscription is assigned to virt-who
+                # hypervisor
+                self.contenthost.search_and_click(
+                    virt_who_hypervisor_host['name'])
+                self.contenthost.click(
+                    tab_locators['contenthost.tab_subscriptions'])
+                self.contenthost.click(
+                    tab_locators['contenthost.tab_subscriptions_subscriptions']
+                )
+                self.assertIsNotNone(
+                    self.contenthost.wait_until_element(
+                        locators['contenthost.subscription_select']
+                        % VDC_SUBSCRIPTION_NAME)
+                )
+                # ensure that hypervisor guests subscription provided products
+                # is not empty
+                provided_prd = self.subscriptions.get_guests_provided_products(
+                    VDC_SUBSCRIPTION_NAME, virt_who_hypervisor_host['name'])
+                self.assertGreater(len(provided_prd), 0)
+                self.assertIn(rhel_product_name, provided_prd)
+                # ensure that hypervisor guests subscription content products
+                # is not empty
+                content_prd = self.subscriptions.get_guests_content_products(
+                    VDC_SUBSCRIPTION_NAME, virt_who_hypervisor_host['name'])
+                self.assertGreater(len(content_prd), 0)
+                self.assertIn(rhel_product_name, content_prd)
