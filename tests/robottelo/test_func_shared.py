@@ -2,7 +2,6 @@
 
 import multiprocessing
 import os
-import tempfile
 import time
 
 
@@ -18,6 +17,7 @@ from robottelo.decorators.func_shared.shared import (
     _NAMESPACE_SCOPE_KEY_TYPE,
 )
 from robottelo.decorators.func_shared.file_storage import (
+    get_temp_dir,
     TEMP_ROOT_DIR,
     TEMP_FUNC_SHARED_DIR,
 )
@@ -190,7 +190,7 @@ class FunctionSharedTestCase(TestCase):
     def test_shared_counter_file_path(self):
         """Test file path when function is at module level"""
         expected_shared_file_path = os.path.join(
-            tempfile.gettempdir(),
+            get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
             '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name,
@@ -211,7 +211,7 @@ class FunctionSharedTestCase(TestCase):
     def test_shared_counter_file_path_with_scope_context(self):
         """Test file path when function is at module level"""
         expected_shared_file_path = os.path.join(
-            tempfile.gettempdir(),
+            get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
             '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, 'shared_counter',
@@ -234,7 +234,7 @@ class FunctionSharedTestCase(TestCase):
     def test_shared_main_counter_class_file_path(self):
         """Test file path when function is in a class"""
         expected_shared_file_path = os.path.join(
-            tempfile.gettempdir(),
+            get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
             '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name,
@@ -257,7 +257,7 @@ class FunctionSharedTestCase(TestCase):
     def test_shared_sub_main_counter_class_file_path(self):
         """Test file path when function is in a sub class"""
         expected_shared_file_path = os.path.join(
-            tempfile.gettempdir(),
+            get_temp_dir(),
             TEMP_ROOT_DIR,
             TEMP_FUNC_SHARED_DIR,
             '.'.join([self.scope, _NAMESPACE_SCOPE_KEY_TYPE, _this_module_name,

@@ -148,8 +148,9 @@ logs-clean:
 	-rm -f robottelo_gw*.log
 
 clean-shared:
-	$(info "Removing /tmp/robottelo/shared_functions folder...")
+	$(info "Removing shared_functions temp folders...")
 	-rm -rf /tmp/robottelo/shared_functions
+	-rm -rf /var/tmp/robottelo/shared_functions
 
 uuid-check:  ## list duplicated or empty uuids
 	$(info "Checking for empty or duplicated @id: in docstrings...")

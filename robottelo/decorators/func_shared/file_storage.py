@@ -5,6 +5,7 @@ import tempfile
 
 from pytest_services.locks import file_lock
 
+from robottelo.config import settings
 from robottelo.decorators.func_shared.base import BaseStorageHandler
 
 TEMP_ROOT_DIR = 'robottelo'
@@ -16,12 +17,19 @@ logger = logging.getLogger(__name__)
 LOCK_TIMEOUT = 7200
 
 
+def get_temp_dir():
+    tmp_dir = settings.tmp_dir
+    if not tmp_dir:
+        tmp_dir = tempfile.gettempdir()
+    return tmp_dir
+
+
 def _get_root_dir(create=True):
     global SHARED_DIR
     if SHARED_DIR is not None:
         return SHARED_DIR
 
-    tmp_root_dir = os.path.join(tempfile.gettempdir(), TEMP_ROOT_DIR,
+    tmp_root_dir = os.path.join(get_temp_dir(), TEMP_ROOT_DIR,
                                 TEMP_FUNC_SHARED_DIR)
     if create and not os.path.exists(tmp_root_dir):
         try:
