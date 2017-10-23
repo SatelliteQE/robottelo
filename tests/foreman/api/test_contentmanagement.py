@@ -17,7 +17,7 @@
 import os
 
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import client, entities
 from nailgun.entity_mixins import TaskFailedError
 from robottelo import ssh
 from robottelo.api.utils import (
@@ -930,3 +930,23 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(result.return_code, 0)
         broken_links = set(link for link in result.stdout if link)
         self.assertEqual(len(broken_links), 0)
+
+    @tier4
+    def test_positive_capsule_pub_url_accessible(self):
+        """Ensure capsule pub url is accessible
+
+        :id: 311eaa2a-146b-4d18-95db-4fbbe843d5b2
+
+        :expectedresults: capsule pub url is accessible
+
+        :BZ: 1463810
+
+        :CaseLevel: System
+        """
+        https_pub_url = 'https://{0}/pub'.format(self.capsule_hostname)
+        http_pub_url = 'http://{0}/pub'.format(self.capsule_hostname)
+        for url in [http_pub_url, https_pub_url]:
+            response = client.get(url, verify=False)
+            self.assertEqual(response.status_code, 200)
+            # check that one of the files is in the content
+            self.assertIn('katello-server-ca.crt', response.content)
