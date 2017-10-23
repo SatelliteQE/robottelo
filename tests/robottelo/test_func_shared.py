@@ -344,8 +344,8 @@ class FunctionSharedTestCase(TestCase):
         self.assertNotEqual(second_result_value, second_counter_value + 1)
         self.assertEqual(second_result_value, result_value)
 
-        # sleep the reach timeout
-        time.sleep(SIMPLE_TIMEOUT_VALUE)
+        # sleep to reach timeout
+        time.sleep(SIMPLE_TIMEOUT_VALUE+1)
 
         timeout_counter_value = gen_integer(min_value=1, max_value=10000)
         # be sure they are diffrent
@@ -375,7 +375,8 @@ class FunctionSharedTestCase(TestCase):
         first_result_value = results_values.pop()
         self.assertIn(first_result_value, expected_values)
 
-        time.sleep(SIMPLE_TIMEOUT_VALUE)
+        # sleep to reach timeout
+        time.sleep(SIMPLE_TIMEOUT_VALUE+1)
         # now after the expire time the counter value should change
         second_counter_values = [gen_integer(min_value=1, max_value=10000)
                                  for _ in range(pool_size)]
