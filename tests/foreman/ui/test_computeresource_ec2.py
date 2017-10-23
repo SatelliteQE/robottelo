@@ -19,7 +19,8 @@ from robottelo.config import settings
 from robottelo.constants import (
     AWS_EC2_FLAVOR_T2_MICRO,
     COMPUTE_PROFILE_LARGE,
-    FOREMAN_PROVIDERS
+    EC2_REGION_CA_CENTRAL_1,
+    FOREMAN_PROVIDERS,
 )
 from robottelo.decorators import (
     run_only_on,
@@ -111,6 +112,46 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_create_ec2_with_custom_region(self):
+        """Create a new ec2 compute resource with custom region
+
+        :id: aeb0c52e-34dd-4574-af34-a6d8721724a7
+
+        :setup: ec2 hostname and credentials.
+
+        :steps:
+            1. Create a compute resource of type ec2.
+            2. Provide a valid Access Key and Secret Key.
+            3. Provide a valid name to ec2 compute resource.
+            4. Test the connection using Load Regions.
+            5. Provide a valid custom region
+
+        :expectedresults: An ec2 compute resource is created
+            successfully.
+
+        :BZ: 1456942
+
+        :Caseautomation: Automated
+
+        :CaseImportance: Critical
+        """
+        parameter_list = [
+            ['Access Key', self.aws_access_key, 'field'],
+            ['Secret Key', self.aws_secret_key, 'field'],
+            ['Region', EC2_REGION_CA_CENTRAL_1, 'special select']
+        ]
+        name = gen_string('alpha')
+        with Session(self) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['ec2'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
     @stubbed()

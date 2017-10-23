@@ -41,6 +41,8 @@ FOREMAN_PROVIDERS = {
     'docker': 'Docker',
 }
 
+EC2_REGION_CA_CENTRAL_1 = 'ca-central-1'
+
 VIRT_WHO_HYPERVISOR_TYPES = {
     'esx': 'esx',
     'hyperv': 'hyperv',
