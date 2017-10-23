@@ -805,6 +805,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_compute_profile_id')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "host.fetch_compute_profile": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_profile_id')]/a"
+         "/span[contains(@class, 'chosen')]")),
     "host.lifecycle_environment": (
         By.XPATH,
         ("//div[contains(@id, 'host_lifecycle_environment_id')]/a"
@@ -1004,11 +1008,28 @@ locators = LocatorDict({
 
     # host.vm (NOTE:- visible only when selecting a compute resource)
     "host.cpus": (
+        By.XPATH, "//input[contains(@id, 'host_compute_attributes_cpus')]"),
+    "host.cores": (
         By.XPATH,
-        ("//div[contains(@id, 'host_compute_attributes_cpus')]/a"
-         "/span[contains(@class, 'arrow')]")),
+        "//input[contains(@id, 'host_compute_attributes_corespersocket')]"),
     "host.memory": (
         By.XPATH, "//input[contains(@id, 'host_compute_attributes_memory')]"),
+    "host.cluster": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_attributes_cluster')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.fetch_cluster": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_attributes_cluster')]/a"
+         "/span[contains(@class, 'chosen')]")),
+    "host.folder": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_attributes_path')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.fetch_folder": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_attributes_path')]/a"
+         "/span[contains(@class, 'chosen')]")),
     "host.vm_start": (By.ID, "host_compute_attributes_start"),
     "host.vm_addstorage": (
         By.XPATH, "//fieldset[@id='storage_volumes']/a"),
@@ -1159,6 +1180,10 @@ locators = LocatorDict({
     "hostgroups.puppet_environment": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_environment_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.compute_profile": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_compute_profile_id')]/a"
          "/span[contains(@class, 'arrow')]")),
     "hostgroups.puppet_ca": (
         By.XPATH,

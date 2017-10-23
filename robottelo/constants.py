@@ -99,6 +99,8 @@ FILTER = {
     'filter_org': 'filter_organization',
     'filter_loc': 'filter_location',
     'filter_permission': 'filter_permission',
+    'hg_loc': 'hostgroup_location',
+    'hg_org': 'hostgroup_organization',
     'ldapauthsource_loc': 'auth_source_ldap_location',
     'ldapauthsource_org': 'auth_source_ldap_organization',
     'loc_capsules': 'location_smart_proxy',
