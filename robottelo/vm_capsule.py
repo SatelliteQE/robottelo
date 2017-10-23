@@ -242,7 +242,7 @@ class CapsuleVirtualMachine(VirtualMachine):
         super(CapsuleVirtualMachine, self).create()
         try:
             self._setup_capsule()
-        except:
+        except Exception:
             # handle exception as VirtualMachine has no exception handling
             # in __enter__ function
             self._capsule_cleanup()
