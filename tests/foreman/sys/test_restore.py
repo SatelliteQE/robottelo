@@ -80,7 +80,7 @@ class RestoreTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-restore',
+                'satellite-restore',
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -104,7 +104,7 @@ class RestoreTestCase(TestCase):
         with get_connection() as connection:
             name = gen_string('alpha')
             result = connection.run(
-                'katello-restore {}'.format(name),
+                'satellite-restore {}'.format(name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -128,7 +128,7 @@ class RestoreTestCase(TestCase):
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
-                'katello-restore -y /tmp/{}'.format(dir_name),
+                'satellite-restore -y /tmp/{}'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 255)
@@ -161,14 +161,14 @@ class RestoreTestCase(TestCase):
             dir_name = make_random_tmp_directory(connection)
             entities.User(login=username1).create()
             result = connection.run(
-                'katello-backup -y /tmp/{0} '
+                'satellite-backup -y /tmp/{0} '
                 '--skip-pulp-content'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             entities.User(login=username2).create()
             result = connection.run(
-                'katello-restore -y /tmp/{0}/katello-backup*'
+                'satellite-restore -y /tmp/{0}/satellite-backup*'
                 .format(dir_name))
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
@@ -209,7 +209,7 @@ class RestoreTestCase(TestCase):
             username2 = gen_string('alpha')
             entities.User(login=username1).create()
             result = connection.run(
-                'katello-backup -y /tmp/{0} '
+                'satellite-backup -y /tmp/{0} '
                 '--online-backup '
                 '--skip-pulp-content'.format(b1),
                 output_format='plain'
@@ -217,7 +217,7 @@ class RestoreTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             entities.User(login=username2).create()
             result = connection.run(
-                'katello-backup -y '
+                'satellite-backup -y '
                 '--skip-pulp-content '
                 '--online-backup /tmp/{0} '
                 '--incremental /tmp/{1}/*'
@@ -228,7 +228,7 @@ class RestoreTestCase(TestCase):
 
             # restore from the base backup
             result = connection.run(
-                'katello-restore -y /tmp/{0}/katello-backup*'
+                'satellite-restore -y /tmp/{0}/satellite-backup*'
                 .format(b1))
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
@@ -239,7 +239,7 @@ class RestoreTestCase(TestCase):
 
             # restore from the incremental backup
             result = connection.run(
-                'katello-restore -y /tmp/{0}/katello-backup*'
+                'satellite-restore -y /tmp/{0}/satellite-backup*'
                 .format(b2))
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()

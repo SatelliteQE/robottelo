@@ -50,9 +50,9 @@ def tmp_directory_cleanup(connection, *args):
 
 def directory_size_compare(connection, full_dir, inc_dir):
     size_full = connection.run(
-            "du -s /tmp/{0}/katello-backup* | cut -f1".format(full_dir))
+            "du -s /tmp/{0}/satellite-backup* | cut -f1".format(full_dir))
     size_inc = connection.run(
-            "du -s /tmp/{0}/katello-backup* | cut -f1".format(inc_dir))
+            "du -s /tmp/{0}/satellite-backup* | cut -f1".format(inc_dir))
     if size_full.stdout[0] > size_inc.stdout[0]:
         return True
     else:
@@ -104,13 +104,14 @@ class HotBackupTestCase(TestCase):
             dir_name = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup'.format(dir_name),
+                'satellite-backup -y /tmp/{0} --online-backup'.format(
+                    dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
-                'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                'ls -a /tmp/{0}/satellite-backup*'.format(dir_name),
             )
             # backup could have more files than the default so it is superset
             self.assertTrue(set(files.stdout).issuperset(
@@ -141,13 +142,14 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup'.format(dir_name),
+                'satellite-backup -y /tmp/{0} --online-backup'.format(
+                    dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
-                'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                'ls -a /tmp/{0}/satellite-backup*'.format(dir_name),
             )
             # backup could have more files than the default so it is superset
             self.assertTrue(set(files.stdout).issuperset(
@@ -173,7 +175,7 @@ class HotBackupTestCase(TestCase):
         with get_connection() as connection:
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup -y --online-backup',
+                'satellite-backup -y --online-backup',
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -197,7 +199,7 @@ class HotBackupTestCase(TestCase):
         with get_connection() as connection:
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup -y',
+                'satellite-backup -y',
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -229,7 +231,7 @@ class HotBackupTestCase(TestCase):
             connection.run('service {0} stop'.format(dead_service))
             tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup'.format(dir_name)
+                'satellite-backup -y /tmp/{0} --online-backup'.format(dir_name)
             )
             self.assertNotEqual(result.return_code, 0)
             connection.run('service {0} start'.format(dead_service))
@@ -255,14 +257,14 @@ class HotBackupTestCase(TestCase):
             dir_name = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup '
+                'satellite-backup -y /tmp/{0} --online-backup '
                 '--skip-pulp-content'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(dir_name),
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
@@ -290,14 +292,14 @@ class HotBackupTestCase(TestCase):
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
-                'katello-backup -y /tmp/{0} '
+                'satellite-backup -y /tmp/{0} '
                 '--skip-pulp-content'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(dir_name),
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
@@ -325,14 +327,14 @@ class HotBackupTestCase(TestCase):
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
-                'katello-backup -y /tmp/{0} '
+                'satellite-backup -y /tmp/{0} '
                 '--logical-db-backup'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(dir_name),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(dir_name),
                     'list'
                     )
             self.assertTrue(set(files.stdout).issuperset(
@@ -364,13 +366,13 @@ class HotBackupTestCase(TestCase):
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
             result_full = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
+                'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result_full.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result_full.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(b1_dir),
                     'list'
                     )
             # backup could have more files than the default so it is superset
@@ -384,14 +386,14 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             result_inc = connection.run(
-                'katello-backup -y /tmp/{0} --incremental /tmp/{1}/{2}'
+                'satellite-backup -y /tmp/{0} --incremental /tmp/{1}/{2}'
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
                 output_format='plain'
             )
             self.assertEqual(result_inc.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dest), result_inc.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(b1_dest),
                     'list'
                     )
             self.assertTrue(set(files.stdout).issuperset(set(BACKUP_FILES)))
@@ -420,7 +422,7 @@ class HotBackupTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-backup --incremental',
+                'satellite-backup --incremental',
                 output_format='plain'
             )
             self.assertNotEqual(result.return_code, 0)
@@ -443,7 +445,7 @@ class HotBackupTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-backup -y --incremental /tmp',
+                'satellite-backup -y --incremental /tmp',
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -468,7 +470,7 @@ class HotBackupTestCase(TestCase):
             dir_name = gen_string('alpha')
             tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
-                'katello-backup -y /tmp --incremental {0}'.format(dir_name),
+                'satellite-backup -y /tmp --incremental {0}'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -497,13 +499,13 @@ class HotBackupTestCase(TestCase):
             connection.run('katello-service start')
             # run full backup
             result = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
+                'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(b1_dir),
                     'list'
                     )
             # backup could have more files than the default so it is superset
@@ -526,7 +528,7 @@ class HotBackupTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(b1_dest),
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
@@ -556,13 +558,13 @@ class HotBackupTestCase(TestCase):
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
             result = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
+                'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(b1_dir),
                     'list'
                     )
             # backup could have more files than the default so it is superset
@@ -576,7 +578,7 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             result = connection.run(
-                '''katello-backup  -y \
+                '''satellite-backup  -y \
                         --skip-pulp-content /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
@@ -585,7 +587,7 @@ class HotBackupTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dest),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(b1_dest),
                     'list'
                     )
             self.assertNotIn(u'pulp_data.tar', files.stdout)
@@ -596,7 +598,6 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1482135)
     def test_positive_online_incremental(self):
         """Make an incremental online backup
 
@@ -620,13 +621,13 @@ class HotBackupTestCase(TestCase):
             connection.run('katello-service start')
             # run full backup
             result = connection.run(
-                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
+                'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
             files = connection.run(
-                    'ls -a /tmp/{0}/katello-backup*'.format(b1_dir),
+                    'ls -a /tmp/{0}/satellite-backup*'.format(b1_dir),
                     'list'
                     )
             # backup could have more files than the default so it is superset
@@ -649,7 +650,7 @@ class HotBackupTestCase(TestCase):
                     'list'
             )
             result = connection.run(
-                '''katello-backup -y \
+                '''satellite-backup -y \
                         --online-backup /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(ib1_dest, ib1_dir, timestamped_dir.stdout[0]),
@@ -660,7 +661,7 @@ class HotBackupTestCase(TestCase):
 
             # restore /tmp/b1 and assert repo 1 is not there
             result = connection.run(
-                    'katello-restore -y /tmp/{0}/katello-backup*'
+                    'satellite-restore -y /tmp/{0}/satellite-backup*'
                     .format(b1_dir))
             self.assertEqual(result.return_code, 0)
             repo_list = entities.Repository().search(
@@ -670,7 +671,7 @@ class HotBackupTestCase(TestCase):
 
             # restore /tmp/ib1 and assert repo 1 is there
             result = connection.run(
-                    'katello-restore -y /tmp/{0}/katello-backup*'
+                    'satellite-restore -y /tmp/{0}/satellite-backup*'
                     .format(ib1_dest))
             self.assertEqual(result.return_code, 0)
             repo_list = entities.Repository().search(
