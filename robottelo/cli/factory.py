@@ -3306,7 +3306,10 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     return ContentView.info({u'id': cv['id']})
 
 
-def _extract_capsule_satellite_installer_command(text):
+def extract_capsule_satellite_installer_command(text):
+    """Extract satellite installer command from capsule-certs-generate command
+    output
+    """
     cmd_start_with = 'satellite-installer'
     cmd_lines = []
     if text:
@@ -3582,7 +3585,7 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
             u'was unable to generate certificate\n{}'.format(result.stderr))
 
     # retrieve the installer command from the result output
-    satellite_installer_cmd = _extract_capsule_satellite_installer_command(
+    satellite_installer_cmd = extract_capsule_satellite_installer_command(
         result.stdout
     )
     # copy the certificate to capsule vm
