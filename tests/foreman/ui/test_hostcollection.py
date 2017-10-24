@@ -32,6 +32,7 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_0_YUM_REPO,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
@@ -486,13 +487,15 @@ class HostCollectionPackageManagementTest(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
-        custom_content_data = setup_org_for_a_custom_repo({
-            'url': FAKE_6_YUM_REPO,
-            'organization-id': cls.session_org.id,
-            'content-view-id': cls.content_view.id,
-            'lifecycle-environment-id': cls.env.id,
-            'activationkey-id': cls.activation_key.id,
-        })
+        custom_content_data = [
+            setup_org_for_a_custom_repo({
+                'url': url,
+                'organization-id': cls.session_org.id,
+                'content-view-id': cls.content_view.id,
+                'lifecycle-environment-id': cls.env.id,
+                'activationkey-id': cls.activation_key.id,
+            }) for url in [FAKE_0_YUM_REPO, FAKE_6_YUM_REPO]
+        ]
         cls.rh_sat_tools_custom_product = None
         cls.rh_sat_tools_custom_repository = None
         if not settings.cdn and settings.sattools_repo['rhel7']:
@@ -501,10 +504,14 @@ class HostCollectionPackageManagementTest(UITestCase):
                 id=rh_tools_content_data['product-id']).read()
             cls.rh_sat_tools_custom_repository = entities.Repository(
                 id=rh_tools_content_data['repository-id']).read()
-        cls.custom_product = entities.Product(
-            id=custom_content_data['product-id']).read()
-        cls.custom_repository = entities.Repository(
-            id=custom_content_data['repository-id']).read()
+        cls.custom_products = [
+            entities.Product(id=content_data['product-id']).read()
+            for content_data in custom_content_data
+        ]
+        cls.custom_repositories = [
+            entities.Repository(id=content_data['repository-id']).read()
+            for content_data in custom_content_data
+        ]
 
     def setUp(self):
         """Create VMs, subscribe them to satellite-tools repo, install
@@ -512,11 +519,11 @@ class HostCollectionPackageManagementTest(UITestCase):
         associate it with previously created hosts.
         """
         super(HostCollectionPackageManagementTest, self).setUp()
-        self.hosts = []
+        self.content_hosts = []
         for _ in range(self.hosts_number):
             client = VirtualMachine(distro=DISTRO_RHEL7)
             self.addCleanup(vm_cleanup, client)
-            self.hosts.append(client)
+            self.content_hosts.append(client)
             client.create()
             client.install_katello_ca()
             client.register_contenthost(
@@ -527,7 +534,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         host_ids = [
             entities.Host().search(query={
                 'search': 'name={0}'.format(host.hostname)})[0].id
-            for host in self.hosts
+            for host in self.content_hosts
         ]
         self.host_collection = entities.HostCollection(
             host=host_ids,
@@ -573,9 +580,11 @@ class HostCollectionPackageManagementTest(UITestCase):
                 org=self.session_org,
                 lce=lce,
                 content_view=content_view,
-                product=self.custom_product,
-                repository=self.custom_repository
+                product=product,
+                repository=repository,
             )
+            for product, repository in zip(
+                self.custom_products, self.custom_repositories)
         ]
         if settings.cdn or not settings.sattools_repo['rhel7']:
             # add the RH sat tools as cdn repository
@@ -619,7 +628,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 FAKE_0_CUSTOM_PACKAGE_NAME,
             )
             self._validate_package_installed(
-                self.hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
+                self.content_hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
     @tier3
     @upgrade
@@ -633,7 +642,7 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :CaseLevel: System
         """
-        for client in self.hosts:
+        for client in self.content_hosts:
             client.download_install_rpm(
                 FAKE_6_YUM_REPO,
                 FAKE_0_CUSTOM_PACKAGE
@@ -646,7 +655,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 FAKE_0_CUSTOM_PACKAGE_NAME,
             )
             self._validate_package_installed(
-                self.hosts,
+                self.content_hosts,
                 FAKE_0_CUSTOM_PACKAGE_NAME,
                 expected_installed=False,
             )
@@ -662,7 +671,7 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :CaseLevel: System
         """
-        for client in self.hosts:
+        for client in self.content_hosts:
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         with Session(self):
             self.hostcollection.execute_bulk_package_action(
@@ -671,7 +680,8 @@ class HostCollectionPackageManagementTest(UITestCase):
                 'package',
                 FAKE_1_CUSTOM_PACKAGE_NAME,
             )
-            self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
+            self._validate_package_installed(
+                self.content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
     @tier3
     @upgrade
@@ -693,7 +703,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
             )
             for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-                self._validate_package_installed(self.hosts, package)
+                self._validate_package_installed(self.content_hosts, package)
 
     @tier3
     def test_positive_remove_package_group(self):
@@ -714,7 +724,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
             )
             for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
-                self._validate_package_installed(self.hosts, package)
+                self._validate_package_installed(self.content_hosts, package)
             self.hostcollection.execute_bulk_package_action(
                 self.host_collection.name,
                 'remove',
@@ -723,7 +733,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             )
             for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
                 self._validate_package_installed(
-                    self.hosts, package, expected_installed=False)
+                    self.content_hosts, package, expected_installed=False)
 
     @tier3
     @upgrade
@@ -737,7 +747,7 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :CaseLevel: System
         """
-        for client in self.hosts:
+        for client in self.content_hosts:
             client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         with Session(self):
             result = self.hostcollection.execute_bulk_errata_installation(
@@ -745,7 +755,8 @@ class HostCollectionPackageManagementTest(UITestCase):
                 FAKE_2_ERRATA_ID,
             )
             self.assertEqual(result, 'success')
-            self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
+            self._validate_package_installed(
+                self.content_hosts, FAKE_2_CUSTOM_PACKAGE)
 
     @tier3
     def test_positive_change_assigned_content(self):
@@ -790,9 +801,6 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :CaseLevel: System
         """
-        # create a clients variable here as self.hosts attribute will be
-        # overwritten by Session initialization
-        clients = self.hosts
         new_lce_name = gen_string('alpha')
         new_cv_name = gen_string('alpha')
         new_lce = entities.LifecycleEnvironment(
@@ -811,7 +819,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         repo_line_start_with = 'Repo URL:  '
         expected_repo_urls = self._get_content_repository_urls(
             self.env, self.content_view)
-        for client in clients:
+        for client in self.content_hosts:
             result = client.run("subscription-manager repos")
             self.assertEqual(result.return_code, 0)
             client_repo_urls = [
@@ -834,7 +842,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             self.assertEqual(result, 'success')
             expected_repo_urls = self._get_content_repository_urls(
                 new_lce, new_content_view)
-            for client in clients:
+            for client in self.content_hosts:
                 result = client.run("subscription-manager refresh")
                 self.assertEqual(result.return_code, 0)
                 self.assertIn('All local data refreshed', result.stdout)

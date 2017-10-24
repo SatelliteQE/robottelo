@@ -124,7 +124,6 @@ class HostCollection(Base):
             Navigator(self.browser).go_to_select_org(org_name, force=False)
 
         self.search_and_click(name)
-        self.click(tab_locators['hostcollection.collection_actions'])
         self.click(locators['hostcollection.collection_actions.packages'])
 
         if action_value:
@@ -151,6 +150,8 @@ class HostCollection(Base):
         if result is None:
             raise UIError('Timeout waiting for package action to schedule')
 
+        self.click(locators["hostcollection.collection_actions.modal_dismiss"])
+
     def execute_bulk_errata_installation(self,
                                          name,
                                          errata_id,
@@ -175,7 +176,6 @@ class HostCollection(Base):
             Navigator(self.browser).go_to_select_org(org_name, force=False)
 
         self.click(self.search(name))
-        self.click(tab_locators['hostcollection.collection_actions'])
         self.click(locators['hostcollection.collection_actions.errata'])
 
         self.click(locators['hostcollection.errata.errata_select'] % errata_id)

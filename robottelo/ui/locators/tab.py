@@ -409,8 +409,6 @@ tab_locators = LocatorDict({
         By.XPATH,
         "//a[contains(@href, 'hosts') and "
         "contains(@ui-sref, 'host-collection.hosts.list')]"),
-    "hostcollection.collection_actions": (
-        By.XPATH, "//a[contains(@href, 'actions')]/span"),
 
     # Compute resources
     "resource.tab_containers": (
