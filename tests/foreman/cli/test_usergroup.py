@@ -709,8 +709,10 @@ class ActiveDirectoryUserGroupTestCase(CLITestCase):
         """
         user_group = make_usergroup()
         ext_user_group = make_usergroup_external({
-            'auth-source-id': self.auth['id'],
+            'auth-source-id': self.auth['server']['id'],
             'user-group-id': user_group['id'],
             'name': 'foobargroup'
         })
-        self.assertEqual(ext_user_group['auth-source'], self.auth['name'])
+        self.assertEqual(
+            ext_user_group['auth-source'], self.auth['server']['name']
+        )
