@@ -37,6 +37,8 @@ from robottelo.cli.factory import (
     make_content_view_filter,
     make_content_view_filter_rule,
     make_org,
+    make_product,
+    make_repository,
 )
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -51,6 +53,10 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
+    FAKE_0_INC_UPD,
+    FAKE_0_INC_UPD_ERRATA,
+    FAKE_0_INC_UPD_PACKAGES,
+    FAKE_0_INC_UPD_UPDATEFILES,
     FAKE_0_PUPPET_REPO,
     FAKE_0_PUPPET_MODULE,
     FAKE_0_YUM_REPO,
@@ -86,7 +92,12 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.decorators.host import skip_if_os
-from robottelo.helpers import get_data_file, read_data_file
+from robottelo.helpers import (
+    create_repo,
+    get_data_file,
+    read_data_file,
+    repo_add_updateinfo,
+)
 from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError, UINoSuchElementError
@@ -881,6 +892,92 @@ class ContentViewTestCase(UITestCase):
                     '5.21'
                 )
             )
+
+    @skip_if_bug_open('bugzilla', 1489778)
+    @tier2
+    def test_positive_errata_inc_update_list_package(self):
+        """Publish incremental update with a new errata for a custom repo
+
+        :BZ: 1489778
+
+        :id: fb43791c-60ee-4190-86be-34ccba411396
+
+        :expectedresults: New errata and corresponding package are present
+            in new content view version
+
+        :CaseImportance: High
+
+        :CaseLevel: Integration
+        """
+        repo_name = gen_string('alphanumeric')
+        repo_url = create_repo(
+            repo_name,
+            FAKE_0_INC_UPD,
+            [FAKE_0_INC_UPD_PACKAGES[0]]
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'
+            .format(FAKE_0_INC_UPD, FAKE_0_INC_UPD_UPDATEFILES[0])
+        )
+        self.assertEqual(result.return_code, 0)
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        repo = make_repository({
+            'product-id': product['id'],
+            'url': repo_url,
+        })
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'organization-id': org['id'],
+            'repository-ids': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        cvv = content_view['versions'][0]
+        create_repo(
+            repo_name,
+            FAKE_0_INC_UPD,
+            [FAKE_0_INC_UPD_PACKAGES[1]],
+            wipe_repodata=True,
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'
+            .format(FAKE_0_INC_UPD, FAKE_0_INC_UPD_UPDATEFILES[1])
+        )
+        self.assertEqual(result.return_code, 0)
+        Repository.synchronize({'id': repo['id']})
+        result = ContentView.version_incremental_update({
+            'content-view-version-id': cvv['id'],
+            'errata-ids': FAKE_0_INC_UPD_ERRATA[1]
+        })
+        # Inc update output format is pretty weird - list of dicts where each
+        # key's value is actual line from stdout
+        result = [
+            line.strip()
+            for line_dict in result
+            for line in line_dict.values()
+        ]
+        self.assertIn(
+            FAKE_0_INC_UPD_ERRATA[1], [line.strip() for line in result])
+        self.assertIn(
+            FAKE_0_INC_UPD_PACKAGES[1].rstrip('.rpm'),
+            [line.strip() for line in result]
+        )
+        content_view = ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][-1]
+        with Session(self):
+            self.nav.go_to_select_org(org['name'])
+            errata = self.content_views.fetch_version_errata(
+                content_view['name'], 'Version {}'.format(cvv['version']))
+            self.assertEqual(len(errata), 2)
+            self.assertEqual(
+                set(err[0] for err in errata), set(FAKE_0_INC_UPD_ERRATA))
+            packages = self.content_views.fetch_version_packages(
+                content_view['name'], 'Version {}'.format(cvv['version']))
+            self.assertEqual(len(packages), 2)
+            packages = set('{}-{}-{}.{}.rpm'.format(*row) for row in packages)
+            self.assertEqual(packages, set(FAKE_0_INC_UPD_PACKAGES))
 
     @tier1
     def test_positive_create_date_filter_rule_without_type(self):

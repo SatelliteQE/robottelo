@@ -2230,6 +2230,9 @@ locators = LocatorDict({
     "contentviews.version.package_release": (
         By.XPATH,
         "//tr[contains(@ng-repeat,'package')]/td[3][contains(., '%s')]"),
+    "contentviews.version.package_arch": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'package')]/td[4][contains(., '%s')]"),
     "contentviews.version.errata_id": (
         By.XPATH,
         "//tr[contains(@ng-repeat,'errata')]/td[1][contains(., '%s')]"),

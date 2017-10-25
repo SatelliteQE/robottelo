@@ -667,8 +667,12 @@ class ContentViews(Base):
                 locators['contentviews.version.package_version'] % '')
             releases = self.find_elements(
                 locators['contentviews.version.package_release'] % '')
-            for name, version, release in zip(names, versions, releases):
-                packages.append((name.text, version.text, release.text))
+            archs = self.find_elements(
+                locators['contentviews.version.package_arch'] % '')
+            for name, version, release, arch in zip(
+                    names, versions, releases, archs):
+                packages.append(
+                    (name.text, version.text, release.text, arch.text))
             next_ = self.find_element(
                 locators['contentviews.version.content_next_page'])
             if next_ is None:

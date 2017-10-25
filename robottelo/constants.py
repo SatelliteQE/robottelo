@@ -461,6 +461,13 @@ FAKE_7_PUPPET_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
 FEDORA22_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/22/'
 FEDORA23_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/23/'
 REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
+FAKE_0_INC_UPD = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
+FAKE_0_INC_UPD_ERRATA = ['EXA:2015-0001', 'EXA:2015-0002']
+FAKE_0_INC_UPD_PACKAGES = [
+    'pulp-test-package-0.2.1-1.fc11.x86_64.rpm',
+    'pulp-test-package-0.3.1-1.fc11.x86_64.rpm',
+]
+FAKE_0_INC_UPD_UPDATEFILES = ['updateinfo.xml', 'updateinfo_v2.xml']
 INVALID_URL = u'http://username:password@@example.com/repo'
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
 FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
