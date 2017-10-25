@@ -16,7 +16,7 @@
 """
 from nailgun import entities
 from robottelo.datafactory import gen_string
-from robottelo.decorators import bz_bug_is_open, run_in_one_thread, tier1
+from robottelo.decorators import run_in_one_thread, tier1
 from robottelo.test import APITestCase
 
 
@@ -34,7 +34,7 @@ class AuditTestCase(APITestCase):
         :expectedresults: Audit logs contain corresponding entries per each
             create event
 
-        :BZ: 1426742
+        :BZ: 1426742, 1492668, 1492696
 
         :CaseImportance: Critical
         """
@@ -70,8 +70,7 @@ class AuditTestCase(APITestCase):
             },
             {
                 'entity': entities.PartitionTable(),
-                'entity_type': 'partition_table',
-                'bz_id': 1492668
+                'entity_type': 'ptable',
             },
             {'entity': entities.PuppetClass()},
             {'entity': entities.Role()},
@@ -83,14 +82,10 @@ class AuditTestCase(APITestCase):
             {
                 'entity': entities.ProvisioningTemplate(),
                 'entity_type': 'template',
-                'bz_id': 1492696
             },
             {'entity': entities.User(), 'value_template': '{entity.login}'},
             {'entity': entities.UserGroup()},
         ]:
-            bug_id = entity_item.get('bz_id', None)
-            if bug_id is not None and bz_bug_is_open(bug_id):
-                continue
             created_entity = entity_item['entity'].create()
             entity_type = entity_item.get(
                 'entity_type', created_entity.__class__.__name__.lower())
