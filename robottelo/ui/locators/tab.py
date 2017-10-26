@@ -348,6 +348,12 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@ui-sref,'subscription.info')]"),
     "subs.sub.product_content": (
         By.XPATH, "//a[contains(@ui-sref,'subscription.products')]"),
+    "subs.sub.associations": (
+        By.XPATH,
+        "//li[@class='dropdown' and "
+        "contains(@ng-class, 'subscriptions.details.associations')]/a"),
+    "subs.sub.associations.hosts": (
+        By.XPATH, "//li/a[contains(@ui-sref, 'subscription.content-hosts')]"),
 
     # Oscap Policy
     "oscap.content": (
