@@ -256,6 +256,7 @@ class RemoteExecutionTestCase(CLITestCase):
             '''echo 'getenforce' > {0}'''.format(TEMPLATE_FILE)
         )
         # create subnet for current org, default loc and domain
+        # using API due BZ#1370460
         cls.sn = entities.Subnet(
             domain=[1],
             gateway=settings.vlan_networking.gateway,
@@ -313,15 +314,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
 
     @stubbed()
     @tier2
@@ -343,15 +344,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                make_user_job[u'success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': make_user_job[u'id'],
-                        'host': self.client.hostname})
-                    )
+            make_user_job[u'success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': make_user_job[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
         # create a file as new user
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
@@ -361,15 +362,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'effective-user': '{0}'.format(username),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
         # check the file owner
         result = ssh.command(
             '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
@@ -398,15 +399,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
 
     @stubbed()
     @tier3
@@ -439,15 +440,15 @@ class RemoteExecutionTestCase(CLITestCase):
         invocation_info = JobInvocation.info({
             'id': invocation_command[u'id']})
         self.assertEqual(
-                invocation_info['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_info['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
 
     @stubbed()
     @tier3
@@ -460,13 +461,13 @@ class RemoteExecutionTestCase(CLITestCase):
         :expectedresults: Verify the job was successfully ran against all hosts
         """
         with VirtualMachine(
-              distro=DISTRO_RHEL7,
-              provisioning_server=settings.compute_resources.libvirt_hostname,
-              bridge=settings.vlan_networking.bridge,
-              ) as client2:
+            distro=DISTRO_RHEL7,
+            provisioning_server=settings.compute_resources.libvirt_hostname,
+            bridge=settings.vlan_networking.bridge,
+        ) as client2:
             client2.install_katello_ca()
             client2.register_contenthost(
-                    self.org.label, lce='Library')
+                self.org.label, lce='Library')
             add_remote_execution_ssh_key(client2.ip_addr)
             invocation_command = make_job_invocation({
                 'job-template': 'Run Command - SSH Default',
@@ -477,7 +478,8 @@ class RemoteExecutionTestCase(CLITestCase):
             # collect output messages from clients
             output_msgs = []
             for vm in self.client, client2:
-                output_msgs.append('host output from {0}: {1}'.format(
+                output_msgs.append(
+                    'host output from {0}: {1}'.format(
                         vm.hostname,
                         ' '.join(JobInvocation.get_output({
                             'id': invocation_command[u'id'],
@@ -501,24 +503,24 @@ class RemoteExecutionTestCase(CLITestCase):
         packages = ["cow", "dog", "lion"]
         # Create a custom repo
         repo = entities.Repository(
-                content_type='yum',
-                product=entities.Product(organization=self.org).create(),
-                url=FAKE_0_YUM_REPO,
-               ).create()
+            content_type='yum',
+            product=entities.Product(organization=self.org).create(),
+            url=FAKE_0_YUM_REPO,
+        ).create()
         repo.sync()
         prod = repo.product.read()
         subs = entities.Subscription().search(
-                query={'search': 'name={0}'.format(prod.name)}
-             )
+            query={'search': 'name={0}'.format(prod.name)}
+        )
         self.assertGreater(
             len(subs), 0, 'No subscriptions matching the product returned'
         )
 
         ak = entities.ActivationKey(
-                organization=self.org,
-                content_view=self.org.default_content_view,
-                environment=self.org.library
-             ).create()
+            organization=self.org,
+            content_view=self.org.default_content_view,
+            environment=self.org.library
+        ).create()
         ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
         self.client.register_contenthost(
             org=self.org.label, activation_key=ak.name
@@ -530,19 +532,19 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
         result = ssh.command(
-                "rpm -q {0}".format(" ".join(packages)),
-                hostname=self.client.hostname
-                )
+            "rpm -q {0}".format(" ".join(packages)),
+            hostname=self.client.hostname
+        )
         self.assertEqual(result.return_code, 0)
 
     @stubbed()
@@ -564,22 +566,22 @@ class RemoteExecutionTestCase(CLITestCase):
         })
         if not bz_bug_is_open(1431190):
             JobInvocation.get_output({
-                 'id': invocation_command[u'id'],
-                 'host': self.client.hostname
+                'id': invocation_command[u'id'],
+                'host': self.client.hostname
             })
             self.assertEqual(
-                    invocation_command['status'],
-                    u'queued',
-                    'host output: {0}'.format(
-                        ' '.join(JobInvocation.get_output({
-                            'id': invocation_command[u'id'],
-                            'host': self.client.hostname})
-                        )
+                invocation_command['status'],
+                u'queued',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
                     )
                 )
+            )
         sleep(150)
         rec_logic = RecurringLogic.info({
-                'id': invocation_command['recurring-logic-id']})
+            'id': invocation_command['recurring-logic-id']})
         self.assertEqual(rec_logic['state'], u'finished')
         self.assertEqual(rec_logic['iteration'], u'2')
 
@@ -630,15 +632,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
 
     @tier2
     @skip_if_bug_open('bugzilla', 1451675)
@@ -665,15 +667,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                make_user_job[u'success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': make_user_job[u'id'],
-                        'host': self.client.hostname})
-                    )
+            make_user_job[u'success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': make_user_job[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
         # create a file as new user
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
@@ -683,15 +685,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'effective-user': '{0}'.format(username),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
         # check the file owner
         result = ssh.command(
             '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
@@ -725,15 +727,15 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
 
     @tier3
     @upgrade
@@ -750,13 +752,13 @@ class RemoteExecutionTestCase(CLITestCase):
             'value': 'True',
         })
         with VirtualMachine(
-              distro=DISTRO_RHEL7,
-              provisioning_server=settings.compute_resources.libvirt_hostname,
-              bridge=settings.vlan_networking.bridge,
-              ) as client2:
+            distro=DISTRO_RHEL7,
+            provisioning_server=settings.compute_resources.libvirt_hostname,
+            bridge=settings.vlan_networking.bridge,
+        ) as client2:
             client2.install_katello_ca()
             client2.register_contenthost(
-                    self.org.label, lce='Library')
+                self.org.label, lce='Library')
             add_remote_execution_ssh_key(client2.ip_addr)
             Host.set_parameter({
                 'host': client2.hostname,
@@ -773,12 +775,12 @@ class RemoteExecutionTestCase(CLITestCase):
             output_msgs = []
             for vm in self.client, client2:
                 output_msgs.append('host output from {0}: {1}'.format(
-                        vm.hostname,
-                        ' '.join(JobInvocation.get_output({
-                            'id': invocation_command[u'id'],
-                            'host': vm.hostname})
-                        )
+                    vm.hostname,
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': vm.hostname})
                     )
+                )
                 )
             self.assertEqual(invocation_command['success'], u'2', output_msgs)
 
@@ -800,24 +802,24 @@ class RemoteExecutionTestCase(CLITestCase):
         packages = ["cow", "dog", "lion"]
         # Create a custom repo
         repo = entities.Repository(
-                content_type='yum',
-                product=entities.Product(organization=self.org).create(),
-                url=FAKE_0_YUM_REPO,
-               ).create()
+            content_type='yum',
+            product=entities.Product(organization=self.org).create(),
+            url=FAKE_0_YUM_REPO,
+        ).create()
         repo.sync()
         prod = repo.product.read()
         subs = entities.Subscription().search(
-                query={'search': 'name={0}'.format(prod.name)}
-             )
+            query={'search': 'name={0}'.format(prod.name)}
+        )
         self.assertGreater(
             len(subs), 0, 'No subscriptions matching the product returned'
         )
 
         ak = entities.ActivationKey(
-                organization=self.org,
-                content_view=self.org.default_content_view,
-                environment=self.org.library
-             ).create()
+            organization=self.org,
+            content_view=self.org.default_content_view,
+            environment=self.org.library
+        ).create()
         ak.add_subscriptions(data={'subscriptions': [{'id': subs[0].id}]})
         self.client.register_contenthost(
             org=self.org.label, activation_key=ak.name
@@ -829,19 +831,19 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
         self.assertEqual(
-                invocation_command['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_command['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
         result = ssh.command(
-                "rpm -q {0}".format(" ".join(packages)),
-                hostname=self.client.ip_addr
-                )
+            "rpm -q {0}".format(" ".join(packages)),
+            hostname=self.client.ip_addr
+        )
         self.assertEqual(result.return_code, 0)
 
     @tier3
@@ -869,22 +871,22 @@ class RemoteExecutionTestCase(CLITestCase):
         })
         if not bz_bug_is_open(1431190):
             JobInvocation.get_output({
-                 'id': invocation_command[u'id'],
-                 'host': self.client.hostname
+                'id': invocation_command[u'id'],
+                'host': self.client.hostname
             })
             self.assertEqual(
-                    invocation_command['status'],
-                    u'queued',
-                    'host output: {0}'.format(
-                        ' '.join(JobInvocation.get_output({
-                            'id': invocation_command[u'id'],
-                            'host': self.client.hostname})
-                        )
+                invocation_command['status'],
+                u'queued',
+                'host output: {0}'.format(
+                    ' '.join(JobInvocation.get_output({
+                        'id': invocation_command[u'id'],
+                        'host': self.client.hostname})
                     )
                 )
+            )
         sleep(150)
         rec_logic = RecurringLogic.info({
-                'id': invocation_command['recurring-logic-id']})
+            'id': invocation_command['recurring-logic-id']})
         self.assertEqual(rec_logic['state'], u'finished')
         self.assertEqual(rec_logic['iteration'], u'2')
 
@@ -923,12 +925,12 @@ class RemoteExecutionTestCase(CLITestCase):
         invocation_info = JobInvocation.info({
             'id': invocation_command[u'id']})
         self.assertEqual(
-                invocation_info['success'],
-                u'1',
-                'host output: {0}'.format(
-                    ' '.join(JobInvocation.get_output({
-                        'id': invocation_command[u'id'],
-                        'host': self.client.hostname})
-                    )
+            invocation_info['success'],
+            u'1',
+            'host output: {0}'.format(
+                ' '.join(JobInvocation.get_output({
+                    'id': invocation_command[u'id'],
+                    'host': self.client.hostname})
                 )
             )
+        )
