@@ -52,6 +52,12 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
+    FAKE_0_INC_UPD_ERRATA,
+    FAKE_0_INC_UPD_NEW_PACKAGE,
+    FAKE_0_INC_UPD_NEW_UPDATEFILE,
+    FAKE_0_INC_UPD_OLD_PACKAGE,
+    FAKE_0_INC_UPD_OLD_UPDATEFILE,
+    FAKE_0_INC_UPD_URL,
     FAKE_0_PUPPET_REPO,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_1_YUM_REPO,
@@ -75,6 +81,7 @@ from robottelo.decorators import (
     upgrade,
 )
 from robottelo.decorators.host import skip_if_os
+from robottelo.helpers import create_repo, repo_add_updateinfo
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -4356,6 +4363,78 @@ class ContentViewTestCase(CLITestCase):
             self.env1['id'],
             [env['id'] for env in cv['lifecycle-environments']],
         )
+
+    @tier2
+    def test_positive_inc_update_no_lce(self):
+        """Publish incremental update without providing lifecycle environment
+        for a content view version not promoted to any lifecycle environment
+
+        :BZ: 1322917
+
+        :id: 34bdd55f-f9b5-4d4e-bd35-acd0aae3380d
+
+        :expectedresults: Incremental update went successfully
+
+        :CaseImportance: Medium
+
+        :CaseLevel: Integration
+        """
+        repo_name = gen_string('alphanumeric')
+        repo_url = create_repo(
+            repo_name,
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_OLD_PACKAGE]
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'
+            .format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
+        )
+        self.assertEqual(result.return_code, 0)
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'url': repo_url,
+        })
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'organization-id': self.org['id'],
+            'repository-ids': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        cvv = content_view['versions'][0]
+        create_repo(
+            repo_name,
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_NEW_PACKAGE],
+            wipe_repodata=True,
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'
+            .format(FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+        )
+        self.assertEqual(result.return_code, 0)
+        Repository.synchronize({'id': repo['id']})
+        result = ContentView.version_incremental_update({
+            'content-view-version-id': cvv['id'],
+            'errata-ids': FAKE_0_INC_UPD_ERRATA,
+        })
+        # Inc update output format is pretty weird - list of dicts where each
+        # key's value is actual line from stdout
+        result = [
+            line.strip()
+            for line_dict in result
+            for line in line_dict.values()
+            ]
+        self.assertIn(
+            FAKE_0_INC_UPD_ERRATA, [line.strip() for line in result])
+        self.assertIn(
+            FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm'),
+            [line.strip() for line in result]
+        )
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertIn(
+            '1.1', [cvv['version'] for cvv in content_view['versions']])
 
 
 class OstreeContentViewTestCase(CLITestCase):
