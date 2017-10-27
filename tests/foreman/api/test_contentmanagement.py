@@ -217,6 +217,122 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(capsule_rpms[0], RPM_TO_UPLOAD)
 
     @tier4
+    def test_positive_checksum_sync(self):
+        """Synchronize repository to capsule, update repository's checksum
+        type, trigger capsule sync and make sure checksum type was updated on
+        capsule
+
+        :id: eb07bdf3-6cd8-4a2f-919b-8dfc84e16115
+
+        :BZ: 1288656
+
+        :expectedresults: checksum type is updated in repodata of corresponding
+            repository on  capsule
+
+        :CaseLevel: System
+        """
+        repomd_path = 'repodata/repomd.xml'
+        # Create organization, product, lce and repository with sha256 checksum
+        # type
+        org = entities.Organization(smart_proxy=[self.capsule_id]).create()
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            checksum_type='sha256',
+            product=product,
+        ).create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        # Associate the lifecycle environment with the capsule
+        capsule = entities.Capsule(id=self.capsule_id).read()
+        capsule.content_add_lifecycle_environment(data={
+            'environment_id': lce.id,
+        })
+        result = capsule.content_lifecycle_environments()
+        self.assertGreaterEqual(len(result['results']), 1)
+        self.assertIn(
+            lce.id, [capsule_lce['id'] for capsule_lce in result['results']])
+        # Sync, publish and promote a repo
+        cv = entities.ContentView(
+            organization=org,
+            repository=[repo],
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        cv.publish()
+        cv = cv.read()
+        self.assertEqual(len(cv.version), 1)
+        cvv = cv.version[-1].read()
+        promote(cvv, lce.id)
+        cvv = cvv.read()
+        self.assertEqual(len(cvv.environment), 2)
+        # Wait till capsule sync finishes
+        sync_status = capsule.content_get_sync()
+        self.assertTrue(
+            len(sync_status['active_sync_tasks']) >= 1 or
+            sync_status['last_sync_time']
+        )
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll()
+        sync_status = capsule.content_get_sync()
+        last_sync_time = sync_status['last_sync_time']
+        # Verify repodata's checksum type is sha256, not sha1 on capsule
+        lce_repo_path = form_repo_path(
+            org=org.label,
+            lce=lce.label,
+            cv=cv.label,
+            prod=product.label,
+            repo=repo.label,
+        )
+        result = ssh.command(
+            'grep -o \'checksum type="sha1"\' {}'
+            .format(os.path.join(lce_repo_path, repomd_path)),
+            hostname=self.capsule_hostname
+        )
+        self.assertNotEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout), 0)
+        result = ssh.command(
+            'grep -o \'checksum type="sha256"\' {}'
+            .format(os.path.join(lce_repo_path, repomd_path)),
+            hostname=self.capsule_hostname
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreater(len(result.stdout), 0)
+        # Update repo's checksum type to sha1
+        repo.checksum_type = 'sha1'
+        repo = repo.update(['checksum_type'])
+        # Sync, publish and promote repo
+        repo.sync()
+        cv.publish()
+        cv = cv.read()
+        self.assertEqual(len(cv.version), 2)
+        cvv = cv.version[-1].read()
+        promote(cvv, lce.id)
+        cvv = cvv.read()
+        self.assertEqual(len(cvv.environment), 2)
+        # Wait till capsule sync finishes
+        sync_status = capsule.content_get_sync()
+        self.assertTrue(
+            len(sync_status['active_sync_tasks']) >= 1 or
+            sync_status['last_sync_time'] != last_sync_time
+        )
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll()
+        # Verify repodata's checksum type has updated to sha1 on capsule
+        result = ssh.command(
+            'grep -o \'checksum type="sha256"\' {}'
+            .format(os.path.join(lce_repo_path, repomd_path)),
+            hostname=self.capsule_hostname
+        )
+        self.assertNotEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout), 0)
+        result = ssh.command(
+            'grep -o \'checksum type="sha1"\' {}'
+            .format(os.path.join(lce_repo_path, repomd_path)),
+            hostname=self.capsule_hostname
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreater(len(result.stdout), 0)
+
+    @tier4
     def test_positive_capsule_sync(self):
         """Create repository, add it to lifecycle environment, assign lifecycle
         environment with a capsule, sync repository, sync it once again, update
