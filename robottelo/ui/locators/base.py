@@ -731,7 +731,7 @@ locators = LocatorDict({
 
     "contenthost.bulk_actions.action_dropdown": (
         By.XPATH,
-        "%s/../../../button[contains(@data-toggle,'dropdown')]"),
+        "%s/../../../button[contains(@class,'dropdown-toggle')]"),
 
     "contenthost.bulk_actions.remote_action_scheduled": (
         By.XPATH, '//div[@bst-alert="success"]'),
@@ -2774,11 +2774,13 @@ locators = LocatorDict({
     "hostcollection.collection_actions.packages": (
         By.XPATH,
         ("//li[@bst-feature-flag='remote_actions']"
-         "//a[contains(@href, 'packages')]")),
+         "//a[@ng-click='openPackagesModal()']")),
     "hostcollection.collection_actions.errata": (
         By.XPATH,
         ("//li[@bst-feature-flag='remote_actions']"
-         "//a[contains(@href, 'errata')]")),
+         "//a[@ng-click='openErrataModal()']")),
+    "hostcollection.collection_actions.modal_dismiss": (
+        By.XPATH, "//button[@ng-click='ok()']"),
     "hostcollection.errata.errata_select": (
         By.XPATH,
         ("//tr[td/a[@ng-click='transitionToErrata(erratum)' and "

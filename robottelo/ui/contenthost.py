@@ -1,4 +1,5 @@
 """Utilities to manipulate content hosts via UI."""
+from robottelo.decorators import bz_bug_is_open
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -175,6 +176,8 @@ class ContentHost(Base):
             or `applicable` packages.
         :return: WebElement containing package information.
         """
+        if bz_bug_is_open(1495271):
+            Navigator(self.browser).go_to_dashboard()
         self.click(self.search(name))
         self.click(tab_locators['contenthost.tab_packages'])
         if package_tab == 'installed':
