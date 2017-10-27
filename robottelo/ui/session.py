@@ -10,6 +10,7 @@ from robottelo.ui.factory import make_org
 from robottelo.ui.browser import browser, DockerBrowser
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
+from robottelo.ui.audit import Audit
 from robottelo.ui.bookmark import Bookmark
 from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
@@ -123,6 +124,7 @@ class Session(object):
         # Library methods
         self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
+        self.audit = Audit(self.browser)
         self.bookmark = Bookmark(self.browser)
         self.container = Container(self.browser)
         self.compute_profile = ComputeProfile(self.browser)
@@ -184,17 +186,17 @@ class Session(object):
 
         # for compatibility purposes
         for attr in (
-                'activationkey', 'architecture', 'bookmark', 'container',
-                'compute_profile', 'compute_resource', 'contenthost',
-                'configgroups', 'content_views', 'dashboard', 'dockertag',
-                'domain', 'errata', 'discoveredhosts', 'discoveryrules',
-                'environment', 'gpgkey', 'hardwaremodel', 'hostcollection',
-                'hostgroup', 'hosts', 'job', 'jobtemplate', 'ldapauthsource',
-                'lifecycleenvironment', 'location', 'login', 'medium',
-                'my_account', 'navigator', 'nav', 'user', 'operatingsys',
-                'org', 'oscapcontent', 'oscappolicy', 'oscapreports',
-                'oscaptailoringfile', 'package', 'partitiontable',
-                'puppetclasses', 'puppetmodule',
+                'activationkey', 'architecture', 'audit', 'bookmark',
+                'container', 'compute_profile', 'compute_resource',
+                'contenthost', 'configgroups', 'content_views', 'dashboard',
+                'dockertag', 'domain', 'errata', 'discoveredhosts',
+                'discoveryrules', 'environment', 'gpgkey', 'hardwaremodel',
+                'hostcollection', 'hostgroup', 'hosts', 'job', 'jobtemplate',
+                'ldapauthsource', 'lifecycleenvironment', 'location', 'login',
+                'medium', 'my_account', 'navigator', 'nav', 'user',
+                'operatingsys', 'org', 'oscapcontent', 'oscappolicy',
+                'oscapreports', 'oscaptailoringfile', 'package',
+                'partitiontable', 'puppetclasses', 'puppetmodule',
                 'products', 'registry', 'repository', 'rhai', 'role',
                 'settings', 'sc_parameters', 'smart_variable', 'statistic',
                 'subnet', 'subscriptions', 'sync', 'syncplan', 'task',
