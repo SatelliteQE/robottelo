@@ -526,12 +526,10 @@ class UserTestCase(CLITestCase):
                 })
                 self.assertEqual(len(result), 1)
                 # make sure user is in list result
-                self.assertEqual({
-                    'email': user['email'],
-                    'id': user['id'],
-                    'login': user['login'],
-                    'name': user['name'],
-                }, result[0])
+                self.assertEqual(
+                    {user['id'], user['login']},
+                    {result[0]['id'], result[0]['login']}
+                )
 
     @tier1
     def test_positive_list_firstname(self):
@@ -550,12 +548,10 @@ class UserTestCase(CLITestCase):
                     u'search': u'firstname = {0}'.format(firstname),
                 })
                 # make sure user is in list result
-                self.assertEqual({
-                    'email': user['email'],
-                    'id': user['id'],
-                    'login': user['login'],
-                    'name': user['name'],
-                }, result[0])
+                self.assertEqual(
+                    {user['id'], user['login'], user['name']},
+                    {result[0]['id'], result[0]['login'], result[0]['name']}
+                )
 
     @tier1
     def test_positive_list_surname(self):
@@ -574,12 +570,10 @@ class UserTestCase(CLITestCase):
                     u'search': u'lastname = {0}'.format(lastname),
                 })
                 # make sure user is in list result
-                self.assertEqual({
-                    'email': user['email'],
-                    'id': user['id'],
-                    'login': user['login'],
-                    'name': user['name'],
-                }, result[0])
+                self.assertEqual(
+                    {user['id'], user['login'], user['name']},
+                    {result[0]['id'], result[0]['login'], result[0]['name']}
+                )
 
     @tier1
     def test_positive_list_email(self):
@@ -604,12 +598,10 @@ class UserTestCase(CLITestCase):
                     u'search': u'mail = {0}'.format(mail),
                 })
                 # make sure user is in list result
-                self.assertEqual({
-                    'email': user['email'],
-                    'id': user['id'],
-                    'login': user['login'],
-                    'name': user['name'],
-                }, result[0])
+                self.assertEqual(
+                    {user['email'], user['id'], user['login']},
+                    {result[0]['email'], result[0]['id'], result[0]['login']}
+                )
 
     @skip_if_bug_open('bugzilla', 1204667)
     @tier1
