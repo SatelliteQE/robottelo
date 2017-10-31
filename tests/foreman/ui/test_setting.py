@@ -19,7 +19,14 @@
 from fauxfactory import gen_email, gen_string, gen_url
 from random import choice, randint
 from robottelo.datafactory import filtered_datapoint, valid_data_list
-from robottelo.decorators import run_only_on, tier1, stubbed, tier4, upgrade
+from robottelo.decorators import (
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+    tier4,
+    upgrade
+)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import edit_param
@@ -607,10 +614,10 @@ class SettingTestCase(UITestCase):
             self.assertEqual("Empty", self.saved_element)
 
     @stubbed
-    @tier1
-    def test_negative_update_login_page_footer_text(self):
+    @tier2
+    def test_positive_update_login_page_footer_text_with_long_string(self):
         """Attempt to update parameter "Login_page_footer_text"
-            with invalid value(long length) under General tab
+            with long length string under General tab
 
         :id: c76d91e8-a207-43c6-904c-7ca2dae7cd16
 
@@ -618,9 +625,10 @@ class SettingTestCase(UITestCase):
 
             1. Navigate to Administer -> settings
             2. Click on general tab
-            3. Input invalid data into login page footer field
+            3. Input long length string into login page footer field
+            4. Assert value from login page
 
-        :expectedresults: Parameter is not updated
+        :expectedresults: Parameter is updated
 
         :CaseImportance: Critical
         """

@@ -49,13 +49,13 @@ class SettingTestCase(APITestCase):
 
     @stubbed()
     @tier1
-    def test_negative_update_login_page_footer_text(self):
+    def test_positive_update_login_page_footer_text_with_long_string(self):
         """Attempt to update parameter "Login_page_footer_text"
-            with invalid value(long length)
+            with long length string
 
         :id: fb8b0bf1-b475-435a-926b-861aa18d31f1
 
-        :expectedresults: Parameter is not updated
+        :expectedresults: Parameter is updated
 
         :caseautomation: notautomated
         """
