@@ -103,8 +103,8 @@ class Errata(Base):
         if environment is not None:
             self.assign_value(
                 locators['errata.content_hosts.env_filter'], environment)
-        self.assign_value(common_locators['kt_table_search'], hostname)
-        self.click(common_locators['kt_table_search_button'])
+        self.assign_value(common_locators['kt_search'], hostname)
+        self.click(common_locators['kt_search_button'])
         return self.wait_until_element(
             locators['errata.content_hosts.ch_select'] % hostname)
 
