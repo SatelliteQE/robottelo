@@ -909,6 +909,7 @@ class ContentViewTestCase(UITestCase):
 
         :CaseLevel: Integration
         """
+        # Create and publish a repo with 1 outdated package and some errata
         repo_name = gen_string('alphanumeric')
         repo_url = create_repo(
             repo_name,
@@ -920,6 +921,7 @@ class ContentViewTestCase(UITestCase):
             .format(FAKE_0_INC_UPD, FAKE_0_INC_UPD_UPDATEFILES[0])
         )
         self.assertEqual(result.return_code, 0)
+        # Create org, product, repo, sync & publish it
         org = make_org()
         product = make_product({'organization-id': org['id']})
         repo = make_repository({
@@ -935,6 +937,7 @@ class ContentViewTestCase(UITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(len(content_view['versions']), 1)
         cvv = content_view['versions'][0]
+        # Add updated package to the repo and errata for the outdated package
         create_repo(
             repo_name,
             FAKE_0_INC_UPD,
@@ -946,7 +949,9 @@ class ContentViewTestCase(UITestCase):
             .format(FAKE_0_INC_UPD, FAKE_0_INC_UPD_UPDATEFILES[1])
         )
         self.assertEqual(result.return_code, 0)
+        # Sync the repo
         Repository.synchronize({'id': repo['id']})
+        # Publish new CVV with the new errata
         result = ContentView.version_incremental_update({
             'content-view-version-id': cvv['id'],
             'errata-ids': FAKE_0_INC_UPD_ERRATA[1]
@@ -958,6 +963,8 @@ class ContentViewTestCase(UITestCase):
             for line_dict in result
             for line in line_dict.values()
         ]
+        # Verify both the package and the errata are present in output (were
+        # added successfully)
         self.assertIn(
             FAKE_0_INC_UPD_ERRATA[1], [line.strip() for line in result])
         self.assertIn(
@@ -966,6 +973,7 @@ class ContentViewTestCase(UITestCase):
         )
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][-1]
+        # Verify the package and the errata are shown on UI
         with Session(self):
             self.nav.go_to_select_org(org['name'])
             errata = self.content_views.fetch_version_errata(
