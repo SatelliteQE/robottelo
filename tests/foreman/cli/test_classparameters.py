@@ -37,7 +37,7 @@ from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.cli.user import User
 from robottelo.constants import CUSTOM_PUPPET_REPO
-from robottelo.datafactory import filtered_datapoint, gen_string
+from robottelo.datafactory import filtered_datapoint, gen_integer, gen_string
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -63,7 +63,7 @@ def valid_sc_parameters_data():
         },
         {
             u'sc_type': 'integer',
-            u'value': gen_string('numeric', 5),
+            u'value': str(gen_integer()),
         },
         {
             u'sc_type': 'real',
