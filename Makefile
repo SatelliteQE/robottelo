@@ -75,7 +75,6 @@ test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
-	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/upgrade
 
 test-robottelo:
 	$(info "Running robottelo framework unit tests...")
