@@ -7,7 +7,6 @@ from fauxfactory import gen_string, gen_integer
 from robottelo.config import settings
 from robottelo.constants import STRING_TYPES
 from robottelo.decorators import bz_bug_is_open
-from robottelo.upgrade import get_all_yaml_data, get_yaml_field_value
 from six.moves.urllib.parse import quote_plus
 
 
@@ -464,35 +463,3 @@ def invalid_http_credentials(url_encoded=False):
                 for cred in credentials]
     else:
         return credentials
-
-
-@filtered_datapoint
-def get_valid_preupgrade_data(test_entity, field):
-    """Returns valid list of tuples for given test_entity and field from
-    preUpgrade YAML file
-
-    :param str test_entity: The test_entity name in YAML file
-        e.g. Organization-Tests to check it exists and its associations
-    :param str field: Field name in YAML for which the test created
-        e.g. name to check if the test_entity exists by name
-        e.g. smart-proxy to check association with test_entity
-    :return: List of tuples. Tuple containing pair of SubEntity, field_value
-        e.g. [('Default Organization',2),('another_org',5)], where 2 and 5 are
-        ids(field) of two mentioned orgs(subEntity)
-    """
-    datalist = []
-    test_entity = test_entity.lower()
-    field = field.lower()
-    for entity in get_all_yaml_data()[test_entity].keys():
-        field_data = get_yaml_field_value(test_entity, entity, field)
-        if field_data is None:
-            continue
-        elif type(field_data) == list:
-            for value in field_data:
-                datalist.append((entity, value))
-        else:
-            datalist.append((entity, field_data))
-    if not datalist:
-        raise InvalidArgumentError('No such field/test \'{0}\' exists in YAML'
-                                   'file under {1}'.format(field, test_entity))
-    return datalist
