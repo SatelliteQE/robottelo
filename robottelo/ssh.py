@@ -88,7 +88,7 @@ def get_client(hostname=None, username=None, password=None,
         hostname = settings.server.hostname
     if username is None:
         username = settings.server.ssh_username
-    if key_filename is None:
+    if key_filename is None and password is None:
         key_filename = settings.server.ssh_key
     if password is None:
         password = settings.server.ssh_password
