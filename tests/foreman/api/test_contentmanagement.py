@@ -28,6 +28,7 @@ from robottelo.api.utils import (
 )
 from robottelo.config import settings
 from robottelo.constants import (
+    CUSTOM_PUPPET_REPO,
     DISTRO_RHEL7,
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
@@ -930,6 +931,122 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(result.return_code, 0)
         broken_links = set(link for link in result.stdout if link)
         self.assertEqual(len(broken_links), 0)
+
+    @tier4
+    def test_positive_sync_puppet_module_with_versions(self):
+        """Ensure it's possible to sync multiple versions of the same puppet
+        module to the capsule
+
+        :id: 83a0ddd6-8a6a-43a0-b169-094a2556dd28
+
+        :BZ: 1365952
+
+        :Steps:
+
+            1. Register a capsule
+            2. Associate LCE with the capsule
+            3. Sync a puppet module with multiple versions
+            4. Publish a CV with one version of puppet module and promote it to
+               capsule's LCE
+            5. Wait for capsule synchronization to finish
+            6. Publish another CV with different version of puppet module and
+               promote it to capsule's LCE
+            7. Wait for capsule synchronization to finish once more
+
+        :expectedresults: Capsule was successfully synchronized, no errors were
+            found during synchronization
+
+        :CaseLevel: System
+        """
+        module_name = 'versioned'
+        module_versions = ['2.2.2', '3.3.3']
+        org = entities.Organization().create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        prod = entities.Product(organization=org).create()
+        puppet_repository = entities.Repository(
+            content_type='puppet',
+            product=prod,
+            url=CUSTOM_PUPPET_REPO,
+        ).create()
+        capsule = entities.Capsule(id=self.capsule_id).read()
+        capsule.content_add_lifecycle_environment(data={
+            'environment_id': lce.id,
+        })
+        result = capsule.content_lifecycle_environments()
+        self.assertGreaterEqual(len(result['results']), 1)
+        self.assertIn(
+            lce.id, [capsule_lce['id'] for capsule_lce in result['results']])
+        puppet_repository.sync()
+        puppet_module_old = entities.PuppetModule().search(query={
+            'search': 'name={} and version={}'
+                      .format(module_name, module_versions[0])
+        })[0]
+        # Add puppet module to the CV
+        entities.ContentViewPuppetModule(
+            content_view=content_view,
+            id=puppet_module_old.id,
+        ).create()
+        content_view = content_view.read()
+        self.assertGreater(len(content_view.puppet_module), 0)
+        # Publish and promote CVV
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        cvv = content_view.version[-1].read()
+        promote(cvv, lce.id)
+        cvv = cvv.read()
+        self.assertEqual(len(cvv.environment), 2)
+        # Wait till capsule sync finishes
+        sync_status = capsule.content_get_sync()
+        self.assertTrue(
+            len(sync_status['active_sync_tasks']) >= 1 or
+            sync_status['last_sync_time']
+        )
+        for task in sync_status['active_sync_tasks']:
+            entities.ForemanTask(id=task['id']).poll()
+        sync_status = capsule.content_get_sync()
+        last_sync_time = sync_status['last_sync_time']
+        sync_errors_before = sync_status['last_failed_sync_tasks']
+        # Unassign old puppet module version from CV
+        entities.ContentViewPuppetModule(
+            content_view=content_view,
+            id=content_view.puppet_module[0].id,
+        ).delete()
+        # Assign new puppet module version
+        puppet_module_new = entities.PuppetModule().search(query={
+            'search': 'name={} and version={}'
+                      .format(module_name, module_versions[1])
+        })[0]
+        entities.ContentViewPuppetModule(
+            content_view=content_view,
+            id=puppet_module_new.id,
+        ).create()
+        self.assertGreater(len(content_view.puppet_module), 0)
+        # Publish and promote CVV
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 2)
+        cvv = content_view.version[-1].read()
+        promote(cvv, lce.id)
+        cvv = cvv.read()
+        self.assertEqual(len(cvv.environment), 2)
+        # Wait till capsule sync finishes
+        sync_status = capsule.content_get_sync()
+        tasks = []
+        if not sync_status['active_sync_tasks']:
+            self.assertNotEqual(
+                sync_status['last_sync_time'], last_sync_time)
+        else:
+            for task in sync_status['active_sync_tasks']:
+                tasks.append(entities.ForemanTask(id=task['id']))
+                tasks[-1].poll()
+        # Polling the task will raise an assertion in case of error, but in
+        # case we couldn't catch tasks running in time, let's ensure no new
+        # failed tasks were logged for capsule
+        sync_status = capsule.content_get_sync()
+        sync_errors_after = sync_status['last_failed_sync_tasks']
+        self.assertEqual(len(sync_errors_before), len(sync_errors_after))
 
     @tier4
     def test_positive_capsule_pub_url_accessible(self):
