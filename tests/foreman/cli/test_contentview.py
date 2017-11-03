@@ -63,6 +63,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
+    destructive,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -3979,7 +3980,7 @@ class ContentViewTestCase(CLITestCase):
 
     @run_in_one_thread
     @run_only_on('sat')
-    @tier3
+    @destructive  # moved from @tier3 as workaround to #5366
     @upgrade
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,
