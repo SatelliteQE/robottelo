@@ -772,6 +772,8 @@ locators = LocatorDict({
     "host.yaml_output": (By.XPATH, "//pre"),
     "host.property_status": (
         By.XPATH, "//td[text()='Status']/following-sibling::td/span[2]"),
+    "host.property_build": (
+        By.XPATH, "//td[text()='Build']/following-sibling::td/span[2]"),
     "host.property_errata": (
         By.XPATH, "//td[text()='Errata']/following-sibling::td/span[2]"),
     "host.property_subscription": (
@@ -782,8 +784,10 @@ locators = LocatorDict({
     "host.property_mac_address": (
         By.XPATH, "//table[@id='properties_table']//td[text()='MAC Address']/"
                   "following-sibling::td"),
-    "host.property_host_architecture": (
-        By.XPATH, "//td[text()='Host Architecture']/following-sibling::td/a"),
+    "host.property_architecture": (
+        By.XPATH, "//td[text()='Architecture']/following-sibling::td/a"),
+    "host.property_operating_system": (
+        By.XPATH, "//td[text()='Operating System']/following-sibling::td/a"),
     "host.name": (By.ID, "host_name"),
     "host.organization": (
         By.XPATH,

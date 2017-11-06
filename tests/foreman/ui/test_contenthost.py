@@ -15,11 +15,11 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_string
+from fauxfactory import gen_integer, gen_string
 from six.moves.urllib.parse import urljoin
 from nailgun import entities
 
-from robottelo.cleanup import vm_cleanup
+from robottelo.cleanup import setting_cleanup, vm_cleanup
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
@@ -441,6 +441,96 @@ class ContentHostTestCase(UITestCase):
                 self.contenthost.errata_search(
                     self.client.hostname, FAKE_2_ERRATA_ID)
             )
+
+    @tier3
+    @upgrade
+    def test_positive_check_ignore_facts_os_setting(self):
+        """Verify that 'Ignore facts for operating system' setting works
+        properly
+
+        :steps:
+
+            1. Create a new host entry using content host self registration
+               procedure
+            2. Check that there is a new setting added "Ignore facts for
+               operating system", and set it to true.
+            3. Upload the facts that were read from initial host, but with a
+               change in all the operating system fields to a different OS or
+               version.
+            4. Verify that the host OS isn't updated.
+            5. Set the setting in step 2 to false.
+            6. Upload same modified facts from step 3.
+            7. Verify that the host OS is updated.
+            8. Verify that new OS is created
+
+        :id: 71bed439-105c-4e87-baae-738379d055fb
+
+        :expectedresults: Host facts impact its own values properly according
+            to the setting values
+
+        :BZ: 1155704
+
+        :CaseLevel: System
+        """
+        ignore_setting = entities.Setting().search(
+            query={'search': 'name="ignore_facts_for_operatingsystem"'})[0]
+        default_ignore_setting = str(ignore_setting.value)
+        major = str(gen_integer(15, 99))
+        minor = str(gen_integer(1, 9))
+        expected_os = "RedHat {}.{}".format(major, minor)
+        with Session(self):
+            host = entities.Host().search(query={
+                'search': 'name={0} and organization_id={1}'.format(
+                    self.client.hostname, self.session_org.id)
+            })[0].read()
+            # Get host current operating system value
+            os = self.hosts.get_host_properties(
+                self.client.hostname, ['Operating System'])['Operating System']
+            # Change necessary setting to true
+            ignore_setting.value = 'True'
+            ignore_setting.update({'value'})
+            # Add cleanup function to roll back setting to default value
+            self.addCleanup(
+                setting_cleanup,
+                'ignore_facts_for_operatingsystem',
+                default_ignore_setting
+            )
+            # Read all facts for corresponding host
+            facts = host.get_facts(
+                data={u'per_page': 10000})['results'][self.client.hostname]
+            # Modify OS facts to another values and upload them to the server
+            # back
+            facts['operatingsystem'] = 'RedHat'
+            facts['osfamily'] = 'RedHat'
+            facts['operatingsystemmajrelease'] = major
+            facts['operatingsystemrelease'] = "{}.{}".format(major, minor)
+            host.upload_facts(
+                data={
+                    u'name': self.client.hostname,
+                    u'facts': facts,
+                }
+            )
+            updated_os = self.hosts.get_host_properties(
+                self.client.hostname, ['Operating System'])['Operating System']
+            # Check that host OS was not changed due setting was set to true
+            self.assertEqual(os, updated_os)
+            # Put it to false and re-run the process
+            ignore_setting.value = 'False'
+            ignore_setting.update({'value'})
+            host.upload_facts(
+                data={
+                    u'name': self.client.hostname,
+                    u'facts': facts,
+                }
+            )
+            updated_os = self.hosts.get_host_properties(
+                self.client.hostname, ['Operating System'])['Operating System']
+            # Check that host OS was changed to new value
+            self.assertNotEqual(os, updated_os)
+            self.assertEqual(updated_os, expected_os)
+            # Check that new OS was created
+            self.assertIsNotNone(self.operatingsys.search(
+                expected_os, _raw_query=expected_os))
 
     @tier3
     @upgrade

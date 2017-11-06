@@ -19,12 +19,15 @@ import six
 
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
+from time import sleep
+
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
 )
 from robottelo import manifests
+from robottelo.cleanup import host_cleanup
 from robottelo.cli.contentview import ContentView as cli_ContentView
 from robottelo.cli.proxy import Proxy as cli_Proxy
 from robottelo.config import settings
@@ -74,26 +77,26 @@ class LibvirtHostTestCase(UITestCase):
         """Steps required to create a real host on libvirt
 
         1. Creates new Organization and Location.
-        2. Creates new life-cycle environment.
-        3. Creates new product and rhel67 custom repository.
-        4. Creates new content-view by associating rhel67 repository.
-        5. Publish and promote the content-view to next environment.
-        6. Search for puppet environment and associate location.
-        7. Search for smart-proxy and associate location.
-        8. Search for existing domain or create new otherwise. Associate org,
-           location and dns proxy.
-        9. Search for '192.168.100.0' network and associate org, location,
-           dns/dhcp/tftp proxy, and if its not there then creates new.
-        10. Search for existing compute-resource with 'libvirt' provider and
-            associate org.location, and if its not there then creates
-            new.
-        11. Search 'Kickstart default' partition table and rhel67 OS along with
+        2. Search 'Kickstart default' partition table and OS along with
             provisioning/PXE templates.
-        12. Associates org, location and OS with provisioning and PXE templates
-        13. Search for x86_64 architecture
-        14. Associate arch, partition table, provisioning/PXE templates with OS
-        15. Search for media and associate org/location
+        3. Associates org, location and OS with provisioning and PXE templates
+        4. Search for x86_64 architecture
+        5. Associate arch, partition table, provisioning/PXE templates with OS
+        6. Find and specify proper Repo URL for OS distribution folder
+        7. Creates new life-cycle environment.
+        8. Creates new product and OS custom repository.
+        9. Creates new content-view and associate with created repository.
+        10. Publish and promote the content-view to next environment.
+        11. Search for puppet environment and associate location.
+        12. Search for smart-proxy and associate organization/location.
+        13. Search for existing domain or create new otherwise. Associate org,
+            location and dns proxy.
+        14. Search for '192.168.100.0' network and associate org, location,
+            dns/dhcp/tftp proxy, and if its not there then creates new.
+        15. Search for existing compute-resource with 'libvirt' provider and
+            associate org.location, and if its not there then creates new.
         16. Create new host group with all required entities
+
         """
         super(LibvirtHostTestCase, cls).setUpClass()
         # Create a new Organization and Location
@@ -105,13 +108,74 @@ class LibvirtHostTestCase(UITestCase):
         ).create()
         cls.loc_name = cls.loc.name
 
+        # Get the Partition table ID
+        cls.ptable = entities.PartitionTable().search(
+            query={
+                u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
+            }
+        )[0]
+
+        # Get the OS ID
+        cls.os = entities.OperatingSystem().search(query={
+            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
+                       .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+        })[0]
+
+        # Get the templates and update with OS, Org, Location
+        cls.templates = []
+        for template_name in [
+            'Kickstart default PXELinux',
+            'Discovery Red Hat kexec',
+            'Kickstart default iPXE',
+            'Satellite Kickstart Default',
+            'Satellite Kickstart Default Finish',
+            'Satellite Kickstart Default User Data'
+        ]:
+            template = entities.ConfigTemplate().search(
+                query={
+                    u'search': u'name="{}"'.format(template_name)
+                }
+            )[0]
+            template.operatingsystem = [cls.os]
+            template.organization = [cls.org_]
+            template.location = [cls.loc]
+            template = template.update([
+                'location',
+                'operatingsystem',
+                'organization'
+            ])
+            cls.templates.append(template)
+
+        # Get the arch ID
+        cls.arch = entities.Architecture().search(
+            query={u'search': u'name="x86_64"'}
+        )[0]
+
+        # Update the OS to associate arch, ptable, templates
+        cls.os.architecture = [cls.arch]
+        cls.os.ptable = [cls.ptable]
+        cls.os.config_template = cls.templates
+        cls.os = cls.os.update([
+            'architecture',
+            'config_template',
+            'ptable',
+        ])
+
+        # Check what OS was found to use correct media
+        if cls.os.major == str(RHEL_6_MAJOR_VERSION):
+            os_distr_url = settings.rhel6_os
+        elif cls.os.major == str(RHEL_7_MAJOR_VERSION):
+            os_distr_url = settings.rhel7_os
+        else:
+            raise ValueError('Proposed RHEL version is not supported')
+
         # Create a new Life-Cycle environment
         cls.lc_env = entities.LifecycleEnvironment(
             name=gen_string('alpha'),
             organization=cls.org_
         ).create()
 
-        # Create a Product, Repository for custom RHEL6 contents
+        # Create a Product and Repository for OS distribution content
         cls.product = entities.Product(
             name=gen_string('alpha'),
             organization=cls.org_
@@ -119,6 +183,7 @@ class LibvirtHostTestCase(UITestCase):
         cls.repo = entities.Repository(
             name=gen_string('alpha'),
             product=cls.product,
+            url=os_distr_url
         ).create()
 
         # Increased timeout value for repo sync
@@ -143,7 +208,7 @@ class LibvirtHostTestCase(UITestCase):
         cls.environment.location = [cls.loc]
         cls.environment = cls.environment.update(['location'])
 
-        # Search for SmartProxy, and associate location
+        # Search for SmartProxy, and associate organization/location
         cls.proxy = entities.SmartProxy().search(
             query={
                 u'search': u'name={0}'.format(
@@ -252,70 +317,6 @@ class LibvirtHostTestCase(UITestCase):
 
         cls.resource = u'{0} (Libvirt)'.format(cls.computeresource.name)
 
-        # Get the Partition table ID
-        cls.ptable = entities.PartitionTable().search(
-            query={
-                u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
-            }
-        )[0]
-
-        # Get the OS ID
-        cls.os = entities.OperatingSystem().search(query={
-            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
-                       .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-        })[0]
-
-        # Get the Provisioning template_ID and update with OS, Org, Location
-        cls.provisioning_template = entities.ConfigTemplate().search(
-            query={
-                u'search': u'name="Satellite Kickstart Default"'
-            }
-        )[0]
-        cls.provisioning_template.operatingsystem = [cls.os]
-        cls.provisioning_template.organization = [cls.org_]
-        cls.provisioning_template.location = [cls.loc]
-        cls.provisioning_template = cls.provisioning_template.update([
-            'location',
-            'operatingsystem',
-            'organization'
-        ])
-
-        # Get the PXE template ID and update with OS, Org, location
-        cls.pxe_template = entities.ConfigTemplate().search(
-            query={
-                u'search': u'name="Kickstart default PXELinux"'
-            }
-        )[0]
-        cls.pxe_template.operatingsystem = [cls.os]
-        cls.pxe_template.organization = [cls.org_]
-        cls.pxe_template.location = [cls.loc]
-        cls.pxe_template = cls.pxe_template.update(
-            ['location', 'operatingsystem', 'organization']
-        )
-
-        # Get the arch ID
-        cls.arch = entities.Architecture().search(
-            query={u'search': u'name="x86_64"'}
-        )[0]
-
-        # Get the media and update its location
-        cls.media = entities.Media(organization=[cls.org_]).search()[0].read()
-        cls.media.location.append(cls.loc)
-        cls.media.organization.append(cls.org_)
-        cls.media = cls.media.update(['location', 'organization'])
-        # Update the OS to associate arch, ptable, templates
-        cls.os.architecture = [cls.arch]
-        cls.os.ptable = [cls.ptable]
-        cls.os.config_template = [cls.provisioning_template]
-        cls.os.config_template = [cls.pxe_template]
-        cls.os.medium = [cls.media]
-        cls.os = cls.os.update([
-            'architecture',
-            'config_template',
-            'ptable',
-            'medium',
-        ])
-
         cls.puppet_env = entities.Environment(
             location=[cls.loc],
             organization=[cls.org_],
@@ -336,7 +337,6 @@ class LibvirtHostTestCase(UITestCase):
             puppet_proxy=cls.proxy,
             puppet_ca_proxy=cls.proxy,
             content_source=cls.proxy,
-            medium=cls.media,
             operatingsystem=cls.os.id,
             organization=[cls.org_.id],
             ptable=cls.ptable.id,
@@ -344,12 +344,12 @@ class LibvirtHostTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
-    def test_positive_create_libvirt(self):
-        """Create a new Host on libvirt compute resource
+    def test_positive_provision_end_to_end(self):
+        """Provision Host on libvirt compute resource
 
         :id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
 
-        :expectedresults: Host is created
+        :expectedresults: Host is provisioned successfully
 
         :CaseLevel: System
         """
@@ -366,8 +366,6 @@ class LibvirtHostTestCase(UITestCase):
                     ['Host', 'Deploy on', self.resource],
                     ['Host', 'Puppet Environment', self.puppet_env.name],
                     ['Virtual Machine', 'Memory', '1 GB'],
-                    ['Operating System', 'Media', self.media.name],
-                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
                     ['Operating System', 'Root password', self.root_pwd],
                 ],
                 interface_parameters=[
@@ -377,6 +375,15 @@ class LibvirtHostTestCase(UITestCase):
             )
             name = u'{0}.{1}'.format(hostname, self.domain_name)
             self.assertIsNotNone(self.hosts.search(name))
+            self.addCleanup(host_cleanup, entities.Host().search(
+                query={'search': 'name={}'.format(name)})[0].id)
+            for _ in range(25):
+                result = self.hosts.get_host_properties(name, ['Build'])
+                if result['Build'] == 'Pending installation':
+                    sleep(30)
+                else:
+                    break
+            self.assertEqual(result['Build'], 'Installed')
 
     @run_only_on('sat')
     @tier3
@@ -406,8 +413,6 @@ class LibvirtHostTestCase(UITestCase):
                     ['Host', 'Deploy on', self.resource],
                     ['Host', 'Puppet Environment', self.puppet_env.name],
                     ['Virtual Machine', 'Memory', '1 GB'],
-                    ['Operating System', 'Media', self.media.name],
-                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
                     ['Operating System', 'Root password', self.root_pwd],
                 ],
                 interface_parameters=[

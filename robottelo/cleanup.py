@@ -39,6 +39,19 @@ def org_cleanup(org_id=None):
     entities.Organization(id=org_id).delete()
 
 
+def host_cleanup(host_id=None):
+    """Deletes the Host with the given id"""
+    entities.Host(id=host_id).delete()
+
+
+def setting_cleanup(setting_name=None, setting_value=None):
+    """Put necessary value for a specified setting"""
+    setting_entity = entities.Setting().search(
+        query={'search': 'name={}'.format(setting_name)})[0]
+    setting_entity.value = setting_value
+    setting_entity.update({'value'})
+
+
 def vm_cleanup(vm):
     """Destroys virtual machine
 
