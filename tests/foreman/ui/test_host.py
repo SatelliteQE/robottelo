@@ -27,6 +27,7 @@ from robottelo.api.utils import (
     upload_manifest,
 )
 from robottelo import manifests
+from robottelo.cleanup import host_cleanup
 from robottelo.cli.contentview import ContentView as cli_ContentView
 from robottelo.cli.proxy import Proxy as cli_Proxy
 from robottelo.config import settings
@@ -161,9 +162,9 @@ class LibvirtHostTestCase(UITestCase):
         ])
 
         # Check what OS was found to use correct media
-        if cls.os.major == '6':
+        if cls.os.major == str(RHEL_6_MAJOR_VERSION):
             os_distr_url = settings.rhel6_os
-        elif cls.os.major == '7':
+        elif cls.os.major == str(RHEL_7_MAJOR_VERSION):
             os_distr_url = settings.rhel7_os
         else:
             raise ValueError('Proposed RHEL version is not supported')
@@ -374,6 +375,8 @@ class LibvirtHostTestCase(UITestCase):
             )
             name = u'{0}.{1}'.format(hostname, self.domain_name)
             self.assertIsNotNone(self.hosts.search(name))
+            self.addCleanup(host_cleanup, entities.Host().search(
+                query={'search': 'name={}'.format(name)})[0].id)
             for _ in range(25):
                 result = self.hosts.get_host_properties(name, ['Build'])
                 if result['Build'] == 'Pending installation':
@@ -381,7 +384,6 @@ class LibvirtHostTestCase(UITestCase):
                 else:
                     break
             self.assertEqual(result['Build'], 'Installed')
-            self.hosts.delete(name, dropdown_present=True)
 
     @run_only_on('sat')
     @tier3

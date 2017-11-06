@@ -19,7 +19,7 @@ from fauxfactory import gen_integer, gen_string
 from six.moves.urllib.parse import urljoin
 from nailgun import entities
 
-from robottelo.cleanup import vm_cleanup
+from robottelo.cleanup import setting_cleanup, vm_cleanup
 from robottelo.cli.factory import (
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
@@ -489,6 +489,12 @@ class ContentHostTestCase(UITestCase):
             # Change necessary setting to true
             ignore_setting.value = 'True'
             ignore_setting.update({'value'})
+            # Add cleanup function to roll back setting to default value
+            self.addCleanup(
+                setting_cleanup,
+                'ignore_facts_for_operatingsystem',
+                default_ignore_setting
+            )
             # Read all facts for corresponding host
             facts = host.get_facts(
                 data={u'per_page': 10000})['results'][self.client.hostname]
@@ -525,9 +531,6 @@ class ContentHostTestCase(UITestCase):
             # Check that new OS was created
             self.assertIsNotNone(self.operatingsys.search(
                 expected_os, _raw_query=expected_os))
-        # Return setting to default value
-        ignore_setting.value = default_ignore_setting
-        ignore_setting.update({'value'})
 
     @tier3
     @upgrade
