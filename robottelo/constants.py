@@ -557,6 +557,7 @@ PERMISSIONS = {
         'rh_telemetry_api',
         'rh_telemetry_configurations',
         'rh_telemetry_view',
+        'strata_api',
         'search_repository_image_search',
         'upload_config_reports',
         'view_arf_reports',
