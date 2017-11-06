@@ -17,7 +17,7 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import run_in_one_thread, run_only_on, tier1
+from robottelo.decorators import run_in_one_thread, run_only_on, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_role
 from robottelo.ui.session import Session
@@ -179,6 +179,7 @@ class AuditTestCase(UITestCase):
                 )
 
     @tier1
+    @upgrade
     def test_positive_delete_by_type(self):
         """Delete some entities of different types and check audit logs for
         these events using entity type and performed action as search criteria
