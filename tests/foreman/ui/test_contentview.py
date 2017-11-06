@@ -4594,6 +4594,120 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_positive_create_puppet_env_with_module(self):
+        """Check that puppet environment will be created automatically once
+        content view that contains puppet module is published, no matter
+        whether 'Force Puppet' option is enabled or disabled for that content
+        view
+
+        :id: af553367-e621-41e8-86cb-091ba7ba6c0a
+
+        :expectedresults: puppet environment is created and has expected name
+
+        :BZ: 1437110
+
+        :CaseLevel: Integration
+        """
+        repo_url = FAKE_0_PUPPET_REPO
+        puppet_module = 'httpd'
+        self.setup_to_create_cv(
+            repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
+        with Session(self) as session:
+            for force_value in [True, False]:
+                cv_name = gen_string('alpha')
+                # Create content-view
+                make_contentview(
+                    session, org=self.organization.name, name=cv_name)
+                self.content_views.update(
+                    name=cv_name, force_puppet=force_value)
+                self.content_views.add_puppet_module(
+                    cv_name,
+                    puppet_module,
+                    filter_term='Latest',
+                )
+                self.content_views.publish(cv_name)
+                # Form environment name variable for our test
+                env_name = 'KT_{0}_{1}_{2}_{3}'.format(
+                    self.organization.name,
+                    ENVIRONMENT,
+                    cv_name,
+                    str(
+                        entities.ContentView(
+                            name=cv_name,
+                            organization=self.organization,
+                        ).search()[0].id
+                    ),
+                )
+                self.assertIsNotNone(self.environment.search(env_name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_create_puppet_env_without_module(self):
+        """Check that puppet environment will not be created in case content
+        view does not contains puppet module and 'Force Puppet' option is not
+        enabled for that content view
+
+        :id: 375e70d9-25a3-4f3f-af2e-cb3c09c57db7
+
+        :expectedresults: puppet environment is not created automatically
+
+        :CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        with Session(self) as session:
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.content_views.update(name=cv_name, force_puppet=False)
+            self.content_views.publish(cv_name)
+            # Form environment name variable for our test
+            env_name = 'KT_{0}_{1}_{2}_{3}'.format(
+                self.organization.name,
+                ENVIRONMENT,
+                cv_name,
+                str(
+                    entities.ContentView(
+                        name=cv_name,
+                        organization=self.organization,
+                    ).search()[0].id
+                ),
+            )
+            self.assertIsNone(self.environment.search(env_name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_create_puppet_env_without_module_and_force(self):
+        """Check that puppet environment will be created automatically even if
+        content view  does not contain puppet module, but has 'Force Puppet'
+        option enabled
+
+        :id: ce6ef30b-f304-4f7f-8d53-fb4deaee0419
+
+        :expectedresults: puppet environment is created and has expected name
+
+        :BZ: 1437110
+
+        :CaseLevel: Integration
+        """
+        cv_name = gen_string('alpha')
+        with Session(self) as session:
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.content_views.update(name=cv_name, force_puppet=True)
+            self.content_views.publish(cv_name)
+            # Form environment name variable for our test
+            env_name = 'KT_{0}_{1}_{2}_{3}'.format(
+                self.organization.name,
+                ENVIRONMENT,
+                cv_name,
+                str(
+                    entities.ContentView(
+                        name=cv_name,
+                        organization=self.organization,
+                    ).search()[0].id
+                ),
+            )
+            self.assertIsNotNone(self.environment.search(env_name))
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_remove_cv_version_from_default_env(self):
         """Remove content view version from Library environment
 
