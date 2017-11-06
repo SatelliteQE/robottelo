@@ -23,6 +23,11 @@
 
 .. automodule:: tests.foreman.ui.test_architecture
 
+:mod:`tests.foreman.ui.test_audit`
+----------------------------------
+
+.. automodule:: tests.foreman.ui.test_audit
+
 :mod:`tests.foreman.ui.test_bookmark`
 -------------------------------------
 

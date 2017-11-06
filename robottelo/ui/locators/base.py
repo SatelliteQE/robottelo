@@ -3079,4 +3079,16 @@ locators = LocatorDict({
         "//div[h3[text()='%s']]/following-sibling::div//*[name()='svg']"
         "//*[name()='tspan'][contains(@class,'donut-title-big-pf')]"
     ),
+
+    # Audit
+    "audit.type": (By.XPATH, "(//b[contains(@class, 'label')])[%i]"),
+    "audit.full_statement": (
+        By.XPATH, "(//div[contains(@class, 'audit-content')])[%i]/b"),
+    "audit.user": (
+        By.XPATH, "(//div[contains(@class, 'audit-content')])[%i]/b"
+                  "/a[contains(@href, 'user')]"),
+    "audit.entity_name": (
+        By.XPATH, "(//div[contains(@class, 'audit-content')])[%i]/b/a[2]"),
+    "audit.update_list": (
+        By.XPATH, "(//div[contains(@class, 'audit-content')])[%i]/ul"),
 })

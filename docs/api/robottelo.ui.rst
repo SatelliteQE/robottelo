@@ -13,6 +13,11 @@
 
 .. automodule:: robottelo.ui.architecture
 
+:mod:`robottelo.ui.audit`
+-------------------------
+
+.. automodule:: robottelo.ui.audit
+
 :mod:`robottelo.ui.base`
 ------------------------
 
