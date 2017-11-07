@@ -620,8 +620,8 @@ class CannedRoleTestCases(UITestCase):
                 menu_locators['menu.configure'], timeout=3))
 
         with Session(self, username, password) as session:
-            set_context(session, org=self.role_org)
-            set_context(session, loc=self.role_loc)
+            set_context(session, org=self.role_org, loc=self.role_loc,
+                        force_context=True)
             self.assertIsNone(self.domain.search(domain_name))
             self.assertIsNone(session.nav.wait_until_element(
                 menu_locators['menu.hosts'], timeout=3))
