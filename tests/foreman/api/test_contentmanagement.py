@@ -283,15 +283,15 @@ class CapsuleContentManagementTestCase(APITestCase):
             repo=repo.label,
         )
         result = ssh.command(
-            'grep -o \'checksum type="sha1"\' {}'
-            .format(os.path.join(lce_repo_path, repomd_path)),
+            'grep -o \'checksum type="sha1"\' {}/{}'
+            .format(lce_repo_path, repomd_path),
             hostname=self.capsule_hostname
         )
         self.assertNotEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
         result = ssh.command(
-            'grep -o \'checksum type="sha256"\' {}'
-            .format(os.path.join(lce_repo_path, repomd_path)),
+            'grep -o \'checksum type="sha256"\' {}/{}'
+            .format(lce_repo_path, repomd_path),
             hostname=self.capsule_hostname
         )
         self.assertEqual(result.return_code, 0)
@@ -318,15 +318,15 @@ class CapsuleContentManagementTestCase(APITestCase):
             entities.ForemanTask(id=task['id']).poll()
         # Verify repodata's checksum type has updated to sha1 on capsule
         result = ssh.command(
-            'grep -o \'checksum type="sha256"\' {}'
-            .format(os.path.join(lce_repo_path, repomd_path)),
+            'grep -o \'checksum type="sha256"\' {}/{}'
+            .format(lce_repo_path, repomd_path),
             hostname=self.capsule_hostname
         )
         self.assertNotEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
         result = ssh.command(
-            'grep -o \'checksum type="sha1"\' {}'
-            .format(os.path.join(lce_repo_path, repomd_path)),
+            'grep -o \'checksum type="sha1"\' {}/{}'
+            .format(lce_repo_path, repomd_path),
             hostname=self.capsule_hostname
         )
         self.assertEqual(result.return_code, 0)
