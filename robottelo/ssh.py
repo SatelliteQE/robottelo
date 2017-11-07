@@ -22,8 +22,10 @@ class SSHCommandTimeoutError(Exception):
 
 
 def decode_to_utf8(text):  # pragma: no cover
-    """In python 3 all strings are already unicode, no need to decode"""
-    if six.PY2:
+    """Paramiko returns bytes object and we need to ensure it is utf-8 before
+    parsing
+    """
+    if isinstance(text, bytes):
         return text.decode('utf-8')
     return text
 
