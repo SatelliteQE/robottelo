@@ -27,7 +27,6 @@ from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
 )
 from robottelo.test import CLITestCase
@@ -85,6 +84,7 @@ class HammerAuthTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Making sure sessions are disabled after test run"""
+        super(HammerAuthTestCase, cls).tearDownClass()
         configure_sessions(False)
 
     @tier1
@@ -105,7 +105,8 @@ class HammerAuthTestCase(CLITestCase):
             expires after specified time
         """
         try:
-            idle = Settings.list({'search': 'name=idle_timeout'})[0][u'value']
+            idle_timeout = Settings.list({
+                'search': 'name=idle_timeout'})[0][u'value']
             Settings.set({'name': 'idle_timeout', 'value': 1})
             result = configure_sessions()
             self.assertEqual(result, 0, 'Failed to configure hammer sessions')
@@ -113,30 +114,27 @@ class HammerAuthTestCase(CLITestCase):
                 'username': self.uname_admin,
                 'password': self.password
             })
-            result = Auth.status({
-                 'hammer_options': {'username': u'', 'password': u''}})
+            result = Auth.with_user().status()
             self.assertIn(
                 LOGEDIN_MSG.format(self.uname_admin),
                 result[0][u'message']
             )
             # list organizations without supplying credentials
             with self.assertNotRaises(CLIReturnCodeError):
-                Org.list({
-                    'hammer_options': {'username': u'', 'password': u''}})
+                Org.with_user().list()
             # wait until session expires
             sleep(70)
             with self.assertRaises(CLIReturnCodeError):
-                Org.list({
-                    'hammer_options': {'username': u'', 'password': u''}})
-            result = Auth.status({
-                 'hammer_options': {'username': u'', 'password': u''}})
+                Org.with_user().list()
+            result = Auth.with_user().status()
             self.assertIn(
                 LOGEDOFF_MSG.format(self.uname_admin),
                 result[0][u'message']
             )
         finally:
             # reset timeout to default
-            Settings.set({'name': 'idle_timeout', 'value': '{}'.format(idle)})
+            Settings.set({'name': 'idle_timeout', 'value': '{}'.format(
+                idle_timeout)})
 
     @tier1
     def test_positive_disable_session(self):
@@ -157,28 +155,24 @@ class HammerAuthTestCase(CLITestCase):
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
         Auth.login({'username': self.uname_admin, 'password': self.password})
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         # list organizations without supplying credentials
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
-
+            Org.with_user().list()
         # disabling sessions
         result = configure_sessions(False)
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             NOTCONF_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         with self.assertRaises(CLIReturnCodeError):
-            Org.list({
-                'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
 
     @tier1
     def test_positive_log_out_from_session(self):
@@ -199,24 +193,22 @@ class HammerAuthTestCase(CLITestCase):
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
         Auth.login({'username': self.uname_admin, 'password': self.password})
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         # list organizations without supplying credentials
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
         Auth.logout()
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDOFF_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         with self.assertRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
 
     @tier1
     def test_positive_change_session(self):
@@ -237,24 +229,22 @@ class HammerAuthTestCase(CLITestCase):
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
         Auth.login({'username': self.uname_admin, 'password': self.password})
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         # list organizations without supplying credentials
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
         Auth.login({'username': self.uname_viewer, 'password': self.password})
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_viewer),
             result[0][u'message']
         )
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
 
     @tier1
     def test_positive_session_survives_unauthenticated_call(self):
@@ -275,27 +265,25 @@ class HammerAuthTestCase(CLITestCase):
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
         Auth.login({'username': self.uname_admin, 'password': self.password})
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         # list organizations without supplying credentials
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
-        ssh.command('hammer ping')
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
+        result = ssh.command('hammer ping')
+        self.assertEqual(result.return_code, 0, 'Failed to run hammer ping')
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
 
     @tier1
-    @skip_if_bug_open("bugzilla", "1465552")
     def test_positive_session_survives_failed_login(self):
         """Check if session stays up after failed login attempt
 
@@ -316,30 +304,27 @@ class HammerAuthTestCase(CLITestCase):
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
         Auth.login({'username': self.uname_admin, 'password': self.password})
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
         # using invalid password
         with self.assertRaises(CLIReturnCodeError):
             Auth.login({
                 'username': self.uname_viewer,
                 'password': gen_string('alpha')})
         # checking the session status again
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         with self.assertNotRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
 
-    @skip_if_bug_open('bugzilla', '1471099')
     @tier1
     def test_positive_session_preceeds_saved_credentials(self):
         """Check if enabled session is mutually exclusive with
@@ -362,7 +347,8 @@ class HammerAuthTestCase(CLITestCase):
 
         """
         try:
-            idle = Settings.list({'search': 'name=idle_timeout'})[0][u'value']
+            idle_timeout = Settings.list({
+                'search': 'name=idle_timeout'})[0][u'value']
             Settings.set({'name': 'idle_timeout', 'value': 1})
             result = configure_sessions(add_default_creds=True)
             self.assertEqual(result, 0, 'Failed to configure hammer sessions')
@@ -370,30 +356,27 @@ class HammerAuthTestCase(CLITestCase):
                 'username': self.uname_admin,
                 'password': self.password
             })
-            result = Auth.status({
-                'hammer_options': {'username': u'', 'password': u''}})
+            result = Auth.with_user().status()
             self.assertIn(
                 LOGEDIN_MSG.format(self.uname_admin),
                 result[0][u'message']
             )
             # list organizations without supplying credentials
             with self.assertNotRaises(CLIReturnCodeError):
-                Org.list({
-                    'hammer_options': {'username': u'', 'password': u''}})
+                Org.with_user().list()
             # wait until session expires
             sleep(70)
             with self.assertRaises(CLIReturnCodeError):
-                Org.list({
-                    'hammer_options': {'username': u'', 'password': u''}})
-            result = Auth.status({
-                'hammer_options': {'username': u'', 'password': u''}})
+                Org.with_user().list()
+            result = Auth.with_user().status()
             self.assertIn(
                 LOGEDOFF_MSG.format(self.uname_admin),
                 result[0][u'message']
             )
         finally:
             # reset timeout to default
-            Settings.set({'name': 'idle_timeout', 'value': '{}'.format(idle)})
+            Settings.set({'name': 'idle_timeout', 'value': '{}'.format(
+                idle_timeout)})
 
     @tier1
     def test_negative_no_credentials(self):
@@ -405,14 +388,13 @@ class HammerAuthTestCase(CLITestCase):
         """
         result = configure_sessions(False)
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             NOTCONF_MSG.format(self.uname_admin),
             result[0][u'message']
         )
         with self.assertRaises(CLIReturnCodeError):
-            Org.list({'hammer_options': {'username': u'', 'password': u''}})
+            Org.with_user().list()
 
     @tier1
     def test_negative_no_permissions(self):
@@ -426,16 +408,14 @@ class HammerAuthTestCase(CLITestCase):
         result = configure_sessions()
         self.assertEqual(result, 0, 'Failed to configure hammer sessions')
         Auth.login({'username': self.uname_viewer, 'password': self.password})
-        result = Auth.status({
-            'hammer_options': {'username': u'', 'password': u''}})
+        result = Auth.with_user().status()
         self.assertIn(
             LOGEDIN_MSG.format(self.uname_viewer),
             result[0][u'message']
         )
         # try to update user from viewer's session
-        result = User.update({
-            'login': self.uname_admin,
-            'password': gen_string('alpha'),
-            'hammer_options': {'username': u'', 'password': u''},
-        }, return_raw_response=True)
-        self.assertNotEqual(result.return_code, 0)
+        with self.assertRaises(CLIReturnCodeError):
+            User.with_user().update({
+                'login': self.uname_admin,
+                'new-login': gen_string('alpha'),
+            })
