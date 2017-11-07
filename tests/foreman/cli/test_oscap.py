@@ -13,11 +13,11 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-
+from random import choice, randint
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError
-from robottelo.cli.factory import make_scapcontent, make_user
+from robottelo.cli.factory import make_policy, make_scapcontent, make_user
 from robottelo.cli.role import Role
 from robottelo.cli.scapcontent import Scapcontent
 from robottelo.cli.user import User
@@ -37,6 +37,10 @@ from robottelo.decorators import (
     skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
+
+
+def get_content_profile(result):
+    return choice([d['id'] for d in result['scap-content-profiles']])
 
 
 class OpenScapTestCase(CLITestCase):
@@ -477,7 +481,6 @@ class OpenScapTestCase(CLITestCase):
             Scapcontent.info({'title': scap_content['title']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_postive_create_scap_policy_with_valid_name(self):
         """Create scap policy with valid name
@@ -497,8 +500,25 @@ class OpenScapTestCase(CLITestCase):
 
         :expectedresults: The policy is created successfully.
 
-        :caseautomation: notautomated
+        :caseautomation: automated
         """
+        title = gen_string('alpha')
+        make_scapcontent({
+            'title': title,
+            'scap-file': '/tmp/{0}'.format(self.file_name)
+        })
+        result = Scapcontent.info({'title': title})
+        self.assertEqual(result['title'], title)
+        for name in valid_data_list():
+            with self.subTest(name):
+                policy = make_policy({
+                    'name': name,
+                    'scap-content': title,
+                    'scap-content-profile-id': get_content_profile(result),
+                    'period': 'monthly',
+                    'day-of-month': randint(1, 29)
+                    })
+                self.assertEqual(policy['name'], name)
 
     @run_only_on('sat')
     @stubbed()
