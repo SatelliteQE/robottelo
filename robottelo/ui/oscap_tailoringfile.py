@@ -9,6 +9,7 @@ from robottelo.ui.navigator import Navigator
 class OpenScapTailoringfile(Base):
     """Manipulates OpenScap Tailoring File from UI"""
     search_key = 'name'
+    actions_dropdown_locator = locators['oscap.content_dropdown']
 
     def navigate_to_entity(self):
         """Navigate to OpenScap Tailoring File entity page"""

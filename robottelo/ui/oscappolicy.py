@@ -17,7 +17,8 @@ class OpenScapPolicy(Base):
         """Specify locator for OpenScap Policy entity search procedure"""
         return locators['oscap.select_policy']
 
-    def create(self, name, desc=None, content=None, profile=None, period=None,
+    def create(self, name, desc=None, content=None, profile=None,
+               tailoring=None, tailoring_profile=None, period=None,
                period_value=None, org=None, loc=None, host_group=None):
         """Creates new Openscap policy from UI"""
         self.click(locators['oscap.new_policy'])
@@ -33,6 +34,11 @@ class OpenScapPolicy(Base):
             self.select(locators['oscap.content_policy'], content)
         if profile:
             self.select(locators['oscap.profile_policy'], profile)
+        if tailoring:
+            self.select(locators['oscap.tailoring_file_policy'], tailoring)
+        if tailoring_profile:
+            self.select(locators['oscap.tailoring_profile_policy'],
+                        tailoring_profile)
         self.click(common_locators['submit'])
         self.select(locators['oscap.period_policy'], period)
         if period == 'Weekly':

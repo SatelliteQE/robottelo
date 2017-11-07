@@ -15,7 +15,12 @@
 :Upstream: No
 """
 from fauxfactory import gen_string
-from robottelo.api.utils import configure_puppet_test
+from nailgun import entities
+from robottelo import manifests
+from robottelo.api.utils import upload_manifest
+from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.scapcontent import Scapcontent
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
@@ -25,18 +30,28 @@ from robottelo.constants import (
     OSCAP_PERIOD,
     OSCAP_PROFILE,
     OSCAP_WEEKDAY,
+    DEFAULT_LOC,
+    PRDS,
+    REPOS,
+    REPOSET,
 )
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
     skip_if_not_set,
     stubbed,
-    tier4,
     skip_if_bug_open,
+    tier4,
     upgrade
 )
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
+from robottelo.ui.factory import (
+    set_context,
+    make_hostgroup,
+    make_oscappolicy,
+    make_oscap_tailoringfile
+)
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -60,11 +75,89 @@ class OpenScapTestCase(UITestCase):
         8. Add product to activation-key
         """
         super(OpenScapTestCase, cls).setUpClass()
-        cls.config_env = configure_puppet_test()
+        cls.config_env = cls.configure_puppet_test()
 
-    @upgrade
+    @classmethod
+    def configure_puppet_test(cls):
+        """Sets up the whole provisioning environment needed for Puppet based
+         end-to-end tests like OSCAP etc
+
+         :returns: A dict of entities to help with provisioning
+        """
+        cls.rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
+        cls.rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
+        sat6_hostname = settings.server.hostname
+        ak_name_7 = gen_string('alpha')
+        ak_name_6 = gen_string('alpha')
+        repo_values = [
+            {
+                'repo': REPOS['rhst6']['name'],
+                'reposet': REPOSET['rhst6'],
+                'akname': ak_name_6
+            },
+            {
+                'repo': REPOS['rhst7']['name'],
+                'reposet': REPOSET['rhst7'],
+                'akname': ak_name_7
+            },
+        ]
+        # Create new organization and environment.
+        org = entities.Organization(name=gen_string('alpha')).create()
+        loc = entities.Location(name=DEFAULT_LOC).search()[0].read()
+        puppet_env = entities.Environment().search(
+            query={u'search': u'name=production'})[0].read()
+        puppet_env.location.append(loc)
+        puppet_env.organization.append(org)
+        puppet_env = puppet_env.update(['location', 'organization'])
+        Proxy.import_classes({
+            u'environment': puppet_env.name,
+            u'name': sat6_hostname,
+        })
+        env = entities.LifecycleEnvironment(
+            organization=org,
+            name=gen_string('alpha')
+        ).create()
+        # Clone and Upload manifest
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        # Create content view
+        content_view = entities.ContentView(
+            organization=org,
+            name=gen_string('alpha')
+        ).create()
+        # Create two activation keys for rhel7 and rhel6
+        for repo in repo_values:
+            activation_key = entities.ActivationKey(
+                name=repo.get('akname'),
+                environment=env,
+                organization=org,
+            ).create()
+            # Setup org for a RH or custom repo for RHEL6 and RHEL7
+            setup_org_for_a_rh_repo({
+                'product': PRDS['rhel'],
+                'repository-set': repo.get('reposet'),
+                'repository': repo.get('repo'),
+                'organization-id': org.id,
+                'content-view-id': content_view.id,
+                'lifecycle-environment-id': env.id,
+                'activationkey-id': activation_key.id,
+            })
+        for content in cls.rhel6_content, cls.rhel7_content:
+            Scapcontent.update({
+                'title': content,
+                'organizations': org.name})
+        return {
+            'org_name': org.name,
+            'cv_name': content_view.name,
+            'sat6_hostname': settings.server.hostname,
+            'ak_name': {'rhel7': ak_name_7, 'rhel6': ak_name_6},
+            'env_name': env.name,
+        }
+
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1479413)
     @tier4
+    @upgrade
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test and upload reports.
 
@@ -81,20 +174,20 @@ class OpenScapTestCase(UITestCase):
         if settings.rhel7_repo is None:
             self.skipTest('Missing configuration for rhel7_repo')
         rhel7_repo = settings.rhel7_repo
-        rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
-        rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
         hgrp6_name = gen_string('alpha')
         hgrp7_name = gen_string('alpha')
+        policy6_name = gen_string('alpha')
+        policy7_name = gen_string('alpha')
         policy_values = [
             {
-                'content': rhel6_content,
+                'content': self.rhel6_content,
                 'hgrp': hgrp6_name,
-                'policy': gen_string('alpha'),
+                'policy': policy6_name,
             },
             {
-                'content': rhel7_content,
+                'content': self.rhel7_content,
                 'hgrp': hgrp7_name,
-                'policy': gen_string('alpha'),
+                'policy': policy7_name,
             },
         ]
         vm_values = [
@@ -102,23 +195,17 @@ class OpenScapTestCase(UITestCase):
                 'distro': DISTRO_RHEL6,
                 'hgrp': hgrp6_name,
                 'rhel_repo': rhel6_repo,
+                'policy': policy6_name,
             },
             {
                 'distro': DISTRO_RHEL7,
                 'hgrp': hgrp7_name,
                 'rhel_repo': rhel7_repo,
+                'policy': policy7_name,
             },
         ]
         with Session(self) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
-            # Creates oscap content for both rhel6 and rhel7
-            for content in [rhel6_content, rhel7_content]:
-                session.nav.go_to_oscap_content()
-                self.oscapcontent.update(
-                    content,
-                    content_org=self.config_env['org_name']
-                )
-            set_context(session, org=self.config_env['org_name'])
+            session.nav.go_to_select_org(self.config_env['org_name'])
             # Creates host_group for both rhel6 and rhel7
             for host_group in [hgrp6_name, hgrp7_name]:
                 make_hostgroup(
@@ -144,16 +231,17 @@ class OpenScapTestCase(UITestCase):
             for value in vm_values:
                 with VirtualMachine(distro=value['distro']) as vm:
                     host = vm.hostname
+                    host_name, _, host_domain = vm.hostname.partition('.')
                     vm.install_katello_ca()
                     vm.register_contenthost(
                         self.config_env['org_name'],
-                        self.config_env['ak_name']
+                        self.config_env['ak_name'].get(value['distro'])
                     )
                     self.assertTrue(vm.subscribed)
                     vm.configure_puppet(value['rhel_repo'])
                     self.hosts.update(
-                        name=vm._target_image,
-                        domain_name=vm._domain,
+                        name=host_name,
+                        domain_name=host_domain,
                         parameters_list=[
                             ['Host', 'Lifecycle Environment',
                              self.config_env['env_name']],
@@ -161,9 +249,16 @@ class OpenScapTestCase(UITestCase):
                              self.config_env['cv_name']],
                             ['Host', 'Host Group', value['hgrp']],
                             ['Host', 'Reset Puppet Environment', True],
+                            ['Host', 'Openscap Capsule',
+                                self.config_env['sat6_hostname']],
                         ],
                     )
-                    session.nav.go_to_hosts()
+                    self.hosts.update_host_bulkactions(
+                        ['{0}'.format(vm.hostname.lower())],
+                        action='Assign Compliance Policy',
+                        parameters_list=[
+                            {'policy': value['policy']}],
+                    )
                     # Run "puppet agent -t" twice so that it detects it's,
                     # satellite6 and fetch katello SSL certs.
                     for _ in range(2):
@@ -197,11 +292,10 @@ class OpenScapTestCase(UITestCase):
         if settings.rhel7_repo is None:
             self.skipTest('Missing configuration for rhel7_repo')
         rhel7_repo = settings.rhel7_repo
-        rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
         content_update = OSCAP_DEFAULT_CONTENT['rhel_firefox']
         hgrp7_name = gen_string('alpha')
         policy_values = {
-            'content': rhel7_content,
+            'content': self.rhel7_content,
             'hgrp': hgrp7_name,
             'policy': gen_string('alpha'),
         }
@@ -211,18 +305,12 @@ class OpenScapTestCase(UITestCase):
             'rhel_repo': rhel7_repo,
         }
         with Session(self) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
-            # Creates oscap content for rhel7
-            session.nav.go_to_oscap_content()
-            self.oscapcontent.update(
-                rhel7_content,
-                content_org=self.config_env['org_name']
-            )
+            set_context(session, org=ANY_CONTEXT)
             self.oscapcontent.update(
                 content_update,
                 content_org=self.config_env['org_name']
             )
-            set_context(session, org=self.config_env['org_name'])
+            session.nav.go_to_select_org(self.config_env['org_name'])
             # Creates host_group for rhel7
             make_hostgroup(
                 session,
@@ -243,25 +331,35 @@ class OpenScapTestCase(UITestCase):
             )
             # Creates two vm's each for rhel6 and rhel7, runs
             # openscap scan and uploads report to satellite6.
-            with VirtualMachine(distro=vm_values.get('distro')) as vm:
-                host = vm.hostname
+            distro_os = vm_values.get('distro')
+            with VirtualMachine(distro=distro_os) as vm:
+                # host = vm.hostname
+                host_name, _, host_domain = vm.hostname.partition('.')
                 vm.install_katello_ca()
                 vm.register_contenthost(
                     self.config_env['org_name'],
-                    self.config_env['ak_name']
+                    self.config_env['ak_name'].get(distro_os)
                 )
                 self.assertTrue(vm.subscribed)
                 vm.configure_puppet(vm_values.get('rhel_repo'))
                 self.hosts.update(
-                    name=vm._target_image,
-                    domain_name=vm._domain,
+                    name=host_name,
+                    domain_name=host_domain,
                     parameters_list=[
-                        ['Host', 'Lifecycle Environment',
-                         self.config_env['env_name']],
-                        ['Host', 'Content View', self.config_env['cv_name']],
                         ['Host', 'Host Group', vm_values.get('hgrp')],
+                        ['Host', 'Lifecycle Environment',
+                            self.config_env['env_name']],
+                        ['Host', 'Content View', self.config_env['cv_name']],
                         ['Host', 'Reset Puppet Environment', True],
+                        ['Host', 'Openscap Capsule',
+                            self.config_env['sat6_hostname']],
                     ],
+                )
+                self.hosts.update_host_bulkactions(
+                    ['{0}'.format(vm.hostname.lower())],
+                    action='Assign Compliance Policy',
+                    parameters_list=[
+                        {'policy': policy_values.get('policy')}],
                 )
                 # Run "puppet agent -t" twice so that it detects it's,
                 # satellite6 and fetch katello SSL certs.
@@ -277,7 +375,8 @@ class OpenScapTestCase(UITestCase):
                 vm.execute_foreman_scap_client()
                 # Assert whether oscap reports are uploaded to
                 # Satellite6.
-                self.assertTrue(self.oscapreports.search(host))
+                self.assertTrue(self.oscapreports.search(vm.hostname.lower()))
+                session.nav.go_to_oscap_policy()
                 self.oscappolicy.update(
                     name=policy_values.get('policy'),
                     new_name=gen_string('alpha'),
@@ -286,7 +385,7 @@ class OpenScapTestCase(UITestCase):
                     period=OSCAP_PERIOD['weekly'],
                     period_value=OSCAP_WEEKDAY['friday'],
                 )
-                self.oscapreports.delete(host, really=True)
+                self.oscapreports.delete(vm.hostname.lower(), really=True)
                 for _ in range(2):
                     vm.run(u'puppet agent -t 2> /dev/null')
                 updated_result = vm.run(
@@ -298,7 +397,124 @@ class OpenScapTestCase(UITestCase):
                 # Runs the actual oscap scan on the vm/clients and
                 # uploads report to Internal Capsule.
                 vm.execute_foreman_scap_client()
-                self.assertTrue(self.oscapreports.search(host))
+                self.assertTrue(self.oscapreports.search(vm.hostname.lower()))
+
+    @upgrade
+    @run_only_on('sat')
+    @tier4
+    def test_positive_oscap_run_with_tailoring_file_and_capsule(self):
+        """ End-to-End Oscap run with tailoring files and default capsule
+
+        :id: 346946ad-4f62-400e-9390-81817006048c
+
+        :setup: scap content, scap policy, tailoring file, host group
+
+        :steps:
+
+            1. Create a valid scap content
+            2. Upload a valid tailoring file
+            3. Create a scap policy
+            4. Associate scap content with it's tailoring file
+            5. Associate the policy with a hostgroup
+            6. Provision a host using the hostgroup
+            7. Puppet should configure and fetch the scap content
+               and tailoring file
+
+        :expectedresults: ARF report should be sent to satellite reflecting
+                         the changes done via tailoring files
+
+        :CaseImportance: Critical
+        """
+        if settings.rhel7_repo is None:
+            self.skipTest('Missing configuration for rhel7_repo')
+        rhel7_repo = settings.rhel7_repo
+        hgrp7_name = gen_string('alpha')
+        policy_values = {
+            'content': self.rhel7_content,
+            'hgrp': hgrp7_name,
+            'policy': gen_string('alpha'),
+        }
+        vm_values = {
+            'distro': DISTRO_RHEL7,
+            'hgrp': hgrp7_name,
+            'rhel_repo': rhel7_repo,
+        }
+        tailoring_file_name = gen_string('alpha')
+        tailoring_path = get_data_file(settings.oscap.tailoring_path)
+        with Session(self) as session:
+            session.nav.go_to_select_org(self.config_env['org_name'])
+            # Creates host_group for rhel7
+            make_hostgroup(
+                session,
+                content_source=self.config_env['sat6_hostname'],
+                name=hgrp7_name,
+                puppet_ca=self.config_env['sat6_hostname'],
+                puppet_master=self.config_env['sat6_hostname'],
+            )
+            make_oscap_tailoringfile(
+                session,
+                name=tailoring_file_name,
+                tailoring_path=tailoring_path,
+            )
+            self.assertIsNotNone(
+                self.oscaptailoringfile.search(tailoring_file_name))
+            # Creates oscap_policy for rhel7.
+            make_oscappolicy(
+                session,
+                content=policy_values.get('content'),
+                host_group=policy_values.get('hgrp'),
+                name=policy_values.get('policy'),
+                period=OSCAP_PERIOD['weekly'],
+                profile=OSCAP_PROFILE['common'],
+                period_value=OSCAP_WEEKDAY['friday'],
+                tailoring=tailoring_file_name,
+                tailoring_profile=OSCAP_PROFILE['tailoring_rhel7']
+            )
+            distro_os = vm_values.get('distro')
+            with VirtualMachine(distro=distro_os) as vm:
+                host_name, _, host_domain = vm.hostname.partition('.')
+                vm.install_katello_ca()
+                vm.register_contenthost(
+                    self.config_env['org_name'],
+                    self.config_env['ak_name'].get(distro_os)
+                )
+                self.assertTrue(vm.subscribed)
+                vm.configure_puppet(rhel7_repo)
+                self.hosts.update(
+                    name=host_name,
+                    domain_name=host_domain,
+                    parameters_list=[
+                        ['Host', 'Host Group', vm_values.get('hgrp')],
+                        ['Host', 'Lifecycle Environment',
+                            self.config_env['env_name']],
+                        ['Host', 'Content View', self.config_env['cv_name']],
+                        ['Host', 'Reset Puppet Environment', True],
+                        ['Host', 'Openscap Capsule',
+                            self.config_env['sat6_hostname']],
+                    ],
+                )
+                self.hosts.update_host_bulkactions(
+                    ['{0}'.format(vm.hostname.lower())],
+                    action='Assign Compliance Policy',
+                    parameters_list=[
+                        {'policy': policy_values.get('policy')}],
+                )
+                # Run "puppet agent -t" twice so that it detects it's,
+                # satellite6 and fetch katello SSL certs.
+                for _ in range(2):
+                    vm.run(u'puppet agent -t 2> /dev/null')
+                result = vm.run(
+                    u'cat /etc/foreman_scap_client/config.yaml'
+                    '| grep profile'
+                )
+                self.assertEqual(result.return_code, 0)
+                # Runs the actual oscap scan on the vm/clients and
+                # uploads report to Internal Capsule.
+                vm.execute_foreman_scap_client()
+                # Assert whether oscap reports are uploaded to
+                # Satellite6.
+                self.assertTrue(self.oscapreports.search(
+                    '{0}'.format(vm.hostname)))
 
     @run_only_on('sat')
     @stubbed()

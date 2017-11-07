@@ -1445,7 +1445,9 @@ OSCAP_PROFILE = {
               'Certified Cloud Providers (RH CCP)'),
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
     'common': 'Common Profile for General-Purpose Systems',
-    'firefox': 'Upstream Firefox STIG'
+    'firefox': 'Upstream Firefox STIG',
+    'tailoring_rhel7': ('Common Profile for General-Purpose Systems '
+                        '[CUSTOMIZED1]')
 }
 
 ROLES = [

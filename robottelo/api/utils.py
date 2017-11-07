@@ -5,22 +5,15 @@ import time
 from fauxfactory import gen_string
 from inflector import Inflector
 from nailgun import entities, entity_mixins
-from robottelo import manifests
 from robottelo import ssh
-from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
 from robottelo.config.base import ImproperlyConfigured
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_LOC,
     DEFAULT_PTABLE,
     DEFAULT_PXE_TEMPLATE,
-    DEFAULT_SUBSCRIPTION_NAME,
     DEFAULT_TEMPLATE,
     PERMISSIONS_WITH_BZ,
-    PRDS,
-    REPOS,
-    REPOSET,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
@@ -575,103 +568,6 @@ def create_role_permissions(role, permissions_types_names):  # pragma: no cover
             role=role,
             search=None
         ).create()
-
-
-def configure_puppet_test():
-    sat6_hostname = settings.server.hostname
-    repo_values = [
-        {'repo': REPOS['rhst6']['name'], 'reposet': REPOSET['rhst6']},
-        {'repo': REPOS['rhst7']['name'], 'reposet': REPOSET['rhst7']},
-    ]
-
-    # step 1: Create new organization and environment.
-    org = entities.Organization(name=gen_string('alpha')).create()
-    loc = entities.Location(name=DEFAULT_LOC).search()[0].read()
-    puppet_env = entities.Environment(
-        name='production').search()[0].read()
-    puppet_env.location.append(loc)
-    puppet_env.organization.append(org)
-    puppet_env = puppet_env.update(['location', 'organization'])
-    Proxy.import_classes({
-        u'environment': puppet_env.name,
-        u'name': sat6_hostname,
-    })
-    env = entities.LifecycleEnvironment(
-        organization=org,
-        name=gen_string('alpha')
-    ).create()
-
-    # step 2: Clone and Upload manifest
-    with manifests.clone() as manifest:
-        upload_manifest(org.id, manifest.content)
-
-    # step 3: Sync RedHat Sattools RHEL6 and RHEL7 repository
-    repos = [
-        entities.Repository(id=enable_rhrepo_and_fetchid(
-            basearch='x86_64',
-            org_id=org.id,
-            product=PRDS['rhel'],
-            repo=value['repo'],
-            reposet=value['reposet'],
-            releasever=None,
-        ))
-        for value in repo_values
-        ]
-    for repo in repos:
-        repo.sync()
-
-    # step 4: Create content view
-    content_view = entities.ContentView(
-        organization=org,
-        name=gen_string('alpha')
-    ).create()
-
-    # step 5: Associate repository to new content view
-    content_view.repository = repos
-    content_view = content_view.update(['repository'])
-
-    # step 6: Publish content view and promote to lifecycle env.
-    content_view.publish()
-    content_view = content_view.read()
-    promote(content_view.version[0], env.id)
-
-    # step 7: Create activation key
-    ak_name = gen_string('alpha')
-    activation_key = entities.ActivationKey(
-        name=ak_name,
-        environment=env,
-        organization=org,
-        content_view=content_view,
-    ).create()
-
-    # step 7.1: Walk through the list of subscriptions.
-    # Find the "Employee SKU" and attach it to the
-    # recently-created activation key.
-    for sub in entities.Subscription(organization=org).search():
-        if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-            # 'quantity' must be 1, not subscription['quantity']. Greater
-            # values produce this error: "RuntimeError: Error: Only pools
-            # with multi-entitlement product subscriptions can be added to
-            # the activation key with a quantity greater than one."
-            activation_key.add_subscriptions(data={
-                'quantity': 1,
-                'subscription_id': sub.id,
-            })
-            break
-    for content_label in [REPOS['rhst6']['id'], REPOS['rhst7']['id']]:
-        # step 7.2: Enable product content
-        activation_key.content_override(data={'content_override': {
-            u'content_label': content_label,
-            u'value': u'1',
-        }})
-
-    return {
-        'org_name': org.name,
-        'cv_name': content_view.name,
-        'sat6_hostname': settings.server.hostname,
-        'ak_name': ak_name,
-        'env_name': env.name,
-    }
 
 
 def wait_for_tasks(search_query, search_rate=1, max_tries=10, poll_rate=None,
