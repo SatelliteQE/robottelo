@@ -41,6 +41,7 @@ from robottelo.constants import (
     PRDS,
     PULP_PUBLISHED_ISO_REPOS_PATH,
     PULP_PUBLISHED_YUM_REPOS_PATH,
+    REPO_TYPE,
     REPOS,
     REPOSET,
     RPM_TO_UPLOAD,
@@ -965,7 +966,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         content_view = entities.ContentView(organization=org).create()
         prod = entities.Product(organization=org).create()
         puppet_repository = entities.Repository(
-            content_type='puppet',
+            content_type=REPO_TYPE['puppet'],
             product=prod,
             url=CUSTOM_PUPPET_REPO,
         ).create()
@@ -1033,14 +1034,12 @@ class CapsuleContentManagementTestCase(APITestCase):
         self.assertEqual(len(cvv.environment), 2)
         # Wait till capsule sync finishes
         sync_status = capsule.content_get_sync()
-        tasks = []
-        if not sync_status['active_sync_tasks']:
+        if sync_status['active_sync_tasks']:
+            for task in sync_status['active_sync_tasks']:
+                entities.ForemanTask(id=task['id']).poll()
+        else:
             self.assertNotEqual(
                 sync_status['last_sync_time'], last_sync_time)
-        else:
-            for task in sync_status['active_sync_tasks']:
-                tasks.append(entities.ForemanTask(id=task['id']))
-                tasks[-1].poll()
         # Polling the task will raise an assertion in case of error, but in
         # case we couldn't catch tasks running in time, let's ensure no new
         # failed tasks were logged for capsule
