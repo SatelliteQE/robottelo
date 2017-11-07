@@ -64,4 +64,4 @@ class LDAPAuthSourceTestCase(CLITestCase):
                     u'base-dn': self.base_dn,
                     u'groups-base': self.group_base_dn,
                 })
-                self.assertEqual(auth['name'], server_name)
+                self.assertEqual(auth['server']['name'], server_name)
