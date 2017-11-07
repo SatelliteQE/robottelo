@@ -357,7 +357,8 @@ class HostCreateTestCase(CLITestCase):
             'lifecycle-environment-id': self.LIBRARY['id'],
             'organization': self.new_org['name'],
         })
-        self.assertEqual(host['content-source'], content_source['name'])
+        self.assertEqual(host['content-information']['content-source'],
+                         content_source['name'])
 
     @tier1
     def test_negative_create_with_content_source(self):
@@ -411,7 +412,8 @@ class HostCreateTestCase(CLITestCase):
             'content-source-id': new_content_source['id'],
         })
         host = Host.info({'id': host['id']})
-        self.assertEqual(host['content-source'], new_content_source['name'])
+        self.assertEqual(host['content-information']['content-source'],
+                         new_content_source['name'])
 
     @skip_if_bug_open('bugzilla', 1483252)
     @tier1
@@ -442,7 +444,8 @@ class HostCreateTestCase(CLITestCase):
                 'content-source-id': gen_integer(10000, 99999),
             })
         host = Host.info({'id': host['id']})
-        self.assertEqual(host['content-source'], content_source['name'])
+        self.assertEqual(host['content-information']['content-source'],
+                         content_source['name'])
 
     @run_only_on('sat')
     @tier1
