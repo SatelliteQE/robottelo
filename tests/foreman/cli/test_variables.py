@@ -309,6 +309,8 @@ class SmartVariablesTestCase(CLITestCase):
         :expectedresults: The smart Variable is deleted successfully.
 
         :CaseImportance: Critical
+
+        :caseautomation: automated
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name']})
@@ -1566,6 +1568,8 @@ class SmartVariablesTestCase(CLITestCase):
             2.  The default value is empty.
 
         :CaseImportance: Critical
+
+        :caseautomation: automated
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet_class['name'],

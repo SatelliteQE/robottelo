@@ -2113,6 +2113,8 @@ class SmartVariablesTestCase(UITestCase):
             3.  Matcher Value shown as hidden.
 
         :CaseImportance: Critical
+
+        :caseautomation: automated
         """
         name = gen_string('alpha')
         override_value = gen_string('alpha')

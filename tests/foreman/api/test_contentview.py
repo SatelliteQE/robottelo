@@ -72,6 +72,8 @@ class ContentViewTestCase(APITestCase):
             'content_view_id' facet attribute
 
         :CaseLevel: System
+
+        :caseautomation: automated
         """
         # organization
         # ├── lifecycle environment

@@ -1619,6 +1619,8 @@ class SmartClassParametersTestCase(APITestCase):
                parameter.
 
         :CaseImportance: Critical
+
+        :caseautomation: automated
         """
         sc_param = self.sc_params_list.pop()
         hostgroup_name = gen_string('alpha')
@@ -1760,6 +1762,8 @@ class SmartClassParametersTestCase(APITestCase):
             2. The default value is empty even after hide.
 
         :CaseImportance: Critical
+
+        :caseautomation: automated
         """
         sc_param = self.sc_params_list.pop()
         sc_param.override = True

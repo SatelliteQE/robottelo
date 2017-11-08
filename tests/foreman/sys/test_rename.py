@@ -3,7 +3,7 @@
 
 :Requirement: katello-change-hostname
 
-:CaseAutomation: notautomated
+:CaseAutomation: Automated
 
 :CaseLevel: System
 
@@ -73,6 +73,8 @@ class RenameHostTestCase(TestCase):
 
         :expectedresults: Satellite hostname is successfully updated
             and the server functions correctly
+
+        :caseautomation: automated
         """
         # Save original hostname, get credentials, eventually will
         # end up in setUpClass
@@ -107,6 +109,8 @@ class RenameHostTestCase(TestCase):
 
         :expectedresults: script terminates with a message, hostname
             is not changed
+
+        :caseautomation: automated
         """
         with get_connection() as connection:
             hostname = gen_string('alpha')
@@ -134,6 +138,8 @@ class RenameHostTestCase(TestCase):
 
         :expectedresults: script terminates with a message, hostname
             is not changed
+
+        :caseautomation: automated
         """
         with get_connection() as connection:
             hostname = gen_string('alpha')
@@ -159,6 +165,8 @@ class RenameHostTestCase(TestCase):
 
         :expectedresults: script terminates with a message, hostname
             is not changed
+
+        :caseautomation: automated
         """
         with get_connection() as connection:
             password = gen_string('alpha')
@@ -195,6 +203,8 @@ class RenameHostTestCase(TestCase):
 
         :expectedresults: Capsule hostname is successfully updated
             and the capsule fuctions correctly
+
+        :caseautomation: automated
         """
         # Save original hostname, get credentials, eventually will
         # end up in setUpClass

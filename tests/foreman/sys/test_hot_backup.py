@@ -3,7 +3,7 @@
 
 :Requirement: HotBackup
 
-:CaseAutomation: notautomated
+:CaseAutomation: automated
 
 :CaseLevel: System
 
@@ -99,6 +99,7 @@ class HotBackupTestCase(TestCase):
             and contains all the default files needed to restore. Services keep
             running.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
@@ -136,6 +137,7 @@ class HotBackupTestCase(TestCase):
             containing all the default files needed to restore. Services
             keep running.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             dir_name = gen_string('alpha')
@@ -171,6 +173,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: The error message is shown, services are not
             stopped
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             connection.run('katello-service start')
@@ -195,6 +198,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: The error message is shown, services are not
             stopped
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             connection.run('katello-service start')
@@ -223,6 +227,7 @@ class HotBackupTestCase(TestCase):
 
         :expectedresults: katello-backup finished with correct exit code
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             connection.run('katello-service start')
@@ -252,6 +257,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: ``/tmp/bck-no-pulp`` is created and pulp
             related files are not present. Services keep running.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
@@ -288,6 +294,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: Backup is created and pulp related
             files are not present. Services are started back again.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
@@ -323,6 +330,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: Backup is created and additional files are
             not present. Services are started back again.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
@@ -361,6 +369,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: Incremental backup is created. Services are
             started back again.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
@@ -419,6 +428,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: The error message is shown, services are not
             stopped
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             result = connection.run(
@@ -442,6 +452,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: The error message is shown, services are not
             stopped
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             result = connection.run(
@@ -465,6 +476,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: The error message is shown, services are not
             stopped
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             dir_name = gen_string('alpha')
@@ -493,6 +505,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: Incremental backup is created and pulp related files
             are not present. Services keep running.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
@@ -553,6 +566,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: Incremental backup is created with and pulp related
             files are not present. Services are started back again.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
@@ -615,6 +629,7 @@ class HotBackupTestCase(TestCase):
 
         :expectedresults: Backup "ib1" is backed up.
 
+        :caseautomation: automated
         """
         with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
@@ -700,7 +715,7 @@ class HotBackupTestCase(TestCase):
 
         :expectedresults: Each backup is fully restored.
 
-        :CaseAutomation: notautomated
+        :caseautomation: notautomated
 
         """
         # IS THIS CASE REASONABLE?
@@ -722,8 +737,7 @@ class HotBackupTestCase(TestCase):
 
         :expectedresults: Each backup is fully restored.
 
-        :CaseAutomation: notautomated
-
+        :caseautomation: notautomated
         """
 
     @destructive
@@ -742,8 +756,7 @@ class HotBackupTestCase(TestCase):
         :expectedresults: The backup is successful and the restored
             configuration is correct.
 
-        :CaseAutomation: notautomated
-
+        :caseautomation: notautomated
         """
 
     @destructive
@@ -760,8 +773,7 @@ class HotBackupTestCase(TestCase):
 
         :expectedresults: The restore is successful.
 
-        :CaseAutomation: notautomated
-
+        :caseautomation: notautomated
         """
 
     @destructive
@@ -779,6 +791,5 @@ class HotBackupTestCase(TestCase):
         :expectedresults: The backup succeeds  and the host gets the requested
             content.
 
-        :CaseAutomation: notautomated
-
+        :caseautomation: notautomated
         """
