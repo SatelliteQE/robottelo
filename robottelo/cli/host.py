@@ -103,6 +103,13 @@ class Host(Base):
             cls._construct_command(options), output_format='csv')
 
     @classmethod
+    def package_list(cls, options):
+        """List packages installed on the host."""
+        cls.command_sub = 'package list'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
     def package_remove(cls, options):
         """Uninstall packages remotely."""
         cls.command_sub = 'package remove'
