@@ -1220,9 +1220,15 @@ locators = LocatorDict({
     "hostgroups.operating_system_clear": (
         By.XPATH,
         "//div[contains(@id, 'hostgroup_operatingsystem_id')]/a/abbr"),
+    "hostgroups.media_selection": (
+        By.XPATH, "//input[@type='radio' and @value='%s']"),
     "hostgroups.media": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_medium_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.synced_content": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_group_kickstart_repository_id')]/a"
          "/span[contains(@class, 'arrow')]")),
     "hostgroups.partition_table": (
         By.XPATH,
@@ -1983,6 +1989,10 @@ locators = LocatorDict({
          "//a[contains(@ng-click, 'version-deletion')]")),
     "contentviews.completely_remove_checkbox": (
         By.XPATH, "//input[contains(@ng-model, 'deleteArchive')]"),
+    "contentviews.remove_warning": (
+        By.XPATH,
+        "//div[contains(@ng-show, 'conflict')]/i[contains(@class, 'warning')]"
+        "/following-sibling::span/span"),
     "contentviews.next_button": (
         By.XPATH, "//button[@ng-click='processSelection()']"),
     "contentviews.affected_button": (

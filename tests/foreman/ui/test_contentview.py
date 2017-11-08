@@ -43,7 +43,9 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
+    DEFAULT_PTABLE,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
@@ -66,6 +68,8 @@ from robottelo.constants import (
     PUPPET_MODULE_CUSTOM_NAME,
     REPOS,
     REPOSET,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
     REPO_TYPE,
     ZOO_CUSTOM_GPG_KEY,
 )
@@ -88,6 +92,7 @@ from robottelo.test import UITestCase
 from robottelo.ui.base import UIError, UINoSuchElementError
 from robottelo.ui.factory import (
     make_contentview,
+    make_hostgroup,
     make_lifecycle_environment,
     set_context,
 )
@@ -3750,6 +3755,100 @@ class ContentViewTestCase(UITestCase):
             for cvv in cvv_names:
                 self.assertIsNotNone(self.content_views.wait_until_element(
                     locators['contentviews.version_name'] % cvv))
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_delete_with_kickstart_repo_and_host_group(self):
+        """Check that Content View associated with kickstart repository and
+        which is used by a host group can be removed from the system
+
+        :id: 7b076f55-72c9-4413-a592-92a47b51cb0a
+
+        :expectedresults: Deletion was performed successfully
+
+        :BZ: 1417072
+
+        :CaseLevel: Integration
+        """
+        sat6_hostname = settings.server.hostname
+        org = entities.Organization().create()
+        # Create a new Life-Cycle environment
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+
+        # Create a Product and Kickstart Repository for OS distribution content
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(
+            product=product, url=settings.rhel6_os).create()
+
+        # Repo sync procedure
+        call_entity_method_with_timeout(repo.sync, timeout=3600)
+
+        # Create, Publish and promote CV
+        content_view = entities.ContentView(organization=org).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], lc_env.id)
+
+        # Get the Partition table ID
+        ptable = entities.PartitionTable().search(
+            query={
+                u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
+            }
+        )[0]
+        # Get the arch ID
+        arch = entities.Architecture().search(
+            query={u'search': u'name="{0}"'.format(DEFAULT_ARCHITECTURE)}
+        )[0].read()
+        # Get the OS ID
+        os = entities.OperatingSystem().search(query={
+            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
+                       .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+        })[0]
+        # Update the OS to associate arch and ptable
+        os.architecture = [arch]
+        os.ptable = [ptable]
+        os = os.update(['architecture', 'ptable'])
+        with Session(self) as session:
+            hg_name = gen_string('alpha')
+            make_hostgroup(
+                session,
+                name=hg_name,
+                org=org.name,
+                parameters_list=[
+                    ['Host Group', 'Lifecycle Environment', lc_env.name],
+                    ['Host Group', 'Content View', content_view.name],
+                    ['Host Group', 'Content Source', sat6_hostname],
+                    ['Host Group', 'Puppet CA', sat6_hostname],
+                    ['Host Group', 'Puppet Master', sat6_hostname],
+                    ['Operating System', 'Architecture', arch.name],
+                    [
+                        'Operating System',
+                        'Operating system',
+                        '{} {}.{}'.format(os.name, os.major, os.minor)
+                    ],
+                    ['Operating System', 'Partition table', ptable.name],
+                    ['Operating System', 'Media Selection', 'synced_content'],
+                    ['Operating System', 'Synced Content', repo.name],
+                ],
+            )
+            self.assertIsNotNone(self.hostgroup.search(hg_name))
+            self.content_views.search_and_click(content_view.name)
+            self.content_views.perform_entity_action('Remove')
+            self.assertIn(
+                '{} cannot be deleted as one or more Content View Versions are'
+                ' still promoted to a Lifecycle'.format(content_view.name),
+                self.content_views.wait_until_element(
+                    locators['contentviews.remove_warning']).text
+            )
+            self.content_views.delete_version(content_view.name, 'Version 1.0')
+            self.content_views.check_progress_bar_status('Version 1.0')
+            self.assertIsNone(self.content_views.wait_until_element(
+                locators['contentviews.version_name'] % 'Version 1.0',
+                timeout=5
+            ))
+            self.content_views.delete(content_view.name)
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
