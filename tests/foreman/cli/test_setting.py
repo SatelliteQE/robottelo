@@ -151,6 +151,8 @@ class SettingTestCase(CLITestCase):
         :expectedresults: Parameter is not updated
 
         :caseautomation: notautomated
+
+        :caseimportance: low
         """
 
     @stubbed()
@@ -174,7 +176,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: SMTP properties are updated
 
-        :CaseImportance: Critical
+        :caseimportance: low
 
         :caseautomation: notautomated
         """
@@ -194,7 +196,7 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: Sendmail properties are updated
 
-        :CaseImportance: Critical
+        :caseimportance: low
 
         :caseautomation: notautomated
         """
@@ -207,6 +209,8 @@ class SettingTestCase(CLITestCase):
         :id: cb0907d1-9cb6-45c4-b2bb-e2790ea55f16
 
         :expectedresults: email_reply_address is updated
+
+        :caseimportance: low
 
         :caseautomation: notautomated
         """
@@ -222,6 +226,8 @@ class SettingTestCase(CLITestCase):
 
         :expectedresults: email_reply_address is not updated
 
+        :caseimportance: low
+
         :caseautomation: notautomated
         """
 
@@ -235,6 +241,8 @@ class SettingTestCase(CLITestCase):
         :expectedresults: email_subject_prefix is updated
 
         :caseautomation: notautomated
+
+        :caseimportance: low
         """
 
     @stubbed()
@@ -249,6 +257,8 @@ class SettingTestCase(CLITestCase):
         :expectedresults: email_subject_prefix is not updated
 
         :caseautomation: notautomated
+
+        :caseimportance: low
         """
 
     @stubbed()
@@ -263,6 +273,8 @@ class SettingTestCase(CLITestCase):
         :expectedresults: send_welcome_email is updated
 
         :caseautomation: notautomated
+
+        :caseimportance: low
         """
 
     @stubbed()
@@ -277,4 +289,6 @@ class SettingTestCase(CLITestCase):
         :expectedresults: send_welcome_email is not updated
 
         :caseautomation: notautomated
+
+        :caseimportance: low
         """
