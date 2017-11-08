@@ -1779,6 +1779,8 @@ class SmartClassParametersTestCase(CLITestCase):
             2. The default value is still empty on hide.
 
         :CaseImportance: Critical
+
+        :caseautomation: automated
         """
         sc_param_id = self.sc_params_ids_list.pop()
         SmartClassParameter.update({

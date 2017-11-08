@@ -403,7 +403,7 @@ class SmartClassParametersTestCase(UITestCase):
         :expectedresults: Parameter is not updated with invalid value for
             specific type.
 
-        :CaseImportance: Critical
+        :caseimportance: critical
         """
         sc_param = self.sc_params_list.pop()
         with Session(self):
@@ -439,6 +439,8 @@ class SmartClassParametersTestCase(UITestCase):
             3.  Validate this value under section 'Optional Input Validator'.
 
         :expectedresults: Validation shouldn't work with puppet default value.
+
+        :caseautomation: automated
         """
         sc_param = self.sc_params_list.pop()
         with Session(self):
@@ -1797,6 +1799,8 @@ class SmartClassParametersTestCase(UITestCase):
                 in parameter.
 
         :CaseLevel: Integration
+
+        :caseautomation: automated
         """
         sc_param = self.sc_params_list.pop()
         hg_name = gen_string('alpha')
@@ -2284,6 +2288,8 @@ class SmartClassParametersTestCase(UITestCase):
             1.  The 'Hidden Value' checkbox is enabled to check.
             2.  The default value shows empty on hide.
             3.  Matcher Value shown as hidden.
+
+        :caseautomation: automated
         """
         sc_param = self.sc_params_list.pop()
         matcher_value = gen_string('alpha')
