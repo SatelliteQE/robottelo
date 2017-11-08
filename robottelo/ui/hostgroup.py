@@ -44,6 +44,10 @@ class Hostgroup(Base):
             if parameter_value is None:
                 self.clear_entity_value(
                     locators['{}_clear'.format(locator_name)])
+            elif parameter_name == 'Media Selection':
+                # correct values are 'synced_content' or 'install_media'
+                self.click(
+                    locators['hostgroups.media_selection'] % parameter_value)
             else:
                 self.assign_value(locators[locator_name], parameter_value)
 
