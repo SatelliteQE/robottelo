@@ -48,6 +48,7 @@ from robottelo.cli.model import Model
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
+from robottelo.cli.policy import Policy
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import CapsuleTunnelError, Proxy
 from robottelo.cli.realm import Realm
@@ -2145,6 +2146,93 @@ def make_scapcontent(options=None):
     }
 
     return create_object(Scapcontent, args, options)
+
+
+@cacheable
+def make_policy(options=None):
+    """
+    Usage::
+
+         policy create [OPTIONS]
+
+    Options::
+
+         --cron-line CRON_LINE                     Policy schedule cron line
+                                                   (only if period == “custom”)
+         --day-of-month DAY_OF_MONTH               Policy schedule day of month
+                                                   (only if period == “monthly”
+                                                   )
+         --description DESCRIPTION                 Policy description
+         --hostgroup-ids HOSTGROUP_IDS             Apply policy to host groups
+                                                   Comma separated list of
+                                                   values. Values containing
+                                                   comma should be quoted or
+                                                   escaped with backslash
+         --hostgroups HOSTGROUP_NAMES              Comma separated list of
+                                                   values. Values containing
+                                                   comma should be quoted or
+                                                   escaped with backslash
+         --location-ids LOCATION_IDS               REPLACE locations with
+                                                   given ids. Comma separated
+                                                   list of values. Values
+                                                   containing comma should be
+                                                   quoted or escaped with
+                                                   backslash
+         --locations LOCATION_NAMES                Comma separated list of
+                                                   values. Values containing
+                                                   comma should be quoted or
+                                                   escaped with backslash
+         --name NAME                               Policy name
+         --organization-ids ORGANIZATION_IDS       REPLACE organizations with
+                                                   given ids.Comma separated
+                                                   list of values. Values
+                                                   containing comma should be
+                                                   quoted or escaped with
+                                                   backslash
+         --organizations ORGANIZATION_NAMES        Comma separated list of
+                                                   values. Values containing
+                                                   comma should be quoted or
+                                                   escaped with backslash
+         --period PERIOD                           Policy schedule period
+                                                   (weekly, monthly, custom)
+         --scap-content SCAP_CONTENT_TITLE         SCAP content title
+         --scap-content-id SCAP_CONTENT_ID
+         --scap-content-profile-id SCAP_CONTENT_PROFILE_ID     Policy SCAP
+                                                               content profile
+                                                               ID
+         --tailoring-file TAILORING_FILE_NAME                  Tailoring file
+                                                               name
+         --tailoring-file-id TAILORING_FILE_ID
+         --tailoring-file-profile-id TAILORING_FILE_PROFILE_ID Tailoring file
+                                                               profile ID
+         --weekday WEEKDAY                                     Policy schedule
+                                                               weekday (only if
+                                                               period==“weekly”)
+         -h, --help                                            print help
+    """
+    # Assigning default values for attributes
+    args = {
+        u'cron-line': None,
+        u'day-of-month': None,
+        u'description': None,
+        u'hostgroup-ids': None,
+        u'hostgroups': None,
+        u'location-ids': None,
+        u'locations': None,
+        u'name': gen_alphanumeric().lower(),
+        u'organization-ids': None,
+        u'organizations': None,
+        u'period': None,
+        u'scap-content': None,
+        u'scap-content-id': None,
+        u'scap-content-profile-id': None,
+        u'tailoring-file': None,
+        u'tailoring-file-id': None,
+        u'tailoring-file-profile-id': None,
+        u'weekday': None,
+    }
+
+    return create_object(Policy, args, options)
 
 
 @cacheable

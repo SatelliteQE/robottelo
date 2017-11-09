@@ -100,6 +100,7 @@ class Base(object):
         package-group                 Manipulate package groups
         partition-table               Manipulate partition tables.
         ping                          Get the status of the server
+        policy                        Manipulate policies
         product                       Manipulate products.
         proxy                         Manipulate smart proxies.
         puppet-class                  Search puppet modules.
