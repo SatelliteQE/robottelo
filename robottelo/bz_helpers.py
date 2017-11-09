@@ -10,7 +10,7 @@ from robozilla.filters import BZDecorator
 from robozilla.parser import Parser
 
 BASE_PATH = os.path.join(get_project_root(), 'tests', 'foreman')
-
+VFLAGS = ['sat-{0}.{1}.{2}'.format(6, m, p) for m in '01234' for p in '0z']
 
 LOGGER = logging.getLogger(__name__)
 
@@ -46,31 +46,43 @@ def get_decorated_bugs():  # pragma: no cover
     return bugs
 
 
-def get_deselect_bug_ids(bugs=None, log=None):  # pragma: no cover
+def get_deselect_bug_ids(bugs=None, log=None, lookup=None):  # pragma: no cover
     """returns the IDs of bugs to be deselected from test collection"""
 
     if not settings.configured:
         settings.configure()
 
-    if settings.bugzilla.wontfix_lookup is not True:
+    lookup = lookup or settings.bugzilla.wontfix_lookup
+    if lookup is not True:
         return []
 
     if log is None:
         log = log_debug
 
-    log('Fetching WONTFIX BZs on Bugzilla API...')
+    log('Fetching BZs to deselect...')
     bugs = bugs or get_decorated_bugs()
-    wontfixes = []
+    resolution_list = []
+    flag_list = []
     for bug_id, data in bugs.items():
         bug_data = data.get('bug_data')
         # when not authenticated, private bugs will have no bug data
         if bug_data:
             if bug_data['resolution'] in ('WONTFIX', 'CANTFIX', 'DEFERRED'):
-                wontfixes.append(bug_id)
+                resolution_list.append(bug_id)
+            if not any([flag in bug_data.get('flags', {}) for flag in VFLAGS]):
+                # If the BZ is not flagged with any of `sat-x.x.x`
+                flag_list.append(bug_id)
         else:
             log('bug data for bug id "{}" was not retrieved,'
                 ' please review bugzilla credentials'.format(bug_id))
-    return wontfixes
+
+    if resolution_list:
+        log('Deselected tests reason: BZ resolution %s' % resolution_list)
+
+    if flag_list:
+        log('Deselected tests reason: missing version flag %s' % flag_list)
+
+    return resolution_list + flag_list
 
 
 def group_by_key(data):

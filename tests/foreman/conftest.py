@@ -45,7 +45,7 @@ def pytest_namespace():
     log("Registering custom pytest_namespace")
     return {
         'bugzilla': {
-            'wontfix_ids': get_deselect_bug_ids(log=log),
+            'removal_ids': get_deselect_bug_ids(log=log),
             'decorated_functions': []
         }
     }
@@ -62,14 +62,14 @@ def pytest_collection_modifyitems(items, config):
 
     if settings.bugzilla.wontfix_lookup is not True:
         # if lookup is disable return all collection unmodified
-        log('Deselect of WONTFIX BZs is disabled in settings')
+        log('BZ deselect is disabled in settings')
         return items
 
     deselected_items = []
-    wontfix_ids = pytest.bugzilla.wontfix_ids
+    removal_ids = pytest.bugzilla.removal_ids
     decorated_functions = group_by_key(pytest.bugzilla.decorated_functions)
 
-    log("Found WONTFIX in decorated tests %s" % wontfix_ids)
+    # log("Deselected tests with the following BZs %s" % removal_ids)
     log("Collected %s test cases" % len(items))
 
     for item in items:
@@ -77,9 +77,9 @@ def pytest_collection_modifyitems(items, config):
         bug_ids = decorated_functions.get(name)
         if bug_ids:
             for bug_id in bug_ids:
-                if bug_id in wontfix_ids:
+                if bug_id in removal_ids:
                     deselected_items.append(item)
-                    log("Deselected test %s due to WONTFIX" % name)
+                    log("Deselected test %s" % name)
                     break
 
     config.hook.pytest_deselected(items=deselected_items)
