@@ -611,6 +611,8 @@ locators = LocatorDict({
     # Content Hosts
     "contenthost.page_title": (
         By.XPATH, "//h2/span[contains(., 'Content Hosts')]"),
+    "contenthost.title": (
+        By.XPATH, "//h1/header/span[contains(., '%s')]"),
     "contenthost.select_name": (
         By.XPATH,
         "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),
@@ -2273,6 +2275,13 @@ locators = LocatorDict({
          "//a[contains(@ui-sref, 'content-hosts.details.info')"
          " and contains(., '%s')]/ancestor::tr/td"
          "/a[contains(@ui-sref, 'subscription.info')]")),
+    "subs.guests_of_hypervisor_link": (
+        By.XPATH,
+        ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions')"
+         " and contains(., '%s')]/following-sibling::tr/td"
+         "//a[contains(@ui-sref, 'content-hosts.details.info')"
+         " and contains(., '%s')]")),
+
     "subs.delete_manifest": (
         By.XPATH,
         ("//button[contains(@ng-click,'openModal()')]"
@@ -2314,6 +2323,13 @@ locators = LocatorDict({
     "subs.sub.content_products": (
         By.XPATH,
         "//div[contains(@ng-repeat, 'products')]/b"),
+    "subs.sub.associations.attached_hosts": (
+        By.XPATH, "//td/a[contains(@ui-sref, 'content-host.info')]"
+    ),
+    "subs.sub.associations.attached_host": (
+        By.XPATH,
+        "//td/a[contains(@ui-sref, 'content-host.info') and contains(., '%s')]"
+    ),
 
     # Settings
     "settings.param": (
