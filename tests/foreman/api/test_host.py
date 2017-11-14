@@ -1382,6 +1382,29 @@ class HostTestCase(APITestCase):
         self.assertIsNotNone(content_source_id)
         self.assertEqual(content_source_id, proxy.id)
 
+    def test_positive_read_enc_information(self):
+        """Attempt to read host ENC information
+
+        :id: 0d5047ab-2686-43de-8f04-cfe12b62eebf
+
+        :expectedresults: host ENC information read successfully
+
+        :BZ: 1362372
+
+        :CaseLevel: Integration
+        """
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            environment=self.env,
+            puppetclass=self.puppet_classes,
+        ).create()
+        host_enc_info = host.enc()
+        self.assertEquals(
+            {puppet_class.name for puppet_class in self.puppet_classes},
+            set(host_enc_info['data']['classes'])
+        )
+
     @run_only_on('sat')
     @tier2
     @stubbed()
