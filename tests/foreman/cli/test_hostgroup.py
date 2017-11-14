@@ -34,17 +34,29 @@ from robottelo.cli.factory import (
     make_org,
     make_os,
     make_partition_table,
+    make_product,
     make_proxy,
+    make_repository,
     make_smart_variable,
     make_subnet,
     publish_puppet_module,
 )
+from robottelo.cli.architecture import Architecture
 from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.operatingsys import OperatingSys
+from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
+from robottelo.cli.repository import Repository
 from robottelo.cli.scparams import SmartClassParameter
 from robottelo.config import settings
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import (
+    CUSTOM_PUPPET_REPO,
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_PTABLE,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
+)
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
@@ -668,6 +680,95 @@ class HostGroupTestCase(CLITestCase):
                 'content-source-id': gen_integer(10000, 99999),
                 'organization-ids': self.org['id'],
             })
+
+    @run_only_on('sat')
+    @tier2
+    @upgrade
+    def test_positive_create_with_synced_content(self):
+        """Check if hostgroup with synced kickstart repository can be created
+
+        :id: 7c51ac72-359c-488a-8658-88b5a94d7e7a
+
+        :expectedresults: Hostgroup should be created and has proper
+            installation content id present
+
+        :BZ: 1415707
+
+        :CaseLevel: Integration
+        """
+        # Check whether path to kickstart media is set
+        if settings.rhel6_os is None:
+            raise ValueError(
+                'Installation media path is not set in properties file')
+        # Common entities
+        org = make_org()
+        lce = make_lifecycle_environment({'organization-id': org['id']})
+        product = make_product({'organization-id': org['id']})
+        repo = make_repository({
+            u'url': settings.rhel6_os,
+            u'product-id': product['id'],
+            u'content-type': u'yum',
+        })
+        Repository.synchronize({'id': repo['id']})
+
+        cv = make_content_view({
+            'organization-id': org['id'],
+            'repository-ids': [repo['id']],
+        })
+        ContentView.publish({'id': cv['id']})
+        cv = ContentView.info({'id': cv['id']})
+        cvv = cv['versions'][0]
+        ContentView.version_promote({
+            'id': cvv['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+
+        # Get the Partition table ID
+        ptable = PartitionTable.info({'name': DEFAULT_PTABLE})
+
+        # Get the arch ID
+        arch = Architecture.list({
+            'search': 'name={0}'.format(DEFAULT_ARCHITECTURE)})[0]
+
+        # Get the OS ID
+        os = OperatingSys.list({
+            'search': 'name="RedHat" AND major="{0}" OR major="{1}"'.format(
+                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+        })[0]
+
+        # Update the OS with found arch and ptable
+        OperatingSys.update({
+            'id': os['id'],
+            'architectures': arch['name'],
+            'partition-tables': ptable['name'],
+        })
+        proxy = Proxy.list({
+            'search': 'url = https://{0}:9090'.format(settings.server.hostname)
+        })[0]
+
+        # Search for proper installation repository id
+        synced_repo = Repository.list({
+            'content-view-version-id': cvv['id'],
+            'organization-id': org['id'],
+            'environment-id': lce['id'],
+        })[0]
+        hostgroup = make_hostgroup({
+            'lifecycle-environment-id': lce['id'],
+            'puppet-proxy-id': proxy['id'],
+            'puppet-ca-proxy-id': proxy['id'],
+            'content-source-id': proxy['id'],
+            'content-view-id': cv['id'],
+            'organization-ids': org['id'],
+            'architecture-id': arch['id'],
+            'partition-table-id': ptable['id'],
+            'operatingsystem-id': os['id'],
+            'kickstart-repository-id': synced_repo['id'],
+        })
+        hg = HostGroup.info({'id': hostgroup['id']}, output_format='json')
+        self.assertEqual(
+            hg['operating-system']['kickstart_repository_id'],
+            synced_repo['id']
+        )
 
     @run_in_one_thread
     @tier1
