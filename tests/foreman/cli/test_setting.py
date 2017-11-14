@@ -18,6 +18,7 @@
 from robottelo.cli.settings import Settings
 from robottelo.datafactory import (
     gen_string,
+    generate_strings_list,
     valid_data_list,
 )
 from robottelo.decorators import stubbed, tier1
@@ -135,25 +136,26 @@ class SettingTestCase(CLITestCase):
         login_text = Settings.list({'search': 'name=login_text'})[0]
         self.assertEqual('', login_text['value'])
 
-    @stubbed()
     @tier1
-    def test_negative_update_login_page_footer_text(self):
+    def test_positive_update_login_page_footer_text_with_long_string(self):
         """Attempt to update parameter "Login_page_footer_text"
-            with invalid value(long length) under General tab
+            with long length string under General tab
 
         :id: 87ef6b19-fdc5-4541-aba8-e730f1a3caa7
 
         :steps:
-
             1. Execute "settings" command with "set" as sub-command
-            with invalid string(long length)
+            with long length string
 
-        :expectedresults: Parameter is not updated
-
-        :caseautomation: notautomated
+        :expectedresults: Parameter is updated
 
         :caseimportance: low
         """
+        for login_text_value in generate_strings_list(1000):
+            with self.subTest(login_text_value):
+                Settings.set({'name': "login_text", 'value': login_text_value})
+                login_text = Settings.list({'search': 'name=login_text'})[0]
+                self.assertEqual(login_text_value, login_text['value'])
 
     @stubbed()
     @tier1
