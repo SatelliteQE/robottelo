@@ -121,7 +121,7 @@ test-foreman-tier4:
 	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier4' $(join $(FOREMAN_TESTS_PATH), longrun)
 
 test-foreman-sys:
-	$(PYTEST) $(PYTEST_OPTS) $(join $(FOREMAN_TESTS_PATH), sys)
+	$(PYTEST) $(PYTEST_OPTS) -m 'not stubbed and destructive' $(FOREMAN_TESTS_PATH)
 
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
