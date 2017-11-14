@@ -333,7 +333,7 @@ class Base(object):
         return result
 
     @classmethod
-    def info(cls, options=None, output_format=None):
+    def info(cls, options=None, output_format=None, return_raw_response=None):
         """Reads the entity information."""
         cls.command_sub = 'info'
 
@@ -349,9 +349,10 @@ class Base(object):
 
         result = cls.execute(
             command=cls._construct_command(options),
-            output_format=output_format
+            output_format=output_format,
+            return_raw_response=return_raw_response,
         )
-        if output_format != 'json':
+        if not return_raw_response and output_format != 'json':
             result = hammer.parse_info(result)
         return result
 

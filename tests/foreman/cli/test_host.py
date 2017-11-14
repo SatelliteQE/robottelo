@@ -18,6 +18,8 @@ from random import choice
 
 from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import entities
+import yaml
+
 from robottelo import ssh
 from robottelo.cleanup import capsule_cleanup, vm_cleanup
 from robottelo.cli.activationkey import ActivationKey
@@ -2059,6 +2061,59 @@ class HostParameterTestCase(CLITestCase):
             })
         host = Host.info({'id': self.host['id']})
         self.assertEqual(host['parameters'][param_name], param_value)
+
+    @tier3
+    def test_positive_set_multi_line_and_with_spaces_parameter_value(self):
+        """Check that host parameter value with multi-line and spaces is
+        correctly restored from yaml format
+
+        :id: 776feffd-1b46-46e9-925d-4739194c15cc
+
+        :expectedresults: host parameter value is the same when restored
+            from yaml format
+
+        :BZ: 1315282
+
+        :CaseLevel: System
+        """
+        param_name = gen_string('alpha').lower()
+        # long string that should be escaped and affected by line break with
+        # yaml dump by default
+        param_value = (
+            u'auth                          include              '
+            u'password-auth\r\n'
+            u'account     include                  password-auth'
+        )
+        host = entities.Host()
+        host.create_missing()
+        host = make_host({
+            u'architecture-id': host.architecture.id,
+            u'domain-id': host.domain.id,
+            u'environment-id': host.environment.id,
+            u'location-id': self.loc_id,
+            u'mac': host.mac,
+            u'medium-id': host.medium.id,
+            u'name': host.name,
+            u'operatingsystem-id': host.operatingsystem.id,
+            u'organization-id': self.org_id,
+            u'partition-table-id': host.ptable.id,
+            u'puppet-proxy-id': self.puppet_proxy['id'],
+            u'root-password': host.root_pass,
+        })
+        Host.set_parameter({
+            'host-id': host['id'],
+            'name': param_name,
+            'value': param_value,
+        })
+        response = Host.info(
+            {'id': host['id']}, output_format='yaml', return_raw_response=True)
+        self.assertEqual(response.return_code, 0)
+        yaml_content = yaml.load('\n'.join(response.stdout))
+        host_parameters = yaml_content.get('Parameters')
+        self.assertIsNotNone(host_parameters)
+        self.assertEqual(len(host_parameters), 1)
+        self.assertEqual(host_parameters[0]['name'], param_name)
+        self.assertEqual(host_parameters[0]['value'], param_value)
 
 
 class HostProvisionTestCase(CLITestCase):
