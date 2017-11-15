@@ -255,6 +255,48 @@ class OpenScapTestCase(CLITestCase):
                 self.assertEqual(scap_content['title'], title)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1474172)
+    @tier1
+    def test_negative_create_scap_content_with_same_title(self):
+        """Create scap-content with same title
+
+        :id: a8cbacc9-456a-4f6f-bd0e-4d1167a8b401
+
+        :setup:
+
+            1. Oscap should be enabled.
+            2. Oscap-cli hammer plugin installed.
+            3. Scap data stream ".xml" file.
+
+        :steps:
+
+            1. Login to hammer shell.
+            2. Execute "scap-content" command with "create" as sub-command.
+            3. Pass valid parameters.
+            4. Execute "scap-content" command with "create" as sub-command
+               with same title
+
+        :expectedresults: The scap-content is not created.
+
+        :BZ: 1474172
+
+        :caseautomation: automated
+
+        :CaseImportance: Critical
+        """
+        title = gen_string('alpha')
+        scap_content = make_scapcontent({
+            'title': title,
+            'scap-file': '/tmp/{0}'.format(self.file_name)
+        })
+        self.assertEqual(scap_content['title'], title)
+        with self.assertRaises(CLIFactoryError):
+            make_scapcontent({
+                'title': title,
+                'scap-file': '/tmp/{0}'.format(self.file_name)
+            })
+
+    @run_only_on('sat')
     @tier1
     def test_negative_create_scap_content_with_invalid_title(self):
         """Create scap-content with invalid title
