@@ -893,7 +893,6 @@ class ContentViewTestCase(UITestCase):
                 )
             )
 
-    @skip_if_bug_open('bugzilla', 1489778)
     @tier2
     def test_positive_errata_inc_update_list_package(self):
         """Publish incremental update with a new errata for a custom repo
@@ -911,15 +910,16 @@ class ContentViewTestCase(UITestCase):
         """
         # Create and publish a repo with 1 outdated package and some errata
         repo_name = gen_string('alphanumeric')
+        old_package, new_package = FAKE_0_INC_UPD_PACKAGES[:2]
+        old_updatefile, new_updatefile = FAKE_0_INC_UPD_UPDATEFILES[:2]
+        errata_id = FAKE_0_INC_UPD_ERRATA[1]
         repo_url = create_repo(
             repo_name,
             FAKE_0_INC_UPD,
-            [FAKE_0_INC_UPD_PACKAGES[0]]
+            [old_package]
         )
         result = repo_add_updateinfo(
-            repo_name, '{}{}'
-            .format(FAKE_0_INC_UPD, FAKE_0_INC_UPD_UPDATEFILES[0])
-        )
+            repo_name, '{}{}'.format(FAKE_0_INC_UPD, old_updatefile))
         self.assertEqual(result.return_code, 0)
         # Create org, product, repo, sync & publish it
         org = make_org()
@@ -941,20 +941,18 @@ class ContentViewTestCase(UITestCase):
         create_repo(
             repo_name,
             FAKE_0_INC_UPD,
-            [FAKE_0_INC_UPD_PACKAGES[1]],
+            [new_package],
             wipe_repodata=True,
         )
         result = repo_add_updateinfo(
-            repo_name, '{}{}'
-            .format(FAKE_0_INC_UPD, FAKE_0_INC_UPD_UPDATEFILES[1])
-        )
+            repo_name, '{}{}'.format(FAKE_0_INC_UPD, new_updatefile))
         self.assertEqual(result.return_code, 0)
         # Sync the repo
         Repository.synchronize({'id': repo['id']})
         # Publish new CVV with the new errata
         result = ContentView.version_incremental_update({
             'content-view-version-id': cvv['id'],
-            'errata-ids': FAKE_0_INC_UPD_ERRATA[1]
+            'errata-ids': errata_id,
         })
         # Inc update output format is pretty weird - list of dicts where each
         # key's value is actual line from stdout
@@ -965,12 +963,9 @@ class ContentViewTestCase(UITestCase):
         ]
         # Verify both the package and the errata are present in output (were
         # added successfully)
+        self.assertIn(errata_id, [line.strip() for line in result])
         self.assertIn(
-            FAKE_0_INC_UPD_ERRATA[1], [line.strip() for line in result])
-        self.assertIn(
-            FAKE_0_INC_UPD_PACKAGES[1].rstrip('.rpm'),
-            [line.strip() for line in result]
-        )
+            new_package.rstrip('.rpm'), [line.strip() for line in result])
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][-1]
         # Verify the package and the errata are shown on UI

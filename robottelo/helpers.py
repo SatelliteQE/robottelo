@@ -511,7 +511,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False,
     :return: URL where the repository can be accessed
     :rtype: str
     """
-    repo_path = os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, name)
+    repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
     result = ssh.command(
         'sudo -u apache mkdir -p {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
@@ -535,7 +535,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False,
                 )
     if wipe_repodata:
         result = ssh.command(
-            'rm -rf {}'.format(os.path.join(repo_path, 'repodata/')),
+            'rm -rf {}/{}'.format(repo_path, 'repodata/'),
             hostname=hostname
         )
         if result.return_code != 0:
@@ -574,8 +574,8 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
     :return: result of executing `modifyrepo` command
     """
     updatefile = 'updateinfo.xml'
-    repo_path = os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, name)
-    updatefile_path = os.path.join(repo_path, updatefile)
+    repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
+    updatefile_path = '{}/{}'.format(repo_path, updatefile)
     if updateinfo_url:
         result = ssh.command(
             'find {}'.format(updatefile_path),
@@ -604,8 +604,7 @@ def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
             )
 
     result = ssh.command(
-        'modifyrepo {} {}'
-        .format(updatefile_path, os.path.join(repo_path, 'repodata/'))
+        'modifyrepo {} {}/{}'.format(updatefile_path, repo_path, 'repodata/')
     )
 
     return result
