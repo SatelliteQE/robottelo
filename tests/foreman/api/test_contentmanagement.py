@@ -303,6 +303,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         cv.publish()
         cv = cv.read()
         self.assertEqual(len(cv.version), 2)
+        cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         promote(cvv, lce.id)
         cvv = cvv.read()
@@ -434,6 +435,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             cv.publish()
             cv = cv.read()
             self.assertEqual(len(cv.version), 2)
+            cv.version.sort(key=lambda version: version.id)
             cvv = cv.version[-1].read()
             promote(cvv, lce.id)
             cvv = cvv.read()
@@ -469,6 +471,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         # Publish a new version of content view
         cv.publish()
         cv = cv.read()
+        cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote new content view version to lifecycle environment
         promote(cvv, lce.id)
@@ -500,6 +503,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         repo = repo.read()
         cv.publish()
         cv = cv.read()
+        cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         promote(cvv, lce.id)
         cvv = cvv.read()
@@ -857,6 +861,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         cv1.publish()
         cv1 = cv1.read()
         self.assertEqual(len(cv1.version), 2)
+        cv1.version.sort(key=lambda version: version.id)
         cvv1 = cv1.version[-1].read()
         # Promote content view to lifecycle environment
         promote(cvv1, lce1.id)
@@ -987,6 +992,7 @@ class CapsuleContentManagementTestCase(APITestCase):
         cv.publish()
         cv = cv.read()
         self.assertEqual(len(cv.version), 2)
+        cv.version.sort(key=lambda version: version.id)
         cvv = cv.version[-1].read()
         # Promote content view to lifecycle environment
         promote(cvv, lce.id)

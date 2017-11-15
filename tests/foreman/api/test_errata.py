@@ -544,7 +544,8 @@ class ErrataTestCase(APITestCase):
         content_view.repository.append(repo)
         content_view = content_view.update(['repository'])
         content_view.publish()
-        cvv = content_view.read().version[-1].read()
+        versions = sorted(content_view.read().version, key=lambda ver: ver.id)
+        cvv = versions[-1].read()
         promote(cvv, env.id)
         with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
@@ -623,7 +624,8 @@ class ErrataTestCase(APITestCase):
         content_view.repository.append(repo)
         content_view = content_view.update(['repository'])
         content_view.publish()
-        cvv = content_view.read().version[-1].read()
+        versions = sorted(content_view.read().version, key=lambda ver: ver.id)
+        cvv = versions[-1].read()
         promote(cvv, env.id)
         with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()

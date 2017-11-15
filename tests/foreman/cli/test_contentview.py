@@ -2406,6 +2406,7 @@ class ContentViewTestCase(CLITestCase):
         ContentView.publish({u'id': new_cv['id']})
         # Only after we publish version2 the info is populated.
         new_cv = ContentView.info({u'id': new_cv['id']})
+        new_cv['versions'].sort(key=lambda version: version['id'])
         # Let us now store the version2 id
         version2_id = new_cv['versions'][1]['id']
         # Test whether the version2 now belongs to Library
@@ -2510,6 +2511,7 @@ class ContentViewTestCase(CLITestCase):
         )
         # Only after we publish version2 the info is populated.
         new_cv = ContentView.info({u'id': new_cv['id']})
+        new_cv['versions'].sort(key=lambda version: version['id'])
         # Let us now store the version2 id
         version2_id = new_cv['versions'][1]['id']
         # Promotion of version2 to next env
@@ -2577,6 +2579,7 @@ class ContentViewTestCase(CLITestCase):
         ContentView.publish({'id': content_view['id']})
         content_view = ContentView.info({'id': content_view['id']})
         self.assertEqual(len(content_view['versions']), 2)
+        content_view['versions'].sort(key=lambda version: version['id'])
         # Ensure that composite content view component has been updated to
         # version 2
         version_2_id = content_view['versions'][1]['id']
