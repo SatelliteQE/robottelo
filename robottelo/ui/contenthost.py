@@ -112,6 +112,23 @@ class ContentHost(Base):
                 return True
         return False
 
+    def get_subscription_color_and_status(self, name):
+        """Return content host subscription status color and name
+
+        :returns a tuple (color, status_name) or None
+        """
+        self.search(name)
+        sub_element = self.wait_until_element(
+            locators['contenthost.subscription_status'] % name)
+        if sub_element:
+            # class attribute string value looks like:
+            # "yellow host-status pficon pficon-info status-warn"
+            sub_class_attributes = sub_element.get_attribute('class').split()
+            color = sub_class_attributes[0]
+            status = sub_class_attributes[-1].split('-')[-1]
+            return color, status
+        return None
+
     def execute_package_action(self, name, action_name, action_value,
                                timeout=120):
         """Execute remote package action on a content host

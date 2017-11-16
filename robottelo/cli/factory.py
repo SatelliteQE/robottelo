@@ -4070,7 +4070,7 @@ def virt_who_hypervisor_config(
                 u'Failed to stop the virt-who service:\n{}'
                 .format(result.stderr)
             )
-        result = virt_who_vm.run('virt-who --one-shot')
+        result = virt_who_vm.run('virt-who --one-shot', timeout=600)
         if result.return_code != 0:
             raise CLIFactoryError(
                 u'Failed when executing virt-who --one-shot:\n{}'
