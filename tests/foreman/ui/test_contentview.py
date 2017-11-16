@@ -53,10 +53,12 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
-    FAKE_0_INC_UPD,
     FAKE_0_INC_UPD_ERRATA,
-    FAKE_0_INC_UPD_PACKAGES,
-    FAKE_0_INC_UPD_UPDATEFILES,
+    FAKE_0_INC_UPD_NEW_PACKAGE,
+    FAKE_0_INC_UPD_NEW_UPDATEFILE,
+    FAKE_0_INC_UPD_OLD_PACKAGE,
+    FAKE_0_INC_UPD_OLD_UPDATEFILE,
+    FAKE_0_INC_UPD_URL,
     FAKE_0_PUPPET_REPO,
     FAKE_0_PUPPET_MODULE,
     FAKE_0_YUM_REPO,
@@ -910,16 +912,15 @@ class ContentViewTestCase(UITestCase):
         """
         # Create and publish a repo with 1 outdated package and some errata
         repo_name = gen_string('alphanumeric')
-        old_package, new_package = FAKE_0_INC_UPD_PACKAGES[:2]
-        old_updatefile, new_updatefile = FAKE_0_INC_UPD_UPDATEFILES[:2]
-        errata_id = FAKE_0_INC_UPD_ERRATA[1]
         repo_url = create_repo(
             repo_name,
-            FAKE_0_INC_UPD,
-            [old_package]
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_OLD_PACKAGE]
         )
         result = repo_add_updateinfo(
-            repo_name, '{}{}'.format(FAKE_0_INC_UPD, old_updatefile))
+            repo_name, '{}{}'.format(
+                FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
+        )
         self.assertEqual(result.return_code, 0)
         # Create org, product, repo, sync & publish it
         org = make_org()
@@ -940,19 +941,21 @@ class ContentViewTestCase(UITestCase):
         # Add updated package to the repo and errata for the outdated package
         create_repo(
             repo_name,
-            FAKE_0_INC_UPD,
-            [new_package],
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_NEW_PACKAGE],
             wipe_repodata=True,
         )
         result = repo_add_updateinfo(
-            repo_name, '{}{}'.format(FAKE_0_INC_UPD, new_updatefile))
+            repo_name, '{}{}'.format(
+                FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+        )
         self.assertEqual(result.return_code, 0)
         # Sync the repo
         Repository.synchronize({'id': repo['id']})
         # Publish new CVV with the new errata
         result = ContentView.version_incremental_update({
             'content-view-version-id': cvv['id'],
-            'errata-ids': errata_id,
+            'errata-ids': FAKE_0_INC_UPD_ERRATA,
         })
         # Inc update output format is pretty weird - list of dicts where each
         # key's value is actual line from stdout
@@ -963,9 +966,11 @@ class ContentViewTestCase(UITestCase):
         ]
         # Verify both the package and the errata are present in output (were
         # added successfully)
-        self.assertIn(errata_id, [line.strip() for line in result])
+        self.assertIn(FAKE_0_INC_UPD_ERRATA, [line.strip() for line in result])
         self.assertIn(
-            new_package.rstrip('.rpm'), [line.strip() for line in result])
+            FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm'),
+            [line.strip() for line in result]
+        )
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][-1]
         # Verify the package and the errata are shown on UI
@@ -973,14 +978,16 @@ class ContentViewTestCase(UITestCase):
             self.nav.go_to_select_org(org['name'])
             errata = self.content_views.fetch_version_errata(
                 content_view['name'], 'Version {}'.format(cvv['version']))
-            self.assertEqual(len(errata), 2)
-            self.assertEqual(
-                set(err[0] for err in errata), set(FAKE_0_INC_UPD_ERRATA))
+            self.assertGreaterEqual(len(errata), 1)
+            self.assertIn(FAKE_0_INC_UPD_ERRATA, set(err[0] for err in errata))
             packages = self.content_views.fetch_version_packages(
                 content_view['name'], 'Version {}'.format(cvv['version']))
             self.assertEqual(len(packages), 2)
             packages = set('{}-{}-{}.{}.rpm'.format(*row) for row in packages)
-            self.assertEqual(packages, set(FAKE_0_INC_UPD_PACKAGES))
+            self.assertEqual(
+                packages,
+                {FAKE_0_INC_UPD_OLD_PACKAGE, FAKE_0_INC_UPD_NEW_PACKAGE}
+            )
 
     @tier1
     def test_positive_create_date_filter_rule_without_type(self):
