@@ -240,7 +240,7 @@ class DiscoveredTestCase(CLITestCase):
         :CaseLevel: System
         """
         if not self.configured_env:
-            self.configured_env = configure_env_for_provision(
+            self.__class__.configured_env = configure_env_for_provision(
                 org=self.org, loc=self.loc)
         with LibvirtGuest(boot_iso=True) as pxe_host:
             hostname = pxe_host.guest_name
@@ -437,7 +437,7 @@ class DiscoveredTestCase(CLITestCase):
         """
         # fixme: assertion #1
         if not self.configured_env:
-            self.configured_env = configure_env_for_provision(
+            self.__class__.configured_env = configure_env_for_provision(
                 org=self.org, loc=self.loc)
         with LibvirtGuest() as pxe_host:
             hostname = pxe_host.guest_name

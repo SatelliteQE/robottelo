@@ -75,7 +75,6 @@ from robottelo.constants import (
     DISTRO_RHEL7,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
-    LIBVIRT_RESOURCE_URL,
     OPERATING_SYSTEMS,
     PRDS,
     REPOS,
@@ -3090,7 +3089,7 @@ def setup_org_for_a_rh_repo(options=None, force_manifest_upload=False,
 
 
 def configure_env_for_provision(org=None, loc=None):
-    """Create and configure org, loc, product, repo, cv, env. Update proxy,
+    """Create and configure org, loc, product, repo, env. Update proxy,
     domain, subnet, compute resource, provision templates and medium with
     previously created entities and create a hostgroup using all mentioned
     entities.
@@ -3108,30 +3107,13 @@ def configure_env_for_provision(org=None, loc=None):
     if loc is None:
         loc = make_location()
 
-    # Create a new Lifecycle environment
-    lce = make_lifecycle_environment({'organization-id': org['id']})
-
-    # Create a Product, Repository for custom content and sync it
-    new_product = make_product({'organization-id': org['id']})
-    new_repo = make_repository({
-        'product-id': new_product['id'],
-        'url': settings.rhel7_os,
-    })
-    Repository.synchronize({'id': new_repo['id']})
-
-    # Content View should be promoted to be used with LC Env
-    cv = make_content_view({'organization-id': org['id']})
-    ContentView.add_repository({
-        'id': cv['id'],
-        'organization-id': org['id'],
-        'repository-id': new_repo['id'],
-    })
-    ContentView.publish({'id': cv['id']})
-    cv = ContentView.info({'id': cv['id']})
-    ContentView.version_promote({
-        'id': cv['versions'][0]['id'],
-        'to-lifecycle-environment-id': lce['id'],
-    })
+    # Get a Library Lifecycle environment and the default CV for the org
+    lce = LifecycleEnvironment.info(
+        {u'name': u'Library', 'organization-id': org['id']}
+    )
+    cv = ContentView.info(
+        {u'name': u'Default Organization View', u'organization-id': org['id']}
+    )
 
     # Create puppet environment and associate organization and location
     env = make_environment({
@@ -3143,7 +3125,8 @@ def configure_env_for_provision(org=None, loc=None):
     puppet_proxy = Proxy.info({'id': Proxy.list()[0]['id']})
     Proxy.update({
         'id': puppet_proxy['id'],
-        'locations': list(set(puppet_proxy['locations']) | {loc['name']}),
+        'locations': list(
+            set(puppet_proxy.get('locations') or []) | {loc['name']}),
     })
 
     # Network
@@ -3155,9 +3138,10 @@ def configure_env_for_provision(org=None, loc=None):
         domain = Domain.info({'id': domain[0]['id']})
         Domain.update({
             'name': domain_name,
-            'locations': list(set(domain['locations']) | {loc['name']}),
+            'locations': list(
+                set(domain.get('locations') or []) | {loc['name']}),
             'organizations': list(
-                set(domain['organizations']) | {org['name']}),
+                set(domain.get('organizations') or []) | {org['name']}),
             'dns-id': puppet_proxy['id'],
         })
     else:
@@ -3176,10 +3160,12 @@ def configure_env_for_provision(org=None, loc=None):
         subnet = Subnet.info({'id': subnet[0]['id']})
         Subnet.update({
             'name': subnet['name'],
-            'domains': list(set(subnet['domains']) | {domain['name']}),
-            'locations': list(set(subnet['locations']) | {loc['name']}),
+            'domains': list(
+                      set(subnet.get('domains') or []) | {domain['name']}),
+            'locations': list(
+                set(subnet.get('locations') or []) | {loc['name']}),
             'organizations': list(
-                set(subnet['organizations']) | {org['name']}),
+                set(subnet.get('organizations') or []) | {org['name']}),
             'dhcp-id': puppet_proxy['id'],
             'dns-id': puppet_proxy['id'],
             'tftp-id': puppet_proxy['id'],
@@ -3198,42 +3184,6 @@ def configure_env_for_provision(org=None, loc=None):
             'tftp-id': puppet_proxy['id'],
         })
 
-    # Search if Libvirt compute-resource already exists. If so, just update its
-    # relevant fields otherwise, create new compute-resource with 'libvirt'
-    # provider.
-    current_libvirt_url = (
-        LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
-    )
-
-    comp_resources = [
-        ComputeResource.info({'id': comp_res['id']}) for comp_res
-        in ComputeResource.list()
-    ]
-    libvirt_resources = [
-        comp_res for comp_res in comp_resources
-        if comp_res['url'] == 'url={0}'.format(current_libvirt_url) and
-        comp_res['provider'] == FOREMAN_PROVIDERS['libvirt']
-    ]
-    if len(libvirt_resources) >= 1:
-        libvirt_res = ComputeResource.info({'id': libvirt_resources[0]['id']})
-        ComputeResource.update({
-            'id': libvirt_res['id'],
-            'locations': list(set(libvirt_res['locations']) | {loc['name']}),
-            'organizations': list(
-                set(libvirt_res['organizations']) | {org['name']}),
-        })
-    else:
-        # Create Libvirt compute-resource
-        make_compute_resource({
-            'name': gen_string('alpha'),
-            'provider': 'libvirt',
-            'url': current_libvirt_url,
-            'set-console-password': False,
-            'display-type': 'VNC',
-            'location-ids': loc['id'],
-            'organization-ids': org['id'],
-        })
-
     # Get the Partition table entity
     ptable = PartitionTable.info({'name': DEFAULT_PTABLE})
 
@@ -3250,11 +3200,12 @@ def configure_env_for_provision(org=None, loc=None):
         if os['title'] not in template['operating-systems']:
             Template.update({
                 'id': template['id'],
-                'locations': list(set(template['locations']) | {loc['name']}),
-                'operatingsystems': list(
-                    set(template['operating-systems']) | {os['title']}),
+                'locations': list(
+                    set(template.get('locations') or []) | {loc['name']}),
+                'operatingsystems': list(set(
+                    template.get('operating-systems') or []) | {os['title']}),
                 'organizations': list(
-                    set(template['organizations']) | {org['name']}),
+                    set(template.get('organizations') or []) | {org['name']}),
             })
 
     # Get the architecture entity
@@ -3263,29 +3214,35 @@ def configure_env_for_provision(org=None, loc=None):
 
     os = OperatingSys.info({'id': os['id']})
     # Get the media and update its location
-    medium = Medium.list({'organization-id': org['id']})
+    medium = Medium.list({'search': 'path={0}'.format(settings.rhel7_os)})
     if medium:
         media = Medium.info({'id': medium[0]['id']})
         Medium.update({
             'id': media['id'],
             'operatingsystems': list(
-                set(media['operating-systems']) | {os['title']}),
-            'locations': list(set(media['locations']) | {loc['name']}),
+                set(media.get('operating-systems') or []) | {os['title']}),
+            'locations': list(
+                set(media.get('locations') or []) | {loc['name']}),
+            'organizations': list(
+                set(media.get('organizations') or []) | {org['name']}),
         })
     else:
         media = make_medium({
             'location-ids': loc['id'],
             'operatingsystem-ids': os['id'],
             'organization-ids': org['id'],
+            'path': settings.rhel7_os
         })
 
     # Update the OS with found arch, ptable, templates and media
     OperatingSys.update({
         'id': os['id'],
-        'architectures': list(set(os['architectures']) | {arch['name']}),
-        'media': list(set(os['installation-media']) | {media['name']}),
+        'architectures': list(
+            set(os.get('architectures') or []) | {arch['name']}),
+        'media': list(
+            set(os.get('installation-media') or []) | {media['name']}),
         'partition-tables': list(
-            set(os['partition-tables']) | {ptable['name']}),
+            set(os.get('partition-tables') or []) | {ptable['name']}),
     })
     for template in (provisioning_template, pxe_template):
         if '{} ({})'.format(template['name'], template['type']) not in os[
