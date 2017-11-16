@@ -1393,17 +1393,57 @@ class HostTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        # create 2 parameters
+        host_parameters_attributes = []
+        for _ in range(2):
+            host_parameters_attributes.append(
+                dict(name=gen_string('alpha'),
+                     value=gen_string('alphanumeric'))
+            )
         host = entities.Host(
             organization=self.org,
             location=self.loc,
             environment=self.env,
             puppetclass=self.puppet_classes,
+            content_facet_attributes={
+                'content_view_id': self.cv.id,
+                'lifecycle_environment_id': self.lce.id,
+            },
+            host_parameters_attributes=host_parameters_attributes
         ).create()
         host_enc_info = host.enc()
         self.assertEquals(
             {puppet_class.name for puppet_class in self.puppet_classes},
             set(host_enc_info['data']['classes'])
         )
+        self.assertEquals(
+            host_enc_info['data']['environment'],
+            self.env.name
+        )
+        self.assertIn('parameters', host_enc_info['data'])
+        host_enc_parameters = host_enc_info['data']['parameters']
+        self.assertEquals(
+            host_enc_parameters['organization'],
+            self.org.name
+        )
+        self.assertEquals(
+            host_enc_parameters['location'],
+            self.loc.name
+        )
+        self.assertEquals(
+            host_enc_parameters['content_view'],
+            self.cv.name
+        )
+        self.assertEquals(
+            host_enc_parameters['lifecycle_environment'],
+            self.lce.name
+        )
+        for param in host_parameters_attributes:
+            self.assertIn(param['name'], host_enc_parameters)
+            self.assertEquals(
+                host_enc_parameters[param['name']],
+                param['value']
+            )
 
     @run_only_on('sat')
     @tier2
