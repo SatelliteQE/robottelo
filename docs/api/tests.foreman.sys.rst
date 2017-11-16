@@ -8,6 +8,11 @@
 
 .. automodule:: tests.foreman.sys.test_hot_backup
 
+:mod:`tests.foreman.sys.test_katello_certs_check`
+----------------------------------------
+
+.. automodule:: tests.foreman.sys.test_katello_certs_check
+
 :mod:`tests.foreman.sys.test_restore`
 -------------------------------------
 
