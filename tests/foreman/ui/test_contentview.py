@@ -714,16 +714,16 @@ class ContentViewTestCase(UITestCase):
     def test_positive_errata_inc_update_list_package(self):
         """Publish incremental update with a new errata for a custom repo
 
-        :BZ: 1489778
+        @BZ: 1488167
 
-        :id: fb43791c-60ee-4190-86be-34ccba411396
+        @id: fb43791c-60ee-4190-86be-34ccba411396
 
-        :expectedresults: New errata and corresponding package are present
+        @expectedresults: New errata and corresponding package are present
             in new content view version
 
-        :CaseImportance: High
+        @CaseImportance: High
 
-        :CaseLevel: Integration
+        @CaseLevel: Integration
         """
         # Create and publish a repo with 1 outdated package and some errata
         repo_name = gen_string('alphanumeric')
@@ -789,8 +789,8 @@ class ContentViewTestCase(UITestCase):
         content_view = ContentView.info({'id': content_view['id']})
         cvv = content_view['versions'][-1]
         # Verify the package and the errata are shown on UI
-        with Session(self):
-            self.nav.go_to_select_org(org['name'])
+        with Session(self.browser):
+            self.navigator.go_to_select_org(org['name'])
             errata = self.content_views.fetch_version_errata(
                 content_view['name'], 'Version {}'.format(cvv['version']))
             self.assertGreaterEqual(len(errata), 1)

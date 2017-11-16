@@ -740,24 +740,18 @@ class ContentViews(Base):
         self.click(self.version_search(name, version_name))
         self.click(tab_locators['contentviews.tab_version_packages'])
         packages = []
-        while True:
-            names = self.find_elements(
-                locators['contentviews.version.package_name'] % '')
-            versions = self.find_elements(
-                locators['contentviews.version.package_version'] % '')
-            releases = self.find_elements(
-                locators['contentviews.version.package_release'] % '')
-            archs = self.find_elements(
-                locators['contentviews.version.package_arch'] % '')
-            for name, version, release, arch in zip(
-                    names, versions, releases, archs):
-                packages.append(
-                    (name.text, version.text, release.text, arch.text))
-            next_ = self.find_element(
-                locators['contentviews.version.content_next_page'])
-            if next_ is None:
-                break
-            self.click(next_)
+        strategy, value = locators['contentviews.version.package_name']
+        names = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.package_version']
+        versions = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.package_release']
+        releases = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.package_arch']
+        archs = self.find_elements((strategy, value % ''))
+        for name, version, release, arch in zip(
+                names, versions, releases, archs):
+            packages.append(
+                (name.text, version.text, release.text, arch.text))
         return packages
 
     def fetch_version_errata(self, name, version_name):
@@ -766,20 +760,14 @@ class ContentViews(Base):
         self.click(self.version_search(name, version_name))
         self.click(tab_locators['contentviews.tab_version_errata'])
         errata = []
-        while True:
-            ids = self.find_elements(
-                locators['contentviews.version.errata_id'] % '')
-            titles = self.find_elements(
-                locators['contentviews.version.errata_title'] % '')
-            types = self.find_elements(
-                locators['contentviews.version.errata_type'] % '')
-            for id_, title, type_ in zip(ids, titles, types):
-                errata.append((id_.text, title.text, type_.text))
-            next_ = self.find_element(
-                locators['contentviews.version.content_next_page'])
-            if next_ is None:
-                break
-            self.click(next_)
+        strategy, value = locators['contentviews.version.errata_id']
+        ids = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.errata_title']
+        titles = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.errata_type']
+        types = self.find_elements((strategy, value % ''))
+        for id_, title, type_ in zip(ids, titles, types):
+            errata.append((id_.text, title.text, type_.text))
         return errata
 
     def puppet_module_search(self, name, version, module_name):
