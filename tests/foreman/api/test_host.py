@@ -1412,35 +1412,35 @@ class HostTestCase(APITestCase):
             host_parameters_attributes=host_parameters_attributes
         ).create()
         host_enc_info = host.enc()
-        self.assertEquals(
+        self.assertEqual(
             {puppet_class.name for puppet_class in self.puppet_classes},
             set(host_enc_info['data']['classes'])
         )
-        self.assertEquals(
+        self.assertEqual(
             host_enc_info['data']['environment'],
             self.env.name
         )
         self.assertIn('parameters', host_enc_info['data'])
         host_enc_parameters = host_enc_info['data']['parameters']
-        self.assertEquals(
+        self.assertEqual(
             host_enc_parameters['organization'],
             self.org.name
         )
-        self.assertEquals(
+        self.assertEqual(
             host_enc_parameters['location'],
             self.loc.name
         )
-        self.assertEquals(
+        self.assertEqual(
             host_enc_parameters['content_view'],
             self.cv.name
         )
-        self.assertEquals(
+        self.assertEqual(
             host_enc_parameters['lifecycle_environment'],
             self.lce.name
         )
         for param in host_parameters_attributes:
             self.assertIn(param['name'], host_enc_parameters)
-            self.assertEquals(
+            self.assertEqual(
                 host_enc_parameters[param['name']],
                 param['value']
             )
