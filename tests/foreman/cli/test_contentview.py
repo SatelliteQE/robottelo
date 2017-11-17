@@ -4434,7 +4434,7 @@ class ContentViewTestCase(CLITestCase):
         )
         content_view = ContentView.info({'id': content_view['id']})
         self.assertIn(
-            '1.1', [cvv['version'] for cvv in content_view['versions']])
+            '1.1', [cvv_['version'] for cvv_ in content_view['versions']])
 
 
 class OstreeContentViewTestCase(CLITestCase):
