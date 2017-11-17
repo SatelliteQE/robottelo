@@ -1382,6 +1382,69 @@ class HostTestCase(APITestCase):
         self.assertIsNotNone(content_source_id)
         self.assertEqual(content_source_id, proxy.id)
 
+    def test_positive_read_enc_information(self):
+        """Attempt to read host ENC information
+
+        :id: 0d5047ab-2686-43de-8f04-cfe12b62eebf
+
+        :expectedresults: host ENC information read successfully
+
+        :BZ: 1362372
+
+        :CaseLevel: Integration
+        """
+        # create 2 parameters
+        host_parameters_attributes = []
+        for _ in range(2):
+            host_parameters_attributes.append(
+                dict(name=gen_string('alpha'),
+                     value=gen_string('alphanumeric'))
+            )
+        host = entities.Host(
+            organization=self.org,
+            location=self.loc,
+            environment=self.env,
+            puppetclass=self.puppet_classes,
+            content_facet_attributes={
+                'content_view_id': self.cv.id,
+                'lifecycle_environment_id': self.lce.id,
+            },
+            host_parameters_attributes=host_parameters_attributes
+        ).create()
+        host_enc_info = host.enc()
+        self.assertEqual(
+            {puppet_class.name for puppet_class in self.puppet_classes},
+            set(host_enc_info['data']['classes'])
+        )
+        self.assertEqual(
+            host_enc_info['data']['environment'],
+            self.env.name
+        )
+        self.assertIn('parameters', host_enc_info['data'])
+        host_enc_parameters = host_enc_info['data']['parameters']
+        self.assertEqual(
+            host_enc_parameters['organization'],
+            self.org.name
+        )
+        self.assertEqual(
+            host_enc_parameters['location'],
+            self.loc.name
+        )
+        self.assertEqual(
+            host_enc_parameters['content_view'],
+            self.cv.name
+        )
+        self.assertEqual(
+            host_enc_parameters['lifecycle_environment'],
+            self.lce.name
+        )
+        for param in host_parameters_attributes:
+            self.assertIn(param['name'], host_enc_parameters)
+            self.assertEqual(
+                host_enc_parameters[param['name']],
+                param['value']
+            )
+
     @run_only_on('sat')
     @tier2
     @stubbed()
