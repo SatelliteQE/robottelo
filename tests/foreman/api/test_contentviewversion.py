@@ -26,6 +26,7 @@ from robottelo.constants import (
     FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     PUPPET_MODULE_NTP_PUPPETLABS,
+    REPO_TYPE,
     ZOO_CUSTOM_GPG_KEY,
 )
 from robottelo.decorators import (
@@ -344,6 +345,75 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         composite_cv.version[0].delete()
         # Make sure that content view version is really removed
         self.assertEqual(len(composite_cv.read().version), 0)
+
+    @upgrade
+    @tier2
+    def test_positive_delete_with_puppet_content(self):
+        """Delete content view version with puppet module content
+
+        :id: cae1164c-6608-4e19-923c-936e75ed807b
+
+        :steps:
+            1. Create a lifecycle environment
+            2. Create a content view
+            3. Add a puppet module to content view
+            4. Publish the content view
+            5. Promote the content view to lifecycle environment
+            6. Remove the content view versions from all lifecycle environments
+            7. Delete the content view version
+
+        :expectedresults: Content view version deleted successfully
+
+        :CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        lce_library = entities.LifecycleEnvironment(
+            organization=org, name=ENVIRONMENT).search()[0].read()
+        lce = entities.LifecycleEnvironment(
+            organization=org, prior=lce_library).create()
+        product = entities.Product(organization=org).create()
+        puppet_repo = entities.Repository(
+            url=FAKE_0_PUPPET_REPO,
+            content_type=REPO_TYPE['puppet'],
+            product=product,
+        ).create()
+        puppet_repo.sync()
+        # create a content view and add the yum repo to it
+        content_view = entities.ContentView(organization=org).create()
+        # get a random puppet module
+        puppet_module = random.choice(
+            content_view.available_puppet_modules()['results']
+        )
+        # add the puppet module to content view
+        entities.ContentViewPuppetModule(
+            author=puppet_module['author'],
+            name=puppet_module['name'],
+            content_view=content_view,
+        ).create()
+        # publish the content view
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        content_view_version = content_view.version[0].read()
+        self.assertEqual(len(content_view_version.environment), 1)
+        lce_library = entities.LifecycleEnvironment(
+            id=content_view_version.environment[0].id).read()
+        self.assertEqual(lce_library.name, ENVIRONMENT)
+        # promote content view version to the created lifecycle environment
+        promote(content_view_version, lce.id)
+        content_view_version = content_view_version.read()
+        self.assertEqual(
+            {lce_library.id, lce.id},
+            {lce.id for lce in content_view_version.environment}
+        )
+        # remove the content view versions from all lifecycle environments
+        for env in (lce_library, lce):
+            content_view.delete_from_environment(env.id)
+        content_view_version = content_view_version.read()
+        self.assertEqual(len(content_view_version.environment), 0)
+        # delete the content view version
+        content_view_version.delete()
+        self.assertEqual(len(content_view.read().version), 0)
 
     @tier2
     def test_negative_delete(self):
