@@ -364,8 +364,6 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
         :expectedresults: Content view version deleted successfully
 
-        :BZ: 1417081
-
         :CaseLevel: Integration
         """
         org = entities.Organization().create()
