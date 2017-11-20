@@ -594,7 +594,9 @@ tab_locators = LocatorDict({
     "contentviews.tab_version_packages": (
         By.XPATH,
         "//a[contains(@ui-sref, 'content-views.details.version.packages')]"),
-
+    "contentviews.tab_version_errata": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'content-views.details.version.errata')]"),
     "contentviews.tab_version_puppet_modules": (
         By.XPATH,
         "//a[contains(@ui-sref, "
@@ -2791,6 +2793,21 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
          "/td[2][contains(., '%s')]")),
+    "contentviews.version.package_release": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'package')]/td[3][contains(., '%s')]"),
+    "contentviews.version.package_arch": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'package')]/td[4][contains(., '%s')]"),
+    "contentviews.version.errata_id": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[1][contains(., '%s')]"),
+    "contentviews.version.errata_title": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[2][contains(., '%s')]"),
+    "contentviews.version.errata_type": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[3][contains(., '%s')]"),
     "contentviews.version.puppet_module_name": (
         By.XPATH,
         ("//table[@data-block='table']"

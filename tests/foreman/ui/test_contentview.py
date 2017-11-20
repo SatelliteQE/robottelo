@@ -24,6 +24,14 @@ from nailgun import entities, entity_mixins
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo import manifests
 from robottelo.api.utils import get_role_by_bz
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view,
+    make_org,
+    make_product,
+    make_repository,
+)
+from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
@@ -32,6 +40,12 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
+    FAKE_0_INC_UPD_ERRATA,
+    FAKE_0_INC_UPD_NEW_PACKAGE,
+    FAKE_0_INC_UPD_NEW_UPDATEFILE,
+    FAKE_0_INC_UPD_OLD_PACKAGE,
+    FAKE_0_INC_UPD_OLD_UPDATEFILE,
+    FAKE_0_INC_UPD_URL,
     FAKE_0_PUPPET_REPO,
     FAKE_0_PUPPET_MODULE,
     FAKE_0_YUM_REPO,
@@ -61,7 +75,7 @@ from robottelo.decorators import (
     tier3,
     upgrade
 )
-from robottelo.helpers import read_data_file
+from robottelo.helpers import create_repo, read_data_file, repo_add_updateinfo
 from robottelo.ui.base import UIError, UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import (
@@ -694,6 +708,100 @@ class ContentViewTestCase(UITestCase):
                     package_name,
                     '5.21'
                 )
+            )
+
+    @tier2
+    def test_positive_errata_inc_update_list_package(self):
+        """Publish incremental update with a new errata for a custom repo
+
+        @BZ: 1488167
+
+        @id: fb43791c-60ee-4190-86be-34ccba411396
+
+        @expectedresults: New errata and corresponding package are present
+            in new content view version
+
+        @CaseImportance: High
+
+        @CaseLevel: Integration
+        """
+        # Create and publish a repo with 1 outdated package and some errata
+        repo_name = gen_string('alphanumeric')
+        repo_url = create_repo(
+            repo_name,
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_OLD_PACKAGE]
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'.format(
+                FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
+        )
+        self.assertEqual(result.return_code, 0)
+        # Create org, product, repo, sync & publish it
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        repo = make_repository({
+            'product-id': product['id'],
+            'url': repo_url,
+        })
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'organization-id': org['id'],
+            'repository-ids': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        cvv = content_view['versions'][0]
+        # Add updated package to the repo and errata for the outdated package
+        create_repo(
+            repo_name,
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_NEW_PACKAGE],
+            wipe_repodata=True,
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'.format(
+                FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+        )
+        self.assertEqual(result.return_code, 0)
+        # Sync the repo
+        Repository.synchronize({'id': repo['id']})
+        # Publish new CVV with the new errata
+        result = ContentView.version_incremental_update({
+            'content-view-version-id': cvv['id'],
+            'errata-ids': FAKE_0_INC_UPD_ERRATA,
+        })
+        # Inc update output format is pretty weird - list of dicts where each
+        # key's value is actual line from stdout
+        result = [
+            line.strip()
+            for line_dict in result
+            for line in line_dict.values()
+        ]
+        # Verify both the package and the errata are present in output (were
+        # added successfully)
+        self.assertIn(FAKE_0_INC_UPD_ERRATA, [line.strip() for line in result])
+        self.assertIn(
+            FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm'),
+            [line.strip() for line in result]
+        )
+        content_view = ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][-1]
+        # Verify the package and the errata are shown on UI
+        with Session(self.browser):
+            self.navigator.go_to_select_org(org['name'])
+            errata = self.content_views.fetch_version_errata(
+                content_view['name'], 'Version {}'.format(cvv['version']))
+            self.assertGreaterEqual(len(errata), 1)
+            self.assertIn(FAKE_0_INC_UPD_ERRATA, set(err[0] for err in errata))
+            packages = self.content_views.fetch_version_packages(
+                content_view['name'], 'Version {}'.format(cvv['version']))
+            self.assertEqual(len(packages), 2)
+            packages = set('{}-{}-{}.{}.rpm'.format(*row) for row in packages)
+            self.assertEqual(
+                packages,
+                {FAKE_0_INC_UPD_OLD_PACKAGE, FAKE_0_INC_UPD_NEW_PACKAGE}
             )
 
     @run_only_on('sat')
