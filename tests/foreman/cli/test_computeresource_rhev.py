@@ -2,6 +2,8 @@
 """
 :Requirement: Computeresource
 
+:CaseAutomation: Automated
+
 :CaseLevel: Acceptance
 
 :CaseComponent: CLI
@@ -12,10 +14,20 @@
 
 :Upstream: No
 """
+from fauxfactory import gen_string
+
+from robottelo.cli.computeresource import ComputeResource
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    CLIReturnCodeError,
+    make_compute_resource
+)
+from robottelo.config import settings
 from robottelo.decorators import (
     run_only_on,
     stubbed,
     skip_if_bug_open,
+    skip_if_not_set,
     tier1,
     tier2,
     tier3,
@@ -27,9 +39,17 @@ from robottelo.test import CLITestCase
 class RHEVComputeResourceTestCase(CLITestCase):
     """RHEVComputeResource CLI tests."""
 
+    @classmethod
+    @skip_if_not_set('rhev')
+    def setUpClass(cls):
+        super(RHEVComputeResourceTestCase, cls).setUpClass()
+        cls.current_rhev_url = settings.rhev.hostname
+        cls.username = settings.rhev.username
+        cls.passord = settings.rhev.password
+        cls.datacenter = settings.rhev.datacenter
+
     @tier1
     @run_only_on('sat')
-    @stubbed()
     def test_positive_create_rhev_with_valid_name(self):
         """Create Compute Resource of type Rhev with valid name
 
@@ -37,14 +57,19 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is created
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        ComputeResource.create({
+            u'name': 'cr {0}'.format(gen_string(str_type='alpha')),
+            u'provider': 'Ovirt',
+            u'user': self.username,
+            u'password': self.passord,
+            u'datacenter': self.datacenter,
+            u'url': self.current_rhev_url
+        })
 
     @tier1
     @run_only_on('sat')
-    @stubbed()
     def test_positive_rhev_info(self):
         """List the info of RHEV compute resource
 
@@ -52,14 +77,21 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: RHEV Compute resource Info is displayed
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        name = gen_string('utf8')
+        compute_resource = make_compute_resource({
+            u'name': name,
+            u'provider': 'Ovirt',
+            u'user': self.username,
+            u'password': self.passord,
+            u'datacenter': self.datacenter,
+            u'url': self.current_rhev_url
+        })
+        self.assertEquals(compute_resource['name'], name)
 
     @tier1
     @run_only_on('sat')
-    @stubbed()
     def test_positive_delete_by_name(self):
         """Delete the RHEV compute resource by name
 
@@ -67,14 +99,22 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is deleted
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        comp_res = make_compute_resource({
+            u'provider': 'Ovirt',
+            u'user': self.username,
+            u'password': self.passord,
+            u'datacenter': self.datacenter,
+            u'url': self.current_rhev_url
+        })
+        self.assertTrue(comp_res['name'])
+        ComputeResource.delete({'name': comp_res['name']})
+        result = ComputeResource.exists(search=('name', comp_res['name']))
+        self.assertFalse(result)
 
     @tier1
     @run_only_on('sat')
-    @stubbed()
     def test_positive_delete_by_id(self):
         """Delete the RHEV compute resource by id
 
@@ -82,14 +122,22 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is deleted
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        comp_res = make_compute_resource({
+            u'provider': 'Ovirt',
+            u'user': self.username,
+            u'password': self.passord,
+            u'datacenter': self.datacenter,
+            u'url': self.current_rhev_url
+        })
+        self.assertTrue(comp_res['name'])
+        ComputeResource.delete({'id': comp_res['id']})
+        result = ComputeResource.exists(search=('name', comp_res['name']))
+        self.assertFalse(result)
 
     @tier1
     @run_only_on('sat')
-    @stubbed()
     def test_negative_create_rhev_with_url(self):
         """RHEV compute resource negative create with invalid values
 
@@ -97,14 +145,19 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is not created
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        with self.assertRaises(CLIReturnCodeError):
+            ComputeResource.create({
+                u'provider': 'Ovirt',
+                u'user': self.username,
+                u'password': self.passord,
+                u'datacenter': self.datacenter,
+                u'url': 'invalid url'
+            })
 
     @tier1
     @run_only_on('sat')
-    @stubbed()
     def test_negative_create_with_same_name(self):
         """RHEV compute resource negative create with the same name
 
@@ -117,14 +170,30 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute resource is not created
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        name = gen_string('alpha')
+        compute_resource = make_compute_resource({
+            u'name': name,
+            u'provider': 'Ovirt',
+            u'user': self.username,
+            u'password': self.passord,
+            u'datacenter': self.datacenter,
+            u'url': self.current_rhev_url
+        })
+        self.assertEquals(compute_resource['name'], name)
+        with self.assertRaises(CLIFactoryError):
+            make_compute_resource({
+                u'name': name,
+                u'provider': 'Ovirt',
+                u'user': self.username,
+                u'password': self.passord,
+                u'datacenter': self.datacenter,
+                u'url': self.current_rhev_url
+            })
 
     @tier1
     @run_only_on('sat')
-    @stubbed()
     def test_positive_update_name(self):
         """RHEV compute resource positive update
 
@@ -137,10 +206,25 @@ class RHEVComputeResourceTestCase(CLITestCase):
 
         :expectedresults: Compute Resource is successfully updated
 
-        :caseautomation: notautomated
-
         :CaseImportance: Critical
         """
+        new_name = gen_string('alpha')
+        comp_res = make_compute_resource({
+            u'provider': 'Ovirt',
+            u'user': self.username,
+            u'password': self.passord,
+            u'datacenter': self.datacenter,
+            u'url': self.current_rhev_url
+        })
+        self.assertTrue(comp_res['name'])
+        ComputeResource.update({
+            'name': comp_res['name'],
+            'new-name': new_name
+        })
+        self.assertEqual(
+            new_name,
+            ComputeResource.info({'id': comp_res['id']})['name']
+        )
 
     @tier2
     @run_only_on('sat')
