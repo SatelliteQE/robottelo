@@ -17,12 +17,104 @@
 
 # For ease of use hc refers to host-collection throughout this document
 
-from robottelo.decorators import stubbed, tier3, upgrade
+from nailgun import entities
+from robottelo.cli.factory import (
+    setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
+)
+from robottelo.constants import (
+    DISTRO_RHEL7,
+    FAKE_9_YUM_ERRATUM,
+    FAKE_9_YUM_OUTDATED_PACKAGES,
+    FAKE_9_YUM_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
+from robottelo.decorators import (
+    bz_bug_is_open,
+    skip_if_not_set,
+    stubbed,
+    tier3,
+    upgrade
+)
 from robottelo.test import APITestCase
+from robottelo.vm import VirtualMachine
+from time import sleep
 
 
 class ErrataTestCase(APITestCase):
     """API Tests for the errata management feature"""
+
+    @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key"""
+        super(ErrataTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.env = entities.LifecycleEnvironment(
+            organization=cls.org).create()
+        cls.content_view = entities.ContentView(
+            organization=cls.org).create()
+        cls.activation_key = entities.ActivationKey(
+            environment=cls.env,
+            organization=cls.org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': cls.org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        }, force_manifest_upload=True)
+        cls.custom_entities = setup_org_for_a_custom_repo({
+            'url': FAKE_9_YUM_REPO,
+            'organization-id': cls.org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        })
+
+    def _install_package(self, clients, host_ids, package_name):
+        """Workaround BZ1374669 and install package via CLI while the bug is
+        open.
+        """
+        if bz_bug_is_open(1374669):
+            for client in clients:
+                result = client.run('yum install -y {}'.format(package_name))
+                self.assertEqual(result.return_code, 0)
+                result = client.run('rpm -q {}'.format(package_name))
+                self.assertEqual(result.return_code, 0)
+            return
+        entities.Host().install_content(data={
+            'organization_id': self.org.id,
+            'included': {'ids': host_ids},
+            'content_type': 'package',
+            'content': [package_name],
+        })
+        self._validate_package_installed(clients, package_name)
+
+    def _validate_package_installed(self, hosts, package_name,
+                                    expected_installed=True, timeout=120):
+        """Check whether package was installed on the list of hosts."""
+        for host in hosts:
+            for _ in range(timeout / 15):
+                result = host.run('rpm -q {0}'.format(package_name))
+                if (result.return_code == 0 and expected_installed or
+                        result.return_code != 0 and not expected_installed):
+                    break
+                sleep(15)
+            else:
+                self.fail(
+                    u'Package {0} was not {1} host {2}'.format(
+                        package_name,
+                        'installed on' if expected_installed else
+                        'removed from',
+                        host.hostname,
+                    )
+                )
 
     @stubbed()
     @tier3
@@ -44,6 +136,45 @@ class ErrataTestCase(APITestCase):
 
         @CaseLevel: System
         """
+
+    @tier3
+    def test_positive_install_multiple_in_host(self):
+        """For a host with multiple applicable errata install one and ensure
+        the rest of errata is still available
+
+        @id: 67b7e95b-9809-455a-a74e-f1815cc537fc
+
+        @BZ: 1469800
+
+        @expectedresults: errata installation task succeeded, available errata
+            counter decreased by one; it's possible to schedule another errata
+            installation
+
+        @CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.org.label, self.activation_key.name)
+            self.assertTrue(client.subscribed)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            host = entities.Host().search(query={
+                'search': 'name={0}'.format(client.hostname)})[0]
+            for package in FAKE_9_YUM_OUTDATED_PACKAGES:
+                self._install_package([client], [host.id], package)
+            host = host.read()
+            applicable_errata_count = host.content_facet_attributes[
+                'errata_counts']['total']
+            self.assertGreater(applicable_errata_count, 1)
+            for errata in FAKE_9_YUM_ERRATUM[:2]:
+                host.errata_apply(data={'errata_ids': [errata]})
+                host = host.read()
+                applicable_errata_count -= 1
+                self.assertEqual(
+                    host.content_facet_attributes['errata_counts']['total'],
+                    applicable_errata_count
+                )
 
     @stubbed()
     @tier3
