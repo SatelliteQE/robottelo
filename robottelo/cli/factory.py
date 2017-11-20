@@ -2221,34 +2221,46 @@ def make_hostgroup(options=None):
 
     Options::
 
-        --architecture ARCHITECTURE_NAME Architecture name
+        --architecture ARCHITECTURE_NAME        Architecture name
         --architecture-id ARCHITECTURE_ID
-        --ask-root-pass ASK_ROOT_PW  One of true/false, yes/no, 1/0.
+        --ask-root-pass ASK_ROOT_PW             One of true/false, yes/no, 1/0.
+        --compute-profile COMPUTE_PROFILE_NAME  Name to search by
+        --compute-profile-id COMPUTE_PROFILE_ID
+        --config-group-ids CONFIG_GROUP_IDS     IDs of associated config groups
+        --config-groups CONFIG_GROUP_NAMES
         --content-source-id CONTENT_SOURCE_ID
-        --content-view CONTENT_VIEW_NAME Name to search by
-        --content-view-id CONTENT_VIEW_ID content view numeric identifier
+        --content-view CONTENT_VIEW_NAME        Name to search by
+        --content-view-id CONTENT_VIEW_ID       content view numeric identifier
 
-        --domain DOMAIN_NAME          Domain name
-        --domain-id DOMAIN_ID         May be numerical id or domain name
-        --environment ENVIRONMENT_NAME Environment name
+        --domain DOMAIN_NAME                    Domain name
+        --domain-id DOMAIN_ID                   Numerical ID or domain name
+        --environment ENVIRONMENT_NAME          Environment name
         --environment-id ENVIRONMENT_ID
-        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME   Name to search by
-        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
+        --group-parameters-attributes GROUP_PARAMETERS_ATTRIBUTES    Array of
+                                                                     parameters
+        --kickstart-repository-id KICKSTART_REPOSITORY_ID    Kickstart
+                                                             repository ID
+        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME    Name to search by
+        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID    ID of the
+                                                               environment
         --locations LOCATION_NAMES  Comma separated list of values
+        --location-titles LOCATION_TITLES
         --location-ids LOCATION_IDS   REPLACE locations with given ids
                                       Comma separated list of values.
         --medium MEDIUM_NAME          Medium name
         --medium-id MEDIUM_ID
         --name NAME
-        --operatingsystem OPERATINGSYSTEM_TITLE Operating system title
+        --openscap-proxy-id OPENSCAP_PROXY_ID      ID of OpenSCAP Capsule
+        --operatingsystem OPERATINGSYSTEM_TITLE    Operating system title
         --operatingsystem-id OPERATINGSYSTEM_ID
         --organizations ORGANIZATION_NAMES   Comma separated list of values
+        --organization-titles ORGANIZATION_TITLES
         --organization-ids ORGANIZATION_IDS     REPLACE organizations with
                                                 given ids.
                                                 Comma separated list of values.
         --parent PARENT_NAME                    Name of parent hostgroup
         --parent-id PARENT_ID
-        --partition-table PTABLE_NAME                    Partition table name
+        --partition-table PTABLE_NAME           Partition table name
         --partition-table-id PTABLE_ID
         --puppet-ca-proxy PUPPET_CA_PROXY_NAME  Name of puppet CA proxy
         --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
@@ -2257,8 +2269,15 @@ def make_hostgroup(options=None):
         --puppet-classes PUPPET_CLASS_NAMES     Comma separated list of values.
         --puppet-proxy PUPPET_CA_PROXY_NAME     Name of puppet proxy
         --puppet-proxy-id PUPPET_PROXY_ID
+        --pxe-loader PXE_LOADER                 DHCP filename option (
+                                                Grub2/PXELinux by default)
+        --query-organization ORGANIZATION_NAME  Organization name to search by
+        --query-organization-id ORGANIZATION_ID Organization ID to search by
+        --query-organization-label ORGANIZATION_LABEL    Organization label to
+                                                         search by
         --realm REALM_NAME                 Name to search by
-        --realm-id REALM_ID                May be numerical id or realm name
+        --realm-id REALM_ID                Numerical ID or realm name
+        --root-pass ROOT_PASSWORD
         --subnet SUBNET_NAME               Subnet name
         --subnet-id SUBNET_ID
         -h, --help                         print help
@@ -2268,6 +2287,10 @@ def make_hostgroup(options=None):
     args = {
         u'architecture': None,
         u'architecture-id': None,
+        u'compute-profile': None,
+        u'compute-profile-id': None,
+        u'config-group-ids': None,
+        u'config-groups': None,
         u'content-source-id': None,
         u'content-view': None,
         u'content-view-id': None,
@@ -2277,6 +2300,7 @@ def make_hostgroup(options=None):
         u'environment-id': None,
         u'locations': None,
         u'location-ids': None,
+        u'kickstart-repository-id': None,
         u'lifecycle-environment': None,
         u'lifecycle-environment-id': None,
         u'lifecycle-environment-organization-id': None,
@@ -2286,6 +2310,7 @@ def make_hostgroup(options=None):
         u'operatingsystem': None,
         u'operatingsystem-id': None,
         u'organizations': None,
+        u'organization-titles': None,
         u'organization-ids': None,
         u'parent': None,
         u'parent-id': None,
@@ -2297,6 +2322,7 @@ def make_hostgroup(options=None):
         u'puppet-classes': None,
         u'puppet-proxy': None,
         u'puppet-proxy-id': None,
+        u'pxe-loader': None,
         u'query-organization': None,
         u'query-organization-id': None,
         u'query-organization-label': None,
