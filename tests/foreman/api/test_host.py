@@ -221,6 +221,11 @@ class HostTestCase(APITestCase):
         :CaseLevel: Integration
         """
         org = entities.Organization().create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], environment_id=lce.id)
         loc = entities.Location(organization=[org]).create()
         hostgroup = entities.HostGroup(
             location=[loc],
@@ -230,6 +235,10 @@ class HostTestCase(APITestCase):
             hostgroup=hostgroup,
             location=loc,
             organization=org,
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': lce.id,
+            },
         ).create()
         self.assertEqual(host.hostgroup.read().name, hostgroup.name)
 
@@ -830,6 +839,11 @@ class HostTestCase(APITestCase):
         :CaseLevel: Integration
         """
         org = entities.Organization().create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], environment_id=lce.id)
         loc = entities.Location(organization=[org]).create()
         hostgroup = entities.HostGroup(
             location=[loc],
@@ -839,13 +853,21 @@ class HostTestCase(APITestCase):
             hostgroup=hostgroup,
             location=loc,
             organization=org,
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': lce.id,
+            },
         ).create()
         new_hostgroup = entities.HostGroup(
             location=[host.location],
             organization=[host.organization],
         ).create()
         host.hostgroup = new_hostgroup
-        host = host.update(['hostgroup'])
+        host.content_facet_attributes = {
+            'content_view_id': content_view.id,
+            'lifecycle_environment_id': lce.id,
+        }
+        host = host.update(['hostgroup', 'content_facet_attributes'])
         self.assertEqual(host.hostgroup.read().name, new_hostgroup.name)
 
     @run_only_on('sat')
