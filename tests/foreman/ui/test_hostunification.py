@@ -30,6 +30,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_not_set,
@@ -200,6 +201,8 @@ class HostContentHostUnificationTestCase(UITestCase):
 
         :expectedresults: Host appears in both places despite being renamed
 
+        :BZ: 1495271
+
         :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
@@ -222,8 +225,12 @@ class HostContentHostUnificationTestCase(UITestCase):
                         break
                 else:
                     self.fail('Host was not renamed')
+                if bz_bug_is_open(1495271):
+                    session.dashboard.navigate_to_entity()
                 self.assertIsNotNone(self.hosts.search(new_name))
                 self.assertIsNone(self.contenthost.search(vm.hostname))
+                if bz_bug_is_open(1495271):
+                    session.dashboard.navigate_to_entity()
                 self.assertIsNotNone(self.contenthost.search(new_name))
 
     @run_only_on('sat')
@@ -240,6 +247,8 @@ class HostContentHostUnificationTestCase(UITestCase):
 
         :expectedresults: Host appears in both places despite being renamed
 
+        :BZ: 1495271
+
         :CaseLevel: System
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
@@ -254,8 +263,12 @@ class HostContentHostUnificationTestCase(UITestCase):
                     new_name=new_name,
                 )
                 self.assertIsNone(self.contenthost.search(vm.hostname))
+                if bz_bug_is_open(1495271):
+                    session.dashboard.navigate_to_entity()
                 self.assertIsNotNone(self.contenthost.search(new_name))
                 self.assertIsNone(self.hosts.search(vm.hostname))
+                if bz_bug_is_open(1495271):
+                    session.dashboard.navigate_to_entity()
                 self.assertIsNotNone(self.hosts.search(new_name))
 
     @run_only_on('sat')
@@ -273,7 +286,7 @@ class HostContentHostUnificationTestCase(UITestCase):
 
         :expectedresults: Host changed its name both in UI and CLI
 
-        :BZ: 1417953
+        :BZ: 1417953, 1495271
 
         :CaseLevel: System
         """
@@ -289,6 +302,8 @@ class HostContentHostUnificationTestCase(UITestCase):
                     vm.hostname,
                     new_name=new_name,
                 )
+                if bz_bug_is_open(1495271):
+                    session.dashboard.navigate_to_entity()
                 self.assertIsNotNone(self.contenthost.search(new_name))
             self.assertEqual(Host.info({'id': host['id']})['name'], new_name)
 
