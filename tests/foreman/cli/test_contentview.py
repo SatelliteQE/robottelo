@@ -1068,28 +1068,31 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(len(comp_cv['components']), 0)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1487265)
     @run_only_on('sat')
     def test_positive_create_composite_with_component_ids(self):
-        """create a composite content view with a component_ids option
+        """Create a composite content view with a component_ids option which
+        ids are from different content views
 
         :id: 6d4b94da-258d-4690-a5b6-bacaf6b1671a
 
-        :expectedresults: Composite content view component ids are similar to
-            the nested content view versions ids
+        :expectedresults: Composite content view created
 
         :BZ: 1487265
 
         :CaseLevel: Integration
         """
-        # Create CV
-        new_cv = make_content_view({u'organization-id': self.org['id']})
-        # Publish a new version of CV twice
-        for _ in range(2):
-            ContentView.publish({u'id': new_cv['id']})
-        new_cv = ContentView.info({u'id': new_cv['id']})
+        # Create first CV
+        cv1 = make_content_view({u'organization-id': self.org['id']})
+        # Publish a new version of CV
+        ContentView.publish({u'id': cv1['id']})
+        cv1 = ContentView.info({u'id': cv1['id']})
+        # Create second CV
+        cv2 = make_content_view({u'organization-id': self.org['id']})
+        # Publish a new version of CV
+        ContentView.publish({u'id': cv2['id']})
+        cv2 = ContentView.info({u'id': cv2['id']})
         # Let us now store the version ids
-        component_ids = [version['id'] for version in new_cv['versions']]
+        component_ids = [cv1['versions'][0]['id'], cv2['versions'][0]['id']]
         # Create CV
         comp_cv = make_content_view({
             'composite': True,
@@ -1104,6 +1107,40 @@ class ContentViewTestCase(CLITestCase):
             set(component_ids),
             'IDs of the composite content view components differ from '
             'the input values',
+        )
+
+    @tier2
+    @run_only_on('sat')
+    def test_negative_create_composite_with_component_ids(self):
+        """Attempt to create a composite content view with a component_ids
+        option which ids are from the same content view
+
+        :id: 27ea1f41-44b7-40f0-8990-a4aed09b06b2
+
+        :expectedresults: Composite content view not created
+
+        :BZ: 1487265
+
+        :CaseLevel: Integration
+        """
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        # Publish a new version of CV twice
+        for _ in range(2):
+            ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        # Let us now store the version ids
+        component_ids = [version['id'] for version in new_cv['versions']]
+        # Try create CV
+        with self.assertRaises(CLIFactoryError) as context:
+            make_content_view({
+                'composite': True,
+                'organization-id': self.org['id'],
+                'component-ids': component_ids
+            })
+        self.assertIn(
+            'Could not create the content view:',
+            context.exception.message
         )
 
     @tier2
