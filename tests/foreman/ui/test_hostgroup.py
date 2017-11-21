@@ -358,6 +358,10 @@ class HostgroupTestCase(UITestCase):
                 hostgroup=hostgroup,
                 location=loc,
                 organization=org,
+                content_facet_attributes={
+                    'content_view_id': self.cv.id,
+                    'lifecycle_environment_id': self.env.id,
+                },
             ).create().name
             for _ in range(3)
         ]

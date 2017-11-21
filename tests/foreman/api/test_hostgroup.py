@@ -179,6 +179,10 @@ class HostGroupTestCase(APITestCase):
             environment=environment,
             location=location,
             organization=org,
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': lc_env.id,
+            },
             name=gen_string('alpha')
         ).create(False)
         host_attrs = host.read_json()

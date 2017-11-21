@@ -1399,6 +1399,11 @@ class HostTestCase(UITestCase):
         :CaseLevel: Integration
         """
         org = entities.Organization().create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        content_view.publish()
+        content_view = content_view.read()
+        promote(content_view.version[0], environment_id=lce.id)
         name_list = [gen_string('alpha', 20) for _ in range(5)]
         host = entities.Host(organization=org)
         host.create_missing()
@@ -1410,6 +1415,10 @@ class HostTestCase(UITestCase):
                 architecture=host.architecture,
                 domain=host.domain,
                 environment=host.environment,
+                content_facet_attributes={
+                    'content_view_id': content_view.id,
+                    'lifecycle_environment_id': lce.id,
+                },
                 location=host.location,
                 mac=host.mac,
                 medium=host.medium,
