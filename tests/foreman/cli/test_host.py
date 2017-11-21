@@ -853,6 +853,33 @@ class HostCreateTestCase(CLITestCase):
             self.assertIn(client.hostname, [host['name'] for host in hosts])
 
     @tier3
+    def test_positive_list_by_last_checkin(self):
+        """List all content hosts using last checkin criteria
+
+        :id: e7d86b44-28c3-4525-afac-61a20e62daf8
+
+        :expectedresults: Hosts are listed for the given time period
+
+        :BZ: 1285992
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.new_org['label'],
+                lce='{}/{}'.format(
+                    self.new_lce['label'], self.promoted_cv['label']),
+            )
+            self.assertTrue(client.subscribed)
+            hosts = Host.list({
+                'search': 'last_checkin = "Today" or '
+                          'last_checkin = "Yesterday"'
+            })
+            self.assertGreaterEqual(len(hosts), 1)
+            self.assertIn(client.hostname, [host['name'] for host in hosts])
+
+    @tier3
     @upgrade
     def test_positive_unregister(self):
         """Unregister a host
