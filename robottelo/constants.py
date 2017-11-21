@@ -531,6 +531,7 @@ FAKE_1_YUM_REPO_RPMS = [
 FAKE_0_PUPPET_MODULE = 'httpd'
 
 PULP_PUBLISHED_ISO_REPOS_PATH = '/var/lib/pulp/published/http/isos'
+PULP_PUBLISHED_PUPPET_REPOS_PATH = '/var/lib/pulp/published/puppet/https/repos'
 PULP_PUBLISHED_YUM_REPOS_PATH = '/var/lib/pulp/published/yum/http/repos'
 
 #: All permissions exposed by the server.

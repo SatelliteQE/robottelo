@@ -40,6 +40,7 @@ from robottelo.constants import (
     FAKE_8_YUM_REPO,
     PRDS,
     PULP_PUBLISHED_ISO_REPOS_PATH,
+    PULP_PUBLISHED_PUPPET_REPOS_PATH,
     PULP_PUBLISHED_YUM_REPOS_PATH,
     REPO_TYPE,
     REPOS,
@@ -954,8 +955,8 @@ class CapsuleContentManagementTestCase(APITestCase):
                promote it to capsule's LCE
             7. Wait for capsule synchronization to finish once more
 
-        :expectedresults: Capsule was successfully synchronized, no errors were
-            found during synchronization
+        :expectedresults: Capsule was successfully synchronized, new version of
+            puppet module is present on capsule
 
         :CaseLevel: System
         """
@@ -1008,7 +1009,6 @@ class CapsuleContentManagementTestCase(APITestCase):
             entities.ForemanTask(id=task['id']).poll()
         sync_status = capsule.content_get_sync()
         last_sync_time = sync_status['last_sync_time']
-        sync_errors_before = sync_status['last_failed_sync_tasks']
         # Unassign old puppet module version from CV
         entities.ContentViewPuppetModule(
             content_view=content_view,
@@ -1040,12 +1040,13 @@ class CapsuleContentManagementTestCase(APITestCase):
         else:
             self.assertNotEqual(
                 sync_status['last_sync_time'], last_sync_time)
-        # Polling the task will raise an assertion in case of error, but in
-        # case we couldn't catch tasks running in time, let's ensure no new
-        # failed tasks were logged for capsule
-        sync_status = capsule.content_get_sync()
-        sync_errors_after = sync_status['last_failed_sync_tasks']
-        self.assertEqual(len(sync_errors_before), len(sync_errors_after))
+        stored_modules = get_repo_files(
+            PULP_PUBLISHED_PUPPET_REPOS_PATH, 'gz', self.capsule_hostname)
+        with self.assertNotRaises(StopIteration):
+            next(
+                filename for filename in stored_modules
+                if '{}-{}'.format(module_name, module_versions[1]) in filename
+            )
 
     @tier4
     def test_positive_capsule_pub_url_accessible(self):
