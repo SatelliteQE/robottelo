@@ -304,6 +304,17 @@ class VirtualMachine(object):
         if gofer_check.return_code != 0:
             raise VirtualMachineError('katello-agent is not running')
 
+    def install_katello_host_tools(self):
+        """Installs Katello host tools on the virtual machine
+
+        :raises robottelo.vm.VirtualMachineError: If katello-host-tools wasn't
+            installed.
+        """
+        self.run('yum install -y katello-host-tools')
+        result = self.run('rpm -q katello-host-tools')
+        if result.return_code != 0:
+            raise VirtualMachineError('Failed to install katello-host-tools')
+
     def install_katello_ca(self):
         """Downloads and installs katello-ca rpm on the virtual machine.
 

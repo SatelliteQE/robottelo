@@ -55,6 +55,7 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.medium import Medium
 from robottelo.cli.operatingsys import OperatingSys
+from robottelo.cli.package import Package
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.puppet import Puppet
 from robottelo.cli.scparams import SmartClassParameter
@@ -76,7 +77,9 @@ from robottelo.constants import (
     FAKE_2_CUSTOM_PACKAGE_NAME,
     FAKE_0_ERRATA_ID,
     FAKE_1_ERRATA_ID,
+    FAKE_2_ERRATA_ID,
     FAKE_0_YUM_REPO,
+    FAKE_6_YUM_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -2687,6 +2690,230 @@ class KatelloAgentTestCase(CLITestCase):
             expected_hosts_ids = {self.host['id'], client_host['id']}
             hosts_ids = {host['id'] for host in hosts}
             self.assertEqual(hosts_ids, expected_hosts_ids)
+
+
+@run_in_one_thread
+class KatelloHostToolsTestCase(CLITestCase):
+    """Host tests, which require VM with installed katello-host-tools."""
+
+    @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key"""
+        super(KatelloHostToolsTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.env = make_lifecycle_environment({
+            u'organization-id': cls.org['id'],
+        })
+        cls.content_view = make_content_view({
+            u'organization-id': cls.org['id'],
+        })
+        cls.activation_key = make_activation_key({
+            u'lifecycle-environment-id': cls.env['id'],
+            u'organization-id': cls.org['id'],
+        })
+        # setup rh satellite tools repository content
+        setup_org_for_a_rh_repo({
+            u'product': PRDS['rhel'],
+            u'repository-set': REPOSET['rhst7'],
+            u'repository': REPOS['rhst7']['name'],
+            u'organization-id': cls.org['id'],
+            u'content-view-id': cls.content_view['id'],
+            u'lifecycle-environment-id': cls.env['id'],
+            u'activationkey-id': cls.activation_key['id'],
+        })
+        # Create custom repository content
+        setup_org_for_a_custom_repo({
+            u'url': FAKE_6_YUM_REPO,
+            u'organization-id': cls.org['id'],
+            u'content-view-id': cls.content_view['id'],
+            u'lifecycle-environment-id': cls.env['id'],
+            u'activationkey-id': cls.activation_key['id'],
+        })
+
+    def setUp(self):
+        """Create VM, install katello-ca package, subscribe vm host, enable
+        satellite-tools repository, and install katello-host-tools package
+        """
+        super(KatelloHostToolsTestCase, self).setUp()
+        # Create VM and register content host
+        self.client = VirtualMachine()
+        self.client.create()
+        self.addCleanup(vm_cleanup, self.client)
+        self.client.install_katello_ca()
+        # Register content host and install katello-host-tools
+        self.client.register_contenthost(
+            self.org['label'],
+            self.activation_key['name'],
+        )
+        self.assertTrue(self.client.subscribed)
+        self.host_info = Host.info({'name': self.client.hostname})
+        self.client.enable_repo(REPOS['rhst7']['id'])
+        self.client.install_katello_host_tools()
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_report_package_installed_removed(self):
+        """Ensure installed/removed package is reported to satellite
+
+        :id: fa5dc238-74c3-4c8a-aa6f-e0a91ba543e3
+
+        :steps:
+            1. register a host to activation key with content view that contain
+               packages
+            2. install a package 1 from the available packages
+            3. list the host installed packages with search for package 1 name
+            4. remove the package 1
+            5. list the host installed packages with search for package 1 name
+
+        :expectedresults:
+            1. after step3: package 1 is listed in installed packages
+            2. after step5: installed packages list is empty
+
+        :BZ: 1463809
+
+        :CaseLevel: System
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_0_CUSTOM_PACKAGE))
+        result = self.client.run(
+            'rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE)
+        )
+        self.assertEqual(result.return_code, 0)
+        installed_packages = Host.package_list({
+            'host-id': self.host_info['id'],
+            'search': 'name={0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME)
+        })
+        self.assertEqual(len(installed_packages), 1)
+        self.assertEqual(installed_packages[0]['nvra'], FAKE_0_CUSTOM_PACKAGE)
+        result = self.client.run(
+            'yum remove -y {0}'.format(FAKE_0_CUSTOM_PACKAGE))
+        self.assertEqual(result.return_code, 0)
+        installed_packages = Host.package_list({
+            'host-id': self.host_info['id'],
+            'search': 'name={0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME)
+        })
+        self.assertEqual(len(installed_packages), 0)
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_package_applicability(self):
+        """Ensure packages applicability is functioning properly
+
+        :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
+
+        :steps:
+            1. register a host to activation key with content view that contain
+               a minimum of 2 packages, package 1 and package 2,
+               where package 2 is an upgrade/update of package 1
+            2. install the package 1
+            3. list the host applicable packages for package 1 name
+            4. install the package 2
+            5. list the host applicable packages for package 1 name
+
+        :expectedresults:
+            1. after step 3: package 2 is listed in applicable packages
+            2. after step 5: applicable packages list is empty
+
+        :BZ: 1463809
+
+        :CaseLevel: System
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        result = self.client.run(
+            'rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE)
+        )
+        self.assertEqual(result.return_code, 0)
+        applicable_packages = Package.list({
+            'host-id': self.host_info['id'],
+            'packages-restrict-applicable': 'true',
+            'search': 'name={0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME)
+        })
+        self.assertEqual(len(applicable_packages), 1)
+        self.assertIn(
+            FAKE_2_CUSTOM_PACKAGE, applicable_packages[0]['filename'])
+        # install package update
+        self.client.run('yum install -y {0}'.format(FAKE_2_CUSTOM_PACKAGE))
+        result = self.client.run(
+            'rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE)
+        )
+        self.assertEqual(result.return_code, 0)
+        applicable_packages = Package.list({
+            'host-id': self.host_info['id'],
+            'packages-restrict-applicable': 'true',
+            'search': 'name={0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME)
+        })
+        self.assertEqual(len(applicable_packages), 0)
+
+    @run_only_on('sat')
+    @tier3
+    def test_positive_erratum_applicability(self):
+        """Ensure erratum applicability is functioning properly
+
+        :id: 139de508-916e-4c91-88ad-b4973a6fa104
+
+        :steps:
+            1. register a host to activation key with content view that contain
+               a package with errata
+            2. install the package
+            3. list the host applicable errata
+            4. install the errata
+            5. list the host applicable errata
+
+        :expectedresults:
+            1. after step 3: errata of package is in applicable errata list
+            2. after step 5: errata of package is not in applicable errata list
+
+        :BZ: 1463809
+
+        :CaseLevel: System
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        result = self.client.run(
+            'rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE)
+        )
+        self.assertEqual(result.return_code, 0)
+        applicable_erratum = Host.errata_list({
+            'host-id': self.host_info['id'],
+        })
+        applicable_erratum_ids = [
+            errata['erratum-id']
+            for errata in applicable_erratum
+            if errata['installable'] == 'true'
+        ]
+        self.assertIn(FAKE_2_ERRATA_ID, applicable_erratum_ids)
+        # apply errata
+        result = self.client.run(
+            'yum update -y --advisory {0}'.format(FAKE_2_ERRATA_ID))
+        self.assertEqual(result.return_code, 0)
+        applicable_erratum = Host.errata_list({
+            'host-id': self.host_info['id'],
+        })
+        applicable_erratum_ids = [
+            errata['erratum-id']
+            for errata in applicable_erratum
+            if errata['installable'] == 'true'
+        ]
+        self.assertNotIn(FAKE_2_ERRATA_ID, applicable_erratum_ids)
+
+    def test_negative_install_package(self):
+        """Attempt to install a package to a host remotely
+
+        :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
+
+        :expectedresults: Package was not installed
+
+        :CaseLevel: System
+        """
+        with self.assertRaises(CLIReturnCodeError) as context:
+            Host.package_install({
+                u'host-id': self.host_info['id'],
+                u'packages': FAKE_1_CUSTOM_PACKAGE,
+            })
+        self.assertIn(
+            ('The task has been cancelled. Is katello-agent installed and '
+             'goferd running on the Host?'),
+            context.exception.message
+        )
 
 
 @run_in_one_thread
