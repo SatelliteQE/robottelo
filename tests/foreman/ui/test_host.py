@@ -16,6 +16,7 @@
 :Upstream: No
 """
 import six
+import yaml
 
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
@@ -1682,6 +1683,72 @@ class HostTestCase(UITestCase):
 
         :CaseLevel: System
         """
+
+    @tier3
+    def test_positive_set_multi_line_and_with_spaces_parameter_value(self):
+        """Check that host parameter value with multi-line and spaces is
+        correctly represented in yaml format
+
+        :id: d72b481d-2279-4478-ab2d-128f92c76d9c
+
+        :expectedresults:
+            1. parameter is correctly represented in yaml format without
+               line break (special chars should be escaped)
+            2. host parameter value is the same when restored from yaml format
+
+        :BZ: 1315282
+
+        :CaseLevel: System
+        """
+        host_name = gen_string('alpha').lower()
+        param_name = gen_string('alpha').lower()
+        # long string that should be escaped and affected by line break with
+        # yaml dump by default
+        param_value = (
+            u'auth                          include              '
+            u'password-auth\r\n'
+            u'account     include                  password-auth'
+        )
+        org = entities.Organization().create()
+        host = entities.Host(organization=org)
+        host.create_missing()
+        entities.Host(
+            name=host_name,
+            organization=org,
+            architecture=host.architecture,
+            domain=host.domain,
+            environment=host.environment,
+            location=host.location,
+            mac=host.mac,
+            medium=host.medium,
+            operatingsystem=host.operatingsystem,
+            ptable=host.ptable,
+            root_pass=host.root_pass,
+            content_facet_attributes={
+                'content_view_id': entities.ContentView(
+                    organization=org, name=DEFAULT_CV).search()[0].id,
+                'lifecycle_environment_id': entities.LifecycleEnvironment(
+                    organization=org, name=ENVIRONMENT).search()[0].id
+            }
+        ).create()
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            session.hosts.update(host_name, host.domain.name,
+                                 host_parameters=[(param_name, param_value)])
+            yaml_text = session.hosts.get_yaml_output(
+                u'{0}.{1}'.format(host_name, host.domain.name))
+            # ensure parameter value is represented in yaml format without
+            # line break (special chars should be escaped)
+            self.assertIn(
+                param_value.encode('unicode_escape'),
+                yaml_text
+            )
+            # host parameter value is the same when restored from yaml format
+            yaml_content = yaml.load(yaml_text)
+            host_parameters = yaml_content.get('parameters')
+            self.assertIsNotNone(host_parameters)
+            self.assertIn(param_name, host_parameters)
+            self.assertEqual(host_parameters[param_name], param_value)
 
 
 class AtomicHostTestCase(UITestCase):
