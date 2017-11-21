@@ -992,6 +992,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         content_view = content_view.read()
         # Check that CV is published and has proper number of CV versions.
         self.assertEqual(len(content_view.version), REPEAT)
+        content_view.version.sort(key=lambda version: version.id)
         # After each publish operation application re-assign environment to
         # latest CV version. Correspondingly, at that moment, first cv version
         # should have 0 environments and latest should have one ('Library')
@@ -1003,6 +1004,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         # first one
         promote(content_view.version[0], lce_list[0].id, force=True)
         content_view = content_view.read()
+        content_view.version.sort(key=lambda version: version.id)
         # Verify that, according to our plan, first version contains one
         # environment and latest - 0
         self.assertEqual(len(content_view.version[0].read().environment), 1)
