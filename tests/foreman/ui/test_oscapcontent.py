@@ -111,6 +111,45 @@ class OpenScapContentTestCase(UITestCase):
                     self.assertIsNotNone(session.nav.wait_until_element(
                         common_locators['haserror']))
 
+    @skip_if_bug_open('bugzilla', 1474172)
+    @tier1
+    def test_negative_create_with_same_name(self):
+        """Create OpenScap content with same name
+
+        :id: f5c6491d-b83c-4ca2-afdf-4bb93e6dd92b
+
+        :Steps:
+
+            1. Create an openscap content.
+            2. Provide all the appropriate parameters.
+            3. Create openscap content with same name
+
+        :expectedresults: Creating content for OpenScap is not successful.
+
+        :BZ: 1474172
+
+        :CaseImportance: Critical
+        """
+        content_name = gen_string('alpha')
+        with Session(self) as session:
+            make_oscapcontent(
+                session,
+                name=content_name,
+                content_path=self.content_path,
+                content_org=self.org_name,
+            )
+            self.assertIsNotNone(self.oscapcontent.search(content_name))
+            make_oscapcontent(
+                session,
+                name=content_name,
+                content_path=self.content_path,
+                content_org=self.org_name,
+            )
+            self.assertIsNotNone(
+                self.oscapcontent.wait_until_element(
+                    common_locators['name_haserror'])
+            )
+
     @tier1
     @unittest2.skip('oscap contents are not installed by default.'
                     'Installer needs to be fixed')
