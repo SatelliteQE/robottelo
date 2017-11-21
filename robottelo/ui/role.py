@@ -77,6 +77,31 @@ class Role(Base):
             self.configure_entity(location, FILTER['filter_loc'])
         self.click(common_locators['submit'])
 
+    def filters_get_permissions_by_resource(
+            self, role_name, query_resource, resource_name):
+        """Search for specific filter by specific resource name and return
+        this filter permissions
+
+        :param role_name: Name of the role used in search
+        :param query_resource: Name of the resource in a way it should be
+            displayed in search field
+        :param resource_name: Name of the resource in a way it should be
+            displayed in a table
+        :return: Permissions list for specific resource
+
+        """
+        self.search(role_name)
+        self.click(locators['roles.filters_button'] % role_name)
+        self.wait_until_element(locators['role_filters.title'])
+        self.assign_value(
+            common_locators['search'],
+            'role = {} and resource = {}'.format(role_name, query_resource)
+        )
+        self.click(common_locators['search_button'])
+        return self.wait_until_element(
+            locators['role_filters.permissions'] % resource_name
+        ).text.split(', ')
+
     def filters_get_resources(self, role_name):
         """Fetch resources from role filters.
 

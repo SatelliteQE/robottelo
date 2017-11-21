@@ -396,6 +396,60 @@ class RoleTestCase(UITestCase):
             ])
             self.assertEqual(assigned_permissions_count, filters_number)
 
+    @tier1
+    def test_positive_create_with_sc_parameter_permission(self):
+        """Create role filter with few permissions for smart class parameters.
+
+        :id: c9e466e5-d6ce-4596-bd32-c2a7817da34a
+
+        :expectedresults: Corresponding role filter has necessary permissions
+
+        :BZ: 1360191
+
+        :CaseImportance: High
+        """
+        name = gen_string('alpha')
+        resource_type = 'Smart class parameter'
+        permissions = ['view_external_parameters', 'edit_external_parameters']
+        with Session(self) as session:
+            make_role(session, name=name)
+            self.assertIsNotNone(self.role.search(name))
+            self.role.add_permission(
+                name,
+                resource_type=resource_type,
+                permission_list=permissions,
+            )
+            assigned_perms = self.role.filters_get_permissions_by_resource(
+                name, 'PuppetclassLookupKey', 'Smart class parameter')
+            self.assertEqual(set(permissions), set(assigned_perms))
+
+    @tier1
+    def test_positive_create_with_smart_variable_permission(self):
+        """Create role filter with few permissions for smart variables.
+
+        :id: 9e5775f3-5f79-4212-bcb4-29d91032df4e
+
+        :expectedresults: Corresponding role filter has necessary permissions
+
+        :BZ: 1360191
+
+        :CaseImportance: High
+        """
+        name = gen_string('alpha')
+        resource_type = 'Smart variable'
+        permissions = ['view_external_variables', 'edit_external_variables']
+        with Session(self) as session:
+            make_role(session, name=name)
+            self.assertIsNotNone(self.role.search(name))
+            self.role.add_permission(
+                name,
+                resource_type=resource_type,
+                permission_list=permissions,
+            )
+            assigned_perms = self.role.filters_get_permissions_by_resource(
+                name, 'VariableLookupKey', 'Smart variable')
+            self.assertEqual(set(permissions), set(assigned_perms))
+
 
 class CannedRoleTestCases(UITestCase):
     """Implements Canned Roles tests from UI"""

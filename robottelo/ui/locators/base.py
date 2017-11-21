@@ -1358,7 +1358,6 @@ locators = LocatorDict({
         "//li[contains(@class, 'next') and "
         "not(contains(@class, 'disabled'))]/span"
     ),
-    "roles.filters.search": (By.XPATH, "//input[@type='search']"),
     "roles.filters_button": (
         By.XPATH,
         "//td[contains(., '%s')]/following-sibling::td"
