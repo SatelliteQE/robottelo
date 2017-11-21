@@ -2701,10 +2701,8 @@ class KatelloHostToolsTestCase(CLITestCase):
             'host-id': self.host_info['id'],
             'search': 'name={0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME)
         })
-        self.assertIn(
-            FAKE_0_CUSTOM_PACKAGE,
-            [package['nvra'] for package in installed_packages]
-        )
+        self.assertEqual(len(installed_packages), 1)
+        self.assertEqual(installed_packages[0]['nvra'], FAKE_0_CUSTOM_PACKAGE)
         result = self.client.run(
             'yum remove -y {0}'.format(FAKE_0_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
@@ -2814,6 +2812,26 @@ class KatelloHostToolsTestCase(CLITestCase):
             if errata['installable'] == 'true'
         ]
         self.assertNotIn(FAKE_2_ERRATA_ID, applicable_erratum_ids)
+
+    def test_negative_install_package(self):
+        """Attempt to install a package to a host remotely
+
+        :id: 751c05b4-d7a3-48a2-8860-f0d15fdce204
+
+        :expectedresults: Package was not installed
+
+        :CaseLevel: System
+        """
+        with self.assertRaises(CLIReturnCodeError) as context:
+            Host.package_install({
+                u'host-id': self.host_info['id'],
+                u'packages': FAKE_1_CUSTOM_PACKAGE,
+            })
+        self.assertIn(
+            ('The task has been cancelled. Is katello-agent installed and '
+             'goferd running on the Host?'),
+            context.exception.message
+        )
 
 
 @run_in_one_thread
