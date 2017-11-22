@@ -18,10 +18,7 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import (
-        destructive,
-        skip_if_bug_open,
-)
+from robottelo.decorators import destructive
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
@@ -47,6 +44,18 @@ def tmp_directory_cleanup(connection, *args):
 @destructive
 class RestoreTestCase(TestCase):
     """Implements ``katello-restore`` tests"""
+
+    @classmethod
+    def tearDownClass(cls):
+        """Make sure services are started after test run"""
+        super(RestoreTestCase, cls).tearDownClass()
+        with get_connection() as connection:
+            result = connection.run(
+                'katello-service start',
+                timeout=1600,
+                output_format='plain'
+            )
+            cls.assertEqual(result.return_code, 0)
 
     def check_services_status(self, max_attempts=5):
         for _ in range(max_attempts):
@@ -136,7 +145,6 @@ class RestoreTestCase(TestCase):
             self.check_services_status()
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1482135)
     def test_positive_restore_from_offline_backup(self):
         """katello-restore from offline backup files
 
@@ -169,7 +177,8 @@ class RestoreTestCase(TestCase):
             entities.User(login=username2).create()
             result = connection.run(
                 'satellite-restore -y /tmp/{0}/satellite-backup*'
-                .format(dir_name))
+                .format(dir_name),
+                timeout=1600)
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
             self.assertGreater(len(user_list), 0)
@@ -179,7 +188,6 @@ class RestoreTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1482135)
     def test_positive_restore_from_online_and_incremental(self):
         """katello-restore from online and incremental backup
 
@@ -229,7 +237,8 @@ class RestoreTestCase(TestCase):
             # restore from the base backup
             result = connection.run(
                 'satellite-restore -y /tmp/{0}/satellite-backup*'
-                .format(b1))
+                .format(b1),
+                timeout=1600)
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
             self.assertGreater(len(user_list), 0)
@@ -240,7 +249,8 @@ class RestoreTestCase(TestCase):
             # restore from the incremental backup
             result = connection.run(
                 'satellite-restore -y /tmp/{0}/satellite-backup*'
-                .format(b2))
+                .format(b2),
+                timeout=1600)
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
             self.assertGreater(len(user_list), 0)
