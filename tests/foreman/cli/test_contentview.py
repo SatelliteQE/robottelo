@@ -1312,9 +1312,9 @@ class ContentViewTestCase(CLITestCase):
             u'product-id': self.product['id'],
             u'url': CUSTOM_PUPPET_REPO,
         })
+        Repository.synchronize({'id': puppet_repository['id']})
         puppet_module = PuppetModule.list({
             'search': 'name={name} and version={version}'.format(**module)})[0]
-        Repository.synchronize({'id': puppet_repository['id']})
         content_view = make_content_view({u'organization-id': self.org['id']})
         ContentView.puppet_module_add({
             u'content-view-id': content_view['id'],
