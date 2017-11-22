@@ -456,11 +456,6 @@ locators = LocatorDict({
         By.XPATH,
         "//div/span/input[@id='compute_attribute_vm_attrs_memory']"
     ),
-    "resource.compute_profile.rhev_image": (
-        By.XPATH,
-        ("//div[@id='s2id_compute_attribute_vm_attrs_image_id']"
-         "/a/span[contains(@class, 'arrow')]")
-    ),
     "resource.compute_profile.interface_add_node": (
         By.XPATH,
         ("//div/fieldset[@id='network_interfaces']"
@@ -478,34 +473,34 @@ locators = LocatorDict({
     ),
     "resource.compute_profile.storage_add_node": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
-         "/a[@data-association='volumes']")
+        ("//fieldset[@id='storage_volumes']"
+         "/div/a[@data-association='volumes']")
     ),
     "resource.compute_profile.rhev_storage_size": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div/input[contains(@id,'size_gb')]")
     ),
     "resource.compute_profile.rhev_storage_domain": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div[contains(@id, 'storage_domain')]"
          "/a/span[contains(@class, 'arrow')]")
     ),
     "resource.compute_profile.fetch_rhev_storage_domain": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div[contains(@id, 'storage_domain')]"
          "/a/span[contains(@class, 'chosen')]")
     ),
     "resource.compute_profile.rhev_storage_preallocate": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div/input[contains(@id, 'preallocate')]")
     ),
     "resource.compute_profile.rhev_storage_bootable": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div/label/input[contains(@id, 'bootable_true')]")
     ),
     "resource.compute_profile.vmware_cpus": (

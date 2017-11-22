@@ -118,7 +118,7 @@ class Hosts(Base):
         elif method == 'network':
             self.click(tab_locators['operatingsys.tab_provision_network'])
         elif method == 'image':
-            self.click(tab_locators['operatingsys.tab_provision_images'])
+            self.click(tab_locators['operatingsys.tab_provision_image'])
 
     def _configure_puppet_modules(self, puppet_modules_list):
         """Provide configuration capabilities for host entity puppet classes

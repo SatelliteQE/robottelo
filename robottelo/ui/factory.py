@@ -380,6 +380,7 @@ def make_host(session, org=None, loc=None, force_context=True, **kwargs):
         u'interface_parameters': None,
         u'host_parameters': None,
         u'parameters_list': None,
+        u'provisioning_method': None
     }
     page = session.nav.go_to_hosts
     core_factory(create_args, kwargs, session, page,
