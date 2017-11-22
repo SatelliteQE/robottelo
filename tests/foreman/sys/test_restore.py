@@ -18,10 +18,7 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import (
-        destructive,
-        skip_if_bug_open,
-)
+from robottelo.decorators import destructive
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
@@ -47,6 +44,18 @@ def tmp_directory_cleanup(connection, *args):
 class RestoreTestCase(TestCase):
     """Implements ``katello-restore`` tests"""
 
+    @classmethod
+    def tearDownClass(cls):
+        """Make sure services are started after test run"""
+        super(RestoreTestCase, cls).tearDownClass()
+        with get_connection() as connection:
+            result = connection.run(
+                'katello-service start',
+                timeout=1600,
+                output_format='plain'
+            )
+            cls.assertEqual(result.return_code, 0)
+
     def check_services_status(self, max_attempts=5):
         for _ in range(max_attempts):
             try:
@@ -62,11 +71,12 @@ class RestoreTestCase(TestCase):
                 \n{0}'.format('\n'.join(result[1])))
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1451833)
     def test_negative_restore_no_directory(self):
         """run katello-restore with no directory specified
 
         @id: 61952f9b-1dbe-4154-83b6-f452eed798d6
+
+        @bz: 1451833
 
         @Steps:
 
@@ -163,8 +173,9 @@ class RestoreTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             entities.User(login=username2).create()
             result = connection.run(
-                'katello-restore -y /tmp/{0}/katello-backup*'
-                .format(dir_name))
+                'katello-restore -y /tmp/{0}/satellite-backup*'
+                .format(dir_name),
+                timeout=1600)
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
             self.assertGreater(len(user_list), 0)
@@ -220,8 +231,9 @@ class RestoreTestCase(TestCase):
 
             # restore from the base backup
             result = connection.run(
-                'katello-restore -y /tmp/{0}/katello-backup*'
-                .format(b1))
+                'katello-restore -y /tmp/{0}/satellite-backup*'
+                .format(b1),
+                timeout=1600)
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
             self.assertGreater(len(user_list), 0)
@@ -231,8 +243,9 @@ class RestoreTestCase(TestCase):
 
             # restore from the incremental backup
             result = connection.run(
-                'katello-restore -y /tmp/{0}/katello-backup*'
-                .format(b2))
+                'katello-restore -y /tmp/{0}/satellite-backup*'
+                .format(b2),
+                timeout=1600)
             self.assertEqual(result.return_code, 0)
             user_list = entities.User().search()
             self.assertGreater(len(user_list), 0)
