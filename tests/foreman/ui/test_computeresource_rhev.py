@@ -777,16 +777,16 @@ class RhevComputeResourceHostTestCase(UITestCase):
     def tearDown(self):
         """Delete the host to free the resources"""
         super(RhevComputeResourceHostTestCase, self).tearDown()
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            hosts = entities.Host().search(
-                query={u'search': u'organization={0}'.format(self.org_name)})
-            for host in hosts:
-                host.delete()
+        hosts = entities.Host().search(
+            query={u'search': u'organization={0}'.format(self.org_name)})
+        for host in hosts:
+            host.delete()
 
+    @upgrade
     @skip_if_bug_open('bugzilla', 1467925)
     @skip_if_bug_open('bugzilla', 1467828)
     @skip_if_bug_open('bugzilla', 1466645)
+    @skip_if_bug_open('bugzilla', 1514885)
     @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_image(self):
@@ -818,6 +818,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
+        cr_resource = '{0} (RHEV)'.format(cr_name)
         img_name = gen_string('alpha', 5)
         root_pwd = gen_string('alpha', 15)
         with Session(self) as session:
@@ -851,7 +852,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 cluster=self.rhev_datacenter,
                 cores=2,
                 memory=1024,
-                image=self.rhev_img_name,
                 network_interfaces=[
                     dict(
                         name='nic1',
@@ -876,7 +876,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],
                     ['Host', 'Host group', self.config_env['host_group']],
-                    ['Host', 'Deploy on', cr_name],
+                    ['Host', 'Deploy on', cr_resource],
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
                     ['Host', 'Puppet Environment',
                         self.config_env['environment']],
@@ -886,7 +886,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Operating System', 'PXE loader', 'PXELinux BIOS'],
                     ['Operating System', 'Root password', root_pwd],
                 ],
-                provisioning_method='network'
+                provisioning_method='image',
             )
             self.assertIsNotNone(self.hosts.search(
                 u'{0}.{1}'.format(hostname.lower(),
@@ -903,6 +903,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1467925)
     @skip_if_bug_open('bugzilla', 1467828)
+    @skip_if_bug_open('bugzilla', 1514885)
     @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_compute_profile(self):
@@ -927,6 +928,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
+        cr_resource = '{0} (RHEV)'.format(cr_name)
         root_pwd = gen_string('alpha', 15)
         with Session(self) as session:
             parameter_list = [
@@ -972,7 +974,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],
                     ['Host', 'Host group', self.config_env['host_group']],
-                    ['Host', 'Deploy on', cr_name],
+                    ['Host', 'Deploy on', cr_resource],
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
                     ['Host', 'Puppet Environment',
                         self.config_env['environment']],
@@ -1000,6 +1002,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
     @upgrade
     @skip_if_bug_open('bugzilla', 1467925)
     @skip_if_bug_open('bugzilla', 1467828)
+    @skip_if_bug_open('bugzilla', 1514885)
     @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_custom_compute_settings(self):
@@ -1025,6 +1028,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
+        cr_resource = '{0} (RHEV)'.format(cr_name)
         root_pwd = gen_string('alpha', 15)
         with Session(self) as session:
             parameter_list = [
@@ -1080,7 +1084,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],
                     ['Host', 'Host group', self.config_env['host_group']],
-                    ['Host', 'Deploy on', cr_name],
+                    ['Host', 'Deploy on', cr_resource],
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
                     ['Host', 'Puppet Environment',
                         self.config_env['environment']],

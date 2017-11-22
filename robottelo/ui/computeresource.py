@@ -149,7 +149,6 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
     template_locator = locators["resource.compute_profile.rhev_template"]
     cores_locator = locators["resource.compute_profile.rhev_cores"]
     memory_locator = locators["resource.compute_profile.rhev_memory"]
-    image_locator = locators["resource.compute_profile.rhev_image"]
     group_fields_locators = dict(
         network_interfaces=dict(
             _add_node=locators[
