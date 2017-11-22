@@ -112,7 +112,7 @@ class ContentHost(Base):
                 return True
         return False
 
-    def get_subscription_color(self, name):
+    def get_subscription_status_color(self, name):
         """Return content host subscription status color
 
         :returns a string with one of the values: green, yellow, red, unknown
@@ -130,6 +130,12 @@ class ContentHost(Base):
             return colors.get(
                 sub_element.value_of_css_property('color'), 'unknown')
         return None
+
+    def get_subscription_status_text(self, name):
+        """Return content host subscription status text"""
+        self.search_and_click(name)
+        return self.wait_until_element(
+            locators['contenthost.subscription_status_text']).text.strip()
 
     def execute_package_action(self, name, action_name, action_value,
                                timeout=120):

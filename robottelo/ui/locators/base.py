@@ -655,6 +655,10 @@ locators = LocatorDict({
         ("//td[a[contains(@href, 'content_hosts') and contains(.,'%s')]]"
          "/following-sibling::td/span[contains(@ng-class, "
          "'host.subscription_global_status')]")),
+    "contenthost.subscription_status_text": (
+        By.XPATH,
+        ("//dd/i[contains(@ng-class, 'host.subscription_global_status')]"
+         "/parent::dd")),
     "contenthost.subscription_select": (
         By.XPATH,
         ("//td[b[contains(.,'%s')]]"

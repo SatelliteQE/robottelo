@@ -596,9 +596,11 @@ class ContentHostTestCase(UITestCase):
 
         :expectedresults:
             1. With subscription not attached, Subscription status is
-               represented by a yellow icon.
-            2. With attached subscription, Subscription status is represented
-               by a green icon.
+               "Unsubscribed hypervisor" and represented by a yellow icon in
+               content hosts list.
+            2. With attached subscription, Subscription status is
+               "Fully entitled" and represented by a green icon in content
+               hosts list.
 
         :BZ: 1336924
 
@@ -633,16 +635,26 @@ class ContentHostTestCase(UITestCase):
             with Session(self) as session:
                 set_context(session, org=org.name, force_context=True)
                 self.assertEqual(
-                    session.contenthost.get_subscription_color(
+                    session.contenthost.get_subscription_status_color(
                         virt_who_hypervisor_host['name']),
                     'yellow'
+                )
+                self.assertEqual(
+                    session.contenthost.get_subscription_status_text(
+                        virt_who_hypervisor_host['name']),
+                    'Unsubscribed hypervisor'
                 )
                 session.contenthost.update(
                     virt_who_hypervisor_host['name'],
                     add_subscriptions=[VDC_SUBSCRIPTION_NAME]
                 )
                 self.assertEqual(
-                    session.contenthost.get_subscription_color(
+                    session.contenthost.get_subscription_status_color(
                         virt_who_hypervisor_host['name']),
                     'green'
+                )
+                self.assertEqual(
+                    session.contenthost.get_subscription_status_text(
+                        virt_who_hypervisor_host['name']),
+                    'Fully entitled'
                 )
