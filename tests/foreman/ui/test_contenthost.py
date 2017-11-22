@@ -633,16 +633,16 @@ class ContentHostTestCase(UITestCase):
             with Session(self) as session:
                 set_context(session, org=org.name, force_context=True)
                 self.assertEqual(
-                    session.contenthost.get_subscription_color_and_status(
+                    session.contenthost.get_subscription_color(
                         virt_who_hypervisor_host['name']),
-                    ('yellow', 'warn')
+                    'yellow'
                 )
                 session.contenthost.update(
                     virt_who_hypervisor_host['name'],
                     add_subscriptions=[VDC_SUBSCRIPTION_NAME]
                 )
                 self.assertEqual(
-                    session.contenthost.get_subscription_color_and_status(
+                    session.contenthost.get_subscription_color(
                         virt_who_hypervisor_host['name']),
-                    ('green', 'ok')
+                    'green'
                 )
