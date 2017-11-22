@@ -21,8 +21,10 @@ from nailgun import entities
 
 from robottelo.cleanup import setting_cleanup, vm_cleanup
 from robottelo.cli.factory import (
+    make_virt_who_config,
     setup_org_for_a_custom_repo,
     setup_org_for_a_rh_repo,
+    virt_who_hypervisor_config,
 )
 from robottelo.config import settings
 from robottelo.constants import (
@@ -41,6 +43,8 @@ from robottelo.constants import (
     PRDS,
     REPOS,
     REPOSET,
+    VDC_SUBSCRIPTION_NAME,
+    VIRT_WHO_HYPERVISOR_TYPES,
 )
 from robottelo.decorators import (
     run_in_one_thread,
@@ -51,6 +55,7 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import UITestCase
+from robottelo.ui.factory import set_context
 from robottelo.ui.locators import tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
@@ -579,3 +584,77 @@ class ContentHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
+
+    @skip_if_not_set('clients', 'fake_manifest', 'compute_resources')
+    @tier3
+    @upgrade
+    def test_positive_virt_who_hypervisor_subscription_status(self):
+        """Check that virt-who hypervisor shows the right subscription status
+        without and with attached subscription.
+
+        :id: 8b2cc5d6-ac85-463f-a973-f4818c55fb37
+
+        :expectedresults:
+            1. With subscription not attached, Subscription status is
+               "Unsubscribed hypervisor" and represented by a yellow icon in
+               content hosts list.
+            2. With attached subscription, Subscription status is
+               "Fully entitled" and represented by a green icon in content
+               hosts list.
+
+        :BZ: 1336924
+
+        :CaseLevel: System
+        """
+        org = entities.Organization().create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
+        provisioning_server = settings.compute_resources.libvirt_hostname
+        # Create a new virt-who config
+        virt_who_config = make_virt_who_config({
+            'organization-id': org.id,
+            'hypervisor-type': VIRT_WHO_HYPERVISOR_TYPES['libvirt'],
+            'hypervisor-server': 'qemu+ssh://{0}/system'.format(
+                provisioning_server),
+            'hypervisor-username': 'root',
+        })
+        # create a virtual machine to host virt-who service
+        with VirtualMachine() as virt_who_vm:
+            # configure virtual machine and setup virt-who service
+            # do not supply subscription to attach to virt_who hypervisor
+            virt_who_data = virt_who_hypervisor_config(
+                virt_who_config['general-information']['id'],
+                virt_who_vm,
+                org_id=org.id,
+                lce_id=lce.id,
+                hypervisor_hostname=provisioning_server,
+                configure_ssh=True,
+                exec_one_shot=True,
+            )
+            virt_who_hypervisor_host = virt_who_data[
+                'virt_who_hypervisor_host']
+            with Session(self) as session:
+                set_context(session, org=org.name, force_context=True)
+                self.assertEqual(
+                    session.contenthost.get_subscription_status_color(
+                        virt_who_hypervisor_host['name']),
+                    'yellow'
+                )
+                self.assertEqual(
+                    session.contenthost.get_subscription_status_text(
+                        virt_who_hypervisor_host['name']),
+                    'Unsubscribed hypervisor'
+                )
+                session.contenthost.update(
+                    virt_who_hypervisor_host['name'],
+                    add_subscriptions=[VDC_SUBSCRIPTION_NAME]
+                )
+                self.assertEqual(
+                    session.contenthost.get_subscription_status_color(
+                        virt_who_hypervisor_host['name']),
+                    'green'
+                )
+                self.assertEqual(
+                    session.contenthost.get_subscription_status_text(
+                        virt_who_hypervisor_host['name']),
+                    'Fully entitled'
+                )

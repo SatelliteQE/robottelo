@@ -112,6 +112,31 @@ class ContentHost(Base):
                 return True
         return False
 
+    def get_subscription_status_color(self, name):
+        """Return content host subscription status color
+
+        :returns a string with one of the values: green, yellow, red, unknown
+            or None if the content host was not found
+        """
+        colors = {
+            'rgba(204, 0, 0, 1)': 'red',
+            'rgba(236, 122, 8, 1)': 'yellow',
+            'rgba(63, 156, 53, 1)': 'green',
+        }
+        self.search(name)
+        sub_element = self.wait_until_element(
+            locators['contenthost.subscription_status'] % name)
+        if sub_element:
+            return colors.get(
+                sub_element.value_of_css_property('color'), 'unknown')
+        return None
+
+    def get_subscription_status_text(self, name):
+        """Return content host subscription status text"""
+        self.search_and_click(name)
+        return self.wait_until_element(
+            locators['contenthost.subscription_status_text']).text.strip()
+
     def execute_package_action(self, name, action_name, action_value,
                                timeout=120):
         """Execute remote package action on a content host
