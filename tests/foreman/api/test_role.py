@@ -23,7 +23,6 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
-    bz_bug_is_open,
     stubbed,
     tier1,
     tier2,
@@ -48,11 +47,8 @@ class RoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in generate_strings_list(exclude_types=['html']):
+        for name in generate_strings_list():
             with self.subTest(name):
-                if bz_bug_is_open(1112657) and name in [
-                        'cjk', 'latin1', 'utf8']:
-                    self.skipTest('Bugzilla bug 1112657 is open.')
                 self.assertEqual(entities.Role(name=name).create().name, name)
 
     @tier1
@@ -66,11 +62,8 @@ class RoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in generate_strings_list(exclude_types=['html']):
+        for name in generate_strings_list():
             with self.subTest(name):
-                if bz_bug_is_open(1112657) and name in [
-                        'cjk', 'latin1', 'utf8']:
-                    self.skipTest('Bugzilla bug 1112657 is open.')
                 role = entities.Role(name=name).create()
                 self.assertEqual(role.name, name)
                 role.delete()
@@ -87,11 +80,8 @@ class RoleTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in generate_strings_list(exclude_types=['html']):
+        for name in generate_strings_list():
             with self.subTest(name):
-                if bz_bug_is_open(1112657) and name in [
-                        'cjk', 'latin1', 'utf8']:
-                    self.skipTest('Bugzilla bug 1112657 is open.')
                 role = entities.Role().create()
                 role.name = name
                 self.assertEqual(role.update(['name']).name, name)

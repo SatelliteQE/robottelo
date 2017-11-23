@@ -814,6 +814,166 @@ class HostTestCase(UITestCase):
             with self.assertRaises(UINoSuchElementError):
                 self.hosts.remove_parameter(param_name)
 
+    @tier3
+    def test_positive_check_permissions_affect_create_procedure(self):
+        """Verify whether user permissions affect what entities can be selected
+        when host is created
+
+        :id: 4502f99d-86fb-4655-a9dc-b2612cf849c6
+
+        :expectedresults: user with specific permissions can choose only
+            entities for create host procedure that he has access to
+
+        :BZ: 1293716
+
+        :CaseLevel: System
+        """
+        # Create new organization
+        org = entities.Organization().create()
+        # Create two lifecycle environments
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        filter_lc_env = entities.LifecycleEnvironment(
+            organization=org).create()
+        # Create two content views and promote them to one lifecycle
+        # environment which will be used in filter
+        cv = entities.ContentView(organization=org).create()
+        filter_cv = entities.ContentView(organization=org).create()
+        for content_view in [cv, filter_cv]:
+            content_view.publish()
+            content_view = content_view.read()
+            promote(content_view.version[0], filter_lc_env.id)
+        # Create two host groups
+        hg = entities.HostGroup(organization=[org]).create()
+        filter_hg = entities.HostGroup(organization=[org]).create()
+
+        # Create new role
+        role = entities.Role().create()
+
+        # Create lifecycle environment permissions and select one specific
+        # environment user will have access to
+        env_permissions_entities = entities.Permission(
+            resource_type='Katello::KTEnvironment').search()
+        user_env_permissions = [
+            'promote_or_remove_content_views_to_environments',
+            'view_lifecycle_environments'
+        ]
+        user_env_permissions_entities = [
+            entity
+            for entity in env_permissions_entities
+            if entity.name in user_env_permissions
+        ]
+        entities.Filter(
+            organization=[org],
+            permission=user_env_permissions_entities,
+            role=role,
+            # allow access only to the mentioned here environment
+            search='name = {0}'.format(filter_lc_env.name)
+        ).create()
+
+        # Add necessary permissions for content view as we did for lce
+        cv_permissions_entities = entities.Permission(
+            resource_type='Katello::ContentView').search()
+        user_cv_permissions = [
+            'promote_or_remove_content_views',
+            'view_content_views',
+            'publish_content_views',
+        ]
+        user_cv_permissions_entities = [
+            entity
+            for entity in cv_permissions_entities
+            if entity.name in user_cv_permissions
+        ]
+        entities.Filter(
+            organization=[org],
+            permission=user_cv_permissions_entities,
+            role=role,
+            # allow access only to the mentioned here cv
+            search='name = {0}'.format(filter_cv.name)
+        ).create()
+
+        # Add necessary permissions for hosts as we did for lce
+        host_permissions_entities = entities.Permission(
+            resource_type='Host').search()
+        user_host_permissions = [
+            'create_hosts',
+            'view_hosts',
+        ]
+        user_host_permissions_entities = [
+            entity
+            for entity in host_permissions_entities
+            if entity.name in user_host_permissions
+        ]
+        entities.Filter(
+            organization=[org],
+            permission=user_host_permissions_entities,
+            role=role,
+            search='hostgroup_fullname = {0}'.format(filter_hg.name)
+        ).create()
+
+        # Add necessary permissions for host groups as we did for lce
+        entities.Filter(
+            organization=[org],
+            permission=entities.Permission(name='view_hostgroups').search(),
+            role=role,
+            search='name = {0}'.format(filter_hg.name)
+        ).create()
+
+        # Add permissions for Organization and Location
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Organization').search(),
+            role=role,
+        ).create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Location').search(),
+            role=role,
+        ).create()
+
+        # Create new user with a configured role
+        default_loc = entities.Location().search(
+            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[org],
+            location=[default_loc],
+            default_organization=org,
+        ).create()
+        with Session(self, user=user_login, password=user_password):
+            host_entities = [
+                {
+                    'locator': locators['host.host_group'],
+                    'unexpected_entity': hg,
+                    'expected_entity': filter_hg,
+                },
+                {
+                    'locator': locators['host.lifecycle_environment'],
+                    'unexpected_entity': lc_env,
+                    'expected_entity': filter_lc_env,
+                },
+                {
+                    'locator': locators['host.content_view'],
+                    'unexpected_entity': cv,
+                    'expected_entity': filter_cv,
+                },
+            ]
+            self.hosts.navigate_to_entity()
+            self.hosts.click(locators['host.new'])
+            for entity in host_entities:
+                # Check that only one entity per each type is accessible in
+                # create host procedure
+                with self.assertRaises(UINoSuchElementError):
+                    self.hosts.assign_value(
+                        entity['locator'], entity['unexpected_entity'].name)
+                self.hosts.click(entity['locator'])
+                self.hosts.assign_value(
+                    entity['locator'], entity['expected_entity'].name)
+
     @run_only_on('sat')
     @tier3
     def test_positive_update_name(self):
