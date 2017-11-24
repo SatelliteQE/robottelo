@@ -15,7 +15,6 @@
 
 :Upstream: No
 """
-import string
 from random import choice, randint, shuffle
 from time import sleep
 
@@ -29,6 +28,7 @@ from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
+    gen_string_with_uppercase,
     valid_data_list,
 )
 from robottelo.decorators import (
@@ -48,22 +48,6 @@ from robottelo.vm import VirtualMachine
 DOCKER_PROVIDER = 'Docker'
 
 
-def generate_alphanumeric_string_with_uppercase(length=10):
-    """Generate string containing at least one uppercase character.
-    https://github.com/SatelliteQE/robottelo/issues/4742
-
-    :param int length: The length of the generated string. Must be 1 or
-        greater.
-    """
-    st = gen_string('alphanumeric', length)
-    st_chars = list(st)
-    if not any(char in string.ascii_uppercase for char in st_chars):
-        st_chars[randint(0, len(st_chars)-1)] = choice(string.ascii_uppercase)
-        return ''.join(st_chars)
-    else:
-        return st
-
-
 @filtered_datapoint
 def _invalid_names():
     """Return a list of various kinds of invalid strings for Docker
@@ -71,23 +55,23 @@ def _invalid_names():
     """
     return [
         # boundaries
-        generate_alphanumeric_string_with_uppercase(2),
+        gen_string_with_uppercase('alpha', 2),
         gen_string('alphanumeric', 256).lower(),
         u'{0}/{1}'.format(
-            generate_alphanumeric_string_with_uppercase(3),
+            gen_string_with_uppercase('alpha', 4),
             gen_string('alphanumeric', 3)
         ),
         u'{0}/{1}'.format(
             gen_string('alphanumeric', 4),
-            generate_alphanumeric_string_with_uppercase(3)
+            gen_string_with_uppercase('alpha', 3)
         ),
         u'{0}/{1}'.format(
             gen_string('alphanumeric', 120).lower(),
             gen_string('alphanumeric', 135).lower()
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 135),
-            gen_string('alphanumeric', 120)
+            gen_string('alphanumeric', 135).lower(),
+            gen_string('alphanumeric', 120).lower()
         ),
         # not allowed non alphanumeric character
         u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(

@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Data Factory for all entities"""
 import random
+import string
 
 from functools import wraps
 from fauxfactory import gen_string, gen_integer
@@ -64,6 +65,33 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
             strings.pop(item, None)
 
     return list(strings.values())
+
+
+def fix_string_to_include_uppercase(st):
+    """Fix string to include a minimum of one uppercase character.
+    https://github.com/SatelliteQE/robottelo/issues/4742
+
+    :param string st : String to include uppercase character.
+    """
+    st_chars = list(st)
+    if not any(char in string.ascii_uppercase for char in st_chars):
+        st_chars[random.randint(0, len(st_chars)-1)] = random.choice(
+            string.ascii_uppercase)
+        return ''.join(st_chars)
+    else:
+        return st
+
+
+def gen_string_with_uppercase(*args, **kwargs):
+    """Generate new string with a minimum of one uppercase character.
+    https://github.com/SatelliteQE/robottelo/issues/4742
+
+    :param args: Arguments to pass to pass to fauxfactory gen_string function
+    :param kwargs: Key words arguments to pass to fauxfactory gen_string
+        function
+    """
+    st = gen_string(*args, **kwargs)
+    return fix_string_to_include_uppercase(st)
 
 
 @filtered_datapoint
