@@ -13,19 +13,43 @@
 
 :Upstream: No
 """
+from robottelo import manifests
+from robottelo import ssh
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view,
+    make_org,
+    setup_cdn_and_custom_repositories,
+)
+from robottelo.cli.host import Host
+from robottelo.config import settings
+from robottelo.constants import (
+    DISTRO_RHEL7,
+    ENVIRONMENT,
+    REAL_RHEL7_0_0_PACKAGE,
+    REAL_RHEL7_0_ERRATA_ID,
+    REAL_RHEL7_1_ERRATA_ID,
+    REPOS,
+    REPOSET,
+    PRDS,
+)
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
-    stubbed,
+    skip_if_not_set,
     tier2,
 )
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
 
 
+@run_in_one_thread
 class ContentAccessTestCase(CLITestCase):
     """Content Access CLI tests."""
 
     @classmethod
-    def setUp(self):
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
         """Setup must ensure there is an Org with Golden Ticket enabled.
 
 
@@ -51,19 +75,64 @@ class ContentAccessTestCase(CLITestCase):
         :steps:
 
             1. Create a new organization.
-            2. Create a Product and CV for org.
-            3. Add a repository pointing to a real repo which requires a
-               RedHat subscription to access.
-            4. Create Content Host and assign that gated repos to it.
-            5. Use either option 1 or option 2 (described above) to activate
+            2. Use either option 1 or option 2 (described above) to activate
                the Golden Ticket.
+            3. Create a Product and CV for org.
+            4. Add a repository pointing to a real repo which requires a
+               RedHat subscription to access.
+            5. Create Content Host and assign that gated repos to it.
             6. Sync the gated repository.
         """
-        super(ContentAccessTestCase, self).setUp()
+        super(ContentAccessTestCase, cls).setUpClass()
+        # Create Organization
+        cls.org = make_org()
+        # upload organization manifest with org environment access enabled
+        cls.manifest = manifests.clone(org_environment_access=True)
+        manifests.upload_manifest_locked(
+            cls.org['id'],
+            cls.manifest,
+            interface=manifests.INTERFACE_CLI
+        )
+        # Create repositories
+        cls.repos = [
+            # Red Hat Enterprise Linux 7
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhel7'],
+                'repository': REPOS['rhel7']['name'],
+                'repository-id': REPOS['rhel7']['id'],
+                'releasever': REPOS['rhel7']['releasever'],
+                'arch': REPOS['rhel7']['arch'],
+                'cdn': True,
+            },
+            # Red Hat Satellite Tools
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'repository-id': REPOS['rhst7']['id'],
+                'url': settings.sattools_repo['rhel7'],
+                'cdn': bool(
+                    settings.cdn or not settings.sattools_repo['rhel7']),
+            },
+        ]
+        cls.repos_info = setup_cdn_and_custom_repositories(
+            cls.org['id'], cls.repos)
+        # Create a content view
+        content_view = make_content_view({u'organization-id': cls.org['id']})
+        # Add repositories to content view
+        for repo_info in cls.repos_info:
+            ContentView.add_repository({
+                u'id': content_view['id'],
+                u'organization-id': cls.org['id'],
+                u'repository-id': repo_info['id'],
+            })
+        # Publish the content view
+        ContentView.publish({u'id': content_view['id']})
+        cls.content_view = ContentView.info({u'id': content_view['id']})
 
     @run_only_on('sat')
     @tier2
-    @stubbed()
     def test_positive_list_installable_updates(self):
         """Run `hammer host errata list` and assert all updates are listed on
         packages tab updates and not only those for attached subscriptions.
@@ -74,16 +143,89 @@ class ContentAccessTestCase(CLITestCase):
 
             1. Run `hammer host errata list` specifying unrestricted org.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :expectedresults:
             1. All updates are available independent of subscription because
                Golden Ticket is enabled.
+
+        :BZ: 1344049, 1498158
+
+        :CaseImportance: Critical
         """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.create()
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org['label'], lce=ENVIRONMENT)
+            self.assertTrue(vm.subscribed)
+            vm.patch_os_release_version(distro=DISTRO_RHEL7)
+            # trigger subscription-manager repos to auto enable repositories
+            result = vm.run('subscription-manager repos')
+            self.assertEqual(result.return_code, 0)
+            # at this stage all repositories should be enabled automatically
+            vm.install_katello_agent()
+            erratum = Host.errata_list({'host': vm.hostname})
+            self.assertGreater(len(erratum), 0)
+            # check that all erratum are installable and one of the
+            # repositories errata exist
+            errata_ids_installable = [
+                errata['erratum-id']
+                for errata in erratum
+                if errata['installable'] == 'true'
+            ]
+            self.assertEqual(len(erratum), len(errata_ids_installable))
+            self.assertIn(REAL_RHEL7_1_ERRATA_ID, errata_ids_installable)
 
     @run_only_on('sat')
     @tier2
-    @stubbed()
+    def test_positive_erratum_installable(self):
+        """Ensure erratum applicability is showing properly, without attaching
+        any subscription.
+
+        :id: e8dc52b9-884b-40d7-9244-680b5a736cf7
+
+        :CaseAutomation: automated
+
+        :steps:
+            1. register a host to unrestricted org with Library
+            2. install a package, that will need errata to be applied
+            3. list the host applicable errata with searching the required
+               errata id
+
+        :expectedresults: errata listed successfully and is installable
+
+        :BZ: 1344049, 1498158
+
+        :CaseImportance: Critical
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.create()
+            vm.install_katello_ca()
+            vm.register_contenthost(self.org['label'], lce=ENVIRONMENT)
+            self.assertTrue(vm.subscribed)
+            vm.patch_os_release_version(distro=DISTRO_RHEL7)
+            # trigger subscription-manager repos to auto enable repositories
+            result = vm.run('subscription-manager repos')
+            self.assertEqual(result.return_code, 0)
+            # at this stage all repositories should be enabled automatically
+            vm.install_katello_agent()
+            # install a the packages that has updates with errata
+            result = vm.run(
+                'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            # check that package errata is applicable
+
+            erratum = Host.errata_list({
+                'host': vm.hostname,
+                'search': 'id = {0}'.format(REAL_RHEL7_0_ERRATA_ID)
+            })
+            self.assertEqual(len(erratum), 1)
+            self.assertEqual(erratum[0]['installable'], 'true')
+
+    @run_only_on('sat')
+    @tier2
     def test_negative_rct_not_shows_golden_ticket_enabled(self):
         """Assert restricted manifest has no Golden Ticket enabled .
 
@@ -93,15 +235,31 @@ class ContentAccessTestCase(CLITestCase):
 
             1. Run `rct cat-manifest /tmp/restricted_manifest.zip`.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :expectedresults:
             1. Assert `Content Access Mode: org_environment` is not present.
+
+        :CaseImportance: Critical
         """
+        org = make_org()
+        # upload organization manifest with org environment access enabled
+        manifest = manifests.clone()
+        manifests.upload_manifest_locked(
+            org['id'],
+            manifest,
+            interface=manifests.INTERFACE_CLI
+        )
+        result = ssh.command(
+            'rct cat-manifest {0}'.format(manifest.filename))
+        self.assertEqual(result.return_code, 0)
+        self.assertNotIn(
+            'Content Access Mode: org_environment',
+            '\n'.join(result.stdout)
+        )
 
     @run_only_on('sat')
     @tier2
-    @stubbed()
     def test_positive_rct_shows_golden_ticket_enabled(self):
         """Assert unrestricted manifest has Golden Ticket enabled .
 
@@ -111,8 +269,17 @@ class ContentAccessTestCase(CLITestCase):
 
             1. Run `rct cat-manifest /tmp/unrestricted_manifest.zip`.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :expectedresults:
             1. Assert `Content Access Mode: org_environment` is present.
+
+        :CaseImportance: Critical
         """
+        result = ssh.command(
+            'rct cat-manifest {0}'.format(self.manifest.filename))
+        self.assertEqual(result.return_code, 0)
+        self.assertIn(
+            'Content Access Mode: org_environment',
+            '\n'.join(result.stdout)
+        )

@@ -14,15 +14,35 @@
 :Upstream: No
 """
 from nailgun import entities
+
+from robottelo import manifests
+from robottelo.constants import (
+    DISTRO_RHEL7,
+    ENVIRONMENT,
+)
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
+    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
 )
 from robottelo.test import UITestCase
+from robottelo.ui.factory import set_context
+from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
+org_environment_full_message = (
+    'Access to repositories is unrestricted in this organization. Hosts can'
+    ' consume all repositories available in the Content View they are '
+    'registered to, regardless of subscription status.'
+)
+
+
+@run_in_one_thread
 class ContentAccessTestCase(UITestCase):
     """Implements Content Access (Golden Ticket) tests in UI"""
 
@@ -37,7 +57,8 @@ class ContentAccessTestCase(UITestCase):
         cls.session_org = entities.Organization().create()
 
     @classmethod
-    def setUp(self):
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
         """Setup must ensure the current `session_org`  has Golden Ticket
         enabled.
 
@@ -63,15 +84,24 @@ class ContentAccessTestCase(UITestCase):
         :steps:
 
             1. Create a Product and CV for current session_org.
-            2. Add a repository pointing to a real repo which requires a
-               RedHat subscription to access.
-            3. Create Content Host and assign that gated repos to it.
-            4. Use either option 1 or option 2 (described above) to activate
+            2. Use either option 1 or option 2 (described above) to activate
                the Golden Ticket.
+            3. Add a repository pointing to a real repo which requires a
+               RedHat subscription to access.
+            4. Create Content Host and assign that gated repos to it.
             5. Sync the gated repository.
 
         """
-        super(ContentAccessTestCase, self).setUp()
+        super(ContentAccessTestCase, cls).setUpClass()
+        # upload organization manifest with org environment access enabled
+        manifests.upload_manifest_locked(
+            cls.session_org.id,
+            manifests.clone(org_environment_access=True)
+        )
+        # create an activation only for testing org environment info message
+        # displayed tests
+        cls.activation_key = entities.ActivationKey(
+            organization=cls.session_org).create()
 
     @run_only_on('sat')
     @tier2
@@ -115,7 +145,6 @@ class ContentAccessTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    @stubbed()
     def test_positive_visual_indicator_on_hosts_subscription(self):
         """Access content hosts subscription tab and assert a visual indicator
         is present highlighting that organization hosts have unrestricted
@@ -127,19 +156,40 @@ class ContentAccessTestCase(UITestCase):
 
             1. Access Content-Host Subscription tab.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :expectedresults:
             1. A visual alert is present at the top of the subscription tab
                saying: "Access to repositories is unrestricted in
-               this organizataion. Hosts can consume all repositories available
+               this organization. Hosts can consume all repositories available
                in the Content View they are registered to, regardless of
                subscription status".
+
+        :CaseImportance: Critical
         """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.session_org.label, lce=ENVIRONMENT)
+            self.assertTrue(client.subscribed)
+            with Session(self) as session:
+                set_context(session, org=self.session_org.name)
+                session.contenthost.search_and_click(client.hostname)
+                session.contenthost.click(
+                    tab_locators['contenthost.tab_subscriptions'])
+                session.contenthost.click(
+                    tab_locators[
+                        'contenthost.tab_subscriptions_subscriptions'])
+                info_element = session.subscriptions.wait_until_element(
+                    common_locators['org_environment_info'])
+                self.assertIsNotNone(info_element)
+                self.assertIn(
+                    org_environment_full_message,
+                    info_element.text
+                )
 
     @run_only_on('sat')
     @tier1
-    @stubbed()
     def test_positive_visual_indicator_on_activation_key_details(self):
         """Access AK details subscription tab and assert a visual indicator
         is present highlighting that organization hosts have unrestricted
@@ -151,19 +201,31 @@ class ContentAccessTestCase(UITestCase):
 
             1. Access Ak details Subscription tab.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :expectedresults:
             1. A visual alert is present at the top of the subscription tab
                saying: "Access to repositories is unrestricted in this
-               organizataion. Hosts can consume all repositories available in
+               organization. Hosts can consume all repositories available in
                the Content View they are registered to, regardless of
                subscription status".
+
+        :CaseImportance: Critical
         """
+        with Session(self) as session:
+            set_context(session, org=self.session_org.name)
+            session.activationkey.search_and_click(self.activation_key.name)
+            session.activationkey.click(tab_locators['ak.details'])
+            info_element = session.subscriptions.wait_until_element(
+                common_locators['org_environment_info'])
+            self.assertIsNotNone(info_element)
+            self.assertIn(
+                org_environment_full_message,
+                info_element.text
+            )
 
     @run_only_on('sat')
     @tier1
-    @stubbed()
     def test_positive_visual_indicator_on_manifest(self):
         """Access org manifest page and assert a visual indicator
         is present highlighting that organization hosts have unrestricted
@@ -175,19 +237,33 @@ class ContentAccessTestCase(UITestCase):
 
             1. Access org manifest page.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :expectedresults:
             1. A visual alert is present at the top of the
                subscription tab saying: "Access to repositories is unrestricted
-               in this organizataion. Hosts can consume all repositories
+               in this organization. Hosts can consume all repositories
                available in the Content View they are registered to, regardless
                of subscription status".
+
+        :CaseImportance: Critical
         """
+        with Session(self) as session:
+            set_context(session, org=self.session_org.name)
+            session.subscriptions.navigate_to_entity()
+            if not session.subscriptions.wait_until_element(
+                    locators.subs.upload, timeout=1):
+                session.subscriptions.click(locators.subs.manage_manifest)
+            info_element = session.subscriptions.wait_until_element(
+                common_locators['org_environment_info'])
+            self.assertIsNotNone(info_element)
+            self.assertIn(
+                org_environment_full_message,
+                info_element.text
+            )
 
     @run_only_on('sat')
     @tier1
-    @stubbed()
     def test_negative_visual_indicator_with_restricted_subscription(self):
         """Access AK details subscription tab and assert a visual indicator
         is NOT present if organization has no Golden Ticket Enabled.
@@ -199,11 +275,24 @@ class ContentAccessTestCase(UITestCase):
             1. Change to a restricted organization (with no GT enabled).
             2. Access Ak details Subscription tab.
 
-        :CaseAutomation: notautomated
+        :CaseAutomation: automated
 
         :expectedresults:
             1. Assert GoldenTicket  visual alert is NOT present.
+
+        :CaseImportance: Critical
         """
+        with Session(self) as session:
+            set_context(session, org=self.session_org.name)
+            session.activationkey.search_and_click(self.activation_key.name)
+            session.activationkey.click(tab_locators['ak.subscriptions'])
+            info_element = session.subscriptions.wait_until_element(
+                common_locators['org_environment_info'])
+            self.assertIsNotNone(info_element)
+            self.assertIn(
+                org_environment_full_message,
+                info_element.text
+            )
 
     @run_only_on('sat')
     @tier2

@@ -34,7 +34,7 @@ class ManifestCloner(object):
             backend=default_backend()
         )
 
-    def clone(self):
+    def clone(self, org_environment_access=False):
         """Clones a RedHat-manifest file.
 
         Change the consumer ``uuid`` and sign the new manifest with
@@ -63,6 +63,10 @@ class ManifestCloner(object):
                     consumer_data = json.loads(
                         consumer_export_zip.read(name).decode('utf-8'))
                     consumer_data['uuid'] = six.text_type(uuid.uuid1())
+                    if org_environment_access:
+                        consumer_data['contentAccessMode'] = 'org_environment'
+                        consumer_data['owner']['contentAccessModeList'] = (
+                            'entitlement,org_environment')
                     new_consumer_export_zip.writestr(
                         name,
                         json.dumps(consumer_data)
@@ -125,12 +129,14 @@ class Manifest(object):
         with Manifest() as manifest:
             # my fancy stuff
     """
-    def __init__(self, content=None, filename=None):
+    def __init__(self, content=None, filename=None,
+                 org_environment_access=False):
         self._content = content
         self.filename = filename
 
         if self._content is None:
-            self._content = _manifest_cloner.clone()
+            self._content = _manifest_cloner.clone(
+                org_environment_access=org_environment_access)
         if self.filename is None:
             self.filename = u'/var/tmp/manifest-{0}.zip'.format(
                     int(time.time()))
@@ -150,7 +156,7 @@ class Manifest(object):
             self.content.close()
 
 
-def clone():
+def clone(org_environment_access=False):
     """Clone the cached manifest and return a ``Manifest`` object.
 
     Is hightly recommended to use this with the ``with`` statement to make that
@@ -159,7 +165,7 @@ def clone():
         with clone() as manifest:
             # my fancy stuff
     """
-    return Manifest()
+    return Manifest(org_environment_access=org_environment_access)
 
 
 def original_manifest():

@@ -3893,6 +3893,59 @@ def add_role_permissions(role_id, resource_permissions):
         make_filter(options=options)
 
 
+def setup_cdn_and_custom_repositories(
+        org_id, repos, download_policy='on_demand'):
+    """Setup cdn and custom repositories
+
+    :param int org_id: The organization id
+    :param list repos: a list of dict repositories options
+    :param str download_policy: update the repositories with this download
+        policy
+    :return: a dict containing the content view and repos info
+    """
+    custom_product = None
+    repos_info = []
+    for repo in repos:
+        custom_repo_url = repo.get('url')
+        cdn = repo.get('cdn', False)
+        if not cdn and not custom_repo_url:
+            raise CLIFactoryError(u'Custom repository with url not supplied')
+        if cdn:
+            RepositorySet.enable({
+                u'organization-id': org_id,
+                u'product': repo['product'],
+                u'name': repo['repository-set'],
+                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
+                u'releasever': repo.get('releasever'),
+            })
+            repo_info = Repository.info({
+                u'organization-id': org_id,
+                u'name': repo['repository'],
+                u'product': repo['product'],
+            })
+        else:
+            if custom_product is None:
+                custom_product = make_product_wait({
+                    'organization-id': org_id,
+                })
+            repo_info = make_repository({
+                'product-id': custom_product['id'],
+                'organization-id': org_id,
+                'url': custom_repo_url,
+            })
+        if download_policy:
+            # Set download policy
+            Repository.update({
+                'download-policy': download_policy,
+                'id': repo_info['id'],
+            })
+        repos_info.append(repo_info)
+    # Synchronize the repositories
+    for repo_info in repos_info:
+        Repository.synchronize({'id': repo_info['id']})
+    return repos_info
+
+
 def setup_cdn_and_custom_repos_content(
         org_id, lce_id, repos, upload_manifest=True,
         download_policy='on_demand', rh_subscriptions=None):
