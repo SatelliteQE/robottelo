@@ -15,10 +15,14 @@
 
 :Upstream: No
 """
+import string
+from random import choice, randint, shuffle
+from time import sleep
+
 from fauxfactory import gen_string, gen_url
 from nailgun import entities
-from random import choice, randint, shuffle
 from requests.exceptions import HTTPError
+
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
@@ -39,9 +43,25 @@ from robottelo.decorators import (
 )
 from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
-from time import sleep
+
 
 DOCKER_PROVIDER = 'Docker'
+
+
+def generate_alphanumeric_string_with_uppercase(length=10):
+    """Generate string containing at least one uppercase character.
+    https://github.com/SatelliteQE/robottelo/issues/4742
+
+    :param int length: The length of the generated string. Must be 1 or
+        greater.
+    """
+    st = gen_string('alphanumeric', length)
+    st_chars = list(st)
+    if not any(char in string.ascii_uppercase for char in st_chars):
+        st_chars[randint(0, len(st_chars)-1)] = choice(string.ascii_uppercase)
+        return ''.join(st_chars)
+    else:
+        return st
 
 
 @filtered_datapoint
@@ -51,37 +71,39 @@ def _invalid_names():
     """
     return [
         # boundaries
-        gen_string('alphanumeric', 2),
-        gen_string('alphanumeric', 31),
+        generate_alphanumeric_string_with_uppercase(2),
+        gen_string('alphanumeric', 256).lower(),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 3),
+            generate_alphanumeric_string_with_uppercase(3),
             gen_string('alphanumeric', 3)
         ),
         u'{0}/{1}'.format(
             gen_string('alphanumeric', 4),
-            gen_string('alphanumeric', 2)
+            generate_alphanumeric_string_with_uppercase(3)
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 31),
-            gen_string('alphanumeric', 30)
+            gen_string('alphanumeric', 120).lower(),
+            gen_string('alphanumeric', 135).lower()
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 30),
-            gen_string('alphanumeric', 31)
+            gen_string('alphanumeric', 135),
+            gen_string('alphanumeric', 120)
         ),
         # not allowed non alphanumeric character
         u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
         ),
         u'{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
         ),
+        u'{}-_-_/-_.'.format(gen_string('alphanumeric', 1).lower()),
+        u'-_-_/{}-_.'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 
@@ -91,15 +113,15 @@ def _valid_names():
     """
     return [
         # boundaries
-        gen_string('alphanumeric', 3).lower(),
-        gen_string('alphanumeric', 30).lower(),
+        gen_string('alphanumeric', 1).lower(),
+        gen_string('alphanumeric', 255).lower(),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 4).lower(),
-            gen_string('alphanumeric', 3).lower(),
+            gen_string('alphanumeric', 1).lower(),
+            gen_string('alphanumeric', 1).lower(),
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 30).lower(),
-            gen_string('alphanumeric', 30).lower(),
+            gen_string('alphanumeric', 127).lower(),
+            gen_string('alphanumeric', 127).lower(),
         ),
         # allowed non alphanumeric character
         u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
@@ -108,7 +130,7 @@ def _valid_names():
             gen_string('alphanumeric', randint(3, 6)).lower(),
             gen_string('alphanumeric', randint(3, 6)).lower(),
         ),
-        u'-_-_/-_.',
+        u'{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 
