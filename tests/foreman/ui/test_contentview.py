@@ -274,19 +274,21 @@ class ContentViewTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1431778)
     @tier2
     def test_positive_repo_count_for_composite_cv(self):
-        """Create some content views with synchronized repositories. Add them
-        to composite content view and check repo count for it
+        """Create some content views with synchronized repositories and
+        promoted to one lce. Add them to composite content view and check repo
+        count for it.
 
         :id: 4b8d5def-a593-4f6c-9856-e5f32fb80164
 
         :expectedresults: repository count for composite content view should
-            not be higher than count of unique repositories for each content
-            view from composite one
+            be the sum of archived repositories across all content views.
 
         :BZ: 1431778
 
         :CaseLevel: Integration
         """
+        lce = entities.LifecycleEnvironment(
+            organization=self.organization).create()
         ccv_name = gen_string('alpha')
         repo_name = gen_string('alpha')
         with Session(self) as session:
@@ -313,16 +315,20 @@ class ContentViewTestCase(UITestCase):
                         cv_name, 'Repositories'),
                     '1'
                 )
+                # Promote content view
+                self.content_views.promote(cv_name, 'Version 1', lce.name)
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form']))
                 # Add content view to composite one
                 self.content_views.add_remove_cv(ccv_name, [cv_name])
             # Publish composite content view
             self.content_views.publish(ccv_name)
-            # Check that composite cv has one repository in the table as we
-            # were using one unique repository for whole flow
+            # Check that composite cv has three repositories in the table as we
+            # were using one repository for each content view
             self.assertEqual(
                 self.content_views.get_cv_table_value(
                     ccv_name, 'Repositories'),
-                '1'
+                '3'
             )
 
     @run_only_on('sat')
