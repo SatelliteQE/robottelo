@@ -232,4 +232,10 @@ common_locators = LocatorDict({
 
     # 'Run Job' button that is accessible from Jobs and Hosts pages
     "run_job": (By.XPATH, "//a[@data-id='aid_job_invocations_new']"),
+
+    # org environment
+    "org_environment_info": (
+        By.XPATH,
+        '//div[@bst-alert="info"]//span[contains(., '
+        '"Access to repositories is unrestricted in this organization.")]'),
 })

@@ -300,7 +300,7 @@ tab_locators = LocatorDict({
     # Activation Keys
     # Third level UI
     "ak.details": (
-        By.XPATH, "//a[contains(@href, 'info')]"),
+        By.XPATH, "//a[contains(@ui-sref, 'info')]"),
     "ak.subscriptions": (
         By.XPATH, "//a[contains(@href, 'subscriptions')]/span"),
     "ak.subscriptions_add": (
