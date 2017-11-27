@@ -151,14 +151,14 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         password = gen_string('alpha')
         product_name = gen_string('alpha')
         puppet_repository_name = gen_string('alpha')
-        if self.fake_manifest_is_set:
-            repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
         subnet_name = gen_string('alpha')
         username = gen_string('alpha')
         yum_repository_name = gen_string('alpha')
 
         # step 1: Create a new user with admin permissions
         with Session(self) as session:
+            if self.fake_manifest_is_set:
+                repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
             make_user(
                 session,
                 admin=True,
@@ -340,12 +340,12 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         product_name = gen_string('alpha')
         puppet_module = 'motd'
         puppet_repository_name = gen_string('alpha')
-        repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
         rhel_prd = DEFAULT_SUBSCRIPTION_NAME
         if settings.rhel6_repo is None:
             self.skipTest('Missing configuration for rhel6_repo')
         rhel6_repo = settings.rhel6_repo
         with Session(self) as session:
+            repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
             # Create New organization
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
