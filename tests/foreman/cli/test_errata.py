@@ -1713,6 +1713,8 @@ class ErrataTestCase(CLITestCase):
 
         :expectedresults: Check that the new user is able to see errata for one
             product only.
+
+        :BZ: 1403947, 1507523
         """
         user_password = gen_string('alphanumeric')
         user_name = gen_string('alphanumeric')
@@ -1741,7 +1743,9 @@ class ErrataTestCase(CLITestCase):
         user = make_user({
             'admin': False,
             'login': user_name,
-            'password': user_password
+            'password': user_password,
+            'organization-ids': [org['id']],
+            'default-organization-id': org['id'],
         })
         User.add_role({'id': user['id'], 'role-id': role['id']})
         # make sure the user is not admin and has only the permissions assigned
