@@ -66,12 +66,12 @@ def _invalid_upstream_names():
             add_uppercase_char_into_string(gen_string('alphanumeric', 3)),
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 120).lower(),
-            gen_string('alphanumeric', 135).lower()
+            gen_string('alphanumeric', 127).lower(),
+            gen_string('alphanumeric', 128).lower()
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 135).lower(),
-            gen_string('alphanumeric', 120).lower()
+            gen_string('alphanumeric', 128).lower(),
+            gen_string('alphanumeric', 127).lower()
         ),
         # not allowed non alphanumeric character
         u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
