@@ -49,7 +49,7 @@ DOCKER_PROVIDER = 'Docker'
 
 
 @filtered_datapoint
-def _invalid_names():
+def _invalid_upstream_names():
     """Return a list of various kinds of invalid strings for Docker
     repositories.
     """
@@ -92,7 +92,7 @@ def _invalid_names():
 
 
 @filtered_datapoint
-def _valid_names():
+def _valid_upstream_names():
     """Return a list of various kinds of valid strings for Docker repositories.
     """
     return [
@@ -187,7 +187,7 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for upstream_name in _valid_names():
+        for upstream_name in _valid_upstream_names():
             with self.subTest(upstream_name):
                 repo = _create_repository(
                     entities.Product(organization=self.org).create(),
@@ -210,7 +210,7 @@ class DockerRepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
-        for upstream_name in _invalid_names():
+        for upstream_name in _invalid_upstream_names():
             with self.subTest(upstream_name):
                 with self.assertRaises(HTTPError):
                     _create_repository(product, upstream_name=upstream_name)
