@@ -15,6 +15,11 @@
 
 :Upstream: No
 """
+import pytest
+
+from robottelo import cli
+from robottelo.cli.hammer_pytocli.settings import SettingsListCmd, \
+    SettingsSetCmd
 from robottelo.cli.settings import Settings
 from robottelo.datafactory import (
     gen_string,
@@ -265,22 +270,6 @@ class SettingTestCase(CLITestCase):
 
     @stubbed()
     @tier1
-    def test_positive_update_send_welcome_email(self):
-        """Check email send welcome email is updated
-
-        :id: cdaf6cd0-5eea-4252-87c5-f9ec3ba79ac1
-
-        :steps: valid values: boolean true or false
-
-        :expectedresults: send_welcome_email is updated
-
-        :caseautomation: notautomated
-
-        :caseimportance: low
-        """
-
-    @stubbed()
-    @tier1
     def test_negative_update_send_welcome_email(self):
         """Check email send welcome email is updated
 
@@ -294,3 +283,31 @@ class SettingTestCase(CLITestCase):
 
         :caseimportance: low
         """
+
+
+@tier1
+@pytest.mark.parametrize('value', [u'true', u'false'])
+def test_positive_update_send_welcome_email(value):
+    """Check email send welcome email is updated
+
+    :id: cdaf6cd0-5eea-4252-87c5-f9ec3ba79ac1
+
+    :steps: valid values: boolean true or false
+
+    :expectedresults: send_welcome_email is updated
+
+    :caseautomation: automated
+
+    :caseimportance: low
+    """
+
+    set_cmd = SettingsSetCmd().name_option(u'send_welcome_email').value(
+        value)
+    cli.execute_hammer(set_cmd)
+    list_cmd = SettingsListCmd()
+    settings = {
+        setting[u'name']: setting[u'value']
+        for setting in cli.execute_hammer(list_cmd)
+    }
+
+    assert value == settings[u'send_welcome_email']

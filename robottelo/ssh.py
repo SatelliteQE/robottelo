@@ -9,7 +9,6 @@ import paramiko
 import six
 
 from contextlib import contextmanager
-from robottelo.cli import hammer
 from robottelo.config import settings
 
 logger = logging.getLogger(__name__)
@@ -38,6 +37,9 @@ class SSHCommandResult(object):
         self.return_code = return_code
         self.output_format = output_format
         #  Does not make sense to return suspicious output if ($? <> 0)
+        # Hammer should not be handled on high level ssh. After refactoring to
+        # use pytocli this can be removed
+        from robottelo.cli import hammer  # pragma
         if output_format and self.return_code == 0:
             if output_format == 'csv':
                 self.stdout = hammer.parse_csv(stdout) if stdout else {}

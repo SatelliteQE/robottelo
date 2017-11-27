@@ -4,7 +4,6 @@ import logging
 import re
 
 from robottelo import ssh
-from robottelo.cli import hammer
 from robottelo.config import settings
 
 
@@ -354,6 +353,9 @@ class Base(object):
             return_raw_response=return_raw_response,
         )
         if not return_raw_response and output_format != 'json':
+            # Base should not know hammer. Can be removed once all commands are
+            # Changed to pytocli
+            from robottelo.cli import hammer
             result = hammer.parse_info(result)
         return result
 
