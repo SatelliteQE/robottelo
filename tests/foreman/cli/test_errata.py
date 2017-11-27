@@ -1714,7 +1714,7 @@ class ErrataTestCase(CLITestCase):
         :expectedresults: Check that the new user is able to see errata for one
             product only.
 
-        :BZ: 1403947, 1507523
+        :BZ: 1403947
         """
         user_password = gen_string('alphanumeric')
         user_name = gen_string('alphanumeric')
