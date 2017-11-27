@@ -28,7 +28,7 @@ from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
-    gen_string_with_uppercase,
+    add_uppercase_char_into_string,
     valid_data_list,
 )
 from robottelo.decorators import (
@@ -55,15 +55,15 @@ def _invalid_names():
     """
     return [
         # boundaries
-        gen_string_with_uppercase('alpha', 2),
+        add_uppercase_char_into_string('alpha', 2),
         gen_string('alphanumeric', 256).lower(),
         u'{0}/{1}'.format(
-            gen_string_with_uppercase('alpha', 4),
+            add_uppercase_char_into_string('alpha', 4),
             gen_string('alphanumeric', 3)
         ),
         u'{0}/{1}'.format(
             gen_string('alphanumeric', 4),
-            gen_string_with_uppercase('alpha', 3)
+            add_uppercase_char_into_string('alpha', 3)
         ),
         u'{0}/{1}'.format(
             gen_string('alphanumeric', 120).lower(),

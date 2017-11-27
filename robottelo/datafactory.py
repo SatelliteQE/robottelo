@@ -67,31 +67,21 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
     return list(strings.values())
 
 
-def fix_string_to_include_uppercase(st):
+def add_uppercase_char_into_string(text=None, length=10):
     """Fix string to include a minimum of one uppercase character.
     https://github.com/SatelliteQE/robottelo/issues/4742
 
-    :param string st : String to include uppercase character.
+    :param string text : String to include uppercase character.
     """
-    st_chars = list(st)
-    if not any(char in string.ascii_uppercase for char in st_chars):
+    if text is None:
+        text = gen_string('alpha', length)
+    if text.lower() == text:
+        st_chars = list(text)
         st_chars[random.randint(0, len(st_chars)-1)] = random.choice(
             string.ascii_uppercase)
         return ''.join(st_chars)
     else:
-        return st
-
-
-def gen_string_with_uppercase(*args, **kwargs):
-    """Generate new string with a minimum of one uppercase character.
-    https://github.com/SatelliteQE/robottelo/issues/4742
-
-    :param args: Arguments to pass to pass to fauxfactory gen_string function
-    :param kwargs: Key words arguments to pass to fauxfactory gen_string
-        function
-    """
-    st = gen_string(*args, **kwargs)
-    return fix_string_to_include_uppercase(st)
+        return text
 
 
 @filtered_datapoint
