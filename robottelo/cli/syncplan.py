@@ -22,31 +22,5 @@ from robottelo.cli.base import Base
 
 
 class SyncPlan(Base):
-    """
-    Manipulates Katello engine's sync-plan command.
-    """
-
+    """Manipulates Katello engine's sync-plan command."""
     command_base = 'sync-plan'
-    command_requires_org = True
-
-    @classmethod
-    def create(cls, options=None):
-        cls.command_requires_org = False
-
-        try:
-            result = super(SyncPlan, cls).create(options)
-        finally:
-            cls.command_requires_org = True
-
-        return result
-
-    @classmethod
-    def info(cls, options=None):
-        cls.command_requires_org = False
-
-        try:
-            result = super(SyncPlan, cls).info(options)
-        finally:
-            cls.command_requires_org = True
-
-        return result

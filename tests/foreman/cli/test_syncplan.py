@@ -41,7 +41,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_in_one_thread,
-    skip_if_bug_open,
     tier1,
     tier3,
     tier4,
@@ -128,7 +127,6 @@ class SyncPlanTestCase(CLITestCase):
     # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Sync Plans via Hammer CLI"""
-
         super(SyncPlanTestCase, self).setUp()
 
         if SyncPlanTestCase.org is None:
@@ -136,7 +134,6 @@ class SyncPlanTestCase(CLITestCase):
 
     def _make_sync_plan(self, options=None):
         """Make a sync plan and asserts its success"""
-
         if options is None:
             options = {}
 
@@ -237,8 +234,8 @@ class SyncPlanTestCase(CLITestCase):
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaisesRegex(
-                   CLIFactoryError,
-                   u'Could not create the sync plan:'
+                    CLIFactoryError,
+                    u'Could not create the sync plan:'
                 ):
                     self._make_sync_plan({u'name': name})
 
@@ -285,7 +282,6 @@ class SyncPlanTestCase(CLITestCase):
                 result = SyncPlan.info({u'id': new_sync_plan['id']})
                 self.assertEqual(result['interval'], test_data['new-interval'])
 
-    @skip_if_bug_open('bugzilla', 1336790)
     @tier1
     @upgrade
     def test_positive_update_sync_date(self):
@@ -294,6 +290,8 @@ class SyncPlanTestCase(CLITestCase):
         :id: f0c17d7d-3e86-4b64-9747-6cba6809815e
 
         :expectedresults: Sync plan is created and sync plan is updated
+
+        :BZ: 1336790
 
         :CaseImportance: Critical
         """
@@ -364,6 +362,42 @@ class SyncPlanTestCase(CLITestCase):
         new_sync_plan = self._make_sync_plan()
         result = SyncPlan.info({'id': new_sync_plan['id']})
         self.assertIsNotNone(result.get('enabled'))
+
+    @tier1
+    @upgrade
+    def test_positive_info_with_assigned_product(self):
+        """Verify that sync plan info command returns list of products which
+        are assigned to that sync plan
+
+        :id: 7a7e5e40-7776-4d26-9173-73f00de6e8e9
+
+        :expectedresults: Expected product information is returned in info
+            command
+
+        :BZ: 1390545
+        """
+        prod1 = gen_string('alpha')
+        prod2 = gen_string('alpha')
+        sync_plan = self._make_sync_plan({
+            'enabled': 'false',
+            'organization-id': self.org['id'],
+            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        for prod_name in [prod1, prod2]:
+            product = make_product({
+                'organization-id': self.org['id'],
+                'name': prod_name,
+            })
+            Product.set_sync_plan({
+                'id': product['id'],
+                'sync-plan-id': sync_plan['id'],
+            })
+        updated_plan = SyncPlan.info({'id': sync_plan['id']})
+        self.assertEqual(len(updated_plan['products']), 2)
+        self.assertEqual(
+            set(prod['name'] for prod in updated_plan['products']),
+            set([prod1, prod2])
+        )
 
     @tier4
     @upgrade
@@ -732,7 +766,6 @@ class SyncPlanTestCase(CLITestCase):
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
-    @skip_if_bug_open('bugzilla', '1396647')
     @tier3
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
         """Create a weekly sync plan with a past datetime as a sync date,
