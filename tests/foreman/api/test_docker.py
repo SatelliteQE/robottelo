@@ -15,14 +15,18 @@
 
 :Upstream: No
 """
+from random import choice, randint, shuffle
+from time import sleep
+
 from fauxfactory import gen_string, gen_url
 from nailgun import entities
-from random import choice, randint, shuffle
 from requests.exceptions import HTTPError
+
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
+    add_uppercase_char_into_string,
     filtered_datapoint,
     generate_strings_list,
     valid_data_list,
@@ -39,67 +43,69 @@ from robottelo.decorators import (
 )
 from robottelo.test import APITestCase
 from robottelo.vm import VirtualMachine
-from time import sleep
+
 
 DOCKER_PROVIDER = 'Docker'
 
 
 @filtered_datapoint
-def _invalid_names():
+def _invalid_upstream_names():
     """Return a list of various kinds of invalid strings for Docker
     repositories.
     """
     return [
         # boundaries
-        gen_string('alphanumeric', 2),
-        gen_string('alphanumeric', 31),
+        add_uppercase_char_into_string(gen_string('alphanumeric', 2)),
+        gen_string('alphanumeric', 256).lower(),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 3),
+            add_uppercase_char_into_string(gen_string('alphanumeric', 4)),
             gen_string('alphanumeric', 3)
         ),
         u'{0}/{1}'.format(
             gen_string('alphanumeric', 4),
-            gen_string('alphanumeric', 2)
+            add_uppercase_char_into_string(gen_string('alphanumeric', 3)),
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 31),
-            gen_string('alphanumeric', 30)
+            gen_string('alphanumeric', 127).lower(),
+            gen_string('alphanumeric', 128).lower()
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 30),
-            gen_string('alphanumeric', 31)
+            gen_string('alphanumeric', 128).lower(),
+            gen_string('alphanumeric', 127).lower()
         ),
         # not allowed non alphanumeric character
         u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
         ),
         u'{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
-            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
         ),
+        u'{}-_-_/-_.'.format(gen_string('alphanumeric', 1).lower()),
+        u'-_-_/{}-_.'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 
 @filtered_datapoint
-def _valid_names():
+def _valid_upstream_names():
     """Return a list of various kinds of valid strings for Docker repositories.
     """
     return [
         # boundaries
-        gen_string('alphanumeric', 3).lower(),
-        gen_string('alphanumeric', 30).lower(),
+        gen_string('alphanumeric', 1).lower(),
+        gen_string('alphanumeric', 255).lower(),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 4).lower(),
-            gen_string('alphanumeric', 3).lower(),
+            gen_string('alphanumeric', 1).lower(),
+            gen_string('alphanumeric', 1).lower(),
         ),
         u'{0}/{1}'.format(
-            gen_string('alphanumeric', 30).lower(),
-            gen_string('alphanumeric', 30).lower(),
+            gen_string('alphanumeric', 127).lower(),
+            gen_string('alphanumeric', 127).lower(),
         ),
         # allowed non alphanumeric character
         u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
@@ -108,7 +114,7 @@ def _valid_names():
             gen_string('alphanumeric', randint(3, 6)).lower(),
             gen_string('alphanumeric', randint(3, 6)).lower(),
         ),
-        u'-_-_/-_.',
+        u'{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
     ]
 
 
@@ -181,7 +187,7 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for upstream_name in _valid_names():
+        for upstream_name in _valid_upstream_names():
             with self.subTest(upstream_name):
                 repo = _create_repository(
                     entities.Product(organization=self.org).create(),
@@ -204,7 +210,7 @@ class DockerRepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
-        for upstream_name in _invalid_names():
+        for upstream_name in _invalid_upstream_names():
             with self.subTest(upstream_name):
                 with self.assertRaises(HTTPError):
                     _create_repository(product, upstream_name=upstream_name)
