@@ -26,9 +26,9 @@ from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
+    add_uppercase_char_into_string,
     filtered_datapoint,
     generate_strings_list,
-    add_uppercase_char_into_string,
     valid_data_list,
 )
 from robottelo.decorators import (

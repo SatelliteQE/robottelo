@@ -71,17 +71,16 @@ def add_uppercase_char_into_string(text=None, length=10):
     """Fix string to include a minimum of one uppercase character.
     https://github.com/SatelliteQE/robottelo/issues/4742
 
-    :param string text : String to include uppercase character.
+    :param string text: String to include uppercase character.
+    :param int length: Length of string that we create in case string to change
+        was not provided.
     """
     if text is None:
         text = gen_string('alpha', length)
-    if text.lower() == text:
-        st_chars = list(text)
-        st_chars[random.randint(0, len(st_chars)-1)] = random.choice(
-            string.ascii_uppercase)
-        return ''.join(st_chars)
-    else:
-        return text
+    st_chars = list(text)
+    st_chars[random.randint(0, len(st_chars)-1)] = random.choice(
+        string.ascii_uppercase)
+    return ''.join(st_chars)
 
 
 @filtered_datapoint
