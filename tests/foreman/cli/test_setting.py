@@ -17,9 +17,9 @@
 """
 import pytest
 
-from robottelo import cli
-from robottelo.cli.hammer_pytocli.settings import SettingsListCmd, \
-    SettingsSetCmd
+from robottelo.cli.hammer_pytocli.settings import (
+    SettingsListCmd, SettingsSetCmd
+)
 from robottelo.cli.settings import Settings
 from robottelo.datafactory import (
     gen_string,
@@ -301,13 +301,10 @@ def test_positive_update_send_welcome_email(value):
     :caseimportance: low
     """
 
-    set_cmd = SettingsSetCmd().name_option(u'send_welcome_email').value(
-        value)
-    cli.execute_hammer(set_cmd)
-    list_cmd = SettingsListCmd()
+    SettingsSetCmd().name_option(u'send_welcome_email').value(value).execute()
     settings = {
         setting[u'name']: setting[u'value']
-        for setting in cli.execute_hammer(list_cmd)
+        for setting in SettingsListCmd().execute()
     }
 
     assert value == settings[u'send_welcome_email']
