@@ -14,10 +14,11 @@
 
 :Upstream: No
 """
+from random import randint, shuffle
 
 from fauxfactory import gen_string, gen_url
 from nailgun import entities
-from random import randint, shuffle
+
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import (
@@ -25,7 +26,11 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
     REPO_TYPE,
 )
-from robottelo.datafactory import filtered_datapoint, valid_data_list
+from robottelo.datafactory import (
+    invalid_docker_upstream_names,
+    valid_data_list,
+    valid_docker_upstream_names,
+)
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -51,32 +56,6 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.products import Products
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
-
-
-@filtered_datapoint
-def valid_docker_upstream_names():
-    """Generates a list of valid docker upstream names"""
-    return [
-        # boundaries
-        gen_string('alphanumeric', 3).lower(),
-        gen_string('alphanumeric', 30).lower(),
-        u'{0}/{1}'.format(
-            gen_string('alphanumeric', 4).lower(),
-            gen_string('alphanumeric', 3).lower(),
-        ),
-        u'{0}/{1}'.format(
-            gen_string('alphanumeric', 30).lower(),
-            gen_string('alphanumeric', 30).lower(),
-        ),
-        # allowed non alphanumeric character
-        u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
-            gen_string('alphanumeric', randint(3, 6)).lower(),
-            gen_string('alphanumeric', randint(3, 6)).lower(),
-            gen_string('alphanumeric', randint(3, 6)).lower(),
-            gen_string('alphanumeric', randint(3, 6)).lower(),
-        ),
-        u'-_-_/-_.',
-    ]
 
 
 def _create_repository(session, org, name, product, upstream_name=None):
@@ -309,6 +288,43 @@ class DockerRepositoryTestCase(UITestCase):
                     self.products.search_and_click(product.name)
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'upstream', new_upstream_name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_negative_update_upstream_name(self):
+        """Attempt to update upstream name for a Docker-type repository.
+
+        :id: 4722cfa1-33d0-41c4-8ed2-46da9b6d0cd1
+
+        :expectedresults: A repository is created with a Docker upstream
+            repository and that its upstream name can not be updated with
+            invalid values.
+
+        :CaseImportance: Critical
+        """
+        with Session(self) as session:
+            repo_name = gen_string('alphanumeric')
+            product = entities.Product(organization=self.organization).create()
+            _create_repository(
+                session,
+                org=self.organization.name,
+                name=repo_name,
+                product=product.name,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'upstream', 'busybox'))
+            for new_upstream_name in invalid_docker_upstream_names():
+                with self.subTest(new_upstream_name):
+                    self.products.search_and_click(product.name)
+                    self.repository.update(
+                        repo_name, new_upstream_name=new_upstream_name)
+                    self.assertIsNotNone(self.products.wait_until_element(
+                        common_locators['alert.error']))
+                    self.repository.click(common_locators['alert.close'])
+                    self.products.search_and_click(product.name)
+                    self.assertTrue(self.repository.validate_field(
+                        repo_name, 'upstream', 'busybox'))
 
     @run_only_on('sat')
     @tier1

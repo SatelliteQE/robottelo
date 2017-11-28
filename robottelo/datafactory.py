@@ -480,3 +480,73 @@ def invalid_http_credentials(url_encoded=False):
                 for cred in credentials]
     else:
         return credentials
+
+
+@filtered_datapoint
+def invalid_docker_upstream_names():
+    """Return a list of various kinds of invalid strings for Docker
+    repositories.
+    """
+    return [
+        # boundaries
+        add_uppercase_char_into_string(gen_string('alphanumeric', 2)),
+        gen_string('alphanumeric', 256).lower(),
+        u'{0}/{1}'.format(
+            add_uppercase_char_into_string(gen_string('alphanumeric', 4)),
+            gen_string('alphanumeric', 3)
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 4),
+            add_uppercase_char_into_string(gen_string('alphanumeric', 3)),
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 127).lower(),
+            gen_string('alphanumeric', 128).lower()
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 128).lower(),
+            gen_string('alphanumeric', 127).lower()
+        ),
+        # not allowed non alphanumeric character
+        u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+        ),
+        u'{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+        ),
+        u'{}-_-_/-_.'.format(gen_string('alphanumeric', 1).lower()),
+        u'-_-_/{}-_.'.format(gen_string('alphanumeric', 1).lower()),
+    ]
+
+
+@filtered_datapoint
+def valid_docker_upstream_names():
+    """Return a list of various kinds of valid strings for Docker repositories.
+    """
+    return [
+        # boundaries
+        gen_string('alphanumeric', 1).lower(),
+        gen_string('alphanumeric', 255).lower(),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 1).lower(),
+            gen_string('alphanumeric', 1).lower(),
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 127).lower(),
+            gen_string('alphanumeric', 127).lower(),
+        ),
+        # allowed non alphanumeric character
+        u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+            gen_string('alphanumeric', random.randint(3, 6)).lower(),
+        ),
+        u'{0}-_-_/{0}-_.'.format(gen_string('alphanumeric', 1).lower()),
+    ]
