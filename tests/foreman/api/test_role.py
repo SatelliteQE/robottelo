@@ -133,11 +133,11 @@ class CannedRoleTestCases(APITestCase):
         """
         super(CannedRoleTestCases, cls).setUpClass()
         # These two will be used as role taxonomies
-        cls.org1 = entities.Organization().create()
-        cls.loc1 = entities.Location().create()
+        cls.role_org = entities.Organization().create()
+        cls.role_loc = entities.Location().create()
         # These two will be used as filter taxonomies
-        cls.org2 = entities.Organization().create()
-        cls.loc2 = entities.Location().create()
+        cls.filter_org = entities.Organization().create()
+        cls.filter_loc = entities.Location().create()
 
     @tier1
     def test_positive_create_role_with_taxonomies(self):
@@ -154,12 +154,12 @@ class CannedRoleTestCases(APITestCase):
         role_name = gen_string('alpha')
         role = entities.Role(
             name=role_name,
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
         self.assertEqual(role.name, role_name)
-        self.assertIn(self.org1.id, [org.id for org in role.organization])
-        self.assertIn(self.loc1.id, [loc.id for loc in role.location])
+        self.assertIn(self.role_org.id, [org.id for org in role.organization])
+        self.assertIn(self.role_loc.id, [loc.id for loc in role.location])
 
     @tier1
     def test_positive_create_role_without_taxonomies(self):
@@ -203,18 +203,18 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role1 = entities.Role(
+        role = entities.Role(
             name=role_name,
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(role1.name, role_name)
+        self.assertEqual(role.name, role_name)
         dom_perm = entities.Permission(resource_type='Domain').search()
-        filter1 = entities.Filter(permission=dom_perm, role=role1.id).create()
-        self.assertEqual(role1.id, filter1.role.id)
-        self.assertIn(self.org1.id, [org.id for org in filter1.organization])
-        self.assertIn(self.loc1.id, [loc.id for loc in filter1.location])
-        self.assertFalse(filter1.override)
+        filtr = entities.Filter(permission=dom_perm, role=role.id).create()
+        self.assertEqual(role.id, filtr.role.id)
+        self.assertIn(self.role_org.id, [org.id for org in filtr.organization])
+        self.assertIn(self.role_loc.id, [loc.id for loc in filtr.location])
+        self.assertFalse(filtr.override)
 
     @tier1
     def test_positive_create_non_overridable_filter(self):
@@ -229,19 +229,16 @@ class CannedRoleTestCases(APITestCase):
 
             1. Filter is created without taxonomies
             2. Override check is set to false
-            3. Filter doesnt inherit taxonomies from role
 
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role1 = entities.Role(name=role_name).create()
-        self.assertEqual(role1.name, role_name)
+        role = entities.Role(name=role_name).create()
+        self.assertEqual(role.name, role_name)
         arch_perm = entities.Permission(resource_type='Architecture').search()
-        filter1 = entities.Filter(permission=arch_perm, role=role1.id).create()
-        self.assertEqual(role1.id, filter1.role.id)
-        self.assertEqual(filter1.organization, [])
-        self.assertEqual(filter1.location, [])
-        self.assertFalse(filter1.override)
+        filtr = entities.Filter(permission=arch_perm, role=role.id).create()
+        self.assertEqual(role.id, filtr.role.id)
+        self.assertFalse(filtr.override)
 
     @tier1
     def test_negative_override_non_overridable_filter(self):
@@ -258,16 +255,16 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role1 = entities.Role(name=role_name).create()
-        self.assertEqual(role1.name, role_name)
+        role = entities.Role(name=role_name).create()
+        self.assertEqual(role.name, role_name)
         arch_perm = entities.Permission(resource_type='Architecture').search()
         with self.assertRaises(HTTPError):
             entities.Filter(
                 permission=arch_perm,
-                role=[role1.id],
+                role=[role.id],
                 override=True,
-                organization=[self.org2],
-                location=[self.loc2]
+                organization=[self.filter_org],
+                location=[self.filter_loc]
             ).create()
 
     @tier1
@@ -292,28 +289,29 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role1 = entities.Role(
+        role = entities.Role(
             name=role_name,
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(role1.name, role_name)
+        self.assertEqual(role.name, role_name)
         dom_perm = entities.Permission(resource_type='Domain').search()
-        filter1 = entities.Filter(
+        filtr = entities.Filter(
             permission=dom_perm,
-            role=role1.id,
+            role=role.id,
             override=True,
-            organization=[self.org2],
-            location=[self.loc2]
+            organization=[self.filter_org],
+            location=[self.filter_loc]
         ).create()
-        self.assertEqual(role1.id, filter1.role.id)
-        self.assertIn(self.org2.id, [org.id for org in filter1.organization])
-        self.assertIn(self.loc2.id, [loc.id for loc in filter1.location])
-        self.assertTrue(filter1.override)
+        self.assertEqual(role.id, filtr.role.id)
+        self.assertIn(
+            self.filter_org.id, [org.id for org in filtr.organization])
+        self.assertIn(self.filter_loc.id, [loc.id for loc in filtr.location])
+        self.assertTrue(filtr.override)
         self.assertNotIn(
-            self.org1.id,
-            [org.id for org in filter1.organization])
-        self.assertNotIn(self.loc1.id, [loc.id for loc in filter1.location])
+            self.role_org.id,
+            [org.id for org in filtr.organization])
+        self.assertNotIn(self.role_loc.id, [loc.id for loc in filtr.location])
 
     @tier1
     def test_positive_update_role_taxonomies(self):
@@ -329,26 +327,28 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role1 = entities.Role(
+        role = entities.Role(
             name=role_name,
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(role1.name, role_name)
+        self.assertEqual(role.name, role_name)
         dom_perm = entities.Permission(resource_type='Domain').search()
-        filter1 = entities.Filter(permission=dom_perm, role=role1.id,).create()
-        self.assertEqual(role1.id, filter1.role.id)
-        role1.organization = [self.org2]
-        role1.location = [self.loc2]
-        role1 = role1.update(['organization', 'location'])
+        filtr = entities.Filter(permission=dom_perm, role=role.id,).create()
+        self.assertEqual(role.id, filtr.role.id)
+        role.organization = [self.filter_org]
+        role.location = [self.filter_loc]
+        role = role.update(['organization', 'location'])
         # Updated Role
-        role1 = entities.Role(id=role1.id).read()
-        self.assertIn(self.org2.id, [org.id for org in role1.organization])
-        self.assertIn(self.loc2.id, [loc.id for loc in role1.location])
+        role = entities.Role(id=role.id).read()
+        self.assertIn(
+            self.filter_org.id, [org.id for org in role.organization])
+        self.assertIn(self.filter_loc.id, [loc.id for loc in role.location])
         # Updated Filter
-        filter1 = entities.Filter(id=filter1.id).read()
-        self.assertIn(self.org2.id, [org.id for org in filter1.organization])
-        self.assertIn(self.loc2.id, [loc.id for loc in filter1.location])
+        filtr = entities.Filter(id=filtr.id).read()
+        self.assertIn(
+            self.filter_org.id, [org.id for org in filtr.organization])
+        self.assertIn(self.filter_loc.id, [loc.id for loc in filtr.location])
 
     @tier1
     def test_negative_update_role_taxonomies(self):
@@ -365,36 +365,36 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role1 = entities.Role(
+        role = entities.Role(
             name=role_name,
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(role1.name, role_name)
+        self.assertEqual(role.name, role_name)
         dom_perm = entities.Permission(resource_type='Domain').search()
-        filter1 = entities.Filter(
+        filtr = entities.Filter(
             permission=dom_perm,
-            role=role1.id,
+            role=role.id,
             override=True,
-            organization=[self.org2],
-            location=[self.loc2]
+            organization=[self.filter_org],
+            location=[self.filter_loc]
         ).create()
-        self.assertEqual(role1.id, filter1.role.id)
+        self.assertEqual(role.id, filtr.role.id)
         # Creating new Taxonomies
-        org3 = entities.Organization().create()
-        loc3 = entities.Location().create()
+        org_new = entities.Organization().create()
+        loc_new = entities.Location().create()
         # Updating Taxonomies
-        role1.organization = [org3]
-        role1.location = [loc3]
-        role1 = role1.update(['organization', 'location'])
+        role.organization = [org_new]
+        role.location = [loc_new]
+        role = role.update(['organization', 'location'])
         # Updated Role
-        role1 = entities.Role(id=role1.id).read()
-        self.assertIn(org3.id, [org.id for org in role1.organization])
-        self.assertIn(loc3.id, [loc.id for loc in role1.location])
+        role = entities.Role(id=role.id).read()
+        self.assertIn(org_new.id, [org.id for org in role.organization])
+        self.assertIn(loc_new.id, [loc.id for loc in role.location])
         # Updated Filter
-        filter1 = entities.Filter(id=filter1.id).read()
-        self.assertNotIn(org3.id, [org.id for org in filter1.organization])
-        self.assertNotIn(loc3.id, [loc.id for loc in filter1.location])
+        filtr = entities.Filter(id=filtr.id).read()
+        self.assertNotIn(org_new.id, [org.id for org in filtr.organization])
+        self.assertNotIn(loc_new.id, [loc.id for loc in filtr.location])
 
     @tier1
     def test_positive_disable_filter_override(self):
@@ -416,28 +416,29 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         role_name = gen_string('alpha')
-        role1 = entities.Role(
+        role = entities.Role(
             name=role_name,
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(role1.name, role_name)
+        self.assertEqual(role.name, role_name)
         dom_perm = entities.Permission(resource_type='Domain').search()
-        filter1 = entities.Filter(
+        filtr = entities.Filter(
             permission=dom_perm,
-            role=role1.id,
+            role=role.id,
             override=True,
-            organization=[self.org2],
-            location=[self.loc2]
+            organization=[self.filter_org],
+            location=[self.filter_loc]
         ).create()
-        self.assertEqual(role1.id, filter1.role.id)
+        self.assertEqual(role.id, filtr.role.id)
         # Un-overriding
-        filter1.override = False
-        filter1 = filter1.update(['override'])
-        self.assertFalse(filter1.override)
+        filtr.override = False
+        filtr = filtr.update(['override'])
+        self.assertFalse(filtr.override)
         self.assertNotIn(
-            self.org2.id, [org.id for org in filter1.organization])
-        self.assertNotIn(self.loc2.id, [loc.id for loc in filter1.location])
+            self.filter_org.id, [org.id for org in filtr.organization])
+        self.assertNotIn(
+            self.filter_loc.id, [loc.id for loc in filtr.location])
 
     @tier1
     def test_positive_create_org_admin_from_clone(self):
@@ -481,10 +482,11 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id], locs=[self.loc1.id])
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
         org_admin = entities.Role(id=org_admin.id).read()
-        self.assertIn(self.org1.id, [org.id for org in org_admin.organization])
-        self.assertIn(self.loc1.id, [loc.id for loc in org_admin.location])
+        self.assertIn(
+            self.role_org.id, [org.id for org in org_admin.organization])
+        self.assertIn(self.role_loc.id, [loc.id for loc in org_admin.location])
 
     @stubbed()
     @tier3
@@ -546,32 +548,32 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
-        role1_name = gen_string('alpha')
-        role1 = entities.Role(name=role1_name).create()
+        role_name = gen_string('alpha')
+        role = entities.Role(name=role_name).create()
         dom_perm = entities.Permission(resource_type='Domain').search()
-        entities.Filter(permission=dom_perm, role=role1.id).create()
-        cloned_role1_name = gen_string('alpha')
-        cloned_role1 = entities.Role(id=role1.id).clone(
-            data={'name': cloned_role1_name})
-        self.assertEqual(cloned_role1_name, cloned_role1['name'])
-        filter1_cloned_id = entities.Role(
-            id=cloned_role1['id']).read().filters[0].id
-        filter1_cloned = entities.Filter(id=filter1_cloned_id).read()
-        filter1_cloned.override = True
-        filter1_cloned.organization = [self.org1]
-        filter1_cloned.location = [self.loc1]
-        filter1_cloned = filter1_cloned.update(
+        entities.Filter(permission=dom_perm, role=role.id).create()
+        cloned_role_name = gen_string('alpha')
+        cloned_role = entities.Role(id=role.id).clone(
+            data={'name': cloned_role_name})
+        self.assertEqual(cloned_role_name, cloned_role['name'])
+        filter_cloned_id = entities.Role(
+            id=cloned_role['id']).read().filters[0].id
+        filter_cloned = entities.Filter(id=filter_cloned_id).read()
+        filter_cloned.override = True
+        filter_cloned.organization = [self.role_org]
+        filter_cloned.location = [self.role_loc]
+        filter_cloned.update(
             ['override', 'organization', 'location'])
         # Updated Filter
-        filter1_cloned = entities.Filter(id=filter1_cloned_id).read()
-        self.assertTrue(filter1_cloned.override)
+        filter_cloned = entities.Filter(id=filter_cloned_id).read()
+        self.assertTrue(filter_cloned.override)
         self.assertIn(
-            self.org1.id,
-            [org.id for org in filter1_cloned.organization]
+            self.role_org.id,
+            [org.id for org in filter_cloned.organization]
         )
         self.assertIn(
-            self.loc1.id,
-            [loc.id for loc in filter1_cloned.location]
+            self.role_loc.id,
+            [loc.id for loc in filter_cloned.location]
         )
 
     @stubbed()
@@ -780,26 +782,26 @@ class CannedRoleTestCases(APITestCase):
 
         :CaseLevel: Integration
         """
-        role1_name = gen_string('alpha')
-        role1 = entities.Role(
-            name=role1_name,
-            organization=[self.org1],
-            location=[self.loc1]
+        role_name = gen_string('alpha')
+        role = entities.Role(
+            name=role_name,
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(role1_name, role1.name)
+        self.assertEqual(role_name, role.name)
         dom_perm = entities.Permission(resource_type='Domain').search()
-        filter1 = entities.Filter(permission=dom_perm, role=role1.id).create()
-        self.assertEqual(role1.id, filter1.role.id)
-        self.assertFalse(filter1.override)
-        self.assertFalse(filter1.unlimited)
-        role1.organization = []
-        role1.location = []
-        role1 = role1.update(['organization', 'location'])
-        self.assertEqual(role1.organization, [])
-        self.assertEqual(role1.location, [])
+        filtr = entities.Filter(permission=dom_perm, role=role.id).create()
+        self.assertEqual(role.id, filtr.role.id)
+        self.assertFalse(filtr.override)
+        self.assertFalse(filtr.unlimited)
+        role.organization = []
+        role.location = []
+        role = role.update(['organization', 'location'])
+        self.assertEqual(role.organization, [])
+        self.assertEqual(role.location, [])
         # Get updated filter
-        filter1 = entities.Filter(id=filter1.id).read()
-        self.assertTrue(filter1.unlimited)
+        filtr = entities.Filter(id=filtr.id).read()
+        self.assertTrue(filtr.unlimited)
 
     @tier3
     @upgrade
@@ -824,96 +826,96 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: System
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id], locs=[self.loc1.id])
-        user1_login = gen_string('alpha')
-        user1_pass = gen_string('alphanumeric')
-        user1 = entities.User(
-            login=user1_login,
-            password=user1_pass,
-            organization=[self.org1.id],
-            location=[self.loc1.id]
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        userone_login = gen_string('alpha')
+        userone_pass = gen_string('alphanumeric')
+        user_one = entities.User(
+            login=userone_login,
+            password=userone_pass,
+            organization=[self.role_org.id],
+            location=[self.role_loc.id]
         ).create()
-        self.assertEqual(user1_login, user1.login)
-        user2_login = gen_string('alpha')
-        user2_pass = gen_string('alphanumeric')
-        user2 = entities.User(
-            login=user2_login,
-            password=user2_pass,
-            organization=[self.org1.id],
-            location=[self.loc1.id]
+        self.assertEqual(userone_login, user_one.login)
+        usertwo_login = gen_string('alpha')
+        usertwo_pass = gen_string('alphanumeric')
+        user_two = entities.User(
+            login=usertwo_login,
+            password=usertwo_pass,
+            organization=[self.role_org.id],
+            location=[self.role_loc.id]
         ).create()
-        self.assertEqual(user2_login, user2.login)
+        self.assertEqual(usertwo_login, user_two.login)
         ug_name = gen_string('alpha')
         user_group = entities.UserGroup(
             name=ug_name,
             role=[org_admin.id],
-            user=[user1.id, user2.id]
+            user=[user_one.id, user_two.id]
         ).create()
         self.assertEqual(user_group.name, ug_name)
         # Creating Subnets and Domains to verify if user really can access them
-        subnet1 = entities.Subnet(
+        subnet = entities.Subnet(
             name=gen_string('alpha'),
-            organization=[self.org1.id],
-            location=[self.loc1.id],
+            organization=[self.role_org.id],
+            location=[self.role_loc.id],
         ).create()
-        domain1 = entities.Domain(
+        domain = entities.Domain(
             name=gen_string('alpha'),
-            organization=[self.org1.id],
-            location=[self.loc1.id]
+            organization=[self.role_org.id],
+            location=[self.role_loc.id]
         ).create()
-        sc1 = ServerConfig(
-            auth=(user1_login, user1_pass),
+        sc = ServerConfig(
+            auth=(userone_login, userone_pass),
             url=ServerConfig.get().url,
             verify=False
         )
         # User 1 Access Tests
         with self.assertNotRaises(HTTPError):
-            entities.Domain(sc1).search(
+            entities.Domain(sc).search(
                 query={
-                    'organization-id': self.org1.id,
-                    'location-id': self.loc1.id
+                    'organization-id': self.role_org.id,
+                    'location-id': self.role_loc.id
                 }
             )
-            entities.Subnet(sc1).search(
+            entities.Subnet(sc).search(
                 query={
-                    'organization-id': self.org1.id,
-                    'location-id': self.loc1.id
+                    'organization-id': self.role_org.id,
+                    'location-id': self.role_loc.id
                 }
             )
         self.assertIn(
-            domain1.id,
-            [dom.id for dom in entities.Domain(sc1).search()]
+            domain.id,
+            [dom.id for dom in entities.Domain(sc).search()]
         )
         self.assertIn(
-            subnet1.id,
-            [sub.id for sub in entities.Subnet(sc1).search()]
+            subnet.id,
+            [sub.id for sub in entities.Subnet(sc).search()]
         )
         # User 2 Access Tests
-        sc2 = ServerConfig(
-            auth=(user2_login, user2_pass),
+        sc = ServerConfig(
+            auth=(usertwo_login, usertwo_pass),
             url=ServerConfig.get().url,
             verify=False
         )
         with self.assertNotRaises(HTTPError):
-            entities.Domain(sc2).search(
+            entities.Domain(sc).search(
                 query={
-                    'organization-id': self.org1.id,
-                    'location-id': self.loc1.id
+                    'organization-id': self.role_org.id,
+                    'location-id': self.role_loc.id
                 }
             )
-            entities.Subnet(sc2).search(
+            entities.Subnet(sc).search(
                 query={
-                    'organization-id': self.org1.id,
-                    'location-id': self.loc1.id
+                    'organization-id': self.role_org.id,
+                    'location-id': self.role_loc.id
                 }
             )
         self.assertIn(
-            domain1.id,
-            [dom.id for dom in entities.Domain(sc2).search()]
+            domain.id,
+            [dom.id for dom in entities.Domain(sc).search()]
         )
         self.assertIn(
-            subnet1.id,
-            [sub.id for sub in entities.Subnet(sc2).search()]
+            subnet.id,
+            [sub.id for sub in entities.Subnet(sc).search()]
         )
 
     @stubbed()
@@ -989,37 +991,37 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id],
-            locs=[self.loc1.id]
+            orgs=[self.role_org.id],
+            locs=[self.role_loc.id]
         )
         # Creating resource
-        dom1_name = gen_string('alpha')
-        dom1 = entities.Domain(
-            name=dom1_name,
-            organization=[self.org1],
-            location=[self.loc1]
+        dom_name = gen_string('alpha')
+        dom = entities.Domain(
+            name=dom_name,
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(dom1_name, dom1.name)
-        user1_login = gen_string('alpha')
-        user1_pass = gen_string('alphanumeric')
-        user1 = entities.User(
-            login=user1_login,
-            password=user1_pass,
+        self.assertEqual(dom_name, dom.name)
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
             role=[org_admin.id],
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(user1_login, user1.login)
+        self.assertEqual(user_login, user.login)
         sc = ServerConfig(
-            auth=(user1_login, user1_pass),
+            auth=(user_login, user_pass),
             url=ServerConfig.get().url,
             verify=False
         )
         # Getting the domain from user1
-        dom1 = entities.Domain(sc, id=dom1.id).read()
-        dom1.organization = [self.org2]
+        dom = entities.Domain(sc, id=dom.id).read()
+        dom.organization = [self.filter_org]
         with self.assertRaises(HTTPError):
-            dom1.update(['organization'])
+            dom.update(['organization'])
 
     @tier1
     def test_positive_remove_org_admin_role(self):
@@ -1039,22 +1041,22 @@ class CannedRoleTestCases(APITestCase):
         :CaseImportance: Critical
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id],
-            locs=[self.loc1.id]
+            orgs=[self.role_org.id],
+            locs=[self.role_loc.id]
         )
-        user1_login = gen_string('alpha')
-        user1_pass = gen_string('alphanumeric')
-        user1 = entities.User(
-            login=user1_login,
-            password=user1_pass,
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
             role=[org_admin.id]
         ).create()
-        self.assertEqual(user1_login, user1.login)
+        self.assertEqual(user_login, user.login)
         with self.assertNotRaises(HTTPError):
             entities.Role(id=org_admin.id).delete()
         # Getting updated user
-        user1 = entities.User(id=user1.id).read()
-        self.assertNotIn(org_admin.id, [role.id for role in user1.role])
+        user = entities.User(id=user.id).read()
+        self.assertNotIn(org_admin.id, [role.id for role in user.role])
 
     @stubbed()
     @tier2
@@ -1115,32 +1117,32 @@ class CannedRoleTestCases(APITestCase):
             new role
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id],
-            locs=[self.loc1.id]
+            orgs=[self.role_org.id],
+            locs=[self.role_loc.id]
         )
-        user1_login = gen_string('alpha')
-        user1_pass = gen_string('alphanumeric')
-        user1 = entities.User(
-            login=user1_login,
-            password=user1_pass,
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
             role=[org_admin.id],
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(user1_login, user1.login)
+        self.assertEqual(user_login, user.login)
         sc = ServerConfig(
-            auth=(user1_login, user1_pass),
+            auth=(user_login, user_pass),
             url=ServerConfig.get().url,
             verify=False
         )
-        role2_name = gen_string('alpha')
-        role2 = entities.Role(
+        role_name = gen_string('alpha')
+        role = entities.Role(
             sc,
-            name=role2_name,
-            organization=[self.org1],
-            location=[self.loc1]
+            name=role_name,
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(role2_name, role2.name)
+        self.assertEqual(role_name, role.name)
 
     @stubbed()
     @tier1
@@ -1178,19 +1180,19 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id], locs=[self.loc1.id])
-        user1_login = gen_string('alpha')
-        user1_pass = gen_string('alphanumeric')
-        user1 = entities.User(
-            login=user1_login,
-            password=user1_pass,
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
             role=[org_admin.id],
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(user1_login, user1.login)
+        self.assertEqual(user_login, user.login)
         sc = ServerConfig(
-            auth=(user1_login, user1_pass),
+            auth=(user_login, user_pass),
             url=ServerConfig.get().url,
             verify=False
         )
@@ -1219,35 +1221,35 @@ class CannedRoleTestCases(APITestCase):
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id],
-            locs=[self.loc1.id]
+            orgs=[self.role_org.id],
+            locs=[self.role_loc.id]
         )
-        user1_login = gen_string('alpha')
-        user1_pass = gen_string('alphanumeric')
-        user1 = entities.User(
-            login=user1_login,
-            password=user1_pass,
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
             role=[org_admin.id],
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(user1_login, user1.login)
-        sc_user1 = ServerConfig(
-            auth=(user1_login, user1_pass),
+        self.assertEqual(user_login, user.login)
+        sc_user = ServerConfig(
+            auth=(user_login, user_pass),
             url=ServerConfig.get().url,
             verify=False
         )
-        user2_login = gen_string('alpha')
-        user2_pass = gen_string('alphanumeric')
-        user2 = entities.User(
-            sc_user1,
-            login=user2_login,
-            password=user2_pass,
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            sc_user,
+            login=user_login,
+            password=user_pass,
             role=[org_admin.id],
-            location=[self.loc1]
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(user2_login, user2.login)
-        self.assertIn(org_admin.id, [role.id for role in user2.role])
+        self.assertEqual(user_login, user.login)
+        self.assertIn(org_admin.id, [role.id for role in user.role])
 
     @stubbed()
     @tier2
@@ -1315,28 +1317,28 @@ class CannedRoleTestCases(APITestCase):
             2. Org Admin should have access to create locations
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.org1.id], locs=[self.loc1.id])
-        user1_login = gen_string('alpha')
-        user1_pass = gen_string('alphanumeric')
-        user1 = entities.User(
-            login=user1_login,
-            password=user1_pass,
+            orgs=[self.role_org.id], locs=[self.role_loc.id])
+        user_login = gen_string('alpha')
+        user_pass = gen_string('alphanumeric')
+        user = entities.User(
+            login=user_login,
+            password=user_pass,
             role=[org_admin.id],
-            organization=[self.org1],
-            location=[self.loc1]
+            organization=[self.role_org],
+            location=[self.role_loc]
         ).create()
-        self.assertEqual(user1_login, user1.login)
+        self.assertEqual(user_login, user.login)
         sc = ServerConfig(
-            auth=(user1_login, user1_pass),
+            auth=(user_login, user_pass),
             url=ServerConfig.get().url,
             verify=False
         )
         with self.assertRaises(HTTPError):
             entities.Organization(sc, name=gen_string('alpha')).create()
         with self.assertNotRaises(HTTPError):
-            loc1_name = gen_string('alpha')
-            loc1 = entities.Location(sc, name=loc1_name).create()
-        self.assertEqual(loc1_name, loc1.name)
+            loc_name = gen_string('alpha')
+            loc = entities.Location(sc, name=loc_name).create()
+        self.assertEqual(loc_name, loc.name)
 
     @stubbed()
     @tier1
