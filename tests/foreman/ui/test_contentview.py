@@ -65,6 +65,8 @@ from robottelo.constants import (
     FAKE_1_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_3_YUM_REPO,
+    FAKE_9_YUM_REPO,
+    FAKE_9_YUM_SECURITY_ERRATUM_COUNT,
     FEDORA23_OSTREE_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_ERRATA_TYPE,
@@ -1034,6 +1036,125 @@ class ContentViewTestCase(UITestCase):
             self.assertEqual(result['date_type'], date_type)
             self.assertEqual(result['start_date'], start_date)
             self.assertEqual(result['end_date'], end_date)
+
+    @tier2
+    def test_positive_add_all_security_errata_date_range_filter(self):
+        """Create erratum date range filter to include only security errata and
+        publish new content view version
+
+        :id: c8f4453b-e654-4e8d-9156-5443bfb92f23
+
+        :CaseImportance: High
+
+        :expectedresults: all security errata is present in content view
+            version
+        """
+        filter_name = gen_string('alphanumeric')
+        start_date = '2010-01-01'
+        end_date = date.today().strftime('%Y-%m-%d')
+        content_view = entities.ContentView(
+            organization=self.organization).create()
+        product = entities.Product(organization=self.organization).create()
+        repo = entities.Repository(
+            product=product,
+            url=FAKE_9_YUM_REPO,
+        ).create()
+        repo.sync()
+        with Session(self) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            session.content_views.add_remove_repos(
+                content_view.name, [repo.name])
+            session.content_views.add_filter(
+                content_view.name,
+                filter_name,
+                FILTER_CONTENT_TYPE['erratum by date and type'],
+                FILTER_TYPE['include'],
+            )
+            session.content_views.edit_erratum_date_range_filter(
+                content_view.name,
+                filter_name,
+                errata_types=['security'],
+                date_type=FILTER_ERRATA_DATE['issued'],
+                start_date=start_date,
+                end_date=end_date,
+                open_filter=False,
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            session.content_views.publish(content_view.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            result = session.content_views.fetch_version_errata(
+                content_view.name, 'Version 1.0')
+            self.assertEqual(len(result), FAKE_9_YUM_SECURITY_ERRATUM_COUNT)
+            self.assertTrue(
+                all(
+                    errata[2] == FILTER_ERRATA_TYPE['security']
+                    for errata in result
+                )
+            )
+
+    @tier2
+    def test_positive_add_all_security_errata_id_filter(self):
+        """Create erratum filter to include only security errata and publish
+        new content view version
+
+        :id: bc0be8e8-af53-4db8-937d-93c49c937dcc
+
+        :BZ: 1275756
+
+        :CaseImportance: High
+
+        :expectedresults: all security errata is present in content view
+            version
+        """
+        filter_name = gen_string('alphanumeric')
+        content_view = entities.ContentView(
+            organization=self.organization).create()
+        product = entities.Product(organization=self.organization).create()
+        repo = entities.Repository(
+            product=product,
+            url=FAKE_9_YUM_REPO,
+        ).create()
+        repo.sync()
+        with Session(self) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            session.content_views.add_remove_repos(
+                content_view.name, [repo.name])
+            session.content_views.publish(content_view.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            session.content_views.add_filter(
+                content_view.name,
+                filter_name,
+                FILTER_CONTENT_TYPE['erratum by id'],
+                FILTER_TYPE['include'],
+            )
+            session.content_views.edit_erratum_id_filter(
+                content_view.name,
+                filter_name,
+                errata_types=['security'],
+                open_filter=False,
+            )
+            session.content_views.add_remove_errata_to_filter(
+                content_view.name,
+                filter_name,
+                select_all=True,
+            )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            session.content_views.publish(content_view.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            result = session.content_views.fetch_version_errata(
+                content_view.name, 'Version 2.0')
+            self.assertEqual(len(result), FAKE_9_YUM_SECURITY_ERRATUM_COUNT)
+            self.assertTrue(
+                all(
+                    errata[2] == FILTER_ERRATA_TYPE['security']
+                    for errata in result
+                )
+            )
 
     @run_only_on('sat')
     @tier2
