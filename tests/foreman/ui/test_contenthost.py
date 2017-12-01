@@ -96,7 +96,7 @@ class ContentHostTestCase(UITestCase):
         })
         setup_org_for_a_custom_repo({
             'url': FAKE_6_YUM_REPO,
-            'product': cls.setup_ents['product-id'],
+            'product': cls.setup_entities['product-id'],
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
