@@ -15,12 +15,14 @@
 
 :Upstream: No
 """
+import pytest
+
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.settings import Settings
 from robottelo.datafactory import (
     gen_string,
     generate_strings_list,
-    valid_data_list,
-)
+    valid_data_list, invalid_boolean_strings, xdist_adapter)
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import CLITestCase
 
@@ -263,34 +265,42 @@ class SettingTestCase(CLITestCase):
         :caseimportance: low
         """
 
-    @stubbed()
-    @tier1
-    def test_positive_update_send_welcome_email(self):
-        """Check email send welcome email is updated
 
-        :id: cdaf6cd0-5eea-4252-87c5-f9ec3ba79ac1
+@tier1
+def test_positive_update_send_welcome_email():
+    """Check email send welcome email is updated
 
-        :steps: valid values: boolean true or false
+    :id: cdaf6cd0-5eea-4252-87c5-f9ec3ba79ac1
 
-        :expectedresults: send_welcome_email is updated
+    :steps: valid values: boolean true or false
 
-        :caseautomation: notautomated
+    :expectedresults: send_welcome_email is updated
 
-        :caseimportance: low
-        """
+    :caseautomation: automated
 
-    @stubbed()
-    @tier1
-    def test_negative_update_send_welcome_email(self):
-        """Check email send welcome email is updated
+    :caseimportance: low
+    """
+    for value in ['true', 'false']:
+        Settings.set({'name': 'send_welcome_email', 'value': value})
+        host_value = Settings.list({'search': 'name=send_welcome_email'})[0][
+            'value']
+        assert value == host_value
 
-        :id: 2f75775d-72a1-4b2f-86c2-98c36e446099
 
-        :steps: set invalid values: not booleans
+@pytest.mark.parametrize('value', **xdist_adapter(invalid_boolean_strings()))
+@tier1
+def test_negative_update_send_welcome_email(value):
+    """Check email send welcome email is updated
 
-        :expectedresults: send_welcome_email is not updated
+    :id: 2f75775d-72a1-4b2f-86c2-98c36e446099
 
-        :caseautomation: notautomated
+    :steps: set invalid values: not booleans
 
-        :caseimportance: low
-        """
+    :expectedresults: send_welcome_email is not updated
+
+    :caseautomation: automated
+
+    :caseimportance: low
+    """
+    with pytest.raises(CLIReturnCodeError):
+        Settings.set({'name': 'send_welcome_email', 'value': value})

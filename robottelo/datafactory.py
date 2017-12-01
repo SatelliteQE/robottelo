@@ -2,13 +2,14 @@
 """Data Factory for all entities"""
 import random
 import string
-
 from functools import wraps
-from fauxfactory import gen_string, gen_integer
+
+from fauxfactory import gen_string, gen_integer, gen_alpha
+from six.moves.urllib.parse import quote_plus
+
 from robottelo.config import settings
 from robottelo.constants import STRING_TYPES
 from robottelo.decorators import bz_bug_is_open
-from six.moves.urllib.parse import quote_plus
 
 
 class InvalidArgumentError(Exception):
@@ -106,6 +107,46 @@ def invalid_emails_list():
         u'{0}@example.com'.format(gen_string('html')),
         u's p a c e s@example.com',
     ]
+
+
+@filtered_datapoint
+def invalid_boolean_strings(list_len=10):
+    """Create a list of invalid booleans. E.g not true nor false
+
+    :param list_len: len of the list to be generated
+    :return: list
+    """
+
+    def not_boolean_str(s):
+        return s not in ('true', 'false')
+
+    return [
+        gen_alpha(validator=not_boolean_str, default='notboolean')
+        for _ in range(list_len)
+    ]
+
+
+def xdist_adapter(argvalues):
+    """Adapter to avoid error when running tests on xdist
+    Check https://github.com/pytest-dev/pytest-xdist/issues/149
+
+    It returns a dict with lst as argvalues and range(len(lst)) as ids
+
+    Since every run has the same number of values, ids is going to be the same
+    on different workers.
+
+        :Ex:
+
+        dct = xdist_adapter(invalid_boolean_strings())
+
+        @pytest.mark.parametrize('value', \*\*dct)
+        def test_something(value):
+        #some code here
+
+    :param argvalues: to be passed to parametrize
+    :return: dict
+    """
+    return {'argvalues': argvalues, 'ids': map(str, range(len(argvalues)))}
 
 
 @filtered_datapoint

@@ -1,12 +1,15 @@
 # coding: utf-8
 """Configurations for py.test runner"""
 import datetime
+import logging
 
 import pytest
+from nailgun import entities
 
-from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
+from robottelo.cleanup import EntitiesCleaner
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
+from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
 from robottelo.helpers import get_func_name
 
 
@@ -56,6 +59,64 @@ def worker_id(request):
         return request.config.slaveinput['slaveid']
     else:
         return 'master'
+
+
+@pytest.fixture(scope="session")
+def configured_settings():
+    if not settings.configured:
+        settings.configure()
+    return settings
+
+
+@pytest.fixture(autouse=True, scope='module')
+def robottelo_logger(worker_id):
+    """Set up a separate logger for each pytest-xdist worker
+    if worker_id != 'master' then xdist is running in multi-threading so
+    a logfile named 'robottelo_gw{worker_id}.log' will be created.
+    """
+    logger = logging.getLogger('robottelo')
+    if '{0}'.format(worker_id) not in [h.get_name() for h in logger.handlers]:
+        if worker_id != 'master':
+            formatter = logging.Formatter(
+                fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
+                    ' %(message)s'.format(worker_id),
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            handler = logging.FileHandler(
+                'robottelo_{0}.log'.format(worker_id))
+            handler.set_name('{0}'.format(worker_id))
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+            # Nailgun HTTP logs should also be included in gw* logs
+            logging.getLogger('nailgun').addHandler(handler)
+    return logger
+
+
+@pytest.fixture(scope="module", autouse=True)
+def entities_cleaner(robottelo_logger, configured_settings):
+    if configured_settings.cleanup:
+        robottelo_logger.info('Entities cleaner enabled')
+        cleaner = EntitiesCleaner(
+            entities.Organization,
+            entities.Host,
+            entities.HostGroup
+        )
+        yield cleaner
+        robottelo_logger.info('Cleaning entities')
+        cleaner.clean()
+    else:
+        robottelo_logger.info('Entities cleaner disabled')
+        yield None
+
+
+@pytest.fixture(autouse=True)
+def log_test_execution(robottelo_logger, request):
+    test_name = request.node.name
+    parent_name = request.node.parent.name
+    test_full_name = '{}/{}'.format(parent_name, test_name)
+    robottelo_logger.debug('Started Test: {}'.format(test_full_name))
+    yield None
+    robottelo_logger.debug('Finished Test: {}'.format(test_full_name))
 
 
 def pytest_namespace():

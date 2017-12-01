@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Tests for custom assertions in ``robottelo.test.TestCase``."""
 from collections import namedtuple
+
 from requests import HTTPError
+
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.test import APITestCase, CLITestCase
 
