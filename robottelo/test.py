@@ -6,7 +6,6 @@ to help writing API, CLI and UI tests.
 
 """
 import logging
-import pytest
 import re
 import unittest2
 
@@ -20,7 +19,6 @@ except ImportError:
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
-from robottelo.cleanup import EntitiesCleaner
 from robottelo.config import settings
 from robottelo.constants import (
     INTERFACE_API,
@@ -61,10 +59,7 @@ class APINotRaisesValueHandler(NotRaisesValueHandler):
         """Validate whether expected status code is present in specific
         exception.
         """
-        return (
-            True if self.expected_value == exception.response.status_code
-            else False
-        )
+        return self.expected_value == exception.response.status_code
 
     @property
     def value_name(self):
@@ -83,10 +78,7 @@ class CLINotRaisesValueHandler(NotRaisesValueHandler):
         """Validate whether expected return code is present in specific
         exception.
         """
-        return (
-            True if self.expected_value == exception.return_code
-            else False
-        )
+        return self.expected_value == exception.return_code
 
     @property
     def value_name(self):
@@ -98,15 +90,14 @@ class _AssertNotRaisesContext(object):
     """A context manager used to implement :meth:`TestCase.assertNotRaises`.
     """
 
-    def __init__(self, expected, test_case, expected_regex=None,
-                 expected_value=None, value_handler=None):
+    def __init__(self, expected, value_handler_class, failure_exception,
+                 expected_regex=None, expected_value=None, value_handler=None):
         self.expected = expected
         self.expected_regex = expected_regex
         self.value_handler = value_handler
         if value_handler is None and expected_value:
-            self.value_handler = test_case._default_notraises_value_handler(
-                expected_value)
-        self.failureException = test_case.failureException
+            self.value_handler = value_handler_class(expected_value)
+        self.failure_exception = failure_exception
 
     def __enter__(self):
         return self
@@ -124,7 +115,7 @@ class _AssertNotRaisesContext(object):
 
         if issubclass(exc_type, self.expected):
             if not any((self.value_handler, self.expected_regex)):
-                raise self.failureException(
+                raise self.failure_exception(
                     "{0} raised".format(exc_name))
             regex = self.expected_regex
             response_code = None
@@ -134,7 +125,7 @@ class _AssertNotRaisesContext(object):
                 regex = True if regex.search(str(exc_value)) else False
 
             if response_code and regex:
-                raise self.failureException(
+                raise self.failure_exception(
                     "{0} raised with {1} {2} and {3} found in {4}"
                     .format(
                         exc_name,
@@ -145,7 +136,7 @@ class _AssertNotRaisesContext(object):
                     )
                 )
             elif response_code and regex is None:
-                raise self.failureException(
+                raise self.failure_exception(
                     "{0} raised with {1} {2}".format(
                         exc_name,
                         self.value_handler.value_name,
@@ -153,7 +144,7 @@ class _AssertNotRaisesContext(object):
                     )
                 )
             elif regex and response_code is None:
-                raise self.failureException(
+                raise self.failure_exception(
                     "{0} raised and {1} found in {2}".format(
                         exc_name,
                         self.expected_regex.pattern,
@@ -169,34 +160,29 @@ class _AssertNotRaisesContext(object):
             return False
 
 
+class AssertCliNotRaisesContextManager(_AssertNotRaisesContext):
+    def __init__(self, expected, expected_regex=None, expected_value=None,
+                 value_handler=None):
+        super(AssertCliNotRaisesContextManager, self).__init__(
+            expected, CLINotRaisesValueHandler, AssertionError, expected_regex,
+            expected_value, value_handler
+        )
+
+
+class AssertApiNotRaisesContextManager(_AssertNotRaisesContext):
+    def __init__(self, expected, expected_regex=None, expected_value=None,
+                 value_handler=None):
+        super(AssertApiNotRaisesContextManager, self).__init__(
+            expected, APINotRaisesValueHandler, AssertionError, expected_regex,
+            expected_value, value_handler
+        )
+
+
 class TestCase(unittest2.TestCase):
     """Robottelo test case"""
 
     _default_interface = INTERFACE_API
     _default_notraises_value_handler = None
-
-    @pytest.fixture(autouse=True)
-    def _set_worker_logger(self, worker_id):
-        """Set up a separate logger for each pytest-xdist worker
-        if worker_id != 'master' then xdist is running in multi-threading so
-        a logfile named 'robottelo_gw{worker_id}.log' will be created.
-        """
-        self.worker_id = worker_id
-        if worker_id != 'master':
-            if '{0}'.format(worker_id) not in [
-                    h.get_name() for h in self.logger.handlers]:
-                formatter = logging.Formatter(
-                    fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
-                    ' %(message)s'.format(worker_id),
-                    datefmt='%Y-%m-%d %H:%M:%S'
-                )
-                handler = logging.FileHandler(
-                    'robottelo_{0}.log'.format(worker_id))
-                handler.set_name('{0}'.format(worker_id))
-                handler.setFormatter(formatter)
-                self.logger.addHandler(handler)
-                # Nailgun HTTP logs should also be included in gw* logs
-                logging.getLogger('nailgun').addHandler(handler)
 
     @classmethod
     def setUpClass(cls):  # noqa
@@ -210,19 +196,11 @@ class TestCase(unittest2.TestCase):
         cls.longMessage = True
         cls.foreman_user = settings.server.admin_username
         cls.foreman_password = settings.server.admin_password
-        if settings.cleanup:
-            cls.cleaner = EntitiesCleaner(
-                entities.Organization,
-                entities.Host,
-                entities.HostGroup
-            )
 
     @classmethod
     def tearDownClass(cls):
         cls.logger.info('Started tearDownClass: {0}/{1}'.format(
             cls.__module__, cls.__name__))
-        if settings.cleanup:
-            cls.cleaner.clean()
 
     @classmethod
     def upload_manifest(cls, org_id, manifest, interface=None):
@@ -245,22 +223,6 @@ class TestCase(unittest2.TestCase):
             interface = cls._default_interface
         return manifests.upload_manifest_locked(
             org_id, manifest, interface=interface)
-
-    def setUp(self):
-        """setup for tests"""
-        self.log_method_name(prefix='Started Test: ')
-
-    def tearDown(self):
-        """teardown for tests"""
-        self.log_method_name(prefix='Finished Test: ')
-
-    def log_method_name(self, prefix=None):
-        """Log test method name"""
-        self.logger.debug('{0}{1}/{2}'.format(
-            prefix,
-            type(self).__name__,
-            self._testMethodName,
-        ))
 
     def assertNotRaises(self, expected_exception, callableObj=None,
                         expected_value=None, value_handler=None, *args,
@@ -295,7 +257,8 @@ class TestCase(unittest2.TestCase):
         """
         context = _AssertNotRaisesContext(
             expected_exception,
-            self,
+            self._default_notraises_value_handler,
+            self.failureException,
             expected_value=expected_value,
             value_handler=value_handler,
         )
@@ -314,7 +277,8 @@ class TestCase(unittest2.TestCase):
             expected_regex = re.compile(expected_regex)
         context = _AssertNotRaisesContext(
             expected_exception,
-            self,
+            self._default_notraises_value_handler,
+            self.failureException,
             expected_regex=expected_regex,
             expected_value=expected_value,
             value_handler=value_handler,
