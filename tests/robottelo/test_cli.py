@@ -76,7 +76,7 @@ class BaseCliTestCase(unittest2.TestCase):
         self.assertIn(Base, new_class.__bases__)
 
     def test_handle_response_success(self):
-        """Check handle_response returns stdout when the is no problem on ssh
+        """Check check_errors returns stdout when the is no problem on ssh
         execution
         """
         base = Base()
@@ -87,7 +87,7 @@ class BaseCliTestCase(unittest2.TestCase):
 
     @mock.patch('robottelo.cli.base.Base.logger.warning')
     def test_handle_response_logging_when_stderr_not_empty(self, warning):
-        """Check handle_response log stderr when it is not empty"""
+        """Check check_errors log stderr when it is not empty"""
         base = Base()
         response = mock.Mock()
         response.return_code = 0
@@ -107,13 +107,13 @@ class BaseCliTestCase(unittest2.TestCase):
         )
 
     def test_handle_response_error(self):
-        """Check handle_response raise ``CLIReturnCodeError`` when
+        """Check check_errors raise ``CLIReturnCodeError`` when
         return_code is not 0
         """
         self.assert_response_error(CLIReturnCodeError)
 
     def test_handle_data_base_response_error(self):
-        """Check handle_response raise ``CLIDataBaseError`` when
+        """Check check_errors raise ``CLIDataBaseError`` when
         return_code is not 0 and error is related to DB error.
         See https://github.com/SatelliteQE/robottelo/issues/3790.
         """
@@ -352,7 +352,7 @@ class BaseCliTestCase(unittest2.TestCase):
         """
         self.assertRaises(CLIError, Base.info)
 
-    @mock.patch('robottelo.cli.base.hammer.parse_info')
+    @mock.patch('robottelo.cli.hammer.parse_info')
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_info_without_parsing_response(self, construct, execute, parse):
@@ -367,7 +367,7 @@ class BaseCliTestCase(unittest2.TestCase):
         )
         parse.assert_not_called()
 
-    @mock.patch('robottelo.cli.base.hammer.parse_info')
+    @mock.patch('robottelo.cli.hammer.parse_info')
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
     def test_info_parsing_response(self, construct, execute, parse):

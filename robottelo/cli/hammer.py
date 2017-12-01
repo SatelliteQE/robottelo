@@ -221,3 +221,5 @@ def parse_info(output):
                 contents[key] = value.lstrip()
 
     return contents
+
+# Experimenting a new approach to generate commands using pytocli

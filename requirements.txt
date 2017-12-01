@@ -11,6 +11,7 @@ paramiko==2.4.0
 pytest==3.2.3
 pytest-services==1.2.1
 pytest-mock==1.6.3
+pytocli==0.5
 requests==2.18.4
 selenium==2.53.1  # pyup: ignore
 six==1.11.0
