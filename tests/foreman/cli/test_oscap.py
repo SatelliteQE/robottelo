@@ -95,7 +95,7 @@ class OpenScapTestCase(CLITestCase):
         result = Scapcontent.list()
         self.assertIn(
             OSCAP_DEFAULT_CONTENT['rhel7_content'],
-            [str(scap['title']) for scap in result]
+            [scap['title'] for scap in result]
         )
 
     @run_only_on('sat')
