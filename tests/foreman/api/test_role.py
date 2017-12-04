@@ -158,8 +158,8 @@ class CannedRoleTestCases(APITestCase):
             location=[self.role_loc]
         ).create()
         self.assertEqual(role.name, role_name)
-        self.assertIn(self.role_org.id, [org.id for org in role.organization])
-        self.assertIn(self.role_loc.id, [loc.id for loc in role.location])
+        self.assertEqual(self.role_org.id, role.organization[0].id)
+        self.assertEqual(self.role_loc.id, role.location[0].id)
 
     @tier1
     def test_positive_create_role_without_taxonomies(self):
@@ -212,8 +212,8 @@ class CannedRoleTestCases(APITestCase):
         dom_perm = entities.Permission(resource_type='Domain').search()
         filtr = entities.Filter(permission=dom_perm, role=role.id).create()
         self.assertEqual(role.id, filtr.role.id)
-        self.assertIn(self.role_org.id, [org.id for org in filtr.organization])
-        self.assertIn(self.role_loc.id, [loc.id for loc in filtr.location])
+        self.assertEqual(self.role_org.id, filtr.organization[0].id)
+        self.assertEqual(self.role_loc.id, filtr.location[0].id)
         self.assertFalse(filtr.override)
 
     @tier1
@@ -304,14 +304,11 @@ class CannedRoleTestCases(APITestCase):
             location=[self.filter_loc]
         ).create()
         self.assertEqual(role.id, filtr.role.id)
-        self.assertIn(
-            self.filter_org.id, [org.id for org in filtr.organization])
-        self.assertIn(self.filter_loc.id, [loc.id for loc in filtr.location])
+        self.assertEqual(self.filter_org.id, filtr.organization[0].id)
+        self.assertEqual(self.filter_loc.id, filtr.location[0].id)
         self.assertTrue(filtr.override)
-        self.assertNotIn(
-            self.role_org.id,
-            [org.id for org in filtr.organization])
-        self.assertNotIn(self.role_loc.id, [loc.id for loc in filtr.location])
+        self.assertNotEqual(self.role_org.id, filtr.organization[0].id)
+        self.assertNotEqual(self.role_loc.id, filtr.location[0].id)
 
     @tier1
     def test_positive_update_role_taxonomies(self):
@@ -341,14 +338,12 @@ class CannedRoleTestCases(APITestCase):
         role = role.update(['organization', 'location'])
         # Updated Role
         role = entities.Role(id=role.id).read()
-        self.assertIn(
-            self.filter_org.id, [org.id for org in role.organization])
-        self.assertIn(self.filter_loc.id, [loc.id for loc in role.location])
+        self.assertEqual(self.filter_org.id, role.organization[0].id)
+        self.assertEqual(self.filter_loc.id, role.location[0].id)
         # Updated Filter
         filtr = entities.Filter(id=filtr.id).read()
-        self.assertIn(
-            self.filter_org.id, [org.id for org in filtr.organization])
-        self.assertIn(self.filter_loc.id, [loc.id for loc in filtr.location])
+        self.assertEqual(self.filter_org.id, filtr.organization[0].id)
+        self.assertEqual(self.filter_loc.id, filtr.location[0].id)
 
     @tier1
     def test_negative_update_role_taxonomies(self):
@@ -389,12 +384,12 @@ class CannedRoleTestCases(APITestCase):
         role = role.update(['organization', 'location'])
         # Updated Role
         role = entities.Role(id=role.id).read()
-        self.assertIn(org_new.id, [org.id for org in role.organization])
-        self.assertIn(loc_new.id, [loc.id for loc in role.location])
+        self.assertEqual(org_new.id, role.organization[0].id)
+        self.assertEqual(loc_new.id, role.location[0].id)
         # Updated Filter
         filtr = entities.Filter(id=filtr.id).read()
-        self.assertNotIn(org_new.id, [org.id for org in filtr.organization])
-        self.assertNotIn(loc_new.id, [loc.id for loc in filtr.location])
+        self.assertNotEqual(org_new.id, filtr.organization[0].id)
+        self.assertNotEqual(loc_new.id, filtr.location[0].id)
 
     @tier1
     def test_positive_disable_filter_override(self):
@@ -435,10 +430,8 @@ class CannedRoleTestCases(APITestCase):
         filtr.override = False
         filtr = filtr.update(['override'])
         self.assertFalse(filtr.override)
-        self.assertNotIn(
-            self.filter_org.id, [org.id for org in filtr.organization])
-        self.assertNotIn(
-            self.filter_loc.id, [loc.id for loc in filtr.location])
+        self.assertNotEqual(self.filter_org.id, filtr.organization[0].id)
+        self.assertNotEqual(self.filter_loc.id, filtr.location[0].id)
 
     @tier1
     def test_positive_create_org_admin_from_clone(self):
@@ -484,9 +477,8 @@ class CannedRoleTestCases(APITestCase):
         org_admin = self.create_org_admin_role(
             orgs=[self.role_org.id], locs=[self.role_loc.id])
         org_admin = entities.Role(id=org_admin.id).read()
-        self.assertIn(
-            self.role_org.id, [org.id for org in org_admin.organization])
-        self.assertIn(self.role_loc.id, [loc.id for loc in org_admin.location])
+        self.assertEqual(self.role_org.id, org_admin.organization[0].id)
+        self.assertEqual(self.role_loc.id, org_admin.location[0].id)
 
     @stubbed()
     @tier3
@@ -567,14 +559,8 @@ class CannedRoleTestCases(APITestCase):
         # Updated Filter
         filter_cloned = entities.Filter(id=filter_cloned_id).read()
         self.assertTrue(filter_cloned.override)
-        self.assertIn(
-            self.role_org.id,
-            [org.id for org in filter_cloned.organization]
-        )
-        self.assertIn(
-            self.role_loc.id,
-            [loc.id for loc in filter_cloned.location]
-        )
+        self.assertEqual(self.role_org.id, filter_cloned.organization[0].id)
+        self.assertEqual(self.role_loc.id, filter_cloned.location[0].id)
 
     @stubbed()
     @tier2
@@ -863,60 +849,37 @@ class CannedRoleTestCases(APITestCase):
             organization=[self.role_org.id],
             location=[self.role_loc.id]
         ).create()
-        sc = ServerConfig(
-            auth=(userone_login, userone_pass),
-            url=ServerConfig.get().url,
-            verify=False
-        )
-        # User 1 Access Tests
-        with self.assertNotRaises(HTTPError):
-            entities.Domain(sc).search(
-                query={
-                    'organization-id': self.role_org.id,
-                    'location-id': self.role_loc.id
-                }
-            )
-            entities.Subnet(sc).search(
-                query={
-                    'organization-id': self.role_org.id,
-                    'location-id': self.role_loc.id
-                }
-            )
-        self.assertIn(
-            domain.id,
-            [dom.id for dom in entities.Domain(sc).search()]
-        )
-        self.assertIn(
-            subnet.id,
-            [sub.id for sub in entities.Subnet(sc).search()]
-        )
-        # User 2 Access Tests
-        sc = ServerConfig(
-            auth=(usertwo_login, usertwo_pass),
-            url=ServerConfig.get().url,
-            verify=False
-        )
-        with self.assertNotRaises(HTTPError):
-            entities.Domain(sc).search(
-                query={
-                    'organization-id': self.role_org.id,
-                    'location-id': self.role_loc.id
-                }
-            )
-            entities.Subnet(sc).search(
-                query={
-                    'organization-id': self.role_org.id,
-                    'location-id': self.role_loc.id
-                }
-            )
-        self.assertIn(
-            domain.id,
-            [dom.id for dom in entities.Domain(sc).search()]
-        )
-        self.assertIn(
-            subnet.id,
-            [sub.id for sub in entities.Subnet(sc).search()]
-        )
+        for login, password in (
+            (userone_login, userone_pass),
+            (usertwo_login, usertwo_pass)
+        ):
+            with self.subTest(login):
+                sc = ServerConfig(
+                    auth=(login, password),
+                    url=ServerConfig.get().url,
+                    verify=False
+                )
+                with self.assertNotRaises(HTTPError):
+                    entities.Domain(sc).search(
+                        query={
+                            'organization-id': self.role_org.id,
+                            'location-id': self.role_loc.id
+                        }
+                    )
+                    entities.Subnet(sc).search(
+                        query={
+                            'organization-id': self.role_org.id,
+                            'location-id': self.role_loc.id
+                        }
+                    )
+                self.assertIn(
+                    domain.id,
+                    [dom.id for dom in entities.Domain(sc).search()]
+                )
+                self.assertIn(
+                    subnet.id,
+                    [sub.id for sub in entities.Subnet(sc).search()]
+                )
 
     @stubbed()
     @tier3
@@ -1249,7 +1212,7 @@ class CannedRoleTestCases(APITestCase):
             location=[self.role_loc]
         ).create()
         self.assertEqual(user_login, user.login)
-        self.assertIn(org_admin.id, [role.id for role in user.role])
+        self.assertEqual(org_admin.id, user.role[0].id)
 
     @stubbed()
     @tier2
