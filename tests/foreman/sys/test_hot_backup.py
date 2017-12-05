@@ -19,11 +19,14 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.constants import BACKUP_FILES, HOT_BACKUP_FILES
+from robottelo.constants import (
+    BACKUP_FILES,
+    FAKE_2_YUM_REPO,
+    HOT_BACKUP_FILES,
+)
 from robottelo.decorators import (
-        destructive,
-        skip_if_bug_open,
-        stubbed,
+    destructive,
+    stubbed,
 )
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
@@ -69,6 +72,13 @@ class HotBackupTestCase(TestCase):
         super(HotBackupTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
+        repo = entities.Repository(
+            url=FAKE_2_YUM_REPO,
+            content_type='yum',
+            download_policy='immediate',
+            product=cls.product,
+        ).create()
+        repo.sync()
 
     def check_services_status(self, max_attempts=5):
         for _ in range(max_attempts):
@@ -157,7 +167,6 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1323607)
     def test_positive_online_backup_exit_code_on_failure(self):
         """katello-backup --online-backup correct exit code on failure
 
@@ -363,7 +372,6 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1447619)
     def test_negative_incremental_with_no_src_directory(self):
         """katello-backup --incremental with no source directory
 
@@ -560,7 +568,6 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
-    @skip_if_bug_open('bugzilla', 1435333)
     def test_positive_online_incremental(self):
         """Make an incremental online backup
 
@@ -623,18 +630,22 @@ class HotBackupTestCase(TestCase):
             self.assertIn(BCK_MSG.format(ib1_dest), result.stdout)
 
             # restore /tmp/b1 and assert repo 1 is not there
-            connection.run(
-                    'katello-restore -y /tmp/{0}/katello-backup*'
-                    .format(b1_dir))
+            result = connection.run(
+                    'katello-restore -y /tmp/{0}/satellite-backup*'
+                    .format(b1_dir),
+                    timeout=1600)
+            self.assertEqual(result.return_code, 0)
             repo_list = entities.Repository().search(
                 query={'search': 'name={0}'.format(repo_name)}
             )
             self.assertEqual(len(repo_list), 0)
 
             # restore /tmp/ib1 and assert repo 1 is there
-            connection.run(
-                    'katello-restore -y /tmp/{0}/katello-backup*'
-                    .format(ib1_dest))
+            result = connection.run(
+                    'katello-restore -y /tmp/{0}/satellite-backup*'
+                    .format(ib1_dest),
+                    timeout=1600)
+            self.assertEqual(result.return_code, 0)
             repo_list = entities.Repository().search(
                 query={'search': 'name={0}'.format(repo_name)}
             )
