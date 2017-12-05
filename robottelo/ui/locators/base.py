@@ -456,11 +456,6 @@ locators = LocatorDict({
         By.XPATH,
         "//div/span/input[@id='compute_attribute_vm_attrs_memory']"
     ),
-    "resource.compute_profile.rhev_memory_hidden": (
-        By.XPATH,
-        ("//input[@id='compute_attribute_vm_attrs_memory']/../parent::div"
-         "//input[@class='real-hidden-value']")
-    ),
     "resource.compute_profile.interface_add_node": (
         By.XPATH,
         ("//div/fieldset[@id='network_interfaces']"

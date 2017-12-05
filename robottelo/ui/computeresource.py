@@ -63,7 +63,6 @@ class ResourceProfileFormBase(object):
             pass
         else:
             self.page.assign_value(target, value)
-        self.page.wait_for_ajax()
 
     def set_value(self, name, value):
         """Set the value of the corresponding field in UI"""
@@ -150,8 +149,6 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
     template_locator = locators["resource.compute_profile.rhev_template"]
     cores_locator = locators["resource.compute_profile.rhev_cores"]
     memory_locator = locators["resource.compute_profile.rhev_memory"]
-    memory_locator_hidden = locators[
-        "resource.compute_profile.rhev_memory_hidden"]
 
     group_fields_locators = dict(
         network_interfaces=dict(
@@ -195,17 +192,20 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
         if template is not None:
             self.set_value(template_key, template)
             del kwargs[template_key]
-        memory = kwargs.get('memory')
+        # when setting memory value it does not fire the change event,
+        # that do the necessary validation and update the memory hidden field,
+        # without this event fired the memory value cannot be saved,
+        memory_key = 'memory'
+        memory = kwargs.get(memory_key)
         if memory is not None:
-            # to make the memory value take effect we have to set it's hidden
-            # input value
-            memory_hidden_input = self.page.wait_until_element_exists(
-                self.memory_locator_hidden)
-            # memory must be in bytes, 1 MB = 1024*1024 = 1048576 bytes
+            memory_input = self.page.wait_until_element(self.memory_locator)
+            self._assign_locator_value(memory_input, memory)
+            # explicitly fire change event, as seems not fired by send keys
             self.page.browser.execute_script(
-                'arguments[0].value={0};'.format(memory*1048576),
-                memory_hidden_input,
+                "arguments[0].dispatchEvent(new Event('change'));",
+                memory_input,
             )
+            del kwargs[memory_key]
         ResourceProfileFormBase.set_values(self, **kwargs)
 
 

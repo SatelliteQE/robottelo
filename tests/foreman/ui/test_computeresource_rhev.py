@@ -1164,11 +1164,11 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :CaseLevel: System
         """
-        host_name = gen_string('alpha', 9).lower()
-        cr_name = gen_string('alpha', 9)
+        host_name = gen_string('alpha').lower()
+        cr_name = gen_string('alpha')
         cr_resource = '{0} (RHEV)'.format(cr_name)
-        image_name = gen_string('alpha', 5)
-        root_pwd = gen_string('alpha', 15)
+        image_name = gen_string('alpha')
+        root_pwd = gen_string('alpha')
         # Get the operating system
         os = entities.OperatingSystem().search(query=dict(
             search='name="RedHat" AND (major="{0}" OR major="{1}")'.format(
@@ -1186,7 +1186,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         # Create a new org domain
         domain = entities.Domain(
             name='{0}.{1}'.format(
-                gen_string('alpha', length=10),
+                gen_string('alpha'),
                 gen_string('alpha', length=3)
             ).lower(),
             location=[self.loc],
@@ -1282,12 +1282,12 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 )
             )
             # Query RHEV hypervisor for vm description
-            vm_host_data = entities.Host().search_json(
+            vm_host = entities.Host().search(
                 query=dict(search='name="{0}"'.format(vm_host_name))
-            )['results'][0]
+            )[0]
             # Using documented RHEV API access
             response = client.get(
-                '{0}/vms/{1}'.format(self.rhev_url, vm_host_data['uuid']),
+                '{0}/vms/{1}'.format(self.rhev_url, vm_host.uuid),
                 verify=False,
                 auth=(self.rhev_username, self.rhev_password),
                 headers={'Accept': 'application/json'}
