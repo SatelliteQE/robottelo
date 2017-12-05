@@ -15,6 +15,7 @@
 
 :Upstream: No
 """
+
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from nailgun import entities
@@ -313,16 +314,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': 'command="ls"',
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
 
     @stubbed()
     @tier2
@@ -343,16 +344,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': "command='useradd {0}'".format(username),
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            make_user_job[u'success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(make_user_job[u'success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': make_user_job[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
         # create a file as new user
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
@@ -361,16 +362,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
             'effective-user': '{0}'.format(username),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
         # check the file owner
         result = ssh.command(
             '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
@@ -398,16 +399,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'job-template': template_name,
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
 
     @stubbed()
     @tier3
@@ -439,16 +440,16 @@ class RemoteExecutionTestCase(CLITestCase):
             sleep(30)
         invocation_info = JobInvocation.info({
             'id': invocation_command[u'id']})
-        self.assertEqual(
-            invocation_info['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_info['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
 
     @stubbed()
     @tier3
@@ -531,16 +532,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': 'package={0} {1} {2}'.format(*packages),
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
         result = ssh.command(
             "rpm -q {0}".format(" ".join(packages)),
             hostname=self.client.hostname
@@ -569,16 +570,16 @@ class RemoteExecutionTestCase(CLITestCase):
                 'id': invocation_command[u'id'],
                 'host': self.client.hostname
             })
-            self.assertEqual(
-                invocation_command['status'],
-                u'queued',
-                'host output: {0}'.format(
+            try:
+                self.assertEqual(invocation_command['status'], u'queued')
+            except AssertionError:
+                result = 'host output: {0}'.format(
                     ' '.join(JobInvocation.get_output({
                         'id': invocation_command[u'id'],
                         'host': self.client.hostname})
+                        )
                     )
-                )
-            )
+                raise AssertionError(result)
         sleep(150)
         rec_logic = RecurringLogic.info({
             'id': invocation_command['recurring-logic-id']})
@@ -631,16 +632,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': 'command="ls"',
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
 
     @tier2
     @skip_if_bug_open('bugzilla', 1451675)
@@ -666,16 +667,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': "command='useradd {0}'".format(username),
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            make_user_job[u'success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(make_user_job[u'success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': make_user_job[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
         # create a file as new user
         invocation_command = make_job_invocation({
             'job-template': 'Run Command - SSH Default',
@@ -684,16 +685,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'search-query': "name ~ {0}".format(self.client.hostname),
             'effective-user': '{0}'.format(username),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
         # check the file owner
         result = ssh.command(
             '''stat -c '%U' /home/{0}/{1}'''.format(username, filename),
@@ -726,16 +727,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'job-template': template_name,
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
 
     @tier3
     @upgrade
@@ -830,16 +831,16 @@ class RemoteExecutionTestCase(CLITestCase):
             'inputs': 'package={0} {1} {2}'.format(*packages),
             'search-query': "name ~ {0}".format(self.client.hostname),
         })
-        self.assertEqual(
-            invocation_command['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_command['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
         result = ssh.command(
             "rpm -q {0}".format(" ".join(packages)),
             hostname=self.client.ip_addr
@@ -874,16 +875,16 @@ class RemoteExecutionTestCase(CLITestCase):
                 'id': invocation_command[u'id'],
                 'host': self.client.hostname
             })
-            self.assertEqual(
-                invocation_command['status'],
-                u'queued',
-                'host output: {0}'.format(
+            try:
+                self.assertEqual(invocation_command['status'], u'queued')
+            except AssertionError:
+                result = 'host output: {0}'.format(
                     ' '.join(JobInvocation.get_output({
                         'id': invocation_command[u'id'],
                         'host': self.client.hostname})
+                        )
                     )
-                )
-            )
+                raise AssertionError(result)
         sleep(150)
         rec_logic = RecurringLogic.info({
             'id': invocation_command['recurring-logic-id']})
@@ -924,13 +925,13 @@ class RemoteExecutionTestCase(CLITestCase):
             sleep(30)
         invocation_info = JobInvocation.info({
             'id': invocation_command[u'id']})
-        self.assertEqual(
-            invocation_info['success'],
-            u'1',
-            'host output: {0}'.format(
+        try:
+            self.assertEqual(invocation_info['success'], u'1')
+        except AssertionError:
+            result = 'host output: {0}'.format(
                 ' '.join(JobInvocation.get_output({
                     'id': invocation_command[u'id'],
                     'host': self.client.hostname})
+                    )
                 )
-            )
-        )
+            raise AssertionError(result)
