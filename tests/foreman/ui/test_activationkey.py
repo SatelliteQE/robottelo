@@ -30,6 +30,7 @@ from robottelo.api.utils import (
 from robottelo.cli.factory import setup_org_for_a_custom_repo
 from robottelo.constants import (
     DEFAULT_CV,
+    DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
     DISTRO_RHEL6,
     DISTRO_RHEL7,
@@ -205,6 +206,93 @@ class ActivationKeyTestCase(UITestCase):
                         content_view=cv_name,
                     )
                     self.assertIsNotNone(self.activationkey.search(name))
+
+    @run_only_on('sat')
+    @tier2
+    @upgrade
+    def test_positive_access_non_admin_user(self):
+        """Access activation key that has specific name and assigned
+        environment by user that has filter configured for that specific
+        activation key
+
+        :id: 358a22d1-d576-475a-b90c-98e90a2ed1a9
+
+        :expectedresults: Only expected activation key can be accessed by new
+            non admin user
+
+        :BZ: 1463813
+
+        :CaseLevel: Integration
+        """
+        ak_name = gen_string('alpha')
+        non_searchable_ak_name = gen_string('alpha')
+        org = entities.Organization().create()
+        envs_list = ['STAGING', 'DEV', 'IT', 'UAT', 'PROD']
+        for name in envs_list:
+            entities.LifecycleEnvironment(name=name, organization=org).create()
+        env_name = random.choice(envs_list)
+        cv = entities.ContentView(organization=org).create()
+        cv.publish()
+        promote(
+            cv.read().version[0],
+            entities.LifecycleEnvironment(name=env_name).search()[0].id
+        )
+        # Create new role
+        role = entities.Role().create()
+        # Create filter with predefined activation keys search criteria
+        envs_condition = ' or '.join(['environment = ' + s for s in envs_list])
+        entities.Filter(
+            organization=[org],
+            permission=entities.Permission(
+                name='view_activation_keys').search(),
+            role=role,
+            search='name ~ {} and ({})'.format(ak_name, envs_condition)
+        ).create()
+
+        # Add permissions for Organization and Location
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Organization').search(),
+            role=role,
+        ).create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Location').search(),
+            role=role,
+        ).create()
+
+        # Create new user with a configured role
+        default_loc = entities.Location().search(
+            query={'search': 'name="{0}"'.format(DEFAULT_LOC)})[0]
+        user_login = gen_string('alpha')
+        user_password = gen_string('alpha')
+        entities.User(
+            role=[role],
+            admin=False,
+            login=user_login,
+            password=user_password,
+            organization=[org],
+            location=[default_loc],
+            default_organization=org,
+        ).create()
+
+        with Session(self) as session:
+            set_context(session, org=org.name)
+            for name in [ak_name, non_searchable_ak_name]:
+                make_activationkey(
+                    session,
+                    name=name,
+                    env=env_name,
+                    content_view=cv.name,
+                )
+                self.assertIsNotNone(self.activationkey.search(name))
+
+        with Session(self, user=user_login, password=user_password) as session:
+            set_context(session, org=org.name, loc=DEFAULT_LOC)
+            self.assertIsNotNone(self.activationkey.search(ak_name))
+            self.org.navigate_to_entity()
+            self.assertIsNone(
+                self.activationkey.search(non_searchable_ak_name))
 
     @run_only_on('sat')
     @tier2
