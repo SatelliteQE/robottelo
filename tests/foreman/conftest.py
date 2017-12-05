@@ -1,10 +1,12 @@
 # coding: utf-8
 """Configurations for py.test runner"""
 import datetime
+
 import pytest
+
+from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
 from robottelo.config import settings
 from robottelo.decorators import setting_is_set
-from robottelo.bz_helpers import get_deselect_bug_ids, group_by_key
 from robottelo.helpers import get_func_name
 
 
@@ -74,6 +76,11 @@ def pytest_namespace():
     }
 
 
+def _extract_setup_class_ids(item):
+    setup_class_method = getattr(item.parent.obj, 'setUpClass', None)
+    return getattr(setup_class_method, 'bugzilla_ids', [])
+
+
 def pytest_collection_modifyitems(items, config):
     """ called after collection has been performed, may filter or re-order
     the items in-place.
@@ -89,7 +96,7 @@ def pytest_collection_modifyitems(items, config):
         return items
 
     deselected_items = []
-    removal_ids = pytest.bugzilla.removal_ids
+    removal_ids = set(pytest.bugzilla.removal_ids)
     decorated_functions = group_by_key(pytest.bugzilla.decorated_functions)
 
     # log("Deselected tests with the following BZs %s" % removal_ids)
@@ -97,13 +104,11 @@ def pytest_collection_modifyitems(items, config):
 
     for item in items:
         name = get_func_name(item.function)
-        bug_ids = decorated_functions.get(name)
-        if bug_ids:
-            for bug_id in bug_ids:
-                if bug_id in removal_ids:
-                    deselected_items.append(item)
-                    log("Deselected test %s" % name)
-                    break
+        bug_ids = list(decorated_functions.get(name, []))
+        bug_ids.extend(_extract_setup_class_ids(item))
+        if any(bug_id in removal_ids for bug_id in bug_ids):
+            deselected_items.append(item)
+            log("Deselected test %s" % name)
 
     config.hook.pytest_deselected(items=deselected_items)
     items[:] = [item for item in items if item not in deselected_items]

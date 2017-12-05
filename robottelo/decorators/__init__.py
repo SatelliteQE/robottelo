@@ -1,21 +1,22 @@
 # -*- encoding: utf-8 -*-
 """Implements various decorators"""
 import logging
-import os
 from functools import partial, wraps
 
+import os
 import pytest
 import unittest2
+from robozilla.decorators import (  # noqa
+    bz_bug_is_open, rm_bug_is_open,  # noqa
+    skip_if_bug_open as robozilla_skip_if_bug_is_open,  # noqa
+    # noqa
+    # noqa
+    BugTypeError
+)
 
 from robottelo.config import settings
 from robottelo.constants import NOT_IMPLEMENTED
 from robottelo.host_info import get_host_sat_version
-from robozilla.decorators import (  # noqa
-    bz_bug_is_open, rm_bug_is_open,  # noqa
-    skip_if_bug_open, _get_bugzilla_bug, _get_redmine_bug_status_id,  # noqa
-    _redmine_closed_issue_statuses,  # noqa
-    BugTypeError
-)
 
 LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
@@ -284,7 +285,7 @@ def config_picker():
     return config
 
 
-class run_in_one_thread_if_bug_open(skip_if_bug_open, object):
+class run_in_one_thread_if_bug_open(robozilla_skip_if_bug_is_open, object):
     """A decorator that sets pytest marker and allows to select test that
     should be run sequentially only if bug is open.
     """
@@ -307,6 +308,9 @@ class run_in_one_thread_if_bug_open(skip_if_bug_open, object):
                 '"{0}" is not a recognized bug type. Did you mean '
                 '"bugzilla" or "redmine"?'.format(self.bug_type)
             )
+
+        if self.bug_type == 'bugzilla':
+            _add_bugzilla_id(func, self.bug_id)
 
         if (self.bug_type == 'bugzilla' and bz_bug_is_open(
                 self.bug_id,
@@ -336,8 +340,27 @@ bz_bug_is_open = partial(
     config_picker=config_picker
 )
 
-skip_if_bug_open = partial(
-    skip_if_bug_open,
-    sat_version_picker=get_sat_version,
-    config_picker=config_picker
-)
+
+def _add_bugzilla_id(func, bug_id):
+    """ Add buzzila id to a function so it can be introspected
+
+    :param func: function or method
+    :param bug_id: int bugzilla's id
+    """
+    bugzilla_ids = getattr(func, 'bugzilla_ids', [])
+    bugzilla_ids.append(str(bug_id))
+    func.bugzilla_ids = bugzilla_ids
+
+
+def skip_if_bug_open(bug_type, bug_id):
+    def decorator(func):
+        if bug_type == 'bugzilla':
+            _add_bugzilla_id(func, bug_id)
+        return robozilla_skip_if_bug_is_open(
+            bug_type,
+            bug_id,
+            sat_version_picker=get_sat_version,
+            config_picker=config_picker
+        )(func)
+
+    return decorator
