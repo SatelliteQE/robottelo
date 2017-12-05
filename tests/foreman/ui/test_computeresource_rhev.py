@@ -14,13 +14,17 @@
 """
 
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import client, entities
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
     COMPUTE_PROFILE_LARGE,
-    FOREMAN_PROVIDERS
-
+    COMPUTE_PROFILE_SMALL,
+    DEFAULT_CV,
+    ENVIRONMENT,
+    FOREMAN_PROVIDERS,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
@@ -1131,3 +1135,168 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :Caseautomation: notautomated
         """
+
+    @upgrade
+    @run_only_on('sat')
+    @tier3
+    def test_positive_check_provisioned_rhev_os(self):
+        """Provision a host on rhev compute resource and check the hypervisor
+        provisioned VM os type.
+
+        :id: 97f66fca-50b4-42bc-b187-3b846f03ab76
+
+        :steps:
+
+            1. Prepare an RHEV  compute resource.
+            2. Create an image.
+            3. Select the custom compute profile" with custom disk size, cpu
+               count and memory.
+            4. Go to "Hosts --> New host".
+            5. Provision the host using the compute profile.
+            6. Check RHEV hypervisor VM OS type.
+
+        :expectedresults: Hypervisor VM OS type must be the same as the one
+            used in provisioning.
+
+        :CaseAutomation: Automated
+
+        :BZ: 1315281
+
+        :CaseLevel: System
+        """
+        host_name = gen_string('alpha', 9).lower()
+        cr_name = gen_string('alpha', 9)
+        cr_resource = '{0} (RHEV)'.format(cr_name)
+        image_name = gen_string('alpha', 5)
+        root_pwd = gen_string('alpha', 15)
+        # Get the operating system
+        os = entities.OperatingSystem().search(query=dict(
+            search='name="RedHat" AND (major="{0}" OR major="{1}")'.format(
+                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+        ))[0].read()
+        # Get the image arch
+        arch = entities.Architecture(
+            name=self.rhev_img_arch).search()[0].read()
+        # Get the default org content view
+        content_view = entities.ContentView(
+            name=DEFAULT_CV, organization=self.org).search()[0].read()
+        # Get the org Library lifecycle environment
+        lce = entities.LifecycleEnvironment(
+            name=ENVIRONMENT, organization=self.org).search()[0].read()
+        # Create a new org domain
+        domain = entities.Domain(
+            name='{0}.{1}'.format(
+                gen_string('alpha', length=10),
+                gen_string('alpha', length=3)
+            ).lower(),
+            location=[self.loc],
+            organization=[self.org],
+        ).create()
+        # Create a new Hostgroup
+        host_group = entities.HostGroup(
+            architecture=arch,
+            operatingsystem=os,
+            domain=domain,
+            lifecycle_environment=lce,
+            content_view=content_view,
+            root_pass=gen_string('alphanumeric'),
+            organization=[self.org],
+            location=[self.loc],
+        ).create()
+        with Session(self) as session:
+            parameter_list = [
+                ['URL', self.rhev_url, 'field'],
+                ['Username', self.rhev_username, 'field'],
+                ['Password', self.rhev_password, 'field'],
+                ['Datacenter', self.rhev_datacenter, 'special select'],
+            ]
+            make_resource(
+                session,
+                name=cr_name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list,
+                orgs=[self.org_name],
+                org_select=True,
+                locations=[self.loc_name],
+                loc_select=True
+            )
+            parameter_list_img = [
+                ['Name', image_name],
+                ['Operatingsystem', os.title],
+                ['Architecture', arch.name],
+                ['Username', self.rhev_img_user],
+                ['Password', self.rhev_img_pass],
+                ['uuid', self.rhev_img_name],
+            ]
+            self.compute_resource.add_image(cr_name, parameter_list_img)
+            self.assertIn(
+                image_name,
+                self.compute_resource.list_images(cr_name)
+            )
+            self.compute_resource.set_profile_values(
+                cr_name, COMPUTE_PROFILE_SMALL,
+                cluster=self.rhev_datacenter,
+                cores=1,
+                memory=1024,
+                network_interfaces=[
+                    dict(
+                        name='nic1',
+                        network=settings.vlan_networking.bridge,
+                    ),
+                ],
+                storage=[
+                    dict(
+                        size='10',
+                        storage_domain=self.rhev_storage_domain,
+                        bootable=True,
+                        preallocate_disk=True,
+                    ),
+                ]
+            )
+            host_parameters_list = [
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', host_group.name],
+                    ['Host', 'Deploy on', cr_resource],
+                    ['Host', 'Compute profile', COMPUTE_PROFILE_SMALL],
+                    ['Operating System', 'Operating System', os.title],
+                    ['Operating System', 'Root password', root_pwd],
+                ]
+            make_host(
+                session,
+                name=host_name,
+                org=self.org_name,
+                loc=self.loc_name,
+                parameters_list=host_parameters_list,
+                provisioning_method='image',
+            )
+            vm_host_name = '{0}.{1}'.format(
+                host_name.lower(), domain.name)
+            # the provisioning take some time to finish, when done will be
+            # redirected to the created host
+            # wait until redirected to host page
+            self.assertIsNotNone(
+                session.hosts.wait_until_element(
+                    locators["host.host_page_title"] % vm_host_name,
+                    timeout=60
+                )
+            )
+            # Query RHEV hypervisor for vm description
+            vm_host_data = entities.Host().search_json(
+                query=dict(search='name="{0}"'.format(vm_host_name))
+            )['results'][0]
+            # Using documented RHEV API access
+            response = client.get(
+                '{0}/vms/{1}'.format(self.rhev_url, vm_host_data['uuid']),
+                verify=False,
+                auth=(self.rhev_username, self.rhev_password),
+                headers={'Accept': 'application/json'}
+            )
+            self.assertTrue(response.status_code, 200)
+            # The VM os type looks like "rhev_<os_major>x<arch_bits>"
+            # eg: for RHEL 7 with arch x86_64 the os type key looks like:
+            # "rhel_7x64"
+            self.assertEqual(
+                response.json()['os']['type'],
+                'rhel_{0}x{1}'.format(os.major, arch.name.split('_')[-1])
+            )

@@ -56,6 +56,7 @@ LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
 
 COMPUTE_PROFILE_LARGE = '3-Large'
+COMPUTE_PROFILE_SMALL = '1-Small'
 
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',

@@ -63,6 +63,7 @@ class ResourceProfileFormBase(object):
             pass
         else:
             self.page.assign_value(target, value)
+        self.page.wait_for_ajax()
 
     def set_value(self, name, value):
         """Set the value of the corresponding field in UI"""
@@ -149,6 +150,9 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
     template_locator = locators["resource.compute_profile.rhev_template"]
     cores_locator = locators["resource.compute_profile.rhev_cores"]
     memory_locator = locators["resource.compute_profile.rhev_memory"]
+    memory_locator_hidden = locators[
+        "resource.compute_profile.rhev_memory_hidden"]
+
     group_fields_locators = dict(
         network_interfaces=dict(
             _add_node=locators[
@@ -191,6 +195,17 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
         if template is not None:
             self.set_value(template_key, template)
             del kwargs[template_key]
+        memory = kwargs.get('memory')
+        if memory is not None:
+            # to make the memory value take effect we have to set it's hidden
+            # input value
+            memory_hidden_input = self.page.wait_until_element_exists(
+                self.memory_locator_hidden)
+            # memory must be in bytes, 1 MB = 1024*1024 = 1048576 bytes
+            self.page.browser.execute_script(
+                'arguments[0].value={0};'.format(memory*1048576),
+                memory_hidden_input,
+            )
         ResourceProfileFormBase.set_values(self, **kwargs)
 
 

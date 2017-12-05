@@ -456,6 +456,11 @@ locators = LocatorDict({
         By.XPATH,
         "//div/span/input[@id='compute_attribute_vm_attrs_memory']"
     ),
+    "resource.compute_profile.rhev_memory_hidden": (
+        By.XPATH,
+        ("//input[@id='compute_attribute_vm_attrs_memory']/../parent::div"
+         "//input[@class='real-hidden-value']")
+    ),
     "resource.compute_profile.interface_add_node": (
         By.XPATH,
         ("//div/fieldset[@id='network_interfaces']"
@@ -763,6 +768,7 @@ locators = LocatorDict({
 
     # Default tab (Host)
     "host.page_title": (By.XPATH, "//h1[text()='Hosts']"),
+    "host.host_page_title": (By.XPATH, "//h1[contains(., '%s')]"),
     "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new') and "
                            "contains(@class, 'btn')]"),
     "host.clone": (
