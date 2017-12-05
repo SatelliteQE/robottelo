@@ -153,6 +153,8 @@ class SubscriptionTestCase(CLITestCase):
             contained in a manifest
 
         :CaseLevel: Integration
+
+        :CaseImportance: Critical
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -266,7 +268,7 @@ class SubscriptionTestCase(CLITestCase):
         :expectedresults: activation key and content hosts subscriptions
             restored
 
-        :CaseImportance: System
+        :CaseImportance: Critical
         """
         lce = make_lifecycle_environment({'organization-id': self.org['id']})
         activation_key = make_activation_key({
@@ -428,7 +430,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :BZ: 1296978
 
-        :CaseImportance: System
+        :CaseImportance: Critical
         """
         lce = make_lifecycle_environment({'organization-id': self.org['id']})
         activation_key = make_activation_key({
@@ -599,7 +601,7 @@ class SubscriptionTestCase(CLITestCase):
 
         :BZ: 1296978
 
-        :CaseImportance: System
+        :CaseImportance: Critical
         """
         # upload the organization default manifest
         self._upload_manifest(self.org['id'])

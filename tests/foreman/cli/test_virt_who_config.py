@@ -10,7 +10,7 @@
 
 :CaseImportance: High
 
-:CaseAutomation: No
+:CaseAutomation: notautomated
 
 :Upstream: No
 """
@@ -33,6 +33,7 @@ class VirtWhoConfigTestCase(CLITestCase):
         :expectedresults:
             Virt-who is correctly configured, and sends reports to satellite.
 
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -49,6 +50,8 @@ class VirtWhoConfigTestCase(CLITestCase):
 
         :expectedresults:
             Virt-who is correctly configured, and sends reports to satellite.
+
+        :CaseAutomation: notautomated
         """
 
     @run_only_on('sat')
@@ -71,4 +74,6 @@ class VirtWhoConfigTestCase(CLITestCase):
 
         :expectedresults:
             Users created by virt-who config plugin is not able to access CLI
+
+        :CaseAutomation: notautomated
         """
