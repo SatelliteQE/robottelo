@@ -371,7 +371,7 @@ class ContentHostTestCase(UITestCase):
             self.assertEqual(
                 result['Registered By'], self.activation_key.name)
 
-    @skip_if_bug_open('bugzilla', 1377676)
+    @skip_if_bug_open('bugzilla', 1351464)
     @skip_if_bug_open('bugzilla', 1387892)
     @tier3
     def test_positive_provisioning_host_link(self):
