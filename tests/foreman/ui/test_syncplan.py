@@ -925,7 +925,7 @@ class SyncPlanTestCase(UITestCase):
             )
 
     @skip_if_bug_open('bugzilla', '1396647')
-    @skip_if_bug_open('bugzilla', '1498793')
+    @skip_if_bug_open('bugzilla', '1460146')
     @tier3
     @upgrade
     def test_positive_synchronize_custom_product_weekly_recurrence(self):
