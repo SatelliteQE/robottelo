@@ -1988,7 +1988,7 @@ class HostParameterTestCase(CLITestCase):
 
         :BZ: 1296662
 
-        :CaseImportance: System
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha').lower()
         param_value = gen_string('alphanumeric')
@@ -2047,7 +2047,7 @@ class HostParameterTestCase(CLITestCase):
 
         :BZ: 1296662
 
-        :CaseImportance: System
+        :CaseImportance: Critical
         """
         param_name = gen_string('alpha').lower()
         param_value = gen_string('alphanumeric')
