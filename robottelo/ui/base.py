@@ -366,7 +366,8 @@ class Base(object):
             )
             return None
 
-    def wait_until_element(self, locator, timeout=12, poll_frequency=0.5):
+    def wait_until_element(
+            self, locator, timeout=12, poll_frequency=0.5, wait_for_ajax=True):
         """Wrapper around Selenium's WebDriver that allows you to pause your
         test until an element in the web page is present and visible.
 
@@ -378,7 +379,8 @@ class Base(object):
                 expected_conditions.visibility_of_element_located(locator),
                 message=u'element %s is not visible' % locator[1]
             )
-            self.wait_for_ajax(poll_frequency=poll_frequency)
+            if wait_for_ajax:
+                self.wait_for_ajax(poll_frequency=poll_frequency)
             return element
         except TimeoutException as err:
             self.logger.debug(
@@ -467,7 +469,7 @@ class Base(object):
 
         return not (jquery_active or angular_active)
 
-    def wait_for_ajax(self, timeout=30, poll_frequency=0.5):
+    def wait_for_ajax(self, timeout=60, poll_frequency=0.5):
         """Waits for an ajax call to complete until timeout."""
         WebDriverWait(
             self.browser, timeout, poll_frequency
@@ -496,7 +498,7 @@ class Base(object):
             element,
         )
 
-    def input(self, target, newtext):
+    def input(self, target, newtext, wait_for_ajax=True):
         """Function to replace text from textbox using a common locator or
         WebElement
 
@@ -504,12 +506,15 @@ class Base(object):
             describes the element or element itself.
         """
         if isinstance(target, (tuple, Locator)):
-            txt_field = self.wait_until_element(target)
+            if wait_for_ajax:
+                self.wait_for_ajax()
+            txt_field = self.wait_until_element(target, wait_for_ajax=False)
         else:
             txt_field = target
         txt_field.clear()
         txt_field.send_keys(newtext)
-        self.wait_for_ajax()
+        if wait_for_ajax:
+            self.wait_for_ajax()
 
     def get_parameter(self, param_name):
         """Function to get parameter value for different entities like OS and
@@ -644,7 +649,7 @@ class Base(object):
         """
         element_type = None
         if isinstance(target, (tuple, Locator)):
-            element = self.wait_until_element(target)
+            element = self.wait_until_element(target, wait_for_ajax=False)
         else:
             element = target
         if element is not None:
@@ -661,7 +666,7 @@ class Base(object):
         return element_type
 
     def click(self, target, wait_for_ajax=True,
-              ajax_timeout=30, waiter_timeout=12, scroll=True):
+              ajax_timeout=60, waiter_timeout=12, scroll=True):
         """Locate the element described by the ``target`` and click on it.
 
         :param tuple || WebElement target: Could be either locator that
@@ -679,7 +684,10 @@ class Base(object):
 
         """
         if isinstance(target, (tuple, Locator)):
-            element = self.wait_until_element(target, timeout=waiter_timeout)
+            if wait_for_ajax:
+                self.wait_for_ajax(ajax_timeout)
+            element = self.wait_until_element(
+                target, timeout=waiter_timeout, wait_for_ajax=False)
         else:
             element = target
         if element is None:
@@ -699,7 +707,7 @@ class Base(object):
         if wait_for_ajax:
             self.wait_for_ajax(ajax_timeout)
 
-    def select(self, target, list_value, wait_for_ajax=True, timeout=30,
+    def select(self, target, list_value, wait_for_ajax=True, timeout=60,
                scroll=True, select_by='visible_text'):
         """Select the element. Current method supports both classical <select>
         tags and newer jquery-select elements
@@ -720,7 +728,9 @@ class Base(object):
         # Check whether our select list element has <select> tag
         if self.element_type(target) == 'select':
             if isinstance(target, (tuple, Locator)):
-                element = self.wait_until_element(target)
+                if wait_for_ajax:
+                    self.wait_for_ajax(timeout=timeout)
+                element = self.wait_until_element(target, wait_for_ajax=False)
             else:
                 element = target
             if scroll:
@@ -728,7 +738,7 @@ class Base(object):
             select_element = Select(element)
             getattr(select_element, 'select_by_%s' % select_by)(list_value)
             if wait_for_ajax:
-                self.wait_for_ajax(timeout)
+                self.wait_for_ajax(timeout=timeout)
         # If no - treat it like jquery select list
         else:
             self.click(
