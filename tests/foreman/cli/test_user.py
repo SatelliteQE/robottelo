@@ -1147,3 +1147,154 @@ class UserWithCleanUpTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         self.assert_user_roles(self.all_roles)
+
+
+class SshKeyInUserTestCase(CLITestCase):
+    """Implements the SSH Key in User Tests"""
+
+    @stubbed()
+    @tier1
+    def test_positive_create_ssh_key(self):
+        """SSH Key can be added to new User
+
+        :id: 57304fca-8e0d-454a-be31-34423345c8b2
+
+        :expectedresults: SSH key should be added to new user
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_add_ssh_key_from_file(self):
+        """SSH Key can be added to User from ssh pub file
+
+        :id: 8b43dbf3-7ead-4d00-97ce-cec24f29ce44
+
+        :expectedresults: SSH key should be added to user from ssh pub file
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_create_ssh_key_super_admin(self):
+        """SSH Key can be added to Super Admin user
+
+        :id: b865d0ae-6317-475c-a6da-600615b71eeb
+
+        :expectedresults: SSH Key should be added to Super Admin user
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_negative_create_ssh_key(self):
+        """Invalid ssh key can not be added in User Template
+
+        :id: 05012e9b-f5cf-4cd6-ba4d-269be7b03f9b
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Attempt to add invalid string as SSH Key to above user
+                e.g blabla
+
+        :expectedresults:
+
+            1. Invalid SSH key should not be added in user
+            2. Satellite returns 'Fingerprint could not be generated' error
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_negative_create_invalid_length_ssh_key(self):
+        """Attempt to add SSH key that has invalid length
+
+        :id: 1a101ba8-1456-423f-955a-8bf4e3b2147d
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Attempt to add invalid length of SSH Key to above user
+
+        :expectedresults: Satellite should raise 'Length could not be
+            calculated' error
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_create_multiple_ssh_key_types(self):
+        """Multiple types of ssh keys can be added to user
+
+        :id: 7afc4ad6-d3f0-4155-9de0-b24c417ca54a
+
+        :steps:
+
+            1. Create user with all the details
+            2. Add multiple types of supported ssh keys, type includes
+                rsa, dsa, ed25519, ecdsa
+
+        :expectedresults: Multiple types of supported ssh keys can be added to
+            user
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_delete_ssh_key(self):
+        """Satellite Admin can delete ssh key from user
+
+        :id: 75ebdba2-0f6c-4862-8546-22a37fc71062
+
+        :steps:
+
+            1. Create new user with all the details
+            2. Add SSH Key to above user
+            3. Delete the ssh-key from user
+
+        :expectedresults: SSH key should be deleted from admin user
+
+        :CaseImportance: Critical
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_list_users_ssh_key(self):
+        """Satellite lists users ssh keys
+
+        :id: 3fb375ef-c07e-4363-874c-94440858bbc2
+
+        :steps:
+
+            1. Create user with all the details
+            2. Add SSH key in above user
+            3. List all the ssh keys of above user
+
+        :expectedresults: Satellite should list all the SSH keys of user
+
+        :CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_info_users_ssh_key(self):
+        """Satellite returns info of user ssh key
+
+        :id: 0992fce7-0e79-4b7b-b8b7-d9b2818cc073
+
+        :steps:
+
+            1. Create user with all the details
+            2. Add SSH key in above user
+            3. Info the above ssh key in user
+
+        :expectedresults: Satellite should return information of SSH keys of
+            user
+
+        :CaseImportance: Critical
+        """
