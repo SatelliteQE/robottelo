@@ -1038,7 +1038,7 @@ class ContentViewTestCase(UITestCase):
             self.assertEqual(result['end_date'], end_date)
 
     @tier2
-    def test_positive_add_all_security_errata_date_range_filter(self):
+    def test_positive_add_all_security_errata_by_date_range_filter(self):
         """Create erratum date range filter to include only security errata and
         publish new content view version
 
@@ -1095,7 +1095,7 @@ class ContentViewTestCase(UITestCase):
             )
 
     @tier2
-    def test_positive_add_all_security_errata_id_filter(self):
+    def test_positive_add_all_security_errata_by_id_filter(self):
         """Create erratum filter to include only security errata and publish
         new content view version
 

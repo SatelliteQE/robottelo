@@ -483,7 +483,17 @@ class ContentViews(Base):
     def add_remove_errata_to_filter(self, cv_name, filter_name,
                                     errata_ids=None, select_all=None,
                                     is_add=True):
-        """Add/Remove errata to/from selected filter for inclusion/exclusion"""
+        """Add/Remove errata to/from selected filter for inclusion/exclusion
+
+        :param str cv_name: Name of content view
+        :param str filter_name: Name of content view filter
+        :param list optional errata_ids: list of specific errata ids to add or
+            remove
+        :param bool optional select_all: whether to check off 'Select All'
+            checkbox to select all available errata
+        :param bool is_add: `True` for adding and `False` for removing errata
+            to/from filter
+        """
         self.go_to_filter_page(cv_name, filter_name)
         if is_add:
             self.click(tab_locators['contentviews.tab_add'])
