@@ -23,7 +23,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.api.utils import publish_puppet_module
-from robottelo.constants import CUSTOM_PUPPET_REPO
+from robottelo.constants import CUSTOM_PUPPET_REPO, ENVIRONMENT
 from robottelo.datafactory import (
     filtered_datapoint,
     generate_strings_list,
@@ -170,7 +170,19 @@ class SmartVariablesTestCase(UITestCase):
                 cls.puppet_modules[0]['name'], cls.env.name)
         })
 
-        cls.host = entities.Host(organization=cls.session_org).create()
+        lce = entities.LifecycleEnvironment().search(
+            query={
+                'search': 'organization_id="{0}" and name="{1}"'
+                .format(cls.session_org.id, ENVIRONMENT)
+            }
+        )[0]
+        cls.host = entities.Host(
+            organization=cls.session_org,
+            content_facet_attributes={
+                'content_view_id': cv.id,
+                'lifecycle_environment_id': lce.id,
+            }
+        ).create()
         cls.host.environment = cls.env
         cls.host.update(['environment'])
         cls.host.add_puppetclass(data={'puppetclass_id': cls.puppet_class.id})
