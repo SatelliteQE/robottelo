@@ -481,16 +481,31 @@ class ContentViews(Base):
             self.click(locators['contentviews.remove_pkg_group'])
 
     def add_remove_errata_to_filter(self, cv_name, filter_name,
-                                    errata_ids, is_add=True):
-        """Add/Remove errata to/from selected filter for inclusion/exclusion"""
+                                    errata_ids=None, select_all=None,
+                                    is_add=True):
+        """Add/Remove errata to/from selected filter for inclusion/exclusion
+
+        :param str cv_name: Name of content view
+        :param str filter_name: Name of content view filter
+        :param list optional errata_ids: list of specific errata ids to add or
+            remove
+        :param bool optional select_all: whether to check off 'Select All'
+            checkbox to select all available errata
+        :param bool is_add: `True` for adding and `False` for removing errata
+            to/from filter
+        """
         self.go_to_filter_page(cv_name, filter_name)
         if is_add:
             self.click(tab_locators['contentviews.tab_add'])
         else:
             self.click(tab_locators['contentviews.tab_remove'])
-        for errata_id in errata_ids:
-            self.click(
-                locators['contentviews.select_errata_checkbox'] % errata_id)
+        if errata_ids is not None:
+            for errata_id in errata_ids:
+                self.click(
+                    locators.contentviews.select_errata_checkbox % errata_id)
+        if select_all is not None:
+            self.assign_value(
+                common_locators.table_select_all_checkbox, select_all)
         if is_add:
             self.click(locators['contentviews.add_errata'])
         else:
@@ -539,6 +554,40 @@ class ContentViews(Base):
         if end_date is not None:
             self.set_calendar_date_value('end_date', end_date)
         self.click(locators.contentviews.save_erratum)
+
+    def edit_erratum_id_filter(
+            self, cv_name, filter_name, errata_types=None, open_filter=True):
+        """Edit Erratum by ID Filter"""
+        allowed_errata_types = FILTER_ERRATA_TYPE.values()
+        if open_filter:
+            self.go_to_filter_page(cv_name, filter_name)
+            self.click(tab_locators.contentviews.tab_add)
+        if errata_types is not None:
+            if not errata_types:
+                raise UIError(
+                    'errata types is empty, minimum required: one errata type'
+                )
+            if not set(errata_types).issubset(allowed_errata_types):
+                raise UIError('some types in errata_types are not allowed')
+            # because of the behaviour of the UI to disable the last checked
+            # element.
+            # will check all selected errata types first, after then uncheck
+            # the not selected ones.
+            # 1 - check first the types that are in the errata_types
+            for errata_type in errata_types:
+                self.assign_value(
+                    locators.contentviews.erratum_type_checkbox % errata_type,
+                    True
+                )
+            # we are sure now that any check box not in the errata_types
+            # is enabled and clickable
+            # 2 - uncheck the types that are not in the selection
+            for errata_type in set(allowed_errata_types).difference(
+                    errata_types):
+                self.assign_value(
+                    locators.contentviews.erratum_type_checkbox % errata_type,
+                    False
+                )
 
     def fetch_erratum_date_range_filter_values(self, cv_name, filter_name):
         """Fetch Content View Erratum Date Range Filter values"""

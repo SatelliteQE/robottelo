@@ -139,6 +139,11 @@ common_locators = LocatorDict({
         "//table//td/parent::tr/td[count(//thead//tr/th[contains(., '%s')]"
         "/preceding-sibling::*)+1]"
     ),
+    "table_select_all_checkbox": (
+        By.XPATH,
+        "//table[contains(@class, 'table')]"
+        "//input[@type='checkbox'and @ng-model='selection.allSelected']"
+    ),
 
     "application_logo": (
         By.XPATH, "//img[contains(@alt, 'Header logo')]"),
