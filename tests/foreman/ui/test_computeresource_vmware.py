@@ -31,6 +31,7 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import UITestCase
+from robottelo.ui.computeresource import get_compute_resource_profile
 from robottelo.ui.factory import make_hostgroup, make_resource
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
@@ -535,6 +536,53 @@ class VmwareComputeResourceTestCase(UITestCase):
                 ]
                 )
             self.assertIsNotNone(self.compute_resource.search(name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_select_vmware_custom_profile_guest_os_rhel7(self):
+        """Select custom default (3-Large) compute profile guest OS RHEL7.
+
+        :id: 24f7bb5f-2aaf-48cb-9a56-d2d0713dfe3d
+
+        :setup: vmware hostname and credentials.
+
+        :steps:
+
+            1. Create a compute resource of type vmware.
+            2. Provide valid hostname, username and password.
+            3. Select the created vmware CR.
+            4. Click Compute Profile tab.
+            5. Select 3-Large profile
+            6. Set Guest OS field to RHEL7 OS.
+
+        :expectedresults: Guest OS RHEL7 is selected successfully.
+
+        :BZ: 1315277
+
+        :Caseautomation: Automated
+
+        :CaseLevel: Integration
+        """
+        rc_name = gen_string('alpha')
+        guest_os_name = 'Red Hat Enterprise Linux 7 (64-bit)'
+        parameter_list = [
+            ['VCenter/Server', self.vmware_url, 'field'],
+            ['Username', self.vmware_username, 'field'],
+            ['Password', self.vmware_password, 'field'],
+            ['Datacenter', self.vmware_datacenter, 'special select'],
+        ]
+        with Session(self) as session:
+            make_resource(
+                session,
+                name=rc_name,
+                provider_type=FOREMAN_PROVIDERS['vmware'],
+                parameter_list=parameter_list
+            )
+            resource_type, _ = session.compute_resource.select_profile(
+                rc_name, COMPUTE_PROFILE_LARGE)
+            resource_profile_form = get_compute_resource_profile(
+                session.compute_resource, resource_type)
+            resource_profile_form.set_value('guest_os', guest_os_name)
 
     @run_only_on('sat')
     @tier2
