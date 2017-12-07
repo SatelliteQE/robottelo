@@ -104,8 +104,9 @@ class OpenScapTestCase(CLITestCase):
             remote_file="/tmp/{0}".format(cls.file_name)
         )
         cls.title = 'rhel-6-content'
-        result = Scapcontent.info({'title': cls.title})
-        if not result['title'] in cls.title:
+        result = [scap['title'] for scap in Scapcontent.list() if
+                  scap.get('title') in cls.title]
+        if not result:
             make_scapcontent({
                 'title': cls.title,
                 'scap-file': '/tmp/{0}'.format(cls.file_name)
@@ -921,6 +922,7 @@ class OpenScapTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_update_scap_policy_with_content(self):
         """Update the scap policy by updating the scap content
         associated with the policy
@@ -1011,6 +1013,7 @@ class OpenScapTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_update_scap_policy_with_tailoringfiles_name(self):
         """Update the scap policy by updating the scap tailoring file name
         associated with the policy
@@ -1055,6 +1058,7 @@ class OpenScapTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_scap_policy_with_id(self):
         """Delete the scap policy with id as parameter
 
