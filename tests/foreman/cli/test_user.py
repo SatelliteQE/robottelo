@@ -627,12 +627,10 @@ class UserTestCase(CLITestCase):
                     u'search': u'mail = {0}'.format(mail),
                 })
                 # make sure user is in list result
-                self.assertIn({
-                    'email': user['email'],
-                    'id': user['id'],
-                    'login': user['login'],
-                    'name': user['name'],
-                }, result)
+                self.assertEqual(
+                    {user['email'], user['id'], user['login']},
+                    {result[0]['email'], result[0]['id'], result[0]['login']}
+                )
 
     @stubbed()
     @tier3
