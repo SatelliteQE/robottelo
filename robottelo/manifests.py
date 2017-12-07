@@ -42,6 +42,9 @@ class ManifestCloner(object):
         candlepin server in order to accept uploading the cloned
         manifest.
 
+        :param org_environment_access: Whether to modify consumer content
+            access mode to org_environment (Golden ticket enabled manifest).
+
         :return: A file-like object (``BytesIO`` on Python 3 and
             ``StringIO`` on Python 2) with the contents of the cloned
             manifest.
@@ -158,6 +161,9 @@ class Manifest(object):
 
 def clone(org_environment_access=False):
     """Clone the cached manifest and return a ``Manifest`` object.
+
+    :param org_environment_access: Whether to modify consumer content
+        access mode to org_environment (Golden ticket enabled manifest).
 
     Is hightly recommended to use this with the ``with`` statement to make that
     the content of the manifest (file-like object) is closed properly::

@@ -16,10 +16,19 @@
 from nailgun import entities
 
 from robottelo import manifests
+from robottelo.api.utils import call_entity_method_with_timeout
+from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     ENVIRONMENT,
+    REAL_RHEL7_0_0_PACKAGE,
+    REAL_RHEL7_0_1_PACKAGE,
+    REAL_RHEL7_0_ERRATA_ID,
+    REPOS,
+    REPOSET,
+    PRDS,
 )
+from robottelo.cli.factory import setup_cdn_and_custom_repositories
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -98,6 +107,40 @@ class ContentAccessTestCase(UITestCase):
             cls.session_org.id,
             manifests.clone(org_environment_access=True)
         )
+        # Create repositories
+        cls.repos = [
+            # Red Hat Enterprise Linux 7
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhel7'],
+                'repository': REPOS['rhel7']['name'],
+                'repository-id': REPOS['rhel7']['id'],
+                'releasever': REPOS['rhel7']['releasever'],
+                'arch': REPOS['rhel7']['arch'],
+                'cdn': True,
+            },
+            # Red Hat Satellite Tools
+            {
+                'product': PRDS['rhel'],
+                'repository-set': REPOSET['rhst7'],
+                'repository': REPOS['rhst7']['name'],
+                'repository-id': REPOS['rhst7']['id'],
+                'url': settings.sattools_repo['rhel7'],
+                'cdn': bool(
+                    settings.cdn or not settings.sattools_repo['rhel7']),
+            },
+        ]
+        cls.repos_info = setup_cdn_and_custom_repositories(
+            cls.session_org.id, cls.repos)
+        # Create a content view
+        content_view = entities.ContentView(
+            organization=cls.session_org,
+            repository=[entities.Repository(id=repo_info['id'])
+                        for repo_info in cls.repos_info],
+        ).create()
+        # Publish the content view
+        call_entity_method_with_timeout(content_view.publish, timeout=1500)
+        cls.content_view = content_view.read()
         # create an activation only for testing org environment info message
         # displayed tests
         cls.activation_key = entities.ActivationKey(
@@ -105,7 +148,6 @@ class ContentAccessTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    @stubbed()
     def test_positive_list_installable_updates(self):
         """Access content hosts and assert all updates are listed on
         packages tab updates and not only those for attached subscriptions.
@@ -122,10 +164,33 @@ class ContentAccessTestCase(UITestCase):
             1. All updates are available independent of subscription because
                Golden Ticket is enabled.
         """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.create()
+            vm.install_katello_ca()
+            vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
+            self.assertTrue(vm.subscribed)
+            vm.patch_os_release_version(distro=DISTRO_RHEL7)
+            # trigger subscription-manager repos to auto enable repositories
+            result = vm.run('subscription-manager repos')
+            self.assertEqual(result.return_code, 0)
+            # at this stage all repositories should be enabled automatically
+            vm.install_katello_agent()
+            # install a the packages that has updates with errata
+            result = vm.run(
+                'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            # check that package errata is applicable
+            with Session(self) as session:
+                set_context(session, org=self.session_org)
+                self.assertIsNotNone(
+                    session.contenthost.errata_search(
+                        vm.hostname, REAL_RHEL7_0_ERRATA_ID)
+                )
 
     @run_only_on('sat')
     @tier2
-    @stubbed()
     def test_positive_list_available_packages(self):
         """Access content hosts and assert all packages are listed on
         installable updates and not only those for attached subscriptions.
@@ -142,6 +207,33 @@ class ContentAccessTestCase(UITestCase):
             1. All packages are available independent
                of subscription because Golden Ticket is enabled.
         """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.create()
+            vm.install_katello_ca()
+            vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
+            self.assertTrue(vm.subscribed)
+            vm.patch_os_release_version(distro=DISTRO_RHEL7)
+            # trigger subscription-manager repos to auto enable repositories
+            result = vm.run('subscription-manager repos')
+            self.assertEqual(result.return_code, 0)
+            # at this stage all repositories should be enabled automatically
+            vm.install_katello_agent()
+            # install a the packages that has updates with errata
+            result = vm.run(
+                'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            # check that package errata is applicable
+            with Session(self) as session:
+                set_context(session, org=self.session_org)
+                self.assertIsNotNone(
+                    session.contenthost.package_search(
+                        vm.hostname,
+                        REAL_RHEL7_0_1_PACKAGE,
+                        package_tab='applicable'
+                    )
+                )
 
     @run_only_on('sat')
     @tier1
@@ -215,7 +307,7 @@ class ContentAccessTestCase(UITestCase):
         with Session(self) as session:
             set_context(session, org=self.session_org.name)
             session.activationkey.search_and_click(self.activation_key.name)
-            session.activationkey.click(tab_locators['ak.details'])
+            session.activationkey.click(tab_locators['ak.subscriptions'])
             info_element = session.subscriptions.wait_until_element(
                 common_locators['org_environment_info'])
             self.assertIsNotNone(info_element)
@@ -282,16 +374,16 @@ class ContentAccessTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
+        org = entities.Organization().create()
+        self.upload_manifest(org.id, manifests.clone())
+        activation_key = entities.ActivationKey(organization=org).create()
         with Session(self) as session:
-            set_context(session, org=self.session_org.name)
-            session.activationkey.search_and_click(self.activation_key.name)
+            set_context(session, org=org.name, force_context=True)
+            session.activationkey.search_and_click(activation_key.name)
             session.activationkey.click(tab_locators['ak.subscriptions'])
-            info_element = session.subscriptions.wait_until_element(
-                common_locators['org_environment_info'])
-            self.assertIsNotNone(info_element)
-            self.assertIn(
-                org_environment_full_message,
-                info_element.text
+            self.assertIsNone(
+                session.subscriptions.wait_until_element(
+                    common_locators['org_environment_info'])
             )
 
     @run_only_on('sat')
