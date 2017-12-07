@@ -579,14 +579,12 @@ class VirtualMachine(object):
                 'Unable to register client to Access Insights through '
                 'Satellite')
 
-    def patch_os_release_version(self, distro=None):
+    def patch_os_release_version(self, distro=DISTRO_RHEL7):
         """Patch VM OS release version.
 
         This is needed by yum package manager to generate the right RH
         repositories urls.
         """
-        if distro is None:
-            distro = DISTRO_RHEL7
         if distro == DISTRO_RHEL7:
             rh_product_os_releasever = REPOS['rhel7']['releasever']
         else:
