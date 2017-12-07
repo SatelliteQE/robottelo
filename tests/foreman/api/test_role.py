@@ -21,6 +21,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 from nailgun import entities
 from nailgun.config import ServerConfig
 from requests.exceptions import HTTPError
+from robottelo.config import settings
 from robottelo.datafactory import gen_string, generate_strings_list
 from robottelo.decorators import (
     stubbed,
@@ -122,6 +123,7 @@ class CannedRoleTestCases(APITestCase):
         underlying tests
         """
         super(CannedRoleTestCases, cls).setUpClass()
+        cls.sat_url = 'https://{}'.format(settings.server.hostname)
         # These two will be used as role taxonomies
         cls.role_org = entities.Organization().create()
         cls.role_loc = entities.Location().create()
@@ -846,7 +848,7 @@ class CannedRoleTestCases(APITestCase):
             with self.subTest(login):
                 sc = ServerConfig(
                     auth=(login, password),
-                    url=ServerConfig.get().url,
+                    url=self.sat_url,
                     verify=False
                 )
                 with self.assertNotRaises(HTTPError):
@@ -967,7 +969,7 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(user_login, user.login)
         sc = ServerConfig(
             auth=(user_login, user_pass),
-            url=ServerConfig.get().url,
+            url=self.sat_url,
             verify=False
         )
         # Getting the domain from user1
@@ -1085,7 +1087,7 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(user_login, user.login)
         sc = ServerConfig(
             auth=(user_login, user_pass),
-            url=ServerConfig.get().url,
+            url=self.sat_url,
             verify=False
         )
         role_name = gen_string('alpha')
@@ -1146,7 +1148,7 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(user_login, user.login)
         sc = ServerConfig(
             auth=(user_login, user_pass),
-            url=ServerConfig.get().url,
+            url=self.sat_url,
             verify=False
         )
         with self.assertRaises(HTTPError):
@@ -1189,7 +1191,7 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(user_login, user.login)
         sc_user = ServerConfig(
             auth=(user_login, user_pass),
-            url=ServerConfig.get().url,
+            url=self.sat_url,
             verify=False
         )
         user_login = gen_string('alpha')
@@ -1283,7 +1285,7 @@ class CannedRoleTestCases(APITestCase):
         self.assertEqual(user_login, user.login)
         sc = ServerConfig(
             auth=(user_login, user_pass),
-            url=ServerConfig.get().url,
+            url=self.sat_url,
             verify=False
         )
         with self.assertRaises(HTTPError):
