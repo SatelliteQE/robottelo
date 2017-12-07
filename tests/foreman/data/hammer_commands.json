@@ -2179,7 +2179,50 @@
               "name": "host-id", 
               "shortname": null, 
               "value": "HOST_ID"
-            }, 
+            },
+            {
+              "help": "Use sudo to write to device",
+              "name": "sudo",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Download subnet generic image",
+          "name": "subnet",
+          "options": [
+            {
+              "help": "File or device to write image to",
+              "name": "file",
+              "shortname": null,
+              "value": "PATH"
+            },
+            {
+              "help": "Force writing to existing destination (device etc.)",
+              "name": "force",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Subnet name",
+              "name": "subnet",
+              "shortname": null,
+              "value": "SUBNET_NAME"
+            },
+            {
+              "help": "",
+              "name": "subnet-id",
+              "shortname": null,
+              "value": "SUBNET_ID"
+            },
             {
               "help": "Use sudo to write to device", 
               "name": "sudo", 
@@ -2561,7 +2604,13 @@
                   "name": "organization-id", 
                   "shortname": null, 
                   "value": "ID"
-                }, 
+                },
+                {
+                  "help": "Skip metadata check on each repository on the capsule One of true/false, yes/no, 1/0.",
+                  "name": "skip-metadata-check",
+                  "shortname": null,
+                  "value": "SKIP_METADATA_CHECK"
+                },
                 {
                   "help": "print help", 
                   "name": "help", 
@@ -10448,7 +10497,257 @@
           "subcommands": []
         }
       ]
-    }, 
+    },
+    {
+      "description": "Manipulate files",
+      "name": "file",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Show a file",
+          "name": "info",
+          "options": [
+            {
+              "help": "Content view name to search by",
+              "name": "content-view",
+              "shortname": null,
+              "value": "CONTENT_VIEW_NAME"
+            },
+            {
+              "help": "content view numeric identifier",
+              "name": "content-view-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_ID"
+            },
+            {
+              "help": "Content view version number",
+              "name": "content-view-version",
+              "shortname": null,
+              "value": "CONTENT_VIEW_VERSION_VERSION"
+            },
+            {
+              "help": "Content View Version ID",
+              "name": "content-view-version-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_VERSION_ID"
+            },
+            {
+              "help": "a file identifier",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "File name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
+            },
+            {
+              "help": "Product name to search by",
+              "name": "product",
+              "shortname": null,
+              "value": "PRODUCT_NAME"
+            },
+            {
+              "help": "product numeric identifier",
+              "name": "product-id",
+              "shortname": null,
+              "value": "PRODUCT_ID"
+            },
+            {
+              "help": "Repository name to search by",
+              "name": "repository",
+              "shortname": null,
+              "value": "REPOSITORY_NAME"
+            },
+            {
+              "help": "Repository ID",
+              "name": "repository-id",
+              "shortname": null,
+              "value": "REPOSITORY_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List files",
+          "name": "list",
+          "options": [
+            {
+              "help": "Field to sort the results on",
+              "name": "by",
+              "shortname": null,
+              "value": "BY"
+            },
+            {
+              "help": "Content view name to search by",
+              "name": "content-view",
+              "shortname": null,
+              "value": "CONTENT_VIEW_NAME"
+            },
+            {
+              "help": "Name to search by",
+              "name": "content-view-filter",
+              "shortname": null,
+              "value": "CONTENT_VIEW_FILTER_NAME"
+            },
+            {
+              "help": "filter identifier",
+              "name": "content-view-filter-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_FILTER_ID"
+            },
+            {
+              "help": "content view numeric identifier",
+              "name": "content-view-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_ID"
+            },
+            {
+              "help": "Content view version number",
+              "name": "content-view-version",
+              "shortname": null,
+              "value": "CONTENT_VIEW_VERSION_VERSION"
+            },
+            {
+              "help": "Content view version identifier",
+              "name": "content-view-version-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_VERSION_ID"
+            },
+            {
+              "help": "Environment name",
+              "name": "environment",
+              "shortname": null,
+              "value": "ENVIRONMENT_NAME"
+            },
+            {
+              "help": "",
+              "name": "environment-id",
+              "shortname": null,
+              "value": "ENVIRONMENT_ID"
+            },
+            {
+              "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
+              "name": "full-result",
+              "shortname": null,
+              "value": "FULL_RESULT"
+            },
+            {
+              "help": "ids to filter content by Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "ids",
+              "shortname": null,
+              "value": "IDS"
+            },
+            {
+              "help": "Sort field and order, eg. 'name DESC'",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
+            },
+            {
+              "help": "Page number, starting at 1",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "Number of results per page to return",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "Product name to search by",
+              "name": "product",
+              "shortname": null,
+              "value": "PRODUCT_NAME"
+            },
+            {
+              "help": "product numeric identifier",
+              "name": "product-id",
+              "shortname": null,
+              "value": "PRODUCT_ID"
+            },
+            {
+              "help": "Repository name to search by",
+              "name": "repository",
+              "shortname": null,
+              "value": "REPOSITORY_NAME"
+            },
+            {
+              "help": "repository ID",
+              "name": "repository-id",
+              "shortname": null,
+              "value": "REPOSITORY_ID"
+            },
+            {
+              "help": "Search string",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
     {
       "description": "Manage permission filters.", 
       "name": "filter", 
@@ -11675,7 +11974,13 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
-            }, 
+            },
+            {
+              "help": "ID of OpenSCAP Capsule",
+              "name": "openscap-proxy-id",
+              "shortname": null,
+              "value": "OPENSCAP_PROXY_ID"
+            },
             {
               "help": "Operating system title", 
               "name": "operatingsystem", 
@@ -12682,13 +12987,7 @@
               "name": "hostgroup-title", 
               "shortname": null, 
               "value": "HOSTGROUP_TITLE"
-            }, 
-            {
-              "help": "Array of extra information types to include Comma separated list of values. Values containing comma should be double quoted", 
-              "name": "include", 
-              "shortname": null, 
-              "value": "INCLUDE"
-            }, 
+            },
             {
               "help": "Location name", 
               "name": "location", 
@@ -14052,7 +14351,13 @@
               "name": "new-name", 
               "shortname": null, 
               "value": "NEW_NAME"
-            }, 
+            },
+            {
+              "help": "ID of OpenSCAP Capsule",
+              "name": "openscap-proxy-id",
+              "shortname": null,
+              "value": "OPENSCAP_PROXY_ID"
+            },
             {
               "help": "Operating system title", 
               "name": "operatingsystem", 
@@ -14638,7 +14943,13 @@
               "name": "search", 
               "shortname": null, 
               "value": "SEARCH"
-            }, 
+            },
+            {
+              "help": "Only list ID and name of hosts One of true/false, yes/no, 1/0.",
+              "name": "thin",
+              "shortname": null,
+              "value": "THIN"
+            },
             {
               "help": "print help", 
               "name": "help", 
@@ -17547,7 +17858,57 @@
             }
           ], 
           "subcommands": []
-        }, 
+        },
+        {
+          "description": "Export a template including all metadata",
+          "name": "export",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Import a job template from ERB",
+          "name": "import",
+          "options": [
+            {
+              "help": "Path to a file that contains the template - must include ERB metadata",
+              "name": "file",
+              "shortname": null,
+              "value": "TEMPLATE"
+            },
+            {
+              "help": "Overwrite template if it already exists One of true/false, yes/no, 1/0.",
+              "name": "overwrite",
+              "shortname": null,
+              "value": "OVERWRITE"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
         {
           "description": "Show job template details", 
           "name": "info", 
@@ -24884,6 +25245,12 @@
                   "name": "organization-id", 
                   "shortname": null, 
                   "value": "ID"
+                },
+                {
+                  "help": "Skip metadata check on each repository on the capsule One of true/false, yes/no, 1/0.",
+                  "name": "skip-metadata-check",
+                  "shortname": null,
+                  "value": "SKIP_METADATA_CHECK"
                 }, 
                 {
                   "help": "print help", 
@@ -27226,13 +27593,7 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
-            }, 
-            {
-              "help": "", 
-              "name": "new-name", 
-              "shortname": null, 
-              "value": "NEW_NAME"
-            }, 
+            },
             {
               "help": "Organization name to search by", 
               "name": "organization", 
@@ -27299,13 +27660,7 @@
               "name": "name", 
               "shortname": null, 
               "value": "NAME"
-            }, 
-            {
-              "help": "", 
-              "name": "new-name", 
-              "shortname": null, 
-              "value": "NEW_NAME"
-            }, 
+            },
             {
               "help": "Organization name to search by", 
               "name": "organization", 
@@ -31418,6 +31773,18 @@
               "name": "password", 
               "shortname": null, 
               "value": "PASSWORD"
+            },
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "role-ids",
+              "shortname": null,
+              "value": "ROLE_IDS"
+            },
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "roles",
+              "shortname": null,
+              "value": "ROLE_NAMES"
             }, 
             {
               "help": "User's timezone Possible value(s): 'American Samoa', 'International Date Line West', 'Midway Island', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Arizona', 'Chihuahua', 'Mazatlan', 'Mountain Time (US & Canada)', 'Central America', 'Central Time (US & Canada)', 'Guadalajara', 'Mexico City', 'Monterrey', 'Saskatchewan', 'Bogota', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'Georgetown', 'La Paz', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Greenland', 'Montevideo', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Casablanca', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Monrovia', 'UTC', 'Amsterdam', 'Belgrade', 'Berlin', 'Bern', 'Bratislava', 'Brussels', 'Budapest', 'Copenhagen', 'Ljubljana', 'Madrid', 'Paris', 'Prague', 'Rome', 'Sarajevo', 'Skopje', 'Stockholm', 'Vienna', 'Warsaw', 'West Central Africa', 'Zagreb', 'Athens', 'Bucharest', 'Cairo', 'Harare', 'Helsinki', 'Jerusalem', 'Kaliningrad', 'Kyiv', 'Pretoria', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Baghdad', 'Istanbul', 'Kuwait', 'Minsk', 'Moscow', 'Nairobi', 'Riyadh', 'St. Petersburg', 'Volgograd', 'Tehran', 'Abu Dhabi', 'Baku', 'Muscat', 'Samara', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Sri Jayawardenepura', 'Kathmandu', 'Almaty', 'Astana', 'Dhaka', 'Urumqi', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Novosibirsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Irkutsk', 'Kuala Lumpur', 'Perth', 'Singapore', 'Taipei', 'Ulaanbaatar', 'Osaka', 'Sapporo', 'Seoul', 'Tokyo', 'Yakutsk', 'Adelaide', 'Darwin', 'Brisbane', 'Canberra', 'Guam', 'Hobart', 'Melbourne', 'Port Moresby', 'Sydney', 'Vladivostok', 'Magadan', 'New Caledonia', 'Solomon Is.', 'Srednekolymsk', 'Auckland', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Wellington', 'Chatham Is.', 'Nuku'alofa', 'Samoa', 'Tokelau Is.'", 
@@ -31629,7 +31996,187 @@
             }
           ], 
           "subcommands": []
-        }, 
+        },
+        {
+          "description": "Managing User SSH Keys.",
+          "name": "ssh-keys",
+          "options": [
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Create an SSH key for a user",
+              "name": "add",
+              "options": [
+                {
+                  "help": "Public SSH key",
+                  "name": "key",
+                  "shortname": null,
+                  "value": "KEY"
+                },
+                {
+                  "help": "Path to a SSH public key",
+                  "name": "key-file",
+                  "shortname": null,
+                  "value": "KEY_FILE"
+                },
+                {
+                  "help": "",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "User's login to search by",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "USER_LOGIN"
+                },
+                {
+                  "help": "",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "USER_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Delete an SSH key for a user",
+              "name": "delete",
+              "options": [
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "User's login to search by",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "USER_LOGIN"
+                },
+                {
+                  "help": "",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "USER_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show an SSH key from a user",
+              "name": "info",
+              "options": [
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "User's login to search by",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "USER_LOGIN"
+                },
+                {
+                  "help": "",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "USER_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List all SSH keys for a user",
+              "name": "list",
+              "options": [
+                {
+                  "help": "sort results",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "paginate results",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "number of entries per request",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "filter results",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "User's login to search by",
+                  "name": "user",
+                  "shortname": null,
+                  "value": "USER_LOGIN"
+                },
+                {
+                  "help": "",
+                  "name": "user-id",
+                  "shortname": null,
+                  "value": "USER_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
         {
           "description": "Update a user", 
           "name": "update", 
@@ -31771,7 +32318,19 @@
               "name": "password", 
               "shortname": null, 
               "value": "PASSWORD"
-            }, 
+            },
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "role-ids",
+              "shortname": null,
+              "value": "ROLE_IDS"
+            },
+            {
+              "help": "Comma separated list of values. Values containing comma should be quoted or escaped with backslash",
+              "name": "roles",
+              "shortname": null,
+              "value": "ROLE_NAMES"
+            },
             {
               "help": "User's timezone Possible value(s): 'American Samoa', 'International Date Line West', 'Midway Island', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Arizona', 'Chihuahua', 'Mazatlan', 'Mountain Time (US & Canada)', 'Central America', 'Central Time (US & Canada)', 'Guadalajara', 'Mexico City', 'Monterrey', 'Saskatchewan', 'Bogota', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'Georgetown', 'La Paz', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Greenland', 'Montevideo', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Casablanca', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Monrovia', 'UTC', 'Amsterdam', 'Belgrade', 'Berlin', 'Bern', 'Bratislava', 'Brussels', 'Budapest', 'Copenhagen', 'Ljubljana', 'Madrid', 'Paris', 'Prague', 'Rome', 'Sarajevo', 'Skopje', 'Stockholm', 'Vienna', 'Warsaw', 'West Central Africa', 'Zagreb', 'Athens', 'Bucharest', 'Cairo', 'Harare', 'Helsinki', 'Jerusalem', 'Kaliningrad', 'Kyiv', 'Pretoria', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Baghdad', 'Istanbul', 'Kuwait', 'Minsk', 'Moscow', 'Nairobi', 'Riyadh', 'St. Petersburg', 'Volgograd', 'Tehran', 'Abu Dhabi', 'Baku', 'Muscat', 'Samara', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Sri Jayawardenepura', 'Kathmandu', 'Almaty', 'Astana', 'Dhaka', 'Urumqi', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Novosibirsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Irkutsk', 'Kuala Lumpur', 'Perth', 'Singapore', 'Taipei', 'Ulaanbaatar', 'Osaka', 'Sapporo', 'Seoul', 'Tokyo', 'Yakutsk', 'Adelaide', 'Darwin', 'Brisbane', 'Canberra', 'Guam', 'Hobart', 'Melbourne', 'Port Moresby', 'Sydney', 'Vladivostok', 'Magadan', 'New Caledonia', 'Solomon Is.', 'Srednekolymsk', 'Auckland', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Wellington', 'Chatham Is.', 'Nuku'alofa', 'Samoa', 'Tokelau Is.'", 
               "name": "timezone", 
