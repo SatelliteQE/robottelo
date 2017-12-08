@@ -587,12 +587,6 @@ class ComputeResource(Base):
             raise ProvisioningCheckError(
                 'Failed to ping virtual machine Error:{0}'.format(
                     result.stdout))
-        ssh_check = ssh.command(
-            u'for i in {{1..60}}; do nc -vn {0} 22 <<< "" && exit 0; sleep 20;'
-            u' done; exit 1'.format(ip_addr))
-        if ssh_check.return_code != 0:
-            raise ProvisioningCheckError(
-                'Failed to connect to SSH port of the virtual machine')
 
     def check_image_os(self, os_name):
         """Check if the OS is present, if not create the required OS

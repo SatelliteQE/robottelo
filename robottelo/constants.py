@@ -32,7 +32,7 @@ INTERFACE_CLI = 'CLI'
 
 FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',
-    'rhev': 'RHEV',
+    'rhev': 'RHV',
     'ec2': 'EC2',
     'vmware': 'VMware',
     'openstack': 'RHEL OpenStack Platform',
@@ -52,6 +52,8 @@ VIRT_WHO_HYPERVISOR_TYPES = {
 }
 
 LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
+
+RHEV_CR = '%s (RHV)'
 
 AWS_EC2_FLAVOR_T2_MICRO = 't2.micro - Micro Instance'
 
