@@ -47,6 +47,7 @@ from robottelo.constants import (
     VIRT_WHO_HYPERVISOR_TYPES,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     skip_if_bug_open,
     skip_if_not_set,
@@ -56,7 +57,7 @@ from robottelo.decorators import (
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
-from robottelo.ui.locators import tab_locators
+from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -153,6 +154,42 @@ class ContentHostTestCase(UITestCase):
                     _raw_query='subscription_status != valid',
                 )
             )
+
+    @tier3
+    def test_positive_sort_by_last_checkin(self):
+        """Register two content hosts and then sort them by last checkin date
+
+        :id: c42c1347-8b3a-4ba7-95d1-609e2e9ec40e
+
+        :expectedresults: Validate that content hosts are sorted properly
+
+        :BZ: 1281251
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
+            vm.install_katello_ca()
+            vm.register_contenthost(
+                self.session_org.label, self.activation_key.name)
+            self.assertTrue(vm.subscribed)
+            vm.enable_repo(REPOS['rhst7']['id'])
+            vm.install_katello_agent()
+            with Session(self):
+                self.assertIsNotNone(
+                    self.contenthost.search(self.client.hostname))
+                if bz_bug_is_open(1495271):
+                    self.dashboard.navigate_to_entity()
+                self.assertIsNotNone(self.contenthost.search(vm.hostname))
+                self.contenthost.click(common_locators['kt_clear_search'])
+                if bz_bug_is_open(1495271):
+                    self.dashboard.navigate_to_entity()
+                    self.contenthost.navigate_to_entity()
+                # prevent any issues in case some default sorting was set
+                self.contenthost.sort_table_by_column('Name')
+                dates = self.contenthost.sort_table_by_column('Last Checkin')
+                self.assertGreater(dates[1], dates[0])
+                dates = self.contenthost.sort_table_by_column('Last Checkin')
+                self.assertGreater(dates[0], dates[1])
 
     @tier3
     def test_positive_install_package(self):
