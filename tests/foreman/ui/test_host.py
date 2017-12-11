@@ -1791,8 +1791,9 @@ class HostTestCase(UITestCase):
             self.content_views.update(name=cv.name, force_puppet=True)
             self.content_views.publish(cv.name)
             published_puppet_env = [
-                env
-                for env in entities.Environment(organization=[org]).search()
+                env for env in entities.Environment().search(
+                    query={'search': 'organization_id={}'.format(org.id)}
+                )
                 if cv.name in env.name
             ][0]
             self.hosts.navigate_to_entity()
