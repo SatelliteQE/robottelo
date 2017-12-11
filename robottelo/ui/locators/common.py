@@ -119,7 +119,7 @@ common_locators = LocatorDict({
         By.XPATH, "//textarea[@placeholder='Value' and not(text())]"),
     "parameter_remove": (
         By.XPATH, "//tr/td/input[@value='%s']/following::td/a"),
-    "table_column_title": (By.XPATH, "//th[contains(., '%s')]/a"),
+    "table_column_title": (By.XPATH, "//th[contains(., '%s')]/*"),
     "table_cell_link": (
         By.XPATH,
         "//table[contains(@class, 'table')]"
