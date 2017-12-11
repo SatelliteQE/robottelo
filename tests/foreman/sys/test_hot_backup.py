@@ -35,7 +35,7 @@ from time import sleep
 
 BCK_MSG = 'BACKUP Complete, contents can be found in: /tmp/{0}'
 NODIR_MSG = 'ERROR: Please specify an export directory'
-NOPREV_MSG = 'Please specify the previous backup directory'
+NOPREV_MSG = 'missing argument'
 BADPREV_MSG = 'Previous backup directory does not exist: {0}'
 
 
@@ -114,7 +114,7 @@ class HotBackupTestCase(TestCase):
             dir_name = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup /tmp/{0} --online-backup'.format(dir_name),
+                'katello-backup -y /tmp/{0} --online-backup'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
@@ -151,7 +151,7 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup /tmp/{0} --online-backup'.format(dir_name),
+                'katello-backup -y /tmp/{0} --online-backup'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
@@ -191,7 +191,7 @@ class HotBackupTestCase(TestCase):
             connection.run('service {0} stop'.format(dead_service))
             tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
-                'katello-backup /tmp/{0} --online-backup'.format(dir_name)
+                'katello-backup -y /tmp/{0} --online-backup'.format(dir_name)
             )
             self.assertNotEqual(result.return_code, 0)
             connection.run('service {0} start'.format(dead_service))
@@ -214,7 +214,7 @@ class HotBackupTestCase(TestCase):
         with get_connection() as connection:
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup --online-backup',
+                'katello-backup -y --online-backup',
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -237,7 +237,7 @@ class HotBackupTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-backup',
+                'katello-backup -y',
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -264,7 +264,7 @@ class HotBackupTestCase(TestCase):
             dir_name = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             result = connection.run(
-                'katello-backup /tmp/{0} --online-backup '
+                'katello-backup -y /tmp/{0} --online-backup '
                 '--skip-pulp-content'.format(dir_name),
                 output_format='plain'
             )
@@ -299,7 +299,7 @@ class HotBackupTestCase(TestCase):
         with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
-                'katello-backup /tmp/{0} '
+                'katello-backup -y /tmp/{0} '
                 '--skip-pulp-content'.format(dir_name),
                 output_format='plain'
             )
@@ -334,7 +334,7 @@ class HotBackupTestCase(TestCase):
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
             result_full = connection.run(
-                'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
+                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result_full.return_code, 0)
@@ -354,7 +354,7 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             result_inc = connection.run(
-                'katello-backup /tmp/{0} --incremental /tmp/{1}/{2}'
+                'katello-backup -y /tmp/{0} --incremental /tmp/{1}/{2}'
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
                 output_format='plain'
             )
@@ -389,11 +389,11 @@ class HotBackupTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-backup --incremental',
+                'katello-backup -y --incremental',
                 output_format='plain'
             )
-            self.assertEqual(result.return_code, 1)
-            self.assertIn(NOPREV_MSG, result.stderr)
+            self.assertEqual(result.return_code, 255)
+            self.assertIn(NOPREV_MSG, result.stdout)
             self.check_services_status()
 
     @destructive
@@ -412,7 +412,7 @@ class HotBackupTestCase(TestCase):
         """
         with get_connection() as connection:
             result = connection.run(
-                'katello-backup --incremental /tmp',
+                'katello-backup -y --incremental /tmp',
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -437,7 +437,7 @@ class HotBackupTestCase(TestCase):
             dir_name = gen_string('alpha')
             tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
-                'katello-backup /tmp --incremental {0}'.format(dir_name),
+                'katello-backup -y /tmp --incremental {0}'.format(dir_name),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
@@ -467,7 +467,7 @@ class HotBackupTestCase(TestCase):
             connection.run('katello-service start')
             # run full backup
             result = connection.run(
-                'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
+                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
@@ -487,7 +487,7 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             result = connection.run(
-                '''katello-backup --online-backup \
+                '''katello-backup -y --online-backup \
                         --skip-pulp-content /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
@@ -528,7 +528,7 @@ class HotBackupTestCase(TestCase):
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
             result = connection.run(
-                'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
+                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
@@ -548,7 +548,7 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             result = connection.run(
-                '''katello-backup \
+                '''katello-backup -y \
                         --skip-pulp-content /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
@@ -591,7 +591,7 @@ class HotBackupTestCase(TestCase):
             connection.run('katello-service start')
             # run full backup
             result = connection.run(
-                'katello-backup /tmp/{0} --online-backup'.format(b1_dir),
+                'katello-backup -y /tmp/{0} --online-backup'.format(b1_dir),
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 0)
@@ -620,7 +620,7 @@ class HotBackupTestCase(TestCase):
                     'list'
                     )
             result = connection.run(
-                '''katello-backup \
+                '''katello-backup -y \
                         --online-backup /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(ib1_dest, ib1_dir, timestamped_dir.stdout[0]),
@@ -631,7 +631,7 @@ class HotBackupTestCase(TestCase):
 
             # restore /tmp/b1 and assert repo 1 is not there
             result = connection.run(
-                    'katello-restore -y /tmp/{0}/satellite-backup*'
+                    'katello-restore -y /tmp/{0}/katello-backup*'
                     .format(b1_dir),
                     timeout=1600)
             self.assertEqual(result.return_code, 0)
@@ -642,7 +642,7 @@ class HotBackupTestCase(TestCase):
 
             # restore /tmp/ib1 and assert repo 1 is there
             result = connection.run(
-                    'katello-restore -y /tmp/{0}/satellite-backup*'
+                    'katello-restore -y /tmp/{0}/katello-backup*'
                     .format(ib1_dest),
                     timeout=1600)
             self.assertEqual(result.return_code, 0)
