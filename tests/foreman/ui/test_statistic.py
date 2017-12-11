@@ -17,7 +17,7 @@
 """
 
 from nailgun import entities
-from robottelo.decorators import tier1
+from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -40,6 +40,7 @@ class StatisticTestCase(UITestCase):
         cls.session_org = entities.Organization().create()
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1510064)
     def test_positive_display_os_chart_title(self):
         """Create new host and check operating system statistic for it
 
@@ -58,6 +59,7 @@ class StatisticTestCase(UITestCase):
             self.assertEqual(os_title['text'], os.name + ' ' + os.major)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1510064)
     def test_positive_display_arch_chart_title(self):
         """Create new host and check architecture statistic for it
 
