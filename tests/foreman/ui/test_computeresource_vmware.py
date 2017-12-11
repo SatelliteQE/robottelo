@@ -31,6 +31,7 @@ from robottelo.decorators import (
     upgrade
 )
 from robottelo.test import UITestCase
+from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.computeresource import get_compute_resource_profile
 from robottelo.ui.factory import make_hostgroup, make_resource
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -582,7 +583,8 @@ class VmwareComputeResourceTestCase(UITestCase):
                 rc_name, COMPUTE_PROFILE_LARGE)
             resource_profile_form = get_compute_resource_profile(
                 session.compute_resource, resource_type)
-            resource_profile_form.set_value('guest_os', guest_os_name)
+            with self.assertNotRaises(UINoSuchElementError):
+                resource_profile_form.set_value('guest_os', guest_os_name)
 
     @run_only_on('sat')
     @tier2
