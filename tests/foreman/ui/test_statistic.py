@@ -47,7 +47,7 @@ class StatisticTestCase(UITestCase):
 
         :expectedresults: Chart is displayed correctly
 
-        :BZ: 1332989
+        :BZ: 1332989, 1510064
 
         :CaseImportance: Critical
         """
@@ -65,7 +65,7 @@ class StatisticTestCase(UITestCase):
 
         :expectedresults: Chart is displayed correctly
 
-        :BZ: 1332989
+        :BZ: 1332989, 1510064
 
         :CaseImportance: Critical
         """
