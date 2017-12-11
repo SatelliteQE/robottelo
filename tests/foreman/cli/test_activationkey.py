@@ -254,7 +254,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'id': result['activationkey-id'],
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(content[0]['enabled?'], 'true')
+        self.assertEqual(content[0]['default-enabled?'], 'true')
 
     def assert_negative_create_with_usage_limit(
             self, invalid_values, *in_error_msg):
