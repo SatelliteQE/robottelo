@@ -1172,14 +1172,14 @@ class RepositoryTestCase(APITestCase):
         :CaseImportance: Integration
         """
         # create a new protected repository
-        repository_data = entities.Repository(
+        repository = entities.Repository(
             url=FAKE_2_YUM_REPO,
             content_type=REPO_TYPE['yum'],
             product=self.product,
             unprotected=False,
-        ).create().read_json()
+        ).create()
         repo_data_file_url = urljoin(
-            repository_data['full_path'], 'repodata/repomd.xml')
+            repository.full_path, 'repodata/repomd.xml')
         # ensure the url is based on the protected base server URL
         self.assertTrue(repo_data_file_url.startswith(
             'https://{0}'.format(settings.server.hostname)))
