@@ -23,8 +23,6 @@ from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     FOREMAN_PROVIDERS,
-    RHEL_6_MAJOR_VERSION,
-    RHEL_7_MAJOR_VERSION,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
@@ -1169,10 +1167,14 @@ class RhevComputeResourceHostTestCase(UITestCase):
         cr_resource = '{0} (RHEV)'.format(cr_name)
         image_name = gen_string('alpha')
         root_pwd = gen_string('alpha')
+        # rhev_img_os is like "RedHat 7.4"
+        # eg: "<os_family <os_major>.<os_minor>"
+        os_family, os_version = self.rhev_img_os.split(' ')
+        os_version_major, os_version_minor = os_version.split('.')
         # Get the operating system
         os = entities.OperatingSystem().search(query=dict(
-            search='name="RedHat" AND (major="{0}" OR major="{1}")'.format(
-                RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+            search='name="{0}" AND major="{1}" AND minor="{2}"'.format(
+                os_family, os_version_major, os_version_minor)
         ))[0].read()
         # Get the image arch
         arch = entities.Architecture(
@@ -1281,6 +1283,11 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     timeout=60
                 )
             )
+            host_properties = session.hosts.get_host_properties(
+                vm_host_name, ['status', 'build'])
+            self.assertTrue(host_properties)
+            self.assertEqual(host_properties['status'], 'OK')
+            self.assertEqual(host_properties['build'], 'Installed')
             # Query RHEV hypervisor for vm description
             vm_host = entities.Host().search(
                 query=dict(search='name="{0}"'.format(vm_host_name))
