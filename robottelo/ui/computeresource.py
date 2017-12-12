@@ -149,6 +149,7 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
     template_locator = locators["resource.compute_profile.rhev_template"]
     cores_locator = locators["resource.compute_profile.rhev_cores"]
     memory_locator = locators["resource.compute_profile.rhev_memory"]
+
     group_fields_locators = dict(
         network_interfaces=dict(
             _add_node=locators[
@@ -191,6 +192,20 @@ class ResourceProfileFormRHEV(ResourceProfileFormBase):
         if template is not None:
             self.set_value(template_key, template)
             del kwargs[template_key]
+        # when setting memory value it does not fire the change event,
+        # that do the necessary validation and update the memory hidden field,
+        # without this event fired the memory value cannot be saved,
+        memory_key = 'memory'
+        memory = kwargs.get(memory_key)
+        if memory is not None:
+            memory_input = self.page.wait_until_element(self.memory_locator)
+            self._assign_locator_value(memory_input, memory)
+            # explicitly fire change event, as seems not fired by send keys
+            self.page.browser.execute_script(
+                "arguments[0].dispatchEvent(new Event('change'));",
+                memory_input,
+            )
+            del kwargs[memory_key]
         ResourceProfileFormBase.set_values(self, **kwargs)
 
 

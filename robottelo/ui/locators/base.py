@@ -763,6 +763,7 @@ locators = LocatorDict({
 
     # Default tab (Host)
     "host.page_title": (By.XPATH, "//h1[text()='Hosts']"),
+    "host.host_page_title": (By.XPATH, "//h1[contains(., '%s')]"),
     "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new') and "
                            "contains(@class, 'btn')]"),
     "host.clone": (
