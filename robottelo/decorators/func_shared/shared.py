@@ -87,6 +87,7 @@ Usage::
 """
 import datetime
 import functools
+import hashlib
 import import_string
 import inspect
 import logging
@@ -415,6 +416,16 @@ class _SharedFunction(object):
         return result
 
 
+def _get_kwargs_md5(**kwargs):
+    """Create an md5 hexdigest from kwargs"""
+    hd = None
+    if kwargs:
+        text = u'{0}'.format(tuple(sorted(kwargs.items())))
+        md = hashlib.md5(text.encode())
+        hd = md.hexdigest()
+    return hd
+
+
 def _get_scope_name(scope=None, scope_kwargs=None, scope_context=None):
     if scope_kwargs is None:
         scope_kwargs = {}
@@ -443,17 +454,21 @@ def _get_scope_name(scope=None, scope_kwargs=None, scope_context=None):
     return scope_name
 
 
-def _get_function_name(function, class_name=None):
+def _get_function_name(function, class_name=None, kwargs=None):
     """Return a string representation of the function as
     module_path.Class_name.function_name
 
     note: the class name is the first parent class
     """
+    if kwargs is None:
+        kwargs = {}
     names = [function.__module__]
     if class_name:
         names.append(class_name)
-
     names.append(function.__name__)
+    kwargs_md5 = _get_kwargs_md5(**kwargs)
+    if kwargs_md5:
+        names.append(kwargs_md5)
     return '.'.join(names)
 
 
@@ -468,23 +483,24 @@ def _get_function_name_key(function_name, scope=None, scope_kwargs=None,
     return function_name_key
 
 
-def shared(function=None, scope=_get_default_scope, scope_context=None,
+def shared(function_=None, scope=_get_default_scope, scope_context=None,
            scope_kwargs=None, timeout=SHARE_DEFAULT_TIMEOUT,
-           retries=DEFAULT_CALL_RETRIES,
+           retries=DEFAULT_CALL_RETRIES, function_kw=None,
            inject=False, injected_kw='_injected'):
     """Generic function sharing, share the results of any decorated function.
     Any parallel pytest xdist worker will wait for this function to finish
 
-    :type function: callable
+    :type function_: callable
     :type scope: str or callable
     :type scope_kwargs: dict
     :type scope_context: str
     :type timeout: int
     :type retries: int
+    :type function_kw: list
     :type inject: bool
     :type injected_kw: str
 
-    :param function: the function that is intended to be shared
+    :param function_: the function that is intended to be shared
     :param scope: this parameter will define the namespace of data sharing
     :param scope_context: an added context string if applicable, of a concrete
            sharing in combination with scope and function.
@@ -492,6 +508,10 @@ def shared(function=None, scope=_get_default_scope, scope_context=None,
     :param timeout: the time in seconds to wait for waiting the shared function
     :param retries: if the shared function call fail, how much time should
         retry before setting the call with in failure state
+    :param function_kw: The function kwargs to use as an additional scope,
+        an md5 hexdigest of that kwargs will be created and added to the
+        storage scope, that way we should have diffrent stored values for
+        diffrent kw values.
     :param inject: whether to recall the function with injecting the result as
         **kwargs
     :param injected_kw: the kw arg to set to True to inform the function that
@@ -508,14 +528,17 @@ def shared(function=None, scope=_get_default_scope, scope_context=None,
         index += 1
     class_names.reverse()
     class_name = '.'.join(class_names)
+    if function_kw is None:
+        function_kw = []
 
     def main_wrapper(func):
 
         @functools.wraps(func)
         def function_wrapper(*args, **kwargs):
+            function_kw_scope = {
+                key: kwargs.get(key) for key in function_kw}
             function_name = _get_function_name(
-                func, class_name=class_name)
-
+                func, class_name=class_name, kwargs=function_kw_scope)
             if not ENABLED:
                 # if disabled call the function immediately
                 return func(*args, **kwargs)
@@ -544,7 +567,7 @@ def shared(function=None, scope=_get_default_scope, scope_context=None,
     def wait_function(func):
         return main_wrapper(func)
 
-    if function:
-        return main_wrapper(function)
+    if function_:
+        return main_wrapper(function_)
     else:
         return wait_function

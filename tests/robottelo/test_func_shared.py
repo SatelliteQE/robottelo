@@ -138,6 +138,15 @@ def basic_shared_counter(index=0, increment_by=1):
     return index+increment_by
 
 
+@shared(function_kw=['prefix', 'suffix'])
+def basic_shared_counter_string(
+        prefix='', suffix='', counter=0, increment_by=1):
+    """basic function that increment a counter and return a string with
+    prefix
+    """
+    return '{0}_{1}_{2}'.format(prefix, counter+increment_by, suffix)
+
+
 class NotRestorableException(Exception):
     """ this exception is not restorable as need mote args"""
     def __init__(self, msg, details):
@@ -494,3 +503,27 @@ class FunctionSharedTestCase(TestCase):
                 simple_shared_counter_with_exception_not_restored,
                 counter_values
             )
+
+    def test_function_kw_scope(self):
+        """Test that function kw is using the correct scope from argument.
+
+        Note: shared decorator should create a new additional scope key based
+            on the md5 hexdigest of the kw passed to function and that was
+            declared in function_kw argument, in this concrete test this is
+            related to the prefix and suffix kwargs, for each prefix, suffix
+            values a new key storage is created.
+        """
+        prefixes = ['pre_{0}'.format(i) for i in range(10)]
+        suffixes = ['suf_{0}'.format(i) for i in range(10)]
+        for prefix, suffix in zip(prefixes, suffixes):
+            counter_value = gen_integer(min_value=2, max_value=10000)
+            inc_string = basic_shared_counter_string(
+                prefix=prefix, suffix=suffix, counter=counter_value)
+            self.assertTrue(inc_string.startswith(prefix))
+            self.assertTrue(inc_string.endswith(suffix))
+            # call the shared function a second time with an other value
+            counter_value = gen_integer(min_value=2, max_value=10000)
+            # note inverted order of kwargs
+            inc_string_2 = basic_shared_counter_string(
+                suffix=suffix, prefix=prefix, counter=counter_value)
+            self.assertEqual(inc_string, inc_string_2)
