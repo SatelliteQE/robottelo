@@ -7,7 +7,7 @@
 
 :CaseLevel: System
 
-:CaseComponent: katello-certs-check
+:CaseComponent: CLI
 
 :TestType: Functional
 
