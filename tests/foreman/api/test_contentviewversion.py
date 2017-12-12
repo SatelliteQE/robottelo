@@ -1141,6 +1141,7 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
             content_type='yum',
             product=product,
         ).create()
+        yum_repo.sync()
         content_view = entities.ContentView(
             organization=product.organization,
             repository=[yum_repo],

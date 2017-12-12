@@ -4476,6 +4476,92 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(
             '1.1', [cvv_['version'] for cvv_ in content_view['versions']])
 
+    @tier2
+    def test_positive_incremental_update_propagate_composite(self):
+        """Incrementally update a CVV in composite CV with
+        `propagate_all_composites` flag set
+
+        :BZ: 1288148
+
+        :id: 97f7c34d-0b89-49ca-ae2a-65a4552789b8
+
+        :Steps:
+
+            1. Create and publish CV with some content
+            2. Create composite CV, add previously created CV inside it
+            3. Publish composite CV
+            4. Create a puppet repository and upload a puppet module into it
+            5. Incrementally update the CVV with the puppet module with
+               `propagate_all_composites` flag set to `True`
+
+        :expectedresults:
+
+            1. The incremental update succeeds with no errors
+            2. New incremental CVV contains new puppet module
+            3. New incremental composite CVV contains new puppet module
+
+        :CaseLevel: Integration
+        """
+        yum_repo = make_repository({'product-id': self.product['id']})
+        Repository.synchronize({'id': yum_repo['id']})
+        content_view = make_content_view({
+            'organization-id': self.org['id'],
+            'repository-ids': yum_repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        cvv = ContentView.version_info({
+            'id': content_view['versions'][0]['id']})
+        self.assertEqual(len(cvv['puppet-modules']), 0)
+        comp_content_view = make_content_view({
+            'component-ids': cvv['id'],
+            'composite': True,
+            'organization-id': self.org['id'],
+        })
+        ContentView.publish({'id': comp_content_view['id']})
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
+        puppet_repository = make_repository({
+            'content-type': 'puppet',
+            'product-id': self.product['id'],
+            'url': CUSTOM_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': puppet_repository['id']})
+        puppet_module = PuppetModule.list({
+            'organization-id': self.org['id'],
+            'product-id': self.product['id'],
+            'repository-id': puppet_repository['id'],
+        })[0]
+        ContentView.version_incremental_update({
+            'content-view-version-id': cvv['id'],
+            'propagate-all-composites': 'true',
+            'puppet-module-ids': puppet_module['id'],
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 2)
+        with self.assertNotRaises(StopIteration):
+            cvv = next(
+                ContentView.version_info(
+                    {'id': version['id']}, output_format='json')
+                for version in content_view['versions']
+                if version['version'] == '1.1'
+            )
+        self.assertEqual(len(cvv['puppet-modules']), 1)
+        self.assertEqual(
+            cvv['puppet-modules'].values()[0]['id'], puppet_module['id'])
+        comp_content_view = ContentView.info({'id': comp_content_view['id']})
+        self.assertEqual(len(comp_content_view['versions']), 2)
+        with self.assertNotRaises(StopIteration):
+            comp_cvv = next(
+                ContentView.version_info(
+                    {'id': comp_version['id']}, output_format='json')
+                for comp_version in comp_content_view['versions']
+                if comp_version['version'] == '1.1'
+            )
+        self.assertEqual(len(comp_cvv['puppet-modules']), 1)
+        self.assertEqual(
+            comp_cvv['puppet-modules'].values()[0]['id'], puppet_module['id'])
+
 
 class OstreeContentViewTestCase(CLITestCase):
     """Tests for custom ostree contents in content views."""

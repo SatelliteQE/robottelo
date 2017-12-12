@@ -124,14 +124,18 @@ class ContentView(Base):
         )
 
     @classmethod
-    def version_info(cls, options):
+    def version_info(cls, options, output_format=None):
         """Provides version info related to content-view's version."""
         cls.command_sub = 'version info'
 
         if options is None:
             options = {}
 
-        return hammer.parse_info(cls.execute(cls._construct_command(options)))
+        result = cls.execute(
+            cls._construct_command(options), output_format=output_format)
+        if output_format != 'json':
+            result = hammer.parse_info(result)
+        return result
 
     @classmethod
     def version_incremental_update(cls, options):
