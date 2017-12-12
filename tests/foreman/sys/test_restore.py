@@ -55,7 +55,8 @@ class RestoreTestCase(TestCase):
                 timeout=1600,
                 output_format='plain'
             )
-            cls.assertEqual(result.return_code, 0)
+            if result.return_code != 0:
+                raise AssertionError("Failed to start services")
 
     def check_services_status(self, max_attempts=5):
         for _ in range(max_attempts):
