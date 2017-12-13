@@ -170,9 +170,9 @@ class CapsuleContentManagementTestCase(APITestCase):
         )
         self.assertEqual(result.return_code, 0)
         # remove empty lines from output if any
-        result.stdout = [line for line in result.stdout if line]
-        self.assertGreaterEqual(len(result.stdout), 1)
-        self.assertIn(package_name, result.stdout[0])
+        result = [line for line in result.stdout if line]
+        self.assertGreaterEqual(len(result), 1)
+        self.assertIn(package_name, result[0])
 
     @tier4
     def test_positive_uploaded_content_library_sync(self):
