@@ -6,6 +6,7 @@ cryptography==2.1.4
 fauxfactory==2.1.1
 idna==2.6
 Inflector==2.0.11
+import_string==0.1.0
 mock==2.0.0
 paramiko==2.4.0
 pytest==3.2.3

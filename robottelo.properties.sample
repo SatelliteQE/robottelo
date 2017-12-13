@@ -423,3 +423,32 @@ port_range=9091, 14999
 # ddns rpm package to install on the virtual machine to setup ddns hostname
 # resolution
 # ddns_package_url=
+
+# Section for shared function
+# [shared_function]
+# The default storage handler to use, available handlers: file, redis
+# by default storage=file
+# storage=file
+# Namespace scope by default used the md5 of kattelo certificate of the server
+# scope=
+# enabled, by default enabled=false, the shared decorator will
+# immediately run the function and the function result data are not saved
+# to enable the shared functionality set enabled=true
+# enabled=false
+# The lock timeout, to be able to use the shared data, each caller have to lock
+# the access to storage to have consistent values, by default 2 hours, to be
+# able to handle long running functions, the value is in second
+# lock_timeout=7200
+# How much time the shared data is considered valid, the value is in second
+# by default 24 hours
+# share_timeout=86400
+# If redis is used as storage, by default redis_host=localhost
+# redis_host=localhost
+# The port redis is accessible at that redis_host, by default 6379
+# redis_port=6379
+# The redis db index, by default 0
+# redis_db=0
+# The redis password index, by default None
+# redis_password=
+# How much time we retry if a function call fail, by default call_retries=2
+# call_retries=2
