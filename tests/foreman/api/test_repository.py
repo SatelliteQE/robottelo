@@ -14,10 +14,13 @@
 
 :Upstream: No
 """
+import tempfile
+
+from six.moves.urllib.parse import urljoin
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import client, entities
 from nailgun.entity_mixins import TaskFailedError
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, SSLError
 from robottelo import manifests, ssh
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -65,6 +68,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
+from robottelo.config import settings
 from robottelo.test import APITestCase
 from robottelo.api.utils import call_entity_method_with_timeout
 
@@ -1152,6 +1156,47 @@ class RepositoryTestCase(APITestCase):
         repo2.sync()
         # Verify that number of modules from the first repo has not changed
         self.assertEqual(modules_num, len(repo1.puppet_modules()['results']))
+
+    @tier2
+    @upgrade
+    def test_positive_access_protected_repository(self):
+        """Access protected/https repository data file URL using organization
+        debug certificate
+
+        :id: 4dba5b31-1818-45dd-a9bd-3ec627c3db57
+
+        :expectedresults: The repository data file successfully accessed.
+
+        :BZ: 1242310
+
+        :CaseImportance: Integration
+        """
+        # create a new protected repository
+        repository = entities.Repository(
+            url=FAKE_2_YUM_REPO,
+            content_type=REPO_TYPE['yum'],
+            product=self.product,
+            unprotected=False,
+        ).create()
+        repo_data_file_url = urljoin(
+            repository.full_path, 'repodata/repomd.xml')
+        # ensure the url is based on the protected base server URL
+        self.assertTrue(repo_data_file_url.startswith(
+            'https://{0}'.format(settings.server.hostname)))
+        # try to access repository data without organization debug certificate
+        with self.assertRaises(SSLError):
+            client.get(repo_data_file_url, verify=False)
+        # get the organization debug certificate
+        cert_content = self.org.download_debug_certificate()
+        # save the organization debug certificate to file
+        cert_file_path = '{0}/{1}.pem'.format(
+            tempfile.gettempdir(), self.org.label)
+        with open(cert_file_path, 'w') as cert_file:
+            cert_file.write(cert_content)
+        # access repository data with organization debug certificate
+        response = client.get(
+            repo_data_file_url, cert=cert_file_path, verify=False)
+        self.assertEqual(response.status_code, 200)
 
 
 @run_in_one_thread
