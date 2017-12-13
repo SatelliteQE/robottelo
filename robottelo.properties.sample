@@ -234,6 +234,13 @@ ssh_key=
 # content_path=~/ssg-rhel6-ds.xml
 # tailoring_path=~/ssg-firefox-ds-tailoring.xml
 
+# For katello-certs-check utility
+# [certs]
+# CERT_FILE=~/certs/server.valid.crt
+# KEY_FILE=~/certs/server.key
+# REQ_FILE=~/certs/server.csr
+# CA_BUNDLE_FILE=~/certs/rootCA.pem
+
 # Atomic Ostree Kickstart Installer
 # [ostree]
 # ostree_installer=OSTREE_INSTALLER
