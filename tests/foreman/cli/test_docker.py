@@ -1908,7 +1908,6 @@ class DockerRegistryTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1489322)
     def test_positive_update_url_by_id(self):
         """Create an external docker registry and update its URL. Use registry
         ID to search by
@@ -1935,7 +1934,6 @@ class DockerRegistryTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1489322)
     def test_positive_update_url_by_name(self):
         """Create an external docker registry and update its URL. Use registry
         name to search by

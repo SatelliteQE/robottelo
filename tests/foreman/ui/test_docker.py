@@ -1586,8 +1586,8 @@ class DockerRegistryTestCase(UITestCase):
                 new_url = settings.docker.external_registry_2
                 self.registry.update(name, new_url=new_url)
                 self.registry.search_and_click(name)
-                self.assertIsNotNone(self.registry.wait_until_element(
-                    locators['registry.url']).text, new_url)
+                self.assertEqual(self.registry.get_element_value(
+                    locators['registry.url']), new_url)
             finally:
                 registry_entity.delete()
 
