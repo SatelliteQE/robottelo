@@ -25,7 +25,7 @@ Usage::
             org = make_org()
             # upload manifest
             repo = make_repository()
-            return {'org_id': org['id'], 'repo_id': repo['id']}
+            return dict(org=org, repo=repo}
 
         @classmethod
         @shared
@@ -34,8 +34,8 @@ Usage::
             data = cls._shared_function()
             other_data = module_level_shared()
 
-            cls.org = Org.info({'id': data['org_id']})
-            cls.repo = Repository.info({'id': data['repo_id']})
+            cls.org = data['org']
+            cls.repo = data['repo']
             return
 
     # the shared function can be called an other time to be able to initiate
@@ -45,11 +45,11 @@ Usage::
 
         @classmethod
         @shared(inject=True, injected_kw='_injected')
-        def setUpClass(cls, org_id=None, repo_id=None, _injected=False):
+        def setUpClass(cls, org=None, repo=None, _injected=False):
 
             if _injected:
-                cls.org = Org.info({'id': org_id})
-                cls.repo = Repository.info({'id': repo_id})
+                cls.org = org
+                cls.repo = repo
             else:
                 # create the org
                 cls.org = make_org()
@@ -63,27 +63,27 @@ Usage::
             # kwargs, an added bool kw argument by default named _injected
             # should be added to the function kwargs, to be able to be notified
             # that the kwargs are injected from already stored result
-            return {'org_id': cls.org['id'], 'repo_id': cls.repo['id']}
+            return dict(org=cls.org, repo=cls.repo}
 
         # in case we do not want the injected key word in kwargs
         # simply , declare injected_kw=None
         @classmethod
         @shared(inject=True, injected_kw=None)
-        def shared_class_method(cls, org_id=None, repo_id=None):
-             if org_id is not None:
-                cls.org = Org.info({'id': org_id})
+        def shared_class_method(cls, org=None, repo=None):
+             if org is not None:
+                cls.org = org
              else:
                 # create the org
                 cls.org = make_org()
                 # upload manifest
              if repo_id is not None:
-                cls.repo = Repository.info({'id': repo_id})
+                cls.repo = repo
              else:
                 cls.repo = make_repository()
 
             # create a virtual machine
 
-            return {'org_id': cls.org['id'], 'repo_id': cls.repo['id']}
+            return dict(org=cls.org, repo=cls.repo}
 """
 import datetime
 import functools
