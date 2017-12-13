@@ -43,6 +43,7 @@ from robottelo.cli.settings import Settings
 from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
+    CUSTOM_FILE_REPO,
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
@@ -58,6 +59,7 @@ from robottelo.constants import (
     FAKE_7_PUPPET_REPO,
     FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
+    OS_TEMPLATE_DATA_FILE,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
     DOWNLOAD_POLICIES,
@@ -71,7 +73,8 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier4,
-    upgrade)
+    upgrade
+)
 from robottelo.datafactory import (
     invalid_http_credentials,
     invalid_values_list,
@@ -101,7 +104,7 @@ class RepositoryTestCase(CLITestCase):
         if RepositoryTestCase.product is None:
             RepositoryTestCase.product = make_product_wait(
                 {u'organization-id': RepositoryTestCase.org['id']},
-                )
+            )
 
     def _make_repository(self, options=None):
         """Makes a new repository and asserts its success"""
@@ -115,7 +118,7 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     @upgrade
-    def test_verify_bugzilla_1189289(self):
+    def test_positive_info_docker_upstream_name(self):
         """Check if repository docker-upstream-name is shown
         in repository info
 
@@ -123,6 +126,8 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: repository info command returns upstream-repository-
             name value
+
+        :BZ: 1189289
 
         :CaseImportance: Critical
         """
@@ -171,7 +176,7 @@ class RepositoryTestCase(CLITestCase):
                     u'name': name,
                 })
                 self.assertEqual(new_repo['name'], name)
-                self.assertNotEqual(new_repo['name'], new_repo['label'])
+                self.assertEqual(new_repo['label'], label)
 
     @run_only_on('sat')
     @tier1
@@ -184,8 +189,13 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for url in (FAKE_0_YUM_REPO, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO,
-                    FAKE_3_YUM_REPO, FAKE_4_YUM_REPO):
+        for url in (
+                FAKE_0_YUM_REPO,
+                FAKE_1_YUM_REPO,
+                FAKE_2_YUM_REPO,
+                FAKE_3_YUM_REPO,
+                FAKE_4_YUM_REPO
+        ):
             with self.subTest(url):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
@@ -205,8 +215,13 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for url in (FAKE_1_PUPPET_REPO, FAKE_2_PUPPET_REPO, FAKE_3_PUPPET_REPO,
-                    FAKE_4_PUPPET_REPO, FAKE_5_PUPPET_REPO):
+        for url in (
+                FAKE_1_PUPPET_REPO,
+                FAKE_2_PUPPET_REPO,
+                FAKE_3_PUPPET_REPO,
+                FAKE_4_PUPPET_REPO,
+                FAKE_5_PUPPET_REPO
+        ):
             with self.subTest(url):
                 new_repo = self._make_repository({
                     u'content-type': u'puppet',
@@ -214,6 +229,24 @@ class RepositoryTestCase(CLITestCase):
                 })
                 self.assertEqual(new_repo['url'], url)
                 self.assertEqual(new_repo['content-type'], u'puppet')
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_file_repo(self):
+        """Create file repository
+
+        :id: 46f63419-1acc-4ae2-be8c-d97816ba342f
+
+        :expectedresults: file repository is created
+
+        :CaseImportance: Critical
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'file',
+            u'url': CUSTOM_FILE_REPO,
+        })
+        self.assertEqual(new_repo['url'], CUSTOM_FILE_REPO)
+        self.assertEqual(new_repo['content-type'], u'file')
 
     @run_only_on('sat')
     @tier1
@@ -229,7 +262,7 @@ class RepositoryTestCase(CLITestCase):
         url = FAKE_5_YUM_REPO
         for creds in valid_http_credentials(url_encoded=True):
             url_encoded = url.format(creds['login'], creds['pass'])
-            with self.subTest(url):
+            with self.subTest(creds):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
                     u'url': url_encoded
@@ -280,8 +313,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_default_download_policy(self):
-        """Verify if the default download policy is assigned
-        when creating a YUM repo without `--download-policy`
+        """Verify if the default download policy is assigned when creating a
+        YUM repo without `--download-policy`
 
         :id: 9a3c4d95-d6ca-4377-9873-2c552b7d6ce7
 
@@ -300,8 +333,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_immediate_update_to_on_demand(self):
-        """Update `immediate` download policy to `on_demand`
-        for a newly created YUM repository
+        """Update `immediate` download policy to `on_demand` for a newly
+        created YUM repository
 
         :id: 1a80d686-3f7b-475e-9d1a-3e1f51d55101
 
@@ -322,8 +355,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_immediate_update_to_background(self):
-        """Update `immediate` download policy to `background`
-        for a newly created YUM repository
+        """Update `immediate` download policy to `background` for a newly
+        created YUM repository
 
         :id: 7a9243eb-012c-40ad-9105-b078ed0a9eda
 
@@ -344,8 +377,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_on_demand_update_to_immediate(self):
-        """Update `on_demand` download policy to `immediate`
-        for a newly created YUM repository
+        """Update `on_demand` download policy to `immediate` for a newly
+        created YUM repository
 
         :id: 1e8338af-32e5-4f92-9215-bfdc1973c8f7
 
@@ -366,8 +399,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_on_demand_update_to_background(self):
-        """Update `on_demand` download policy to `background`
-        for a newly created YUM repository
+        """Update `on_demand` download policy to `background` for a newly
+        created YUM repository
 
         :id: da600200-5bd4-4cb8-a891-37cd2233803e
 
@@ -388,8 +421,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_background_update_to_immediate(self):
-        """Update `background` download policy to `immediate`
-        for a newly created YUM repository
+        """Update `background` download policy to `immediate` for a newly
+        created YUM repository
 
         :id: cf4dca0c-36bd-4a3c-aa29-f435ac60b3f8
 
@@ -410,8 +443,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_background_update_to_on_demand(self):
-        """Update `background` download policy to `on_demand`
-        for a newly created YUM repository
+        """Update `background` download policy to `on_demand` for a newly
+        created YUM repository
 
         :id: 0f943e3d-44b7-4b6e-9a7d-d33f7f4864d1
 
@@ -443,7 +476,7 @@ class RepositoryTestCase(CLITestCase):
         url = FAKE_7_PUPPET_REPO
         for creds in valid_http_credentials(url_encoded=True):
             url_encoded = url.format(creds['login'], creds['pass'])
-            with self.subTest(url):
+            with self.subTest(creds):
                 new_repo = self._make_repository({
                     u'content-type': u'puppet',
                     u'url': url_encoded
@@ -475,7 +508,6 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['gpg-key']['name'], gpg_key['name'])
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1103944)
     @tier1
     def test_positive_create_with_gpg_key_by_name(self):
         """Check if repository can be created with gpg key name
@@ -662,8 +694,10 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         # get a list of valid credentials without quoting them
-        for cred in [creds for creds in valid_http_credentials()
-                     if creds['quote'] is True]:
+        for cred in [
+            creds for creds in valid_http_credentials()
+            if creds['quote'] is True
+        ]:
             with self.subTest(cred):
                 url = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
                 with self.assertRaises(CLIFactoryError):
@@ -687,7 +721,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_invalid_download_policy(self):
-        """Verify that YUM repository cannot be created with invalid download policy
+        """Verify that YUM repository cannot be created with invalid download
+        policy
 
         :id: 3b143bf8-7056-4c94-910d-69a451071f26
 
@@ -704,7 +739,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_to_invalid_download_policy(self):
-        """Verify that YUM repository cannot be updated to invalid download policy
+        """Verify that YUM repository cannot be updated to invalid download
+        policy
 
         :id: 5bd6a2e4-7ff0-42ac-825a-6b2a2f687c89
 
@@ -722,7 +758,8 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_non_yum_with_download_policy(self):
-        """Verify that non-YUM repositories cannot be created with download policy
+        """Verify that non-YUM repositories cannot be created with download
+        policy
 
         :id: 71388973-50ea-4a20-9406-0aca142014ca
 
@@ -784,7 +821,30 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1328092)
+    @tier2
+    def test_positive_synchronize_file_repo(self):
+        """Check if repository can be created and synced
+
+        :id: eafc421d-153e-41e1-afbd-938e556ef827
+
+        :expectedresults: Repository is created and synced
+
+        :CaseLevel: Integration
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'file',
+            u'url': CUSTOM_FILE_REPO,
+        })
+        # Assertion that repo is not yet synced
+        self.assertEqual(new_repo['sync']['status'], 'Not Synced')
+        # Synchronize it
+        Repository.synchronize({'id': new_repo['id']})
+        # Verify it has finished
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['sync']['status'], 'Success')
+        self.assertEqual(new_repo['content-counts']['files'], '3')
+
+    @run_only_on('sat')
     @tier2
     @upgrade
     def test_positive_synchronize_auth_yum_repo(self):
@@ -794,15 +854,19 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: Repository is created and synced
 
+        :BZ: 1328092
+
         :CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
-        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
-                      if cred['http_valid']]:
+        for creds in [
+            cred for cred in valid_http_credentials(url_encoded=True)
+            if cred['http_valid']
+        ]:
             url_encoded = url.format(
                 creds['login'], creds['pass']
             )
-            with self.subTest(url):
+            with self.subTest(creds):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
                     u'url': url_encoded,
@@ -829,12 +893,14 @@ class RepositoryTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
-        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
-                      if not cred['http_valid']]:
+        for creds in [
+            cred for cred in valid_http_credentials(url_encoded=True)
+            if not cred['http_valid']
+        ]:
             url_encoded = url.format(
                 creds['login'], creds['pass']
             )
-            with self.subTest(url):
+            with self.subTest(creds):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
                     u'url': url_encoded,
@@ -858,7 +924,6 @@ class RepositoryTestCase(CLITestCase):
                     )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1405503)
     @tier2
     @upgrade
     def test_positive_synchronize_auth_puppet_repo(self):
@@ -868,13 +933,17 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: Repository is created and synced
 
+        :BZ: 1405503
+
         :CaseLevel: Integration
         """
         url = FAKE_7_PUPPET_REPO
-        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
-                      if cred['http_valid']]:
+        for creds in [
+            cred for cred in valid_http_credentials(url_encoded=True)
+            if cred['http_valid']
+        ]:
             url_encoded = url.format(creds['login'], creds['pass'])
-            with self.subTest(url):
+            with self.subTest(creds):
                 new_repo = self._make_repository({
                     u'content-type': u'puppet',
                     u'url': url_encoded,
@@ -913,8 +982,6 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1459845)
-    @skip_if_bug_open('bugzilla', 1459874)
     @tier2
     def test_positive_resynchronize_rpm_repo(self):
         """Check that repository content is resynced after packages were
@@ -954,7 +1021,6 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['content-counts']['packages'], '32')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1459845)
     @tier2
     def test_positive_resynchronize_puppet_repo(self):
         """Check that repository content is resynced after puppet modules
@@ -1263,8 +1329,6 @@ class RepositoryTestCase(CLITestCase):
             Repository.info({u'id': new_repo['id']})
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1459845)
-    @skip_if_bug_open('bugzilla', 1459874)
     @tier1
     @upgrade
     def test_positive_remove_content_by_repo_name(self):
@@ -1311,8 +1375,6 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['content-counts']['packages'], '0')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1459845)
-    @skip_if_bug_open('bugzilla', 1459874)
     @tier1
     @upgrade
     def test_positive_remove_content_rpm(self):
@@ -1345,7 +1407,6 @@ class RepositoryTestCase(CLITestCase):
         self.assertEqual(repo['content-counts']['packages'], '0')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1459845)
     @tier1
     @upgrade
     def test_positive_remove_content_puppet(self):
@@ -1377,7 +1438,6 @@ class RepositoryTestCase(CLITestCase):
         repo = Repository.info({'id': repo['id']})
         self.assertEqual(repo['content-counts']['puppet-modules'], '0')
 
-    @skip_if_bug_open('bugzilla', 1343006)
     @tier1
     def test_positive_upload_content(self):
         """Create repository and upload content
@@ -1386,11 +1446,15 @@ class RepositoryTestCase(CLITestCase):
 
         :expectedresults: upload content is successful
 
+        :BZ: 1343006
+
         :CaseImportance: Critical
         """
-        new_repo = self._make_repository({'name': gen_string('alpha', 15)})
-        ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD),
-                        remote_file="/tmp/{0}".format(RPM_TO_UPLOAD))
+        new_repo = self._make_repository({'name': gen_string('alpha')})
+        ssh.upload_file(
+            local_file=get_data_file(RPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(RPM_TO_UPLOAD)
+        )
         result = Repository.upload_content({
             'name': new_repo['name'],
             'organization': new_repo['organization'],
@@ -1401,6 +1465,43 @@ class RepositoryTestCase(CLITestCase):
             "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
             result[0]['message'],
         )
+
+    @tier1
+    def test_positive_upload_content_to_file_repo(self):
+        """Create file repository and upload content to it
+
+        :id: 5e24b416-2928-4533-96cf-6bffbea97a95
+
+        :expectedresults: upload content operation is successful
+
+        :BZ: 1446975
+
+        :CaseImportance: Critical
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'file',
+            u'url': CUSTOM_FILE_REPO,
+        })
+        Repository.synchronize({'id': new_repo['id']})
+        # Verify it has finished
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['content-counts']['files'], '3')
+        ssh.upload_file(
+            local_file=get_data_file(OS_TEMPLATE_DATA_FILE),
+            remote_file="/tmp/{0}".format(OS_TEMPLATE_DATA_FILE)
+        )
+        result = Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(OS_TEMPLATE_DATA_FILE),
+            'product-id': new_repo['product']['id'],
+        })
+        self.assertIn(
+            "Successfully uploaded file '{0}'".format(OS_TEMPLATE_DATA_FILE),
+            result[0]['message'],
+        )
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['content-counts']['files'], '4')
 
     @skip_if_bug_open('bugzilla', 1436209)
     @run_only_on('sat')
@@ -1573,8 +1674,10 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
-        ssh.upload_file(local_file=get_data_file(SRPM_TO_UPLOAD),
-                        remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD))
+        ssh.upload_file(
+            local_file=get_data_file(SRPM_TO_UPLOAD),
+            remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD)
+        )
         result = Repository.upload_content({
             'name': new_repo['name'],
             'organization': new_repo['organization'],
@@ -1627,8 +1730,8 @@ class OstreeRepositoryTestCase(CLITestCase):
                     u'publish-via-http': u'false',
                     u'url': FEDORA23_OSTREE_REPO,
                 })
-        self.assertEqual(new_repo['name'], name)
-        self.assertEqual(new_repo['content-type'], u'ostree')
+                self.assertEqual(new_repo['name'], name)
+                self.assertEqual(new_repo['content-type'], u'ostree')
 
     @tier1
     @skip_if_bug_open('bugzilla', 1370108)
