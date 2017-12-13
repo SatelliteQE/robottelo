@@ -11,6 +11,7 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 """
 import logging
 import os
+import uuid
 
 from robottelo import ssh
 from robottelo.config import settings
@@ -91,7 +92,7 @@ class VirtualMachine(object):
         self._created = False
         self._subscribed = False
         self._source_image = source_image or u'{0}-base'.format(self.distro)
-        self._target_image = target_image or str(id(self))
+        self._target_image = target_image or uuid.uuid4().hex
         if tag:
             self._target_image = tag + self._target_image
         self.bridge = bridge
