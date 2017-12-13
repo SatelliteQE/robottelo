@@ -1148,6 +1148,7 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         ).create()
         content_view.publish()
         content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
         self.assertEqual(len(content_view.version[0].read().puppet_module), 0)
         comp_content_view = entities.ContentView(
             component=[content_view.version[0].id],
@@ -1156,6 +1157,9 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         ).create()
         comp_content_view.publish()
         comp_content_view = comp_content_view.read()
+        self.assertEqual(len(comp_content_view.version), 1)
+        self.assertEqual(
+            len(comp_content_view.version[0].read().puppet_module), 0)
         puppet_repo = entities.Repository(
             content_type='puppet',
             product=product,

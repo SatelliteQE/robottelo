@@ -4521,6 +4521,10 @@ class ContentViewTestCase(CLITestCase):
         })
         ContentView.publish({'id': comp_content_view['id']})
         comp_content_view = ContentView.info({'id': comp_content_view['id']})
+        self.assertEqual(len(comp_content_view['versions']), 1)
+        comp_cvv = ContentView.version_info({
+            'id': comp_content_view['versions'][0]['id']})
+        self.assertEqual(len(comp_cvv['puppet-modules']), 0)
         puppet_repository = make_repository({
             'content-type': 'puppet',
             'product-id': self.product['id'],
