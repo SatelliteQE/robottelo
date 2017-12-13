@@ -246,7 +246,7 @@ tab_locators = LocatorDict({
         "//a[@class='ng-scope' and contains(@href,'provisioning')]"),
     "contenthost.tab_provisioning_details_host_link": (
         By.XPATH,
-        "//span[@class='info-value']/a[contains(@href,'hosts')]"),
+        "//dd/a[contains(@href,'hosts')]"),
     "contenthost.tab_subscriptions": (
         By.XPATH,
         ("//li[@class='dropdown' and contains(@ng-class, "
