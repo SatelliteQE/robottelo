@@ -299,6 +299,44 @@ class CapsuleSettings(FeatureSettings):
         return validation_errors
 
 
+class CertsSettings(FeatureSettings):
+    """Katello-certs settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(CertsSettings, self).__init__(*args, **kwargs)
+        self.cert_file = None
+        self.key_file = None
+        self.req_file = None
+        self.ca_bundle_file = None
+
+    def read(self, reader):
+        """Read certs settings."""
+        self.cert_file = reader.get('certs', 'CERT_FILE')
+        self.key_file = reader.get('certs', 'KEY_FILE')
+        self.req_file = reader.get('certs', 'REQ_FILE')
+        self.ca_bundle_file = reader.get('certs', 'CA_BUNDLE_FILE')
+
+    def validate(self):
+        """Validate certs settings."""
+        validation_errors = []
+        if self.cert_file is None:
+            validation_errors.append(
+                '[certs] cert_file option must be provided.'
+            )
+        if self.key_file is None:
+            validation_errors.append(
+                '[certs] key_file option must be provided.'
+            )
+        if self.req_file is None:
+            validation_errors.append(
+                '[certs] req_file option must be provided.'
+            )
+        if self.ca_bundle_file is None:
+            validation_errors.append(
+                '[certs] ca_bundle_file option must be provided.'
+            )
+        return validation_errors
+
+
 class ClientsSettings(FeatureSettings):
     """Clients settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -983,6 +1021,7 @@ class Settings(object):
         self.bugzilla = BugzillaSettings()
         # Features
         self.capsule = CapsuleSettings()
+        self.certs = CertsSettings()
         self.clients = ClientsSettings()
         self.compute_resources = LibvirtHostSettings()
         self.discovery = DiscoveryISOSettings()
