@@ -321,11 +321,9 @@ class UserRoleTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Create two roles and fetch the 'Anonymous' role."""
+        """Create two roles."""
         super(UserRoleTestCase, cls).setUpClass()
         cls.roles = [entities.Role().create() for _ in range(2)]
-        roles = entities.Role().search(query={'search': 'name="Default role"'})
-        cls.anon_role = roles[0]
 
     @tier1
     def test_positive_create_with_role(self):
@@ -333,22 +331,22 @@ class UserRoleTestCase(APITestCase):
 
         :id: 32daacf1-eed4-49b1-81e1-ab0a5b0113f2
 
-        :expectedresults: A user is created with the given role(s) and the
-            default 'Anonymous' role.
+        :expectedresults: A user is created with the given role(s).
 
         This test targets BZ 1216239.
 
         :CaseImportance: Critical
         """
-        for i in range(2):
-            chosen_roles = self.roles[0:i]
-            user = entities.User(role=chosen_roles).create()
-            self.assertEqual(len(user.role), i + 1)
-            self.assertEqual(
-                set([role.id for role in user.role]),
-                # pylint:disable=no-member
-                set([role.id for role in chosen_roles] + [self.anon_role.id]),
-            )
+        for i in range(1, len(self.roles) + 1):
+            with self.subTest(str(i)):
+                chosen_roles = self.roles[:i]
+                user = entities.User(role=chosen_roles).create()
+                self.assertEqual(len(user.role), i)
+                self.assertEqual(
+                    set([role.id for role in user.role]),
+                    # pylint:disable=no-member
+                    set([role.id for role in chosen_roles]),
+                )
 
     @tier1
     @upgrade
@@ -357,28 +355,24 @@ class UserRoleTestCase(APITestCase):
 
         :id: 7fdca879-d65f-44fa-b9f2-b6bb5df30c2d
 
-        :expectedresults: The user has whatever roles are given, plus the
-            'Anonymous' role.
+        :expectedresults: The user has whatever roles are given.
 
         This test targets BZ 1216239.
 
         :CaseImportance: Critical
         """
         user = entities.User().create()
-        self.assertEqual(len(user.role), 1)  # the 'Anonymous' role
-        self.assertEqual(
-            user.role[0].id,
-            self.anon_role.id  # pylint:disable=no-member
-        )
-        for i in range(2):
-            chosen_roles = self.roles[0:i]
-            user.role = chosen_roles
-            user = user.update(['role'])
-            self.assertEqual(
-                set([role.id for role in user.role]),
-                # pylint:disable=no-member
-                set([role.id for role in chosen_roles] + [self.anon_role.id]),
-            )
+        self.assertEqual(len(user.role), 0)  # No roles assigned
+        for i in range(1, len(self.roles) + 1):
+            with self.subTest(str(i)):
+                chosen_roles = self.roles[:i]
+                user.role = chosen_roles
+                user = user.update(['role'])
+                self.assertEqual(
+                    set([role.id for role in user.role]),
+                    # pylint:disable=no-member
+                    set([role.id for role in chosen_roles]),
+                )
 
 
 class SshKeyInUserTestCase(APITestCase):
