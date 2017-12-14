@@ -425,6 +425,10 @@ DOCKER_UPSTREAM_NAME = u'busybox'
 DOCKER_RH_REGISTRY_UPSTREAM_NAME = (
     u'openshift3/ose-metrics-hawkular-openshift-agent'
 )
+CUSTOM_FILE_REPO = (
+    u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/file/'
+)
+CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_REPO = (
     u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
 )
