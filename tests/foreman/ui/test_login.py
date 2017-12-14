@@ -17,7 +17,14 @@
 """
 
 from fauxfactory import gen_string
-from robottelo.datafactory import filtered_datapoint
+from nailgun import entities
+
+from robottelo.datafactory import (
+    add_uppercase_char_into_string,
+    filtered_datapoint,
+    valid_data_list,
+    valid_usernames_list
+)
 from robottelo.decorators import tier1
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
@@ -52,6 +59,46 @@ class LoginTestCase(UITestCase):
         with Session(
                 self, user=self.foreman_user, password=self.foreman_password):
             self.assertTrue(self.login.is_logged())
+
+    @tier1
+    def test_positive_login_with_different_usernames(self):
+        """Login to application using different combinations of data as user
+        name
+
+        :id: db515a23-a8b8-44fc-8cd5-085d9b687c93
+
+        :expectedresults: Successfully logged in
+
+        :CaseImportance: Critical
+        """
+        for login in valid_usernames_list() + [
+                add_uppercase_char_into_string()]:
+            with self.subTest(login):
+                user = entities.User(
+                    login=login, password='test', admin=False).create()
+                self.assertIsNotNone(user)
+                with Session(self, user=login, password='test'):
+                    self.assertTrue(self.login.is_logged())
+
+    @tier1
+    def test_positive_login_with_different_passwords(self):
+        """Login to application using different combinations of data as
+        password
+
+        :id: c67cbf7c-2f0b-4655-a34d-b6511f13e44f
+
+        :expectedresults: Successfully logged in
+
+        :CaseImportance: Critical
+        """
+        for pwd in valid_data_list() + [add_uppercase_char_into_string()]:
+            with self.subTest(pwd):
+                login = gen_string('alpha', 20)
+                user = entities.User(
+                    login=login, password=pwd, admin=False).create()
+                self.assertIsNotNone(user)
+                with Session(self, user=login, password=pwd):
+                    self.assertTrue(self.login.is_logged())
 
     @tier1
     def test_negative_login(self):
