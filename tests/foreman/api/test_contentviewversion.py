@@ -1109,3 +1109,87 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
             content_view.version[1].puppet_module[0].id,
             puppet_module.id,
         )
+
+    @tier2
+    def test_positive_incremental_update_propagate_composite(self):
+        """Incrementally update a CVV in composite CV with
+        `propagate_all_composites` flag set
+
+        :BZ: 1288148
+
+        :id: 1ddcb2ef-3819-442e-b070-cf44aba58dcd
+
+        :Steps:
+
+            1. Create and publish CV with some content
+            2. Create composite CV, add previously created CV inside it
+            3. Publish composite CV
+            4. Create a puppet repository and upload a puppet module into it
+            5. Incrementally update the CVV with the puppet module with
+               `propagate_all_composites` flag set to `True`
+
+        :expectedresults:
+
+            1. The incremental update succeeds with no errors
+            2. New incremental CVV contains new puppet module
+            3. New incremental composite CVV contains new puppet module
+
+        :CaseLevel: Integration
+        """
+        product = entities.Product().create()
+        yum_repo = entities.Repository(
+            content_type='yum',
+            product=product,
+        ).create()
+        yum_repo.sync()
+        content_view = entities.ContentView(
+            organization=product.organization,
+            repository=[yum_repo],
+        ).create()
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        self.assertEqual(len(content_view.version[0].read().puppet_module), 0)
+        comp_content_view = entities.ContentView(
+            component=[content_view.version[0].id],
+            composite=True,
+            organization=product.organization,
+        ).create()
+        comp_content_view.publish()
+        comp_content_view = comp_content_view.read()
+        self.assertEqual(len(comp_content_view.version), 1)
+        self.assertEqual(
+            len(comp_content_view.version[0].read().puppet_module), 0)
+        puppet_repo = entities.Repository(
+            content_type='puppet',
+            product=product,
+        ).create()
+        with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
+            puppet_repo.upload_content(files={'content': handle})
+        puppet_modules = content_view.available_puppet_modules()['results']
+        self.assertGreater(len(puppet_modules), 0)
+        puppet_module = entities.PuppetModule(
+            id=puppet_modules[0]['id']
+        )
+        content_view.version[0].incremental_update(data={
+            'content_view_version_environments': [{
+                'content_view_version_id': content_view.version[0].id,
+                'environment_ids': [
+                    environment.id
+                    for environment
+                    in content_view.version[0].read().environment
+                ],
+            }],
+            'add_content': {'puppet_module_ids': [puppet_module.id]},
+            'propagate_all_composites': True,
+        })
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 2)
+        cvv = content_view.version[-1].read()
+        self.assertEqual(len(cvv.puppet_module), 1)
+        self.assertEqual(cvv.puppet_module[0].id, puppet_module.id)
+        comp_content_view = comp_content_view.read()
+        self.assertEqual(len(comp_content_view.version), 2)
+        comp_cvv = comp_content_view.version[-1].read()
+        self.assertEqual(len(comp_cvv.puppet_module), 1)
+        self.assertEqual(comp_cvv.puppet_module[0].id, puppet_module.id)
