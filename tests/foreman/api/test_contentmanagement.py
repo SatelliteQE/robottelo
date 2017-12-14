@@ -149,6 +149,32 @@ class CapsuleContentManagementTestCase(APITestCase):
         proxy.update(['download_policy'])
 
     @tier4
+    def test_positive_insights_puppet_package_availability(self):
+        """Check `redhat-access-insights-puppet` package availability for
+        capsule
+
+        :BZ: 1315844
+
+        :id: a31b0e21-aa5d-44e2-a408-5e01b79db3a1
+
+        :expectedresults: `redhat-access-insights-puppet` package is delivered
+            in capsule repo and is available for installation on capsule via
+            yum
+
+        :CaseLevel: System
+        """
+        package_name = 'redhat-access-insights-puppet'
+        result = ssh.command(
+            'yum list available | grep {}'.format(package_name),
+            hostname=self.capsule_hostname
+        )
+        self.assertEqual(result.return_code, 0)
+        # remove empty lines from output if any
+        result = [line for line in result.stdout if line]
+        self.assertGreaterEqual(len(result), 1)
+        self.assertIn(package_name, result[0])
+
+    @tier4
     def test_positive_uploaded_content_library_sync(self):
         """Ensure custom repo with no upstream url and manually uploaded
         content after publishing to Library is synchronized to capsule
