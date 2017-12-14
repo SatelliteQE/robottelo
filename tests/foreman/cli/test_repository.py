@@ -44,6 +44,7 @@ from robottelo.cli.user import User
 from robottelo.constants import (
     FEDORA23_OSTREE_REPO,
     CUSTOM_FILE_REPO,
+    CUSTOM_FILE_REPO_FILES_COUNT,
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
@@ -66,7 +67,6 @@ from robottelo.constants import (
     REPO_TYPE
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -232,6 +232,7 @@ class RepositoryTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_file_repo(self):
         """Create file repository
 
@@ -262,7 +263,7 @@ class RepositoryTestCase(CLITestCase):
         url = FAKE_5_YUM_REPO
         for creds in valid_http_credentials(url_encoded=True):
             url_encoded = url.format(creds['login'], creds['pass'])
-            with self.subTest(creds):
+            with self.subTest(url_encoded):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
                     u'url': url_encoded
@@ -476,7 +477,7 @@ class RepositoryTestCase(CLITestCase):
         url = FAKE_7_PUPPET_REPO
         for creds in valid_http_credentials(url_encoded=True):
             url_encoded = url.format(creds['login'], creds['pass'])
-            with self.subTest(creds):
+            with self.subTest(url_encoded):
                 new_repo = self._make_repository({
                     u'content-type': u'puppet',
                     u'url': url_encoded
@@ -698,10 +699,10 @@ class RepositoryTestCase(CLITestCase):
             creds for creds in valid_http_credentials()
             if creds['quote'] is True
         ]:
-            with self.subTest(cred):
-                url = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
+            url_encoded = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
+            with self.subTest(url_encoded):
                 with self.assertRaises(CLIFactoryError):
-                    self._make_repository({u'url': url})
+                    self._make_repository({u'url': url_encoded})
 
     @tier1
     def test_negative_create_with_auth_url_too_long(self):
@@ -714,10 +715,10 @@ class RepositoryTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         for cred in invalid_http_credentials():
-            with self.subTest(cred):
-                url = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
+            url_encoded = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
+            with self.subTest(url_encoded):
                 with self.assertRaises(CLIFactoryError):
-                    self._make_repository({u'url': url})
+                    self._make_repository({u'url': url_encoded})
 
     @tier1
     def test_negative_create_with_invalid_download_policy(self):
@@ -779,10 +780,8 @@ class RepositoryTestCase(CLITestCase):
             ]
         else:
             non_yum_repo_types = [
-                 item for item in REPO_TYPE.keys() if item != 'yum'
+                item for item in REPO_TYPE.keys() if item != 'yum'
             ]
-        if bz_bug_is_open(1439835):
-            non_yum_repo_types.remove('ostree')
         for content_type in non_yum_repo_types:
             with self.subTest(content_type):
                 with self.assertRaisesRegex(
@@ -796,7 +795,7 @@ class RepositoryTestCase(CLITestCase):
                     })
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_positive_synchronize_yum_repo(self):
         """Check if repository can be created and synced
 
@@ -821,7 +820,7 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
-    @tier2
+    @tier1
     def test_positive_synchronize_file_repo(self):
         """Check if repository can be created and synced
 
@@ -842,7 +841,10 @@ class RepositoryTestCase(CLITestCase):
         # Verify it has finished
         new_repo = Repository.info({'id': new_repo['id']})
         self.assertEqual(new_repo['sync']['status'], 'Success')
-        self.assertEqual(new_repo['content-counts']['files'], '3')
+        self.assertEqual(
+            int(new_repo['content-counts']['files']),
+            CUSTOM_FILE_REPO_FILES_COUNT
+        )
 
     @run_only_on('sat')
     @tier2
@@ -866,7 +868,7 @@ class RepositoryTestCase(CLITestCase):
             url_encoded = url.format(
                 creds['login'], creds['pass']
             )
-            with self.subTest(creds):
+            with self.subTest(url_encoded):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
                     u'url': url_encoded,
@@ -900,7 +902,7 @@ class RepositoryTestCase(CLITestCase):
             url_encoded = url.format(
                 creds['login'], creds['pass']
             )
-            with self.subTest(creds):
+            with self.subTest(url_encoded):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
                     u'url': url_encoded,
@@ -943,7 +945,7 @@ class RepositoryTestCase(CLITestCase):
             if cred['http_valid']
         ]:
             url_encoded = url.format(creds['login'], creds['pass'])
-            with self.subTest(creds):
+            with self.subTest(url_encoded):
                 new_repo = self._make_repository({
                     u'content-type': u'puppet',
                     u'url': url_encoded,
@@ -1485,7 +1487,10 @@ class RepositoryTestCase(CLITestCase):
         Repository.synchronize({'id': new_repo['id']})
         # Verify it has finished
         new_repo = Repository.info({'id': new_repo['id']})
-        self.assertEqual(new_repo['content-counts']['files'], '3')
+        self.assertEqual(
+            int(new_repo['content-counts']['files']),
+            CUSTOM_FILE_REPO_FILES_COUNT
+        )
         ssh.upload_file(
             local_file=get_data_file(OS_TEMPLATE_DATA_FILE),
             remote_file="/tmp/{0}".format(OS_TEMPLATE_DATA_FILE)
@@ -1501,7 +1506,10 @@ class RepositoryTestCase(CLITestCase):
             result[0]['message'],
         )
         new_repo = Repository.info({'id': new_repo['id']})
-        self.assertEqual(new_repo['content-counts']['files'], '4')
+        self.assertEqual(
+            int(new_repo['content-counts']['files']),
+            CUSTOM_FILE_REPO_FILES_COUNT + 1
+        )
 
     @skip_if_bug_open('bugzilla', 1436209)
     @run_only_on('sat')
