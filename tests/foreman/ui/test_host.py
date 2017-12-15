@@ -748,7 +748,13 @@ class HostTestCase(UITestCase):
             location=[default_loc],
             default_organization=self.session_org,
         ).create()
+        # Read session org details for default cv and lce
+        org = entities.Organization(id=self.session_org.id).read()
         host = entities.Host(
+            content_facet_attributes={
+                'content_view_id': org.default_content_view.id,
+                'lifecycle_environment_id': org.library.id,
+            },
             location=default_loc,
             organization=self.session_org,
             host_parameters_attributes=[
@@ -970,7 +976,7 @@ class HostTestCase(UITestCase):
                 with self.assertRaises(UINoSuchElementError):
                     self.hosts.assign_value(
                         entity['locator'], entity['unexpected_entity'].name)
-                self.hosts.click(entity['locator'])
+                self.hosts.perform_action_send_escape_key()
                 self.hosts.assign_value(
                     entity['locator'], entity['expected_entity'].name)
 
