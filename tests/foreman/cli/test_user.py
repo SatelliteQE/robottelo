@@ -29,6 +29,7 @@ from robottelo.cli.factory import make_location, make_org, make_role, make_user
 from robottelo.cli.role import Role
 from robottelo.cli.user import User
 from robottelo.config import settings
+from robottelo.constants import DEFAULT_ROLE
 from robottelo.datafactory import (
     invalid_emails_list,
     invalid_names_list,
@@ -705,7 +706,9 @@ class UserWithCleanUpTestCase(CLITestCase):
                 yield make_role({'name': role_name})
 
         cls.stubbed_roles = {role['id']: role for role in roles_helper()}
-        cls.all_roles = {role['id']: role for role in Role.list()}
+        # Get all user roles except default one due to BZ 1518654
+        cls.all_user_roles = {role['id']: role for role in Role.list()
+                              if role['name'] != DEFAULT_ROLE}
 
     @classmethod
     def tearDownClass(cls):
@@ -1144,7 +1147,7 @@ class UserWithCleanUpTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        self.assert_user_roles(self.all_roles)
+        self.assert_user_roles(self.all_user_roles)
 
 
 class SshKeyInUserTestCase(CLITestCase):

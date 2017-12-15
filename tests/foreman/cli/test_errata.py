@@ -45,7 +45,6 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.constants import (
-    DEFAULT_ROLE,
     DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE,
@@ -1751,7 +1750,7 @@ class ErrataTestCase(CLITestCase):
         # make sure the user is not admin and has only the permissions assigned
         user = User.info({'id': user['id']})
         self.assertEqual(user['admin'], 'no')
-        self.assertEqual(set(user['roles']), {DEFAULT_ROLE, role['name']})
+        self.assertEqual(set(user['roles']), {role['name']})
         # try to get organization info
         # get the info as admin user first
         org_info = Org.info({'id': org['id']})
