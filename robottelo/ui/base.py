@@ -15,7 +15,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -879,7 +878,10 @@ class Base(object):
         ]
         return cell_values
 
-    def perform_action_send_escape_key(self):
-        """Send escape key to browser"""
-        ActionChains(self.browser).send_keys(Keys.ESCAPE).perform()
+    def perform_action_send_key_to_browser(self, key):
+        """Send some key(s) to browser.
+
+        :param key: Key(s) to send to browser.
+        """
+        ActionChains(self.browser).send_keys(key).perform()
         self.wait_for_ajax()
