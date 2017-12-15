@@ -976,8 +976,7 @@ class HostTestCase(UITestCase):
                 with self.assertRaises(UINoSuchElementError):
                     self.hosts.assign_value(
                         entity['locator'], entity['unexpected_entity'].name)
-                self.browser.execute_script("$('#select2-drop-mask').hide()")
-                self.hosts.click(entity['locator'])
+                self.hosts.perform_action_send_escape_key()
                 self.hosts.assign_value(
                     entity['locator'], entity['expected_entity'].name)
 
