@@ -24,8 +24,9 @@ from robottelo.ssh import get_connection
 from robottelo.test import TestCase
 from time import sleep
 
-NOVALID_MSG = '**** Given directory is not valid ****'
-NOFILES_MSG = '**** Given directory does not contain necessary files ****'
+NOEXIST_MSG = 'Backup directory does not exist'
+NOFILES_MSG = 'Cannot find the required'
+NOVALID_MSG = 'Please specify the backup directory to restore'
 
 
 def make_random_tmp_directory(connection):
@@ -54,7 +55,8 @@ class RestoreTestCase(TestCase):
                 timeout=1600,
                 output_format='plain'
             )
-            cls.assertEqual(result.return_code, 0)
+            if result.return_code != 0:
+                raise AssertionError("Failed to start services")
 
     def check_services_status(self, max_attempts=5):
         for _ in range(max_attempts):
@@ -92,7 +94,7 @@ class RestoreTestCase(TestCase):
                 output_format='plain'
             )
             self.assertEqual(result.return_code, 1)
-            self.assertIn(NOVALID_MSG, result.stdout)
+            self.assertIn(NOVALID_MSG, result.stderr)
             self.check_services_status()
 
     @destructive
@@ -115,8 +117,8 @@ class RestoreTestCase(TestCase):
                 'katello-restore -y {}'.format(name),
                 output_format='plain'
             )
-            self.assertEqual(result.return_code, 255)
-            self.assertIn(NOVALID_MSG, result.stdout)
+            self.assertEqual(result.return_code, 1)
+            self.assertIn(NOEXIST_MSG, result.stderr)
             self.check_services_status()
 
     @destructive
@@ -173,7 +175,7 @@ class RestoreTestCase(TestCase):
             self.assertEqual(result.return_code, 0)
             entities.User(login=username2).create()
             result = connection.run(
-                'katello-restore -y /tmp/{0}/satellite-backup*'
+                'katello-restore -y /tmp/{0}/katello-backup*'
                 .format(dir_name),
                 timeout=1600)
             self.assertEqual(result.return_code, 0)
@@ -223,7 +225,7 @@ class RestoreTestCase(TestCase):
                 'katello-backup -y '
                 '--skip-pulp-content '
                 '--online-backup /tmp/{0} '
-                '--incremental /tmp/{1}/*'
+                '--incremental /tmp/{1}/katello-backup*'
                 .format(b2, b1),
                 output_format='plain'
             )
@@ -231,7 +233,7 @@ class RestoreTestCase(TestCase):
 
             # restore from the base backup
             result = connection.run(
-                'katello-restore -y /tmp/{0}/satellite-backup*'
+                'katello-restore -y /tmp/{0}/katello-backup*'
                 .format(b1),
                 timeout=1600)
             self.assertEqual(result.return_code, 0)
@@ -243,7 +245,7 @@ class RestoreTestCase(TestCase):
 
             # restore from the incremental backup
             result = connection.run(
-                'katello-restore -y /tmp/{0}/satellite-backup*'
+                'katello-restore -y /tmp/{0}/katello-backup*'
                 .format(b2),
                 timeout=1600)
             self.assertEqual(result.return_code, 0)
