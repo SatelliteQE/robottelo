@@ -47,7 +47,6 @@ from robottelo.cli.user import User
 from robottelo.constants import (
     CUSTOM_PUPPET_REPO,
     DEFAULT_CV,
-    DEFAULT_ROLE,
     DISTRO_RHEL7,
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
@@ -4332,7 +4331,6 @@ class ContentViewTestCase(CLITestCase):
             })
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1464414)
     @tier2
     def test_positive_user_with_all_cv_permissions(self):
         """A user with all content view permissions is able to create,
@@ -4344,6 +4342,8 @@ class ContentViewTestCase(CLITestCase):
 
         :expectedresults: User is able to perform create, read, modify,
             promote, publish content view
+
+        :BZ: 1464414
 
         :CaseLevel: Integration
         """
@@ -4370,7 +4370,7 @@ class ContentViewTestCase(CLITestCase):
         # Make sure user is not admin and has only expected roles assigned
         user = User.info({'id': user['id']})
         self.assertEqual(user['admin'], 'no')
-        self.assertEqual(set(user['roles']), {DEFAULT_ROLE, role['name']})
+        self.assertEqual(set(user['roles']), {role['name']})
         # Verify user can either edit CV
         ContentView.with_user(user['login'], password).info({'id': cv['id']})
         new_name = gen_string('alphanumeric')
