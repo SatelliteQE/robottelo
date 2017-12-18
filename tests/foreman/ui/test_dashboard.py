@@ -393,6 +393,8 @@ class DashboardTestCase(UITestCase):
         :CaseLevel: Integration
         """
         org = entities.Organization().create()
+        with self.assertRaises(HTTPError):
+            entities.Organization(name=org.name).create()
         content_view = entities.ContentView(organization=org).create()
         content_view.publish()
         with Session(self) as session:
@@ -406,7 +408,7 @@ class DashboardTestCase(UITestCase):
                     content_view.name, org.name)
             ))
             self.assertTrue(self.dashboard.validate_task_navigation(
-                'warning', 'state=stopped&result=warning'))
+                'error', 'state=stopped&result=error'))
 
     @skip_if_bug_open('bugzilla', 1460240)
     @tier2
