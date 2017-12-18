@@ -275,10 +275,9 @@ class RoleTestCase(UITestCase):
 
         :CaseImportance: Critical
         """
-        locs = []
-        for _ in range(6):
-            locs.append(
-                entities.Location(organization=[self.session_org]).create())
+        org = entities.Organization().create()
+        locs = [
+            entities.Location(organization=[org]).create() for _ in range(6)]
         self.session_user.location += locs
         self.session_user = self.session_user.update(['location'])
         self.assertTrue(
