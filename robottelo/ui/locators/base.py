@@ -578,28 +578,28 @@ locators = LocatorDict({
     ),
     "resource.compute_profile.vmware_storage_datastore": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div[contains(@id, 'datastore')]"
          "/a/span[contains(@class, 'arrow')]")
     ),
     "resource.compute_profile.vmware_storage_size": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div/input[contains(@id,'size_gb')]")
     ),
     "resource.compute_profile.vmware_storage_thin_provision": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div/input[contains(@id,'thin')]")
     ),
     "resource.compute_profile.vmware_storage_eager_zero": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div/input[contains(@id,'eager_zero')]")
     ),
     "resource.compute_profile.vmware_disk_mode": (
         By.XPATH,
-        ("//div/fieldset[@id='storage_volumes']"
+        ("//fieldset[@id='storage_volumes']"
          "//div[contains(@id, 'mode')]"
          "/a/span[contains(@class, 'arrow')]")
     ),
