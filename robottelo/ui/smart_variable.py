@@ -51,6 +51,8 @@ class SmartVariable(Base):
         if matcher_priority:
             self.assign_value(
                 locators['smart_variable.matcher_priority'], matcher_priority)
+            self.execute_js_event(self.wait_until_element(
+                locators['smart_variable.matcher_priority']))
         if matcher_merge_overrides is not None:
             self.assign_value(
                 locators['smart_variable.merge_overrides'],
