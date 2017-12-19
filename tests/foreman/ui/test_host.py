@@ -15,7 +15,6 @@
 
 :Upstream: No
 """
-from selenium.webdriver.common.keys import Keys
 import six
 import yaml
 
@@ -977,7 +976,7 @@ class HostTestCase(UITestCase):
                 with self.assertRaises(UINoSuchElementError):
                     self.hosts.assign_value(
                         entity['locator'], entity['unexpected_entity'].name)
-                self.hosts.perform_action_send_key_to_browser(Keys.ESCAPE)
+                self.hosts.perform_action_send_keys_to_browser("escape")
                 self.hosts.assign_value(
                     entity['locator'], entity['expected_entity'].name)
 

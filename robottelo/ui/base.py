@@ -15,6 +15,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -878,10 +879,20 @@ class Base(object):
         ]
         return cell_values
 
-    def perform_action_send_key_to_browser(self, key):
+    def perform_action_send_keys_to_browser(self, keys):
         """Send some key(s) to browser.
 
-        :param key: Key(s) to send to browser.
+        :param keys: Key(s) to send to browser. Keys may be several keys
+            including special, like ``control+shift+q``, single special or
+            simple key, e.g. ``escape``, ``q``.
         """
-        ActionChains(self.browser).send_keys(key).perform()
+        if '+' in keys:
+            keys_to_send = ''.join(
+                getattr(Keys, key.upper()) if key.upper() in dir(Keys) else
+                key for key in keys.split('+'))
+        elif keys.upper() in dir(Keys):
+            keys_to_send = getattr(Keys, keys.upper())
+        else:
+            keys_to_send = keys
+        ActionChains(self.browser).send_keys(keys_to_send).perform()
         self.wait_for_ajax()
