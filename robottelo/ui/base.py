@@ -886,13 +886,8 @@ class Base(object):
             including special, like ``control+shift+q``, single special or
             simple key, e.g. ``escape``, ``q``.
         """
-        if '+' in keys:
-            keys_to_send = ''.join(
-                getattr(Keys, key.upper()) if key.upper() in dir(Keys) else
-                key for key in keys.split('+'))
-        elif keys.upper() in dir(Keys):
-            keys_to_send = getattr(Keys, keys.upper())
-        else:
-            keys_to_send = keys
+        keys_to_send = ''.join(
+            getattr(Keys, key.upper()) if key.upper() in dir(Keys) else
+            key for key in keys.split('+'))
         ActionChains(self.browser).send_keys(keys_to_send).perform()
         self.wait_for_ajax()
