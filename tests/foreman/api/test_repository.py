@@ -1169,7 +1169,9 @@ class RepositoryTestCase(APITestCase):
 
         :BZ: 1242310
 
-        :CaseImportance: Integration
+        :CaseLevel: Integration
+
+        :CaseImportance: High
         """
         # create a new protected repository
         repository = entities.Repository(
