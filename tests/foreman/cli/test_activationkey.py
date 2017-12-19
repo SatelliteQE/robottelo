@@ -904,15 +904,11 @@ class ActivationKeyTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        new_ak = self._make_activation_key()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': self.org['id'],
-        })
+        org = make_org()
+        new_ak = self._make_activation_key({'organization-id': org['id']})
+        self.upload_manifest(org['id'], manifests.clone())
         subscription_result = Subscription.list({
-            'organization-id': self.org['id'],
+            'organization-id': org['id'],
             'order': 'id desc'
         }, per_page=False)
         result = ActivationKey.add_subscription({
@@ -922,7 +918,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn('Subscription added to activation key', result)
         ak_subs_info = ActivationKey.subscriptions({
             u'id': new_ak['id'],
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         self.assertEqual(len(ak_subs_info), 6)
         result = ActivationKey.remove_subscription({
@@ -932,7 +928,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn('Subscription removed from activation key', result)
         ak_subs_info = ActivationKey.subscriptions({
             u'id': new_ak['id'],
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         self.assertEqual(len(ak_subs_info), 4)
 
@@ -1281,15 +1277,11 @@ class ActivationKeyTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         # Begin test setup
-        parent_ak = self._make_activation_key()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': self.org['id'],
-        })
+        org = make_org()
+        parent_ak = self._make_activation_key({'organization-id': org['id']})
+        self.upload_manifest(org['id'], manifests.clone())
         subscription_result = Subscription.list(
-            {'organization-id': self.org['id']}, per_page=False)
+            {'organization-id': org['id']}, per_page=False)
         ActivationKey.add_subscription({
             u'id': parent_ak['id'],
             u'subscription-id': subscription_result[0]['id'],
@@ -1299,12 +1291,12 @@ class ActivationKeyTestCase(CLITestCase):
         result = ActivationKey.copy({
             u'id': parent_ak['id'],
             u'new-name': new_name,
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         self.assertEqual(result[0], u'Activation key copied')
         result = ActivationKey.subscriptions({
             u'name': new_name,
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         # Verify that the subscription copied over
         self.assertIn(
