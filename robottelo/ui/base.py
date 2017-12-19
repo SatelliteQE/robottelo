@@ -476,18 +476,21 @@ class Base(object):
             self.ajax_complete, 'Timeout waiting for page to load'
         )
 
+    def execute_js_event(self, element, event='onchange()'):
+        """Execute necessary javascript event for provided web element"""
+        self.browser.execute_script(
+            'arguments[0].{};'.format(event),
+            element,
+        )
+
     def scroll_page(self):
-        """
-        Scrolls page up
-        """
+        """Scrolls page up"""
         self.browser.execute_script('scroll(350, 0);')
 
     def scroll_right_pane(self):
-        """
-        Scrolls right pane down to find the save/submit button
-        """
-        self.browser.execute_script("$('#panel_main').\
-                                    data('jsp').scrollBy(0, 100);")
+        """Scrolls right pane down to find the save/submit button"""
+        self.browser.execute_script(
+            "$('#panel_main').data('jsp').scrollBy(0, 100);")
 
     def scroll_into_view(self, element):
         """ Scrolls current element into visible area of the browser window."""

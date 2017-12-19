@@ -68,6 +68,8 @@ class SmartClassParameter(Base):
         if matcher_priority:
             self.assign_value(
                 locators['sc_parameters.matcher_priority'], matcher_priority)
+            self.execute_js_event(self.wait_until_element(
+                locators['sc_parameters.matcher_priority']))
         if matcher_merge_overrides is not None:
             self.assign_value(
                 locators['sc_parameters.merge_overrides'],
