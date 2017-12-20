@@ -976,7 +976,7 @@ class HostTestCase(UITestCase):
                 with self.assertRaises(UINoSuchElementError):
                     self.hosts.assign_value(
                         entity['locator'], entity['unexpected_entity'].name)
-                self.hosts.perform_action_send_escape_key()
+                self.hosts.perform_action_send_keys_to_browser("escape")
                 self.hosts.assign_value(
                     entity['locator'], entity['expected_entity'].name)
 

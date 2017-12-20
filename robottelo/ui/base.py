@@ -882,7 +882,15 @@ class Base(object):
         ]
         return cell_values
 
-    def perform_action_send_escape_key(self):
-        """Send escape key to browser"""
-        ActionChains(self.browser).send_keys(Keys.ESCAPE).perform()
+    def perform_action_send_keys_to_browser(self, keys):
+        """Send some key(s) to browser.
+
+        :param keys: Key(s) to send to browser. Keys may be several keys
+            including special, like ``control+shift+q``, single special or
+            simple key, e.g. ``escape``, ``q``.
+        """
+        keys_to_send = ''.join(
+            getattr(Keys, key.upper()) if key.upper() in dir(Keys) else
+            key for key in keys.split('+'))
+        ActionChains(self.browser).send_keys(keys_to_send).perform()
         self.wait_for_ajax()
