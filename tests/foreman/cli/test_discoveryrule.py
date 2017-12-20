@@ -640,20 +640,16 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        options = {
-            'name': rule_name,
-            'search': 'cpu_count = 5',
-            'organization-ids': self.org['id'],
-            'location-ids': self.loc['id'],
-            'hostgroup-id': self.hostgroup['id'],
-        }
-        if bz_bug_is_open(1523221):
-            options['locations'] = self.loc['name']
-            options['organizations'] = self.org['name']
         rule = DiscoveryRule.with_user(
             self.user['login'],
             self.user['password']
-        ).create(options)
+        ).create({
+            'name': rule_name,
+            'search': 'cpu_count = 5',
+            'organizations': self.org['name'],
+            'locations': self.loc['name'],
+            'hostgroup-id': self.hostgroup['id'],
+        })
         rule = DiscoveryRule.with_user(
             self.user['login'],
             self.user['password']
@@ -672,20 +668,16 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        options = {
-            'name': rule_name,
-            'search': 'cpu_count = 5',
-            'organization-ids': self.org['id'],
-            'location-ids': self.loc['id'],
-            'hostgroup-id': self.hostgroup['id'],
-        }
-        if bz_bug_is_open(1523221):
-            options['locations'] = self.loc['name']
-            options['organizations'] = self.org['name']
         rule = DiscoveryRule.with_user(
             self.user['login'],
             self.user['password']
-        ).create(options)
+        ).create({
+            'name': rule_name,
+            'search': 'cpu_count = 5',
+            'organizations': self.org['name'],
+            'locations': self.loc['name'],
+            'hostgroup-id': self.hostgroup['id'],
+        })
         rule = DiscoveryRule.with_user(
             self.user['login'],
             self.user['password']
@@ -716,18 +708,14 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
         :CaseLevel: Integration
         """
         rule_name = gen_string('alpha')
-        options = {
+        rule = make_discoveryrule({
             'name': rule_name,
             'enabled': 'false',
             'search': "last_report = Today",
-            'organization-ids': self.org['id'],
-            'location-ids': self.loc['id'],
+            'organizations': self.org['name'],
+            'locations': self.loc['name'],
             'hostgroup-id': self.hostgroup['id'],
-        }
-        if bz_bug_is_open(1523221):
-            options['locations'] = self.loc['name']
-            options['organizations'] = self.org['name']
-        rule = make_discoveryrule(options)
+        })
         rule = DiscoveryRule.with_user(
             self.user_reader['login'],
             self.user_reader['password']
@@ -746,17 +734,13 @@ class DiscoveryRuleRoleTestCase(CLITestCase):
 
         :CaseLevel: Integration
         """
-        options = {
+        rule = make_discoveryrule({
             'enabled': 'false',
             'search': "last_report = Today",
-            'organization-ids': self.org['id'],
-            'location-ids': self.loc['id'],
+            'organizations': self.org['name'],
+            'locations': self.loc['name'],
             'hostgroup-id': self.hostgroup['id'],
-        }
-        if bz_bug_is_open(1523221):
-            options['locations'] = self.loc['name']
-            options['organizations'] = self.org['name']
-        rule = make_discoveryrule(options)
+        })
         rule = DiscoveryRule.with_user(
             self.user_reader['login'],
             self.user_reader['password']
