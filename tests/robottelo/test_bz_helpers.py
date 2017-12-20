@@ -70,6 +70,15 @@ class BZHelperTestCase(TestCase):
             'tests.robottelo.test_bz_helpers.test_function'
         )
 
+    def test_get_func_name_with_class(self):
+        """Test if name is proper generated for function with class name"""
+
+        self.assertEqual(
+            get_func_name(self.test_get_func_name_with_class),
+            ('tests.robottelo.test_bz_helpers.BZHelperTestCase'
+             '.test_get_func_name_with_class')
+        )
+
 
 def test_function():
     """Does nothing, only used to test get_func_name"""
