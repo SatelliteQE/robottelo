@@ -12,6 +12,8 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 import logging
 import os
 
+from fauxfactory import gen_string
+
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
@@ -90,10 +92,18 @@ class VirtualMachine(object):
         self._created = False
         self._subscribed = False
         self._source_image = source_image or u'{0}-base'.format(self.distro)
-        self._target_image = target_image or str(id(self))
+        self._target_image = (
+            target_image or gen_string('alphanumeric', 16).lower()
+        )
         if tag:
             self._target_image = tag + self._target_image
         self.bridge = bridge
+        if len(self.hostname) > 59:
+            raise VirtualMachineError(
+                'Max virtual machine name is 59 chars (see BZ1289363). Name '
+                '"{}" is {} chars long. Please provide shorter name'
+                .format(self.hostname, len(self.hostname))
+            )
 
     @property
     def subscribed(self):
