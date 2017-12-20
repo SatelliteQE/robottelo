@@ -77,6 +77,7 @@ class PackagesTestCase(UITestCase):
             self.assertIsNotNone(self.package.search('bear'))
             self.assertIsNotNone(self.package.search('cheetah'))
 
+    @skip_if_bug_open('bugzilla', 1514457)
     @tier2
     def test_positive_search_in_multiple_repos(self):
         """Create product with two different yum repositories assigned to it.
