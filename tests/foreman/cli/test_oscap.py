@@ -1089,7 +1089,7 @@ class OpenScapTestCase(CLITestCase):
         self.assertEqual(scap_policy['name'], name)
         Scappolicy.delete({'id': scap_policy['id']})
         with self.assertRaises(CLIReturnCodeError):
-            Scapcontent.info({'id': scap_policy['id']})
+            Scappolicy.info({'id': scap_policy['id']})
 
     @run_only_on('sat')
     @tier2
