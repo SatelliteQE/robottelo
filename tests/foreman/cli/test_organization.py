@@ -1752,18 +1752,26 @@ class OrganizationTestCase(CLITestCase):
         org_names = [
             gen_string('alpha', random.randint(1, 30)),
             gen_string('latin1', random.randint(1, 30)),
-            gen_string('utf8', random.randint(1, 30))
+            u'大傻瓜-{0}'.format(gen_string('alpha', 5)),
+            u'你好你-{0}'.format(gen_string('alpha', 5)),
+            u'jalapeño-{0}'.format(gen_string('alpha', 5)),
+            u'организация-{0}'.format(gen_string('alpha', 5)),
         ]
         for org in org_names:
             make_org({'name': org})
-        org_list = [line for line in Org.list(output_format='table') if line]
-        self.assertGreaterEqual(len(org_list), len(org_names))
-        for name in org_names:
-            self.assertTrue(any(name in line for line in org_list))
-        for org_str in org_list:
+        org_list_lines = [
+            line.strip() for line in Org.list(output_format='table') if line]
+        self.assertGreaterEqual(len(org_list_lines), len(org_names))
+        org_names_lines = [
+            line
+            for line in org_list_lines
+            if any(name in line for name in org_names)
+        ]
+        self.assertEqual(len(org_names_lines), len(org_names))
+        for org_str in org_names_lines:
             width = sum(
                 1 if unicodedata.east_asian_width(char)
                 in ["Na", "N", "A", "H"]
                 else 2 for char in org_str
             )
-            self.assertEqual(len(org_list[0]), width)
+            self.assertEqual(len(org_names_lines[0]), width)
