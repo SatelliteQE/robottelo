@@ -46,6 +46,7 @@ from robottelo.constants import (
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier3,
@@ -95,24 +96,24 @@ class ErrataTestCase(APITestCase):
             'activationkey-id': cls.activation_key.id,
         })
 
-    def _install_package(self, clients, host_ids, package_name):
-        """Workaround BZ1374669 and install package via CLI while the bug is
-        open.
+    def _install_package(self, clients, host_ids, package_name, via_ssh=True):
+        """Install package via SSH CLI if via_ssh is True, otherwise
+        install via http api: PUT /api/v2/hosts/bulk/install_content
         """
-        if bz_bug_is_open(1374669):
+        if via_ssh:
             for client in clients:
                 result = client.run('yum install -y {}'.format(package_name))
                 self.assertEqual(result.return_code, 0)
                 result = client.run('rpm -q {}'.format(package_name))
                 self.assertEqual(result.return_code, 0)
-            return
-        entities.Host().install_content(data={
-            'organization_id': self.org.id,
-            'included': {'ids': host_ids},
-            'content_type': 'package',
-            'content': [package_name],
-        })
-        self._validate_package_installed(clients, package_name)
+        else:
+            entities.Host().install_content(data={
+                'organization_id': self.org.id,
+                'included': {'ids': host_ids},
+                'content_type': 'package',
+                'content': [package_name],
+            })
+            self._validate_package_installed(clients, package_name)
 
     def _validate_package_installed(self, hosts, package_name,
                                     expected_installed=True, timeout=120):
@@ -172,6 +173,34 @@ class ErrataTestCase(APITestCase):
                     expected_amount,
                 )
             )
+
+    @skip_if_bug_open('bugzilla', 1528275)
+    @upgrade
+    @tier3
+    def test_positive_bulk_install_package(self):
+        """Bulk install package to a collection of hosts
+
+        :id: c5167851-b456-457a-92c3-59f8de5b27ee
+
+        :Steps: PUT /api/v2/hosts/bulk/install_content
+
+        :expectedresults: package is installed in the hosts.
+
+        :BZ: 1528275
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.org.label, self.activation_key.name)
+            self.assertTrue(client.subscribed)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            host_id = entities.Host().search(query={
+                'search': 'name={0}'.format(client.hostname)})[0].id
+            self._install_package(
+                [client], [host_id], FAKE_1_CUSTOM_PACKAGE, via_ssh=False)
 
     @upgrade
     @tier3
