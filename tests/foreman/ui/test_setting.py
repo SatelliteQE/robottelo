@@ -15,9 +15,11 @@
 
 :Upstream: No
 """
+from random import choice, randint
 
 from fauxfactory import gen_email, gen_string, gen_url
-from random import choice, randint
+from nailgun import entities
+
 from robottelo.datafactory import filtered_datapoint, valid_data_list
 from robottelo.decorators import (
     run_only_on,
@@ -158,16 +160,19 @@ class SettingTestCase(UITestCase):
 
     def tearDown(self):
         """Revert the setting to its default value"""
-        if self.original_value:  # do nothing for skipped test
+        if self.original_value is not None:  # do nothing for skipped test
             if self.saved_element != self.original_value:
-                with Session(self) as session:
-                    edit_param(
-                        session,
-                        tab_locator=self.tab_locator,
-                        param_name=self.param_name,
-                        value_type=self.value_type,
-                        param_value=self.original_value,
-                    )
+                if self.original_value == 'Empty':
+                    # we cannot pass value Empty as it's not considered as None
+                    # value can not be None a failure is raised
+                    # when passing empty string the UI show Empty again
+                    # other values like Yes, No and numbers in strings
+                    # are handled correctly
+                    self.original_value = ''
+                setting_param = entities.Setting().search(
+                    query={'search': 'name="{0}"'.format(self.param_name)})[0]
+                setting_param.value = self.original_value
+                setting_param.update({'value'})
         super(SettingTestCase, self).tearDown()
 
     @tier1
