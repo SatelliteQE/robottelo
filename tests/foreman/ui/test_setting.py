@@ -162,6 +162,13 @@ class SettingTestCase(UITestCase):
         """Revert the setting to its default value"""
         if self.original_value is not None:  # do nothing for skipped test
             if self.saved_element != self.original_value:
+                if self.original_value == 'Empty':
+                    # we cannot pass value Empty as it's not considered as None
+                    # value can not be None a failure is raised
+                    # when passing empty string the UI show Empty again
+                    # other values like Yes, No and numbers in strings
+                    # are handled correctly
+                    self.original_value = ''
                 setting_param = entities.Setting().search(
                     query={'search': 'name="{0}"'.format(self.param_name)})[0]
                 setting_param.value = self.original_value
