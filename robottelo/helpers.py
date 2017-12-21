@@ -429,9 +429,22 @@ class Storage(object):
             setattr(self, key, value)
 
 
-def get_func_name(func):
+def get_func_name(func, test_item=None):
     """Given a func object return standardized name to use across project"""
-    return '{0}.{1}'.format(func.__module__, func.__name__)
+    names = [func.__module__]
+    if test_item:
+        func_class = getattr(test_item, 'cls')
+    elif hasattr(func, 'im_class'):
+        func_class = getattr(func, 'im_class')
+    elif hasattr(func, '__self__'):
+        func_class = func.__self__.__class__
+    else:
+        func_class = None
+    if func_class:
+        names.append(func_class.__name__)
+
+    names.append(func.__name__)
+    return '.'.join(names)
 
 
 def get_services_status():

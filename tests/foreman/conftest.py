@@ -164,7 +164,7 @@ def pytest_collection_modifyitems(items, config):
     log("Collected %s test cases" % len(items))
 
     for item in items:
-        name = get_func_name(item.function)
+        name = get_func_name(item.function, test_item=item)
         bug_ids = list(decorated_functions.get(name, []))
         bug_ids.extend(_extract_setup_class_ids(item))
         if any(bug_id in removal_ids for bug_id in bug_ids):
