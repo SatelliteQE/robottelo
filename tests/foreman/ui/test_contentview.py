@@ -1157,6 +1157,7 @@ class ContentViewTestCase(UITestCase):
                     '{}-{}-{}.{}.rpm'.format(*row) for row in packages)
                 self.assertIn(FAKE_0_INC_UPD_NEW_PACKAGE, packages)
 
+    @skip_if_bug_open('bugzilla', 1478132)
     @tier1
     def test_positive_create_date_filter_rule_without_type(self):
         """Create content view erratum filter rule with start/end date and
