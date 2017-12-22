@@ -199,7 +199,13 @@ class CapsuleVirtualMachine(VirtualMachine):
     def _capsule_cleanup(self):
         """make the necessary cleanup in case of a crash"""
         if self._subscribed:
-            self.unregister()
+            # use try except to delete the capsule in case of host not
+            # reachable
+            try:
+                self.unregister()
+            except Exception as exp:
+                logger.error('Failed to unregister the host: {0}\n{1}'.format(
+                    self.hostname, exp.message))
 
         if self._capsule_hostname:
             # do cleanup as using a static hostname that can be reused by
@@ -248,10 +254,13 @@ class CapsuleVirtualMachine(VirtualMachine):
             self._capsule_cleanup()
             raise
 
-    def suspend(self, ensure=False):
+    def suspend(self, ensure=False, timeout=None, connection_timeout=30):
         """Suspend the virtual machine.
 
         :param bool ensure: ensure that the virtual machine is unreachable
+        :param int timeout: Time to wait for the ssh command to finish.
+        :param int connection_timeout: Time to wait for establishing the
+            connection.
 
         Notes:
 
@@ -263,36 +272,45 @@ class CapsuleVirtualMachine(VirtualMachine):
         """
         result = ssh.command(
             u'virsh suspend {0}'.format(self._target_image),
-            hostname=self.provisioning_server
+            hostname=self.provisioning_server,
+            timeout=timeout,
+            connection_timeout=connection_timeout,
         )
         suspended = True if result.return_code == 0 else False
         if suspended and ensure:
             # ping one time the virtual machine to ensure that it's unreachable
             result = ssh.command(
                 'ping -c 1 {}'.format(self.hostname),
-                hostname=self.provisioning_server
+                hostname=self.provisioning_server,
+                connection_timeout=connection_timeout
             )
             suspended = True if result.return_code != 0 else False
 
         return suspended
 
-    def resume(self, ensure=False):
+    def resume(self, ensure=False, timeout=None, connection_timeout=30):
         """Restore from a suspended state
 
         :param bool ensure: ensure that the virtual machine is reachable
+        :param int timeout: Time to wait for the ssh command to finish.
+        :param int connection_timeout: Time to wait for establishing the
+            connection.
 
         Note: This operation is immediate
         """
         result = ssh.command(
             u'virsh resume {0}'.format(self._target_image),
-            hostname=self.provisioning_server
+            hostname=self.provisioning_server,
+            timeout=timeout,
+            connection_timeout=connection_timeout,
         )
         resumed = True if result.return_code == 0 else False
         if resumed and ensure:
             # ping one time the virtual machine to ensure that it's reachable
             result = ssh.command(
                 'ping -c 1 {}'.format(self.hostname),
-                hostname=self.provisioning_server
+                hostname=self.provisioning_server,
+                connection_timeout=connection_timeout,
             )
             resumed = True if result.return_code == 0 else False
 

@@ -230,7 +230,12 @@ class VirtualMachine(object):
         if not self._created:
             return
         if self._subscribed:
-            self.unregister()
+            # use try except to delete the vm in case of host not reachable
+            try:
+                self.unregister()
+            except Exception as exp:
+                logger.error('Failed to unregister the host: {0}\n{1}'.format(
+                    self.hostname, exp.message))
 
         ssh.command(
             u'virsh destroy {0}'.format(self.target_image),
