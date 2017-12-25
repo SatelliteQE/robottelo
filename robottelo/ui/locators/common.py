@@ -29,6 +29,7 @@ common_locators = LocatorDict({
         By.XPATH, "//div[contains(@bst-alert, 'success')]"),
     "alert.error_sub_form": (
         By.XPATH, "//div[contains(@bst-alert, 'danger')]"),
+    "alert.close": (By.XPATH, "//button[@class='close ng-scope']"),
 
     "selected_entity": (
         By.XPATH,

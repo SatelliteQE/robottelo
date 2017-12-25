@@ -15,8 +15,11 @@
 
 :Upstream: No
 """
-from fauxfactory import gen_alpha, gen_string, gen_url
 from random import choice, randint
+from time import sleep
+
+from fauxfactory import gen_alpha, gen_string, gen_url
+
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.docker import Docker
@@ -41,7 +44,12 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     DOCKER_RH_REGISTRY_UPSTREAM_NAME,
 )
-from robottelo.datafactory import generate_strings_list, valid_data_list
+from robottelo.datafactory import (
+    generate_strings_list,
+    invalid_docker_upstream_names,
+    valid_data_list,
+    valid_docker_upstream_names,
+)
 from robottelo.decorators import (
     bz_bug_is_open,
     run_in_one_thread,
@@ -56,7 +64,6 @@ from robottelo.decorators import (
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
-from time import sleep
 
 DOCKER_PROVIDER = 'Docker'
 REPO_CONTENT_TYPE = 'docker'
@@ -274,16 +281,49 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        new_upstream_name = 'fedora/ssh'
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
-        Repository.update({
-            'docker-upstream-name': new_upstream_name,
-            'id': repo['id'],
-            'url': repo['url'],
-        })
-        repo = Repository.info({'id': repo['id']})
-        self.assertEqual(repo['upstream-repository-name'], new_upstream_name)
+
+        for new_upstream_name in valid_docker_upstream_names():
+            with self.subTest(new_upstream_name):
+                Repository.update({
+                    'docker-upstream-name': new_upstream_name,
+                    'id': repo['id'],
+                    'url': repo['url'],
+                })
+                repo = Repository.info({'id': repo['id']})
+                self.assertEqual(
+                    repo['upstream-repository-name'],
+                    new_upstream_name)
+
+    @tier1
+    @run_only_on('sat')
+    def test_negative_update_upstream_name(self):
+        """Attempt to update upstream name for a Docker-type repository.
+
+        :id: 798651af-28b2-4907-b3a7-7c560bf66c7c
+
+        :expectedresults: A repository is created with a Docker upstream
+            repository and that its upstream name can not be updated with
+            invalid values.
+
+        :CaseImportance: Critical
+        """
+        repo = _make_docker_repo(
+            make_product_wait({'organization-id': self.org_id})['id'])
+
+        for new_upstream_name in invalid_docker_upstream_names():
+            with self.subTest(new_upstream_name):
+                with self.assertRaises(CLIReturnCodeError) as context:
+                    Repository.update({
+                        'docker-upstream-name': new_upstream_name,
+                        'id': repo['id'],
+                        'url': repo['url'],
+                    })
+                self.assertIn(
+                    'Validation failed: Docker upstream name',
+                    context.exception.message
+                )
 
     @skip_if_not_set('docker')
     @tier1
