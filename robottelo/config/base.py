@@ -593,7 +593,7 @@ class RHEVSettings(FeatureSettings):
         self.password = reader.get('rhev', 'password')
         self.datacenter = reader.get('rhev', 'datacenter')
         self.vm_name = reader.get('rhev', 'vm_name')
-        self.storage_domain = reader.get('rhev', 'storage_domain', 'NFS-BOS')
+        self.storage_domain = reader.get('rhev', 'storage_domain')
         # Image Information
         self.image_os = reader.get('rhev', 'image_os')
         self.image_arch = reader.get('rhev', 'image_arch')

@@ -222,16 +222,19 @@ def one_to_many_names(name):
     return set((name, name + '_ids', Inflector().pluralize(name)))
 
 
-def configure_provisioning(org=None, loc=None, compute=False):
+def configure_provisioning(org=None, loc=None, compute=False, os=None):
     """Create and configure org, loc, product, repo, cv, env. Update proxy,
     domain, subnet, compute resource, provision templates and medium with
     previously created entities and create a hostgroup using all mentioned
     entities.
 
-    :param org: Default Organization that should be used in both host
+    :param string org: Default Organization that should be used in both host
         discovering and host provisioning procedures
-    :param loc: Default Location that should be used in both host
+    :param string loc: Default Location that should be used in both host
         discovering and host provisioning procedures
+    :param boolean compute: If False creates a default Libvirt compute resource
+    :param string os: Specify the os to be used while provisioning and to
+        associate related entities to the specified os.
     :return: List of created entities that can be re-used further in
         provisioning or validation procedure (e.g. hostgroup or domain)
     """
@@ -386,9 +389,20 @@ def configure_provisioning(org=None, loc=None, compute=False):
     ptable = ptable.update(['location', 'organization'])
 
     # Get the OS ID
-    os = entities.OperatingSystem().search(query={
-        u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
-        .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+    if os is None:
+        os = entities.OperatingSystem().search(query={
+            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
+            .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+            })[0].read()
+    else:
+        os = entities.OperatingSystem().search(query={
+            u'search': u'family="Redhat" '
+                       u'AND major="{0}" '
+                       u'AND minor="{1}")'
+            .format(
+                os.split(' ')[1].split('.')[0],
+                os.split(' ')[1].split('.')[1]
+            )
         })[0].read()
 
     # Get the Provisioning template_ID and update with OS, Org, Location
@@ -463,6 +477,8 @@ def configure_provisioning(org=None, loc=None, compute=False):
         'domain': domain.name,
         'environment': environment.name,
         'ptable': ptable.name,
+        'subnet': subnet.name,
+        'os': os.title
     }
 
 

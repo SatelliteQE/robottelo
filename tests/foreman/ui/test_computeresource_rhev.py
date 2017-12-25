@@ -23,6 +23,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     FOREMAN_PROVIDERS,
+    RHEV_CR
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
@@ -537,7 +538,7 @@ class RhevComputeResourceTestCase(UITestCase):
                 parameter_list=parameter_list
             )
             self.assertIsNotNone(self.compute_profile.select_resource(
-                '3-Large', name, 'RHEV'))
+                '3-Large', name, 'RHV'))
 
     @run_only_on('sat')
     @tier2
@@ -772,10 +773,20 @@ class RhevComputeResourceHostTestCase(UITestCase):
             organization=[cls.org],
         ).create()
         cls.loc_name = cls.loc.name
-        cls.config_env = configure_provisioning(compute=True,
-                                                org=cls.org,
-                                                loc=cls.loc
-                                                )
+        cls.config_env = configure_provisioning(
+            compute=True,
+            org=cls.org,
+            loc=cls.loc,
+            os=cls.rhev_img_os
+        )
+        cls.os_name = cls.config_env['os']
+        subnet = entities.Subnet().search(
+            query={u'search': u'name={0}'.format(cls.config_env['subnet'])}
+        )
+        if len(subnet) == 1:
+            subnet = subnet[0].read()
+            subnet.ipam = "DHCP"
+            subnet.update(['ipam'])
 
     def tearDown(self):
         """Delete the host to free the resources"""
@@ -786,10 +797,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
             host.delete()
 
     @upgrade
-    @skip_if_bug_open('bugzilla', 1467925)
-    @skip_if_bug_open('bugzilla', 1467828)
-    @skip_if_bug_open('bugzilla', 1466645)
-    @skip_if_bug_open('bugzilla', 1514885)
+    @skip_if_bug_open('bugzilla', 1520382)
     @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_image(self):
@@ -817,11 +825,13 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned successfully
 
+        :BZ: 1467828, 1466645, 1514885, 1467925
+
         :CaseAutomation: Automated
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
-        cr_resource = '{0} (RHEV)'.format(cr_name)
+        cr_resource = RHEV_CR % cr_name
         img_name = gen_string('alpha', 5)
         root_pwd = gen_string('alpha', 15)
         with Session(self) as session:
@@ -841,7 +851,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
             )
             parameter_list_img = [
                 ['Name', img_name],
-                ['Operatingsystem', self.rhev_img_os],
+                ['Operatingsystem', self.os_name],
                 ['Architecture', self.rhev_img_arch],
                 ['Username', self.rhev_img_user],
                 ['Password', self.rhev_img_pass],
@@ -883,7 +893,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
                     ['Host', 'Puppet Environment',
                         self.config_env['environment']],
-                    ['Operating System', 'Operating System', self.rhev_img_os],
+                    ['Operating System', 'Operating System', self.os_name],
                     ['Operating System', 'Partition table',
                         self.config_env['ptable']],
                     ['Operating System', 'PXE loader', 'PXELinux BIOS'],
@@ -891,22 +901,26 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ],
                 provisioning_method='image',
             )
-            self.assertIsNotNone(self.hosts.search(
-                u'{0}.{1}'.format(hostname.lower(),
-                                  self.config_env['domain']
-                                  )))
+            vm_host_name = '{0}.{1}'.format(
+                hostname.lower(), self.config_env['domain'])
+            # the provisioning take some time to finish, when done will be
+            # redirected to the created host
+            # wait until redirected to host page
+            self.assertIsNotNone(
+                session.hosts.wait_until_element(
+                    locators["host.host_page_title"] % vm_host_name,
+                    timeout=160
+                )
+            )
+            self.assertIsNotNone(self.hosts.search(vm_host_name))
             host_ip = entities.Host().search(query={
-                'search': 'name={0}.{1} and organization="{3}"'.format(
-                    hostname.lower(),
-                    self.config_env['domain'],
+                'search': 'name={0} and organization="{1}"'.format(
+                    vm_host_name,
                     self.org_name)
                     })[0].read().ip
             with self.assertNotRaises(ProvisioningCheckError):
                 self.compute_resource.host_provisioning_check(host_ip)
 
-    @skip_if_bug_open('bugzilla', 1467925)
-    @skip_if_bug_open('bugzilla', 1467828)
-    @skip_if_bug_open('bugzilla', 1514885)
     @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_compute_profile(self):
@@ -931,7 +945,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
-        cr_resource = '{0} (RHEV)'.format(cr_name)
+        cr_resource = RHEV_CR % cr_name
         root_pwd = gen_string('alpha', 15)
         with Session(self) as session:
             parameter_list = [
@@ -981,7 +995,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
                     ['Host', 'Puppet Environment',
                         self.config_env['environment']],
-                    ['Operating System', 'Operating System', self.rhev_img_os],
+                    ['Operating System', 'Operating System', self.os_name],
                     ['Operating System', 'Partition table',
                         self.config_env['ptable']],
                     ['Operating System', 'PXE loader', 'PXELinux BIOS'],
@@ -989,23 +1003,27 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ],
                 provisioning_method='network'
             )
-            self.assertIsNotNone(self.hosts.search(
-                u'{0}.{1}'.format(hostname.lower(),
-                                  self.config_env['domain']
-                                  )))
+            vm_host_name = '{0}.{1}'.format(
+                hostname.lower(), self.config_env['domain'])
+            # the provisioning take some time to finish, when done will be
+            # redirected to the created host
+            # wait until redirected to host page
+            self.assertIsNotNone(
+                session.hosts.wait_until_element(
+                    locators["host.host_page_title"] % vm_host_name,
+                    timeout=60
+                )
+            )
+            self.assertIsNotNone(self.hosts.search(vm_host_name))
             host_ip = entities.Host().search(query={
-                'search': 'name={0}.{1} and organization="{3}"'.format(
-                    hostname.lower(),
-                    self.config_env['domain'],
+                'search': 'name={0} and organization="{1}"'.format(
+                    vm_host_name,
                     self.org_name)
                     })[0].read().ip
             with self.assertNotRaises(ProvisioningCheckError):
                 self.compute_resource.host_provisioning_check(host_ip)
 
     @upgrade
-    @skip_if_bug_open('bugzilla', 1467925)
-    @skip_if_bug_open('bugzilla', 1467828)
-    @skip_if_bug_open('bugzilla', 1514885)
     @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_custom_compute_settings(self):
@@ -1027,11 +1045,13 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :expectedresults: The host should be provisioned with custom settings
 
+        :BZ: 1467925, 1467828, 1514885
+
         :CaseAutomation: Automated
         """
         hostname = gen_string('alpha', 9)
         cr_name = gen_string('alpha', 9)
-        cr_resource = '{0} (RHEV)'.format(cr_name)
+        cr_resource = RHEV_CR % cr_name
         root_pwd = gen_string('alpha', 15)
         with Session(self) as session:
             parameter_list = [
@@ -1067,11 +1087,11 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     dict(
                         size='10',
                         storage_domain=self.rhev_storage_domain,
-                        bootable=False,
-                        preallocate_disk=True
+                        bootable=True,
+                        preallocate_disk=False
                     ),
                     dict(
-                        size='20',
+                        size='2',
                         storage_domain=self.rhev_storage_domain,
                         bootable=False,
                         preallocate_disk=False
@@ -1091,7 +1111,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
                     ['Host', 'Puppet Environment',
                         self.config_env['environment']],
-                    ['Operating System', 'Operating System', self.rhev_img_os],
+                    ['Operating System', 'Operating System', self.os_name],
                     ['Operating System', 'Partition table',
                         self.config_env['ptable']],
                     ['Operating System', 'PXE loader', 'PXELinux BIOS'],
@@ -1099,14 +1119,21 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 ],
                 provisioning_method='network'
             )
-            self.assertIsNotNone(self.hosts.search(
-                u'{0}.{1}'.format(hostname.lower(),
-                                  self.config_env['domain']
-                                  )))
+            vm_host_name = '{0}.{1}'.format(
+                hostname.lower(), self.config_env['domain'])
+            # the provisioning take some time to finish, when done will be
+            # redirected to the created host
+            # wait until redirected to host page
+            self.assertIsNotNone(
+                session.hosts.wait_until_element(
+                    locators["host.host_page_title"] % vm_host_name,
+                    timeout=160
+                )
+            )
+            self.assertIsNotNone(self.hosts.search(vm_host_name))
             host_ip = entities.Host().search(query={
-                'search': 'name={0}.{1} and organization="{3}"'.format(
-                    hostname.lower(),
-                    self.config_env['domain'],
+                'search': 'name={0} and organization="{1}"'.format(
+                    vm_host_name,
                     self.org_name)
                     })[0].read().ip
             with self.assertNotRaises(ProvisioningCheckError):
@@ -1165,7 +1192,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         """
         host_name = gen_string('alpha').lower()
         cr_name = gen_string('alpha')
-        cr_resource = '{0} (RHEV)'.format(cr_name)
+        cr_resource = RHEV_CR % cr_name
         image_name = gen_string('alpha')
         root_pwd = gen_string('alpha')
         # rhev_img_os is like "RedHat 7.4"
@@ -1341,7 +1368,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
         domain_name = '{0}.{1}'.format(
             gen_string('alpha'), gen_string('alpha', length=3)).lower()
         cr_name = gen_string('alpha')
-        cr_resource = '{0} (RHEV)'.format(cr_name)
+        cr_resource = RHEV_CR % cr_name
         image_name = gen_string('alpha')
         root_pwd = gen_string('alpha')
         # rhev_img_os is like "RedHat 7.4"
