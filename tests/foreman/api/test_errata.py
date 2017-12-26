@@ -95,24 +95,24 @@ class ErrataTestCase(APITestCase):
             'activationkey-id': cls.activation_key.id,
         })
 
-    def _install_package(self, clients, host_ids, package_name):
-        """Workaround BZ1374669 and install package via CLI while the bug is
-        open.
+    def _install_package(self, clients, host_ids, package_name, via_ssh=True):
+        """Install package via SSH CLI if via_ssh is True, otherwise
+        install via http api: PUT /api/v2/hosts/bulk/install_content
         """
-        if bz_bug_is_open(1374669):
+        if via_ssh:
             for client in clients:
                 result = client.run('yum install -y {}'.format(package_name))
                 self.assertEqual(result.return_code, 0)
                 result = client.run('rpm -q {}'.format(package_name))
                 self.assertEqual(result.return_code, 0)
-            return
-        entities.Host().install_content(data={
-            'organization_id': self.org.id,
-            'included': {'ids': host_ids},
-            'content_type': 'package',
-            'content': [package_name],
-        })
-        self._validate_package_installed(clients, package_name)
+        else:
+            entities.Host().install_content(data={
+                'organization_id': self.org.id,
+                'included': {'ids': host_ids},
+                'content_type': 'package',
+                'content': [package_name],
+            })
+            self._validate_package_installed(clients, package_name)
 
     def _validate_package_installed(self, hosts, package_name,
                                     expected_installed=True, timeout=120):
