@@ -669,7 +669,7 @@ class RemoteExecutionTestCase(UITestCase):
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
             })
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=self.organization.name)
                 self.hosts.click(self.hosts.search(client.hostname))
                 status = self.job.run(
@@ -729,7 +729,7 @@ class RemoteExecutionTestCase(UITestCase):
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
             })
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=self.organization.name)
                 make_job_template(
                     session,
@@ -809,11 +809,11 @@ class RemoteExecutionTestCase(UITestCase):
                         'name': 'remote_execution_connect_by_ip',
                         'value': 'True',
                     })
-                with Session(self.browser) as session:
+                with Session(self) as session:
                     set_context(session, org=self.organization.name)
                     self.hosts.update_host_bulkactions(
                         [client.hostname, client2.hostname],
-                        action='Run Job',
+                        action='Schedule Remote Job',
                         parameters_list=[{'command': 'ls'}],
                     )
                     strategy, value = locators['job_invocation.status']
@@ -878,11 +878,11 @@ class RemoteExecutionTestCase(UITestCase):
                 'name': 'remote_execution_connect_by_ip',
                 'value': 'True',
             })
-            with Session(self.browser) as session:
+            with Session(self) as session:
                 set_context(session, org=self.organization.name)
                 self.hosts.click(self.hosts.search(client.hostname))
                 plan_time = (
-                        self.get_client_datetime() + timedelta(seconds=90)
+                        self.get_client_datetime() + timedelta(seconds=180)
                         ).strftime("%Y-%m-%d %H:%M")
                 status = self.job.run(
                     job_category='Commands',
@@ -891,7 +891,7 @@ class RemoteExecutionTestCase(UITestCase):
                     schedule='future',
                     schedule_options=[
                         {'name': 'start_at', 'value': plan_time}],
-                    result='queued'
+                    result='queued to start executing in 1 minute'
                 )
                 self.assertTrue(status)
                 strategy, value = locators['job_invocation.status']
