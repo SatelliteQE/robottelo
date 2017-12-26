@@ -660,6 +660,48 @@ class BzBugIsOpenTestCase(TestCase):
             'on flags with +'
         )
 
+        # Had original bug for 6.2.z, decided to port to 6.3 and haven't
+        # finished porting yet
+        original_bug = {
+            'id': 1,
+            'status': 'VERIFIED',
+            'whiteboard': '',
+            'flags': {'sat-6.2.z': '+'},
+            'target_milestone': 'Unspecified'
+        }
+        cloned_bug = {
+            'id': 2,
+            'status': 'NEW',
+            'whiteboard': '',
+            'target_milestone': 'Unspecified',
+            'flags': {'sat-6.3.0': '+'}
+        }
+
+        add_bug_on_server(original_bug)
+        add_bug_on_server(cloned_bug)
+        original_bug['other_clones'] = {cloned_bug['id']: cloned_bug}
+
+        # Test running against downstream
+        dec_settings.upstream = False
+
+        for v in ['6.1', '6.3']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertTrue(
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
+                'Should be open for previous versions and versions which have '
+                'a separate clone in opened state'
+            )
+
+        for v in ['6.2', '6.4', '6.5']:
+            self.get_sat_versions_mock.return_value = v
+            self.assertFalse(
+                decorators.bz_bug_is_open(original_bug['id'],
+                                          sat_version_picker=lambda: v),
+                'Should be closed for 6.2 as original bug is closed in 6.2.z '
+                'and all the next versions which do not have a separate clone'
+            )
+
 
 class CacheableTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.cacheable`."""
