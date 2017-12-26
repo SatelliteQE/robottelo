@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1, upgrade
+from robottelo.decorators import run_only_on, stubbed, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -375,6 +375,7 @@ class HostgroupTestCase(UITestCase):
                     locators['host.select_name'] % host_name)
 
     @run_only_on('sat')
+    @stubbed('unstub once os/browser/env combination is changed')
     @tier1
     def test_positive_check_activation_keys_autocomplete(self):
         """Open Hostgroup New/Edit modal and verify that Activation Keys

@@ -34,6 +34,7 @@ from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
     skip_if_not_set,
+    stubbed,
     tier3,
     upgrade,
 )
@@ -188,6 +189,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             self.assertIsNotNone(self.hosts.search(hostname))
 
     @run_only_on('sat')
+    @stubbed('unstub once os/browser/env combination is changed')
     @tier3
     def test_positive_rename_foreman_host(self):
         """Hosts renamed in foreman appears in katello under content-hosts

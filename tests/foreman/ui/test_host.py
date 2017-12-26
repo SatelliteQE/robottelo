@@ -564,6 +564,7 @@ class HostTestCase(UITestCase):
             )
             self.assertIsNotNone(search)
 
+    @stubbed('unstub once os/browser/env combination is changed')
     @tier3
     def test_positive_create_with_inherited_params(self):
         """Create a new Host in organization and location with parameters
@@ -981,6 +982,7 @@ class HostTestCase(UITestCase):
                     entity['locator'], entity['expected_entity'].name)
 
     @run_only_on('sat')
+    @stubbed('unstub once os/browser/env combination is changed')
     @tier3
     def test_positive_update_name(self):
         """Create a new Host and update its name to valid one
@@ -1036,6 +1038,7 @@ class HostTestCase(UITestCase):
             self.hostname = new_name
 
     @run_only_on('sat')
+    @stubbed('unstub once os/browser/env combination is changed')
     @tier3
     def test_positive_update_name_with_prefix(self):
         """Create a new Host and update its name to valid one. Host should
