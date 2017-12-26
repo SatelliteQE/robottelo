@@ -45,6 +45,7 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
+    skip_if_bug_open,
     run_in_one_thread,
     skip_if_not_set,
     stubbed,
@@ -172,6 +173,34 @@ class ErrataTestCase(APITestCase):
                     expected_amount,
                 )
             )
+
+    @skip_if_bug_open('bugzilla', 1528275)
+    @upgrade
+    @tier3
+    def test_positive_bulk_install_package(self):
+        """Bulk install package to a collection of hosts
+
+        :id: c5167851-b456-457a-92c3-59f8de5b27ee
+
+        :Steps: PUT /api/v2/hosts/bulk/install_content
+
+        :expectedresults: package is installed in the hosts.
+
+        :BZ: 1528275
+
+        :CaseLevel: System
+        """
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                self.org.label, self.activation_key.name)
+            self.assertTrue(client.subscribed)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+            host_id = entities.Host().search(query={
+                'search': 'name={0}'.format(client.hostname)})[0].id
+            self._install_package(
+                [client], [host_id], FAKE_1_CUSTOM_PACKAGE, via_ssh=False)
 
     @upgrade
     @tier3
