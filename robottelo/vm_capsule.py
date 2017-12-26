@@ -199,8 +199,9 @@ class CapsuleVirtualMachine(VirtualMachine):
     def _capsule_cleanup(self):
         """make the necessary cleanup in case of a crash"""
         if self._subscribed:
-            # use try except to delete the capsule in case of host not
-            # reachable
+            # use try except to unregister the host, in case of host not
+            # reachable (or any other failure), the capsule is not deleted and
+            # this failure will hide any prior failure.
             try:
                 self.unregister()
             except Exception as exp:

@@ -230,7 +230,9 @@ class VirtualMachine(object):
         if not self._created:
             return
         if self._subscribed:
-            # use try except to delete the vm in case of host not reachable
+            # use try except to unregister the host as in case of host not
+            # reachable (or any other failure), the vm is not deleted and this
+            # failure will hide any prior failure.
             try:
                 self.unregister()
             except Exception as exp:
