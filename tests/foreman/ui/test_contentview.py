@@ -594,8 +594,6 @@ class ContentViewTestCase(UITestCase):
                 )
             )
 
-    @skip_if_bug_open('bugzilla', 1455990)
-    @skip_if_bug_open('bugzilla', 1492114)
     @run_in_one_thread
     @tier2
     def test_positive_publish_rh_content_with_errata_by_date_filter(self):
@@ -621,17 +619,18 @@ class ContentViewTestCase(UITestCase):
         })
         RepositorySet.enable({
             'basearch': 'x86_64',
-            'name': REPOSET['rhst6'],
+            'name': REPOSET['rhva6'],
             'organization-id': org['id'],
             'product': PRDS['rhel'],
+            'releasever': '6Server',
         })
         rhel_repo = Repository.info({
-            'name': REPOS['rhst6']['name'],
+            'name': REPOS['rhva6']['name'],
             'organization-id': org['id'],
             'product': PRDS['rhel'],
         })
         Repository.synchronize({
-            'name': REPOS['rhst6']['name'],
+            'name': REPOS['rhva6']['name'],
             'organization-id': org['id'],
             'product': PRDS['rhel'],
         })
@@ -648,7 +647,7 @@ class ContentViewTestCase(UITestCase):
         })
         make_content_view_filter_rule({
             'content-view-filter-id': cvf['filter-id'],
-            'start-date': '2015-05-01',
+            'start-date': '2011-01-01',
             'types': ['enhancement', 'bugfix', 'security'],
         })
         ContentView.publish({'id': cv['id']})
