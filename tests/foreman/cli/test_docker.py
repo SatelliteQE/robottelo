@@ -48,6 +48,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_docker_upstream_names,
     valid_data_list,
+    valid_docker_repository_names,
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
@@ -159,7 +160,7 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_docker_repository_names():
             with self.subTest(name):
                 repo = _make_docker_repo(
                     make_product_wait({'organization-id': self.org_id})['id'],
@@ -259,7 +260,7 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
-        for new_name in valid_data_list():
+        for new_name in valid_docker_repository_names():
             with self.subTest(new_name):
                 Repository.update({
                     'id': repo['id'],

@@ -29,6 +29,7 @@ from robottelo.datafactory import (
     generate_strings_list,
     invalid_docker_upstream_names,
     valid_data_list,
+    valid_docker_repository_names,
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
@@ -94,7 +95,7 @@ class DockerRepositoryTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_docker_repository_names():
             with self.subTest(name):
                 repo = _create_repository(
                     entities.Product(organization=self.org).create(),
@@ -221,7 +222,7 @@ class DockerRepositoryTestCase(APITestCase):
             entities.Product(organization=self.org).create())
 
         # Update the repository name to random value
-        for new_name in valid_data_list():
+        for new_name in valid_docker_repository_names():
             with self.subTest(new_name):
                 repo.name = new_name
                 repo = repo.update()

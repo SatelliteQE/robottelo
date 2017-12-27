@@ -223,6 +223,21 @@ def valid_data_list():
 
 
 @filtered_datapoint
+def valid_docker_repository_names():
+    """Generates a list of valid names for Docker repository."""
+    return [
+        gen_string('alphanumeric', random.randint(1, 255)),
+        gen_string('alpha', random.randint(1, 255)),
+        gen_string('cjk', random.randint(1, 85)),
+        gen_string('latin1', random.randint(1, 255)),
+        gen_string('numeric', random.randint(1, 255)),
+        gen_string('utf8', random.randint(1, 85)),
+        gen_string('html', random.randint(1, 85)) if not bz_bug_is_open(
+            1483622) else gen_string('alphanumeric', random.randint(1, 255)),
+    ]
+
+
+@filtered_datapoint
 def valid_emails_list():
     """Returns a list of valid emails."""
     return [
