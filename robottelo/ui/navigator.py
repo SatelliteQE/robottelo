@@ -373,11 +373,11 @@ class Navigator(Base):
             menu_locators['insights.rules'],
         )
 
-    def go_to_insights_systems(self):
+    def go_to_insights_inventory(self):
         """ Navigates to Red Hat Access Insights Systems"""
         self.menu_click(
             menu_locators['menu.insights'],
-            menu_locators['insights.systems'],
+            menu_locators['insights.inventory'],
         )
 
     def go_to_insights_manage(self):

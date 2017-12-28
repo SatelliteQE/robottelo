@@ -15,7 +15,6 @@
 :Upstream: No
 """
 
-import time
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
@@ -25,7 +24,6 @@ from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.decorators import run_in_one_thread, skip_if_not_set
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators
-from robottelo.ui.navigator import Navigator
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -90,7 +88,7 @@ class RHAITestCase(UITestCase):
                 with Session(self) as session:
                     # view clients registered to Red Hat Access Insights
                     session.nav.go_to_select_org(self.org_name)
-                    Navigator(self.browser).go_to_insights_systems()
+                    session.nav.go_to_insights_inventory()
                     result = self.rhai.view_registered_systems()
                     self.assertIn("1", result,
                                   'Registered clients are not listed')
@@ -138,24 +136,7 @@ class RHAITestCase(UITestCase):
 
                 with Session(self) as session:
                     session.nav.go_to_select_org(self.org_name)
-                    Navigator(self.browser).go_to_insights_systems()
-                    # Click on the unregister icon 'X' in the table against the
-                    # registered system listed.
-                    strategy, value = locators['insights.unregister_system']
-                    session.nav.click(
-                        (strategy, value % vm.hostname),
-                        wait_for_ajax=True,
-                        ajax_timeout=40,
-                    )
-
-                    # Confirm selection for clicking on 'Yes' to unregister the
-                    # system
-                    session.nav.click(
-                        locators['insights.unregister_button']
-                    )
-                    self.browser.refresh()
-                    time.sleep(60)
-                    self.browser.refresh()
+                    session.rhai.unregister_system_from_inventory(vm.hostname)
 
                 result = vm.run('redhat-access-insights')
                 self.assertEqual(result.return_code, 1,
