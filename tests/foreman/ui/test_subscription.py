@@ -391,7 +391,6 @@ class SubscriptionTestCase(UITestCase):
                 hypervisor_hostname=provisioning_server,
                 configure_ssh=True,
                 subscription_name=VDC_SUBSCRIPTION_NAME,
-                exec_one_shot=True,
             )
             virt_who_hypervisor_host = virt_who_data[
                 'virt_who_hypervisor_host']

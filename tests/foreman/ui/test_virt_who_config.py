@@ -267,7 +267,6 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
             hypervisor_hostname=cls.hypervisor_hostname,
             configure_ssh=True,
             subscription_name=VDC_SUBSCRIPTION_NAME,
-            exec_one_shot=True,
         )
         cls.virt_who_hypervisor_host = entities.Host(
             id=cls.virt_who_data['virt_who_hypervisor_host']['id']).read()

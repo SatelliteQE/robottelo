@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import random
+import time
 
 from fauxfactory import (
     gen_alphanumeric,
@@ -4240,6 +4241,23 @@ def virt_who_hypervisor_config(
         'organization-id': org['id'],
         'search': 'name={0}'.format(virt_who_hypervisor_hostname)
     })
+    # Note: if one shot command was executed the report is immediately
+    # generated, and the server must have already registered the virt-who
+    # hypervisor host
+    if not org_hosts and not exec_one_shot:
+        # we have to wait until the first report was sent.
+        # the report is generated after the virt-who service startup, but some
+        # small delay can occur.
+        max_time = time.time() + 60
+        while time.time() <= max_time:
+            org_hosts = Host.list({
+                'organization-id': org['id'],
+                'search': 'name={0}'.format(virt_who_hypervisor_hostname)
+            })
+            if org_hosts or time.time() > max_time:
+                break
+            time.sleep(5)
+
     if len(org_hosts) == 0:
         raise CLIFactoryError(
             u'Failed to find hypervisor host:\n{}'.format(result.stderr))
