@@ -29,6 +29,7 @@ from robottelo.constants import (
 from robottelo.datafactory import (
     invalid_docker_upstream_names,
     valid_data_list,
+    valid_docker_repository_names,
     valid_docker_upstream_names,
 )
 from robottelo.decorators import (
@@ -134,7 +135,7 @@ class DockerRepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         with Session(self) as session:
-            for name in valid_data_list():
+            for name in valid_docker_repository_names():
                 with self.subTest(name):
                     product = entities.Product(
                         organization=self.organization
@@ -249,7 +250,7 @@ class DockerRepositoryTestCase(UITestCase):
                 product=product.name,
             )
             self.assertIsNotNone(self.repository.search(name))
-            for new_name in valid_data_list():
+            for new_name in valid_docker_repository_names():
                 with self.subTest(new_name):
                     self.repository.update(name, new_name=new_name)
                     self.products.search_and_click(product.name)
@@ -371,7 +372,7 @@ class DockerRepositoryTestCase(UITestCase):
         :CaseImportance: Critical
         """
         with Session(self) as session:
-            for name in valid_data_list():
+            for name in valid_docker_repository_names():
                 with self.subTest(name):
                     product = entities.Product(
                         organization=self.organization
@@ -663,7 +664,7 @@ class DockerContentViewTestCase(UITestCase):
         :CaseLevel: Integration
         """
         with Session(self) as session:
-            for repo_name in valid_data_list():
+            for repo_name in valid_docker_repository_names():
                 with self.subTest(repo_name):
                     content_view = entities.ContentView(
                         composite=False,
