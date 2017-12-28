@@ -707,8 +707,12 @@ class ContentViews(Base):
         """Return a list of all the packages inside specific content view
         version"""
         self.click(self.version_search(name, version_name))
-        self.click(tab_locators['contentviews.tab_version_packages'])
+        packages_tab_is_not_visible = self.wait_until_element_is_not_visible(
+            tab_locators['contentviews.tab_version_packages'], timeout=3)
         packages = []
+        if packages_tab_is_not_visible:
+            return packages
+        self.click(tab_locators['contentviews.tab_version_packages'])
         while True:
             names = self.find_elements(
                 locators['contentviews.version.package_name'] % '')
@@ -733,8 +737,12 @@ class ContentViews(Base):
         """Return a list of all the errata inside specific content view
         version"""
         self.click(self.version_search(name, version_name))
-        self.click(tab_locators['contentviews.tab_version_errata'])
+        errata_tab_is_not_visible = self.wait_until_element_is_not_visible(
+            tab_locators['contentviews.tab_version_errata'], timeout=5)
         errata = []
+        if errata_tab_is_not_visible:
+            return errata
+        self.click(tab_locators['contentviews.tab_version_errata'])
         while True:
             ids = self.find_elements(
                 locators['contentviews.version.errata_id'] % '')
