@@ -16,6 +16,7 @@ from robottelo.datafactory import (
     invalid_usernames_list,
     InvalidArgumentError,
     valid_data_list,
+    valid_docker_repository_names,
     valid_emails_list,
     valid_environments_list,
     valid_hosts_list,
@@ -26,6 +27,7 @@ from robottelo.datafactory import (
     valid_org_names_list,
     valid_usernames_list,
 )
+from robottelo.decorators import bz_bug_is_open
 
 if six.PY2:
     import mock
@@ -53,6 +55,10 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(invalid_usernames_list()), 4)
         self.assertEqual(len(valid_labels_list()), 2)
         self.assertEqual(len(valid_data_list()), 7)
+        if bz_bug_is_open(1483622):
+            self.assertEqual(len(valid_docker_repository_names()), 6)
+        else:
+            self.assertEqual(len(valid_docker_repository_names()), 7)
         self.assertEqual(len(valid_emails_list()), 8)
         self.assertEqual(len(valid_environments_list()), 4)
         self.assertEqual(len(valid_hosts_list()), 3)
@@ -72,6 +78,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(invalid_names_list()), 1)
         self.assertEqual(len(invalid_values_list()), 1)
         self.assertEqual(len(valid_data_list()), 1)
+        self.assertEqual(len(valid_docker_repository_names()), 1)
         self.assertEqual(len(valid_emails_list()), 1)
         self.assertEqual(len(valid_environments_list()), 1)
         self.assertEqual(len(valid_hosts_list()), 1)
@@ -110,17 +117,18 @@ class TestReturnTypes(unittest2.TestCase):
         2. :meth:`robottelo.datafactory.invalid_emails_list`
         3. :meth:`robottelo.datafactory.invalid_names_list`
         4. :meth:`robottelo.datafactory.valid_data_list`
-        5. :meth:`robottelo.datafactory.valid_emails_list`
-        6. :meth:`robottelo.datafactory.valid_environments_list`
-        7. :meth:`robottelo.datafactory.valid_hosts_list`
-        8. :meth:`robottelo.datafactory.valid_hostgroups_list`
-        9. :meth:`robottelo.datafactory.valid_labels_list`
-        10. :meth:`robottelo.datafactory.valid_names_list`
-        11. :meth:`robottelo.datafactory.valid_org_names_list`
-        12. :meth:`robottelo.datafactory.valid_usernames_list`
-        13. :meth:`robottelo.datafactory.invalid_id_list`
-        14. :meth:`robottelo.datafactory.invalid_interfaces_list`
-        15. :meth:`robottelo.datafactory.valid_interfaces_list`
+        5. :meth:`robottelo.datafactory.valid_docker_repository_names`
+        6. :meth:`robottelo.datafactory.valid_emails_list`
+        7. :meth:`robottelo.datafactory.valid_environments_list`
+        8. :meth:`robottelo.datafactory.valid_hosts_list`
+        9. :meth:`robottelo.datafactory.valid_hostgroups_list`
+        10. :meth:`robottelo.datafactory.valid_labels_list`
+        11. :meth:`robottelo.datafactory.valid_names_list`
+        12. :meth:`robottelo.datafactory.valid_org_names_list`
+        13. :meth:`robottelo.datafactory.valid_usernames_list`
+        14. :meth:`robottelo.datafactory.invalid_id_list`
+        15. :meth:`robottelo.datafactory.invalid_interfaces_list`
+        16. :meth:`robottelo.datafactory.valid_interfaces_list`
 
         """
         with mock.patch('robottelo.datafactory.bz_bug_is_open',
@@ -131,6 +139,7 @@ class TestReturnTypes(unittest2.TestCase):
                     invalid_interfaces_list(),
                     invalid_names_list(),
                     valid_data_list(),
+                    valid_docker_repository_names(),
                     valid_emails_list(),
                     valid_environments_list(),
                     valid_hosts_list(),
