@@ -27,7 +27,6 @@ from robottelo.datafactory import (
     valid_org_names_list,
     valid_usernames_list,
 )
-from robottelo.decorators import bz_bug_is_open
 
 if six.PY2:
     import mock
@@ -55,10 +54,6 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(invalid_usernames_list()), 4)
         self.assertEqual(len(valid_labels_list()), 2)
         self.assertEqual(len(valid_data_list()), 7)
-        if bz_bug_is_open(1483622):
-            self.assertEqual(len(valid_docker_repository_names()), 6)
-        else:
-            self.assertEqual(len(valid_docker_repository_names()), 7)
         self.assertEqual(len(valid_emails_list()), 8)
         self.assertEqual(len(valid_environments_list()), 4)
         self.assertEqual(len(valid_hosts_list()), 3)
@@ -67,6 +62,12 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_names_list()), 15)
         self.assertEqual(len(valid_org_names_list()), 7)
         self.assertEqual(len(valid_usernames_list()), 6)
+        with mock.patch('robottelo.datafactory.bz_bug_is_open',
+                        return_value=True):
+            self.assertEqual(len(valid_docker_repository_names()), 6)
+        with mock.patch('robottelo.datafactory.bz_bug_is_open',
+                        return_value=False):
+            self.assertEqual(len(valid_docker_repository_names()), 7)
 
     def test_filtered_datapoint_False(self):
         """Tests if run_one_datapoint=True returns one data point"""
