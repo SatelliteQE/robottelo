@@ -665,7 +665,6 @@ class ContentHostTestCase(UITestCase):
                 lce_id=lce.id,
                 hypervisor_hostname=provisioning_server,
                 configure_ssh=True,
-                exec_one_shot=True,
             )
             virt_who_hypervisor_host = virt_who_data[
                 'virt_who_hypervisor_host']
