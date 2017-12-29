@@ -43,17 +43,13 @@ class RHAIInventory(Base):
         system_element = self.search(system_name)
         if system_element is None:
             raise UIError('system "{0}" not found'.format(system_name))
-        # select the system
         self.assign_value(
             locators["insight.inventory.system_checkbox"] % system_name,
             True
         )
-        # click on drop-down actions button
         self.click(locators["insight.inventory.actions_button"])
-        # click on unregister action
         self.click(locators["insight.inventory.action_unregister"])
         if confirm:
-            # click on yes dialog button
             self.click(locators["insight.inventory.action_confirm_yes"])
 
 
