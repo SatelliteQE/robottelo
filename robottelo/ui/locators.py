@@ -3113,19 +3113,36 @@ locators = LocatorDict({
          "contains(@data-original-title, '%s')]/../../a")),
 
     # Red Hat Access Insights locators
+    "insight.inventory.search": (
+        By.XPATH,
+        "//div[@class='table-search']/input[contains(@ng-class, 'search-box')]"
+    ),
     "insights.registered_systems": (
         By.XPATH,
-        ("//div[@class='system-summary']/p")),
+        "//h3[@class='system-count']/span"),
+    "insight.inventory.system": (
+        By.XPATH,
+        "//td/a[contains(., '%s')]"
+    ),
+    "insight.inventory.system_checkbox": (
+        By.XPATH,
+        "//td/a[contains(., '%s')]/../preceding-sibling::td/input"
+    ),
+    "insight.inventory.actions_button": (
+        By.XPATH,
+        "//div/button[@data-toggle='dropdown']/span[contains(., 'Actions')]"
+    ),
+    "insight.inventory.action_unregister": (
+        By.XPATH,
+        ("//div[contains(@class,'dropdown')]/ul/li/a"
+         "/span[contains(., 'Unregister')]")
+    ),
+    "insight.inventory.action_confirm_yes": (
+        By.XPATH,
+        "//div[@role='dialog']/div/button[contains(@class, 'confirm')]"
+    ),
     "insights.org_selection_msg": (
         By.ID, "content"),
-    "insights.unregister_system": (
-        By.XPATH, (
-            "//td[contains(*,'%s')]/../td/a[@class='fa fa-close blacklist' "
-            "and contains(@title,'Unregister System')]")),
-    "insights.unregister_button": (
-        By.XPATH, (
-            "//div[@class='sweet-alert showSweetAlert visible']//"
-            "button[@class='confirm']")),
     "insights.no_systems_element": (
         By.XPATH, (
             "//div[@class='text-center']//h4")
