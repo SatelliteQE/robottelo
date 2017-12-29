@@ -4250,13 +4250,13 @@ def virt_who_hypervisor_config(
         # small delay can occur.
         max_time = time.time() + 60
         while time.time() <= max_time:
+            time.sleep(5)
             org_hosts = Host.list({
                 'organization-id': org['id'],
                 'search': 'name={0}'.format(virt_who_hypervisor_hostname)
             })
-            if org_hosts or time.time() > max_time:
+            if org_hosts:
                 break
-            time.sleep(5)
 
     if len(org_hosts) == 0:
         raise CLIFactoryError(
