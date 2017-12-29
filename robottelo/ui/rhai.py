@@ -38,7 +38,7 @@ class RHAIInventory(Base):
         return self.wait_until_element(
             locators['insights.registered_systems']).text
 
-    def unregister_system(self, system_name, confirm=True):
+    def unregister_system(self, system_name):
         """Unregister system from inventory"""
         system_element = self.search(system_name)
         if system_element is None:
@@ -49,8 +49,7 @@ class RHAIInventory(Base):
         )
         self.click(locators["insight.inventory.actions_button"])
         self.click(locators["insight.inventory.action_unregister"])
-        if confirm:
-            self.click(locators["insight.inventory.action_confirm_yes"])
+        self.click(locators["insight.inventory.action_confirm_yes"])
 
 
 class RHAIOverview(Base):
