@@ -2558,9 +2558,17 @@ locators = LocatorDict({
          "contains(@data-original-title, '%s')]/../../a")),
 
     # Red Hat Access Insights locators
+    "insight.inventory.search": (
+        By.XPATH,
+        "//div[@class='table-search']/input[contains(@ng-class, 'search-box')]"
+    ),
     "insights.registered_systems": (
         By.XPATH,
         "//h3[@class='system-count']/span"),
+    "insight.inventory.system": (
+        By.XPATH,
+        "//td/a[contains(., '%s')]"
+    ),
     "insight.inventory.system_checkbox": (
         By.XPATH,
         "//td/a[contains(., '%s')]/../preceding-sibling::td/input"

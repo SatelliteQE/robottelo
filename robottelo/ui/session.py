@@ -53,7 +53,7 @@ from robottelo.ui.puppetclasses import PuppetClasses
 from robottelo.ui.puppetmodule import PuppetModule
 from robottelo.ui.registry import Registry
 from robottelo.ui.repository import Repos
-from robottelo.ui.rhai import RHAI
+from robottelo.ui.rhai import RHAIInventory, RHAIOverview
 from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
 from robottelo.ui.scparams import SmartClassParameter
@@ -169,7 +169,8 @@ class Session(object):
         self.products = Products(self.browser)
         self.registry = Registry(self.browser)
         self.repository = Repos(self.browser)
-        self.rhai = RHAI(self.browser)
+        self.rhai_inventory = RHAIInventory(self.browser)
+        self.rhai_overview = RHAIOverview(self.browser)
         self.role = Role(self.browser)
         self.settings = Settings(self.browser)
         self.sc_parameters = SmartClassParameter(self.browser)
@@ -197,7 +198,8 @@ class Session(object):
                 'operatingsys', 'org', 'oscapcontent', 'oscappolicy',
                 'oscapreports', 'oscaptailoringfile', 'package',
                 'partitiontable', 'puppetclasses', 'puppetmodule',
-                'products', 'registry', 'repository', 'rhai', 'role',
+                'products', 'registry', 'repository', 'rhai_inventory',
+                'rhai_overview', 'role',
                 'settings', 'sc_parameters', 'smart_variable', 'statistic',
                 'subnet', 'subscriptions', 'sync', 'syncplan', 'task',
                 'template', 'trend', 'usergroup', 'globalparameters'):

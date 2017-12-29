@@ -23,7 +23,7 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.decorators import run_in_one_thread, skip_if_not_set
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators
+from robottelo.ui.factory import set_context
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -87,9 +87,11 @@ class RHAITestCase(UITestCase):
 
                 with Session(self) as session:
                     # view clients registered to Red Hat Access Insights
-                    session.nav.go_to_select_org(self.org_name)
-                    session.nav.go_to_insights_inventory()
-                    result = self.rhai.view_registered_systems()
+                    set_context(session, org=self.org_name, force_context=True)
+                    self.assertIsNotNone(
+                        session.rhai_inventory.search(vm.hostname)
+                    )
+                    result = session.rhai_inventory.get_total_systems()
                     self.assertIn("1", result,
                                   'Registered clients are not listed')
             finally:
@@ -109,13 +111,11 @@ class RHAITestCase(UITestCase):
         """
         with Session(self) as session:
             # Given that the user does not specify any Organization
-            session.nav.go_to_select_org("Any Organization")
-            session.nav.go_to_insights_overview()
-
+            set_context(session, org='Any Organization', force_context=True)
             # 'Organization Selection Required' message must be present
-            result = session.nav.wait_until_element(
-                locators['insights.org_selection_msg']).text
-            self.assertIn("Organization Selection Required", result)
+            msg = session.rhai_overview.get_organization_selection_message()
+            self.assertIsNotNone(msg)
+            self.assertIn("Organization Selection Required", msg)
 
     @skip_if_not_set('clients')
     def test_positive_unregister_client_from_rhai(self):
@@ -135,8 +135,8 @@ class RHAITestCase(UITestCase):
                                          DISTRO_RHEL7)
 
                 with Session(self) as session:
-                    session.nav.go_to_select_org(self.org_name)
-                    session.rhai.unregister_system_from_inventory(vm.hostname)
+                    set_context(session, org=self.org_name, force_context=True)
+                    session.rhai_inventory.unregister_system(vm.hostname)
 
                 result = vm.run('redhat-access-insights')
                 self.assertEqual(result.return_code, 1,
