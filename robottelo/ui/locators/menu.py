@@ -220,10 +220,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         (MENU_CONTAINER_PATH +
          "//a[@href='/redhat_access/insights/rules/']")),
-    "insights.systems": (
+    "insights.inventory": (
         By.XPATH,
         (MENU_CONTAINER_PATH +
-         "//a[@href='/redhat_access/insights/systems/']")),
+         "//a[@href='/redhat_access/insights/inventory']")),
     "insights.manage": (
         By.XPATH,
         (MENU_CONTAINER_PATH +
