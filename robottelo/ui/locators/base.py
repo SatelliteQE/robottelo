@@ -479,7 +479,8 @@ locators = LocatorDict({
     "resource.compute_profile.rhev_storage_size": (
         By.XPATH,
         ("//fieldset[@id='storage_volumes']"
-         "//div/input[contains(@id,'size_gb')]")
+         "//div/input[contains(@id,'size_gb')"
+         "and not(contains(@id,'new_volumes'))]")
     ),
     "resource.compute_profile.rhev_storage_domain": (
         By.XPATH,
@@ -496,12 +497,14 @@ locators = LocatorDict({
     "resource.compute_profile.rhev_storage_preallocate": (
         By.XPATH,
         ("//fieldset[@id='storage_volumes']"
-         "//div/input[contains(@id, 'preallocate')]")
+         "//div/input[contains(@id, 'preallocate')"
+         "and not(contains(@id,'new_volumes'))]")
     ),
     "resource.compute_profile.rhev_storage_bootable": (
         By.XPATH,
         ("//fieldset[@id='storage_volumes']"
-         "//div/label/input[contains(@id, 'bootable_true')]")
+         "//div/label/input[contains(@id, 'bootable_true')"
+         "and not(contains(@id,'new_volumes'))]")
     ),
     "resource.compute_profile.vmware_cpus": (
         By.XPATH,
