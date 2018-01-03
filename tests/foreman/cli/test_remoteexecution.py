@@ -257,6 +257,7 @@ class RemoteExecutionTestCase(CLITestCase):
             '''echo 'getenforce' > {0}'''.format(TEMPLATE_FILE)
         )
         # create subnet for current org, default loc and domain
+        # add rex proxy to subnet, default is internal proxy (id 1)
         # using API due BZ#1370460
         cls.sn = entities.Subnet(
             domain=[1],
@@ -265,15 +266,9 @@ class RemoteExecutionTestCase(CLITestCase):
             location=[DEFAULT_LOC_ID],
             mask=settings.vlan_networking.netmask,
             network=settings.vlan_networking.subnet,
-            organization=[cls.org.id]
+            organization=[cls.org.id],
+            remote_execution_proxy=[entities.SmartProxy(id=1)],
         ).create()
-        # add rex proxy to subnet, default is internal proxy (id 1)
-        if bz_bug_is_open(1328322):
-            cls.sn.remote_execution_proxy_ids = [1]
-            cls.sn.update(["remote_execution_proxy_ids"])
-        else:
-            cls.sn.remote_execution_proxy_id = 1
-            cls.sn.update(["remote_execution_proxy_id"])
 
     def setUp(self):
         """Create VM, install katello-ca, register it, add remote execution key
