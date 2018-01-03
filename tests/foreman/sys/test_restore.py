@@ -18,7 +18,7 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import destructive
+from robottelo.decorators import destructive, skip_if_bug_open
 from robottelo.helpers import get_services_status
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
@@ -45,10 +45,8 @@ def tmp_directory_cleanup(connection, *args):
 class RestoreTestCase(TestCase):
     """Implements ``katello-restore`` tests"""
 
-    @classmethod
-    def tearDownClass(cls):
-        """Make sure services are started after test run"""
-        super(RestoreTestCase, cls).tearDownClass()
+    def tearDown(self):
+        """Make sure services are started after each test"""
         with get_connection() as connection:
             result = connection.run(
                 'katello-service start',
@@ -56,7 +54,8 @@ class RestoreTestCase(TestCase):
                 output_format='plain'
             )
             if result.return_code != 0:
-                raise AssertionError("Failed to start services")
+                self.fail('Failed to start services')
+        super(RestoreTestCase, self).tearDown()
 
     def check_services_status(self, max_attempts=5):
         for _ in range(max_attempts):
@@ -160,7 +159,7 @@ class RestoreTestCase(TestCase):
 
         :bz: 1482135
 
-        :expectedresults: Restore is successfull. User 1 is
+        :expectedresults: Restore is successful. User 1 is
             present after restoring, User 2 is not
 
         """
@@ -172,7 +171,8 @@ class RestoreTestCase(TestCase):
             result = connection.run(
                 'satellite-backup -y /tmp/{0} '
                 '--skip-pulp-content'.format(dir_name),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             entities.User(login=username2).create()
@@ -189,6 +189,7 @@ class RestoreTestCase(TestCase):
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
+    @skip_if_bug_open('bugzilla', 1527957)
     def test_positive_restore_from_online_and_incremental(self):
         """katello-restore from online and incremental backup
 
@@ -221,7 +222,8 @@ class RestoreTestCase(TestCase):
                 'satellite-backup -y /tmp/{0} '
                 '--online-backup '
                 '--skip-pulp-content'.format(b1),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             entities.User(login=username2).create()
@@ -231,7 +233,8 @@ class RestoreTestCase(TestCase):
                 '--online-backup /tmp/{0} '
                 '--incremental /tmp/{1}/*'
                 .format(b2, b1),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
 
