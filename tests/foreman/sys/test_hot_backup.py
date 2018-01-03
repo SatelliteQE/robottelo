@@ -26,6 +26,7 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     destructive,
+    skip_if_bug_open,
     stubbed,
 )
 from robottelo.helpers import get_services_status
@@ -80,6 +81,18 @@ class HotBackupTestCase(TestCase):
         ).create()
         repo.sync()
 
+    def tearDown(self):
+        """Make sure services are started after each test"""
+        with get_connection() as connection:
+            result = connection.run(
+                'katello-service start',
+                timeout=1600,
+                output_format='plain'
+            )
+            if result.return_code != 0:
+                self.fail('Failed to start services')
+        super(HotBackupTestCase, self).tearDown()
+
     def check_services_status(self, max_attempts=5):
         for _ in range(max_attempts):
             try:
@@ -117,7 +130,8 @@ class HotBackupTestCase(TestCase):
             result = connection.run(
                 'satellite-backup -y /tmp/{0} --online-backup'.format(
                     dir_name),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
@@ -156,7 +170,8 @@ class HotBackupTestCase(TestCase):
             result = connection.run(
                 'satellite-backup -y /tmp/{0} --online-backup'.format(
                     dir_name),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
@@ -250,6 +265,7 @@ class HotBackupTestCase(TestCase):
             )
             self.assertNotEqual(result.return_code, 0)
             connection.run('service {0} start'.format(dead_service))
+            self.check_services_status()
             tmp_directory_cleanup(connection, dir_name)
 
     @destructive
@@ -275,7 +291,8 @@ class HotBackupTestCase(TestCase):
             result = connection.run(
                 'satellite-backup -y /tmp/{0} --online-backup '
                 '--skip-pulp-content'.format(dir_name),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
@@ -311,7 +328,8 @@ class HotBackupTestCase(TestCase):
             result = connection.run(
                 'satellite-backup -y /tmp/{0} '
                 '--skip-pulp-content'.format(dir_name),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
@@ -347,7 +365,8 @@ class HotBackupTestCase(TestCase):
             result = connection.run(
                 'satellite-backup -y /tmp/{0} '
                 '--logical-db-backup'.format(dir_name),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(dir_name), result.stdout)
@@ -386,7 +405,8 @@ class HotBackupTestCase(TestCase):
             # run full backup
             result_full = connection.run(
                 'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result_full.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result_full.stdout)
@@ -407,7 +427,8 @@ class HotBackupTestCase(TestCase):
             result_inc = connection.run(
                 'satellite-backup -y /tmp/{0} --incremental /tmp/{1}/{2}'
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result_inc.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dest), result_inc.stdout)
@@ -522,7 +543,8 @@ class HotBackupTestCase(TestCase):
             # run full backup
             result = connection.run(
                 'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
@@ -545,7 +567,8 @@ class HotBackupTestCase(TestCase):
                         --skip-pulp-content /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
@@ -582,7 +605,8 @@ class HotBackupTestCase(TestCase):
             # run full backup
             result = connection.run(
                 'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
@@ -605,7 +629,8 @@ class HotBackupTestCase(TestCase):
                         --skip-pulp-content /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(b1_dest, b1_dir, timestamped_dir.stdout[0]),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dest), result.stdout)
@@ -621,6 +646,7 @@ class HotBackupTestCase(TestCase):
             tmp_directory_cleanup(connection, b1_dir, b1_dest)
 
     @destructive
+    @skip_if_bug_open('bugzilla', 1527957)
     def test_positive_online_incremental(self):
         """Make an incremental online backup
 
@@ -646,7 +672,8 @@ class HotBackupTestCase(TestCase):
             # run full backup
             result = connection.run(
                 'satellite-backup -y /tmp/{0} --online-backup'.format(b1_dir),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(b1_dir), result.stdout)
@@ -678,7 +705,8 @@ class HotBackupTestCase(TestCase):
                         --online-backup /tmp/{0} \
                         --incremental /tmp/{1}/{2}'''
                 .format(ib1_dest, ib1_dir, timestamped_dir.stdout[0]),
-                output_format='plain'
+                output_format='plain',
+                timeout=900
             )
             self.assertEqual(result.return_code, 0)
             self.assertIn(BCK_MSG.format(ib1_dest), result.stdout)
