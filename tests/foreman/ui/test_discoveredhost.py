@@ -957,6 +957,7 @@ class DiscoveryTestCase(UITestCase):
         """
 
     @run_only_on('sat')
+    @stubbed('unstub once os/browser/env combination is changed')
     @tier3
     def test_positive_update_name(self):
         """Update the discovered host name and provision it
