@@ -23,6 +23,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 
 from robottelo.api.utils import promote
+from robottelo.cleanup import vm_cleanup
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
@@ -1149,6 +1150,7 @@ class DockerContainerTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('docker')
+    @skip_if_bug_open('bugzilla', 1531075)
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainerTestCase, cls).setUpClass()
@@ -1161,6 +1163,7 @@ class DockerContainerTestCase(APITestCase):
             source_image=docker_image,
             tag=u'docker'
         )
+        self.addCleanup(vm_cleanup, self.docker_host)
         self.docker_host.create()
         self.docker_host.install_katello_ca()
         self.compute_resource = entities.DockerComputeResource(
@@ -1168,9 +1171,6 @@ class DockerContainerTestCase(APITestCase):
             organization=[self.org],
             url='http://{0}:2375'.format(self.docker_host.ip_addr),
         ).create()
-
-    def tearDown(self):
-        self.docker_host.destroy()
 
     @tier2
     @run_only_on('sat')

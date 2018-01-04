@@ -1605,6 +1605,7 @@ class DockerContainersTestCase(CLITestCase):
 
     @classmethod
     @skip_if_not_set('docker')
+    @skip_if_bug_open('bugzilla', 1531075)
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
         super(DockerContainersTestCase, cls).setUpClass()
