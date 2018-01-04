@@ -130,7 +130,6 @@ class BzBugIsOpenTestCase(TestCase):
         - bug is in any status
         - bug has a valid Whiteboard text
         - robottelo in downstream mode
-
         """
 
         original_bug = {
@@ -239,7 +238,8 @@ class BzBugIsOpenTestCase(TestCase):
                 'id', 'status', 'whiteboard', 'flags', 'resolution',
                 'target_milestone'
             ],
-            follow_clones=True
+            follow_clones=True,
+            follow_duplicates=True
         )
         bz_reader.get_bug_data.assert_called_once_with(original_bug['id'])
         original_bug['status'] = 'ASSIGNED'
@@ -828,7 +828,8 @@ class GetBugzillaBugStatusIdTestCase(TestCase):
                 'id', 'status', 'whiteboard', 'flags', 'resolution',
                 'target_milestone'
             ],
-            follow_clones=True
+            follow_clones=True,
+            follow_duplicates=True
         )
 
         get_bug_data.assert_called_once_with(bug['id'])

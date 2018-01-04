@@ -63,10 +63,13 @@ def get_deselect_bug_ids(bugs=None, log=None, lookup=None):  # pragma: no cover
     bugs = bugs or get_decorated_bugs()
     resolution_list = []
     flag_list = []
+    backlog_list = []
     for bug_id, data in bugs.items():
         bug_data = data.get('bug_data')
         # when not authenticated, private bugs will have no bug data
         if bug_data:
+            if 'sat-backlog' in bug_data.get('flags', {}):
+                backlog_list.append(bug_id)
             if bug_data['resolution'] in ('WONTFIX', 'CANTFIX', 'DEFERRED'):
                 resolution_list.append(bug_id)
             if not any([flag in bug_data.get('flags', {}) for flag in VFLAGS]):
@@ -82,7 +85,10 @@ def get_deselect_bug_ids(bugs=None, log=None, lookup=None):  # pragma: no cover
     if flag_list:
         log('Deselected tests reason: missing version flag %s' % flag_list)
 
-    return resolution_list + flag_list
+    if backlog_list:
+        log('Deselected tests reason: sat-backlog %s' % backlog_list)
+
+    return set(resolution_list + flag_list + backlog_list)
 
 
 def group_by_key(data):

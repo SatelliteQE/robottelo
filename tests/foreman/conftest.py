@@ -157,17 +157,15 @@ def pytest_collection_modifyitems(items, config):
         return items
 
     deselected_items = []
-    removal_ids = set(pytest.bugzilla.removal_ids)
     decorated_functions = group_by_key(pytest.bugzilla.decorated_functions)
 
-    # log("Deselected tests with the following BZs %s" % removal_ids)
     log("Collected %s test cases" % len(items))
 
     for item in items:
         name = get_func_name(item.function, test_item=item)
         bug_ids = list(decorated_functions.get(name, []))
         bug_ids.extend(_extract_setup_class_ids(item))
-        if any(bug_id in removal_ids for bug_id in bug_ids):
+        if any(bug_id in pytest.bugzilla.removal_ids for bug_id in bug_ids):
             deselected_items.append(item)
             log("Deselected test %s" % name)
 
