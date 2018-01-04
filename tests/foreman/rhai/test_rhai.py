@@ -90,9 +90,9 @@ class RHAITestCase(UITestCase):
                     # view clients registered to Red Hat Access Insights
                     set_context(session, org=self.org_name, force_context=True)
                     self.assertIsNotNone(
-                        session.rhai_inventory.search(vm.hostname)
+                        self.rhai_inventory.search(vm.hostname)
                     )
-                    result = session.rhai_inventory.get_total_systems()
+                    result = self.rhai_inventory.get_total_systems()
                     self.assertIn("1", result,
                                   'Registered clients are not listed')
             finally:
@@ -115,7 +115,7 @@ class RHAITestCase(UITestCase):
             # Given that the user does not specify any Organization
             set_context(session, org='Any Organization', force_context=True)
             # 'Organization Selection Required' message must be present
-            msg = session.rhai_overview.get_organization_selection_message()
+            msg = self.rhai_overview.get_organization_selection_message()
             self.assertIsNotNone(msg)
             self.assertIn("Organization Selection Required", msg)
 
@@ -139,7 +139,7 @@ class RHAITestCase(UITestCase):
 
                 with Session(self.browser) as session:
                     set_context(session, org=self.org_name, force_context=True)
-                    session.rhai_inventory.unregister_system(vm.hostname)
+                    self.rhai_inventory.unregister_system(vm.hostname)
 
                 result = vm.run('redhat-access-insights')
                 self.assertEqual(result.return_code, 1,

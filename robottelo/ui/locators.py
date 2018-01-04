@@ -298,10 +298,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@href='/redhat_access/insights/rules/']")),
-    "insights.systems": (
+    "insights.inventory": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@href='/redhat_access/insights/systems/']")),
+         "//a[@href='/redhat_access/insights/inventory']")),
     "insights.manage": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
@@ -3115,11 +3115,15 @@ locators = LocatorDict({
     # Red Hat Access Insights locators
     "insight.inventory.search": (
         By.XPATH,
-        "//div[@class='table-search']/input[contains(@ng-class, 'search-box')]"
+        "//input[contains(@class, 'search-box')]"
     ),
     "insights.registered_systems": (
         By.XPATH,
         "//h3[@class='system-count']/span"),
+    "insight.inventory.systems_loaded": (
+        By.XPATH,
+        ("//div[@ng-show='loading'][contains(@class, 'ng-hide')]"
+         "//div[contains(@class, 'spinner')]")),
     "insight.inventory.system": (
         By.XPATH,
         "//td/a[contains(., '%s')]"
@@ -3139,8 +3143,10 @@ locators = LocatorDict({
     ),
     "insight.inventory.action_confirm_yes": (
         By.XPATH,
-        "//div[@role='dialog']/div/button[contains(@class, 'confirm')]"
-    ),
+        # 'visible' is added asynchronously after page load. do not remove it
+        # as otherwise click won't trigger any event
+        ("//div[contains(@class,'sweet-alert')][contains(@class,'visible')]"
+         "/button[@class='confirm']")),
     "insights.org_selection_msg": (
         By.ID, "content"),
     "insights.no_systems_element": (

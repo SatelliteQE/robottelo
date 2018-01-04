@@ -27,7 +27,8 @@ class RHAIInventory(Base):
         self.assign_value(locators['insight.inventory.search'], element_name)
         # the search here has no summit button, a change event is triggered
         # when we push characters in search box
-        return self.wait_until_element(self._search_locator() % element_name)
+        strategy, value = self._search_locator()
+        return self.wait_until_element((strategy, value % element_name))
 
     def get_total_systems(self):
         """To get the number of registered systems.
@@ -35,6 +36,7 @@ class RHAIInventory(Base):
         :return a string that looks like: "0 Systems" or "1 System" etc...
         """
         self.navigate_to_entity()
+        self.wait_until_element(locators['insight.inventory.systems_loaded'])
         return self.wait_until_element(
             locators['insights.registered_systems']).text
 
@@ -43,10 +45,8 @@ class RHAIInventory(Base):
         system_element = self.search(system_name)
         if system_element is None:
             raise UIError('system "{0}" not found'.format(system_name))
-        self.assign_value(
-            locators["insight.inventory.system_checkbox"] % system_name,
-            True
-        )
+        strategy, value = locators["insight.inventory.system_checkbox"]
+        self.assign_value((strategy, value % system_name), True)
         self.click(locators["insight.inventory.actions_button"])
         self.click(locators["insight.inventory.action_unregister"])
         self.click(locators["insight.inventory.action_confirm_yes"])
