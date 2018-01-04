@@ -38,6 +38,7 @@ from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_PTABLE,
     ENVIRONMENT,
+    FOREMAN_PROVIDERS,
     PRDS,
     REPOS,
     REPOSET,
@@ -120,7 +121,7 @@ class LibvirtHostTestCase(UITestCase):
         cls.os = entities.OperatingSystem().search(query={
             u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
                        .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
-        })[0]
+        })[0].read()
 
         # Get the templates and update with OS, Org, Location
         cls.templates = []
@@ -136,10 +137,10 @@ class LibvirtHostTestCase(UITestCase):
                 query={
                     u'search': u'name="{}"'.format(template_name)
                 }
-            )[0]
-            template.operatingsystem = [cls.os]
-            template.organization = [cls.org_]
-            template.location = [cls.loc]
+            )[0].read()
+            template.operatingsystem.append(cls.os)
+            template.organization.append(cls.org_)
+            template.location.append(cls.loc)
             template = template.update([
                 'location',
                 'operatingsystem',
@@ -216,22 +217,21 @@ class LibvirtHostTestCase(UITestCase):
                     settings.server.hostname
                 )
             }
-        )[0]
-        cls.proxy.location = [cls.loc]
-        cls.proxy = cls.proxy.update(['location'])
-        cls.proxy.organization = [cls.org_]
-        cls.proxy = cls.proxy.update(['organization'])
+        )[0].read()
+        cls.proxy.location.append(cls.loc)
+        cls.proxy.organization.append(cls.org_)
+        cls.proxy = cls.proxy.update(['location', 'organization'])
 
         # Search for existing domain or create new otherwise. Associate org,
         # location and dns to it
         _, _, domain = settings.server.hostname.partition('.')
-        cls.domain = entities.Domain().search(
+        domain = entities.Domain().search(
             query={
                 u'search': u'name="{0}"'.format(domain)
             }
         )
-        if len(cls.domain) == 1:
-            cls.domain = cls.domain[0].read()
+        if len(domain) > 0:
+            cls.domain = domain[0].read()
             cls.domain.location.append(cls.loc)
             cls.domain.organization.append(cls.org_)
             cls.domain.dns = cls.proxy
@@ -248,14 +248,14 @@ class LibvirtHostTestCase(UITestCase):
         # If so, just update its relevant fields otherwise,
         # Create new subnet
         network = settings.vlan_networking.subnet
-        cls.subnet = entities.Subnet().search(
+        subnet = entities.Subnet().search(
             query={u'search': u'network={0}'.format(network)}
         )
-        if len(cls.subnet) == 1:
-            cls.subnet = cls.subnet[0]
-            cls.subnet.domain = [cls.domain]
-            cls.subnet.location = [cls.loc]
-            cls.subnet.organization = [cls.org_]
+        if len(subnet) > 0:
+            cls.subnet = subnet[0].read()
+            cls.subnet.domain.append(cls.domain)
+            cls.subnet.location.append(cls.loc)
+            cls.subnet.organization.append(cls.org_)
             cls.subnet.dns = cls.proxy
             cls.subnet.dhcp = cls.proxy
             cls.subnet.ipam = 'DHCP'
@@ -295,9 +295,10 @@ class LibvirtHostTestCase(UITestCase):
         )
         comp_res = [
             res for res in entities.LibvirtComputeResource().search()
-            if res.provider == 'Libvirt' and res.url == resource_url
+            if (res.provider == FOREMAN_PROVIDERS['libvirt']
+                and res.url == resource_url)
         ]
-        if len(comp_res) >= 1:
+        if len(comp_res) > 0:
             cls.computeresource = entities.LibvirtComputeResource(
                 id=comp_res[0].id).read()
             cls.computeresource.location.append(cls.loc)
@@ -308,7 +309,7 @@ class LibvirtHostTestCase(UITestCase):
             # Create Libvirt compute-resource
             cls.computeresource = entities.LibvirtComputeResource(
                 name=gen_string('alpha'),
-                provider=u'libvirt',
+                provider=FOREMAN_PROVIDERS['libvirt'],
                 url=resource_url,
                 set_console_password=False,
                 display_type=u'VNC',
@@ -360,6 +361,8 @@ class LibvirtHostTestCase(UITestCase):
                 session,
                 name=hostname,
                 org=self.org_name,
+                loc=self.loc_name,
+                force_context=True,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],
@@ -407,6 +410,8 @@ class LibvirtHostTestCase(UITestCase):
                 session,
                 name=hostname,
                 org=self.org_name,
+                loc=self.loc_name,
+                force_context=True,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],

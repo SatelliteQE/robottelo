@@ -71,6 +71,13 @@ class Hosts(Base):
                 if 'active' in inherit.get_attribute('class'):
                     self.click(inherit)
             self.assign_value(param_locator, parameter_value)
+            if parameter_name == 'Memory':
+                # trigger a change event
+                memory_element = self.wait_until_element(param_locator)
+                self.browser.execute_script(
+                    "arguments[0].dispatchEvent(new Event('change'));",
+                    memory_element,
+                )
 
     def _configure_interface_parameters(self, parameters_list):
         """Provide configuration capabilities for host entity interface
