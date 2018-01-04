@@ -47,9 +47,9 @@ from robottelo.constants import (
     VALID_GPG_KEY_FILE,
 )
 from robottelo.datafactory import (
-    filtered_datapoint,
     generate_strings_list,
     invalid_values_list,
+    valid_docker_repository_names,
 )
 from robottelo.decorators import (
     bz_bug_is_open,
@@ -76,18 +76,6 @@ from robottelo.ui.locators import (
 )
 from robottelo.ui.session import Session
 from selenium.common.exceptions import NoSuchElementException
-
-
-@filtered_datapoint
-def valid_repo_names_docker_sync():
-    """Returns a list of valid repo names for docker sync test"""
-    return [
-        gen_string('alpha', 8).lower(),
-        gen_string('numeric', 8),
-        gen_string('alphanumeric', 8).lower(),
-        gen_string('html', 8),
-        gen_string('utf8', 8),
-    ]
 
 
 class RepositoryTestCase(UITestCase):
@@ -856,7 +844,7 @@ class RepositoryTestCase(UITestCase):
         # Creates new product
         product = entities.Product(organization=self.session_org).create()
         with Session(self) as session:
-            for repo_name in valid_repo_names_docker_sync():
+            for repo_name in valid_docker_repository_names():
                 with self.subTest(repo_name):
                     # Creates new docker repository
                     entities.Repository(
