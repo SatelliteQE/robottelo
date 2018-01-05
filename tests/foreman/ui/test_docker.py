@@ -1292,6 +1292,7 @@ class DockerContainerTestCase(UITestCase):
 
     @classmethod
     @skip_if_not_set('docker')
+    @skip_if_bug_open('bugzilla', 1531075)
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainerTestCase, cls).setUpClass()
