@@ -295,7 +295,13 @@
               "name": "organization-label", 
               "shortname": null, 
               "value": "ORGANIZATION_LABEL"
-            }, 
+            },
+            {
+              "help": "Override parameter key or name. To enable or disable a repo select 'enabled'. Default value: enabled Default: \"enabled\" ",
+              "name": "override-name",
+              "shortname": null,
+              "value": "OVERRIDE_NAME"
+            },
             {
               "help": "Remove a content override", 
               "name": "remove", 
@@ -2977,7 +2983,7 @@
           "shortname": "h", 
           "value": null
         }
-      ], 
+      ],
       "subcommands": [
         {
           "description": "Create a compute resource", 
@@ -3006,7 +3012,13 @@
               "name": "display-type", 
               "shortname": null, 
               "value": "DISPLAY_TYPE"
-            }, 
+            },
+            {
+              "help": "",
+              "name": "domain",
+              "shortname": null,
+              "value": "DOMAIN"
+            },
             {
               "help": "REPLACE locations with given ids Comma separated list of values. Values containing comma should be double quoted", 
               "name": "location-ids", 
@@ -3685,7 +3697,13 @@
               "name": "display-type", 
               "shortname": null, 
               "value": "DISPLAY_TYPE"
-            }, 
+            },
+            {
+              "help": "",
+              "name": "domain",
+              "shortname": null,
+              "value": "DOMAIN"
+            },
             {
               "help": "", 
               "name": "id", 
@@ -13851,14 +13869,14 @@
             }, 
             {
               "description": "Override product content defaults", 
-              "name": "content-override", 
+              "name": "content-override",
               "options": [
                 {
                   "help": "Label of the content", 
                   "name": "content-label", 
                   "shortname": null, 
                   "value": "CONTENT_LABEL"
-                }, 
+                },
                 {
                   "help": "Name to search by", 
                   "name": "host", 
@@ -13873,9 +13891,9 @@
                 }, 
                 {
                   "help": "Name/Key to override. To enable or disable a repo select 'enabled'.Default value: enabled Default: \"enabled\"", 
-                  "name": "name", 
+                  "name": "override-name",
                   "shortname": null, 
-                  "value": "NAME"
+                  "value": "OVERRIDE-NAME"
                 }, 
                 {
                   "help": "Remove a content override", 
@@ -16626,817 +16644,6 @@
       ]
     }, 
     {
-      "description": "Import data exported from a Red Hat Satellite 5 instance", 
-      "name": "import", 
-      "options": [
-        {
-          "help": "print help", 
-          "name": "help", 
-          "shortname": "h", 
-          "value": null
-        }
-      ], 
-      "subcommands": [
-        {
-          "description": "Import Activation Keys (from spacewalk-report activation-keys).", 
-          "name": "activation-key", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Load ALL data from a specified directory that is in spacewalk-export format.", 
-          "name": "all", 
-          "options": [
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities instead of importing them Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "The directory where the export file was extracted Default: \"/tmp/exports\"", 
-              "name": "directory", 
-              "shortname": null, 
-              "value": "DIR_PATH"
-            }, 
-            {
-              "help": "Show what we would have done, if we'd been allowed Default: false", 
-              "name": "dry-run", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "entity[,entity...] Import specific entities Default: \"all\"", 
-              "name": "entities", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Import all organizations into one specified by id", 
-              "name": "into-org-id", 
-              "shortname": null, 
-              "value": "ORG_ID"
-            }, 
-            {
-              "help": "List entities we understand Default: false", 
-              "name": "list-entities", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Mapping of Satellite-5 config-file-macros to puppet facts", 
-              "name": "macro_mapping", 
-              "shortname": null, 
-              "value": "FILE"
-            }, 
-            {
-              "help": "Directory holding manifests", 
-              "name": "manifest-directory", 
-              "shortname": null, 
-              "value": "DIR_PATH"
-            }, 
-            {
-              "help": "Merge pre-created users (except admin) Default: false", 
-              "name": "merge-users", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Wait for async tasks in foreground Default: false", 
-              "name": "no-async", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Synchronize imported repositories Default: false", 
-              "name": "synchronize", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Wait for repository synchronization to finish Default: false", 
-              "name": "wait", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Create puppet-modules from Configuration Channel content (from spacewalk-report config-files-latest).", 
-          "name": "config-file", 
-          "options": [
-            {
-              "help": "Answers to the puppet-generate-module interview questions Default: \"/etc/hammer/cli.modules.d/import/interview_answers.yml\"", 
-              "name": "answers-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Create and fill puppet-modules, but DO NOT upload anything Default: false", 
-              "name": "generate-only", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Mapping of Satellite-5 config-file-macros to puppet facts Default: \"/etc/hammer/cli.modules.d/import/config_macros.yml\"", 
-              "name": "macro-mapping", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Location for building puppet modules (will be created if it doesn't exist Default: \"/root/puppet_work_dir\"", 
-              "name": "working-directory", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Import Content Hosts (from spacewalk-report system-profiles).", 
-          "name": "content-host", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Directory to export rpmbuild structure", 
-              "name": "export-directory", 
-              "shortname": null, 
-              "value": "DIR_PATH"
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Create Content Views based on local/cloned Channels (from spacewalk-export-channels).", 
-          "name": "content-view", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Export directory", 
-              "name": "dir", 
-              "shortname": null, 
-              "value": "DIR"
-            }, 
-            {
-              "help": "Filter content-views for package names present in Sat5 channel Default: false", 
-              "name": "filter", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Wait for async tasks in foreground Default: false", 
-              "name": "no-async", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Synchronize imported repositories Default: false", 
-              "name": "synchronize", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Wait for repository synchronization to finish Default: false", 
-              "name": "wait", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Import Host Collections (from spacewalk-report system-groups).", 
-          "name": "host-collection", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Import Organizations (from spacewalk-report users).", 
-          "name": "organization", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Import all organizations into one specified by id", 
-              "name": "into-org-id", 
-              "shortname": null, 
-              "value": "ORG_ID"
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Upload manifests found at MANIFEST_DIR. Assumes manifest for \"ORG NAME\" will be of the form ORG_NAME.zip", 
-              "name": "upload-manifests-from", 
-              "shortname": null, 
-              "value": "MANIFEST_DIR"
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Import repositories (from spacewalk-report repositories).", 
-          "name": "repository", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Wait for async tasks in foreground Default: false", 
-              "name": "no-async", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Synchronize imported repositories Default: false", 
-              "name": "synchronize", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Wait for repository synchronization to finish Default: false", 
-              "name": "wait", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Enable any Red Hat repositories accessible to any Organization (from spacewalk-report channels).", 
-          "name": "repository-enable", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Only show the repositories that would be enabled Default: false", 
-              "name": "dry-run", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Wait for async tasks in foreground Default: false", 
-              "name": "no-async", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "JSON file mapping channel-labels to repository information Default: \"/opt/theforeman/tfm/root/usr/share/gems/gems/hammer_cli_import-0.11.3/channel_data_pretty.json\"", 
-              "name": "repository-map", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Synchronize imported repositories Default: false", 
-              "name": "synchronize", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Wait for repository synchronization to finish Default: false", 
-              "name": "wait", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Import template snippets (from spacewalk-report kickstart-scripts).", 
-          "name": "template-snippet", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }, 
-        {
-          "description": "Import Users (from spacewalk-report users).", 
-          "name": "user", 
-          "options": [
-            {
-              "help": "CSV file with data to be imported", 
-              "name": "csv-file", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Turn on debugging-information Default: false", 
-              "name": "debug", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Delete entities from CSV file Default: false", 
-              "name": "delete", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Where output is logged to Default: \"/root/import.log\"", 
-              "name": "logfile", 
-              "shortname": null, 
-              "value": "LOGFILE"
-            }, 
-            {
-              "help": "Merge pre-created users (except admin) Default: false", 
-              "name": "merge-users", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Output for new passwords", 
-              "name": "new-passwords", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Be silent - no output to STDOUT Default: false", 
-              "name": "quiet", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "Recover strategy, can be: rename (default), map, none Default: :rename", 
-              "name": "recover", 
-              "shortname": null, 
-              "value": "RECOVER"
-            }, 
-            {
-              "help": "Mapping of Satellite-5 role names to Satellite-6 defined roles Default: \"/etc/hammer/cli.modules.d/import/role_map.yml\"", 
-              "name": "role-mapping", 
-              "shortname": null, 
-              "value": "FILE_NAME"
-            }, 
-            {
-              "help": "Be noisy - everything goes to STDOUT and to a logfile Default: false", 
-              "name": "verbose", 
-              "shortname": null, 
-              "value": null
-            }, 
-            {
-              "help": "print help", 
-              "name": "help", 
-              "shortname": "h", 
-              "value": null
-            }
-          ], 
-          "subcommands": []
-        }
-      ]
-    }, 
-    {
       "description": "Manage job invocations", 
       "name": "job-invocation", 
       "options": [
@@ -17584,12 +16791,6 @@
               "name": "id", 
               "shortname": null, 
               "value": "ID"
-            }, 
-            {
-              "help": "Name to search by", 
-              "name": "name", 
-              "shortname": null, 
-              "value": "NAME"
             }, 
             {
               "help": "print help", 
@@ -26570,12 +25771,6 @@
               "value": "ID"
             }, 
             {
-              "help": "Report name", 
-              "name": "name", 
-              "shortname": null, 
-              "value": "NAME"
-            }, 
-            {
               "help": "print help", 
               "name": "help", 
               "shortname": "h", 
@@ -26593,12 +25788,6 @@
               "name": "id", 
               "shortname": null, 
               "value": "ID"
-            }, 
-            {
-              "help": "Report name", 
-              "name": "name", 
-              "shortname": null, 
-              "value": "NAME"
             }, 
             {
               "help": "print help", 
