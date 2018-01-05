@@ -16,7 +16,11 @@
 """
 from datetime import datetime, timedelta
 from nailgun import entities
-from robottelo.constants import OS_TEMPLATE_DATA_FILE, DISTRO_RHEL7
+from robottelo.constants import (
+    DEFAULT_LOC_ID,
+    DISTRO_RHEL7,
+    OS_TEMPLATE_DATA_FILE,
+)
 from robottelo.config import settings
 from robottelo.datafactory import (
     gen_string,
@@ -25,7 +29,6 @@ from robottelo.datafactory import (
 )
 from robottelo.cli.job_invocation import JobInvocation
 from robottelo.decorators import (
-    bz_bug_is_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -34,7 +37,6 @@ from robottelo.decorators import (
     upgrade,
 )
 from robottelo.helpers import add_remote_execution_ssh_key, get_data_file
-from robottelo.cli.factory import make_subnet
 from robottelo.cli.host import Host
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_job_template, set_context
@@ -454,25 +456,17 @@ class RemoteExecutionTestCase(UITestCase):
         """Create an organization which can be re-used in tests."""
         super(RemoteExecutionTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
-        # create subnet for current org, default loc and domain
-        # add rex proxy to subnet, default is internal proxy (id 1)
-        subnet_options = {
-            u'domain-ids': 1,
-            u'gateway': settings.vlan_networking.gateway,
-            u'ipam': u'DHCP',
-            u'location-ids': 2,
-            u'mask': settings.vlan_networking.netmask,
-            u'network': settings.vlan_networking.subnet,
-            u'network-type': 'IPv4',
-            u'organizations': cls.organization.name
-        }
-        if not bz_bug_is_open(1328322):
-            subnet_options[u'remote-execution-proxy-id'] = 1
-        cls.new_sub = make_subnet(subnet_options)
-        if bz_bug_is_open(1328322):
-            subnet = entities.Subnet(id=cls.new_sub["id"])
-            subnet.remote_execution_proxy_ids = [1]
-            subnet.update(["remote_execution_proxy_ids"])
+        cls.new_sub = entities.Subnet(
+            domain=[entities.Domain(id=1)],
+            gateway=settings.vlan_networking.gateway,
+            ipam='DHCP',
+            location=[entities.Location(id=DEFAULT_LOC_ID)],
+            mask=settings.vlan_networking.netmask,
+            network=settings.vlan_networking.subnet,
+            network_type='IPv4',
+            remote_execution_proxy=[entities.SmartProxy(id=1)],
+            organization=[cls.organization],
+        ).create()
 
     def get_client_datetime(self):
         """Make Javascript call inside of browser session to get exact current
@@ -528,7 +522,7 @@ class RemoteExecutionTestCase(UITestCase):
             add_remote_execution_ssh_key(client.ip_addr)
             Host.update({
                 u'name': client.hostname,
-                u'subnet-id': self.new_sub['id'],
+                u'subnet-id': self.new_sub.id,
             })
             with Session(self) as session:
                 set_context(session, org=self.organization.name)
@@ -661,7 +655,7 @@ class RemoteExecutionTestCase(UITestCase):
             add_remote_execution_ssh_key(client.ip_addr)
             Host.update({
                 'name': client.hostname,
-                'subnet-id': self.new_sub['id'],
+                'subnet-id': self.new_sub.id,
             })
             # connect to host by ip
             Host.set_parameter({
@@ -721,7 +715,7 @@ class RemoteExecutionTestCase(UITestCase):
             add_remote_execution_ssh_key(client.ip_addr)
             Host.update({
                 'name': client.hostname,
-                'subnet-id': self.new_sub['id'],
+                'subnet-id': self.new_sub.id,
             })
             # connect to host by ip
             Host.set_parameter({
@@ -801,7 +795,7 @@ class RemoteExecutionTestCase(UITestCase):
                     add_remote_execution_ssh_key(vm.ip_addr)
                     Host.update({
                         'name': vm.hostname,
-                        'subnet-id': self.new_sub['id'],
+                        'subnet-id': self.new_sub.id,
                     })
                     # connect to host by ip
                     Host.set_parameter({
@@ -870,7 +864,7 @@ class RemoteExecutionTestCase(UITestCase):
             add_remote_execution_ssh_key(client.ip_addr)
             Host.update({
                 'name': client.hostname,
-                'subnet-id': self.new_sub['id'],
+                'subnet-id': self.new_sub.id,
             })
             # connect to host by ip
             Host.set_parameter({
