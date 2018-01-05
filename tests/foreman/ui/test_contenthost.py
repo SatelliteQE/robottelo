@@ -184,10 +184,16 @@ class ContentHostTestCase(UITestCase):
                 if bz_bug_is_open(1495271):
                     self.dashboard.navigate_to_entity()
                     self.contenthost.navigate_to_entity()
+                # In case we have a lot of unregistered hosts
+                # fixme: Should be replaced with loop across all pages
+                self.contenthost.assign_value(
+                    common_locators['table_per_page'], '100')
                 # prevent any issues in case some default sorting was set
                 self.contenthost.sort_table_by_column('Name')
                 dates = self.contenthost.sort_table_by_column('Last Checkin')
-                self.assertGreater(dates[1], dates[0])
+                checked_in_dates = [date for date in dates
+                                    if date != 'Never checked in']
+                self.assertGreater(checked_in_dates[1], checked_in_dates[0])
                 dates = self.contenthost.sort_table_by_column('Last Checkin')
                 self.assertGreater(dates[0], dates[1])
 
