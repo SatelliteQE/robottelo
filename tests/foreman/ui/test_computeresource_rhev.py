@@ -1197,12 +1197,12 @@ class RhevComputeResourceHostTestCase(UITestCase):
         root_pwd = gen_string('alpha')
         # rhev_img_os is like "RedHat 7.4"
         # eg: "<os_family <os_major>.<os_minor>"
-        os_family, os_version = self.rhev_img_os.split(' ')
+        _, os_version = self.rhev_img_os.split(' ')
         os_version_major, os_version_minor = os_version.split('.')
         # Get the operating system
         os = entities.OperatingSystem().search(query=dict(
-            search='name="{0}" AND major="{1}" AND minor="{2}"'.format(
-                os_family, os_version_major, os_version_minor)
+            search='family="Redhat" AND major="{0}" AND minor="{1}"'.format(
+                os_version_major, os_version_minor)
         ))[0].read()
         # Get the image arch
         arch = entities.Architecture(
@@ -1373,12 +1373,12 @@ class RhevComputeResourceHostTestCase(UITestCase):
         root_pwd = gen_string('alpha')
         # rhev_img_os is like "RedHat 7.4"
         # eg: "<os_name <os_major>.<os_minor>"
-        os_family, os_version = self.rhev_img_os.split(' ')
+        _, os_version = self.rhev_img_os.split(' ')
         os_version_major, os_version_minor = os_version.split('.')
         # Get the operating system
         os = entities.OperatingSystem().search(query=dict(
-            search='name="{0}" AND major="{1}" AND minor="{2}"'.format(
-                os_family, os_version_major, os_version_minor)
+            search='family="Redhat" AND major="{0}" AND minor="{1}"'.format(
+                os_version_major, os_version_minor)
         ))[0].read()
         # Get the image arch
         arch = entities.Architecture(
