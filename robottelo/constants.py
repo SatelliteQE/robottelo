@@ -360,6 +360,7 @@ DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
 DEFAULT_TEMPLATE = "Satellite Kickstart Default"
 DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
+DEFAULT_ATOMIC_TEMPLATE = 'Satellite Atomic Kickstart Default'
 DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
