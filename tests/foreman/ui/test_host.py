@@ -23,6 +23,7 @@ from nailgun import entities, entity_mixins
 from time import sleep
 
 from robottelo.api.utils import (
+    call_entity_method_with_timeout,
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
@@ -34,9 +35,11 @@ from robottelo.cli.proxy import Proxy as cli_Proxy
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
+    DEFAULT_ATOMIC_TEMPLATE,
     DEFAULT_CV,
     DEFAULT_LOC,
     DEFAULT_PTABLE,
+    DEFAULT_PXE_TEMPLATE,
     ENVIRONMENT,
     FOREMAN_PROVIDERS,
     PRDS,
@@ -46,6 +49,7 @@ from robottelo.constants import (
     RHEL_7_MAJOR_VERSION,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -1926,6 +1930,7 @@ class HostTestCase(UITestCase):
             self.assertEqual(host_parameters[param_name], param_value)
 
 
+@run_in_one_thread
 class AtomicHostTestCase(UITestCase):
     """Implements Atomic Host tests in UI"""
 
@@ -1989,12 +1994,9 @@ class AtomicHostTestCase(UITestCase):
             reposet=cls.rh_ah_repo['reposet'],
             releasever=cls.rh_ah_repo['releasever'],
         )
-        # Increased timeout value for repo sync
-        cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
-        entity_mixins.TASK_TIMEOUT = 600
-        # Sync repository
-        entities.Repository(id=cls.repo_id).sync()
-        entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
+        # Sync repository with custom timeout
+        call_entity_method_with_timeout(
+            entities.Repository(id=cls.repo_id).sync, timeout=1500)
         cls.cv = entities.ContentView(organization=cls.org).create()
         cls.cv.repository = [entities.Repository(id=cls.repo_id)]
         cls.cv = cls.cv.update(['repository'])
@@ -2008,9 +2010,9 @@ class AtomicHostTestCase(UITestCase):
                     settings.server.hostname
                 )
             }
-        )[0]
-        cls.proxy.location = [cls.loc]
-        cls.proxy.organization = [cls.org]
+        )[0].read()
+        cls.proxy.location.append(cls.loc)
+        cls.proxy.organization.append(cls.org)
         cls.proxy = cls.proxy.update(['organization', 'location'])
 
         # Search for existing domain or create new otherwise. Associate org,
@@ -2021,7 +2023,7 @@ class AtomicHostTestCase(UITestCase):
                 u'search': u'name="{0}"'.format(domain)
             }
         )
-        if len(cls.domain) == 1:
+        if len(cls.domain) > 0:
             cls.domain = cls.domain[0].read()
             cls.domain.location.append(cls.loc)
             cls.domain.organization.append(cls.org)
@@ -2039,16 +2041,17 @@ class AtomicHostTestCase(UITestCase):
         # If so, just update its relevant fields otherwise,
         # Create new subnet
         network = settings.vlan_networking.subnet
-        cls.subnet = entities.Subnet().search(
+        subnet = entities.Subnet().search(
             query={u'search': u'network={0}'.format(network)}
         )
-        if len(cls.subnet) == 1:
-            cls.subnet = cls.subnet[0]
-            cls.subnet.domain = [cls.domain]
-            cls.subnet.location = [cls.loc]
-            cls.subnet.organization = [cls.org]
+        if len(subnet) > 0:
+            cls.subnet = subnet[0].read()
+            cls.subnet.domain.append(cls.domain)
+            cls.subnet.location.append(cls.loc)
+            cls.subnet.organization.append(cls.org)
             cls.subnet.dns = cls.proxy
             cls.subnet.dhcp = cls.proxy
+            cls.subnet.ipam = 'DHCP'
             cls.subnet.tftp = cls.proxy
             cls.subnet.discovery = cls.proxy
             cls.subnet = cls.subnet.update([
@@ -2056,6 +2059,7 @@ class AtomicHostTestCase(UITestCase):
                 'discovery',
                 'dhcp',
                 'dns',
+                'ipam',
                 'location',
                 'organization',
                 'tftp',
@@ -2071,6 +2075,7 @@ class AtomicHostTestCase(UITestCase):
                 organization=[cls.org],
                 dns=cls.proxy,
                 dhcp=cls.proxy,
+                ipam='DHCP',
                 tftp=cls.proxy,
                 discovery=cls.proxy
             ).create()
@@ -2085,7 +2090,7 @@ class AtomicHostTestCase(UITestCase):
             res for res in entities.LibvirtComputeResource().search()
             if res.provider == 'Libvirt' and res.url == resource_url
         ]
-        if len(comp_res) >= 1:
+        if len(comp_res) > 0:
             cls.computeresource = entities.LibvirtComputeResource(
                 id=comp_res[0].id).read()
             cls.computeresource.location.append(cls.loc)
@@ -2109,38 +2114,40 @@ class AtomicHostTestCase(UITestCase):
             query={
                 u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
             }
-        )[0]
+        )[0].read()
+        cls.ptable.location.append(cls.loc)
+        cls.ptable.organization.append(cls.org)
+        cls.ptable = cls.ptable.update(['location', 'organization'])
 
         # Get the OS ID
-        cls.os = entities.OperatingSystem().search(query={
+        os = entities.OperatingSystem().search(query={
             u'search': u'name="RedHat_Enterprise_Linux_Atomic_Host"'
-        })[0]
+        })
+        if len(os) > 0:
+            cls.os = os[0].read()
+        else:
+            cls.os = entities.OperatingSystem(
+                name='RedHat_Enterprise_Linux_Atomic_Host',
+                family='Redhat',
+                major=RHEL_7_MAJOR_VERSION,
+            ).create()
 
-        # Get the Provisioning template_ID and update with OS, Org, Location
-        cls.provisioning_template = entities.ConfigTemplate().search(
-            query={
-                u'search': u'name="Satellite Atomic Kickstart Default"'
-            }
-        )[0]
-        cls.provisioning_template.operatingsystem = [cls.os]
-        cls.provisioning_template.organization = [cls.org]
-        cls.provisioning_template.location = [cls.loc]
-        cls.provisioning_template = cls.provisioning_template.update(
-            ['location', 'operatingsystem', 'organization']
-        )
+        # update the provisioning templates with OS, Org and Location
+        cls.templates = []
+        for template_name in [DEFAULT_ATOMIC_TEMPLATE, DEFAULT_PXE_TEMPLATE]:
+            template = entities.ConfigTemplate().search(
+                query={
+                    u'search': u'name="{0}"'.format(template_name)
+                }
+            )[0].read()
+            template.operatingsystem.append(cls.os)
+            template.organization.append(cls.org)
+            template.location.append(cls.loc)
+            template = template.update(
+                ['location', 'operatingsystem', 'organization']
+            )
+            cls.templates.append(template)
 
-        # Get the PXE template ID and update with OS, Org, location
-        cls.pxe_template = entities.ConfigTemplate().search(
-            query={
-                u'search': u'name="Kickstart default PXELinux"'
-            }
-        )[0]
-        cls.pxe_template.operatingsystem = [cls.os]
-        cls.pxe_template.organization = [cls.org]
-        cls.pxe_template.location = [cls.loc]
-        cls.pxe_template = cls.pxe_template.update(
-            ['location', 'operatingsystem', 'organization']
-        )
         # Get the arch ID
         cls.arch = entities.Architecture().search(
             query={u'search': u'name="x86_64"'}
@@ -2148,13 +2155,13 @@ class AtomicHostTestCase(UITestCase):
         # Get the ostree installer URL
         ostree_path = settings.ostree.ostree_installer
         # Get the Media
-        cls.media = entities.Media().search(query={
+        media = entities.Media().search(query={
             u'search': u'path={0}'.format(ostree_path)
         })
-        if len(cls.media) == 1:
-            cls.media = cls.media[0]
-            cls.media.location = [cls.loc]
-            cls.media.organization = [cls.org]
+        if len(media) > 0:
+            cls.media = media[0].read()
+            cls.media.location.append(cls.loc)
+            cls.media.organization.append(cls.org)
             cls.media = cls.media.update(['location', 'organization'])
         else:
             cls.media = entities.Media(
@@ -2166,7 +2173,7 @@ class AtomicHostTestCase(UITestCase):
         # Update the OS to associate arch, ptable, templates
         cls.os.architecture = [cls.arch]
         cls.os.ptable = [cls.ptable]
-        cls.os.config_template = [cls.pxe_template, cls.provisioning_template]
+        cls.os.config_template = cls.templates
         cls.os.medium = [cls.media]
         cls.os = cls.os.update([
             'architecture',
@@ -2192,11 +2199,10 @@ class AtomicHostTestCase(UITestCase):
 
     def tearDown(self):
         """Delete the host to free the resources"""
-        with Session(self) as session:
-            session.nav.go_to_select_org(self.org_name)
-            host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
-            if self.hosts.search(host_name):
-                self.hosts.delete(host_name, dropdown_present=True)
+        hosts = entities.Host().search(
+            query={u'search': u'organization={0}'.format(self.org_name)})
+        for host in hosts:
+            host.delete()
         super(AtomicHostTestCase, self).tearDown()
 
     @tier3
@@ -2217,6 +2223,8 @@ class AtomicHostTestCase(UITestCase):
                 session,
                 name=self.hostname,
                 org=self.org_name,
+                loc=self.loc_name,
+                force_context=True,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],
@@ -2288,6 +2296,8 @@ class AtomicHostTestCase(UITestCase):
                 session,
                 name=self.hostname,
                 org=self.org_name,
+                loc=self.loc_name,
+                force_context=True,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
                     ['Host', 'Location', self.loc_name],
