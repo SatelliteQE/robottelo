@@ -298,10 +298,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@href='/redhat_access/insights/rules/']")),
-    "insights.systems": (
+    "insights.inventory": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@href='/redhat_access/insights/systems/']")),
+         "//a[@href='/redhat_access/insights/inventory']")),
     "insights.manage": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
@@ -3113,19 +3113,42 @@ locators = LocatorDict({
          "contains(@data-original-title, '%s')]/../../a")),
 
     # Red Hat Access Insights locators
+    "insight.inventory.search": (
+        By.XPATH,
+        "//input[contains(@class, 'search-box')]"
+    ),
     "insights.registered_systems": (
         By.XPATH,
-        ("//div[@class='system-summary']/p")),
+        "//h3[@class='system-count']/span"),
+    "insight.inventory.systems_loaded": (
+        By.XPATH,
+        ("//div[@ng-show='loading'][contains(@class, 'ng-hide')]"
+         "//div[contains(@class, 'spinner')]")),
+    "insight.inventory.system": (
+        By.XPATH,
+        "//td/a[contains(., '%s')]"
+    ),
+    "insight.inventory.system_checkbox": (
+        By.XPATH,
+        "//td/a[contains(., '%s')]/../preceding-sibling::td/input"
+    ),
+    "insight.inventory.actions_button": (
+        By.XPATH,
+        "//div/button[@data-toggle='dropdown']/span[contains(., 'Actions')]"
+    ),
+    "insight.inventory.action_unregister": (
+        By.XPATH,
+        ("//div[contains(@class,'dropdown')]/ul/li/a"
+         "/span[contains(., 'Unregister')]")
+    ),
+    "insight.inventory.action_confirm_yes": (
+        By.XPATH,
+        # 'visible' is added asynchronously after page load. do not remove it
+        # as otherwise click won't trigger any event
+        ("//div[contains(@class,'sweet-alert')][contains(@class,'visible')]"
+         "/button[@class='confirm']")),
     "insights.org_selection_msg": (
         By.ID, "content"),
-    "insights.unregister_system": (
-        By.XPATH, (
-            "//td[contains(*,'%s')]/../td/a[@class='fa fa-close blacklist' "
-            "and contains(@title,'Unregister System')]")),
-    "insights.unregister_button": (
-        By.XPATH, (
-            "//div[@class='sweet-alert showSweetAlert visible']//"
-            "button[@class='confirm']")),
     "insights.no_systems_element": (
         By.XPATH, (
             "//div[@class='text-center']//h4")

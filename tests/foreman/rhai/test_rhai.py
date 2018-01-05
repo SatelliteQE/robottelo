@@ -15,7 +15,6 @@
 @Upstream: No
 """
 
-import time
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
@@ -24,8 +23,7 @@ from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.decorators import run_in_one_thread, skip_if_not_set
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators
-from robottelo.ui.navigator import Navigator
+from robottelo.ui.factory import set_context
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -90,9 +88,11 @@ class RHAITestCase(UITestCase):
 
                 with Session(self.browser) as session:
                     # view clients registered to Red Hat Access Insights
-                    session.nav.go_to_select_org(self.org_name)
-                    Navigator(self.browser).go_to_insights_systems()
-                    result = self.rhai.view_registered_systems()
+                    set_context(session, org=self.org_name, force_context=True)
+                    self.assertIsNotNone(
+                        self.rhai_inventory.search(vm.hostname)
+                    )
+                    result = self.rhai_inventory.get_total_systems()
                     self.assertIn("1", result,
                                   'Registered clients are not listed')
             finally:
@@ -113,13 +113,11 @@ class RHAITestCase(UITestCase):
         """
         with Session(self.browser) as session:
             # Given that the user does not specify any Organization
-            session.nav.go_to_select_org("Any Organization")
-            session.nav.go_to_insights_overview()
-
+            set_context(session, org='Any Organization', force_context=True)
             # 'Organization Selection Required' message must be present
-            result = session.nav.wait_until_element(
-                locators['insights.org_selection_msg']).text
-            self.assertIn("Organization Selection Required", result)
+            msg = self.rhai_overview.get_organization_selection_message()
+            self.assertIsNotNone(msg)
+            self.assertIn("Organization Selection Required", msg)
 
     @skip_if_not_set('clients')
     def test_positive_unregister_client_from_rhai(self):
@@ -140,25 +138,8 @@ class RHAITestCase(UITestCase):
                                          DISTRO_RHEL7)
 
                 with Session(self.browser) as session:
-                    session.nav.go_to_select_org(self.org_name)
-                    Navigator(self.browser).go_to_insights_systems()
-                    # Click on the unregister icon 'X' in the table against the
-                    # registered system listed.
-                    strategy, value = locators['insights.unregister_system']
-                    session.nav.click(
-                        (strategy, value % vm.hostname),
-                        wait_for_ajax=True,
-                        ajax_timeout=40,
-                    )
-
-                    # Confirm selection for clicking on 'Yes' to unregister the
-                    # system
-                    session.nav.click(
-                        locators['insights.unregister_button']
-                    )
-                    self.browser.refresh()
-                    time.sleep(60)
-                    self.browser.refresh()
+                    set_context(session, org=self.org_name, force_context=True)
+                    self.rhai_inventory.unregister_system(vm.hostname)
 
                 result = vm.run('redhat-access-insights')
                 self.assertEqual(result.return_code, 1,
