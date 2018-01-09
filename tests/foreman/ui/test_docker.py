@@ -1167,8 +1167,9 @@ class DockerComputeResourceTestCase(UITestCase):
             self.assertIsNotNone(self.compute_resource.wait_until_element(
                 common_locators['notif.success']))
 
-    @tier2
     @skip_if_bug_open('bugzilla', 1466240)
+    @skip_if_bug_open('bugzilla', 1478966)
+    @tier2
     def test_positive_list_containers(self):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
@@ -1292,7 +1293,7 @@ class DockerContainerTestCase(UITestCase):
 
     @classmethod
     @skip_if_not_set('docker')
-    @skip_if_bug_open('bugzilla', 1531075)
+    @skip_if_bug_open('bugzilla', 1478966)
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainerTestCase, cls).setUpClass()
