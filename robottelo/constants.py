@@ -485,7 +485,9 @@ FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
 REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 REAL_RHEL7_0_0_PACKAGE = 'liblouis-python-2.5.2-10.el7.noarch'
+REAL_RHEL7_0_0_PACKAGE_NAME = 'liblouis-python'
 REAL_RHEL7_0_1_PACKAGE = 'liblouis-python-2.5.2-11.el7_4.noarch'
+REAL_RHEL7_0_1_PACKAGE_FILENAME = 'liblouis-python-2.5.2-11.el7_4.noarch.rpm'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_9_YUM_OUTDATED_PACKAGES = [
     'bear-4.0-1.noarch',
