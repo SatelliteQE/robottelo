@@ -183,7 +183,7 @@ class ContentAccessTestCase(UITestCase):
             self.assertEqual(result.return_code, 0)
             # check that package errata is applicable
             with Session(self) as session:
-                set_context(session, org=self.session_org)
+                set_context(session, org=self.session_org.name)
                 self.assertIsNotNone(
                     session.contenthost.errata_search(
                         vm.hostname, REAL_RHEL7_0_ERRATA_ID)
@@ -226,7 +226,7 @@ class ContentAccessTestCase(UITestCase):
             self.assertEqual(result.return_code, 0)
             # check that package errata is applicable
             with Session(self) as session:
-                set_context(session, org=self.session_org)
+                set_context(session, org=self.session_org.name)
                 self.assertIsNotNone(
                     session.contenthost.package_search(
                         vm.hostname,
