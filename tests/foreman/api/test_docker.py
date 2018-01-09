@@ -1059,6 +1059,7 @@ class DockerComputeResourceTestCase(APITestCase):
                 )
 
     @skip_if_bug_open('bugzilla', 1466240)
+    @skip_if_bug_open('bugzilla', 1478966)
     @tier2
     @run_only_on('sat')
     def test_positive_list_containers(self):
@@ -1150,7 +1151,7 @@ class DockerContainerTestCase(APITestCase):
 
     @classmethod
     @skip_if_not_set('docker')
-    @skip_if_bug_open('bugzilla', 1531075)
+    @skip_if_bug_open('bugzilla', 1478966)
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainerTestCase, cls).setUpClass()
