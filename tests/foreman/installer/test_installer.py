@@ -341,18 +341,19 @@ class SELinuxTestCase(TestCase):
             datetime_regex.search(install_time_line).group(0), datetime_format)
 
         for log in logs:
-            errors = log.filter()
-            installer_errors = []
-            for error in errors:
-                error_time = datetime.strptime(
-                    datetime_regex.search(error).group(0), datetime_format)
-                if error_time <= install_time:
-                    installer_errors.append(error)
-            self.assertEqual(
-                len(installer_errors), 0,
-                msg='Errors found in {}: {}'
-                    .format(log.remote_path, installer_errors)
-            )
+            with self.subTest(log.remote_path):
+                errors = log.filter()
+                installer_errors = []
+                for error in errors:
+                    error_time = datetime.strptime(
+                        datetime_regex.search(error).group(0), datetime_format)
+                    if error_time <= install_time:
+                        installer_errors.append(error)
+                self.assertEqual(
+                    len(installer_errors), 0,
+                    msg='Errors found in {}: {}'
+                        .format(log.remote_path, installer_errors)
+                )
 
 
 def extract_params(lst):
