@@ -96,6 +96,8 @@ FILTER = {
     'container_org': 'docker_container_wizard_states_preliminary_organization',
     'cr_loc': 'compute_resource_location',
     'cr_org': 'compute_resource_organization',
+    'domain_org': 'domain_organization',
+    'domain_loc': 'domain_location',
     'discovery_rule_loc': 'discovery_rule_location',
     'discovery_rule_org': 'discovery_rule_organization',
     'ec2_security_groups': 'compute_attribute_vm_attrs_security_group',

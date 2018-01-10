@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
 """Implements Domain UI"""
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -12,23 +13,43 @@ class Domain(Base):
         """Navigate to Domains entity page"""
         Navigator(self.browser).go_to_domains()
 
+    def _configure_taxonomies(self, locations=None, organizations=None):
+        """Associate domain with organization or location"""
+        if locations:
+            self.configure_entity(
+                locations,
+                FILTER['domain_loc'],
+                tab_locator=tab_locators['tab_loc']
+            )
+        if organizations:
+            self.configure_entity(
+                organizations,
+                FILTER['domain_org'],
+                tab_locator=tab_locators['tab_org']
+            )
+
     def _search_locator(self):
         """Specify locator for Domains entity search procedure"""
         return locators['domain.domain_description']
 
-    def _configure_domain(self, description=None, dns_proxy=None):
-        """Configures domain description and dns proxy"""
+    def _configure_domain(self, description=None, dns_proxy=None,
+                          locations=None, organizations=None):
+        """Configures domain description, dns proxy and taxonomies"""
         if description:
             self.assign_value(locators['domain.description'], description)
         if dns_proxy:
             self.assign_value(locators['domain.dns_proxy'], dns_proxy)
+        if locations or organizations:
+            self._configure_taxonomies(locations, organizations)
         self.click(common_locators['submit'])
 
-    def create(self, name, description=None, dns_proxy=None):
+    def create(self, name, description=None, dns_proxy=None, locations=None,
+               organizations=None):
         """Creates new domain with name, description and dns_proxy."""
         self.click(locators['domain.new'])
         self.assign_value(locators['domain.name'], name)
-        self._configure_domain(description, dns_proxy)
+        self._configure_domain(
+            description, dns_proxy, locations, organizations)
 
     def update(self, old_description, new_name=None, description=None,
                dns_proxy=None):

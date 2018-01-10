@@ -523,6 +523,16 @@ class CannedRoleTestCases(UITestCase):
                 permission_list=['view_domains', 'create_domains'],
                 override_check=True,
             )
+            self.role.add_permission(
+                name,
+                resource_type='Organization',
+                permission_list=['assign_organizations', 'view_organizations']
+            )
+            self.role.add_permission(
+                name,
+                resource_type='Location',
+                permission_list=['assign_locations', 'view_locations']
+            )
             self.assertTrue(self.role.wait_until_element(
                 common_locators['alert.success']))
             make_user(
@@ -638,9 +648,7 @@ class CannedRoleTestCases(UITestCase):
         with Session(self) as session:
             make_role(
                 session,
-                name=name,
-                locations=[self.role_loc],
-                organizations=[self.role_org],
+                name=name
             )
             self.assertIsNotNone(self.role.search(name))
             self.role.add_permission(
@@ -651,6 +659,16 @@ class CannedRoleTestCases(UITestCase):
                 override_check=True,
                 organization=[self.filter_org],
                 location=[self.filter_loc],
+            )
+            self.role.add_permission(
+                name,
+                resource_type='Organization',
+                permission_list=['assign_organizations', 'view_organizations']
+            )
+            self.role.add_permission(
+                name,
+                resource_type='Location',
+                permission_list=['assign_locations', 'view_locations']
             )
             make_user(
                 session,
