@@ -148,6 +148,19 @@ def create_object(cli_object, options, values):
     return result
 
 
+def _entity_with_credentials(credentials, cli_entity_cls):
+    """Create entity class using credentials. If credentials is None will
+    return cli_entity_cls itself
+
+    :param credentials: tuple (login, password)
+    :param cli_entity_cls: Cli Entity Class
+    :return: Cli Entity Class
+    """
+    if credentials is not None:
+        cli_entity_cls = cli_entity_cls.with_user(*credentials)
+    return cli_entity_cls
+
+
 @cacheable
 def make_activation_key(options=None):
     """
@@ -318,6 +331,36 @@ def make_content_view(options=None):
         --name NAME                   Name of the content view
         --organization ORGANIZATION_NAME  Organization name to search by
         --organization-id ORGANIZATION_ID Organization identifier
+        --organization-label ORGANIZATION_LABEL Organization label to
+        search by
+        --product PRODUCT_NAME          Product name to search by
+        --product-id PRODUCT_ID         product numeric identifier
+        --repositories REPOSITORY_NAMES Comma separated list of values.
+        --repository-ids REPOSITORY_IDS List of repository ids
+                                        Comma separated list of values.
+        -h, --help                    print help
+
+    """
+    return make_content_view_with_credentials(options)
+
+
+def make_content_view_with_credentials(options=None, credentials=None):
+    """
+    Usage::
+
+        hammer content-view create [OPTIONS]
+
+    Options::
+
+        --component-ids COMPONENT_IDS List of component content view
+        version ids for composite views
+                                      Comma separated list of values.
+        --composite                   Create a composite content view
+        --description DESCRIPTION     Description for the content view
+        --label LABEL                 Content view label
+        --name NAME                   Name of the content view
+        --organization ORGANIZATION_NAME  Organization name to search by
+        --organization-id ORGANIZATION_ID Organization identifier
         --organization-label ORGANIZATION_LABEL Organization label to search by
         --product PRODUCT_NAME          Product name to search by
         --product-id PRODUCT_ID         product numeric identifier
@@ -325,6 +368,9 @@ def make_content_view(options=None):
         --repository-ids REPOSITORY_IDS List of repository ids
                                         Comma separated list of values.
         -h, --help                    print help
+
+    If credentials is None default credentials present on
+    robottelo.properties will be used.
 
     """
     # Organization ID is a required field.
@@ -346,7 +392,8 @@ def make_content_view(options=None):
         u'repository-ids': None
     }
 
-    return create_object(ContentView, args, options)
+    cv_cls = _entity_with_credentials(credentials, ContentView)
+    return create_object(cv_cls, args, options)
 
 
 @cacheable
@@ -753,6 +800,10 @@ def make_partition_table(options=None):
 
 @cacheable
 def make_product(options=None):
+    return make_product_with_credentials(options)
+
+
+def make_product_with_credentials(options=None, credentials=None):
     """
     Usage::
 
@@ -788,8 +839,8 @@ def make_product(options=None):
         u'sync-plan': None,
         u'sync-plan-id': None,
     }
-
-    return create_object(Product, args, options)
+    product_cls = _entity_with_credentials(credentials, Product)
+    return create_object(product_cls, args, options)
 
 
 def make_product_wait(options=None, wait_for=5):
@@ -892,6 +943,10 @@ def make_registry(options=None):
 
 @cacheable
 def make_repository(options=None):
+    return make_repository_with_credentials(options)
+
+
+def make_repository_with_credentials(options=None, credentials=None):
     """
     Usage::
 
@@ -966,8 +1021,8 @@ def make_repository(options=None):
         u'publish-via-http': u'true',
         u'url': FAKE_1_YUM_REPO,
     }
-
-    return create_object(Repository, args, options)
+    repo_cls = _entity_with_credentials(credentials, Repository)
+    return create_object(repo_cls, args, options)
 
 
 @cacheable
@@ -2040,6 +2095,10 @@ def make_compute_resource(options=None):
 
 @cacheable
 def make_org(options=None):
+    return make_org_with_credentials(options)
+
+
+def make_org_with_credentials(options=None, credentials=None):
     """
     Usage::
 
@@ -2135,8 +2194,8 @@ def make_org(options=None):
         u'user-ids': None,
         u'users': None,
     }
-
-    return create_object(Org, args, options)
+    org_cls = _entity_with_credentials(credentials, Org)
+    return create_object(org_cls, args, options)
 
 
 @cacheable
