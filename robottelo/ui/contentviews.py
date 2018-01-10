@@ -209,6 +209,8 @@ class ContentViews(Base):
         self.click(locators['contentviews.env_to_promote'] % env)
         self.click(locators['contentviews.promote_version'])
         self.check_progress_bar_status(version)
+        return self.wait_until_element(
+            locators['contentviews.version_status'] % version).text
 
     def add_puppet_module(self, cv_name, module_name, filter_term):
         """Add puppet module to selected view either by its author name or by
