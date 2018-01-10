@@ -1476,8 +1476,8 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
             '/1.0/custom/{}/{}/ | grep .src.rpm'
@@ -1531,11 +1531,10 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, 'Version 1', lce.name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
+            status = self.content_views.promote(cv_name, 'Version 1', lce.name)
+            self.assertIn('Promoted to {}'.format(lce.name), status)
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
             ' | grep .src.rpm'
@@ -1625,8 +1624,8 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
             '/1.0/custom/{}/{}/drpms/ | grep .drpm'
@@ -1680,11 +1679,10 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, 'Version 1', lce.name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
+            status = self.content_views.promote(cv_name, 'Version 1', lce.name)
+            self.assertIn('Promoted to {}'.format(lce.name), status)
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}'
             '/drpms/ | grep .drpm'

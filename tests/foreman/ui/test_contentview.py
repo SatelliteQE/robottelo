@@ -255,6 +255,7 @@ class ContentViewTestCase(UITestCase):
         repo_name = gen_string('alpha')
         env_name = gen_string('alpha')
         cv_name = gen_string('alpha')
+        version = 'Version 1.0'
         with Session(self) as session:
             # Create Life-cycle environment
             make_lifecycle_environment(
@@ -270,14 +271,12 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
             # Publish and promote CV to next environment
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, 'Version 1', env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, version))
+            status = self.content_views.promote(cv_name, version, env_name)
+            self.assertIn('Promoted to {}'.format(env_name), status)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1431778)
     @tier2
     def test_positive_repo_count_for_composite_cv(self):
         """Create some content views with synchronized repositories and
@@ -322,9 +321,9 @@ class ContentViewTestCase(UITestCase):
                     '1'
                 )
                 # Promote content view
-                self.content_views.promote(cv_name, 'Version 1', lce.name)
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form']))
+                status = self.content_views.promote(
+                    cv_name, 'Version 1.0', lce.name)
+                self.assertIn('Promoted to {}'.format(lce.name), status)
                 # Add content view to composite one
                 self.content_views.add_remove_cv(ccv_name, [cv_name])
             # Publish composite content view
@@ -377,8 +376,8 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
             # Publish content view
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
 
     @run_only_on('sat')
     @tier2
@@ -474,6 +473,10 @@ class ContentViewTestCase(UITestCase):
                 ['0.3', '0.5', '0.5', '4.1'],
                 [None, None, None, '4.6'],
             )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
     @tier2
@@ -512,13 +515,9 @@ class ContentViewTestCase(UITestCase):
                 [None],
                 [None],
             )
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             self.assertIsNotNone(
                 self.content_views.package_search(
                     cv_name,
@@ -571,13 +570,9 @@ class ContentViewTestCase(UITestCase):
                 [None],
                 [None],
             )
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             self.assertIsNone(
                 self.content_views.package_search(
                     cv_name,
@@ -698,13 +693,9 @@ class ContentViewTestCase(UITestCase):
                 ['2.2-3'],
                 [None],
             )
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             self.assertIsNone(
                 self.content_views.package_search(
                     cv_name,
@@ -722,8 +713,8 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 2.0'))
             self.assertIsNotNone(
                 self.content_views.package_search(
                     cv_name,
@@ -769,8 +760,8 @@ class ContentViewTestCase(UITestCase):
                 [None],
             )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             self.assertIsNotNone(
                 self.content_views.package_search(
                     cv_name,
@@ -800,8 +791,8 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             self.assertIsNone(
                 self.content_views.package_search(
                     cv_name,
@@ -856,8 +847,8 @@ class ContentViewTestCase(UITestCase):
                 [None],
             )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             self.assertIsNone(
                 self.content_views.package_search(
                     cv_name,
@@ -882,13 +873,9 @@ class ContentViewTestCase(UITestCase):
                 version_value='0.71-1',
                 new_version_value='5.21-1',
             )
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             self.assertIsNotNone(
                 self.content_views.package_search(
                     cv_name,
@@ -1242,8 +1229,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             session.content_views.publish(content_view.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(
+                    content_view.name, 'Version 1.0'
+                )
+            )
             result = session.content_views.fetch_version_errata(
                 content_view.name, 'Version 1.0')
             self.assertEqual(len(result), FAKE_9_YUM_SECURITY_ERRATUM_COUNT)
@@ -1282,8 +1272,11 @@ class ContentViewTestCase(UITestCase):
             session.content_views.add_remove_repos(
                 content_view.name, [repo.name])
             session.content_views.publish(content_view.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(
+                    content_view.name, 'Version 1.0'
+                )
+            )
             session.content_views.add_filter(
                 content_view.name,
                 filter_name,
@@ -1304,8 +1297,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             session.content_views.publish(content_view.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(
+                    content_view.name, 'Version 2.0'
+                )
+            )
             result = session.content_views.fetch_version_errata(
                 content_view.name, 'Version 2.0')
             self.assertEqual(len(result), FAKE_9_YUM_SECURITY_ERRATUM_COUNT)
@@ -1366,8 +1362,8 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             # Verify filter affected repo1
             self.assertIsNotNone(
                 self.content_views.package_search(
@@ -1424,24 +1420,15 @@ class ContentViewTestCase(UITestCase):
                         FILTER_CONTENT_TYPE['package'],
                         filter_type,
                     )
-                    self.content_views.add_packages_to_filter(
-                        cv_name,
-                        filter_name,
-                        [package_name],
-                        ['Equal To'],
-                        ['0.71-1'],
-                        [None],
-                    )
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
-                    self.content_views.add_packages_to_filter(
-                        cv_name,
-                        filter_name,
-                        [package_name],
-                        ['Equal To'],
-                        ['0.71-1'],
-                        [None],
-                    )
+                    for _ in range(2):
+                        self.content_views.add_packages_to_filter(
+                            cv_name,
+                            filter_name,
+                            [package_name],
+                            ['Equal To'],
+                            ['0.71-1'],
+                            [None],
+                        )
                     self.assertIsNotNone(self.content_views.wait_until_element(
                         common_locators['alert.error_sub_form']))
 
@@ -1589,8 +1576,14 @@ class ContentViewTestCase(UITestCase):
             for new_desc in valid_data_list():
                 with self.subTest(new_desc):
                     self.content_views.update(name, new_description=new_desc)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
+                    self.content_views.search_and_click(name)
+                    self.content_views.click(
+                        tab_locators['contentviews.tab_details'])
+                    self.assertEqual(
+                        self.content_views.wait_until_element(
+                            locators['contentviews.fetch_description']).text,
+                        new_desc
+                    )
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -1856,11 +1849,9 @@ class ContentViewTestCase(UITestCase):
                 end_date='2016-06-01',
                 open_filter=False
             )
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators.alert.success_sub_form))
             # this assertion should find/open the cv and search for our filter
             self.assertIsNotNone(
-                 self.content_views.search_filter(cv_name, filter_name))
+                self.content_views.search_filter(cv_name, filter_name))
 
     @run_only_on('sat')
     @tier2
@@ -2077,8 +2068,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(
                 self.content_views.search(published_cv_name))
             self.content_views.publish(published_cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(
+                    published_cv_name, 'Version 1.0'
+                )
+            )
             # Create an unpublished component content view
             make_contentview(
                 session, org=self.organization.name, name=unpublished_cv_name)
@@ -2097,7 +2091,7 @@ class ContentViewTestCase(UITestCase):
                 composite_cv_name, [published_cv_name])
             # Add the unpublished content view to the composite one
             self.content_views.add_remove_cv(
-                    composite_cv_name, [unpublished_cv_name])
+                composite_cv_name, [unpublished_cv_name])
             # assert that the version of unpublished content view added to
             # composite one is "Latest (Currently no version)"
             self.content_views.search_and_click(composite_cv_name)
@@ -2115,8 +2109,11 @@ class ContentViewTestCase(UITestCase):
             self.assertEqual(version, 'Latest (Currently no version)')
             # Publish the composite content view
             self.content_views.publish(composite_cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(
+                    composite_cv_name, 'Version 1.0'
+                )
+            )
 
     @run_only_on('sat')
     @tier2
@@ -2230,11 +2227,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, 'Version 1', env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
+            status = self.content_views.promote(
+                cv_name, 'Version 1.0', env_name)
+            self.assertIn('Promoted to {}'.format(env_name), status)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -2296,11 +2293,11 @@ class ContentViewTestCase(UITestCase):
                 [None]
             )
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, 'Version 1', env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
+            status = self.content_views.promote(
+                cv_name, 'Version 1.0', env_name)
+            self.assertIn('Promoted to {}'.format(env_name), status)
 
     @run_only_on('sat')
     @tier2
@@ -2331,11 +2328,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, 'Version 1', env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
+            status = self.content_views.promote(
+                cv_name, 'Version 1.0', env_name)
+            self.assertIn('Promoted to {}'.format(env_name), status)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -2419,8 +2416,8 @@ class ContentViewTestCase(UITestCase):
             )
             # publish the first content
             self.content_views.publish(cv1_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv1_name, 'Version 1.0'))
             # create the second content view
             make_contentview(session, org=org.name, name=cv2_name)
             self.assertIsNotNone(self.content_views.search(cv2_name))
@@ -2435,8 +2432,8 @@ class ContentViewTestCase(UITestCase):
             )
             # publish the second content
             self.content_views.publish(cv2_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv2_name, 'Version 1.0'))
             # create a composite content view
             make_contentview(session, org=org.name, name=cv_composite_name,
                              is_composite=True)
@@ -2446,13 +2443,13 @@ class ContentViewTestCase(UITestCase):
                 cv_composite_name, [cv1_name, cv2_name])
             # publish the composite content view
             version_name = self.content_views.publish(cv_composite_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(
+                    cv_composite_name, version_name))
             # promote the composite content view
-            self.content_views.promote(
+            status = self.content_views.promote(
                 cv_composite_name, version_name, env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIn('Promoted to {}'.format(env_name), status)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -2486,8 +2483,8 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -2552,8 +2549,8 @@ class ContentViewTestCase(UITestCase):
             # Publish the content view
             self.content_views.publish(cv_name)
             # Assert the content view successfully published
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
 
     @run_only_on('sat')
     @tier2
@@ -2582,8 +2579,8 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
 
     @tier2
     def test_positive_publish_promote_with_custom_puppet_module(self):
@@ -2640,11 +2637,10 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(session.content_views.fetch_puppet_module(
                 cv_name, PUPPET_MODULE_CUSTOM_NAME))
             cv_version = self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, cv_version, env.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
+            status = self.content_views.promote(cv_name, cv_version, env.name)
+            self.assertIn('Promoted to {}'.format(env.name), status)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -2726,13 +2722,12 @@ class ContentViewTestCase(UITestCase):
             )
             # publish the first content
             cv1_version = self.content_views.publish(cv1_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv1_name, 'Version 1.0'))
             # promote the first content view to environment
-            self.content_views.promote(
+            status = self.content_views.promote(
                 cv1_name, cv1_version, env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIn('Promoted to {}'.format(env_name), status)
             # create the second content view
             make_contentview(session, org=org.name, name=cv2_name)
             self.assertIsNotNone(self.content_views.search(cv2_name))
@@ -2747,8 +2742,8 @@ class ContentViewTestCase(UITestCase):
             )
             # publish the second content
             self.content_views.publish(cv2_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv2_name, 'Version 1.0'))
             # create a composite content view
             make_contentview(session, org=org.name, name=cv_composite_name,
                              is_composite=True)
@@ -2758,8 +2753,11 @@ class ContentViewTestCase(UITestCase):
                 cv_composite_name, [cv1_name, cv2_name])
             # publish the composite content view
             self.content_views.publish(cv_composite_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(
+                    cv_composite_name, 'Version 1.0'
+                )
+            )
 
     @run_only_on('sat')
     @tier2
@@ -2810,8 +2808,8 @@ class ContentViewTestCase(UITestCase):
                 # publish the content view
                 version_name = self.content_views.publish(cv_name)
                 # assert the content view successfully published
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form']))
+                self.assertIsNotNone(
+                    self.content_views.version_search(cv_name, 'Version 1.0'))
                 # find this version environments
                 environments = self._get_cv_version_environments(
                     version_name)
@@ -2820,9 +2818,9 @@ class ContentViewTestCase(UITestCase):
                 # assert that env_name is not in environments of this version
                 self.assertNotIn(env_name, environments)
                 # promote content view environment to this version
-                self.content_views.promote(cv_name, version_name, env_name)
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form']))
+                status = self.content_views.promote(
+                    cv_name, version_name, env_name)
+                self.assertIn('Promoted to {}'.format(env_name), status)
                 # find this version environments
                 environments = self._get_cv_version_environments(
                     version_name)
@@ -2880,14 +2878,16 @@ class ContentViewTestCase(UITestCase):
                 # publish the content view
                 current_version_name = self.content_views.publish(cv_name)
                 # assert the content view successfully published
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form']))
+                self.assertIsNotNone(
+                    self.content_views.version_search(cv_name, 'Version 1.0'))
                 # promote env_name to the current content view version
-                self.content_views.promote(cv_name, current_version_name,
-                                           env_name)
+                status = self.content_views.promote(
+                    cv_name,
+                    current_version_name,
+                    env_name
+                )
                 # assert env_name successfully promoted
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form']))
+                self.assertIn('Promoted to {}'.format(env_name), status)
                 # find this content view version environments
                 current_version_envs = self._get_cv_version_environments(
                     current_version_name)
@@ -2913,7 +2913,6 @@ class ContentViewTestCase(UITestCase):
                 precedent_version_name = current_version_name
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1461017)
     @tier2
     def test_positive_clone_within_same_env(self):
         """attempt to create new content view based on existing
@@ -2940,9 +2939,7 @@ class ContentViewTestCase(UITestCase):
             # Publish the CV
             self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, 'Version 1.0'))
             # Copy the CV
             self.content_views.copy_view(cv_name, copy_cv_name)
             self.assertIsNotNone(self.content_views.search(copy_cv_name))
@@ -2952,7 +2949,6 @@ class ContentViewTestCase(UITestCase):
             )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1461017)
     @tier2
     def test_positive_clone_within_diff_env(self):
         """attempt to create new content view based on existing
@@ -2985,14 +2981,11 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # promote env_name to the content view version
-            self.content_views.promote(cv_name, version, env_name)
+            status = self.content_views.promote(cv_name, version, env_name)
             # assert env_name successfully promoted
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIn('Promoted to {}'.format(env_name), status)
             # create a new lifecycle environment that we should promote to
             #  the published version of the copy of content view
             make_lifecycle_environment(
@@ -3009,14 +3002,11 @@ class ContentViewTestCase(UITestCase):
             # publish the content view copy
             copy_version = self.content_views.publish(copy_cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(copy_cv_name, copy_version))
             # promote the other environment to the copy of content view version
-            self.content_views.promote(
+            status = self.content_views.promote(
                 copy_cv_name, copy_version, copy_env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIn('Promoted to {}'.format(copy_env_name), status)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -3079,16 +3069,15 @@ class ContentViewTestCase(UITestCase):
             )
             # publish the content view
             version = self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, version))
             # promote the content view
-            self.content_views.promote(cv_name, version, env.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            status = self.content_views.promote(cv_name, version, env.name)
+            self.assertIn('Promoted to {}'.format(env.name), status)
             self.assertIn(env.name, self._get_cv_version_environments(version))
             # create an activation key
             content_view = entities.ContentView(
-                    organization=org, name=cv_name).search()[0].read()
+                organization=org, name=cv_name).search()[0].read()
             activation_key = entities.ActivationKey(
                 organization=org,
                 environment=env,
@@ -3148,16 +3137,15 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
             # publish the content view
             version = self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, version))
             # promote the content view
-            self.content_views.promote(cv_name, version, env.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            status = self.content_views.promote(cv_name, version, env.name)
+            self.assertIn('Promoted to {}'.format(env.name), status)
             self.assertIn(env.name, self._get_cv_version_environments(version))
             # create an activation key
             content_view = entities.ContentView(
-                    organization=org, name=cv_name).search()[0].read()
+                organization=org, name=cv_name).search()[0].read()
             activation_key = entities.ActivationKey(
                 organization=org,
                 environment=env,
@@ -3215,16 +3203,15 @@ class ContentViewTestCase(UITestCase):
             )
             # publish the content view
             version = self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, version))
             # promote the content view
-            self.content_views.promote(cv_name, version, env.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            status = self.content_views.promote(cv_name, version, env.name)
+            self.assertIn('Promoted to {}'.format(env.name), status)
             self.assertIn(env.name, self._get_cv_version_environments(version))
             # create an activation key
             content_view = entities.ContentView(
-                    organization=org, name=cv_name).search()[0].read()
+                organization=org, name=cv_name).search()[0].read()
             activation_key = entities.ActivationKey(
                 organization=org,
                 environment=env,
@@ -3282,10 +3269,8 @@ class ContentViewTestCase(UITestCase):
         """
 
     # ROLES TESTING
-    # All this stuff is speculative at best.
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1461017)
     @tier2
     def test_positive_admin_user_actions(self):
         """Attempt to manage content views
@@ -3486,11 +3471,10 @@ class ContentViewTestCase(UITestCase):
                 else:
                     raise err
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_new_name, version))
             try:
-                self.content_views.promote(cv_new_name, version, env_name)
+                status = self.content_views.promote(
+                    cv_new_name, version, env_name)
             except UINoSuchElementError as err:
                 if locators.contentviews.promote_button[1] in err.message:
                     self.fail(
@@ -3499,8 +3483,7 @@ class ContentViewTestCase(UITestCase):
                     )
                 else:
                     raise err
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIn('Promoted to {}'.format(env_name), status)
 
     @run_only_on('sat')
     @tier2
@@ -3846,9 +3829,7 @@ class ContentViewTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
         # login as the user created above and try to promote the content view
         with Session(self, user_login, user_password):
             with self.assertRaises(UINoSuchElementError) as context:
@@ -4551,9 +4532,7 @@ class ContentViewTestCase(UITestCase):
             )
             self.content_views.publish(cv.name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv.name, 'Version 1.0'))
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -4629,12 +4608,10 @@ class ContentViewTestCase(UITestCase):
             )
             self.content_views.publish(cv.name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
-            self.content_views.promote(cv.name, 'Version 1', lc_env.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+                self.content_views.version_search(cv.name, 'Version 1.0'))
+            status = self.content_views.promote(
+                cv.name, 'Version 1.0', lc_env.name)
+            self.assertIn('Promoted to {}'.format(lc_env.name), status)
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -4733,14 +4710,10 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(module)
             self.content_views.publish(cv.name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
-            self.content_views.promote(cv.name, 'Version 1', lc_env.name)
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv.name, 'Version 1.0'))
+            status = self.content_views.promote(
+                cv.name, 'Version 1', lc_env.name)
+            self.assertIn('Promoted to {}'.format(lc_env.name), status)
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -4845,9 +4818,7 @@ class ContentViewTestCase(UITestCase):
             )
             self.content_views.publish(cv.name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv.name, 'Version 1.0'))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -4922,11 +4893,8 @@ class ContentViewTestCase(UITestCase):
         version = 'Version {0}'.format(cv_info.version)
         with Session(self) as session:
             session.nav.go_to_select_org(org.name)
-            self.content_views.promote(cv.name, version, lc_env.name)
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+            status = self.content_views.promote(cv.name, version, lc_env.name)
+            self.assertIn('Promoted to {}'.format(lc_env.name), status)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -5034,14 +5002,10 @@ class ContentViewTestCase(UITestCase):
             )
             self.content_views.publish(cv.name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
-            self.content_views.promote(cv.name, 'Version 1', lc_env.name)
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv.name, 'Version 1.0'))
+            status = self.content_views.promote(
+                cv.name, 'Version 1', lc_env.name)
+            self.assertIn('Promoted to {}'.format(lc_env.name), status)
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -5079,11 +5043,10 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
             # Publish and promote CV to next environment
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
-            self.content_views.promote(cv_name, 'Version 1', env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.version_search(cv_name, 'Version 1.0'))
+            status = self.content_views.promote(cv_name, 'Version 1', env_name)
+            self.assertIn('Promoted to {}'.format(env_name), status)
 
     @run_only_on('sat')
     @tier2
@@ -5238,9 +5201,7 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             self.assertEqual(
                 self._get_cv_version_environments(version), [ENVIRONMENT])
             # remove the content view version from Library environment
@@ -5289,9 +5250,7 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # rename the content view
             self.content_views.update(cv_name, new_cv_name)
             self.assertIsNone(self.content_views.search(cv_name))
@@ -5362,11 +5321,10 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # promote the content view to DEV lifecycle environment
-            self.content_views.promote(cv_name, version, env_dev_name)
+            status = self.content_views.promote(cv_name, version, env_dev_name)
+            self.assertIn('Promoted to {}'.format(env_dev_name), status)
             self.assertEqual(
                 set(self._get_cv_version_environments(version)),
                 {ENVIRONMENT, env_dev_name}
@@ -5385,8 +5343,11 @@ class ContentViewTestCase(UITestCase):
             )
             # ensure that puppet module still in content view version
             self.assertIsNotNone(
-                self.content_views.puppet_module_search(cv_name, version,
-                                                        puppet_module_name)
+                self.content_views.puppet_module_search(
+                    cv_name,
+                    version,
+                    puppet_module_name
+                )
             )
 
     @run_only_on('sat')
@@ -5443,12 +5404,11 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # promote the content view to DEV, QE lifecycle environments
             for env_name in [env_dev_name, env_qe_name]:
-                self.content_views.promote(cv_name, version, env_name)
+                status = self.content_views.promote(cv_name, version, env_name)
+                self.assertIn('Promoted to {}'.format(env_name), status)
             self.assertEqual(
                 set(self._get_cv_version_environments(version)),
                 {ENVIRONMENT, env_dev_name, env_qe_name}
@@ -5546,12 +5506,11 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # promote the content view to DEV, QE, PROD lifecycle environments
             for env_name in env_names:
-                self.content_views.promote(cv_name, version, env_name)
+                status = self.content_views.promote(cv_name, version, env_name)
+                self.assertIn('Promoted to {}'.format(env_name), status)
             self.assertEqual(
                 set(self._get_cv_version_environments(version)),
                 all_env_names_set
@@ -5647,12 +5606,11 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # promote the content view to all lifecycle environments
             for env_name in env_names:
-                self.content_views.promote(cv_name, version, env_name)
+                status = self.content_views.promote(cv_name, version, env_name)
+                self.assertIn('Promoted to {}'.format(env_name), status)
             self.assertEqual(
                 set(self._get_cv_version_environments(version)),
                 all_env_names_set
@@ -5750,12 +5708,11 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # promote the content view to all lifecycle environments
             for env_name in env_names:
-                self.content_views.promote(cv_name, version, env_name)
+                status = self.content_views.promote(cv_name, version, env_name)
+                self.assertIn('Promoted to {}'.format(env_name), status)
             self.assertEqual(
                 set(self._get_cv_version_environments(version)),
                 all_env_names_set
@@ -5849,12 +5806,11 @@ class ContentViewTestCase(UITestCase):
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
+                self.content_views.version_search(cv_name, version))
             # promote the content view to all lifecycle environments
             for env_name in env_names:
-                self.content_views.promote(cv_name, version, env_name)
+                status = self.content_views.promote(cv_name, version, env_name)
+                self.assertIn('Promoted to {}'.format(env_name), status)
             self.assertEqual(
                 set(self._get_cv_version_environments(version)),
                 all_env_names_set

@@ -451,8 +451,6 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(ak_name))
             # add Host Collection
             self.activationkey.add_host_collection(ak_name, hc.name)
-            self.assertIsNotNone(self.activationkey.find_element(
-                common_locators['alert.success_sub_form']))
             # check added host collection is listed
             self.activationkey.click(tab_locators['ak.host_collections.list'])
             host_collection = self.activationkey.wait_until_element(
@@ -506,8 +504,6 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(ak_name))
             # add Host Collection
             self.activationkey.add_host_collection(ak_name, hc.name)
-            self.assertIsNotNone(self.activationkey.find_element(
-                common_locators['alert.success_sub_form']))
             # check added host collection is listed
             self.activationkey.click(tab_locators['ak.host_collections.list'])
             host_collection = self.activationkey.wait_until_element(
@@ -794,8 +790,9 @@ class ActivationKeyTestCase(UITestCase):
             for new_desc in valid_data_list():
                 with self.subTest(new_desc):
                     self.activationkey.update(name, description=new_desc)
-                    self.assertIsNotNone(self.activationkey.wait_until_element(
-                        common_locators['alert.success_sub_form']))
+                    selected_desc = self.activationkey.get_attribute(
+                        name, locators['ak.fetch_description'])
+                    self.assertEqual(selected_desc, new_desc)
 
     @run_only_on('sat')
     @tier2
@@ -826,8 +823,6 @@ class ActivationKeyTestCase(UITestCase):
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(ENVIRONMENT, selected_env)
             self.activationkey.update(name, content_view=cv_name, env=env_name)
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(env_name, selected_env)
 
@@ -873,8 +868,6 @@ class ActivationKeyTestCase(UITestCase):
             self.assertEqual(cv1_name, selected_cv)
             self.activationkey.update(
                 name, content_view=cv2_name, env=env2_name)
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
 
@@ -944,8 +937,6 @@ class ActivationKeyTestCase(UITestCase):
             self.assertEqual(cv1_name, selected_cv)
             self.activationkey.update(
                 name, content_view=cv2_name, env=env2_name)
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
 
@@ -960,6 +951,7 @@ class ActivationKeyTestCase(UITestCase):
         :CaseImportance: Critical
         """
         name = gen_string('alpha')
+        limit = '8'
         with Session(self) as session:
             make_activationkey(
                 session,
@@ -968,9 +960,10 @@ class ActivationKeyTestCase(UITestCase):
                 env=ENVIRONMENT,
             )
             self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.update(name, limit='8')
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.activationkey.update(name, limit=limit)
+            selected_limit = self.activationkey.get_attribute(
+                name, locators['ak.fetch_limit'])
+            self.assertEqual(selected_limit, limit)
 
     @tier1
     def test_positive_update_limit_to_unlimited(self):
@@ -993,8 +986,9 @@ class ActivationKeyTestCase(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit='Unlimited')
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            selected_limit = self.activationkey.get_attribute(
+                name, locators['ak.fetch_limit'])
+            self.assertEqual(selected_limit, 'Unlimited')
 
     @tier1
     def test_negative_update_name(self):
@@ -1083,8 +1077,9 @@ class ActivationKeyTestCase(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit=host_limit)
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            selected_limit = self.activationkey.get_attribute(
+                name, locators['ak.fetch_limit'])
+            self.assertEqual(selected_limit, host_limit)
             with VirtualMachine(distro=self.vm_distro) as vm1:
                 with VirtualMachine(distro=self.vm_distro) as vm2:
                     vm1.install_katello_ca()

@@ -1720,12 +1720,18 @@ locators = LocatorDict({
                    "//i[contains(@class, 'fa-edit')]")),
     "ak.edit_name_text": (
         By.XPATH, "//dd[@bst-edit-text='activationKey.name']//input"),
+    "ak.fetch_description": (
+        By.XPATH, ("//dd[@bst-edit-textarea='activationKey.description']"
+                   "//div/span[contains(@class, 'editable')]")),
     "ak.edit_description": (
         By.XPATH, ("//dd[@bst-edit-textarea='activationKey.description']"
                    "//i[contains(@class, 'fa-edit')]")),
     "ak.edit_description_text": (
         By.XPATH,
         "//dd[@bst-edit-textarea='activationKey.description']//textarea"),
+    "ak.fetch_limit": (
+        By.XPATH, ("//dd[@bst-edit-custom='activationKey.max_hosts']"
+                   "//div/span[contains(@class, 'editable')]")),
     "ak.edit_limit": (
         By.XPATH, ("//dd[@bst-edit-custom='activationKey.max_hosts']"
                    "//i[contains(@class, 'fa-edit')]")),
@@ -1962,6 +1968,11 @@ locators = LocatorDict({
         By.XPATH,
         ("//dd[@bst-edit-text='contentView.name']"
          "//button[@ng-click='save()']")),
+    "contentviews.fetch_description": (
+        By.XPATH,
+        "//dd[@bst-edit-textarea='contentView.description']//div/"
+        "span[contains(@class, 'editable')]"
+    ),
     "contentviews.edit_description": (
         By.XPATH,
         "//dd[@bst-edit-textarea='contentView.description']//div/span"
@@ -2015,6 +2026,10 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='performDeletion()']"),
     "contentviews.version_name": (
         By.XPATH, "//td/a[contains(., '%s')]"),
+    "contentviews.version_status": (
+        By.XPATH,
+        "(//table[@bst-table='table']//tr/td[contains(., '%s')]/parent::tr/"
+        "td[count(//thead//tr/th[.='Status']/preceding-sibling::*)+1])/span"),
     "contentviews.version_environments": (
         By.XPATH,
         "//table[@bst-table='table']//tr/td[contains(., '%s')]/"
