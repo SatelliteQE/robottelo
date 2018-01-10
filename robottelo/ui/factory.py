@@ -294,6 +294,8 @@ def make_domain(session, org=None, loc=None, force_context=True, **kwargs):
         u'name': None,
         u'description': None,
         u'dns_proxy': None,
+        u'organizations': None,
+        u'locations': None
     }
     page = session.nav.go_to_domains
     core_factory(create_args, kwargs, session, page,

@@ -1056,10 +1056,11 @@ class CannedRoleTestCases(APITestCase):
         """
 
     @tier1
-    def test_positive_create_roles_by_org_admin(self):
-        """Org Admin has permission to create new roles
+    @upgrade
+    def test_negative_create_roles_by_org_admin(self):
+        """Org Admin doesnt have permissions to create new roles
 
-        :id: 6c307e3c-069e-4c59-a187-18caf6f0894c
+        :id: 806ecc16-0dc7-405b-90d3-0584eced27a3
 
         :steps:
 
@@ -1068,8 +1069,8 @@ class CannedRoleTestCases(APITestCase):
             3. Login with above Org Admin user
             4. Attempt to create a new role
 
-        :expectedresults: Org Admin should have permission to create
-            new role
+        :expectedresults: Org Admin should not have permission by default to
+            create new role
         """
         org_admin = self.create_org_admin_role(
             orgs=[self.role_org.id],
@@ -1091,13 +1092,13 @@ class CannedRoleTestCases(APITestCase):
             verify=False
         )
         role_name = gen_string('alpha')
-        role = entities.Role(
-            sc,
-            name=role_name,
-            organization=[self.role_org],
-            location=[self.role_loc]
-        ).create()
-        self.assertEqual(role_name, role.name)
+        with self.assertRaises(HTTPError):
+            entities.Role(
+                sc,
+                name=role_name,
+                organization=[self.role_org],
+                location=[self.role_loc]
+            ).create()
 
     @stubbed()
     @tier1
@@ -1272,7 +1273,7 @@ class CannedRoleTestCases(APITestCase):
             2. Org Admin should have access to create locations
         """
         org_admin = self.create_org_admin_role(
-            orgs=[self.role_org.id], locs=[self.role_loc.id])
+            orgs=[self.role_org.id])
         user_login = gen_string('alpha')
         user_pass = gen_string('alphanumeric')
         user = entities.User(
