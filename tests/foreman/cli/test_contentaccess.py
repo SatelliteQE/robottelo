@@ -13,6 +13,8 @@
 
 :Upstream: No
 """
+import time
+
 from robottelo import manifests
 from robottelo import ssh
 from robottelo.cli.contentview import ContentView
@@ -225,11 +227,14 @@ class ContentAccessTestCase(CLITestCase):
             result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
             # check that package errata is applicable
-
-            erratum = Host.errata_list({
-                'host': vm.hostname,
-                'search': 'id = {0}'.format(REAL_RHEL7_0_ERRATA_ID)
-            })
+            for _ in range(10):
+                erratum = Host.errata_list({
+                    'host': vm.hostname,
+                    'search': 'id = {0}'.format(REAL_RHEL7_0_ERRATA_ID)
+                })
+                if erratum:
+                    break
+                time.sleep(10)
             self.assertEqual(len(erratum), 1)
             self.assertEqual(erratum[0]['installable'], 'true')
 
