@@ -22,13 +22,15 @@ from robottelo.cli.factory import (
     setup_cdn_and_custom_repositories,
 )
 from robottelo.cli.host import Host
+from robottelo.cli.package import Package
 from robottelo.config import settings
 from robottelo.constants import (
     DISTRO_RHEL7,
     ENVIRONMENT,
     REAL_RHEL7_0_0_PACKAGE,
+    REAL_RHEL7_0_0_PACKAGE_NAME,
+    REAL_RHEL7_0_1_PACKAGE_FILENAME,
     REAL_RHEL7_0_ERRATA_ID,
-    REAL_RHEL7_1_ERRATA_ID,
     REPOS,
     REPOSET,
     PRDS,
@@ -134,19 +136,21 @@ class ContentAccessTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_list_installable_updates(self):
-        """Run `hammer host errata list` and assert all updates are listed on
-        packages tab updates and not only those for attached subscriptions.
+        """Ensure packages applicability is functioning properly.
 
         :id: 4feb692c-165b-4f96-bb97-c8447bd2cf6e
 
         :steps:
 
-            1. Run `hammer host errata list` specifying unrestricted org.
+            1. Setup a content host with registration to unrestricted org
+            2. Install a packages that has updates
+            3. Run `hammer package list` specifying option
+               packages-restrict-applicable="true".
 
         :CaseAutomation: automated
 
         :expectedresults:
-            1. All updates are available independent of subscription because
+            1. Update package is available independent of subscription because
                Golden Ticket is enabled.
 
         :BZ: 1344049, 1498158
@@ -164,17 +168,22 @@ class ContentAccessTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             # at this stage all repositories should be enabled automatically
             vm.install_katello_agent()
-            erratum = Host.errata_list({'host': vm.hostname})
-            self.assertGreater(len(erratum), 0)
-            # check that all erratum are installable and one of the
-            # repositories errata exist
-            errata_ids_installable = [
-                errata['erratum-id']
-                for errata in erratum
-                if errata['installable'] == 'true'
-            ]
-            self.assertEqual(len(erratum), len(errata_ids_installable))
-            self.assertIn(REAL_RHEL7_1_ERRATA_ID, errata_ids_installable)
+            # install a the packages that has updates
+            result = vm.run(
+                'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
+            self.assertEqual(result.return_code, 0)
+            applicable_packages = Package.list({
+                'host': vm.hostname,
+                'packages-restrict-applicable': 'true',
+                'search': 'name={0}'.format(REAL_RHEL7_0_0_PACKAGE_NAME)
+            })
+            self.assertGreater(len(applicable_packages), 0)
+            self.assertIn(
+                REAL_RHEL7_0_1_PACKAGE_FILENAME,
+                [package['filename'] for package in applicable_packages]
+            )
 
     @run_only_on('sat')
     @tier2
