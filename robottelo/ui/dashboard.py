@@ -149,11 +149,11 @@ class Dashboard(Base):
 
     def validate_task_navigation(
             self, task_state, task_result, task_name=None):
-        """Find specific criteria on Task Status widget and then click on it.
-        After application navigate on Tasks page, check whether proper search
-        string is inherited into search box and that search is actually
-        executed afterwards. Then check whether expected task is found and
-        present in the list
+        """Find specific task by state and result on Task Status widget and
+        then click on it. After application navigate on Tasks page, check
+        whether proper search string is inherited into search box and that
+        search is actually executed afterwards. Then check whether expected
+        task is found and present in the list
         """
         expected_search_value = 'state={}&result={}'.format(
             task_state, task_result)
