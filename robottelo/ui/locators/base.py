@@ -96,6 +96,10 @@ locators = LocatorDict({
     "dashboard.task.search_criteria": (
         By.XPATH,
         "//td[text()='%s']/following-sibling::td/a"),
+    "dashboard.task.search_criteria_with_state": (
+        By.XPATH,
+        ("//td[text()='%s'][preceding-sibling::td[text()='%s']]"
+         "/following-sibling::td/a")),
     "dashboard.lwe_task.name": (
         By.XPATH,
         "//li[@data-name='Latest Warning/Error Tasks']//a[contains(., '%s')]"),

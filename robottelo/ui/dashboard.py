@@ -156,7 +156,10 @@ class Dashboard(Base):
         present in the list
         """
         self.navigate_to_entity()
-        self.click(locators['dashboard.task.search_criteria'] % criteria_name)
+        locator = locators['dashboard.task.search_criteria']
+        if isinstance(criteria_name, tuple):
+            locator = locators['dashboard.task.search_criteria_with_state']
+        self.click(locator % criteria_name)
         if self.wait_until_element(locators['task.page_title']) is None:
             raise UIError(
                 'Redirection to Tasks page does not work properly')

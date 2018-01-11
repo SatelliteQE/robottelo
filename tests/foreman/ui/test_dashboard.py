@@ -408,7 +408,7 @@ class DashboardTestCase(UITestCase):
                     content_view.name, org.name)
             ))
             self.assertTrue(self.dashboard.validate_task_navigation(
-                'error', 'state=stopped&result=error'))
+                ('error', 'stopped'), 'state=stopped&result=error'))
 
     @skip_if_bug_open('bugzilla', 1460240)
     @tier2
