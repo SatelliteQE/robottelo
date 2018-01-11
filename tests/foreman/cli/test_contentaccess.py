@@ -176,11 +176,15 @@ class ContentAccessTestCase(CLITestCase):
             self.assertEqual(result.return_code, 0)
             result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
-            applicable_packages = Package.list({
-                'host': vm.hostname,
-                'packages-restrict-applicable': 'true',
-                'search': 'name={0}'.format(REAL_RHEL7_0_0_PACKAGE_NAME)
-            })
+            for _ in range(10):
+                applicable_packages = Package.list({
+                    'host': vm.hostname,
+                    'packages-restrict-applicable': 'true',
+                    'search': 'name={0}'.format(REAL_RHEL7_0_0_PACKAGE_NAME)
+                })
+                if applicable_packages:
+                    break
+                time.sleep(10)
             self.assertGreater(len(applicable_packages), 0)
             self.assertIn(
                 REAL_RHEL7_0_1_PACKAGE_FILENAME,
