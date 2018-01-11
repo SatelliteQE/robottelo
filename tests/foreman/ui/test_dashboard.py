@@ -400,15 +400,14 @@ class DashboardTestCase(UITestCase):
         with Session(self) as session:
             set_context(session, org=org.name)
             self.assertTrue(self.dashboard.validate_task_navigation(
-                'running', 'state=running&result=pending'))
+                'running', 'pending'))
             self.assertTrue(self.dashboard.validate_task_navigation(
-                'success',
-                'state=stopped&result=success',
+                'stopped', 'success',
                 "Publish content view '{0}'; organization '{1}'".format(
                     content_view.name, org.name)
             ))
             self.assertTrue(self.dashboard.validate_task_navigation(
-                ('error', 'stopped'), 'state=stopped&result=error'))
+                'stopped', 'error'))
 
     @skip_if_bug_open('bugzilla', 1460240)
     @tier2

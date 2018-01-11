@@ -148,18 +148,18 @@ class Dashboard(Base):
         return True
 
     def validate_task_navigation(
-            self, criteria_name, expected_search_value=None, task_name=None):
+            self, task_state, task_result, task_name=None):
         """Find specific criteria on Task Status widget and then click on it.
         After application navigate on Tasks page, check whether proper search
         string is inherited into search box and that search is actually
         executed afterwards. Then check whether expected task is found and
         present in the list
         """
+        expected_search_value = 'state={}&result={}'.format(
+            task_state, task_result)
         self.navigate_to_entity()
-        locator = locators['dashboard.task.search_criteria']
-        if isinstance(criteria_name, tuple):
-            locator = locators['dashboard.task.search_criteria_with_state']
-        self.click(locator % criteria_name)
+        self.click(locators['dashboard.task.search_criteria'] % (
+            task_state, task_result))
         if self.wait_until_element(locators['task.page_title']) is None:
             raise UIError(
                 'Redirection to Tasks page does not work properly')

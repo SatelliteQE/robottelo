@@ -95,10 +95,7 @@ locators = LocatorDict({
         "//span[contains(., '%s') and contains(@class, 'pie')]/div"),
     "dashboard.task.search_criteria": (
         By.XPATH,
-        "//td[text()='%s']/following-sibling::td/a"),
-    "dashboard.task.search_criteria_with_state": (
-        By.XPATH,
-        ("//td[text()='%s'][preceding-sibling::td[text()='%s']]"
+        ("//td[text()='%s'][following-sibling::td[text()='%s']]"
          "/following-sibling::td/a")),
     "dashboard.lwe_task.name": (
         By.XPATH,
