@@ -17,7 +17,6 @@ from fauxfactory import gen_string
 from nailgun import client, entities
 from robottelo.config import settings
 from robottelo.constants import (
-    ANY_CONTEXT,
     COMPUTE_PROFILE_LARGE,
     COMPUTE_PROFILE_SMALL,
     DEFAULT_CV,
@@ -797,7 +796,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
             host.delete()
 
     @upgrade
-    @skip_if_bug_open('bugzilla', 1520382)
     @run_only_on('sat')
     @tier3
     def test_positive_provision_rhev_with_image(self):
@@ -829,7 +827,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :CaseAutomation: Automated
         """
-        hostname = gen_string('alpha', 9)
+        hostname = gen_string('alpha', 9).lower()
         cr_name = gen_string('alpha', 9)
         cr_resource = RHEV_CR % cr_name
         img_name = gen_string('alpha', 5)
@@ -883,7 +881,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
             make_host(
                 session,
                 name=hostname,
-                org=ANY_CONTEXT['org'],
+                org=self.org_name,
                 loc=self.loc_name,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
@@ -891,8 +889,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Host group', self.config_env['host_group']],
                     ['Host', 'Deploy on', cr_resource],
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
-                    ['Host', 'Puppet Environment',
-                        self.config_env['environment']],
                     ['Operating System', 'Operating System', self.os_name],
                     ['Operating System', 'Partition table',
                         self.config_env['ptable']],
@@ -943,7 +939,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :CaseAutomation: Automated
         """
-        hostname = gen_string('alpha', 9)
+        hostname = gen_string('alpha', 9).lower()
         cr_name = gen_string('alpha', 9)
         cr_resource = RHEV_CR % cr_name
         root_pwd = gen_string('alpha', 15)
@@ -985,7 +981,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
             make_host(
                 session,
                 name=hostname,
-                org=ANY_CONTEXT['org'],
+                org=self.org_name,
                 loc=self.loc_name,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
@@ -993,8 +989,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Host group', self.config_env['host_group']],
                     ['Host', 'Deploy on', cr_resource],
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
-                    ['Host', 'Puppet Environment',
-                        self.config_env['environment']],
                     ['Operating System', 'Operating System', self.os_name],
                     ['Operating System', 'Partition table',
                         self.config_env['ptable']],
@@ -1004,7 +998,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 provisioning_method='network'
             )
             vm_host_name = '{0}.{1}'.format(
-                hostname.lower(), self.config_env['domain'])
+                hostname, self.config_env['domain'])
             # the provisioning take some time to finish, when done will be
             # redirected to the created host
             # wait until redirected to host page
@@ -1049,7 +1043,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :CaseAutomation: Automated
         """
-        hostname = gen_string('alpha', 9)
+        hostname = gen_string('alpha', 9).lower()
         cr_name = gen_string('alpha', 9)
         cr_resource = RHEV_CR % cr_name
         root_pwd = gen_string('alpha', 15)
@@ -1101,7 +1095,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
             make_host(
                 session,
                 name=hostname,
-                org=ANY_CONTEXT['org'],
+                org=self.org_name,
                 loc=self.loc_name,
                 parameters_list=[
                     ['Host', 'Organization', self.org_name],
@@ -1109,8 +1103,6 @@ class RhevComputeResourceHostTestCase(UITestCase):
                     ['Host', 'Host group', self.config_env['host_group']],
                     ['Host', 'Deploy on', cr_resource],
                     ['Host', 'Compute profile', COMPUTE_PROFILE_LARGE],
-                    ['Host', 'Puppet Environment',
-                        self.config_env['environment']],
                     ['Operating System', 'Operating System', self.os_name],
                     ['Operating System', 'Partition table',
                         self.config_env['ptable']],
@@ -1120,7 +1112,7 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 provisioning_method='network'
             )
             vm_host_name = '{0}.{1}'.format(
-                hostname.lower(), self.config_env['domain'])
+                hostname, self.config_env['domain'])
             # the provisioning take some time to finish, when done will be
             # redirected to the created host
             # wait until redirected to host page

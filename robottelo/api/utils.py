@@ -269,11 +269,19 @@ def configure_provisioning(org=None, loc=None, compute=False, os=None):
         promote(content_view.version[0], lc_env.id)
     finally:
         entity_mixins.TASK_TIMEOUT = old_task_timeout
-    # Search for puppet environment and associate location
-    environment = entities.Environment(
-        organization=[org.id]).search()[0].read()
-    environment.location.append(loc)
-    environment = environment.update(['location'])
+    # Search for existing organization puppet environment, otherwise create a
+    # new one, associate organization and location where it is appropriate.
+    environments = entities.Environment().search(
+        query=dict(search='organization_id={0}'.format(org.id)))
+    if len(environments) > 0:
+        environment = environments[0].read()
+        environment.location.append(loc)
+        environment = environment.update(['location'])
+    else:
+        environment = entities.Environment(
+            organization=[org],
+            location=[loc]
+        ).create()
 
     # Search for SmartProxy, and associate location
     proxy = entities.SmartProxy().search(
