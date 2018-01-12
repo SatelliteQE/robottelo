@@ -70,12 +70,14 @@ def core_factory(create_args, kwargs, session, page, org=None, loc=None,
     page()
 
 
-def check_context(session):
+def check_context(session, org, loc):
     """Checks whether the org and loc context is set.
 
     :param session: The browser session.
+    :param org: The organization context to set.
+    :param loc: The location context to set.
     :return: Returns a value to set context after checking whether the
-        org and loc context is set.
+        expected org and loc context is set.
     :rtype: dict
 
     """
@@ -86,9 +88,13 @@ def check_context(session):
         menu_locators['menu.fetch_org']).text
     current_loc_text = session.nav.wait_until_element(
         menu_locators['menu.fetch_loc']).text
+    if not org:
+        org = 'Any Organization'
+    if not loc:
+        loc = 'Any Location'
     return {
-        'org': current_org_text == 'Any Organization',
-        'loc': current_loc_text == 'Any Location',
+        'org': current_org_text != org,
+        'loc': current_loc_text != loc,
     }
 
 
@@ -107,7 +113,7 @@ def set_context(session, org=None, loc=None, force_context=False):
     :return: None.
 
     """
-    select_context = check_context(session)
+    select_context = check_context(session, org, loc)
     # Change context only if required or when force_context is set to True
     if select_context['org'] or select_context['loc'] or force_context:
         if org:
