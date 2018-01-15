@@ -348,7 +348,7 @@ locators = LocatorDict({
     "resource.edit": (
         By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
     "resource.filter_containers": (
-        By.XPATH, "//div[contains(@id, 'filter')]//input[@type='text']"),
+        By.XPATH, "//div[contains(@id, 'filter')]//input[@type='search']"),
     "resource.select_container": (
         By.XPATH,
         ("//a[contains(@href, 'compute_resources/') and "
