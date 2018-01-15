@@ -34,6 +34,7 @@ from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
     bz_bug_is_open,
     skip_if_bug_open,
+    run_in_one_thread,
     tier1,
     tier2,
     upgrade
@@ -180,6 +181,7 @@ class ContentViewFilterTestCase(CLITestCase):
         })
         self.assertEqual(cvf['description'], description)
 
+    @run_in_one_thread
     @tier1
     def test_positive_create_with_default_taxonomies(self):
         """Create new content view filter and assign it to existing content
