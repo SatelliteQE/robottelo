@@ -1180,6 +1180,7 @@ class RepositoryTestCase(APITestCase):
             product=self.product,
             unprotected=False,
         ).create()
+        repository.sync()
         repo_data_file_url = urljoin(
             repository.full_path, 'repodata/repomd.xml')
         # ensure the url is based on the protected base server URL
