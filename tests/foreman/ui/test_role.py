@@ -541,13 +541,14 @@ class CannedRoleTestCases(UITestCase):
                 password1=password,
                 password2=password,
                 roles=[name],
+                default_org=self.role_org,
+                default_loc=self.role_loc,
                 locations=[self.role_loc],
                 organizations=[self.role_org],
                 edit=True
             )
         with Session(self, username, password) as session:
-            set_context(session, org=self.role_org)
-            set_context(session, loc=self.role_loc)
+            # We don't need set_context as user logged into his loc \ org
             make_domain(session, name=domain_name)
             self.assertIsNotNone(self.domain.search(domain_name))
             self.assertIsNone(session.nav.wait_until_element(
@@ -602,13 +603,14 @@ class CannedRoleTestCases(UITestCase):
                 password1=password,
                 password2=password,
                 roles=[name],
+                default_org=self.role_org,
+                default_loc=self.role_loc,
                 locations=[self.role_loc],
                 organizations=[self.role_org],
                 edit=True
             )
         with Session(self, username, password) as session:
-            set_context(session, org=self.role_org)
-            set_context(session, loc=self.role_loc)
+            # We don't need set_context as user logged into his loc \ org
             self.assertIsNone(session.nav.wait_until_element(
                 menu_locators['menu.content'], timeout=3))
             self.assertIsNone(session.nav.wait_until_element(
