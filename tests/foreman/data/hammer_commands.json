@@ -25890,6 +25890,12 @@
               "value": "GPG_KEY_ID"
             }, 
             {
+              "help": "if true, will ignore the globally configured Capsule when syncing.",
+              "name": "ignore-global-proxy",
+              "shortname": null,
+              "value": "IGNORE_GLOBAL_PROXY "
+            },
+            {
               "help": "", 
               "name": "label", 
               "shortname": null, 
