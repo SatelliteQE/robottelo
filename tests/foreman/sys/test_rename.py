@@ -45,7 +45,7 @@ class RenameHostTestCase(TestCase):
         cls.username = settings.server.admin_username
         cls.password = settings.server.admin_password
 
-    @stubbed
+    @stubbed()
     @upgrade
     def test_positive_rename_satellite(self):
         """run katello-change-hostname on Satellite server
@@ -162,7 +162,7 @@ class RenameHostTestCase(TestCase):
             self.assertEqual(result.return_code, 1)
             self.assertIn(BAD_CREDS_MSG, result.stderr)
 
-    @stubbed
+    @stubbed()
     def test_positive_rename_capsule(self):
         """run katello-change-hostname on Capsule
 
