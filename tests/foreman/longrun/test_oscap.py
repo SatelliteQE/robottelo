@@ -305,7 +305,8 @@ class OpenScapTestCase(UITestCase):
             'rhel_repo': rhel7_repo,
         }
         with Session(self) as session:
-            set_context(session, org=ANY_CONTEXT)
+            set_context(
+                session, org=ANY_CONTEXT['org'], loc=ANY_CONTEXT['location'])
             self.oscapcontent.update(
                 content_update,
                 content_org=self.config_env['org_name']
@@ -342,6 +343,7 @@ class OpenScapTestCase(UITestCase):
                 )
                 self.assertTrue(vm.subscribed)
                 vm.configure_puppet(vm_values.get('rhel_repo'))
+
                 self.hosts.update(
                     name=host_name,
                     domain_name=host_domain,
