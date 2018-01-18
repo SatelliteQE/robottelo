@@ -20,4 +20,3 @@ class RecurringLogic(Base):
     """
 
     command_base = 'recurring-logic'
-
