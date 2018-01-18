@@ -3716,7 +3716,7 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
     # Synchronize the repositories
     for rh_repo in rh_repos_info:
         try:
-            Repository.synchronize({'id': rh_repo['id']})
+            Repository.synchronize({'id': rh_repo['id']}, timeout=4800)
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
                 u'Failed to synchronize repository\n{0}'.format(err.msg))
@@ -4002,7 +4002,7 @@ def setup_cdn_and_custom_repositories(
         repos_info.append(repo_info)
     # Synchronize the repositories
     for repo_info in repos_info:
-        Repository.synchronize({'id': repo_info['id']})
+        Repository.synchronize({'id': repo_info['id']}, timeout=4800)
     return repos_info
 
 
@@ -4074,7 +4074,7 @@ def setup_cdn_and_custom_repos_content(
         repos_info.append(repo_info)
     # Synchronize the repositories
     for repo_info in repos_info:
-        Repository.synchronize({'id': repo_info['id']})
+        Repository.synchronize({'id': repo_info['id']}, timeout=4800)
     # Create a content view
     content_view_id = make_content_view({u'organization-id': org_id})['id']
     # Add repositories to content view
