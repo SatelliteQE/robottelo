@@ -17,7 +17,6 @@ from fauxfactory import gen_string
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
-from robottelo.decorators import bz_bug_is_open
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 
 logger = logging.getLogger(__name__)
@@ -310,10 +309,6 @@ class VirtualMachine(object):
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
-        if bz_bug_is_open('1431747'):
-            gofer_start = self.run('service goferd start')
-            if gofer_start.return_code != 0:
-                raise VirtualMachineError('Failed to start katello-agent')
         gofer_check = self.run(
             u'for i in {1..5}; do service goferd status '
             u'&& exit 0; sleep 1; done; exit 1'
