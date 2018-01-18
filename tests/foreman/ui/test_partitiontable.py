@@ -27,6 +27,7 @@ from robottelo.decorators import (
     run_only_on,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
@@ -321,6 +322,7 @@ class PartitionTableTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete a partition table
 

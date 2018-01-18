@@ -29,6 +29,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 
@@ -329,6 +330,7 @@ class DomainTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_parameter(self):
         """Domain delete-parameter removes parameter
 

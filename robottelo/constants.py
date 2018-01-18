@@ -325,6 +325,7 @@ SAT6_TOOLS_TREE = [
 SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 
 DEFAULT_ARCHITECTURE = 'x86_64'
+DEFAULT_LOC_ID = 2
 DEFAULT_ORG_ID = 1
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
@@ -336,6 +337,7 @@ DEFAULT_TEMPLATE = "Satellite Kickstart Default"
 DEFAULT_PXE_TEMPLATE = "Kickstart default PXELinux"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
+DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Anonymous'
 
 SATELLITE_SUBSCRIPTION_NAME = 'Red Hat Satellite Employee Subscription'
@@ -397,6 +399,9 @@ FAKE_6_YUM_REPO = (
 FAKE_7_YUM_REPO = (
     u'https://repos.fedorapeople.org/pulp/pulp/demo_repos/large_errata/zoo/'
 )
+FAKE_9_YUM_REPO = (
+    u'https://abalakht.fedorapeople.org/test_repos/multiple_errata/'
+)
 FAKE_YUM_DRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
 )
@@ -416,16 +421,41 @@ FAKE_8_PUPPET_REPO = u'http://omaciel.fedorapeople.org/bagoftricks'
 FEDORA22_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/22/'
 FEDORA23_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/23/'
 REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
+FAKE_0_INC_UPD_URL = 'https://abalakht.fedorapeople.org/test_files/inc_update/'
+FAKE_0_INC_UPD_ERRATA = 'EXA:2015-0002'
+FAKE_0_INC_UPD_OLD_PACKAGE = 'pulp-test-package-0.2.1-1.fc11.x86_64.rpm'
+FAKE_0_INC_UPD_NEW_PACKAGE = 'pulp-test-package-0.3.1-1.fc11.x86_64.rpm'
+FAKE_0_INC_UPD_OLD_UPDATEFILE = 'updateinfo.xml'
+FAKE_0_INC_UPD_NEW_UPDATEFILE = 'updateinfo_v2.xml'
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
 FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
 FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
 FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
+REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
+FAKE_9_YUM_OUTDATED_PACKAGES = [
+    'bear-4.0-1.noarch',
+    'crow-0.7-1.noarch',
+    'duck-0.5-1.noarch',
+    'gorilla-0.61-1.noarch',
+    'penguin-0.8.1-1.noarch',
+    'stork-0.11-1.noarch',
+    'walrus-0.71-1.noarch',
+]
+FAKE_9_YUM_UPDATED_PACKAGES = [
+    'bear-4.1-1.noarch',
+    'crow-0.8-1.noarch',
+    'duck-0.6-1.noarch',
+    'gorilla-0.62-1.noarch',
+    'penguin-0.9.1-1.noarch',
+    'stork-0.12-1.noarch',
+    'walrus-5.21-1.noarch',
+]
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
-FAKE_2_ERRATA_ID = 'RHEA-2012:0055'  # for FAKE_6_YUM_REPO
+FAKE_2_ERRATA_ID = 'RHEA-2012:0055'  # for FAKE_6_YUM_REPO and FAKE_9_YUM_REPO
 FAKE_3_ERRATA_ID = 'RHEA-2012:7269'  # for FAKE_3_YUM_REPO
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhst6 with type=security and cves
 REAL_4_ERRATA_CVES = ['CVE-2014-3633', 'CVE-2014-3657', 'CVE-2014-7823']
@@ -435,6 +465,13 @@ FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_ERRATUM_COUNT = 79
 FAKE_3_YUM_REPOS_COUNT = 136
 FAKE_6_YUM_ERRATUM_COUNT = 4
+FAKE_9_YUM_ERRATUM_COUNT = 4
+FAKE_9_YUM_ERRATUM = [
+    'RHEA-2012:0055',
+    'RHEA-2012:0056',
+    'RHEA-2012:0057',
+    'RHEA-2012:0058',
+]
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
 
@@ -1495,7 +1532,7 @@ PERMISSIONS_WITH_BZ = {
 BACKUP_FILES = [
     u'config_files.tar.gz',
     u'.config.snar',
-    u'metadata',
+    u'metadata.yml',
     u'mongo_data.tar.gz',
     u'.mongo.snar',
     u'pgsql_data.tar.gz',
@@ -1509,8 +1546,9 @@ HOT_BACKUP_FILES = [
     u'config_files.tar.gz',
     u'.config.snar',
     u'foreman.dump',
-    u'metadata',
+    u'metadata.yml',
     u'mongo_dump',
     u'pulp_data.tar',
     u'.pulp.snar',
+    u'pg_globals.dump',
 ]

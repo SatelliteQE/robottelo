@@ -356,14 +356,9 @@ def make_usergroup(session, org=None, loc=None, force_context=True, **kwargs):
 
 def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a host_group"""
-
     create_args = {
         u'name': None,
-        u'parent': None,
-        u'environment': None,
-        u'content_source': None,
-        u'puppet_ca': None,
-        u'puppet_master': None,
+        u'parameters_list': None,
     }
     page = session.nav.go_to_host_groups
     core_factory(create_args, kwargs, session, page,

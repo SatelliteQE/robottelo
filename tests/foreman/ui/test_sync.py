@@ -28,6 +28,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier4,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
@@ -80,6 +81,7 @@ class SyncTestCase(UITestCase):
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_sync_rh_repos(self):
         """Create Content RedHat Sync with two repos.
 
@@ -100,7 +102,7 @@ class SyncTestCase(UITestCase):
             # syn.sync_rh_repos returns boolean values and not objects
             self.assertTrue(sync)
 
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_sync_disconnected_to_connected_rh_repos(self):
         """Migrating from disconnected to connected satellite.
@@ -108,13 +110,14 @@ class SyncTestCase(UITestCase):
         @id: 03b3d904-1697-441b-bb12-8b353a556218
 
         @Steps:
-        1. Update the link to an internal http link where the content has been
-           extracted from ISO's.
-        2. Import a valid manifest.
-        3. Enable few RedHat repos and Sync them.
-        4. Now let's revert back the link to CDN's default link which is,
-           'https://cdn.redhat.com'.
-        5. Now Navigate to the 'Sync Page' and resync the repos synced earlier.
+            1. Update the link to an internal http link where the content has
+                been extracted from ISO's.
+            2. Import a valid manifest.
+            3. Enable few RedHat repos and Sync them.
+            4. Now let's revert back the link to CDN's default link which is,
+               'https://cdn.redhat.com'.
+            5. Now Navigate to the 'Sync Page' and resync the repos
+                synced earlier.
 
         @expectedresults: 1. Syncing should work fine without any issues. 2.
         Only the deltas are re-downloaded and not the entire repo. [ Could be
@@ -131,6 +134,7 @@ class SyncTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_sync_custom_ostree_repo(self):
         """Create custom ostree repository and sync it.
 
@@ -146,6 +150,7 @@ class SyncTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_sync_rh_ostree_repo(self):
         """Sync CDN based ostree repository .
 

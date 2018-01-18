@@ -298,10 +298,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@href='/redhat_access/insights/rules/']")),
-    "insights.systems": (
+    "insights.inventory": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@href='/redhat_access/insights/systems/']")),
+         "//a[@href='/redhat_access/insights/inventory']")),
     "insights.manage": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
@@ -435,12 +435,12 @@ tab_locators = LocatorDict({
     # Hostgroup
     # Third level UI
 
-    "hostgroup.tab_hostgroup": (By.XPATH, "//a[@href='#primary']"),
+    "hostgroup.tab_host_group": (By.XPATH, "//a[@href='#primary']"),
     "hostgroup.tab_ansible_roles": (By.XPATH, "//a[@href='#ansible_roles']"),
     "hostgroup.tab_puppet_classes": (By.XPATH, "//a[@href='#puppet_klasses']"),
     "hostgroup.tab_network": (By.XPATH, "//a[@href='#network']"),
     "hostgroup.tab_operating_system": (By.XPATH, "//a[@href='#os']"),
-    "hostgroup.tab_params": (By.XPATH, "//a[@href='#params']"),
+    "hostgroup.tab_parameters": (By.XPATH, "//a[@href='#params']"),
     "hostgroup.tab_locations": (By.XPATH, "//a[@href='#locations']"),
     "hostgroup.tab_organizations": (By.XPATH, "//a[@href='#organizations']"),
     "hostgroup.tab_activation_keys": (
@@ -594,7 +594,9 @@ tab_locators = LocatorDict({
     "contentviews.tab_version_packages": (
         By.XPATH,
         "//a[contains(@ui-sref, 'content-views.details.version.packages')]"),
-
+    "contentviews.tab_version_errata": (
+        By.XPATH,
+        "//a[contains(@ui-sref, 'content-views.details.version.errata')]"),
     "contentviews.tab_version_puppet_modules": (
         By.XPATH,
         "//a[contains(@ui-sref, "
@@ -968,6 +970,9 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[normalize-space(.)='%s' and contains(@href,'locations')]"
          "/../../td/div/a[@data-toggle='dropdown']")),
+    "location.all_capsules": (
+        By.XPATH,
+        "//input[@id='location_ignore_types_smartproxy']"),
 
 
     # Login
@@ -1069,6 +1074,9 @@ locators = LocatorDict({
     "org.label_value": (
         By.XPATH,
         "//input[@id='organization_label' and @value='%s']"),
+    "org.all_capsules": (
+        By.XPATH,
+        "//input[@id='organization_ignore_types_smartproxy']"),
 
     # Trends
     "trend.new": (By.XPATH, "//a[contains(@href, '/trends/new')]"),
@@ -1315,6 +1323,12 @@ locators = LocatorDict({
         By.XPATH,
         ("//tr[//a[contains(@href,'info') and contains(.,'%s')]]"
          "/following-sibling::tr[1]/td/input[@type='checkbox']")),
+    "contenthost.attached_subscription": (
+        By.XPATH,
+        ("//tr[td/a[contains(@href,'info') and contains(.,'%s')]]"
+         "/following-sibling::tr[1]/td/a[contains(@ui-sref, "
+         "'subscriptions.details.info')]"),
+    ),
     "contenthost.errata_select": (
         By.XPATH,
         ("//tr[td/a[@ng-click='transitionToErratum(erratum)' and "
@@ -1483,7 +1497,7 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'host_puppet_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.openscap_proxy": (
+    "host.openscap_capsule": (
         By.XPATH,
         ("//div[contains(@id, 'host_openscap_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
@@ -1497,6 +1511,16 @@ locators = LocatorDict({
          "/a[not(contains(@data-original-title, '::'))]")),
 
     # host.interface
+    "host.add_interface": (By.ID, 'addInterface'),
+    "host.delete_interface": (
+        By.XPATH,
+        ("//button[contains(@class, 'removeInterface')]"
+         "[../preceding-sibling::td[contains(@class, 'identifier') "
+         "or contains(@class, 'mac')][contains(., '%s')]]")),
+    "host.fetch_primary_interface_mac": (
+        By.XPATH,
+        ("//table[@id='interfaceList']/tbody/tr[1]"
+         "/td[contains(@class, 'mac')]")),
     "host.edit_default_interface": (
         By.XPATH,
         "//table[@id='interfaceList']/tbody/tr[1]/td"
@@ -1764,7 +1788,7 @@ locators = LocatorDict({
     "hostgroups.new": (By.XPATH, "//a[contains(@href, '/hostgroups/new')]"),
     "hostgroups.name": (By.ID, "hostgroup_name"),
     "hostgroups.parent": (By.ID, "hostgroup_parent_id"),
-    "hostgroups.environment": (
+    "hostgroups.lifecycle_environment": (
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_lifecycle_environment')]/a"
          "/span[contains(@class, 'arrow')]")),
@@ -1793,10 +1817,41 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'hostgroup_puppet_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "hostgroups.openscap_capsule": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_openscap_proxy_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "hostgroups.activation_keys": (
         By.XPATH, "//input[contains(@id, 'activation_keys')]"),
     "hostgroups.ak_autocomplete": (
         By.XPATH, "//ul[contains(@class, 'ui-autocomplete')]/li/a"),
+    "hostgroups.architecture": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_architecture_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.architecture_clear": (
+        By.XPATH,
+        "//div[contains(@id, 'hostgroup_architecture_id')]/a/abbr"),
+    "hostgroups.architecture_value": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_architecture_id')]/a"
+         "/span[contains(@class, 'select2-chosen')]")),
+    "hostgroups.operating_system": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_operatingsystem_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.operating_system_clear": (
+        By.XPATH,
+        "//div[contains(@id, 'hostgroup_operatingsystem_id')]/a/abbr"),
+    "hostgroups.media": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_medium_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.partition_table": (
+        By.XPATH,
+        ("//div[contains(@id, 'hostgroup_ptable_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "hostgroups.root_password": (By.ID, "hostgroup_root_pass"),
 
     # Users
 
@@ -2184,16 +2239,23 @@ locators = LocatorDict({
         By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
                    "/div[@class='bst-edit']/div/span[2]")),
     "repo.fetch_packages": (
-        By.XPATH, "//td[span[text()='Packages']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding'"
+        "and contains(@ui-sref, 'packages')]",
     ),
     "repo.fetch_errata": (
-        By.XPATH, "//td[span[text()='Errata']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding' and contains(@ui-sref, 'errata')]",
     ),
     "repo.fetch_package_groups": (
-        By.XPATH, "//td[span[text()='Package Groups']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding'"
+        " and contains(@ui-sref, 'package-groups')]",
     ),
     "repo.fetch_puppet_modules": (
-        By.XPATH, "//td[span[text()='Puppet Modules']]/following-sibling::td",
+        By.XPATH,
+        "//a[@class='ng-binding'"
+        " and contains(@ui-sref, 'manage-content.puppet-modules')]",
     ),
     "repo.result_spinner": (
         By.XPATH,
@@ -2731,6 +2793,21 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[@bst-table='detailsTable']//tr[contains(@class, 'ng-scope')]"
          "/td[2][contains(., '%s')]")),
+    "contentviews.version.package_release": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'package')]/td[3][contains(., '%s')]"),
+    "contentviews.version.package_arch": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'package')]/td[4][contains(., '%s')]"),
+    "contentviews.version.errata_id": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[1][contains(., '%s')]"),
+    "contentviews.version.errata_title": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[2][contains(., '%s')]"),
+    "contentviews.version.errata_type": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat,'errata')]/td[3][contains(., '%s')]"),
     "contentviews.version.puppet_module_name": (
         By.XPATH,
         ("//table[@data-block='table']"
@@ -2847,6 +2924,10 @@ locators = LocatorDict({
     "subs.no_manifests_title": (
         By.XPATH,
         '//span[contains(., "You currently don\'t have any Subscriptions")]'),
+    "subs.details_field_value": (
+        By.XPATH,
+        ("//span[contains(@class, 'info-label')][span[text()='%s']]"
+         "/following-sibling::span[contains(@class, 'info-value')]")),
 
     # Settings
     "settings.param": (
@@ -3032,19 +3113,42 @@ locators = LocatorDict({
          "contains(@data-original-title, '%s')]/../../a")),
 
     # Red Hat Access Insights locators
+    "insight.inventory.search": (
+        By.XPATH,
+        "//input[contains(@class, 'search-box')]"
+    ),
     "insights.registered_systems": (
         By.XPATH,
-        ("//div[@class='system-summary']/p")),
+        "//h3[@class='system-count']/span"),
+    "insight.inventory.systems_loaded": (
+        By.XPATH,
+        ("//div[@ng-show='loading'][contains(@class, 'ng-hide')]"
+         "//div[contains(@class, 'spinner')]")),
+    "insight.inventory.system": (
+        By.XPATH,
+        "//td/a[contains(., '%s')]"
+    ),
+    "insight.inventory.system_checkbox": (
+        By.XPATH,
+        "//td/a[contains(., '%s')]/../preceding-sibling::td/input"
+    ),
+    "insight.inventory.actions_button": (
+        By.XPATH,
+        "//div/button[@data-toggle='dropdown']/span[contains(., 'Actions')]"
+    ),
+    "insight.inventory.action_unregister": (
+        By.XPATH,
+        ("//div[contains(@class,'dropdown')]/ul/li/a"
+         "/span[contains(., 'Unregister')]")
+    ),
+    "insight.inventory.action_confirm_yes": (
+        By.XPATH,
+        # 'visible' is added asynchronously after page load. do not remove it
+        # as otherwise click won't trigger any event
+        ("//div[contains(@class,'sweet-alert')][contains(@class,'visible')]"
+         "/button[@class='confirm']")),
     "insights.org_selection_msg": (
         By.ID, "content"),
-    "insights.unregister_system": (
-        By.XPATH, (
-            "//td[contains(*,'%s')]/../td/a[@class='fa fa-close blacklist' "
-            "and contains(@title,'Unregister System')]")),
-    "insights.unregister_button": (
-        By.XPATH, (
-            "//div[@class='sweet-alert showSweetAlert visible']//"
-            "button[@class='confirm']")),
     "insights.no_systems_element": (
         By.XPATH, (
             "//div[@class='text-center']//h4")

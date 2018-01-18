@@ -26,6 +26,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
@@ -65,6 +66,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_chain(self):
         """Create Content Environment in a chain
 
@@ -96,6 +98,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create Content Environment and delete it
 
@@ -167,6 +170,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1420511)
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_custom_user_view_lce(self):
         """As a custom user attempt to view a lifecycle environment created
         by admin user

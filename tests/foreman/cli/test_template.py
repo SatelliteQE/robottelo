@@ -25,7 +25,7 @@ from robottelo.cli.factory import (
     make_template,
 )
 from robottelo.cli.template import Template
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -112,6 +112,7 @@ class TemplateTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_add_os_by_id(self):
         """Check if operating system can be added to a template
 
@@ -163,6 +164,7 @@ class TemplateTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_content(self):
         """Check if Template can be created with specific content
 
@@ -182,6 +184,7 @@ class TemplateTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Check if Template can be deleted
 
@@ -196,6 +199,7 @@ class TemplateTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_clone(self):
         """Assure ability to clone a provisioning template
 

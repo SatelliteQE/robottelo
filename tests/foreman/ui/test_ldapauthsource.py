@@ -17,7 +17,7 @@
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import skip_if_not_set, tier1
+from robottelo.decorators import skip_if_not_set, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_ldapauth
 from robottelo.ui.session import Session
@@ -71,6 +71,7 @@ class LDAPAuthSourceTestCase(UITestCase):
                     )
 
     @tier1
+    @upgrade
     def test_positive_delete_withad(self):
         """Delete LDAP authentication with AD
 

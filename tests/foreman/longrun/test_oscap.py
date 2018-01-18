@@ -16,13 +16,13 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.cli.proxy import Proxy
 from robottelo import manifests, ssh
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
 )
+from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
@@ -39,14 +39,22 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_not_set,
     stubbed,
     tier4,
+    upgrade
 )
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
+from robottelo.ui.factory import (
+    make_hostgroup,
+    make_oscappolicy,
+    make_oscapcontent,
+    set_context
+)
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -161,6 +169,7 @@ class OpenScapTestCase(UITestCase):
                 u'value': u'1',
             }})
 
+    @upgrade
     @run_only_on('sat')
     @tier4
     def test_positive_upload_to_satellite(self):
@@ -183,33 +192,42 @@ class OpenScapTestCase(UITestCase):
         rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
         hgrp6_name = gen_string('alpha')
         hgrp7_name = gen_string('alpha')
-        policy_values = [
-            {
-                'content': rhel6_content,
-                'hgrp': hgrp6_name,
-                'policy': gen_string('alpha'),
-            },
-            {
-                'content': rhel7_content,
-                'hgrp': hgrp7_name,
-                'policy': gen_string('alpha'),
-            },
-        ]
-        vm_values = [
-            {
-                'distro': DISTRO_RHEL6,
-                'hgrp': hgrp6_name,
-                'rhel_repo': rhel6_repo,
-            },
-            {
-                'distro': DISTRO_RHEL7,
-                'hgrp': hgrp7_name,
-                'rhel_repo': rhel7_repo,
-            },
-        ]
+
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
             # Creates oscap content for both rhel6 and rhel7
+            if bz_bug_is_open(1490348):
+                content_path = get_data_file(settings.oscap.content_path)
+                rhel6_content = 'rhel6_workaround'
+                make_oscapcontent(
+                    session,
+                    name=rhel6_content,
+                    content_path=content_path,
+                )
+            policy_values = [
+                {
+                    'content': rhel6_content,
+                    'hgrp': hgrp6_name,
+                    'policy': gen_string('alpha'),
+                },
+                {
+                    'content': rhel7_content,
+                    'hgrp': hgrp7_name,
+                    'policy': gen_string('alpha'),
+                },
+            ]
+            vm_values = [
+                {
+                    'distro': DISTRO_RHEL6,
+                    'hgrp': hgrp6_name,
+                    'rhel_repo': rhel6_repo,
+                },
+                {
+                    'distro': DISTRO_RHEL7,
+                    'hgrp': hgrp7_name,
+                    'rhel_repo': rhel7_repo,
+                },
+            ]
             for content in [rhel6_content, rhel7_content]:
                 session.nav.go_to_oscap_content()
                 self.oscapcontent.update(content, content_org=self.org_name)
@@ -250,12 +268,13 @@ class OpenScapTestCase(UITestCase):
                     )
                     self.hosts.update(
                         name=vm._target_image,
-                        domain_name=vm._domain,
+                        domain_name=vm.domain,
                         parameters_list=[
                             ['Host', 'Lifecycle Environment', self.env_name],
                             ['Host', 'Content View', self.cv_name],
                             ['Host', 'Host Group', value['hgrp']],
                             ['Host', 'Reset Puppet Environment', True],
+                            ['Host', 'Openscap Capsule', self.sat6_hostname],
                         ],
                     )
                     session.nav.go_to_hosts()
@@ -284,7 +303,7 @@ class OpenScapTestCase(UITestCase):
                     self.assertTrue(self.oscapreports.search(host))
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_has_arf_report_summary_page(self):
         """OSCAP ARF Report now has summary page
@@ -304,7 +323,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_view_full_report_button(self):
         """'View full Report' button should exist for OSCAP Reports.
@@ -325,7 +344,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_download_xml_button(self):
         """'Download xml' button should exist for OSCAP Reports
@@ -347,7 +366,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_select_oscap_proxy(self):
         """Oscap-Proxy select box should exist while filling hosts
@@ -368,7 +387,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_delete_multiple_arf_reports(self):
         """Multiple arf reports deletion should be possible.
@@ -390,7 +409,7 @@ class OpenScapTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_reporting_emails_of_oscap_reports(self):
         """Email Reporting of oscap reports should be possible.

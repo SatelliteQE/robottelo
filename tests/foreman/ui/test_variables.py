@@ -35,6 +35,7 @@ from robottelo.decorators import (
     run_only_on,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_smart_variable, set_context
@@ -207,6 +208,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_with_host(self):
         """Creates a Smart Variable and associate it with host.
 
@@ -283,6 +285,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete(self):
         """Deletes a Smart Variable from Smart Variables Menu.
 
@@ -417,6 +420,7 @@ class SmartVariablesTestCase(UITestCase):
     @run_only_on('sat')
     @run_in_one_thread_if_bug_open('bugzilla', 1440878)
     @tier1
+    @upgrade
     def test_positive_update_type(self):
         """Update Smart Variable with valid default value for all variable
         types
@@ -536,6 +540,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_default_value_with_regex(self):
         """Create Smart Variable that has default value that match regexp from
         validator rule
@@ -668,6 +673,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_default_value_with_list(self):
         """Creates Smart Variable that has default value that is in the list
         from validator rule
@@ -732,6 +738,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_matcher_value_with_list(self):
         """Create Smart Variable that has matcher value that is in the list
         from validator rule
@@ -948,6 +955,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
@@ -1051,6 +1059,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
@@ -1108,6 +1117,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_negative_create_matcher_merge_override(self):
         """Attempt to merge the values from non associated matchers.
 
@@ -1165,6 +1175,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
@@ -1284,6 +1295,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
@@ -1511,7 +1523,7 @@ class SmartVariablesTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_create_override_from_attribute(self):
+    def test_positive_override_from_attribute(self):
         """Impact on variable on overriding the variable value from attribute.
 
         @id: 0d4a6b5f-09d8-4d64-ae4b-efa152815ea8
@@ -1519,14 +1531,12 @@ class SmartVariablesTestCase(UITestCase):
         @steps:
 
         1.  Create a variable.
-        2.  Associate variable with fqdn/hostgroup.
-        3.  From host/hostgroup, override the variable value.
-        4.  Submit the changes.
+        2.  From host/hostgroup, override the variable value.
+        3.  Submit the changes.
 
         @expectedresults:
 
         1.  The host/hostgroup is saved with changes.
-        2.  New matcher for fqdn/hostgroup created inside variable.
 
         @CaseLevel: Integration
         """
@@ -1544,6 +1554,51 @@ class SmartVariablesTestCase(UITestCase):
                 self.host.name, name, gen_string('alpha'))
             self.assertTrue(self.smart_variable.validate_smart_variable(
                 name, 'overrides_number', '1'))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_override_default_value_from_attribute(self):
+        """Override smart variable that has default value with a new value from
+        attribute(host) page
+
+        @id: a76dcb34-b005-4998-99e9-418b2e821a00
+
+        @steps:
+
+        1.  Create a variable with array type and default value
+        2.  From host/hostgroup, override the variable value.
+        3.  Submit the changes.
+
+        @expectedresults:
+
+            1.  The host/hostgroup is saved with changes and variable value has
+                been changed
+            2.  Smart variable should be treated as overridden
+
+        @BZ: 1405118
+
+        @CaseLevel: Integration
+        """
+        name = gen_string('alpha')
+        new_value = '[90,100,120]'
+        with Session(self.browser) as session:
+            set_context(session, org=self.organization.name)
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet_class.name,
+                key_type='array',
+                default_value='[20,30]',
+            )
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '0'))
+            self.hosts.set_smart_variable_value(
+                self.host.name, name, new_value)
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '1'))
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host.name, name)
+            self.assertEqual(sv_value.get_attribute('value'), new_value)
 
     @run_only_on('sat')
     @tier2

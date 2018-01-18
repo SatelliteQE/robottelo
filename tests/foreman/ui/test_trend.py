@@ -18,7 +18,7 @@
 
 from fauxfactory import gen_string
 from robottelo.constants import TREND_TYPES
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_trend
 from robottelo.ui.session import Session
@@ -49,6 +49,7 @@ class TrendTest(UITestCase):
             self.assertIsNotNone(search)
 
     @tier1
+    @upgrade
     def test_positive_update(self):
         """Update trend entity value
 
@@ -73,6 +74,7 @@ class TrendTest(UITestCase):
             self.assertIsNotNone(search)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete existing trend
 

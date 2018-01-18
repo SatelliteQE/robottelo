@@ -14,7 +14,7 @@
 
 @Upstream: No
 """
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -22,6 +22,7 @@ class AbrtTestCase(CLITestCase):
     """Test class for generating abrt report in CLI."""
 
     @stubbed()
+    @upgrade
     def test_positive_create_report(self):
         """a crashed program and abrt reports are send
 

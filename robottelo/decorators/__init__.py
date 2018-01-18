@@ -30,6 +30,8 @@ tier3 = pytest.mark.tier3
 tier4 = pytest.mark.tier4
 # Destructive tests
 destructive = pytest.mark.destructive
+# Upgrade Tests
+upgrade = pytest.mark.upgrade
 
 # Tests to be executed in 1 thread
 run_in_one_thread = pytest.mark.run_in_one_thread

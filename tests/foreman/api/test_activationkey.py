@@ -31,6 +31,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
@@ -338,6 +339,7 @@ class ActivationKeyTestCase(APITestCase):
         self.assertEqual(len(act_key.host_collection), 2)
 
     @tier2
+    @upgrade
     def test_positive_remove_host_collection(self):
         """Disassociate host collection from the activation key
 
@@ -390,6 +392,7 @@ class ActivationKeyTestCase(APITestCase):
         self.assertNotEqual(act_key.auto_attach, act_key_2.auto_attach)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create activation key and then delete it.
 
@@ -430,6 +433,7 @@ class ActivationKeyTestCase(APITestCase):
         except HTTPError:
             self.fail("Activation Key can't be read")
 
+    @upgrade
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2

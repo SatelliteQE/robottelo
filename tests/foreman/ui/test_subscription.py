@@ -24,6 +24,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -40,6 +41,7 @@ class SubscriptionTestCase(UITestCase):
 
     @skip_if_not_set('fake_manifest')
     @tier1
+    @upgrade
     def test_positive_upload_and_delete(self):
         """Upload a manifest with minimal input parameters and delete it
 
@@ -158,6 +160,7 @@ class SubscriptionTestCase(UITestCase):
             self.assertFalse(self.browser.current_url.endswith('katello/403'))
 
     @tier2
+    @upgrade
     def test_positive_access_with_non_admin_user_with_manifest(self):
         """Access subscription page with user that has only view_subscriptions
         permission and organization that has a manifest uploaded.

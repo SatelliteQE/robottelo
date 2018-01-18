@@ -19,6 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import promote
+from robottelo.cleanup import vm_cleanup
 from robottelo.cli.factory import (
     make_content_host,
     setup_org_for_a_custom_repo,
@@ -33,8 +34,9 @@ from robottelo.constants import (
     FAKE_0_YUM_REPO,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_1_ERRATA_ID,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_ERRATA_ID,
+    FAKE_6_YUM_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -50,6 +52,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier3,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -285,6 +288,7 @@ class HostCollectionTestCase(UITestCase):
                         self.hostcollection.update(name, limit=limit)
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create Host Collection and delete it for all variations of name
 
@@ -341,6 +345,7 @@ class HostCollectionTestCase(UITestCase):
                     )
 
     @tier3
+    @upgrade
     def test_positive_add_host(self):
         """Check if host can be added to Host Collection
 
@@ -453,6 +458,13 @@ class HostCollectionPackageManagementTest(UITestCase):
             'lifecycle-environment-id': cls.env.id,
             'activationkey-id': cls.activation_key.id,
         })
+        setup_org_for_a_custom_repo({
+            'url': FAKE_6_YUM_REPO,
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        })
 
     def setUp(self):
         """Create VMs, subscribe them to satellite-tools repo, install
@@ -463,6 +475,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         self.hosts = []
         for _ in range(self.hosts_number):
             client = VirtualMachine(distro=DISTRO_RHEL7)
+            self.addCleanup(vm_cleanup, client)
             self.hosts.append(client)
             client.create()
             client.install_katello_ca()
@@ -480,12 +493,6 @@ class HostCollectionPackageManagementTest(UITestCase):
             host=host_ids,
             organization=self.session_org,
         ).create()
-
-    def tearDown(self):
-        """Destroy all the VMs"""
-        for client in self.hosts:
-            client.destroy()
-        super(HostCollectionPackageManagementTest, self).tearDown()
 
     def _validate_package_installed(self, hosts, package_name,
                                     expected_installed=True, timeout=120):
@@ -510,6 +517,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 )
 
     @tier3
+    @upgrade
     def test_positive_install_package(self):
         """Install a package to hosts inside host collection remotely
 
@@ -531,6 +539,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 self.hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
 
     @tier3
+    @upgrade
     def test_positive_remove_package(self):
         """Remove a package from hosts inside host collection remotely
 
@@ -582,6 +591,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
 
     @tier3
+    @upgrade
     def test_positive_install_package_group(self):
         """Install a package group to hosts inside host collection remotely
 
@@ -633,6 +643,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                     self.hosts, package, expected_installed=False)
 
     @tier3
+    @upgrade
     def test_positive_install_errata(self):
         """Install an errata to the hosts inside host collection remotely
 
@@ -648,7 +659,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         with Session(self.browser):
             result = self.hostcollection.execute_bulk_errata_installation(
                 self.host_collection.name,
-                FAKE_1_ERRATA_ID,
+                FAKE_2_ERRATA_ID,
             )
             self.assertEqual(result, 'success')
             self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)

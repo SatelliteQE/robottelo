@@ -469,16 +469,14 @@ def get_services_status():
 
     # check `services` status using service command
     if major_version >= RHEL_7_MAJOR_VERSION:
-        status_format = '''(for i in {0}; do systemctl status $i; rc=$?;
-                if [[ $rc != 0 ]]; then exit $rc; fi; done);'''
+        status_format = '''(for i in {0}; do systemctl is-active $i -q; rc=$?;
+        if [[ $rc != 0 ]]; then systemctl status $i; exit $rc; fi; done);'''
     else:
-        status_format = '''(for i in {0}; do service $i status; rc=$?;
-                if [[ $rc != 0 ]]; then exit $rc; fi; done);'''
+        status_format = '''(for i in {0}; do service $i status &>/dev/null; rc=$?;
+        if [[ $rc != 0 ]]; then service $i status; exit $rc; fi; done);'''
 
     result = ssh.command(status_format.format(' '.join(services)))
-    if (result.return_code != 0):
-        return False
-    return True
+    return[result.return_code, result.stdout]
 
 
 def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None,
@@ -512,20 +510,21 @@ def form_repo_path(org=None, lce=None, cv=None, cvv=None, prod=None,
     return os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, repo_path)
 
 
-def create_repo(name, repo_fetch_url=None, packages=None, hostname=None):
+def create_repo(name, repo_fetch_url=None, packages=None, wipe_repodata=False,
+                hostname=None):
     """Creates a repository from given packages and publishes it into pulp's
     directory for web access.
 
     :param str name: repository name - name of a directory with packages
     :param str repo_fetch_url: URL to fetch packages from
     :param packages: list of packages to fetch (with extension)
-        and repodata
+    :param wipe_repodata: whether to recursively delete repodata folder
     :param str optional hostname: hostname or IP address of the remote host. If
         ``None`` the hostname will be get from ``main.server.hostname`` config.
     :return: URL where the repository can be accessed
     :rtype: str
     """
-    repo_path = os.path.join(PULP_PUBLISHED_YUM_REPOS_PATH, name)
+    repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
     result = ssh.command(
         'sudo -u apache mkdir -p {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
@@ -537,7 +536,7 @@ def create_repo(name, repo_fetch_url=None, packages=None, hostname=None):
             repo_fetch_url += '/'
         for package in packages:
             result = ssh.command(
-                '(cd {} && wget {})'
+                'wget -P {} {}'
                 .format(repo_path, urljoin(repo_fetch_url, package)),
                 hostname=hostname,
             )
@@ -547,7 +546,17 @@ def create_repo(name, repo_fetch_url=None, packages=None, hostname=None):
                     result.stderr,
                     'Unable to download package {}'.format(package),
                 )
-
+    if wipe_repodata:
+        result = ssh.command(
+            'rm -rf {}/{}'.format(repo_path, 'repodata/'),
+            hostname=hostname
+        )
+        if result.return_code != 0:
+            raise CLIReturnCodeError(
+                result.return_code,
+                result.stderr,
+                'Unable to delete repodata folder',
+            )
     result = ssh.command('createrepo {}'.format(repo_path), hostname=hostname)
     if result.return_code != 0:
         raise CLIReturnCodeError(
@@ -564,3 +573,51 @@ def create_repo(name, repo_fetch_url=None, packages=None, hostname=None):
     )
 
     return published_url
+
+
+def repo_add_updateinfo(name, updateinfo_url=None, hostname=None):
+    """Modify repo with contents of updateinfo.xml file.
+
+    :param str name: repository name
+    :param str optional updateinfo_url: URL to download updateinfo.xml file
+        from. If not specified - updateinfo.xml from repository folder will be
+        used instead
+    :param str optional hostname: hostname or IP address of the remote host. If
+        ``None`` the hostname will be get from ``main.server.hostname`` config.
+    :return: result of executing `modifyrepo` command
+    """
+    updatefile = 'updateinfo.xml'
+    repo_path = '{}/{}'.format(PULP_PUBLISHED_YUM_REPOS_PATH, name)
+    updatefile_path = '{}/{}'.format(repo_path, updatefile)
+    if updateinfo_url:
+        result = ssh.command(
+            'find {}'.format(updatefile_path),
+            hostname=hostname
+        )
+        if result.return_code == 0 and updatefile in result.stdout[0]:
+            result = ssh.command(
+                'mv -f {} {}.bak'.format(updatefile_path, updatefile_path),
+                hostname=hostname
+            )
+            if result.return_code != 0:
+                raise CLIReturnCodeError(
+                    result.return_code,
+                    result.stderr,
+                    'Unable to backup existing {}'.format(updatefile),
+                )
+        result = ssh.command(
+            'wget -O {} {}'.format(updatefile_path, updateinfo_url),
+            hostname=hostname,
+        )
+        if result.return_code != 0:
+            raise CLIReturnCodeError(
+                result.return_code,
+                result.stderr,
+                'Unable to download {}'.format(updateinfo_url),
+            )
+
+    result = ssh.command(
+        'modifyrepo {} {}/{}'.format(updatefile_path, repo_path, 'repodata/')
+    )
+
+    return result

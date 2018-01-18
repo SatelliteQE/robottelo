@@ -37,6 +37,7 @@ from robottelo.decorators import (
     stubbed,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import edit_param
@@ -148,6 +149,7 @@ class ErrataTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_apply_for_all_hosts(self):
         """Apply an erratum for all content hosts
 
@@ -238,6 +240,7 @@ class ErrataTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_view_cve(self):
         """View CVE number(s) in Errata Details page
 
@@ -263,6 +266,7 @@ class ErrataTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_filter(self):
         """Filter Content hosts by environment
 
@@ -338,6 +342,7 @@ class ErrataTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_content_host_previous(self):
         """Check if the applicable errata are available from the content
         host's previous environment
@@ -490,6 +495,7 @@ class FilteredErrataTestCase(UITestCase):
         cls.session_org = entities.Organization().create()
 
     @tier3
+    @upgrade
     def test_positive_errata_status_installable_param(self):
         """Filter errata for specific content view and verify that host that
         was registered using that content view has different states in

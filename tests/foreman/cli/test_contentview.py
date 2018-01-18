@@ -65,6 +65,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
@@ -297,7 +298,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(con_view['name'], new_name)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_update_filter(self):
         # Variations might be:
         # * A filter on errata date (only content that matches date
@@ -418,6 +419,7 @@ class ContentViewTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_version_by_id(self):
         """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
@@ -571,6 +573,7 @@ class ContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_remove_lce_by_id_and_reassign_chost(self):
         """Remove content view environment and re-assign content host to
         another environment and content view
@@ -751,6 +754,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1359665)
     @tier2
+    @upgrade
     def test_positive_add_rh_repo_by_id_and_create_filter(self):
         """Associate Red Hat content to a content view and create filter
 
@@ -1261,7 +1265,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertIn(environment, new_cv['lifecycle-environments'])
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_promote_rh_and_custom_content(self):
         """attempt to promote a content view containing RH content and
         custom content using filters
@@ -1481,7 +1485,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_publish_rh_and_custom_content(self):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
@@ -1604,6 +1608,7 @@ class ContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_update_version_once(self):
         # Dev notes:
         # If Dev has version x, then when I promote version y into
@@ -1876,6 +1881,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1359665)
     @tier3
+    @upgrade
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(self):
         """Attempt to subscribe content host to filtered content view
         that has Red Hat repository assigned to it
@@ -2029,6 +2035,7 @@ class ContentViewTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
+    @upgrade
     def test_positive_subscribe_chost_by_id_using_puppet_content(self):
         """Attempt to subscribe content host to content view that has
         puppet module assigned to it
@@ -2333,7 +2340,7 @@ class ContentViewTestCase(CLITestCase):
         )
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_restart_dynflow_promote(self):
         """attempt to restart a failed content view promotion
 
@@ -2350,7 +2357,7 @@ class ContentViewTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     def test_positive_restart_dynflow_publish(self):
         """attempt to restart a failed content view publish
 
@@ -3055,6 +3062,7 @@ class ContentViewTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_remove_cv_version_from_env_with_host_registered(self):
         """Remove promoted content view version from environment that is used
         in association of an Activation key and content-host registration.
@@ -3133,6 +3141,7 @@ class ContentViewTestCase(CLITestCase):
     @run_in_one_thread
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(self):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule

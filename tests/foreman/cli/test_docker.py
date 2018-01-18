@@ -40,16 +40,20 @@ from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import generate_strings_list, valid_data_list
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
+    stubbed,
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
-from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
+from time import sleep
 
 DOCKER_PROVIDER = 'Docker'
 REPO_CONTENT_TYPE = 'docker'
@@ -65,7 +69,6 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
     :param str upstream_name: A valid name of an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
     :return: A ``Repository`` object.
-
     """
     return make_repository({
         'content-type': REPO_CONTENT_TYPE,
@@ -125,7 +128,6 @@ class DockerManifestTestCase(CLITestCase):
 class DockerRepositoryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
-
     """
 
     @classmethod
@@ -142,8 +144,9 @@ class DockerRepositoryTestCase(CLITestCase):
         @id: e82a36c8-3265-4c10-bafe-c7e07db3be78
 
         @expectedresults: A repository is created with a Docker upstream
-        repository.
+         repository.
 
+        @CaseImportance: Critical
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -165,7 +168,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: Multiple docker repositories are created with a
         Docker upstream repository and they all belong to the same product.
-
         """
         product = make_product_wait({'organization-id': self.org_id})
         repo_names = set()
@@ -192,7 +194,6 @@ class DockerRepositoryTestCase(CLITestCase):
         @expectedresults: Multiple docker repositories are created with a
         Docker upstream repository and they all belong to their respective
         products.
-
         """
         for _ in range(randint(2, 5)):
             product = make_product_wait({'organization-id': self.org_id})
@@ -218,7 +219,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker repository and
         it is synchronized.
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -237,7 +237,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker upstream
         repository and that its name can be updated.
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -260,7 +259,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker upstream
         repository and that its upstream name can be updated.
-
         """
         new_upstream_name = 'fedora/ssh'
         repo = _make_docker_repo(
@@ -282,7 +280,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker upstream
         repository and that its URL can be updated.
-
         """
         new_url = gen_url()
         repo = _make_docker_repo(
@@ -303,7 +300,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: A repository with a upstream repository is created
         and then deleted.
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -321,7 +317,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @expectedresults: Random repository can be deleted from random product
         without altering the other products.
-
         """
         products = [
             make_product_wait({'organization-id': self.org_id})
@@ -359,7 +354,6 @@ class DockerContentViewTestCase(CLITestCase):
     def _create_and_associate_repo_with_cv(self):
         """Create a Docker-based repository and content view and associate
         them.
-
         """
         self.repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -392,7 +386,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         @expectedresults: A repository is created with a Docker repository and
         the product is added to a non-composite content view
-
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -419,7 +412,6 @@ class DockerContentViewTestCase(CLITestCase):
 
         @expectedresults: Repositories are created with Docker upstream
         repositories and the product is added to a non-composite content view.
-
         """
         product = make_product_wait({'organization-id': self.org_id})
         repos = [
@@ -745,6 +737,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_promote_multiple_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
@@ -839,6 +832,7 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1359665)
+    @upgrade
     def test_positive_promote_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the multiple available lifecycle-environments.
@@ -1156,6 +1150,21 @@ class DockerClientTestCase(CLITestCase):
         """Create an organization and product which can be re-used in tests."""
         super(DockerClientTestCase, cls).setUpClass()
         cls.org = make_org()
+        """Instantiate and setup a docker host VM"""
+        cls.logger.info(u'Creating an external docker host')
+        docker_image = settings.docker.docker_image
+        cls.docker_host = VirtualMachine(
+            source_image=docker_image,
+            tag=u'docker'
+        )
+        cls.docker_host.create()
+        cls.logger.info(u'Installing katello-ca on the external docker host')
+        cls.docker_host.install_katello_ca()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Destroy the docker host VM"""
+        cls.docker_host.destroy()
 
     @run_only_on('sat')
     @tier3
@@ -1179,27 +1188,50 @@ class DockerClientTestCase(CLITestCase):
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         try:
-            result = ssh.command(
-                'docker pull {0}'.format(repo['published-at']))
+            # publishing takes few seconds sometimes
+            retries = 10 if bz_bug_is_open(1452149) else 1
+            for i in range(retries):
+                result = ssh.command(
+                    'docker pull {0}'.format(repo['published-at']),
+                    hostname=self.docker_host.ip_addr
+                )
+                if result.return_code == 0:
+                    break
+                sleep(2)
             self.assertEqual(result.return_code, 0)
             try:
                 result = ssh.command(
-                    'docker run {0}'.format(repo['published-at']))
+                    'docker run {0}'.format(repo['published-at']),
+                    hostname=self.docker_host.ip_addr
+                )
                 self.assertEqual(result.return_code, 0)
             finally:
                 # Stop and remove the container
                 result = ssh.command(
-                    'docker ps -a | grep {0}'.format(repo['published-at']))
+                    'docker ps -a | grep {0}'.format(repo['published-at']),
+                    hostname=self.docker_host.ip_addr
+                )
                 container_id = result.stdout[0].split()[0]
-                ssh.command('docker stop {0}'.format(container_id))
-                ssh.command('docker rm {0}'.format(container_id))
+                ssh.command(
+                    'docker stop {0}'.format(container_id),
+                    hostname=self.docker_host.ip_addr
+                )
+                ssh.command(
+                    'docker rm {0}'.format(container_id),
+                    hostname=self.docker_host.ip_addr
+                )
         finally:
             # Remove docker image
-            ssh.command('docker rmi {0}'.format(repo['published-at']))
+            ssh.command(
+                'docker rmi {0}'.format(repo['published-at']),
+                hostname=self.docker_host.ip_addr
+            )
 
+    @stubbed
     @run_only_on('sat')
     @skip_if_not_set('docker')
     @tier3
+    @upgrade
     def test_positive_upload_image(self):
         """A Docker-enabled client can create a new ``Dockerfile``
         pointing to an existing Docker image from a Satellite 6 and modify it.
@@ -1210,8 +1242,13 @@ class DockerClientTestCase(CLITestCase):
 
         @Steps:
 
-        1. Publish and promote content view with Docker content
-        2. Register Docker-enabled client against Satellite 6.
+            1. Create a local docker compute resource
+            2. Create a container and start it
+            3. [on docker host] Commit a new image from the container
+            4. [on docker host] Export the image to tar
+            5. scp the image to satellite box
+            6. create a new docker repo
+            7. upload the image to the new repo
 
         @expectedresults: Client can create a new image based off an existing
         Docker image from a Satellite 6 instance, add a new package and upload
@@ -1222,7 +1259,7 @@ class DockerClientTestCase(CLITestCase):
         compute_resource = make_compute_resource({
             'organization-ids': [self.org['id']],
             'provider': DOCKER_PROVIDER,
-            'url': settings.docker.get_unix_socket_url(),
+            'url': u'http://{0}:2375'.format(self.docker_host.ip_addr),
         })
         try:
             container = make_container({
@@ -1231,45 +1268,43 @@ class DockerClientTestCase(CLITestCase):
             })
             Docker.container.start({'id': container['id']})
             repo_name = gen_string('alphanumeric').lower()
-            # Commit a new docker image
+            # Commit a new docker image and verify image was created
             result = ssh.command(
-                'docker commit {0} {1}/{2}:latest'.format(
+                'docker commit {0} {1}/{2}:latest && '
+                'docker images --all | grep {1}/{2}'.format(
                     container['uuid'],
                     repo_name,
                     REPO_UPSTREAM_NAME,
-                )
+                ),
+                self.docker_host.ip_addr
             )
             self.assertEqual(result.return_code, 0)
-            # Verify image was created
-            result = ssh.command(
-                'docker images --all | grep {0}/{1}'.format(
-                    repo_name,
-                    REPO_UPSTREAM_NAME,
-                )
-            )
-            self.assertEqual(result.return_code, 0)
-            self.assertIn(
-                '{0}/{1}'.format(repo_name, REPO_UPSTREAM_NAME),
-                result.stdout[0],
-            )
             # Save the image to a tar archive
             result = ssh.command(
                 'docker save -o {0}.tar {0}/{1}'.format(
                     repo_name,
                     REPO_UPSTREAM_NAME,
-                )
+                ),
+                self.docker_host.ip_addr
             )
             self.assertEqual(result.return_code, 0)
-            # Verify archive was created
-            result = ssh.command('ls | grep {0}.tar'.format(repo_name))
-            self.assertEqual(result.return_code, 0)
-            self.assertIn('{0}.tar'.format(repo_name), result.stdout[0])
+            tar_file = '{0}.tar'.format(repo_name)
+            ssh.download_file(
+                tar_file,
+                hostname=self.docker_host.ip_addr
+            )
+
+            ssh.upload_file(
+                local_file=tar_file,
+                remote_file='/tmp/{0}'.format(tar_file),
+                hostname=settings.server.hostname
+            )
             # Upload tarred repository
             product = make_product_wait({'organization-id': self.org['id']})
             repo = _make_docker_repo(product['id'])
             Repository.upload_content({
                 'id': repo['id'],
-                'path': './{0}.tar'.format(repo_name),
+                'path': '/tmp/{0}.tar'.format(repo_name),
             })
             # Verify repository was uploaded successfully
             repo = Repository.info({'id': repo['id']})
@@ -1283,12 +1318,8 @@ class DockerClientTestCase(CLITestCase):
                 repo['published-at'],
             )
         finally:
-            # Remove archive, docker image and container
-            ssh.command('rm -f {0}.tar'.format(repo_name))
-            ssh.command(
-                'docker rmi {0}/{1}'.format(repo_name, REPO_UPSTREAM_NAME))
-            Docker.container.stop({'id': container['id']})
-            ssh.command('docker rm {0}'.format(container['uuid']))
+            # Remove the archive
+            ssh.command('rm -f /tmp/{0}.tar'.format(repo_name))
 
 
 class DockerComputeResourceTestCase(CLITestCase):
@@ -1342,27 +1373,26 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        for url in (settings.docker.external_url,
-                    settings.docker.get_unix_socket_url()):
-            with self.subTest(url):
-                compute_resource = make_compute_resource({
-                    'provider': DOCKER_PROVIDER,
-                    'url': url,
-                })
-                self.assertEqual(compute_resource['url'], url)
-                new_url = gen_url(subdomain=gen_alpha())
-                ComputeResource.update({
-                    'id': compute_resource['id'],
-                    'url': new_url,
-                })
-                compute_resource = ComputeResource.info({
-                    'id': compute_resource['id'],
-                })
-                self.assertEqual(compute_resource['url'], new_url)
+        url = settings.docker.get_unix_socket_url()
+        compute_resource = make_compute_resource({
+            'provider': DOCKER_PROVIDER,
+            'url': url,
+        })
+        self.assertEqual(compute_resource['url'], url)
+        new_url = gen_url(subdomain=gen_alpha())
+        ComputeResource.update({
+            'id': compute_resource['id'],
+            'url': new_url,
+        })
+        compute_resource = ComputeResource.info({
+            'id': compute_resource['id'],
+        })
+        self.assertEqual(compute_resource['url'], new_url)
 
     @tier3
     @run_only_on('sat')
-    def test_positive_list_containers_internal(self):
+    @upgrade
+    def test_positive_list_containers(self):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
@@ -1374,28 +1404,35 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        for url in (settings.docker.external_url,
-                    settings.docker.get_unix_socket_url()):
-            with self.subTest(url):
-                compute_resource = make_compute_resource({
-                    'organization-ids': [self.org['id']],
-                    'provider': DOCKER_PROVIDER,
-                    'url': url,
-                })
-                self.assertEqual(compute_resource['url'], url)
-                result = Docker.container.list({
-                    'compute-resource-id': compute_resource['id'],
-                })
-                self.assertEqual(len(result), 0)
-                container = make_container({
-                    'compute-resource-id': compute_resource['id'],
-                    'organization-ids': [self.org['id']],
-                })
-                result = Docker.container.list({
-                    'compute-resource-id': compute_resource['id'],
-                })
-                self.assertEqual(len(result), 1)
-                self.assertEqual(result[0]['name'], container['name'])
+        # Instantiate and setup a docker host VM + compute resource
+        docker_image = settings.docker.docker_image
+        with VirtualMachine(
+            source_image=docker_image,
+            tag=u'docker'
+        ) as docker_host:
+            docker_host.create()
+            docker_host.install_katello_ca()
+            url = 'http://{0}:2375'.format(docker_host.ip_addr)
+
+            compute_resource = make_compute_resource({
+                'organization-ids': [self.org['id']],
+                'provider': DOCKER_PROVIDER,
+                'url': url,
+            })
+            self.assertEqual(compute_resource['url'], url)
+            result = Docker.container.list({
+                'compute-resource-id': compute_resource['id'],
+            })
+            self.assertEqual(len(result), 0)
+            container = make_container({
+                'compute-resource-id': compute_resource['id'],
+                'organization-ids': [self.org['id']],
+            })
+            result = Docker.container.list({
+                'compute-resource-id': compute_resource['id'],
+            })
+            self.assertEqual(len(result), 1)
+            self.assertEqual(result[0]['name'], container['name'])
 
     @tier3
     @run_only_on('sat')
@@ -1410,17 +1447,25 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                compute_resource = make_compute_resource({
-                    'name': name,
-                    'provider': DOCKER_PROVIDER,
-                    'url': settings.docker.external_url,
-                })
-                self.assertEqual(compute_resource['name'], name)
-                self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
-                self.assertEqual(
-                    compute_resource['url'], settings.docker.external_url)
+        docker_image = settings.docker.docker_image
+        with VirtualMachine(source_image=docker_image) as docker_host:
+            docker_host.create()
+            for name in valid_data_list():
+                with self.subTest(name):
+                    compute_resource = make_compute_resource({
+                        'name': name,
+                        'provider': DOCKER_PROVIDER,
+                        'url': 'http://{0}:2375'.format(docker_host.ip_addr),
+                    })
+                    self.assertEqual(compute_resource['name'], name)
+                    self.assertEqual(
+                        compute_resource['provider'],
+                        DOCKER_PROVIDER
+                    )
+                    self.assertEqual(
+                        compute_resource['url'],
+                        'http://{0}:2375'.format(docker_host.ip_addr)
+                    )
 
     @tier3
     @run_only_on('sat')
@@ -1434,84 +1479,84 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        for url in (settings.docker.external_url,
-                    settings.docker.get_unix_socket_url()):
-            with self.subTest(url):
-                compute_resource = make_compute_resource({
-                    'provider': DOCKER_PROVIDER,
-                    'url': url,
-                })
-                self.assertEqual(compute_resource['url'], url)
-                self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
-                ComputeResource.delete({'id': compute_resource['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    ComputeResource.info({'id': compute_resource['id']})
+        docker_image = settings.docker.docker_image
+        with VirtualMachine(source_image=docker_image) as docker_host:
+            docker_host.create()
+            url = 'http://{0}:2375'.format(docker_host.ip_addr)
+            compute_resource = make_compute_resource({
+                'provider': DOCKER_PROVIDER,
+                'url': url,
+            })
+            self.assertEqual(compute_resource['url'], url)
+            self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+            ComputeResource.delete({'id': compute_resource['id']})
+            with self.assertRaises(CLIReturnCodeError):
+                ComputeResource.info({'id': compute_resource['id']})
 
 
 class DockerContainersTestCase(CLITestCase):
-    """Tests specific to using ``Containers`` in local and external Docker
-    Compute Resources
-
+    """Tests specific to using ``Containers`` with external Docker Compute
+    Resource
     """
 
     @classmethod
     @skip_if_not_set('docker')
     def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
+        """Create an organization which can be re-used in tests."""
         super(DockerContainersTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.cr_internal = make_compute_resource({
-            'organization-ids': [cls.org['id']],
-            'provider': DOCKER_PROVIDER,
-            'url': settings.docker.get_unix_socket_url(),
-        })
-        cls.cr_external = make_compute_resource({
-            'organization-ids': [cls.org['id']],
-            'provider': DOCKER_PROVIDER,
-            'url': settings.docker.external_url,
-        })
-        install_katello_ca()
 
-    @classmethod
-    def tearDownClass(cls):
-        """Remove katello-ca certificate"""
-        remove_katello_ca()
-        super(DockerContainersTestCase, cls).tearDownClass()
+    def setUp(self):
+        """Instantiate and setup a docker host VM + compute resource"""
+        self.logger.info(u'Creating an external docker host')
+        docker_image = settings.docker.docker_image
+        self.docker_host = VirtualMachine(
+            source_image=docker_image,
+            tag=u'docker'
+        )
+        self.docker_host.create()
+        self.logger.info(u'Installing katello-ca on the external docker host')
+        self.docker_host.install_katello_ca()
+        self.logger.info(u'Adding the external docker host as a docker CR')
+        self.comp_resource = make_compute_resource({
+            'organization-ids': [self.org['id']],
+            'provider': DOCKER_PROVIDER,
+            'url': 'http://{0}:2375'.format(self.docker_host.ip_addr),
+        })
+
+    def tearDown(self):
+        self.docker_host.destroy()
 
     @tier3
     @run_only_on('sat')
     def test_positive_create_with_compresource(self):
-        """Create containers for local and external compute resources
+        """Create containers on a docker compute resource
 
         @id: aa1d5216-deaf-403e-9d4c-60157a251762
 
-        @expectedresults: The docker container is created for each compute
-        resource
+        @expectedresults: The docker container is created
 
 
         @CaseLevel: System
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource['url']):
-                container = make_container({
-                    'compute-resource-id': compute_resource['id'],
-                    'organization-ids': [self.org['id']],
-                })
-                self.assertEqual(
-                    container['compute-resource'], compute_resource['name'])
+        container = make_container({
+            'compute-resource-id': self.comp_resource['id'],
+            'organization-ids': [self.org['id']],
+        })
+        self.assertEqual(
+            container['compute-resource'], self.comp_resource['name'])
 
     @tier3
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1282431)
+    @upgrade
     def test_positive_create_using_cv(self):
         """Create docker container using custom content view, lifecycle
-        environment and docker repository for local and external compute
-        resources
+        environment and docker repository
 
         @id: 5569186f-667b-4866-a88e-fd6cf6e821da
 
-        @expectedresults: The docker container is created for each compute
-        resource
+        @expectedresults: The docker container is created
 
         @BZ: 1282431
 
@@ -1535,35 +1580,34 @@ class DockerContainersTestCase(CLITestCase):
             'id': content_view['versions'][0]['id'],
             'to-lifecycle-environment-id': lce['id'],
         })
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource['url']):
-                container = make_container({
-                    'compute-resource-id': compute_resource['id'],
-                    'organization-ids': [self.org['id']],
-                    'repository-name': repo['container-repository-name'],
-                    'tag': 'latest',
-                    'tty': 'yes',
-                })
-                self.assertEqual(
-                    container['compute-resource'], compute_resource['name'])
-                self.assertEqual(
-                    container['image-repository'],
-                    repo['container-repository-name']
-                )
-                self.assertEqual(container['tag'], 'latest')
+
+        container = make_container({
+            'compute-resource-id': self.comp_resource['id'],
+            'organization-ids': [self.org['id']],
+            'repository-name': repo['container-repository-name'],
+            'tag': 'latest',
+            'tty': 'yes',
+        })
+        self.assertEqual(
+            container['compute-resource'], self.comp_resource['name'])
+        self.assertEqual(
+            container['image-repository'],
+            repo['container-repository-name']
+        )
+        self.assertEqual(container['tag'], 'latest')
 
     @tier3
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1230915)
     @skip_if_bug_open('bugzilla', 1269196)
     def test_positive_power_on_off(self):
-        """Create containers for local and external compute resource, then
+        """Create containers on external compute resource, then
         power them on and finally power them off
 
         @id: c7150e63-f81c-4a55-808d-a2bed1a4eaf2
 
-        @expectedresults: The docker container is created for each compute
-        resource and the power status is showing properly
+        @expectedresults: The docker container is created and the power status
+            is showing properly
 
         @BZ: 1230915, 1269196
 
@@ -1574,17 +1618,26 @@ class DockerContainersTestCase(CLITestCase):
         # nothing else to assert
         not_running_msg = 'Running: no'
         running_msg = 'Running: yes'
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource['url']):
-                container = make_container({
-                    'compute-resource-id': compute_resource['id'],
-                    'organization-ids': [self.org['id']],
-                })
-                status = Docker.container.status({'id': container['id']})
-                self.assertEqual(status[0], running_msg)
-                Docker.container.stop({'id': container['id']})
-                status = Docker.container.status({'id': container['id']})
-                self.assertEqual(status[0], not_running_msg)
+        container = make_container({
+            'compute-resource-id': self.comp_resource['id'],
+            'organization-ids': [self.org['id']],
+        })
+        self.logger.info(u'Verifying docker container is running on host')
+        docker_ps = ssh.command(
+            'docker ps -f id={0}'.format(container['name']),
+            self.docker_host.ip_addr
+        )
+        self.assertEqual(docker_ps.return_code, 0)
+        status = Docker.container.status({'id': container['id']})
+        self.assertEqual(status[0], running_msg)
+        Docker.container.stop({'id': container['id']})
+        docker_ps = ssh.command(
+            'docker ps -f id={0}'.format(container['id']),
+            self.docker_host.ip_addr
+        )
+        self.assertEqual(docker_ps.return_code, 0)
+        status = Docker.container.status({'id': container['id']})
+        self.assertEqual(status[0], not_running_msg)
 
     @tier3
     @run_only_on('sat')
@@ -1604,15 +1657,13 @@ class DockerContainersTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource['url']):
-                container = make_container({
-                    'command': 'date',
-                    'compute-resource-id': compute_resource['id'],
-                    'organization-ids': [self.org['id']],
-                })
-                logs = Docker.container.logs({'id': container['id']})
-                self.assertTrue(logs['logs'])
+        container = make_container({
+            'command': 'date',
+            'compute-resource-id': self.comp_resource['id'],
+            'organization-ids': [self.org['id']],
+        })
+        logs = Docker.container.logs({'id': container['id']})
+        self.assertTrue(logs['logs'])
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -1630,13 +1681,8 @@ class DockerContainersTestCase(CLITestCase):
         repo_name = 'rhel'
         registry = make_registry({'url': settings.docker.external_registry_1})
         try:
-            compute_resource = make_compute_resource({
-                'organization-ids': [self.org['id']],
-                'provider': DOCKER_PROVIDER,
-                'url': settings.docker.get_unix_socket_url(),
-            })
             container = make_container({
-                'compute-resource-id': compute_resource['id'],
+                'compute-resource-id': self.comp_resource['id'],
                 'organization-ids': [self.org['id']],
                 'registry-id': registry['id'],
                 'repository-name': repo_name,
@@ -1659,18 +1705,52 @@ class DockerContainersTestCase(CLITestCase):
 
         @BZ: 1230915
 
+        @CaseLevel: System
+        """
+        container = make_container({
+            'compute-resource-id': self.comp_resource['id'],
+            'organization-ids': [self.org['id']],
+        })
+        Docker.container.delete({'id': container['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Docker.container.info({'id': container['id']})
+
+
+@skip_if_bug_open('bugzilla', 1414821)
+class DockerUnixSocketContainerTestCase(CLITestCase):
+    """Tests specific to using ``Containers`` with internal unix-socket
+      Docker Compute Resource
+    """
+
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Create an organization which can be re-used in tests."""
+        super(DockerUnixSocketContainerTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.cr_internal = make_compute_resource({
+            'organization-ids': [cls.org['id']],
+            'provider': DOCKER_PROVIDER,
+            'url': settings.docker.get_unix_socket_url(),
+        })
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_create_with_compresource(self):
+        """Create containers on a docker compute resource
+
+        @id: 5ad180d5-ee36-440e-a0a0-130c7ebc8c8d
+
+        @expectedresults: The docker container is created
 
         @CaseLevel: System
         """
-        for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource['url']):
-                container = make_container({
-                    'compute-resource-id': compute_resource['id'],
-                    'organization-ids': [self.org['id']],
-                })
-                Docker.container.delete({'id': container['id']})
-                with self.assertRaises(CLIReturnCodeError):
-                    Docker.container.info({'id': container['id']})
+        container = make_container({
+            'compute-resource-id': self.cr_internal['id'],
+            'organization-ids': [self.org['id']],
+        })
+        self.assertEqual(
+            container['compute-resource'], self.cr_internal['name'])
 
 
 @run_in_one_thread

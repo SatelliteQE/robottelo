@@ -15,8 +15,9 @@
 
 @Upstream: No
 """
-
-from robottelo.decorators import skip_if_bug_open, tier1
+from fauxfactory import gen_string
+from nailgun import entities
+from robottelo.decorators import skip_if_bug_open, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, menu_locators
 from robottelo.ui.session import Session
@@ -24,6 +25,11 @@ from robottelo.ui.session import Session
 
 class NavigationTestCase(UITestCase):
     """Implements the navigation tests from UI"""
+
+    @classmethod
+    def set_session_org(cls):
+        cls.session_org = entities.Organization(
+            name=gen_string('alphanumeric')).create()
 
     def page_objects(self):
         return {
@@ -74,6 +80,7 @@ class NavigationTestCase(UITestCase):
         }
 
     @tier1
+    @upgrade
     def test_positive_navigate(self):
         """Navigate through application pages
 

@@ -17,7 +17,7 @@
 
 from fauxfactory import gen_string
 from robottelo.cli.fact import Fact
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -26,6 +26,7 @@ class FactTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_list_by_name(self):
         """Test Fact List
 

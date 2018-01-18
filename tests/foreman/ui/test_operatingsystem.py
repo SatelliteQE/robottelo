@@ -25,7 +25,8 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    run_only_on, skip_if_bug_open, tier1, tier2, upgrade)
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -254,6 +255,7 @@ class OperatingSystemTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete an existing OS
 
@@ -340,6 +342,7 @@ class OperatingSystemTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_template(self):
         """Update provisioning template
 
@@ -405,6 +408,7 @@ class OperatingSystemTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_remove_parameter(self):
         """Remove selected OS parameter
 

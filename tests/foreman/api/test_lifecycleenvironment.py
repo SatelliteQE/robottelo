@@ -23,7 +23,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2, upgrade
 from robottelo.test import APITestCase
 
 
@@ -160,8 +160,9 @@ class LifecycleEnvironmentTestCase(APITestCase):
                         id=lc_env.id, name=new_name).update(['name'])
                     self.assertEqual(lc_env.read().name, name)
 
-    @tier1
     @run_only_on('sat')
+    @tier1
+    @upgrade
     def test_positive_delete(self):
         """Create lifecycle environment and then delete it.
 

@@ -34,6 +34,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context
@@ -599,6 +600,7 @@ class DashboardTestCase(UITestCase):
     @tier2
     @run_in_one_thread
     @skip_if_not_set('clients', 'fake_manifest')
+    @upgrade
     def test_positive_content_host_subscription_status(self):
         """Check if the Content Host Subscription Status is working in the
         Dashboard UI
@@ -720,6 +722,7 @@ class DashboardTestCase(UITestCase):
             )
 
     @tier2
+    @upgrade
     def test_positive_user_access_with_host_filter(self):
         """Check if user with necessary host permissions can access dashboard
         and required widgets are rendered

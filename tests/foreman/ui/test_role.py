@@ -21,7 +21,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import ROLES
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import tier1, skip_if_bug_open
+from robottelo.decorators import tier1, skip_if_bug_open, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_role, make_user
 from robottelo.ui.locators import common_locators, tab_locators
@@ -61,6 +61,7 @@ class RoleTestCase(UITestCase):
                         common_locators['name_haserror']))
 
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete an existing role
 
@@ -196,6 +197,7 @@ class RoleTestCase(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1353788)
     @tier1
+    @upgrade
     def test_positive_assign_cloned_role(self):
         """Clone role and assign it to user
 
@@ -220,16 +222,18 @@ class RoleTestCase(UITestCase):
                 (strategy, value % role_name))
             self.assertIsNotNone(element)
 
-    @skip_if_bug_open('bugzilla', 1353788)
     @tier1
-    def test_positive_delete_cloned(self):
-        """Delete cloned role
+    @upgrade
+    def test_positive_delete_cloned_builtin(self):
+        """Delete cloned builtin role
 
         @id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
 
         @expectedresults: Role is deleted
 
-        @BZ: 1353788
+        @BZ: 1353788, 1378544
+
+        @CaseImportance: Critical
         """
         new_name = gen_string('alpha')
         with Session(self.browser):
@@ -278,6 +282,55 @@ class RoleTestCase(UITestCase):
             assigned_permissions = self.role.get_permissions(
                 role_name, [resource_type])
             self.assertIsNotNone(assigned_permissions)
+            self.assertEqual(
+                set(permissions), set(assigned_permissions[resource_type]))
+
+    @tier1
+    @upgrade
+    def test_positive_create_filter_admin_user_with_orgs(self):
+        """Attempt to create a role filter by admin user, who has 10
+        organizations assigned
+
+        @id: 04208e17-34b5-46b1-84dd-b8a973521d30
+
+        @expectedresults: Filter was successfully created
+
+        @BZ: 1374434
+
+        @CaseImportance: Critical
+        """
+        name = gen_string('alpha')
+        password = gen_string('alpha')
+        org_names = [
+            entities.Organization().create().name
+            for _ in range(10)
+        ]
+        with Session(self.browser) as session:
+            make_user(
+                session,
+                username=name,
+                password1=password,
+                password2=password,
+                admin=True
+            )
+            self.user.update(name, new_organizations=org_names)
+            self.assertIsNotNone(self.user.search(name))
+        resource_type = 'Architecture'
+        permissions = ['view_architectures', 'edit_architectures']
+        role_name = gen_string('alphanumeric')
+        with Session(self.browser, name, password) as session:
+            make_role(session, name=role_name)
+            self.assertIsNotNone(self.role.search(role_name))
+            self.role.add_permission(
+                role_name,
+                resource_type=resource_type,
+                permission_list=permissions,
+            )
+            self.assertIsNotNone(
+                self.role.wait_until_element(common_locators['alert.success']))
+            assigned_permissions = self.role.get_permissions(
+                role_name, [resource_type])
+            self.assertTrue(assigned_permissions)
             self.assertEqual(
                 set(permissions), set(assigned_permissions[resource_type]))
 

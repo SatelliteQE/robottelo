@@ -22,7 +22,8 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier3,
-    tier4
+    tier4,
+    upgrade,
 )
 from robottelo.test import UITestCase
 
@@ -33,6 +34,7 @@ class CapsuleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_errata_push(self):
         """User can push errata through to a client on
         an isolated capsule
@@ -56,6 +58,7 @@ class CapsuleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_rpm_push(self):
         """User can install a new errata on a client through
         an isolated capsule - this is a satellite-initiated action
@@ -79,6 +82,7 @@ class CapsuleTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_puppet_push(self):
         """user can install new puppet module on a client
         through an isolated capsule
@@ -126,7 +130,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_version(self):
         """Check Capsule Version in About Page.
@@ -144,7 +148,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_status(self):
         """Check Capsule Status in Index Page.
@@ -162,7 +166,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_context(self):
         """Check Capsule has Location and Organization column in Index Page.
@@ -181,7 +185,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_url(self):
         """Check Capsule no longer has 'Foreman URL' column in Index page.
@@ -200,7 +204,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_pulp_storage(self):
         """Check Capsule has pulp_storage Used and Free
@@ -220,7 +224,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_isolated_capsule_sync(self):
         """Check for Sync button and Syncing for Isolated Capsule in Overview tab.
@@ -241,7 +245,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier4
     def test_positive_isolated_capsule_cancel_sync(self):
         """Check for Cancel Sync button and whether sync cancels
@@ -263,7 +267,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_details(self):
         """Check for details of Capsule in the Overview tab.
@@ -283,7 +287,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_environment(self):
         """Check for environment info of Capsule in the Puppet tab.
@@ -306,7 +310,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier1
     def test_positive_capsule_puppet_classes_count(self):
         """Check for Puppet Classes count info of Capsule in Puppet tab.
@@ -328,7 +332,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_capsule_puppet_hosts_managed_count(self):
         """Check Puppet 'Hosts managed' count info of Capsule in Puppet tab.
@@ -352,7 +356,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_capsule_puppetca_hosts_managed_count(self):
         """Check for Puppet 'Hosts managed' count info of Capsule
@@ -376,7 +380,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_capsule_puppetca_certificate_name(self):
         """Check for Hosts certifcate-name is visible in Puppet-ca tab.
@@ -399,7 +403,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_capsule_puppetca_certificate_revoked(self):
         """Check for Hosts puppet certifcate can be revoked in Puppet-ca tab.
@@ -424,7 +428,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier3
     def test_positive_capsule_puppetca_autosign(self):
         """Check for Hosts puppet certifcate can be auto-signed in Puppet-ca tab.

@@ -22,7 +22,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_discoveryrule
 from robottelo.ui.locators import common_locators
@@ -371,6 +371,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete existing Discovery Rule
 

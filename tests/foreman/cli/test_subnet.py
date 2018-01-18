@@ -25,7 +25,7 @@ from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
 from robottelo.datafactory import filtered_datapoint, valid_data_list
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1, upgrade
 from robottelo.test import CLITestCase
 
 
@@ -84,6 +84,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_address_pool(self):
         """Create subnet with valid address pool
 
@@ -142,6 +143,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_gateway(self):
         """Check if subnet with gateway can be created
 
@@ -155,6 +157,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_with_ipam(self):
         """Check if subnet with different ipam types can be created
 
@@ -185,6 +188,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_negative_create_with_address_pool(self):
         """Create subnet with invalid address pool range
 
@@ -331,6 +335,7 @@ class SubnetTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Check if Subnet can be deleted
 

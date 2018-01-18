@@ -26,7 +26,8 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     tier1,
-    tier2
+    tier2,
+    upgrade,
 )
 from robottelo.test import CLITestCase
 
@@ -192,6 +193,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Create lifecycle environment with valid name, prior to
         Library

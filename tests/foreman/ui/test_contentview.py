@@ -24,6 +24,14 @@ from nailgun import entities, entity_mixins
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo import manifests
 from robottelo.api.utils import get_role_by_bz
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view,
+    make_org,
+    make_product,
+    make_repository,
+)
+from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
@@ -32,6 +40,12 @@ from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     DOCKER_UPSTREAM_NAME,
     ENVIRONMENT,
+    FAKE_0_INC_UPD_ERRATA,
+    FAKE_0_INC_UPD_NEW_PACKAGE,
+    FAKE_0_INC_UPD_NEW_UPDATEFILE,
+    FAKE_0_INC_UPD_OLD_PACKAGE,
+    FAKE_0_INC_UPD_OLD_UPDATEFILE,
+    FAKE_0_INC_UPD_URL,
     FAKE_0_PUPPET_REPO,
     FAKE_0_PUPPET_MODULE,
     FAKE_0_YUM_REPO,
@@ -59,8 +73,9 @@ from robottelo.decorators import (
     tier1,
     tier2,
     tier3,
+    upgrade
 )
-from robottelo.helpers import read_data_file
+from robottelo.helpers import create_repo, read_data_file, repo_add_updateinfo
 from robottelo.ui.base import UIError, UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import (
@@ -183,6 +198,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_end_to_end(self):
         """create content view with yum repo, publish it
         and promote it to Library +1 env
@@ -694,6 +710,100 @@ class ContentViewTestCase(UITestCase):
                 )
             )
 
+    @tier2
+    def test_positive_errata_inc_update_list_package(self):
+        """Publish incremental update with a new errata for a custom repo
+
+        @BZ: 1488167
+
+        @id: fb43791c-60ee-4190-86be-34ccba411396
+
+        @expectedresults: New errata and corresponding package are present
+            in new content view version
+
+        @CaseImportance: High
+
+        @CaseLevel: Integration
+        """
+        # Create and publish a repo with 1 outdated package and some errata
+        repo_name = gen_string('alphanumeric')
+        repo_url = create_repo(
+            repo_name,
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_OLD_PACKAGE]
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'.format(
+                FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_OLD_UPDATEFILE)
+        )
+        self.assertEqual(result.return_code, 0)
+        # Create org, product, repo, sync & publish it
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        repo = make_repository({
+            'product-id': product['id'],
+            'url': repo_url,
+        })
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({
+            'organization-id': org['id'],
+            'repository-ids': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        cvv = content_view['versions'][0]
+        # Add updated package to the repo and errata for the outdated package
+        create_repo(
+            repo_name,
+            FAKE_0_INC_UPD_URL,
+            [FAKE_0_INC_UPD_NEW_PACKAGE],
+            wipe_repodata=True,
+        )
+        result = repo_add_updateinfo(
+            repo_name, '{}{}'.format(
+                FAKE_0_INC_UPD_URL, FAKE_0_INC_UPD_NEW_UPDATEFILE)
+        )
+        self.assertEqual(result.return_code, 0)
+        # Sync the repo
+        Repository.synchronize({'id': repo['id']})
+        # Publish new CVV with the new errata
+        result = ContentView.version_incremental_update({
+            'content-view-version-id': cvv['id'],
+            'errata-ids': FAKE_0_INC_UPD_ERRATA,
+        })
+        # Inc update output format is pretty weird - list of dicts where each
+        # key's value is actual line from stdout
+        result = [
+            line.strip()
+            for line_dict in result
+            for line in line_dict.values()
+        ]
+        # Verify both the package and the errata are present in output (were
+        # added successfully)
+        self.assertIn(FAKE_0_INC_UPD_ERRATA, [line.strip() for line in result])
+        self.assertIn(
+            FAKE_0_INC_UPD_NEW_PACKAGE.rstrip('.rpm'),
+            [line.strip() for line in result]
+        )
+        content_view = ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][-1]
+        # Verify the package and the errata are shown on UI
+        with Session(self.browser):
+            self.navigator.go_to_select_org(org['name'])
+            errata = self.content_views.fetch_version_errata(
+                content_view['name'], 'Version {}'.format(cvv['version']))
+            self.assertGreaterEqual(len(errata), 1)
+            self.assertIn(FAKE_0_INC_UPD_ERRATA, set(err[0] for err in errata))
+            packages = self.content_views.fetch_version_packages(
+                content_view['name'], 'Version {}'.format(cvv['version']))
+            self.assertEqual(len(packages), 2)
+            packages = set('{}-{}-{}.{}.rpm'.format(*row) for row in packages)
+            self.assertEqual(
+                packages,
+                {FAKE_0_INC_UPD_OLD_PACKAGE, FAKE_0_INC_UPD_NEW_PACKAGE}
+            )
+
     @run_only_on('sat')
     @tier2
     def test_positive_update_filter_affected_repos(self):
@@ -1002,8 +1112,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.add_filter(
                 cv_name,
                 filter_name,
@@ -1146,8 +1254,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -1189,8 +1295,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.add_filter(
                 cv_name,
                 filter_name,
@@ -1239,8 +1343,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -1322,8 +1424,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
                 self.assertEqual(
@@ -1386,8 +1486,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1395,10 +1493,11 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
     @run_only_on('sat')
+    @stubbed()
     @skip_if_not_set('fake_manifest')
     @tier3
+    @upgrade
     def test_positive_promote_with_rh_custom_spin(self):
         """attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
@@ -1442,8 +1541,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1614,16 +1711,15 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @stubbed()
     @run_only_on('sat')
+    @stubbed()
     @skip_if_not_set('fake_manifest')
     @tier3
+    @upgrade
     def test_positive_publish_with_rh_custom_spin(self):
         """attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
@@ -1667,8 +1763,6 @@ class ContentViewTestCase(UITestCase):
             make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -1834,10 +1928,6 @@ class ContentViewTestCase(UITestCase):
                 self.setup_to_create_cv(repo_name=repo_name)
                 # add the repository to the created content view
                 self.content_views.add_remove_repos(cv_name, [repo_name])
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form'])
-                )
                 # publish the content view
                 version_name = self.content_views.publish(cv_name)
                 # assert the content view successfully published
@@ -1970,10 +2060,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             # Publish the CV
             self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -2016,10 +2102,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(
-                self.content_views.wait_until_element(
-                    common_locators['alert.success_sub_form'])
-            )
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -2077,6 +2159,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier2
+    @upgrade
     def test_positive_subscribe_system_with_rh_custom_spin(self):
         """Attempt to subscribe a host to content view with rh repository
          and custom filter
@@ -2112,8 +2195,6 @@ class ContentViewTestCase(UITestCase):
             # add the repository to content view
             self.content_views.add_remove_repos(
                 cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # add a package exclude filter
             self.content_views.add_filter(
                 cv_name,
@@ -2166,7 +2247,7 @@ class ContentViewTestCase(UITestCase):
             with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
                 host_client.install_katello_ca()
                 host_client.register_contenthost(
-                        org.label, activation_key.name)
+                    org.label, activation_key.name)
                 self.assertTrue(host_client.subscribed)
                 # assert the host_client exists in content hosts page
                 self.assertIsNotNone(
@@ -2174,6 +2255,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_subscribe_system_with_custom_content(self):
         """Attempt to subscribe a host to content view with custom repository
 
@@ -2201,8 +2283,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add the repository to content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
@@ -2232,6 +2312,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_subscribe_system_with_puppet_modules(self):
         """Attempt to subscribe a host to content view with puppet modules
 
@@ -2289,7 +2370,7 @@ class ContentViewTestCase(UITestCase):
             with VirtualMachine(distro=DISTRO_RHEL7) as host_client:
                 host_client.install_katello_ca()
                 host_client.register_contenthost(
-                        org.label, activation_key.name)
+                    org.label, activation_key.name)
                 self.assertTrue(host_client.subscribed)
                 # assert the host_client exists in content hosts page
                 self.assertIsNotNone(
@@ -3084,6 +3165,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_version_with_ak(self):
         """Delete a content-view version that had associated activation
         key to it
@@ -3126,6 +3208,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.validate_version_deleted(cv.name, version)
 
     @tier2
+    @upgrade
     def test_positive_delete_composite_version(self):
         """Delete a composite content-view version associated to 'Library'
 
@@ -3318,6 +3401,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_remove_promoted_custom_ostree_contents(self):
         """Remove promoted custom ostree contents from selected environment of
         CV.
@@ -3335,6 +3419,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_publish_promote_with_custom_ostree_and_other(self):
         """Create a CV with ostree as well as yum and puppet type contents and
         publish and promote them to next environment.
@@ -3432,6 +3517,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_publish_promote_with_rh_ostree_and_other(self):
         """Create a CV with rh ostree as well as rh yum and puppet type contents and
         publish, promote them to next environment.
@@ -3449,6 +3535,7 @@ class ContentViewTestCase(UITestCase):
     @run_in_one_thread
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_promote_CV_with_custom_user_role_and_filters(self):
         """Publish and promote cv with user with custom role and filter
         @id: a07fe3df-8645-4a0c-8c56-3f8314ae4878
@@ -3479,8 +3566,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # Publish and promote CV to next environment
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element
@@ -3528,8 +3613,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add the repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3585,8 +3668,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             # add the repository to the created content view
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3750,8 +3831,6 @@ class ContentViewTestCase(UITestCase):
             # add the docker repo to the created content view
             self.content_views.add_remove_repos(
                 cv_name, [docker_repo_name], repo_type='docker')
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3859,8 +3938,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -3968,8 +4045,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -4077,8 +4152,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -4102,6 +4175,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_delete_cv_promoted_to_multi_env(self):
         """Delete published content view with version promoted to multiple
          environments
@@ -4181,8 +4255,6 @@ class ContentViewTestCase(UITestCase):
                 else:
                     self.content_views.add_remove_repos(
                         cv_name, [repo_name], repo_type=repo_type)
-                    self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success_sub_form']))
             # publish the content view
             version = self.content_views.publish(cv_name)
             self.assertIsNotNone(
@@ -4249,6 +4321,7 @@ class ContentViewTestCase(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_delete_cv_multi_env_promoted_with_host_registered(self):
         """Delete published content view with version promoted to multiple
          environments, with one of the environments used in association of an

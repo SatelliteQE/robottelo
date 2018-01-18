@@ -18,7 +18,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_names_list
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import tier1, tier2, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_usergroup
 from robottelo.ui.locators import common_locators
@@ -110,6 +110,7 @@ class UserGroupTestCase(UITestCase):
                     self.usergroup.delete(group_name)
 
     @tier2
+    @upgrade
     def test_positive_delete_with_user(self):
         """Delete an Usergroup that contains a user
 

@@ -12,6 +12,8 @@ snap-guest and its dependencies and the ``image_dir`` path created.
 import logging
 import os
 
+from fauxfactory import gen_string
+
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7, REPOS
@@ -49,9 +51,11 @@ class VirtualMachine(object):
     def __init__(
             self, cpu=1, ram=512, distro=None, provisioning_server=None,
             image_dir=None, tag=None, hostname=None, domain=None,
-            target_image=None, bridge=None):
+            source_image=None, target_image=None, bridge=None):
+        distro_docker = settings.docker.docker_image
         distro_el6 = settings.distro.image_el6
         distro_el7 = settings.distro.image_el7
+        allowed_distros = [distro_docker, distro_el6, distro_el7]
         self.cpu = cpu
         self.ram = ram
         if distro == DISTRO_RHEL6:
@@ -61,10 +65,10 @@ class VirtualMachine(object):
         if distro is None:
             distro = distro_el7
         self.distro = distro
-        if self.distro not in (distro_el6, distro_el7):
+        if self.distro not in (allowed_distros):
             raise VirtualMachineError(
-                u'{0} is not a supported distro. Choose one of {1}, {2}'
-                .format(self.distro, distro_el6, distro_el7)
+                u'{0} is not a supported distro. Choose one of {1}'
+                .format(self.distro, allowed_distros)
             )
         if provisioning_server is None:
             self.provisioning_server = settings.clients.provisioning_server
@@ -87,10 +91,19 @@ class VirtualMachine(object):
         self._domain = domain
         self._created = False
         self._subscribed = False
-        self._target_image = target_image or str(id(self))
+        self._source_image = source_image or u'{0}-base'.format(self.distro)
+        self._target_image = (
+            target_image or gen_string('alphanumeric', 16).lower()
+        )
         if tag:
             self._target_image = tag + self._target_image
         self.bridge = bridge
+        if len(self.hostname) > 59:
+            raise VirtualMachineError(
+                'Max virtual machine name is 59 chars (see BZ1289363). Name '
+                '"{}" is {} chars long. Please provide shorter name'
+                .format(self.hostname, len(self.hostname))
+            )
 
     @property
     def subscribed(self):
@@ -156,7 +169,7 @@ class VirtualMachine(object):
             self.bridge = 'br0'
 
         command = u' '.join(command_args).format(
-            source_image=u'{0}-base'.format(self.distro),
+            source_image=self._source_image,
             target_image=self.target_image,
             vm_ram=self.ram,
             vm_cpu=self.cpu,
@@ -171,14 +184,24 @@ class VirtualMachine(object):
         if result.return_code != 0:
             raise VirtualMachineError(
                 u'Failed to run snap-guest: {0}'.format(result.stderr))
+        else:
+            self._created = True
+
+        # outside of VLANs ping from hypervisor, in VLANs ping from SAT
+        if self.bridge == 'br0':
+            ping_from_hostname = self.provisioning_server
+        else:
+            ping_from_hostname = settings.server.hostname
 
         # Give some time to machine boot
         result = ssh.command(
             u'for i in {{1..60}}; do ping -c1 {0}.local && exit 0; sleep 1;'
             u' done; exit 1'.format(self._target_image),
-            self.provisioning_server
+            ping_from_hostname,
         )
         if result.return_code != 0:
+            logger.error('Failed to obtain VM IP, reverting changes')
+            self.destroy()
             raise VirtualMachineError(
                 'Failed to fetch virtual machine IP address information')
         output = ''.join(result.stdout)
@@ -189,12 +212,14 @@ class VirtualMachine(object):
             self.provisioning_server
         )
         if ssh_check.return_code != 0:
+            logger.error('Failed to SSH to the VM, reverting changes')
+            self.destroy()
             raise VirtualMachineError(
                 'Failed to connect to SSH port of the virtual machine')
-        self._created = True
 
     def destroy(self):
         """Destroys the virtual machine on the provisioning server"""
+        logger.info('Destroying the VM')
         if not self._created:
             return
         if self._subscribed:
@@ -268,7 +293,10 @@ class VirtualMachine(object):
         result = self.run('rpm -q katello-agent')
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
-        gofer_check = self.run('service goferd status')
+        gofer_check = self.run(
+            u'for i in {1..5}; do service goferd status '
+            u'&& exit 0; sleep 1; done; exit 1'
+        )
         if gofer_check.return_code != 0:
             raise VirtualMachineError('katello-agent is not running')
 

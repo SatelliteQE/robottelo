@@ -57,6 +57,7 @@ from robottelo.decorators import (
     skip_if_not_set,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
@@ -158,6 +159,7 @@ class RepositoryTestCase(APITestCase):
                 self.assertEqual(repo.url, url_encoded)
 
     @tier1
+    @upgrade
     def test_positive_create_with_download_policy(self):
         """Create YUM repositories with available download policies
 
@@ -356,6 +358,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_create_with_gpg(self):
         """Create a repository and provide a GPG key ID.
 
@@ -543,7 +546,7 @@ class RepositoryTestCase(APITestCase):
         """Verify that non-YUM repositories cannot be created with
         download policy
 
-        @id: 71388973-50ea-4a20-9406-0aca142014ca
+        @id: 8a59cb31-164d-49df-b3c6-9b90634919ce
 
         @expectedresults: Non-YUM repository is not created with a download
         policy
@@ -833,6 +836,7 @@ class RepositoryTestCase(APITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1328092)
     @tier2
+    @upgrade
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
@@ -879,6 +883,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_rpm(self):
         """Check if rpm repository with packages can be deleted.
 
@@ -902,6 +907,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
+    @upgrade
     def test_positive_delete_puppet(self):
         """Check if puppet repository with puppet modules can be deleted.
 
@@ -965,6 +971,7 @@ class RepositorySyncTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
+    @upgrade
     def test_positive_sync_rh(self):
         """Sync RedHat Repository.
 
@@ -1069,13 +1076,13 @@ class SRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing source RPMs."""
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(SRPMRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
-    @skip_if_bug_open('bugzilla', 1378442)
     @run_only_on('sat')
     @tier1
     def test_positive_upload_contents_srpm(self):
@@ -1149,6 +1156,7 @@ class SRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @upgrade
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1189,6 +1197,7 @@ class DRPMRepositoryTestCase(APITestCase):
     """Tests specific to using repositories containing delta RPMs."""
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1378442)
     def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(DRPMRepositoryTestCase, cls).setUpClass()
@@ -1252,6 +1261,7 @@ class DRPMRepositoryTestCase(APITestCase):
         self.assertGreaterEqual(len(result.stdout), 1)
 
     @tier2
+    @upgrade
     def test_positive_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment

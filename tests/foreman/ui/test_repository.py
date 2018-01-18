@@ -57,6 +57,7 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
     tier2,
+    upgrade,
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
@@ -158,6 +159,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_create_in_different_orgs(self):
         """Create repository in two different orgs with same name
 
@@ -193,6 +195,7 @@ class RepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(repo_name))
 
     @tier2
+    @upgrade
     def test_positive_create_puppet_repo_same_url_different_orgs(self):
         """Create two repos with the same URL in two different organizations.
 
@@ -239,6 +242,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_repo_with_checksum(self):
         """Create repository with checksum type as sha256.
 
@@ -323,6 +327,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1447829)
     @tier2
+    @upgrade
     def test_positive_create_as_non_admin_user_with_cv_published(self):
         """Create a repository as a non admin user in a product that already
         contain a repository that is used in a published content view.
@@ -565,7 +570,7 @@ class RepositoryTestCase(UITestCase):
                     self.repository.delete(repo_name)
 
     @run_only_on('sat')
-    @stubbed
+    @stubbed()
     @tier2
     def test_negative_delete_puppet_repo_associated_with_cv(self):
         """Delete a puppet repo associated with a content view - BZ#1271000
@@ -581,7 +586,7 @@ class RepositoryTestCase(UITestCase):
         5. Add latest version of the puppet module from Step 3
         6. View puppet repo details, it should show "Latest (Currently X.Y.Z)"
         7. Go back to product, drill down into repo and delete the puppet
-        module from Step 3
+            module from Step 3
         8. Go back to same CV puppet module details page
 
         @expectedresults: Proper error message saying that the puppet module
@@ -594,6 +599,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_discover_repo_via_existing_product(self):
         """Create repository via repo-discovery under existing product
 
@@ -641,6 +647,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_sync_custom_repo_yum(self):
         """Create Custom yum repos and sync it via the repos page.
 
@@ -671,6 +678,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_sync_custom_repo_puppet(self):
         """Create Custom puppet repos and sync it via the repos page.
 
@@ -703,6 +711,7 @@ class RepositoryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_sync_custom_repo_docker(self):
         """Create Custom docker repos and sync it via the repos page.
 
@@ -759,6 +768,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier1
+    @upgrade
     def test_positive_delete_custom_ostree_repo(self):
         """Delete custom ostree repository.
 
@@ -933,6 +943,7 @@ class RepositoryTestCase(UITestCase):
     # using a loop But for clarity we decided to keep as separated tests
 
     @tier1
+    @upgrade
     def test_positive_create_immediate_update_to_on_demand(self):
         """Update `immediate` download policy to `on_demand` for a newly
         created YUM repository
@@ -953,6 +964,7 @@ class RepositoryTestCase(UITestCase):
             )
 
     @tier1
+    @upgrade
     def test_positive_create_immediate_update_to_background(self):
         """Update `immediate` download policy to `background` for a newly
         created YUM repository
@@ -1013,6 +1025,7 @@ class RepositoryTestCase(UITestCase):
             )
 
     @tier1
+    @upgrade
     def test_positive_create_background_update_to_immediate(self):
         """Update `background` download policy to `immediate` for a newly
         created YUM repository
@@ -1135,6 +1148,7 @@ class RepositoryTestCase(UITestCase):
                         )
                     )
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
     def test_positive_srpm_sync(self):
         """Synchronize repository with SRPMs
@@ -1171,6 +1185,7 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
     def test_positive_srpm_sync_publish_cv(self):
         """Synchronize repository with SRPMs, add repository to content view
@@ -1219,7 +1234,9 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
+    @upgrade
     def test_positive_srpm_sync_publish_promote_cv(self):
         """Synchronize repository with SRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1274,6 +1291,7 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
     def test_positive_drpm_sync(self):
         """Synchronize repository with DRPMs
@@ -1310,6 +1328,7 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
     def test_positive_drpm_sync_publish_cv(self):
         """Synchronize repository with DRPMs, add repository to content view
@@ -1358,7 +1377,9 @@ class RepositoryTestCase(UITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @skip_if_bug_open('bugzilla', 1378442)
     @tier2
+    @upgrade
     def test_positive_drpm_sync_publish_promote_cv(self):
         """Synchronize repository with DRPMs, add repository to content view,
         publish and promote content view to lifecycle environment
@@ -1512,9 +1533,9 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
             # Check packages number
-            number = self.repository.find_element(
+            packages_count = self.repository.find_element(
                 locators['repo.fetch_packages'])
-            self.assertGreater(int(number.text), 0)
+            self.assertGreater(int(packages_count.text), 0)
             # Check packages list
             self.repository.click(locators['repo.manage_content'])
             packages = [
@@ -1523,6 +1544,95 @@ class RepositoryTestCase(UITestCase):
                     locators['repo.content.packages'])
             ]
             self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
+
+    @tier1
+    @upgrade
+    def test_positive_upload_rpm_non_admin(self):
+        """Create yum repository, then upload rpm package via UI by non-admin
+        user.
+
+        @id: ac230198-1256-4b9b-9f0f-391064bbc5df
+
+        @expectedresults: Upload form is visible, upload is successful and
+            package is listed
+
+        @BZ: 1429624
+
+        @CaseImportance: Critical
+        """
+        role = entities.Role().create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Katello::Product').search(),
+            role=role,
+        ).create()
+        password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=False,
+            default_organization=self.session_org,
+            location=[self.session_loc],
+            organization=[self.session_org],
+            password=password,
+            role=[role],
+        ).create()
+        repo = entities.Repository(product=self.session_prod).create()
+        with Session(self.browser, user=user.login, password=password):
+            self.products.search_and_click(self.session_prod.name)
+            self.assertIsNotNone(self.repository.search(repo.name))
+            self.repository.upload_content(
+                repo.name, get_data_file(RPM_TO_UPLOAD))
+            # Check alert
+            self.assertIsNotNone(self.repository.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Check packages count
+            packages_count = self.repository.find_element(
+                locators['repo.fetch_packages'])
+            self.assertGreater(int(packages_count.text), 0)
+            # Check packages list
+            self.repository.click(locators['repo.manage_content'])
+            packages = [
+                package.text for package in
+                self.repository.find_elements(
+                    locators['repo.content.packages'])
+                ]
+            self.assertIn(RPM_TO_UPLOAD.rstrip('.rpm'), packages)
+
+    @tier1
+    def test_positive_create_non_admin(self):
+        """Create yum repository via UI by non-admin user
+
+        @id: 6af5357e-d200-49e0-bf41-6d977b732810
+
+        @expectedresults: repository is successfully created
+
+        @BZ: 1398574
+
+        @CaseImportance: Critical
+        """
+        role = entities.Role().create()
+        entities.Filter(
+            permission=entities.Permission(
+                resource_type='Katello::Product').search(),
+            role=role,
+        ).create()
+        password = gen_string('alphanumeric')
+        user = entities.User(
+            admin=False,
+            default_organization=self.session_org,
+            organization=[self.session_org],
+            password=password,
+            role=[role],
+        ).create()
+        with Session(
+                self.browser, user=user.login, password=password) as session:
+            self.products.search_and_click(self.session_prod.name)
+            repo_name = gen_string('alphanumeric')
+            make_repository(
+                session,
+                name=repo_name,
+                url=FAKE_1_YUM_REPO,
+            )
+            self.assertIsNotNone(self.repository.search(repo_name))
 
     @tier1
     def test_negative_upload_rpm(self):
@@ -1549,6 +1659,7 @@ class RepositoryTestCase(UITestCase):
             self.assertEqual(int(number.text), 0)
 
     @tier1
+    @upgrade
     def test_positive_upload_puppet(self):
         """Create puppet repository and upload puppet module
 
@@ -1665,6 +1776,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_local_delete(self):
         """Delete repository with local git puppet mirror.
 
@@ -1728,6 +1840,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_remote_delete(self):
         """Delete repository with remote git puppet mirror.
 
@@ -1771,6 +1884,7 @@ class GitPuppetMirrorTestCase(UITestCase):
 
     @stubbed()
     @tier2
+    @upgrade
     def test_positive_git_sync_with_content_change(self):
         """Sync repository with changes in git puppet mirror.
         If module changes in GIT mirror but the version in manifest

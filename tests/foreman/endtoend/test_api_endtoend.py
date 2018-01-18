@@ -647,6 +647,7 @@ API_PATHS = {
         u'/katello/api/repositories/:id/export',
         u'/katello/api/repositories/:id/gpg_key_content',
         u'/katello/api/repositories/:id/import_uploads',
+        u'/katello/api/repositories/:id/republish',
         u'/katello/api/repositories/:id/sync',
         u'/katello/api/repositories/:id/upload_content',
         u'/katello/api/repositories/repository_types',
@@ -821,16 +822,18 @@ class AvailableURLsTestCase(TestCase):
         for group, path_pairs in api_paths.items():
             api_paths[group] = list(path_pairs.values())
 
-        if bz_bug_is_open(1166875):
-            # The server returns incorrect paths.
-            api_paths['docker_manifests'].append(u'/katello/api/docker_manifests')
-            api_paths['docker_manifests'].remove(u'/katello/api/compare')
-            api_paths['docker_tags'].append(u'/katello/api/docker_tags')
-            api_paths['docker_tags'].remove(u'/katello/api/compare')
-            api_paths['errata'].append(u'/katello/api/errata')
-            api_paths['errata'].append(u'/katello/api/errata/compare')
-            api_paths['errata'].remove(u'/katello/api/compare')
-
+            if bz_bug_is_open(1166875):
+                # The server returns incorrect paths.
+                if group == 'docker_manifests':
+                    api_paths[group].remove(u'/katello/api/compare')
+                    api_paths[group].insert(0, u'/katello/api/docker_manifests')
+                elif group == 'docker_tags':
+                    api_paths[group].remove(u'/katello/api/compare')
+                    api_paths[group].insert(0, u'/katello/api/docker_tags')
+                elif group == 'errata':
+                    api_paths[group].remove(u'/katello/api/compare')
+                    api_paths[group].insert(0, u'/katello/api/errata')
+                    api_paths[group].append(u'/katello/api/errata/compare')
         self.assertEqual(
             frozenset(api_paths.keys()),
             frozenset(API_PATHS.keys())

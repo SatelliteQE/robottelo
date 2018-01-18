@@ -201,6 +201,11 @@ class ContentViews(Base):
             self.wait_for_ajax()
             if add_repo:
                 self.click(locators['contentviews.add_repo'])
+                if not self.wait_until_element(
+                        common_locators['alert.success_sub_form']):
+                    raise UIError(
+                        'Failed to add repo "{0}" to CV'.format(repo_name)
+                    )
                 self.click(tab_locators['contentviews.tab_repo_remove'])
                 element = self.wait_until_element(
                     (strategy, value % repo_name))
@@ -209,6 +214,11 @@ class ContentViews(Base):
                         "Adding repo {0} failed".format(repo_name))
             else:
                 self.click(locators['contentviews.remove_repo'])
+                if not self.wait_until_element(
+                        common_locators['alert.success_sub_form']):
+                    raise UIError(
+                        'Failed to remove repo "{0}" from CV'.format(repo_name)
+                    )
                 self.click(tab_locators['contentviews.tab_repo_add'])
                 element = self.wait_until_element(
                     (strategy, value % repo_name))
@@ -723,6 +733,42 @@ class ContentViews(Base):
         self.click(common_locators['kt_table_search_button'])
         strategy, value = locators['contentviews.version.package_name']
         return self.wait_until_element((strategy, value % package_name))
+
+    def fetch_version_packages(self, name, version_name):
+        """Return a list of all the packages inside specific content view
+        version"""
+        self.click(self.version_search(name, version_name))
+        self.click(tab_locators['contentviews.tab_version_packages'])
+        packages = []
+        strategy, value = locators['contentviews.version.package_name']
+        names = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.package_version']
+        versions = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.package_release']
+        releases = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.package_arch']
+        archs = self.find_elements((strategy, value % ''))
+        for name, version, release, arch in zip(
+                names, versions, releases, archs):
+            packages.append(
+                (name.text, version.text, release.text, arch.text))
+        return packages
+
+    def fetch_version_errata(self, name, version_name):
+        """Return a list of all the errata inside specific content view
+        version"""
+        self.click(self.version_search(name, version_name))
+        self.click(tab_locators['contentviews.tab_version_errata'])
+        errata = []
+        strategy, value = locators['contentviews.version.errata_id']
+        ids = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.errata_title']
+        titles = self.find_elements((strategy, value % ''))
+        strategy, value = locators['contentviews.version.errata_type']
+        types = self.find_elements((strategy, value % ''))
+        for id_, title, type_ in zip(ids, titles, types):
+            errata.append((id_.text, title.text, type_.text))
+        return errata
 
     def puppet_module_search(self, name, version, module_name):
         """Search for puppet module element in content view version"""

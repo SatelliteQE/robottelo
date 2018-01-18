@@ -18,7 +18,7 @@ sphinx
 docker-py
 
 # For reporting test results on SauceLabs
-sauceclient
+sauceclient==0.2.1
 
 # For interactive shell
 click

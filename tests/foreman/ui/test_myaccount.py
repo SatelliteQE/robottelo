@@ -21,7 +21,7 @@ from nailgun.entities import User
 
 from robottelo.constants import LANGUAGES
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import stubbed, tier1
+from robottelo.decorators import stubbed, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.session import Session
@@ -151,6 +151,7 @@ class MyAccountTestCase(UITestCase):
                         locale, self.my_account.get_field_value('language'))
 
     @tier1
+    @upgrade
     def test_positive_update_password(self):
         """Update Password/Verify fields in My Account
 

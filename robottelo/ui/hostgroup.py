@@ -1,38 +1,12 @@
 # -*- encoding: utf-8 -*-
 """Implements Host Group UI."""
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
 class Hostgroup(Base):
     """Manipulates hostgroup from UI."""
-
-    def create(self, name, parent=None, environment=None, content_source=None,
-               content_view=None, puppet_ca=None, puppet_master=None,
-               activation_keys=None):
-        """Creates a new hostgroup from UI."""
-        self.click(locators['hostgroups.new'])
-        if not self.wait_until_element(locators['hostgroups.name']):
-            raise UIError('Could not create new hostgroup.')
-        self.find_element(locators['hostgroups.name']).send_keys(name)
-        if parent:
-            self.select(locators['hostgroups.parent'], parent)
-        if environment:
-            self.select(locators['hostgroups.environment'], environment)
-        if content_source:
-            self.select(locators['hostgroups.content_source'], content_source)
-        if content_view:
-            self.select(locators['hostgroups.content_view'], content_view)
-        if puppet_ca:
-            self.select(locators['hostgroups.puppet_ca'], puppet_ca)
-        if puppet_master:
-            self.select(locators['hostgroups.puppet_master'], puppet_master)
-        if activation_keys:
-            self.click(tab_locators['hostgroup.activation_keys'])
-            self.assign_value(
-                locators['hostgroups.activation_keys'], activation_keys)
-        self.click(common_locators['submit'])
 
     def navigate_to_entity(self):
         """Navigate to HostGroups entity page"""
@@ -42,6 +16,53 @@ class Hostgroup(Base):
         """Specify locator for HostGroups entity search procedure"""
         return locators['hostgroups.hostgroup']
 
+    def _configure_hostsgroup_parameters(self, parameters_list):
+        """Provide configuration capabilities for host group entity generic
+        properties.
+        All values should be passed in absolute correspondence to UI. For
+        example, we need to choose a value from 'Content View' select list from
+        'Host Group' tab and input root password in corresponding field
+        from 'Operating System' tab, so next parameter list should be passed::
+
+            [
+                ['Host Group', 'Content View', 'Default Organization View'],
+                ['Operating System', 'Root password', 'mynewpassword123'],
+            ]
+
+        """
+        for tab_name, parameter_name, parameter_value in parameters_list:
+            tab_locator = tab_locators['.tab_'.join((
+                'hostgroup',
+                (tab_name.lower()).replace(' ', '_')
+            ))]
+            self.click(tab_locator)
+            locator_name = '.'.join((
+                'hostgroups',
+                (parameter_name.lower()).replace(' ', '_')
+            ))
+            if parameter_value is None:
+                self.clear_entity_value(
+                    locators['{}_clear'.format(locator_name)])
+            else:
+                self.assign_value(locators[locator_name], parameter_value)
+
+    def create(self, name, parameters_list=None):
+        """Creates a new hostgroup from UI."""
+        self.click(locators['hostgroups.new'])
+        self.assign_value(locators['hostgroups.name'], name)
+        if parameters_list is not None:
+            self._configure_hostsgroup_parameters(parameters_list)
+        self.click(common_locators['submit'])
+
+    def update(self, name, new_name=None, parameters_list=None):
+        """Updates existing hostgroup from UI."""
+        self.search_and_click(name)
+        if new_name:
+            self.assign_value(locators['hostgroups.name'], new_name)
+        if parameters_list is not None:
+            self._configure_hostsgroup_parameters(parameters_list)
+        self.click(common_locators['submit'])
+
     def delete(self, name, really=True):
         """Deletes existing hostgroup from UI."""
         self.delete_entity(
@@ -50,18 +71,3 @@ class Hostgroup(Base):
             locators['hostgroups.delete'],
             drop_locator=locators['hostgroups.dropdown'],
         )
-
-    def update(self, name, new_name=None, parent=None, environment=None):
-        """Updates existing hostgroup from UI."""
-        element = self.search(name)
-        if not element:
-            raise UIError('Could not find hostgroup "{0}"'.format(name))
-        element.click()
-        self.wait_for_ajax()
-        if parent:
-            self.select(locators['hostgroups.parent'], parent)
-        if environment:
-            self.select(locators['hostgroups.environment'], environment)
-        if new_name:
-            self.text_field_update(locators['hostgroups.name'], new_name)
-        self.click(common_locators['submit'])

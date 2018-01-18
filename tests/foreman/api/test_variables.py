@@ -37,6 +37,7 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    upgrade
 )
 from robottelo.test import APITestCase
 
@@ -315,6 +316,7 @@ class SmartVariablesTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_list_variables_by_host_id(self):
         """List all the variables associated to Host by host id
 
@@ -361,6 +363,7 @@ class SmartVariablesTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_create_variable_type(self):
         """Create variable for variable types - Valid Value
 
@@ -938,6 +941,7 @@ class SmartVariablesTestCase(APITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_update_variable_merge_override(self):
         """Merge the values of all the associated matchers
 
@@ -1005,6 +1009,7 @@ class SmartVariablesTestCase(APITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_update_variable_merge_default(self):
         """Merge the values of all the associated matchers + default value
 
@@ -1073,6 +1078,7 @@ class SmartVariablesTestCase(APITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_update_variable_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates
 
@@ -1268,6 +1274,7 @@ class SmartVariablesTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_remove_matcher(self):
         """Removal of matcher from variable
 

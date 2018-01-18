@@ -25,7 +25,7 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import filtered_datapoint, invalid_values_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import skip_if_bug_open, tier1, tier2, upgrade
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from six.moves import http_client
@@ -362,6 +362,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(org.hostgroup), 0)
 
     @tier2
+    @upgrade
     def test_positive_add_smart_proxy(self):
         """Add a smart proxy to an organization
 
@@ -432,8 +433,9 @@ class OrganizationUpdateTestCase(APITestCase):
                         **attrs
                     ).update(attrs.keys())
 
-    @tier2
     @skip_if_bug_open('bugzilla', 1103157)
+    @tier2
+    @upgrade
     def test_verify_bugzilla_1103157(self):
         """Create organization and add two compute resources one by one
         using different transactions and different users to see that they

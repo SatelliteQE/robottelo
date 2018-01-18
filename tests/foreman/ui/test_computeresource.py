@@ -20,7 +20,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_not_set, tier1
+from robottelo.decorators import run_only_on, skip_if_not_set, tier1, upgrade
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
@@ -223,6 +223,7 @@ class ComputeResourceTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_delete(self):
         """Delete a Compute Resource
 

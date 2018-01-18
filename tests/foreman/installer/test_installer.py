@@ -20,7 +20,7 @@ from six.moves import zip
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
-from robottelo.decorators import tier1
+from robottelo.decorators import tier1, upgrade
 from robottelo.helpers import get_host_info
 from robottelo.log import LogFile
 from robottelo.test import TestCase
@@ -189,12 +189,14 @@ INSTALLER_OPTIONS = set([
     u'--foreman-server-ssl-key', u'--foreman-email-smtp-domain',
     u'--[no-]enable-foreman-proxy-plugin-pulp', u'--katello-log-dir',
     u'--foreman-proxy-puppet-ssl-cert', u'--certs-city',
-    u'--foreman-proxy-dhcp-provider', u'--katello-package-names',
+    u'--foreman-proxy-dhcp-provider', u'--katello-qpid-session-unacked',
+    u'--katello-package-names',
     u'--foreman-admin-last-name', u'--foreman-db-database',
     u'--foreman-proxy-puppetssh-command', u'--foreman-server-ssl-certs-dir',
     u'--foreman-serveraliases', u'--foreman-proxy-dns-interface',
     u'--foreman-proxy-plugin-openscap-listen-on',
-    u'--foreman-admin-first-name', u'--foreman-proxy-dhcp-interface',
+    u'--foreman-admin-first-name', u'--katello-qpid-wcache-page-size',
+    u'--foreman-proxy-dhcp-interface',
     u'--foreman-db-manage', u'--katello-group', u'--foreman-ssl',
     u'--foreman-configure-scl-repo', u'--compare-scenarios',
     u'--foreman-proxy-dns-zone', u'--foreman-proxy-salt-puppetrun-cmd',
@@ -215,6 +217,7 @@ class SELinuxTestCase(TestCase):
 
     version_regex = re.compile(r'((\d\.?)+[-.]\d)')
 
+    @upgrade
     @tier1
     def test_positive_foreman_module(self):
         """Check if SELinux foreman module has the right version
@@ -239,6 +242,7 @@ class SELinuxTestCase(TestCase):
         rpm_version = rpm_version[:-2]
         self.assertEqual(rpm_version.replace('-', '.'), semodule_version)
 
+    @upgrade
     @tier1
     def test_positive_check_installer_services(self):
         """Check if services start correctly
@@ -325,13 +329,18 @@ class SELinuxTestCase(TestCase):
         )
 
         for logfile in logfiles:
+            remote_file = logfile['path']
             try:
-                log = LogFile(logfile['path'], logfile['pattern'])
+                log = LogFile(remote_file, logfile['pattern'])
             except IOError:
                 self.fail(
-                    'Could not find {0} file on server'.format(logfile['path'])
+                    'Could not find {0} file on server'.format(remote_file)
                 )
-            self.assertEqual(len(log.filter()), 0)
+            else:
+                errors = log.filter()
+                self.assertEqual(
+                    len(errors), 0,
+                    msg='Errors found in {}: {}'.format(remote_file, errors))
 
 
 def extract_params(lst):
@@ -353,6 +362,7 @@ def extract_params(lst):
 class InstallerParamsTestCase(TestCase):
     """Checks installer API changes"""
 
+    @upgrade
     @tier1
     def test_installer_options_and_flags(self):
         """Look for changes on installer options and flags

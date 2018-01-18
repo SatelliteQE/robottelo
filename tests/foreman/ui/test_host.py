@@ -35,9 +35,10 @@ from robottelo.decorators import (
     stubbed,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.factory import make_host, set_context
 from robottelo.ui.session import Session
 
@@ -419,6 +420,78 @@ class HostTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    def test_negative_delete_primary_interface(self):
+        """Attempt to delete primary interface of a host
+
+        @id: bc747e2c-38d9-4920-b4ae-6010851f704e
+
+        @BZ: 1377654
+
+        @expectedresults: Interface was not deleted
+
+        @CaseLevel: System
+        """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        interface_id = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=host.name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['Device Identifier', interface_id],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            host_el = self.hosts.search(
+                u'{0}.{1}'.format(host.name, host.domain.name)
+            )
+            self.assertIsNotNone(host_el)
+            self.hosts.click(host_el)
+            self.hosts.click(locators['host.edit'])
+            self.hosts.click(tab_locators['host.tab_interfaces'])
+            strategy, value = locators['host.delete_interface']
+            delete_button = self.hosts.wait_until_element((
+                strategy, value % interface_id))
+            # Verify the button is disabled
+            self.assertFalse(delete_button.is_enabled())
+            self.assertEqual(delete_button.get_attribute('disabled'), 'true')
+            # Attempt to delete the interface
+            self.hosts.delete_interface(
+                host.name, host.domain.name, interface_id)
+            # Verify interface wasn't deleted by fetching one of its parameters
+            # (e.g., MAC address)
+            results = self.hosts.fetch_host_parameters(
+                host.name,
+                host.domain.name,
+                [['Interfaces', 'Primary Interface MAC']],
+            )
+            self.assertEqual(results['Primary Interface MAC'], host.mac)
+
+    @run_only_on('sat')
+    @tier3
     def test_positive_update_name(self):
         """Create a new Host and update its name to valid one
 
@@ -474,6 +547,7 @@ class HostTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @upgrade
     def test_positive_delete(self):
         """Delete a Host
 
@@ -680,6 +754,33 @@ class HostTestCase(UITestCase):
             self.assertIsNotNone(self.hosts.wait_until_element(
                 (strategy, value % additional_host.name)))
 
+    @run_only_on('sat')
+    @tier2
+    def test_positive_search_with_org_and_loc_context(self):
+        """Perform usual search for host, but organization and location used
+        for host create procedure should have 'All capsules' checkbox selected
+
+        @id: 2ce50df0-2b30-42cc-a40b-0e1f4fde3c6f
+
+        @expectedresults: Search functionality works as expected and correct
+            result is returned
+
+        @BZ: 1372757
+
+        @CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        host = entities.Host(organization=org, location=loc).create()
+        with Session(self.browser) as session:
+            self.org.update(org.name, all_capsules=True)
+            self.location.update(loc.name, all_capsules=True)
+            set_context(session, org=org.name, loc=loc.name)
+            # Check that host present in the system
+            self.assertIsNotNone(self.hosts.search(host.name))
+            self.assertIsNotNone(
+                self.hosts.search(host.name, _raw_query=host.name))
+
     @tier2
     def test_positive_validate_inherited_cv_lce(self):
         """Create a host with hostgroup specified via CLI. Make sure host
@@ -821,6 +922,7 @@ class HostTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_delete_atomic_host(self):
         """Delete a provisioned atomic host
 
@@ -869,6 +971,7 @@ class BulkHostTestCase(UITestCase):
     """Implements tests for Bulk Hosts actions in UI"""
 
     @tier3
+    @upgrade
     def test_positive_bulk_delete_host(self):
         """Delete a multiple hosts from the list
 

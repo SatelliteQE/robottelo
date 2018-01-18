@@ -28,10 +28,12 @@ from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.host import Host
 from robottelo.decorators import (
     bz_bug_is_open,
+    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
     tier3,
+    upgrade,
 )
 from robottelo.helpers import (
         add_remote_execution_ssh_key,
@@ -213,6 +215,7 @@ class JobsTemplateTestCase(UITestCase):
                 common_locators['name_haserror']))
 
     @tier1
+    @upgrade
     def test_positive_delete_job_template(self):
         """Delete a job template
 
@@ -239,6 +242,7 @@ class JobsTemplateTestCase(UITestCase):
             self.jobtemplate.delete(name)
 
     @tier1
+    @upgrade
     def test_positive_clone_job_template(self):
         """Clone a Job Template
 
@@ -386,6 +390,7 @@ class RemoteExecutionTestCase(UITestCase):
     """Test class for remote execution feature"""
 
     @classmethod
+    @skip_if_not_set('clients', 'fake_manifest', 'vlan_networking')
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
         super(RemoteExecutionTestCase, cls).setUpClass()
@@ -394,9 +399,14 @@ class RemoteExecutionTestCase(UITestCase):
         # add rex proxy to subnet, default is internal proxy (id 1)
         subnet_options = {
             u'domain-ids': 1,
-            u'organizations': cls.organization.name,
-            u'location-ids': 2
-           }
+            u'gateway': settings.vlan_networking.gateway,
+            u'ipam': u'DHCP',
+            u'location-ids': 2,
+            u'mask': settings.vlan_networking.netmask,
+            u'network': settings.vlan_networking.subnet,
+            u'network-type': 'IPv4',
+            u'organizations': cls.organization.name
+        }
         if not bz_bug_is_open(1328322):
             subnet_options[u'remote-execution-proxy-id'] = 1
         cls.new_sub = make_subnet(subnet_options)
@@ -448,10 +458,11 @@ class RemoteExecutionTestCase(UITestCase):
         @CaseLevel: Integration
         """
         with VirtualMachine(
-              distro=DISTRO_RHEL7,
-              provisioning_server=settings.compute_resources.libvirt_hostname,
-              bridge=settings.vlan_networking.bridge,
-              ) as client:
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
+                ) as client:
+
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             self.assertTrue(client.subscribed)
@@ -500,10 +511,10 @@ class RemoteExecutionTestCase(UITestCase):
         """
         jobs_template_name = gen_string('alpha')
         with VirtualMachine(
-              distro=DISTRO_RHEL7,
-              provisioning_server=settings.compute_resources.libvirt_hostname,
-              bridge=settings.vlan_networking.bridge,
-              ) as client:
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
+                ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             self.assertTrue(client.subscribed)
@@ -544,6 +555,7 @@ class RemoteExecutionTestCase(UITestCase):
                     )
 
     @tier3
+    @upgrade
     def test_positive_run_job_template_multiple_hosts(self):
         """Run a job template against multiple hosts
 
@@ -564,15 +576,14 @@ class RemoteExecutionTestCase(UITestCase):
         """
         prov_server = settings.compute_resources.libvirt_hostname
         with VirtualMachine(
-              distro=DISTRO_RHEL7,
-              provisioning_server=prov_server,
-              bridge=settings.vlan_networking.bridge,
-              ) as client:
-            with VirtualMachine(
-                  distro=DISTRO_RHEL7,
-                  provisioning_server=prov_server,
-                  bridge=settings.vlan_networking.bridge,
-                  ) as client2:
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
+             ) as client, VirtualMachine(
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
+             ) as client2:
                 for vm in client, client2:
                     vm.install_katello_ca()
                     vm.register_contenthost(
@@ -628,10 +639,10 @@ class RemoteExecutionTestCase(UITestCase):
         @CaseLevel: System
         """
         with VirtualMachine(
-              distro=DISTRO_RHEL7,
-              provisioning_server=settings.compute_resources.libvirt_hostname,
-              bridge=settings.vlan_networking.bridge,
-              ) as client:
+                distro=DISTRO_RHEL7,
+                bridge=settings.vlan_networking.bridge,
+                provisioning_server=settings.compute_resources.libvirt_hostname
+                ) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             self.assertTrue(client.subscribed)
@@ -730,6 +741,7 @@ class RemoteExecutionTestCase(UITestCase):
 
     @stubbed()
     @tier3
+    @upgrade
     def test_positive_run_job_against_multiple_provisioned_hosts(self):
         """Run a job against multiple provisioned hosts
 
@@ -859,7 +871,7 @@ class RemoteExecutionTestCase(UITestCase):
                     name=jobs_template_name,
                     template_type='input',
                     template_content='<%= input("command") %>',
-                    provider_type='SSH',
+                    provider_type='SSHExecutionProvider',
                 )
                 self.assertIsNotNone(
                     self.jobtemplate.search(jobs_template_name))

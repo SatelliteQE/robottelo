@@ -18,8 +18,8 @@
 
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
-from random import randint
 from robottelo import manifests
+from robottelo.api.utils import wait_for_tasks
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -42,9 +42,10 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
-    stubbed,
     tier1,
+    tier3,
     tier4,
+    upgrade
 )
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
@@ -144,8 +145,16 @@ class SyncPlanTestCase(CLITestCase):
 
         return make_sync_plan(options)
 
-    def validate_repo_content(
-            self, repo, content_types, after_sync=True, max_attempts=10):
+    @staticmethod
+    def validate_task_status(repo_id, max_tries=10):
+        wait_for_tasks(
+            search_query='resource_type = Katello::Repository'
+                         ' and owner.login = foreman_admin'
+                         ' and resource_id = {}'.format(repo_id),
+            max_tries=max_tries
+        )
+
+    def validate_repo_content(self, repo, content_types, after_sync=True):
         """Check whether corresponding content is present in repository before
         or after synchronization is performed
 
@@ -154,26 +163,14 @@ class SyncPlanTestCase(CLITestCase):
             be validated (e.g. package, erratum, puppet_module)
         :param bool after_sync: Specify whether you perform validation before
             synchronization procedure is happened or after
-        :param int max_attempts: Specify how many times to check for content
-            presence. Delay between each attempt is 10 seconds. Default is 10
-            attempts.
-
         """
-        for _ in range(max_attempts):
-            try:
-                repo = Repository.info({'id': repo['id']})
-                for content in content_types:
-                    if after_sync:
-                        self.assertGreater(
-                            int(repo['content-counts'][content]), 0)
-                    else:
-                        self.assertFalse(int(repo['content-counts'][content]))
-                break
-            except AssertionError:
-                sleep(30)
-        else:
-            raise AssertionError(
-                'Repository contains invalid number of content entities')
+        repo = Repository.info({'id': repo['id']})
+        for content in content_types:
+            if after_sync:
+                self.assertGreater(
+                    int(repo['content-counts'][content]), 0)
+            else:
+                self.assertFalse(int(repo['content-counts'][content]))
 
     @tier1
     def test_positive_create_with_name(self):
@@ -231,7 +228,10 @@ class SyncPlanTestCase(CLITestCase):
         """
         for name in invalid_values_list():
             with self.subTest(name):
-                with self.assertRaises(CLIFactoryError):
+                with self.assertRaisesRegex(
+                   CLIFactoryError,
+                   u'Could not create the sync plan:'
+                ):
                     self._make_sync_plan({u'name': name})
 
     @tier1
@@ -275,6 +275,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1336790)
     @tier1
+    @upgrade
     def test_positive_update_sync_date(self):
         """Check if syncplan sync date can be updated
 
@@ -319,6 +320,7 @@ class SyncPlanTestCase(CLITestCase):
         )
 
     @tier1
+    @upgrade
     def test_positive_delete_by_id(self):
         """Check if syncplan can be created and deleted
 
@@ -345,10 +347,9 @@ class SyncPlanTestCase(CLITestCase):
         result = SyncPlan.info({'id': new_sync_plan['id']})
         self.assertIsNotNone(result.get('enabled'))
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
-    def test_negative_synchronize_custom_product_current_sync_date(self):
+    @upgrade
+    def test_negative_synchronize_custom_product_past_sync_date(self):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
@@ -372,17 +373,12 @@ class SyncPlanTestCase(CLITestCase):
             'sync-plan-id': sync_plan['id'],
         })
         with self.assertRaises(AssertionError):
-            self.validate_repo_content(
-                repo,
-                ['errata', 'package-groups', 'packages'],
-                max_attempts=5,
-            )
+            self.validate_task_status(repo['id'], max_tries=2)
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
-    def test_positive_synchronize_custom_product_current_sync_date(self):
-        """Create a sync plan with current datetime as a sync date, add a
+    @upgrade
+    def test_positive_synchronize_custom_product_past_sync_date(self):
+        """Create a sync plan with a past datetime as a sync date, add a
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
@@ -395,31 +391,41 @@ class SyncPlanTestCase(CLITestCase):
         @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
+        delay = 2 * 60
+        product = make_product({'organization-id': self.org['id']})
+        repo = make_repository({'product-id': product['id']})
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
             'interval': 'hourly',
             'organization-id': self.org['id'],
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': (
+              datetime.utcnow() - timedelta(seconds=interval - delay)
+            ).strftime("%Y-%m-%d %H:%M:%S"),
         })
-        product = make_product({'organization-id': self.org['id']})
-        repo = make_repository({'product-id': product['id']})
         # Associate sync plan with product
         Product.set_sync_plan({
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Wait half of expected time
-        sleep(interval / 2)
         # Verify product has not been synced yet
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was not synced'.format(delay/4, product['name']))
+        sleep(delay/4)
+        with self.assertRaises(AssertionError):
+            self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
             repo, ['errata', 'packages'], after_sync=False)
-        # Wait the rest of expected time
-        sleep(interval / 2)
+        # Wait until the first recurrence
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was synced'.format(delay, product['name']))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
+        self.validate_task_status(repo['id'])
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
     @tier4
+    @upgrade
     def test_positive_synchronize_custom_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
@@ -430,7 +436,7 @@ class SyncPlanTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        delay = 10 * 60  # delay for sync date in seconds
+        delay = 5 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
             'organization-id': self.org['id'],
@@ -448,17 +454,25 @@ class SyncPlanTestCase(CLITestCase):
             'sync-plan-id': sync_plan['id'],
         })
         # Wait half of expected time
-        sleep(delay/2)
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was not synced'.format(delay/2, product['name']))
+        sleep(delay/4)
         # Verify product has not been synced yet
+        with self.assertRaises(AssertionError):
+            self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
             repo, ['errata', 'packages'], after_sync=False)
         # Wait the rest of expected time
-        sleep(delay/2)
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was synced'.format(delay/2, product['name']))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
+        self.validate_task_status(repo['id'])
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
     @tier4
+    @upgrade
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -469,7 +483,7 @@ class SyncPlanTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        delay = 10 * 60  # delay for sync date in seconds
+        delay = 6 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
             'organization-id': self.org['id'],
@@ -478,17 +492,17 @@ class SyncPlanTestCase(CLITestCase):
         })
         products = [
             make_product({'organization-id': self.org['id']})
-            for _ in range(randint(3, 5))
+            for _ in range(3)
         ]
         repos = [
             make_repository({'product-id': product['id']})
             for product in products
-            for _ in range(randint(2, 3))
+            for _ in range(2)
         ]
         # Verify products have not been synced yet
         for repo in repos:
-            self.validate_repo_content(
-                repo, ['errata', 'packages'], after_sync=False)
+            with self.assertRaises(AssertionError):
+                self.validate_task_status(repo['id'], max_tries=2)
         # Associate sync plan with products
         for product in products:
             Product.set_sync_plan({
@@ -496,24 +510,28 @@ class SyncPlanTestCase(CLITestCase):
                 'sync-plan-id': sync_plan['id'],
             })
         # Wait half of expected time
-        sleep(delay/2)
+        self.logger.info('Waiting {0} seconds to check products'
+                         ' were not synced'.format(delay/2))
+        sleep(delay/4)
         # Verify products has not been synced yet
         for repo in repos:
-            self.validate_repo_content(
-                repo, ['errata', 'packages'], after_sync=False)
+            with self.assertRaises(AssertionError):
+                self.validate_task_status(repo['id'], max_tries=2)
         # Wait the rest of expected time
-        sleep(delay/2)
+        self.logger.info('Waiting {0} seconds to check products'
+                         ' were synced'.format(delay/2))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
         for repo in repos:
+            self.validate_task_status(repo['id'])
             self.validate_repo_content(
                 repo, ['errata', 'package-groups', 'packages'])
 
-    # This Bugzilla bug is private. It is impossible to fetch info about it.
     @run_in_one_thread
-    @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
-    def test_positive_synchronize_rh_product_current_sync_date(self):
-        """Create a sync plan with current datetime as a sync date, add a
+    @upgrade
+    def test_positive_synchronize_rh_product_past_sync_date(self):
+        """Create a sync plan with past datetime as a sync date, add a
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
@@ -526,6 +544,7 @@ class SyncPlanTestCase(CLITestCase):
         @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
+        delay = 3 * 60
         org = make_org()
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
@@ -537,7 +556,9 @@ class SyncPlanTestCase(CLITestCase):
             'enabled': 'true',
             'interval': 'hourly',
             'organization-id': org['id'],
-            'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+            'sync-date': (
+              datetime.utcnow() - timedelta(seconds=interval - delay)
+            ).strftime("%Y-%m-%d %H:%M:%S"),
         })
         RepositorySet.enable({
             'name': REPOSET['rhva6'],
@@ -560,18 +581,25 @@ class SyncPlanTestCase(CLITestCase):
             'id': product['id'],
             'sync-plan-id': sync_plan['id'],
         })
-        # Wait half of expected time
-        sleep(interval / 2)
         # Verify product has not been synced yet
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was not synced'.format(delay/4, product['name']))
+        sleep(delay/4)
+        with self.assertRaises(AssertionError):
+            self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
             repo, ['errata', 'packages'], after_sync=False)
         # Wait the rest of expected time
-        sleep(interval / 2)
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was synced'.format(delay, product['name']))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
+        self.validate_task_status(repo['id'])
         self.validate_repo_content(repo, ['errata', 'packages'])
 
     @run_in_one_thread
     @tier4
+    @upgrade
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
@@ -582,7 +610,7 @@ class SyncPlanTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        delay = 10 * 60  # delay for sync date in seconds
+        delay = 5 * 60  # delay for sync date in seconds
         org = make_org()
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
@@ -613,6 +641,8 @@ class SyncPlanTestCase(CLITestCase):
             'organization-id': org['id'],
         })
         # Verify product is not synced and doesn't have any content
+        with self.assertRaises(AssertionError):
+            self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
             repo, ['errata', 'packages'], after_sync=False)
         # Associate sync plan with product
@@ -621,11 +651,112 @@ class SyncPlanTestCase(CLITestCase):
             'sync-plan-id': sync_plan['id'],
         })
         # Wait half of expected time
-        sleep(delay/2)
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was not synced'.format(delay/2, product['name']))
+        sleep(delay/4)
         # Verify product has not been synced yet
+        with self.assertRaises(AssertionError):
+            self.validate_task_status(repo['id'], max_tries=2)
         self.validate_repo_content(
             repo, ['errata', 'packages'], after_sync=False)
         # Wait the rest of expected time
-        sleep(delay/2)
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was synced'.format(delay/2, product['name']))
+        sleep(delay * 3/4)
         # Verify product was synced successfully
+        self.validate_task_status(repo['id'])
         self.validate_repo_content(repo, ['errata', 'packages'])
+
+    @tier3
+    @upgrade
+    def test_positive_synchronize_custom_product_daily_recurrence(self):
+        """Create a daily sync plan with a past datetime as a sync date,
+        add a custom product and verify the product gets synchronized on
+        the next sync occurrence
+
+        @id: 8d882e8b-b5c1-4449-81c6-0efd31ad75a7
+
+        @expectedresults: Product is synchronized successfully.
+
+        @CaseLevel: System
+        """
+        delay = 5 * 60
+        product = make_product({'organization-id': self.org['id']})
+        repo = make_repository({'product-id': product['id']})
+        start_date = datetime.utcnow() - timedelta(days=1)\
+            + timedelta(seconds=delay)
+        sync_plan = self._make_sync_plan({
+            'enabled': 'true',
+            'interval': 'daily',
+            'organization-id': self.org['id'],
+            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        # Associate sync plan with product
+        Product.set_sync_plan({
+            'id': product['id'],
+            'sync-plan-id': sync_plan['id'],
+        })
+        # Verify product has not been synced yet
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was not synced'.format(delay/4, product['name']))
+        sleep(delay/4)
+        with self.assertRaises(AssertionError):
+            self.validate_task_status(repo['id'], max_tries=2)
+        self.validate_repo_content(
+            repo, ['errata', 'packages'], after_sync=False)
+        # Wait until the first recurrence
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was synced'.format(delay, product['name']))
+        sleep(delay * 3/4)
+        # Verify product was synced successfully
+        self.validate_task_status(repo['id'])
+        self.validate_repo_content(
+            repo, ['errata', 'package-groups', 'packages'])
+
+    @skip_if_bug_open('bugzilla', '1463696')
+    @tier3
+    def test_positive_synchronize_custom_product_weekly_recurrence(self):
+        """Create a weekly sync plan with a past datetime as a sync date,
+        add a custom product and verify the product gets synchronized
+        on the next sync occurrence
+
+        @id: 1079a66d-7c23-44f6-a4a0-47f4c74d92a4
+
+        @expectedresults: Product is synchronized successfully.
+
+        @BZ: 1463696
+
+        @CaseLevel: System
+        """
+        delay = 5 * 60
+        product = make_product({'organization-id': self.org['id']})
+        repo = make_repository({'product-id': product['id']})
+        start_date = datetime.utcnow() - timedelta(weeks=1)\
+            + timedelta(seconds=delay)
+        sync_plan = self._make_sync_plan({
+            'enabled': 'true',
+            'interval': 'weekly',
+            'organization-id': self.org['id'],
+            'sync-date': start_date.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        # Associate sync plan with product
+        Product.set_sync_plan({
+            'id': product['id'],
+            'sync-plan-id': sync_plan['id'],
+        })
+        # Verify product has not been synced yet
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was not synced'.format(delay/4, product['name']))
+        sleep(delay/4)
+        with self.assertRaises(AssertionError):
+            self.validate_task_status(repo['id'], max_tries=2)
+        self.validate_repo_content(
+            repo, ['errata', 'packages'], after_sync=False)
+        # Wait until the first recurrence
+        self.logger.info('Waiting {0} seconds to check product {1}'
+                         ' was synced'.format(delay, product['name']))
+        sleep(delay * 3/4)
+        # Verify product was synced successfully
+        self.validate_task_status(repo['id'])
+        self.validate_repo_content(
+            repo, ['errata', 'package-groups', 'packages'])

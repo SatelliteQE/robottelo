@@ -80,6 +80,17 @@ class VirtualMachineTestCase(unittest2.TestCase):
         vm.run('ls')
         ssh_command.assert_called_once_with('ls', hostname='192.168.0.1')
 
+    def test_name_limit(self):
+        """Check whether exception is risen in case of too long host name (more
+        than 59 chars)"""
+        self.configure_provisoning_server()
+        domain = self.provisioning_server.split('.', 1)[1]
+        with self.assertRaises(VirtualMachineError):
+            VirtualMachine(
+                tag='test',
+                target_image='a'*(59 - len(domain))
+            )
+
     def test_run_raises_exception(self):
         """Check if run raises an exception if the vm is not created"""
         self.configure_provisoning_server()

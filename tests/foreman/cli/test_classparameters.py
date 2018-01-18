@@ -37,13 +37,15 @@ from robottelo.cli.scparams import SmartClassParameter
 from robottelo.constants import CUSTOM_PUPPET_REPO
 from robottelo.datafactory import filtered_datapoint, gen_string
 from robottelo.decorators import (
+    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
-    bz_bug_is_open)
+    upgrade
+)
 from robottelo.test import CLITestCase
 
 
@@ -220,6 +222,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    @upgrade
     def test_positive_list_by_host_name(self):
         """List all the parameters included in specific Host by its name.
 
@@ -366,6 +369,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_list_by_puppetclass_name(self):
         """List all the parameters for specific puppet class by name.
 
@@ -475,6 +479,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_override(self):
         """Override the Default Parameter value.
 
@@ -526,6 +531,7 @@ class SmartClassParametersTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1357864)
     @tier1
+    @upgrade
     def test_positive_puppet_default(self):
         """On Override, Set Puppet Default Value.
 
@@ -553,6 +559,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_parameter_type(self):
         """Positive Parameter Update for parameter types - Valid Value.
 
@@ -639,6 +646,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_default_value_required_check(self):
         """No error raised for non-empty default Value - Required check.
 
@@ -737,6 +745,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_default_value_with_regex(self):
         """Error not raised for default value matching with regex.
 
@@ -948,6 +957,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_validate_matcher_value_with_list(self):
         """Error not raised for matcher value in list.
 
@@ -1256,6 +1266,7 @@ class SmartClassParametersTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
@@ -1352,6 +1363,7 @@ class SmartClassParametersTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
@@ -1448,6 +1460,7 @@ class SmartClassParametersTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier1
+    @upgrade
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
@@ -1510,6 +1523,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_remove_matcher(self):
         """Removal of matcher from parameter.
 
@@ -1612,6 +1626,7 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @upgrade
     def test_positive_update_hidden_value_in_parameter(self):
         """Update the hidden default value of parameter.
 
