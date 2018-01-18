@@ -578,11 +578,11 @@ class RemoteExecutionTestCase(UITestCase):
         with VirtualMachine(
                 distro=DISTRO_RHEL7,
                 bridge=settings.vlan_networking.bridge,
-                provisioning_server=settings.compute_resources.libvirt_hostname
+                provisioning_server=prov_server
              ) as client, VirtualMachine(
                 distro=DISTRO_RHEL7,
                 bridge=settings.vlan_networking.bridge,
-                provisioning_server=settings.compute_resources.libvirt_hostname
+                provisioning_server=prov_server
              ) as client2:
                 for vm in client, client2:
                     vm.install_katello_ca()
