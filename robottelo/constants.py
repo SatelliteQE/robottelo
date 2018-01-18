@@ -325,6 +325,7 @@ SAT6_TOOLS_TREE = [
 SATELLITE_FIREWALL_SERVICE_NAME = 'RH-Satellite-6'
 
 DEFAULT_ARCHITECTURE = 'x86_64'
+DEFAULT_LOC_ID = 2
 DEFAULT_ORG_ID = 1
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
