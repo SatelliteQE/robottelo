@@ -794,6 +794,7 @@ class ActivationKeyTestCase(UITestCase):
                         name, locators['ak.fetch_description'])
                     self.assertEqual(selected_desc, new_desc)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_update_env(self):
@@ -826,6 +827,7 @@ class ActivationKeyTestCase(UITestCase):
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(env_name, selected_env)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_update_cv(self):
