@@ -241,20 +241,12 @@ REPOS = {
 }
 
 PRD_SETS = {
-    'rhel_66': {
+    'rhel6_server': {
         'product': u'Red Hat Enterprise Linux Server',
         'reposet': u'Red Hat Enterprise Linux 6 Server (RPMs)',
-        'reponame': u'Red Hat Enterprise Linux 6 Server RPMs x86_64 6.7',
+        'reponame': u'Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server',
         'arch': u'x86_64',
-        'releasever': u'6.7',
-        'label': u'rhel-6-server-rpms'
-    },
-    'rhel_68': {
-        'product': u'Red Hat Enterprise Linux Server',
-        'reposet': u'Red Hat Enterprise Linux 6 Server (RPMs)',
-        'reponame': u'Red Hat Enterprise Linux 6 Server RPMs x86_64 6.8',
-        'arch': u'x86_64',
-        'releasever': u'6.8',
+        'releasever': u'6Server',
         'label': u'rhel-6-server-rpms'
     },
     'rhel6_sat6tools': {
@@ -267,20 +259,12 @@ PRD_SETS = {
         'releasever': None,
         'label': u'rhel-6-server-satellite-tools-6.2-rpms'
     },
-    'rhel_72': {
+    'rhel7_server': {
         'product': u'Red Hat Enterprise Linux Server',
         'reposet': u'Red Hat Enterprise Linux 7 Server (RPMs)',
-        'reponame': u'Red Hat Enterprise Linux 7 Server RPMs x86_64 7.2',
+        'reponame': u'Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server',
         'arch': u'x86_64',
-        'releasever': u'7.2',
-        'label': u'rhel-7-server-rpms'
-    },
-    'rhel_73': {
-        'product': u'Red Hat Enterprise Linux Server',
-        'reposet': u'Red Hat Enterprise Linux 7 Server (RPMs)',
-        'reponame': u'Red Hat Enterprise Linux 7 Server RPMs x86_64 7.3',
-        'arch': u'x86_64',
-        'releasever': u'7.3',
+        'releasever': u'7Server',
         'label': u'rhel-7-server-rpms'
     },
 }
