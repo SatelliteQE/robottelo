@@ -2589,13 +2589,13 @@ def _get_capsule_vm_distro_repos(distro):
     rh_repos = []
     if distro == DISTRO_RHEL7:
         # Red Hat Enterprise Linux 7 Server
-        rh_product_arch = PRD_SETS['rhel_73']['arch']
-        rh_product_releasever = PRD_SETS['rhel_73']['releasever']
+        rh_product_arch = PRD_SETS['rhel7_server']['arch']
+        rh_product_releasever = PRD_SETS['rhel7_server']['releasever']
         rh_repos.append({
-            'product': PRD_SETS['rhel_73']['product'],
-            'repository-set': PRD_SETS['rhel_73']['reposet'],
-            'repository': PRD_SETS['rhel_73']['reponame'],
-            'repository-id': PRD_SETS['rhel_73']['label'],
+            'product': PRD_SETS['rhel7_server']['product'],
+            'repository-set': PRD_SETS['rhel7_server']['reposet'],
+            'repository': PRD_SETS['rhel7_server']['reponame'],
+            'repository-id': PRD_SETS['rhel7_server']['label'],
             'releasever': rh_product_releasever,
             'arch': rh_product_arch
         })
@@ -2609,13 +2609,13 @@ def _get_capsule_vm_distro_repos(distro):
             })
     elif distro == DISTRO_RHEL6:
         # Red Hat Enterprise Linux 6 Server
-        rh_product_arch = PRD_SETS['rhel_68']['arch']
-        rh_product_releasever = PRD_SETS['rhel_68']['releasever']
+        rh_product_arch = PRD_SETS['rhel6_server']['arch']
+        rh_product_releasever = PRD_SETS['rhel6_server']['releasever']
         rh_repos.append({
-            'product': PRD_SETS['rhel_68']['product'],
-            'repository-set': PRD_SETS['rhel_68']['reposet'],
-            'repository': PRD_SETS['rhel_68']['reponame'],
-            'repository-id': PRD_SETS['rhel_68']['label'],
+            'product': PRD_SETS['rhel6_server']['product'],
+            'repository-set': PRD_SETS['rhel6_server']['reposet'],
+            'repository': PRD_SETS['rhel6_server']['reponame'],
+            'repository-id': PRD_SETS['rhel6_server']['label'],
             'releasever': rh_product_releasever,
             'arch': rh_product_arch
         })
