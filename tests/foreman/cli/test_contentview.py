@@ -2937,7 +2937,7 @@ class ContentViewTestCase(CLITestCase):
         self.assertEqual(content_view['content-host-count'], '1')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1470765)
+    @stubbed()
     @tier3
     def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(self):
         """Attempt to subscribe a host with restricted user permissions and
@@ -2945,7 +2945,7 @@ class ContentViewTestCase(CLITestCase):
 
         :id: 0184ab20-2ffd-4377-9efa-4f25bb6e5a0c
 
-        :BZ: 1379856, 1470765
+        :BZ: 1379856, 1470765, 1511481
 
         :steps:
 
@@ -2977,6 +2977,7 @@ class ContentViewTestCase(CLITestCase):
 
         :CaseLevel: System
         """
+        # Note: this test has been stubbed waitin for bug 1511481 resolution
         # prepare the user and the required permissions data
         user_name = gen_alphanumeric()
         user_password = gen_alphanumeric()
