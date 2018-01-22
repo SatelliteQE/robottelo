@@ -250,6 +250,8 @@ class SubscriptionTestCase(CLITestCase):
 
         :id: a44fdeda-9c8c-4316-85b4-a9b6b9f1ffdb
 
+        :customerscenario: true
+
         :steps:
             1. Setup activation key , lifecycle environment and content view
                with RH repository
@@ -414,6 +416,8 @@ class SubscriptionTestCase(CLITestCase):
         file with modified subscription.
 
         :id: d8ac08fe-24e0-41e7-b3d8-0ca13a702a64
+
+        :customerscenario: true
 
         :steps:
             1. Setup activation key , lifecycle environment and content view

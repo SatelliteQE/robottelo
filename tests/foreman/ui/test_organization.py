@@ -108,6 +108,8 @@ class OrganizationTestCase(UITestCase):
 
         :id: 18ad9aad-335a-414e-843e-e1c05ec6bcbb
 
+        :customerscenario: true
+
         :expectedresults: Proper organization is found
 
         :BZ: 1259374
@@ -906,6 +908,8 @@ class OrganizationTestCase(UITestCase):
         organization and vice versa organization is assigned to environment
 
         :id: 7637d83b-3b40-4951-bdda-cdf78aa141f3
+
+        :customerscenario: true
 
         :expectedresults: Organization and environment entities assigned to
             each other

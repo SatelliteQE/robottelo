@@ -100,6 +100,8 @@ class OpenScapPolicy(UITestCase):
 
         :id: 3c1575cb-f290-4d99-bb86-61b9ca6a62eb
 
+        :customerscenario: true
+
         :Steps:
 
             1. Create new host group

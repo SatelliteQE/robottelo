@@ -1119,6 +1119,8 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
 
         :id: 1ddcb2ef-3819-442e-b070-cf44aba58dcd
 
+        :customerscenario: true
+
         :Steps:
 
             1. Create and publish CV with some content

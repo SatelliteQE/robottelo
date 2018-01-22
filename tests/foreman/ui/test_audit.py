@@ -227,6 +227,8 @@ class AuditTestCase(UITestCase):
 
         :id: 74679c0d-7ef1-4ab1-8282-9377c6cabb9f
 
+        :customerscenario: true
+
         :expectedresults: audit log has an entry for a new filter that was
             added to the role
 

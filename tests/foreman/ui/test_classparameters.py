@@ -1024,6 +1024,8 @@ class SmartClassParametersTestCase(UITestCase):
 
         :id: 55242e56-58ed-4957-b118-8de3be7402e3
 
+        :customerscenario: true
+
         :steps:
             1.  Check the Override checkbox.
             2.  Set array key type.
@@ -1173,6 +1175,8 @@ class SmartClassParametersTestCase(UITestCase):
         character inside of it
 
         :id: f5e7847a-1f4b-455d-aa73-6b02774b6168
+
+        :customerscenario: true
 
         :steps:
             1.  Check the Override checkbox.

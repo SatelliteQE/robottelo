@@ -249,6 +249,8 @@ class GPGKey(UITestCase):
 
         :id: e1e04f68-5d4f-43f6-a9c1-b9f566fcbc92
 
+        :customerscenario: true
+
         :expectedresults: correct gpg key is found
 
         :BZ: 1259374

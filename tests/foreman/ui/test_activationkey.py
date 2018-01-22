@@ -217,6 +217,8 @@ class ActivationKeyTestCase(UITestCase):
 
         :id: 358a22d1-d576-475a-b90c-98e90a2ed1a9
 
+        :customerscenario: true
+
         :expectedresults: Only expected activation key can be accessed by new
             non admin user
 
@@ -330,6 +332,8 @@ class ActivationKeyTestCase(UITestCase):
         """Test scoped search for different activation key parameters
 
         :id: 2c2ee1d7-0997-4a89-8f0a-b04e4b6177c0
+
+        :customerscenario: true
 
         :expectedresults: Search functionality returns correct activation key
 
@@ -1656,6 +1660,8 @@ class ActivationKeyTestCase(UITestCase):
          with custom product
 
         :id: 195a8049-860e-494d-b7f0-0794384194f7
+
+        :customerscenario: true
 
         :steps:
             1. Create a product with custom repository synchronized

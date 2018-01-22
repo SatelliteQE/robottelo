@@ -46,6 +46,8 @@ class StatisticTestCase(UITestCase):
 
         :id: b80f555a-c3d6-447d-96c9-e6cd00b3335b
 
+        :customerscenario: true
+
         :expectedresults: Chart is displayed correctly
 
         :BZ: 1332989, 1510064
@@ -64,6 +66,8 @@ class StatisticTestCase(UITestCase):
         """Create new host and check architecture statistic for it
 
         :id: 597e83ca-c355-484f-afdf-f6c219ac13dd
+
+        :customerscenario: true
 
         :expectedresults: Chart is displayed correctly
 

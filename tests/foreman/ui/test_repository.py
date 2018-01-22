@@ -757,6 +757,8 @@ class RepositoryTestCase(UITestCase):
 
         :id: 089b1e41-2017-429a-9c3f-b0291007a78f
 
+        :customerscenario: true
+
         :expectedresults: Repository URL is not changed to invalid value and
             resync procedure for specific yum repository is successful
 
@@ -1783,6 +1785,8 @@ class RepositoryTestCase(UITestCase):
         repository
 
         :id: f22baa8e-80a4-4487-b1bd-f7265555d9a3
+
+        :customerscenario: true
 
         :expectedresults: RH repo was disabled
 

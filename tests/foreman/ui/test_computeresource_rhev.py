@@ -546,6 +546,8 @@ class RhevComputeResourceTestCase(UITestCase):
 
         :id: e7698154-62ff-492b-8e56-c5dc70f0c9df
 
+        :customerscenario: true
+
         :setup: rhev hostname and credentials.
 
         :steps:
@@ -1163,6 +1165,8 @@ class RhevComputeResourceHostTestCase(UITestCase):
 
         :id: 97f66fca-50b4-42bc-b187-3b846f03ab76
 
+        :customerscenario: true
+
         :steps:
 
             1. Prepare an RHEV  compute resource.
@@ -1337,6 +1341,8 @@ class RhevComputeResourceHostTestCase(UITestCase):
         is the host name and example.com the domain name).
 
         :id: 1315e36a-d7d1-4b3b-83a6-a6d622592142
+
+        :customerscenario: true
 
         :steps:
 

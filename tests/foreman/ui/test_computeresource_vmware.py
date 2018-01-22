@@ -545,6 +545,8 @@ class VmwareComputeResourceTestCase(UITestCase):
 
         :id: 24f7bb5f-2aaf-48cb-9a56-d2d0713dfe3d
 
+        :customerscenario: true
+
         :setup: vmware hostname and credentials.
 
         :steps:
@@ -593,6 +595,8 @@ class VmwareComputeResourceTestCase(UITestCase):
         and then inherit it to the host
 
         :id: c16c6d42-3950-46a7-bfe6-5e19bcfa29d0
+
+        :customerscenario: true
 
         :setup: vmware hostname and credentials.
 

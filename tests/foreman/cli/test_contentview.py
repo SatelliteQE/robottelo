@@ -822,6 +822,8 @@ class ContentViewTestCase(CLITestCase):
 
         :id: 90703181-b3f8-44f6-959a-b65c79b6b6ee
 
+        :customerscenario: true
+
         :expectedresults: Content view repository removed successfully
 
         :CaseImportance: Critical
@@ -850,6 +852,8 @@ class ContentViewTestCase(CLITestCase):
         """Remove associated repository from content view by name
 
         :id: dc952fe7-eb89-4760-889b-6a3fa17c3e75
+
+        :customerscenario: true
 
         :expectedresults: Content view repository removed successfully
 
@@ -2582,6 +2586,8 @@ class ContentViewTestCase(CLITestCase):
         latest content view version.
 
         :id: c0726d16-1802-4b56-a850-d66948ab70e2
+
+        :customerscenario: true
 
         :steps:
             1. Create a non composite content view and publish it
@@ -4589,6 +4595,8 @@ class ContentViewTestCase(CLITestCase):
 
         :id: 34bdd55f-f9b5-4d4e-bd35-acd0aae3380d
 
+        :customerscenario: true
+
         :expectedresults: Incremental update went successfully
 
         :CaseImportance: Medium
@@ -4660,6 +4668,8 @@ class ContentViewTestCase(CLITestCase):
         :BZ: 1288148
 
         :id: 97f7c34d-0b89-49ca-ae2a-65a4552789b8
+
+        :customerscenario: true
 
         :Steps:
 

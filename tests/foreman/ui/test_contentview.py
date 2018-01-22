@@ -344,6 +344,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 36ccb083-3433-4b54-911a-856e3dc85f39
 
+        :customerscenario: true
+
         :steps:
             1.  Create a repo with 'publish via http' set to true, url set to
                 some upstream repo
@@ -385,6 +387,8 @@ class ContentViewTestCase(UITestCase):
         """create content view with puppet repository
 
         :id: c772d55b-6762-4c25-bbaf-83e7c200fe8a
+
+        :customerscenario: true
 
         :steps:
             1. Create Product/puppet repo and Sync it
@@ -598,6 +602,8 @@ class ContentViewTestCase(UITestCase):
         :BZ: 1455990, 1492114
 
         :id: b4c120b6-129f-4344-8634-df5858c10fef
+
+        :customerscenario: true
 
         :expectedresults: Errata exclusion by date filter doesn't affect
             packages - errata was successfully filtered out, however packages
@@ -901,6 +907,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: fb43791c-60ee-4190-86be-34ccba411396
 
+        :customerscenario: true
+
         :expectedresults: New errata and corresponding package are present
             in new content view version
 
@@ -995,6 +1003,8 @@ class ContentViewTestCase(UITestCase):
         :BZ: 1304891
 
         :id: 1a870ad6-c79c-49fc-b449-8c7e74dd95ff
+
+        :customerscenario: true
 
         :Steps:
 
@@ -1250,6 +1260,8 @@ class ContentViewTestCase(UITestCase):
         new content view version
 
         :id: bc0be8e8-af53-4db8-937d-93c49c937dcc
+
+        :customerscenario: true
 
         :BZ: 1275756
 
@@ -1736,6 +1748,8 @@ class ContentViewTestCase(UITestCase):
         """Search for content view by its composite property criteria
 
         :id: 214a721b-3993-4251-9b7c-0f6d2446c1d1
+
+        :customerscenario: true
 
         :expectedresults: Composite content view is successfully found
 
@@ -2588,6 +2602,8 @@ class ContentViewTestCase(UITestCase):
          puppet repo and it's module added to content view
 
         :id: 9562c548-5b65-4b79-acc7-382f8a21249d
+
+        :customerscenario: true
 
         :steps:
             1. Create a product with a puppet repository
@@ -4139,6 +4155,8 @@ class ContentViewTestCase(UITestCase):
 
         :id: 7b076f55-72c9-4413-a592-92a47b51cb0a
 
+        :customerscenario: true
+
         :expectedresults: Deletion was performed successfully
 
         :BZ: 1417072
@@ -5057,6 +5075,8 @@ class ContentViewTestCase(UITestCase):
         view
 
         :id: af553367-e621-41e8-86cb-091ba7ba6c0a
+
+        :customerscenario: true
 
         :expectedresults: puppet environment is created and has expected name
 

@@ -765,6 +765,8 @@ class HostCollectionPackageManagementTest(UITestCase):
 
         :id: e426064a-db3d-4a94-822a-fc303defe1f9
 
+        :customerscenario: true
+
         :steps:
             1. Setup activation key with content view that contain product
                repositories

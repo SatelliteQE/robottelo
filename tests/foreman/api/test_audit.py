@@ -31,6 +31,8 @@ class AuditTestCase(APITestCase):
 
         :id: 6c7ea7fc-6728-447f-9655-26fe0a2881bc
 
+        :customerscenario: true
+
         :expectedresults: Audit logs contain corresponding entries per each
             create event
 

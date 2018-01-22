@@ -257,6 +257,8 @@ class SubscriptionTestCase(UITestCase):
 
         :id: cc4593f0-66ab-4bf6-87d1-d4bd9c89eba5
 
+        :customerscenario: true
+
         :steps:
             1. Upload a manifest with Virtual Datacenters subscription
             2. Enable a products provided by Virtual Datacenters subscription,
@@ -347,6 +349,8 @@ class SubscriptionTestCase(UITestCase):
         Products and Content Products are not empty.
 
         :id: 4a6f6933-8e26-4c47-b544-a300e11a8454
+
+        :customerscenario: true
 
         :steps:
             1. Upload a manifest with Virtual Datacenters subscription

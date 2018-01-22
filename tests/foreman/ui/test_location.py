@@ -367,6 +367,8 @@ class LocationTestCase(UITestCase):
 
         :id: 17f85968-4aa6-4e2e-82d9-b01bc17031e7
 
+        :customerscenario: true
+
         :expectedresults: Location and user entities assigned to each other
 
         :BZ: 1479736

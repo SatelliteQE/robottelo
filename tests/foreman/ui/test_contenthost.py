@@ -161,6 +161,8 @@ class ContentHostTestCase(UITestCase):
 
         :id: c42c1347-8b3a-4ba7-95d1-609e2e9ec40e
 
+        :customerscenario: true
+
         :expectedresults: Validate that content hosts are sorted properly
 
         :BZ: 1281251
@@ -222,6 +224,8 @@ class ContentHostTestCase(UITestCase):
         """Attempt to install non-existent package to a host remotely
 
         :id: d60b70f9-c43f-49c0-ae9f-187ffa45ac97
+
+        :customerscenario: true
 
         :BZ: 1262940
 
@@ -358,6 +362,8 @@ class ContentHostTestCase(UITestCase):
 
         :id: 5b8887d2-987f-4bce-86a1-8f65ca7e1195
 
+        :customerscenario: true
+
         :BZ: 1255515
 
         :expectedresults: User can access errata page and proper errata is
@@ -454,6 +460,8 @@ class ContentHostTestCase(UITestCase):
 
         :id: 30b1e512-45e5-481e-845f-5344ed81450d
 
+        :customerscenario: true
+
         :steps:
             1. Prepare an activation key with content view that contain a
                 repository with a package that has errata
@@ -512,6 +520,8 @@ class ContentHostTestCase(UITestCase):
             8. Verify that new OS is created
 
         :id: 71bed439-105c-4e87-baae-738379d055fb
+
+        :customerscenario: true
 
         :expectedresults: Host facts impact its own values properly according
             to the setting values
@@ -636,6 +646,8 @@ class ContentHostTestCase(UITestCase):
         without and with attached subscription.
 
         :id: 8b2cc5d6-ac85-463f-a973-f4818c55fb37
+
+        :customerscenario: true
 
         :expectedresults:
             1. With subscription not attached, Subscription status is

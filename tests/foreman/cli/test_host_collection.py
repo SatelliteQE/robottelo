@@ -197,6 +197,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :id: 447a7602-a017-4b08-b2f2-10ac868b3fee
 
+        :customerscenario: true
+
         :expectedresults: Host collection is created and name is updated
 
         :BZ: 1328925
@@ -291,6 +293,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :id: a841a9f8-4285-40e5-9670-3f379dfd9a1e
 
+        :customerscenario: true
+
         :expectedresults: Host collection is created and then deleted
 
         :BZ: 1328925
@@ -340,6 +344,8 @@ class HostCollectionTestCase(CLITestCase):
         """Check if content host can be added to host collection by name
 
         :id: fe468f76-4693-4509-b534-126fce187194
+
+        :customerscenario: true
 
         :expectedresults: Host collection is created and content-host is added
 
@@ -400,6 +406,8 @@ class HostCollectionTestCase(CLITestCase):
         """Check if content host can be removed from host collection by name
 
         :id: 924d0137-3a9e-4ecd-9631-c21f7e9a8d5d
+
+        :customerscenario: true
 
         :expectedresults: Host collection is created and content-host is
             removed
@@ -649,6 +657,8 @@ class HostCollectionTestCase(CLITestCase):
 
         :id: fd7cea50-bc56-4938-a81d-4f7a60711814
 
+        :customerscenario: true
+
         :expectedresults: Host collection is cloned successfully
 
         :BZ: 1328925
@@ -674,6 +684,8 @@ class HostCollectionTestCase(CLITestCase):
         """Check if host collection can be cloned by name
 
         :id: ca9be8de-ea9a-4890-8890-a1809a85a4ff
+
+        :customerscenario: true
 
         :expectedresults: Host collection is cloned successfully
 

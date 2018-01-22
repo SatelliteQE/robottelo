@@ -173,6 +173,8 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         :id: fac35a44-0bc9-44e9-a2c3-398e1aa9900c
 
+        :customerscenario: true
+
         :expectedresults: The capsule successfully reinstalled
 
         :BZ: 1327442

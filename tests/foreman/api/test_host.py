@@ -283,6 +283,8 @@ class HostTestCase(APITestCase):
 
         :id: 5e17e968-7fe2-4e5b-90ca-ae66f4e5307a
 
+        :customerscenario: true
+
         :expectedresults: Host has inherited parameters from organization and
             location
 
@@ -1333,6 +1335,8 @@ class HostTestCase(APITestCase):
 
         :id: 0a7fd8d4-1ea8-4b21-8c46-10579644fd11
 
+        :customerscenario: true
+
         :expectedresults: content_source_id is present in GET host request
             response
 
@@ -1371,6 +1375,8 @@ class HostTestCase(APITestCase):
 
         :id: d47214d2-a54c-4385-abfb-a0607ecb6ec7
 
+        :customerscenario: true
+
         :expectedresults: content_source_id is present in PUT host request
             response
 
@@ -1408,6 +1414,8 @@ class HostTestCase(APITestCase):
         """Attempt to read host ENC information
 
         :id: 0d5047ab-2686-43de-8f04-cfe12b62eebf
+
+        :customerscenario: true
 
         :expectedresults: host ENC information read successfully
 
@@ -1741,6 +1749,8 @@ class HostTestCase(APITestCase):
         """Search for host by specifying host's organization id
 
         :id: 56353f7c-b77e-4b6c-9ec3-51b58f9a18d8
+
+        :customerscenario: true
 
         :expectedresults: Search functionality works as expected and correct
             result is returned

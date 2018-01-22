@@ -297,6 +297,8 @@ class HostgroupTestCase(UITestCase):
 
         :id: bd046e9a-f0d0-4110-8f94-fd04193cb3af
 
+        :customerscenario: true
+
         :BZ: 1254102
 
         :expectedresults: Hostgroup was not deleted. Informative error message

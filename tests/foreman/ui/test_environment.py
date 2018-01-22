@@ -75,6 +75,8 @@ class EnvironmentTestCase(UITestCase):
 
         :id: badcfdd8-48a2-4abf-bef0-d4ff5c0f4c87
 
+        :customerscenario: true
+
         :expectedresults: Environment can be used for any new host and any
             organization where it is present in
 
@@ -103,6 +105,8 @@ class EnvironmentTestCase(UITestCase):
         visible for any created hostgroup in these organizations
 
         :id: 07ff316e-16c2-493e-a987-73d59f8e81c7
+
+        :customerscenario: true
 
         :expectedresults: Environment can be used for any new hostgroup and any
             organization where it is present in

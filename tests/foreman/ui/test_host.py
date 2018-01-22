@@ -401,6 +401,8 @@ class LibvirtHostTestCase(UITestCase):
 
         :id: 6a9175e7-bb96-4de3-bc45-ba6c10dd14a4
 
+        :customerscenario: true
+
         :expectedresults: Proper warning message is displayed on delete attempt
             and host deleted successfully afterwards
 
@@ -787,6 +789,8 @@ class HostTestCase(UITestCase):
 
         :id: 78fd230e-2ec4-4158-823b-ddbadd5e232f
 
+        :customerscenario: true
+
         :expectedresults: user with insufficient permissions is unable to
             remove host parameter, 'Remove' link is not visible for him
 
@@ -836,6 +840,8 @@ class HostTestCase(UITestCase):
         when host is created
 
         :id: 4502f99d-86fb-4655-a9dc-b2612cf849c6
+
+        :customerscenario: true
 
         :expectedresults: user with specific permissions can choose only
             entities for create host procedure that he has access to
@@ -1352,6 +1358,8 @@ class HostTestCase(UITestCase):
 
         :id: a3bb5bc5-cb9c-4b56-b383-f3e4d3d4d222
 
+        :customerscenario: true
+
         :expectedresults: Search functionality works as expected and correct
             result is returned
 
@@ -1377,6 +1385,8 @@ class HostTestCase(UITestCase):
         descendingly
 
         :id: 12f75ef9-23e6-48be-80ed-b354e8ac212b
+
+        :customerscenario: true
 
         :expectedresults: Host entities are sorted properly
 
@@ -1425,6 +1435,8 @@ class HostTestCase(UITestCase):
         ascendingly and then descendingly
 
         :id: 617e812d-258e-4ba4-8a9a-d7d02f2fb405
+
+        :customerscenario: true
 
         :expectedresults: Host entities are sorted properly
 
@@ -1476,6 +1488,8 @@ class HostTestCase(UITestCase):
 
         :id: 8a1e8d6d-dc5f-4b78-9844-80355452c979
 
+        :customerscenario: true
+
         :expectedresults: Host entities are sorted properly
 
         :CaseImportance: High
@@ -1521,6 +1535,8 @@ class HostTestCase(UITestCase):
         ascendingly and then descendingly
 
         :id: 56853ffb-47b2-47ce-89c5-d295c16200c8
+
+        :customerscenario: true
 
         :expectedresults: Host entities are sorted properly
 
@@ -1568,6 +1584,8 @@ class HostTestCase(UITestCase):
         and then descendingly
 
         :id: d1ac744a-ff76-4afe-84a1-3a7e4b3ca3f1
+
+        :customerscenario: true
 
         :expectedresults: Host entities are sorted properly
 
@@ -1689,6 +1707,8 @@ class HostTestCase(UITestCase):
 
         :id: 05831ecc-3132-4eb7-ad90-155470f331b6
 
+        :customerscenario: true
+
         :expectedresults: Expected puppet environment is inherited to the form
 
         :BZ: 1414914
@@ -1731,6 +1751,8 @@ class HostTestCase(UITestCase):
         host when corresponding action is applied to that host
 
         :id: 3f5af54e-e259-46ad-a2af-7dc1850891f5
+
+        :customerscenario: true
 
         :expectedresults: Expected puppet environment is inherited to the host
 
@@ -1793,6 +1815,8 @@ class HostTestCase(UITestCase):
         'Reset Puppet Environment to match selected Content View' button
 
         :id: f8f35bd9-9e7c-418f-837a-ccec21c05d59
+
+        :customerscenario: true
 
         :expectedresults: Expected puppet environment is inherited to the field
 
@@ -1869,6 +1893,8 @@ class HostTestCase(UITestCase):
         correctly represented in yaml format
 
         :id: d72b481d-2279-4478-ab2d-128f92c76d9c
+
+        :customerscenario: true
 
         :expectedresults:
             1. parameter is correctly represented in yaml format without

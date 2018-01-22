@@ -1166,6 +1166,8 @@ class RepositoryTestCase(APITestCase):
 
         :id: 4dba5b31-1818-45dd-a9bd-3ec627c3db57
 
+        :customerscenario: true
+
         :expectedresults: The repository data file successfully accessed.
 
         :BZ: 1242310
