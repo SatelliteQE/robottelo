@@ -79,6 +79,7 @@ from robottelo.datafactory import (
     invalid_http_credentials,
     invalid_values_list,
     valid_data_list,
+    valid_docker_repository_names,
     valid_http_credentials,
 )
 from robottelo.decorators.host import skip_if_os
@@ -623,7 +624,7 @@ class RepositoryTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        for name in valid_data_list():
+        for name in valid_docker_repository_names():
             with self.subTest(name):
                 content_type = u'docker'
                 new_repo = self._make_repository({
