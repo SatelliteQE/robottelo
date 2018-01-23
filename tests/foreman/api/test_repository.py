@@ -52,6 +52,7 @@ from robottelo.datafactory import (
     invalid_names_list,
     invalid_values_list,
     valid_data_list,
+    valid_docker_repository_names,
     valid_http_credentials,
     valid_labels_list,
 )
@@ -1252,7 +1253,7 @@ class DockerRepositoryTestCase(APITestCase):
         :CaseImportance: Critical
         """
         product = entities.Product(organization=self.org).create()
-        for name in valid_data_list():
+        for name in valid_docker_repository_names():
             with self.subTest(name):
                 repo = entities.Repository(
                     content_type=u'docker',
