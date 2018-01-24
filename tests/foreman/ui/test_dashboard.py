@@ -629,7 +629,7 @@ class DashboardTestCase(UITestCase):
             client.register_contenthost(
                 org.label, activation_key.name)
             self.assertTrue(client.subscribed)
-            client.enable_repo(REPOS['rhst7']['id'])
+            client.enable_repo(REPOS['rhst7']['id'], force=True)
             client.install_katello_agent()
             with Session(self) as session:
                 set_context(session, org=org.name)
