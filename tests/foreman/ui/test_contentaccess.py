@@ -130,7 +130,7 @@ class ContentAccessTestCase(UITestCase):
                     settings.cdn or not settings.sattools_repo['rhel7']),
             },
         ]
-        cls.repos_info = setup_cdn_and_custom_repositories(
+        cls.custom_product, cls.repos_info = setup_cdn_and_custom_repositories(
             cls.session_org.id, cls.repos)
         # Create a content view
         content_view = entities.ContentView(
@@ -145,6 +145,33 @@ class ContentAccessTestCase(UITestCase):
         # displayed tests
         cls.activation_key = entities.ActivationKey(
             organization=cls.session_org).create()
+
+    def _setup_virtual_machine(self, vm):
+        """Make the initial virtual machine setup
+
+        :param VirtualMachine vm: The virtual machine setup
+        """
+        vm.install_katello_ca()
+        vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
+        self.assertTrue(vm.subscribed)
+        vm.patch_os_release_version(distro=DISTRO_RHEL7)
+        # Enable RH repos
+        for repo in self.repos:
+            if repo['cdn']:
+                vm.enable_repo(repo['repository-id'], force=True)
+        # Enable custom repos
+        if self.custom_product:
+            for repo_info in self.repos_info:
+                if repo_info['red-hat-repository'] == 'no':
+                    result = vm.run(
+                        'yum-config-manager --enable {0}_{1}_{2}'.format(
+                            self.session_org.label,
+                            self.custom_product['label'],
+                            repo_info['label'],
+                        )
+                    )
+                    self.assertEqual(result.return_code, 0)
+        vm.install_katello_agent()
 
     @run_only_on('sat')
     @tier2
@@ -166,15 +193,7 @@ class ContentAccessTestCase(UITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.create()
-            vm.install_katello_ca()
-            vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
-            self.assertTrue(vm.subscribed)
-            vm.patch_os_release_version(distro=DISTRO_RHEL7)
-            # trigger subscription-manager repos to auto enable repositories
-            result = vm.run('subscription-manager repos')
-            self.assertEqual(result.return_code, 0)
-            # at this stage all repositories should be enabled automatically
-            vm.install_katello_agent()
+            self._setup_virtual_machine(vm)
             # install a the packages that has updates with errata
             result = vm.run(
                 'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
@@ -209,21 +228,19 @@ class ContentAccessTestCase(UITestCase):
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.create()
-            vm.install_katello_ca()
-            vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
-            self.assertTrue(vm.subscribed)
-            vm.patch_os_release_version(distro=DISTRO_RHEL7)
-            # trigger subscription-manager repos to auto enable repositories
-            result = vm.run('subscription-manager repos')
-            self.assertEqual(result.return_code, 0)
-            # at this stage all repositories should be enabled automatically
-            vm.install_katello_agent()
+            self._setup_virtual_machine(vm)
             # install a the packages that has updates with errata
             result = vm.run(
                 'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
             result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
+            # force host to generate/refresh errata applicability
+            host = entities.Host(
+                name=vm.hostname,
+                organization=self.session_org
+            ).search()[0].read()
+            host.errata_applicability()
             # check that package errata is applicable
             with Session(self) as session:
                 set_context(session, org=self.session_org.name)

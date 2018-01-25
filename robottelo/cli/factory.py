@@ -84,6 +84,7 @@ from robottelo.constants import (
     REPOSET,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
+    SATELLITE_SUBSCRIPTION_NAME,
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
@@ -3582,16 +3583,18 @@ def _get_capsule_vm_distro_repos(distro):
             'repository': REPOS['rhel7']['name'],
             'repository-id': REPOS['rhel7']['id'],
             'releasever': rh_product_releasever,
-            'arch': rh_product_arch
+            'arch': rh_product_arch,
+            'cdn': True,
         })
         # Red Hat Satellite Capsule 6.2 (for RHEL 7 Server)
-        if settings.cdn or not settings.capsule_repo:
-            rh_repos.append({
-                'product': PRDS['rhsc'],
-                'repository-set': REPOSET['rhsc7'],
-                'repository': REPOS['rhsc7']['name'],
-                'repository-id': REPOS['rhsc7']['id'],
-            })
+        rh_repos.append({
+            'product': PRDS['rhsc'],
+            'repository-set': REPOSET['rhsc7'],
+            'repository': REPOS['rhsc7']['name'],
+            'repository-id': REPOS['rhsc7']['id'],
+            'url': settings.capsule_repo,
+            'cdn': bool(settings.cdn or not settings.capsule_repo),
+        })
     else:
         raise CLIFactoryError('distro "{}" not supported'.format(distro))
 
@@ -3659,148 +3662,30 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
         capsule_lce = LifecycleEnvironment.info({
             'id': lce_id, 'organization-id': org_id})
 
-    # Upload the org manifest
-    try:
-        manifests.upload_manifest_locked(org_id, manifests.clone(),
-                                         interface=manifests.INTERFACE_CLI)
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to upload manifest\n{0}'.format(err.msg))
-
-    # Enable the RH capsule products
-    for rh_repo in rh_repos:
-        try:
-            RepositorySet.enable({
-                u'basearch': rh_product_arch,
-                u'name': rh_repo['repository-set'],
-                u'organization-id': org_id,
-                u'product': rh_repo['product'],
-                u'releasever': rh_repo.get('releasever'),
-            })
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to enable repository set\n{0}'.format(err.msg))
-    # Retrieve the repositories info
-    rh_repos_info = []
-    for rh_repo in rh_repos:
-        try:
-            rh_repo_info = Repository.info({
-                u'name': rh_repo['repository'],
-                u'organization-id': org_id,
-                u'product': rh_repo['product'],
-            })
-            rh_repos_info.append(rh_repo_info)
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to fetch repository info\n{0}'.format(err.msg))
-    # If we aren't working with CDN, create custom repo with latest capsule
-    # repo available
-    if not settings.cdn and settings.capsule_repo:
-        prod = make_product_wait({
-            'name': 'capsule-{}'.format(gen_string('alphanumeric')),
-            'organization-id': org_id,
-        })
-        capsule_repo = make_repository({
-            'name': 'capsule-{}'.format(gen_string('alphanumeric')),
-            'product-id': prod['id'],
-            'organization-id': org_id,
-            'url': settings.capsule_repo,
-        })
-        rh_repos_info.append(capsule_repo)
-    # Set download policy to 'on demand'
-    for rh_repo in rh_repos_info:
-        Repository.update({
-            'download-policy': 'on_demand',
-            'id': rh_repo['id'],
-        })
-    # Synchronize the repositories
-    for rh_repo in rh_repos_info:
-        try:
-            Repository.synchronize({'id': rh_repo['id']}, timeout=4800)
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to synchronize repository\n{0}'.format(err.msg))
-    # Create a content view
-    content_view_id = make_content_view({
-        u'organization-id': org_id,
-        u'name': 'capsule-{0}'.format(gen_string('alpha', 10))
-    })['id']
-    for rh_repo_info in rh_repos_info:
-        try:
-            ContentView.add_repository({
-                u'id': content_view_id,
-                u'organization-id': org_id,
-                u'repository-id': rh_repo_info['id'],
-            })
-        except CLIReturnCodeError as err:
-            raise CLIFactoryError(
-                u'Failed to add repository to content view\n{0}'
-                .format(err.msg)
-            )
-    # Publish the content view
-    try:
-        ContentView.publish({u'id': content_view_id})
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to publish new version of content view\n{0}'
-            .format(err.msg)
-        )
-    # Get the latest content view version id
-    try:
-        content_view_version = ContentView.info(
-            {u'id': content_view_id}
-        )['versions'][-1]
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to fetch content view info\n{0}'.format(err.msg))
-    # Promote content view version to lifecycle environment
-    try:
-        ContentView.version_promote({
-            u'id': content_view_version['id'],
-            u'organization-id': org_id,
-            u'to-lifecycle-environment-id': lce_id,
-        })
-    except CLIReturnCodeError as err:
-        raise CLIFactoryError(
-            u'Failed to promote version to next environment\n{0}'
-            .format(err.msg)
-        )
-    activation_key = make_activation_key({
-        u'organization-id': org_id,
-        u'lifecycle-environment-id': lce_id,
-        u'content-view-id': content_view_id,
-        u'name': 'capsule-{0}'.format(gen_alphanumeric())
-    })
-    ActivationKey.update({
-        'auto-attach': 0,
-        'id': activation_key['id'],
-        'organization-id': org_id,
-    })
-    # Add subscriptions to activation-key
-    subscriptions = Subscription.list({'organization-id': org_id})
-    for subscription in subscriptions:
-        activationkey_add_subscription_to_repo({
-            'organization-id': org_id,
-            'activationkey-id': activation_key['id'],
-            'subscription': subscription['name']
-        })
+    content_setup_data = setup_cdn_and_custom_repos_content(
+        org_id=org_id,
+        lce_id=lce_id,
+        repos=rh_repos,
+        upload_manifest=True,
+        rh_subscriptions=[
+            DEFAULT_SUBSCRIPTION_NAME,
+            SATELLITE_SUBSCRIPTION_NAME,
+        ]
+    )
     # Install katello ca on capsule virtual machine
     capsule_vm.install_katello_ca()
     # Register the capsule host to satellite
     capsule_vm.register_contenthost(
         capsule_org['name'],
-        activation_key=activation_key['name']
+        activation_key=content_setup_data['activation_key']['name']
     )
     # Patch the os release version
-    capsule_vm.run(
-        "touch /etc/yum/vars/releasever "
-        "&& echo '{0}' > /etc/yum/vars/releasever"
-        .format(rh_product_releasever)
-    )
+    capsule_vm.patch_os_release_version(distro=capsule_vm.capsule_distro)
+
     # Enable the repositories
     for repo in rh_repos:
-        repo_id = repo['repository-id']
-        capsule_vm.enable_repo(repo_id)
+        if repo['cdn']:
+            capsule_vm.enable_repo(repo['repository-id'])
 
     # Refresh the subscription
     capsule_vm.run('subscription-manager refresh')
@@ -4003,7 +3888,7 @@ def setup_cdn_and_custom_repositories(
     # Synchronize the repositories
     for repo_info in repos_info:
         Repository.synchronize({'id': repo_info['id']}, timeout=4800)
-    return repos_info
+    return custom_product, repos_info
 
 
 def setup_cdn_and_custom_repos_content(
@@ -4033,48 +3918,11 @@ def setup_cdn_and_custom_repos_content(
             raise CLIFactoryError(
                 u'Failed to upload manifest\n{0}'.format(err.msg))
 
-    custom_product = None
-    repos_info = []
-    for repo in repos:
-        custom_repo_url = repo.get('url')
-        cdn = repo.get('cdn', False)
-        if not cdn and not custom_repo_url:
-            raise CLIFactoryError(u'Custom repository with url not supplied')
-        if cdn:
-            RepositorySet.enable({
-                u'organization-id': org_id,
-                u'product': repo['product'],
-                u'name': repo['repository-set'],
-                u'basearch': repo.get('arch', DEFAULT_ARCHITECTURE),
-                u'releasever': repo.get('releasever'),
-            })
-            repo_info = Repository.info({
-                    u'organization-id': org_id,
-                    u'name': repo['repository'],
-                    u'product': repo['product'],
-            })
-            if not rh_subscriptions:
-                rh_subscriptions.append(DEFAULT_SUBSCRIPTION_NAME)
-        else:
-            if custom_product is None:
-                custom_product = make_product_wait({
-                    'organization-id': org_id,
-                })
-            repo_info = make_repository({
-                'product-id': custom_product['id'],
-                'organization-id': org_id,
-                'url': custom_repo_url,
-            })
-        if download_policy:
-            # Set download policy
-            Repository.update({
-                'download-policy': download_policy,
-                'id': repo_info['id'],
-            })
-        repos_info.append(repo_info)
-    # Synchronize the repositories
-    for repo_info in repos_info:
-        Repository.synchronize({'id': repo_info['id']}, timeout=4800)
+    custom_product, repos_info = setup_cdn_and_custom_repositories(
+        org_id=org_id,
+        repos=repos,
+        download_policy=download_policy
+    )
     # Create a content view
     content_view_id = make_content_view({u'organization-id': org_id})['id']
     # Add repositories to content view
@@ -4254,7 +4102,12 @@ def virt_who_hypervisor_config(
         },
     ]
     content_setup_data = setup_cdn_and_custom_repos_content(
-            org['id'], lce['id'], repos, upload_manifest=upload_manifest)
+        org['id'],
+        lce['id'],
+        repos,
+        upload_manifest=upload_manifest,
+        rh_subscriptions=[DEFAULT_SUBSCRIPTION_NAME],
+    )
     activation_key = content_setup_data['activation_key']
     content_view = content_setup_data['content_view']
     # Subscribe virt-who vm to Satellite
@@ -4265,11 +4118,7 @@ def virt_who_hypervisor_config(
         raise CLIFactoryError(
             u'Virt-Who host failed to subscribe to satellite')
     # Patch the os release version
-    virt_who_vm.run(
-        "touch /etc/yum/vars/releasever "
-        "&& echo '{0}' > /etc/yum/vars/releasever"
-        .format(rh_product_releasever)
-    )
+    virt_who_vm.patch_os_release_version(distro=DISTRO_RHEL7)
     # Enable the repositories
     for repo in repos:
         if repo['cdn']:

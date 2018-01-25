@@ -108,7 +108,7 @@ class ContentAccessTestCase(APITestCase):
                     settings.cdn or not settings.sattools_repo['rhel7']),
             },
         ]
-        cls.repos_info = setup_cdn_and_custom_repositories(
+        cls.custom_product, cls.repos_info = setup_cdn_and_custom_repositories(
             cls.org.id, cls.repos)
         # Create a content view
         content_view = entities.ContentView(
@@ -147,10 +147,23 @@ class ContentAccessTestCase(APITestCase):
             vm.register_contenthost(self.org.label, lce=ENVIRONMENT)
             self.assertTrue(vm.subscribed)
             vm.patch_os_release_version(distro=DISTRO_RHEL7)
-            # trigger subscription-manager repos to auto enable repositories
-            result = vm.run('subscription-manager repos')
-            self.assertEqual(result.return_code, 0)
-            # at this stage all repositories should be enabled automatically
+            # Enable RH repos
+            for repo in self.repos:
+                if repo['cdn']:
+                    vm.enable_repo(repo['repository-id'], force=True)
+            # Enable custom repos
+            if self.custom_product:
+                for repo_info in self.repos_info:
+                    if repo_info['red-hat-repository'] == 'no':
+                        result = vm.run(
+                            'yum-config-manager --enable {0}_{1}_{2}'.format(
+                                self.org.label,
+                                self.custom_product['label'],
+                                repo_info['label'],
+                            )
+                        )
+                        self.assertEqual(result.return_code, 0)
+
             vm.install_katello_agent()
             host = entities.Host(
                 name=vm.hostname, organization=self.org).search()[0].read()
