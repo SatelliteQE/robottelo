@@ -3685,7 +3685,7 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
     # Enable the repositories
     for repo in rh_repos:
         if repo['cdn']:
-            capsule_vm.enable_repo(repo['repository-id'])
+            capsule_vm.enable_repo(repo['repository-id'], force=True)
 
     # Refresh the subscription
     capsule_vm.run('subscription-manager refresh')
@@ -4122,7 +4122,7 @@ def virt_who_hypervisor_config(
     # Enable the repositories
     for repo in repos:
         if repo['cdn']:
-            virt_who_vm.enable_repo(repo['repository-id'])
+            virt_who_vm.enable_repo(repo['repository-id'], force=True)
 
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm
