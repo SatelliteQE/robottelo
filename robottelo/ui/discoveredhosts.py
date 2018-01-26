@@ -3,6 +3,7 @@
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
+from selenium.common.exceptions import StaleElementReferenceException
 from time import sleep
 
 
@@ -81,7 +82,11 @@ class DiscoveredHosts(Base):
 
     def fetch_fact_value(self, hostname, element):
         """Fetch the value of selected fact from discovered hosts page"""
-        host = self.search(hostname)
+        try:
+            host = self.search(hostname)
+        except StaleElementReferenceException:
+            # Repeat action in case of DOM was changed
+            host = self.search(hostname)
         if not host:
             raise UIError(
                 'Could not find the selected discovered host "{0}"'
