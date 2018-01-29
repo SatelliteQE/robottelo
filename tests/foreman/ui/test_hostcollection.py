@@ -32,9 +32,9 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_0_YUM_REPO,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_1_YUM_REPO,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
     FAKE_6_YUM_REPO,
@@ -494,7 +494,7 @@ class HostCollectionPackageManagementTest(UITestCase):
                 'content-view-id': cls.content_view.id,
                 'lifecycle-environment-id': cls.env.id,
                 'activationkey-id': cls.activation_key.id,
-            }) for url in [FAKE_0_YUM_REPO, FAKE_6_YUM_REPO]
+            }) for url in [FAKE_1_YUM_REPO, FAKE_6_YUM_REPO]
         ]
         cls.rh_sat_tools_custom_product = None
         cls.rh_sat_tools_custom_repository = None

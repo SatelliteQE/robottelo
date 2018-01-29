@@ -56,8 +56,8 @@ from robottelo.constants import (
     FAKE_1_YUM_ERRATUM_COUNT,
     FAKE_3_YUM_ERRATUM_COUNT,
     FAKE_6_YUM_ERRATUM_COUNT,
-    FAKE_0_YUM_REPO,
     FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO,
     FAKE_3_YUM_REPO,
     FAKE_6_YUM_REPO,
     REAL_4_ERRATA_ID,
@@ -472,6 +472,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
 class ErrataTestCase(CLITestCase):
     """Hammer CLI Tests for Erratum command"""
+
     @classmethod
     def setUpClass(cls):
         """Create 3 organizations
@@ -517,7 +518,7 @@ class ErrataTestCase(CLITestCase):
             'download-policy': 'immediate',
             'organization-id': cls.org_multi['id'],
             'product-id': cls.org_multi_product_small['id'],
-            'url': FAKE_0_YUM_REPO
+            'url': FAKE_2_YUM_REPO
         })
         Repository.synchronize({'id': repo['id']})
         cls.org_multi_product_small_erratum_count = FAKE_0_YUM_ERRATUM_COUNT
