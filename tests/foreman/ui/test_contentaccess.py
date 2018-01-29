@@ -28,7 +28,10 @@ from robottelo.constants import (
     REPOSET,
     PRDS,
 )
-from robottelo.cli.factory import setup_cdn_and_custom_repositories
+from robottelo.cli.factory import (
+    setup_cdn_and_custom_repositories,
+    setup_virtual_machine,
+)
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -151,27 +154,21 @@ class ContentAccessTestCase(UITestCase):
 
         :param VirtualMachine vm: The virtual machine setup
         """
-        vm.install_katello_ca()
-        vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
-        self.assertTrue(vm.subscribed)
-        vm.patch_os_release_version(distro=DISTRO_RHEL7)
-        # Enable RH repos
-        for repo in self.repos:
-            if repo['cdn']:
-                vm.enable_repo(repo['repository-id'], force=True)
-        # Enable custom repos
-        if self.custom_product:
-            for repo_info in self.repos_info:
-                if repo_info['red-hat-repository'] == 'no':
-                    result = vm.run(
-                        'yum-config-manager --enable {0}_{1}_{2}'.format(
-                            self.session_org.label,
-                            self.custom_product['label'],
-                            repo_info['label'],
-                        )
-                    )
-                    self.assertEqual(result.return_code, 0)
-        vm.install_katello_agent()
+        setup_virtual_machine(
+            vm,
+            self.session_org.label,
+            rh_repos_id=[
+                repo['repository-id'] for repo in self.repos if repo['cdn']
+            ],
+            product_label=self.custom_product['label'],
+            repos_label=[
+                repo['label'] for repo in self.repos_info
+                if repo['red-hat-repository'] == 'no'
+            ],
+            lce=ENVIRONMENT,
+            patch_os_release_distro=DISTRO_RHEL7,
+            install_katello_agent=True,
+        )
 
     @run_only_on('sat')
     @tier2
@@ -192,7 +189,6 @@ class ContentAccessTestCase(UITestCase):
                Golden Ticket is enabled.
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
             self._setup_virtual_machine(vm)
             # install a the packages that has updates with errata
             result = vm.run(
@@ -227,7 +223,6 @@ class ContentAccessTestCase(UITestCase):
                of subscription because Golden Ticket is enabled.
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
             self._setup_virtual_machine(vm)
             # install a the packages that has updates with errata
             result = vm.run(
@@ -240,7 +235,8 @@ class ContentAccessTestCase(UITestCase):
                 name=vm.hostname,
                 organization=self.session_org
             ).search()[0].read()
-            host.errata_applicability()
+            call_entity_method_with_timeout(
+                host.errata_applicability, timeout=600)
             # check that package errata is applicable
             with Session(self) as session:
                 set_context(session, org=self.session_org.name)

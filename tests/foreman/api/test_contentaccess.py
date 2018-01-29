@@ -24,7 +24,10 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.cli.factory import setup_cdn_and_custom_repositories
+from robottelo.cli.factory import (
+    setup_cdn_and_custom_repositories,
+    setup_virtual_machine,
+)
 from robottelo.config import settings
 from robottelo.decorators import (
     run_in_one_thread,
@@ -142,32 +145,25 @@ class ContentAccessTestCase(APITestCase):
         :CaseImportance: Critical
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
-            vm.install_katello_ca()
-            vm.register_contenthost(self.org.label, lce=ENVIRONMENT)
-            self.assertTrue(vm.subscribed)
-            vm.patch_os_release_version(distro=DISTRO_RHEL7)
-            # Enable RH repos
-            for repo in self.repos:
-                if repo['cdn']:
-                    vm.enable_repo(repo['repository-id'], force=True)
-            # Enable custom repos
-            if self.custom_product:
-                for repo_info in self.repos_info:
-                    if repo_info['red-hat-repository'] == 'no':
-                        result = vm.run(
-                            'yum-config-manager --enable {0}_{1}_{2}'.format(
-                                self.org.label,
-                                self.custom_product['label'],
-                                repo_info['label'],
-                            )
-                        )
-                        self.assertEqual(result.return_code, 0)
-
-            vm.install_katello_agent()
+            setup_virtual_machine(
+                vm,
+                self.org.label,
+                rh_repos_id=[
+                    repo['repository-id'] for repo in self.repos if repo['cdn']
+                ],
+                product_label=self.custom_product['label'],
+                repos_label=[
+                    repo['label'] for repo in self.repos_info
+                    if repo['red-hat-repository'] == 'no'
+                ],
+                lce=ENVIRONMENT,
+                patch_os_release_distro=DISTRO_RHEL7,
+                install_katello_agent=True,
+            )
             host = entities.Host(
                 name=vm.hostname, organization=self.org).search()[0].read()
             # force host to generate errata applicability
-            host.errata_applicability()
+            call_entity_method_with_timeout(
+                host.errata_applicability, timeout=600)
             erratum = host.errata()['results']
             self.assertGreater(len(erratum), 0)

@@ -22,6 +22,7 @@ from robottelo.cli.factory import (
     make_content_view,
     make_org,
     setup_cdn_and_custom_repositories,
+    setup_virtual_machine,
 )
 from robottelo.cli.host import Host
 from robottelo.cli.package import Package
@@ -140,27 +141,21 @@ class ContentAccessTestCase(CLITestCase):
 
         :param VirtualMachine vm: The virtual machine setup
         """
-        vm.install_katello_ca()
-        vm.register_contenthost(self.org['label'], lce=ENVIRONMENT)
-        self.assertTrue(vm.subscribed)
-        vm.patch_os_release_version(distro=DISTRO_RHEL7)
-        # Enable RH repos
-        for repo in self.repos:
-            if repo['cdn']:
-                vm.enable_repo(repo['repository-id'], force=True)
-        # Enable custom repos
-        if self.custom_product:
-            for repo_info in self.repos_info:
-                if repo_info['red-hat-repository'] == 'no':
-                    result = vm.run(
-                        'yum-config-manager --enable {0}_{1}_{2}'.format(
-                            self.org['label'],
-                            self.custom_product['label'],
-                            repo_info['label'],
-                        )
-                    )
-                    self.assertEqual(result.return_code, 0)
-        vm.install_katello_agent()
+        setup_virtual_machine(
+            vm,
+            self.org['label'],
+            rh_repos_id=[
+                repo['repository-id'] for repo in self.repos if repo['cdn']
+            ],
+            product_label=self.custom_product['label'],
+            repos_label=[
+                repo['label'] for repo in self.repos_info
+                if repo['red-hat-repository'] == 'no'
+            ],
+            lce=ENVIRONMENT,
+            patch_os_release_distro=DISTRO_RHEL7,
+            install_katello_agent=True,
+        )
 
     @run_only_on('sat')
     @tier2
@@ -187,7 +182,6 @@ class ContentAccessTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
             self._setup_virtual_machine(vm)
             # install a the packages that has updates
             result = vm.run(
@@ -233,7 +227,6 @@ class ContentAccessTestCase(CLITestCase):
         :CaseImportance: Critical
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
             self._setup_virtual_machine(vm)
             # install a the packages that has updates with errata
             result = vm.run(

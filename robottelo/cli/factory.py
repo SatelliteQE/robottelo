@@ -3540,6 +3540,56 @@ def publish_puppet_module(puppet_modules, repo_url, organization_id=None):
     return ContentView.info({u'id': cv['id']})
 
 
+def setup_virtual_machine(
+        vm, org_label, rh_repos_id=None, repos_label=None, product_label=None,
+        lce=None, activation_key=None, patch_os_release_distro=None,
+        install_katello_agent=True):
+    """
+    Setup a Virtual machine with basic components and tasks.
+
+    :param robottelo.vm.VirtualMachine vm: The Virtual machine to setup.
+    :param str org_label: The Organization label.
+    :param list rh_repos_id: a list of RH repositories ids to enable.
+    :param list repos_label: a list of custom repositories labels to enable.
+    :param str product_label: product label if repos_label is applicable.
+    :param str lce: Lifecycle environment label if applicable.
+    :param str activation_key: Activation key name if applicable.
+    :param str patch_os_release_distro: distro name, to patch the VM with os
+        version.
+    :param bool install_katello_agent: whether to install katello agent.
+    """
+    if rh_repos_id is None:
+        rh_repos_id = []
+    if repos_label is None:
+        repos_label = []
+    vm.install_katello_ca()
+    vm.register_contenthost(org_label, activation_key=activation_key, lce=lce)
+    if not vm.subscribed:
+        raise CLIFactoryError('Virtual machine failed subscription')
+    if patch_os_release_distro:
+        vm.patch_os_release_version(distro=patch_os_release_distro)
+    # Enable RH repositories
+    for repo_id in rh_repos_id:
+        vm.enable_repo(repo_id, force=True)
+    if product_label:
+        # Enable custom repositories
+        for repo_label in repos_label:
+            result = vm.run(
+                'yum-config-manager --enable {0}_{1}_{2}'.format(
+                    org_label,
+                    product_label,
+                    repo_label,
+                )
+            )
+            if result.return_code != 0:
+                raise CLIFactoryError(
+                    'Failed to enable custom repository "{0}"\n{1}'.format(
+                        repos_label, result.stderr)
+                )
+    if install_katello_agent:
+        vm.install_katello_agent()
+
+
 def extract_capsule_satellite_installer_command(text):
     """Extract satellite installer command from capsule-certs-generate command
     output
@@ -3672,21 +3722,17 @@ def setup_capsule_virtual_machine(capsule_vm, org_id=None, lce_id=None,
             SATELLITE_SUBSCRIPTION_NAME,
         ]
     )
-    # Install katello ca on capsule virtual machine
-    capsule_vm.install_katello_ca()
-    # Register the capsule host to satellite
-    capsule_vm.register_contenthost(
-        capsule_org['name'],
-        activation_key=content_setup_data['activation_key']['name']
+    setup_virtual_machine(
+        capsule_vm,
+        capsule_org['label'],
+        activation_key=content_setup_data['activation_key']['name'],
+        patch_os_release_distro=capsule_vm.capsule_distro,
+        rh_repos_id=[
+            repo['repository-id']
+            for repo in rh_repos if repo['cdn']
+        ],
+        install_katello_agent=False,
     )
-    # Patch the os release version
-    capsule_vm.patch_os_release_version(distro=capsule_vm.capsule_distro)
-
-    # Enable the repositories
-    for repo in rh_repos:
-        if repo['cdn']:
-            capsule_vm.enable_repo(repo['repository-id'], force=True)
-
     # Refresh the subscription
     capsule_vm.run('subscription-manager refresh')
     capsule_vm.run('yum clean all && yum repolist')
@@ -3980,6 +4026,7 @@ def setup_cdn_and_custom_repos_content(
     return dict(
         activation_key=activation_key,
         content_view=content_view,
+        product=custom_product,
         repos=repos_info,
     )
 
@@ -4110,20 +4157,17 @@ def virt_who_hypervisor_config(
     )
     activation_key = content_setup_data['activation_key']
     content_view = content_setup_data['content_view']
-    # Subscribe virt-who vm to Satellite
-    virt_who_vm.install_katello_ca()
-    virt_who_vm.register_contenthost(
-        org['label'], activation_key=activation_key['name'])
-    if not virt_who_vm.subscribed:
-        raise CLIFactoryError(
-            u'Virt-Who host failed to subscribe to satellite')
-    # Patch the os release version
-    virt_who_vm.patch_os_release_version(distro=DISTRO_RHEL7)
-    # Enable the repositories
-    for repo in repos:
-        if repo['cdn']:
-            virt_who_vm.enable_repo(repo['repository-id'], force=True)
-
+    setup_virtual_machine(
+        virt_who_vm,
+        org['label'],
+        activation_key=activation_key['name'],
+        patch_os_release_distro=DISTRO_RHEL7,
+        rh_repos_id=[
+            repo['repository-id']
+            for repo in repos if repo['cdn']
+        ],
+        install_katello_agent=False,
+    )
     if hypervisor_hostname and configure_ssh:
         # configure ssh access of hypervisor from virt_who_vm
         hypervisor_ssh_key_name = 'hypervisor-{0}.key'.format(
