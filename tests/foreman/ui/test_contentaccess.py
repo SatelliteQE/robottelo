@@ -28,7 +28,10 @@ from robottelo.constants import (
     REPOSET,
     PRDS,
 )
-from robottelo.cli.factory import setup_cdn_and_custom_repositories
+from robottelo.cli.factory import (
+    setup_cdn_and_custom_repositories,
+    setup_virtual_machine,
+)
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -130,7 +133,7 @@ class ContentAccessTestCase(UITestCase):
                     settings.cdn or not settings.sattools_repo['rhel7']),
             },
         ]
-        cls.repos_info = setup_cdn_and_custom_repositories(
+        cls.custom_product, cls.repos_info = setup_cdn_and_custom_repositories(
             cls.session_org.id, cls.repos)
         # Create a content view
         content_view = entities.ContentView(
@@ -145,6 +148,27 @@ class ContentAccessTestCase(UITestCase):
         # displayed tests
         cls.activation_key = entities.ActivationKey(
             organization=cls.session_org).create()
+
+    def _setup_virtual_machine(self, vm):
+        """Make the initial virtual machine setup
+
+        :param VirtualMachine vm: The virtual machine setup
+        """
+        setup_virtual_machine(
+            vm,
+            self.session_org.label,
+            rh_repos_id=[
+                repo['repository-id'] for repo in self.repos if repo['cdn']
+            ],
+            product_label=self.custom_product['label'],
+            repos_label=[
+                repo['label'] for repo in self.repos_info
+                if repo['red-hat-repository'] == 'no'
+            ],
+            lce=ENVIRONMENT,
+            patch_os_release_distro=DISTRO_RHEL7,
+            install_katello_agent=True,
+        )
 
     @run_only_on('sat')
     @tier2
@@ -165,16 +189,7 @@ class ContentAccessTestCase(UITestCase):
                Golden Ticket is enabled.
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
-            vm.install_katello_ca()
-            vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
-            self.assertTrue(vm.subscribed)
-            vm.patch_os_release_version(distro=DISTRO_RHEL7)
-            # trigger subscription-manager repos to auto enable repositories
-            result = vm.run('subscription-manager repos')
-            self.assertEqual(result.return_code, 0)
-            # at this stage all repositories should be enabled automatically
-            vm.install_katello_agent()
+            self._setup_virtual_machine(vm)
             # install a the packages that has updates with errata
             result = vm.run(
                 'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
@@ -208,22 +223,20 @@ class ContentAccessTestCase(UITestCase):
                of subscription because Golden Ticket is enabled.
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
-            vm.install_katello_ca()
-            vm.register_contenthost(self.session_org.label, lce=ENVIRONMENT)
-            self.assertTrue(vm.subscribed)
-            vm.patch_os_release_version(distro=DISTRO_RHEL7)
-            # trigger subscription-manager repos to auto enable repositories
-            result = vm.run('subscription-manager repos')
-            self.assertEqual(result.return_code, 0)
-            # at this stage all repositories should be enabled automatically
-            vm.install_katello_agent()
+            self._setup_virtual_machine(vm)
             # install a the packages that has updates with errata
             result = vm.run(
                 'yum install -y {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
             result = vm.run('rpm -q {0}'.format(REAL_RHEL7_0_0_PACKAGE))
             self.assertEqual(result.return_code, 0)
+            # force host to generate/refresh errata applicability
+            host = entities.Host(
+                name=vm.hostname,
+                organization=self.session_org
+            ).search()[0].read()
+            call_entity_method_with_timeout(
+                host.errata_applicability, timeout=600)
             # check that package errata is applicable
             with Session(self) as session:
                 set_context(session, org=self.session_org.name)

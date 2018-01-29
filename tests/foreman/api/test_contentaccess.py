@@ -24,7 +24,10 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.cli.factory import setup_cdn_and_custom_repositories
+from robottelo.cli.factory import (
+    setup_cdn_and_custom_repositories,
+    setup_virtual_machine,
+)
 from robottelo.config import settings
 from robottelo.decorators import (
     run_in_one_thread,
@@ -108,7 +111,7 @@ class ContentAccessTestCase(APITestCase):
                     settings.cdn or not settings.sattools_repo['rhel7']),
             },
         ]
-        cls.repos_info = setup_cdn_and_custom_repositories(
+        cls.custom_product, cls.repos_info = setup_cdn_and_custom_repositories(
             cls.org.id, cls.repos)
         # Create a content view
         content_view = entities.ContentView(
@@ -142,19 +145,25 @@ class ContentAccessTestCase(APITestCase):
         :CaseImportance: Critical
         """
         with VirtualMachine(distro=DISTRO_RHEL7) as vm:
-            vm.create()
-            vm.install_katello_ca()
-            vm.register_contenthost(self.org.label, lce=ENVIRONMENT)
-            self.assertTrue(vm.subscribed)
-            vm.patch_os_release_version(distro=DISTRO_RHEL7)
-            # trigger subscription-manager repos to auto enable repositories
-            result = vm.run('subscription-manager repos')
-            self.assertEqual(result.return_code, 0)
-            # at this stage all repositories should be enabled automatically
-            vm.install_katello_agent()
+            setup_virtual_machine(
+                vm,
+                self.org.label,
+                rh_repos_id=[
+                    repo['repository-id'] for repo in self.repos if repo['cdn']
+                ],
+                product_label=self.custom_product['label'],
+                repos_label=[
+                    repo['label'] for repo in self.repos_info
+                    if repo['red-hat-repository'] == 'no'
+                ],
+                lce=ENVIRONMENT,
+                patch_os_release_distro=DISTRO_RHEL7,
+                install_katello_agent=True,
+            )
             host = entities.Host(
                 name=vm.hostname, organization=self.org).search()[0].read()
             # force host to generate errata applicability
-            host.errata_applicability()
+            call_entity_method_with_timeout(
+                host.errata_applicability, timeout=600)
             erratum = host.errata()['results']
             self.assertGreater(len(erratum), 0)
