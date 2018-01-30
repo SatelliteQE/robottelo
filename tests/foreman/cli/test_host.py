@@ -75,10 +75,9 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE_NAME,
-    FAKE_0_ERRATA_ID,
     FAKE_1_ERRATA_ID,
+    FAKE_1_YUM_REPO,
     FAKE_2_ERRATA_ID,
-    FAKE_0_YUM_REPO,
     FAKE_6_YUM_REPO,
     PRDS,
     REPOS,
@@ -2386,7 +2385,7 @@ class KatelloAgentTestCase(CLITestCase):
         })
         # Create custom repo, add subscription to activation key
         setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
+            u'url': FAKE_1_YUM_REPO,
             u'organization-id': KatelloAgentTestCase.org['id'],
             u'content-view-id': KatelloAgentTestCase.content_view['id'],
             u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
@@ -2426,16 +2425,13 @@ class KatelloAgentTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self.client.download_install_rpm(
-            FAKE_0_YUM_REPO,
-            FAKE_0_CUSTOM_PACKAGE
-        )
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         result = Host.errata_info({
             u'host-id': self.host['id'],
-            u'id': FAKE_0_ERRATA_ID,
+            u'id': FAKE_1_ERRATA_ID,
         })
-        self.assertEqual(result[0]['errata-id'], FAKE_0_ERRATA_ID)
-        self.assertEqual(result[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
+        self.assertEqual(result[0]['errata-id'], FAKE_1_ERRATA_ID)
+        self.assertIn(FAKE_2_CUSTOM_PACKAGE, result[0]['packages'])
 
     @tier3
     @run_only_on('sat')
@@ -2450,12 +2446,9 @@ class KatelloAgentTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self.client.download_install_rpm(
-            FAKE_0_YUM_REPO,
-            FAKE_0_CUSTOM_PACKAGE
-        )
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         Host.errata_apply({
-            u'errata-ids': FAKE_0_ERRATA_ID,
+            u'errata-ids': FAKE_1_ERRATA_ID,
             u'host-id': self.host['id'],
         })
 
@@ -2474,7 +2467,7 @@ class KatelloAgentTestCase(CLITestCase):
         :BZ: 1420671
         """
         self.client.download_install_rpm(
-            FAKE_0_YUM_REPO,
+            FAKE_1_YUM_REPO,
             FAKE_2_CUSTOM_PACKAGE
         )
         # Check the system is up to date
@@ -2530,16 +2523,13 @@ class KatelloAgentTestCase(CLITestCase):
 
         :CaseLevel: System
         """
-        self.client.download_install_rpm(
-            FAKE_0_YUM_REPO,
-            FAKE_0_CUSTOM_PACKAGE
-        )
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         Host.package_remove({
             u'host-id': self.host['id'],
-            u'packages': FAKE_0_CUSTOM_PACKAGE_NAME,
+            u'packages': FAKE_1_CUSTOM_PACKAGE_NAME,
         })
         result = self.client.run(
-            'rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME)
+            'rpm -q {0}'.format(FAKE_1_CUSTOM_PACKAGE_NAME)
         )
         self.assertNotEqual(result.return_code, 0)
 
