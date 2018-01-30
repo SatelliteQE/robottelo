@@ -27,6 +27,19 @@ BZ_CLOSED_STATUSES = [
 DISTRO_RHEL6 = "rhel6"
 DISTRO_RHEL7 = "rhel7"
 
+RHEL_6_MAJOR_VERSION = 6
+RHEL_7_MAJOR_VERSION = 7
+
+DISTRO_DEFAULT = DISTRO_RHEL7
+DISTROS_SUPPORTED = [DISTRO_RHEL6, DISTRO_RHEL7]
+DISTROS_MAJOR_VERSION = {
+    DISTRO_RHEL6: RHEL_6_MAJOR_VERSION,
+    DISTRO_RHEL7: RHEL_7_MAJOR_VERSION,
+}
+MAJOR_VERSION_DISTRO = {
+    value: key for key, value in DISTROS_MAJOR_VERSION.items()}
+
+
 INTERFACE_API = 'API'
 INTERFACE_CLI = 'CLI'
 
@@ -252,13 +265,25 @@ REPOS = {
         'id': 'rhel-7-server-rpms',
         'name': 'Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server',
         'releasever': '7Server',
-        'arch': 'x86_64'
+        'arch': 'x86_64',
+        'distro': DISTRO_RHEL7,
+        'reposet': REPOSET['rhel7'],
+        'product': PRDS['rhel'],
+        'major_version': RHEL_7_MAJOR_VERSION,
+        'distro_repository': True,
+        'key': 'rhel',
+        'version': '7.5',
     },
     'rhsc7': {
         'id': 'rhel-7-server-satellite-capsule-6.2-rpms',
         'name': (
             'Red Hat Satellite Capsule 6.2 for RHEL 7 Server RPMs x86_64'
         ),
+        'version': '6.2',
+        'reposet': REPOSET['rhsc7'],
+        'product': PRDS['rhsc'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhsc',
     },
     'rhsc7_iso': {
         'id': 'rhel-7-server-satellite-capsule-6.2-isos',
@@ -271,19 +296,33 @@ REPOS = {
         'name': (
             'Red Hat Satellite Capsule 6.2 for RHEL 6 Server RPMs x86_64'
         ),
+        'version': '6.2',
+        'reposet': REPOSET['rhsc6'],
+        'product': PRDS['rhsc'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhsc',
     },
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.2-rpms',
         'name': (
             'Red Hat Satellite Tools 6.2 for RHEL 7 Server RPMs x86_64'
         ),
-        'releasever': '6.2',
+        'version': '6.2',
+        'reposet': REPOSET['rhst7'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL7,
+        'key': 'rhst',
     },
     'rhst6': {
         'id': 'rhel-6-server-satellite-tools-6.2-rpms',
         'name': (
             'Red Hat Satellite Tools 6.2 for RHEL 6 Server RPMs x86_64'
         ),
+        'version': '6.2',
+        'reposet': REPOSET['rhst6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhst',
     },
     'rhva6': {
         'id': 'rhel-6-server-rhev-agent-rpms',
@@ -291,12 +330,22 @@ REPOS = {
             'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
             'x86_64 6Server'
         ),
+        'version': '6.0',
+        'reposet': REPOSET['rhva6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhva6',
     },
     'rhva65': {
         'name': (
             'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
             'x86_64 6.5'
         ),
+        'version': '6.5',
+        'reposet': REPOSET['rhva6'],
+        'product': PRDS['rhel'],
+        'distro': DISTRO_RHEL6,
+        'key': 'rhva65',
     },
     'rhaht': {
         'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
@@ -307,8 +356,10 @@ REPOS = {
     }
 }
 
-RHEL_6_MAJOR_VERSION = 6
-RHEL_7_MAJOR_VERSION = 7
+DISTRO_REPOS = {
+    # DISTRO_RHEL6: REPOS['rhel6'],
+    DISTRO_RHEL7: REPOS['rhel7']
+}
 
 # The 'create_repos_tree' function under 'sync' module uses the following
 # list of tuples. It actually includes following two repos under
