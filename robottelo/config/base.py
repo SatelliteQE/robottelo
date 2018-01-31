@@ -1,21 +1,25 @@
 """Define and instantiate the configuration class for Robottelo."""
 import importlib
 import logging
+import logging.config
 
 import os
 import sys
 
 from functools import partial
-from logging import config
-from nailgun import entities, entity_mixins
-from nailgun.config import ServerConfig
-from robottelo.config import casts
+
 from six.moves.urllib.parse import urlunsplit, urljoin
 from six.moves.configparser import (
     NoOptionError,
     NoSectionError,
     ConfigParser
 )
+
+import airgun.settings
+
+from nailgun import entities, entity_mixins
+from nailgun.config import ServerConfig
+from robottelo.config import casts
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -1088,6 +1092,7 @@ class Settings(object):
         self._configure_logging()
         self._configure_third_party_logging()
         self._configure_entities()
+        self._configure_airgun()
         self._configured = True
 
     def _read_robottelo_settings(self):
@@ -1242,6 +1247,26 @@ class Settings(object):
                 self._fields['url'].default = docker_url
             entities.DockerComputeResource.__init__ = patched_dockercr_init
 
+    def _configure_airgun(self):
+        airgun.settings.configure({
+            'airgun': {
+                # fixme: pass verbosity directly after implementing settings
+                # validations
+                'verbosity': logging.getLevelName(self.verbosity),
+            },
+            'satellite': {
+                'hostname': self.server.hostname,
+                'username': self.server.admin_username,
+                'password': self.server.admin_password,
+            },
+            'selenium': {
+                'browser': self.browser,
+                'webdriver': self.webdriver,
+                'webdriver_binary': self.webdriver_binary,
+                'screenshots_path': self.screenshots_path,
+            },
+        })
+
     def _configure_logging(self):
         """Configure logging for the entire framework.
 
@@ -1254,6 +1279,7 @@ class Settings(object):
         logging.captureWarnings(True)
 
         # Set the logging level based on the Robottelo's verbosity
+        # todo: maybe it's better to set logging for airgun here somehow?
         for name in ('nailgun', 'robottelo'):
             logging.getLogger(name).setLevel(self.verbosity)
 
@@ -1261,7 +1287,7 @@ class Settings(object):
         # file on Robottelo's project root
         logging_conf_path = os.path.join(get_project_root(), 'logging.conf')
         if os.path.isfile(logging_conf_path):
-            config.fileConfig(logging_conf_path)
+            logging.config.fileConfig(logging_conf_path)
         else:
             logging.basicConfig(
                 format='%(levelname)s %(module)s:%(lineno)d: %(message)s'
