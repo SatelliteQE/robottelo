@@ -1174,6 +1174,8 @@ class CannedRoleTestCases(APITestCase):
             2. Only Org Admin role should be available to assign to its users
             3. Org Admin should be able to assign Org Admin role to its users
 
+        :BZ: 1538316
+
         :CaseLevel: Integration
         """
         org_admin = self.create_org_admin_role(
@@ -1202,6 +1204,7 @@ class CannedRoleTestCases(APITestCase):
             login=user_login,
             password=user_pass,
             role=[org_admin.id],
+            organization=[self.role_org],
             location=[self.role_loc]
         ).create()
         self.assertEqual(user_login, user.login)
