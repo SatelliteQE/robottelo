@@ -362,6 +362,8 @@ class LifeCycleEnvironmentTestCase(UITestCase):
 
         :id: fad05fe9-b673-4384-b65a-926d4a0d2598
 
+        :customerscenario: true
+
         :steps:
             1. Create a product with a repository synchronized
                 - The repository must contain at least two package names P1 and
@@ -413,6 +415,8 @@ class LifeCycleEnvironmentTestCase(UITestCase):
             eg. name-version-release-arch, the package name is "bear"
 
         :id: f8dec2a8-8971-44ad-a4d5-1eb5d2eb62f6
+
+        :customerscenario: true
 
         :steps:
             1. Create a product with a repository synchronized

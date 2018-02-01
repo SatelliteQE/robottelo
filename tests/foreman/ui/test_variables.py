@@ -1058,6 +1058,8 @@ class SmartVariablesTestCase(UITestCase):
 
         :id: 440923cb-9d81-40c8-9d81-7bf22f503cf5
 
+        :customerscenario: true
+
         :steps:
             1.  Create variable with some default value.
             2.  Set long priority order list

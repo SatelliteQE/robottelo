@@ -76,6 +76,8 @@ class SubscriptionsTestCase(APITestCase):
 
         :id: 1869bbb6-c31b-49a9-bc92-402a90071a11
 
+        :customerscenario: true
+
         :expectedresults: the manifest is uploaded successfully to other org
 
         :BZ: 1393442

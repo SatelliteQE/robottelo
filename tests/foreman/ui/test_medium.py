@@ -198,6 +198,8 @@ class MediumTestCase(UITestCase):
 
         :id: 6399f4ad-c081-46c4-89f6-70e552fb603a
 
+        :customerscenario: true
+
         :expectedresults: Medium entities are sorted properly
 
         :CaseImportance: Medium

@@ -67,6 +67,8 @@ class PuppetModuleTestCase(UITestCase):
 
         :id: eb1318dd-0268-48c1-8e62-9747207698b2
 
+        :customerscenario: true
+
         :expectedresults: Scoped search functionality works as intended
 
         :BZ: 1259374

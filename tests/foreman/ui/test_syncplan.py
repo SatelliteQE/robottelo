@@ -315,6 +315,8 @@ class SyncPlanTestCase(UITestCase):
 
         :id: 3a48513e-205d-47a3-978e-79b764cc74d9
 
+        :customerscenario: true
+
         :expectedresults: Proper Sync Plan is found
 
         :BZ: 1259374

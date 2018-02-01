@@ -232,6 +232,8 @@ class OrganizationTestCase(CLITestCase):
 
         :id: d66ebe1d-aba1-4042-87e4-7de8ea0f8fc8
 
+        :customerscenario: true
+
         :expectedresults: Necessary organization is listed
 
         :BZ: 1259374

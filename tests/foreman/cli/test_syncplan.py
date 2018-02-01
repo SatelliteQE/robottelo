@@ -371,6 +371,8 @@ class SyncPlanTestCase(CLITestCase):
 
         :id: 7a7e5e40-7776-4d26-9173-73f00de6e8e9
 
+        :customerscenario: true
+
         :expectedresults: Expected product information is returned in info
             command
 

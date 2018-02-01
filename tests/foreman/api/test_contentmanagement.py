@@ -79,6 +79,8 @@ class ContentManagementTestCase(APITestCase):
 
         :id: d6680b9f-4c88-40b4-8b96-3d170664cb28
 
+        :customerscenario: true
+
         :BZ: 1463811
 
         :CaseLevel: Integration
@@ -101,6 +103,8 @@ class ContentManagementTestCase(APITestCase):
         rpms.
 
         :id: 2cc09ce3-d5df-4caa-956a-78f83a7735ca
+
+        :customerscenario: true
 
         :BZ: 1404345
 
@@ -157,6 +161,8 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :id: a31b0e21-aa5d-44e2-a408-5e01b79db3a1
 
+        :customerscenario: true
+
         :expectedresults: `redhat-access-insights-puppet` package is delivered
             in capsule repo and is available for installation on capsule via
             yum
@@ -181,6 +187,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         automatically
 
         :id: f5406312-dd31-4551-9f03-84eb9c3415f5
+
+        :customerscenario: true
 
         :BZ: 1340686
 
@@ -251,6 +259,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         capsule
 
         :id: eb07bdf3-6cd8-4a2f-919b-8dfc84e16115
+
+        :customerscenario: true
 
         :BZ: 1288656
 
@@ -368,6 +378,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         repository (add 1 new package), sync repository once again.
 
         :id: 35513099-c918-4a8e-90d0-fd4c87ad2f82
+
+        :customerscenario: true
 
         :BZ: 1394354
 
@@ -581,6 +593,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         to capsule automatically
 
         :id: 221a2d41-0fef-46dd-a804-fdedd7187163
+
+        :customerscenario: true
 
         :BZ: 1303102, 1480358
 
@@ -943,6 +957,8 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :id: 511b531d-1fbe-4d64-ae31-0f9eb6625e7f
 
+        :customerscenario: true
+
         :BZ: 1315752
 
         :expectedresults: content was successfully synchronized - capsule
@@ -1088,6 +1104,8 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :id: 83a0ddd6-8a6a-43a0-b169-094a2556dd28
 
+        :customerscenario: true
+
         :BZ: 1365952
 
         :Steps:
@@ -1200,6 +1218,8 @@ class CapsuleContentManagementTestCase(APITestCase):
         """Ensure capsule pub url is accessible
 
         :id: 311eaa2a-146b-4d18-95db-4fbbe843d5b2
+
+        :customerscenario: true
 
         :expectedresults: capsule pub url is accessible
 

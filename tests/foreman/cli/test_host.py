@@ -345,6 +345,8 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 6068bd4d-18d8-47a2-99f4-3e0ee9208104
 
+        :customerscenario: true
+
         :BZ: 1260697, 1483252
 
         :expectedresults: A host is created with expected content source
@@ -392,6 +394,8 @@ class HostCreateTestCase(CLITestCase):
         """Update host's content source
 
         :id: 2364dbb7-2ccd-46c0-baf1-5e179a157027
+
+        :customerscenario: true
 
         :BZ: 1260697, 1483252, 1488465
 
@@ -677,6 +681,8 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 59c20379-b878-46ce-ad3e-ed6969ea6a5f
 
+        :customerscenario: true
+
         :steps:
             1. Create a client host with upper case chars in hostname
             2. register the host with command "subscription-manager register"
@@ -861,6 +867,8 @@ class HostCreateTestCase(CLITestCase):
         """List all content hosts using last checkin criteria
 
         :id: e7d86b44-28c3-4525-afac-61a20e62daf8
+
+        :customerscenario: true
 
         :expectedresults: Hosts are listed for the given time period
 
@@ -1057,6 +1065,8 @@ class HostCreateTestCase(CLITestCase):
         hostgroup and then find created host using list command
 
         :id: 50c964c3-d3d6-4832-a51c-62664d132229
+
+        :customerscenario: true
 
         :expectedresults: Host is successfully listed and has both parent and
             nested host groups names in its hostgroup parameter
@@ -1918,6 +1928,8 @@ class HostParameterTestCase(CLITestCase):
 
         :id: 65ba89f0-9bee-43d9-814b-9f5a194558f8
 
+        :customerscenario: true
+
         :steps:
             1. As admin user create a host
             2. Set a host parameter name and value
@@ -1973,6 +1985,8 @@ class HostParameterTestCase(CLITestCase):
         Parameter::vew_params permission
 
         :id: 22d7d7cf-3d4f-4ae2-beaf-c11e41f2d439
+
+        :customerscenario: true
 
         :steps:
             1. As admin user create a host
@@ -2032,6 +2046,8 @@ class HostParameterTestCase(CLITestCase):
         Parameter::vew_params permission
 
         :id: 2b40b3b9-42db-48c8-a9d7-7c308dc6add0
+
+        :customerscenario: true
 
         :steps:
             1. As admin user create a host
@@ -2097,6 +2113,8 @@ class HostParameterTestCase(CLITestCase):
         correctly restored from yaml format
 
         :id: 776feffd-1b46-46e9-925d-4739194c15cc
+
+        :customerscenario: true
 
         :expectedresults: host parameter value is the same when restored
             from yaml format
@@ -2748,6 +2766,8 @@ class KatelloHostToolsTestCase(CLITestCase):
 
         :id: fa5dc238-74c3-4c8a-aa6f-e0a91ba543e3
 
+        :customerscenario: true
+
         :steps:
             1. register a host to activation key with content view that contain
                packages
@@ -2790,6 +2810,8 @@ class KatelloHostToolsTestCase(CLITestCase):
         """Ensure packages applicability is functioning properly
 
         :id: d283b65b-19c1-4eba-87ea-f929b0ee4116
+
+        :customerscenario: true
 
         :steps:
             1. register a host to activation key with content view that contain
@@ -2840,6 +2862,8 @@ class KatelloHostToolsTestCase(CLITestCase):
         """Ensure erratum applicability is functioning properly
 
         :id: 139de508-916e-4c91-88ad-b4973a6fa104
+
+        :customerscenario: true
 
         :steps:
             1. register a host to activation key with content view that contain

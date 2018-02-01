@@ -305,6 +305,8 @@ class SubnetTestCase(UITestCase):
 
         :id: 0b07341c-717e-46a9-86cc-7192f3d8d449
 
+        :customerscenario: true
+
         :expectedresults: Subnet entities are sorted by name
 
         :BZ: 1268085
@@ -338,6 +340,8 @@ class SubnetTestCase(UITestCase):
         """Create some Subnet entities and sort them by network address
 
         :id: 63dc846e-7520-4e8c-8875-a0109d7e5df4
+
+        :customerscenario: true
 
         :expectedresults: Subnet entities are sorted by network address
 

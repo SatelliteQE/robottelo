@@ -232,6 +232,8 @@ class ErrataTestCase(UITestCase):
 
         :id: 442d1c20-bf7e-4e4c-9a48-ab3f4809fa61
 
+        :customerscenario: true
+
         :Setup: Errata synced on satellite server.
 
         :Steps:

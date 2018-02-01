@@ -1475,6 +1475,8 @@ class RepositoryTestCase(CLITestCase):
 
         :id: 5e24b416-2928-4533-96cf-6bffbea97a95
 
+        :customerscenario: true
+
         :expectedresults: upload content operation is successful
 
         :BZ: 1446975

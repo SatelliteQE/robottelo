@@ -62,6 +62,8 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
         :id: a06b02c4-fe6a-44ef-bf61-5a28c3905527
 
+        :customerscenario: true
+
         :expectedresults: Compute resource is created, server field saved
             correctly
 
@@ -90,6 +92,8 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
         :id: 807a1f70-4cc3-4925-b145-0c3b26c57559
 
+        :customerscenario: true
+
         :expectedresults: VMware Compute resource is created
 
         :BZ: 1387917
@@ -117,6 +121,8 @@ class VMWareComputeResourceTestCase(CLITestCase):
 
         :id: 214a0f54-6fc2-4e7b-91ab-a45760ffb2f2
 
+        :customerscenario: true
+
         :expectedresults: VMware Compute resource is created
 
         :BZ: 1387917
@@ -143,6 +149,8 @@ class VMWareComputeResourceTestCase(CLITestCase):
         """Create VMware Compute Resource with organizations and locations
 
         :id: 96faae3f-bc64-4147-a9fc-09c858e0a68f
+
+        :customerscenario: true
 
         :expectedresults: VMware Compute resource is created
 

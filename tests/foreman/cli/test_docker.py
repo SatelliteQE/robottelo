@@ -334,6 +334,8 @@ class DockerRepositoryTestCase(CLITestCase):
 
         :id: 4fe47c02-a8bd-4630-9102-189a9d268b83
 
+        :customerscenario: true
+
         :BZ: 1424689
 
         :expectedresults: docker repository is successfully created

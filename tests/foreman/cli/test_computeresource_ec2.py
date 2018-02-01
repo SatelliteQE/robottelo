@@ -56,6 +56,8 @@ class EC2ComputeResourceTestCase(CLITestCase):
 
         :id: 28eb592d-ebf0-4659-900a-87112b3b2ad7
 
+        :customerscenario: true
+
         :expectedresults: ec2 compute resource is created successfully.
 
         :BZ: 1456942

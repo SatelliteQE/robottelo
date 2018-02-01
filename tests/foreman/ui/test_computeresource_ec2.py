@@ -120,6 +120,8 @@ class Ec2ComputeResourceTestCase(UITestCase):
 
         :id: aeb0c52e-34dd-4574-af34-a6d8721724a7
 
+        :customerscenario: true
+
         :setup: ec2 hostname and credentials.
 
         :steps:

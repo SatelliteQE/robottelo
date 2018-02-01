@@ -1455,6 +1455,8 @@ class ActivationKeyTestCase(CLITestCase):
 
         :id: af75b640-97be-431b-8ac0-a6367f8f1996
 
+        :customerscenario: true
+
         :steps:
 
             1. As admin user create an activation

@@ -284,6 +284,8 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
 
         :id: 2165023f-7184-400c-a9d9-e0c0d065a7d2
 
+        :customerscenario: true
+
         :expectedresults: the hypervisor search work properly
 
         :BZ: 1246554, 1495271
@@ -320,6 +322,8 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
         """Open hypervisor contenthost from guests subscription link
 
         :id: 7279ecdc-db19-4af4-8c0b-25e696946092
+
+        :customerscenario: true
 
         :expectedresults: hypervisor contenthost page opened successfully
 
@@ -369,6 +373,8 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
         hypervisor is in the association list
 
         :id: 3b0f5795-7c31-4bd0-aecf-41a536f9d5a2
+
+        :customerscenario: true
 
         :expectedresults:
             1. subscription hosts association is not empty

@@ -360,6 +360,8 @@ class RoleTestCase(UITestCase):
 
         :id: 6c36d382-9790-4d34-affa-e993764cef9a
 
+        :customerscenario: true
+
         :expectedresults: more than 20 filters are displayed
 
         :CaseImportance: Medium
@@ -401,6 +403,8 @@ class RoleTestCase(UITestCase):
 
         :id: c9e466e5-d6ce-4596-bd32-c2a7817da34a
 
+        :customerscenario: true
+
         :expectedresults: Corresponding role filter has necessary permissions
 
         :BZ: 1360191
@@ -427,6 +431,8 @@ class RoleTestCase(UITestCase):
         """Create role filter with few permissions for smart variables.
 
         :id: 9e5775f3-5f79-4212-bcb4-29d91032df4e
+
+        :customerscenario: true
 
         :expectedresults: Corresponding role filter has necessary permissions
 

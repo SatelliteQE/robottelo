@@ -247,6 +247,8 @@ class ErrataTestCase(APITestCase):
 
         :id: 67b7e95b-9809-455a-a74e-f1815cc537fc
 
+        :customerscenario: true
+
         :BZ: 1469800
 
         :expectedresults: errata installation task succeeded, available errata

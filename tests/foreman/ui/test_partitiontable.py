@@ -72,6 +72,8 @@ class PartitionTableTestCase(UITestCase):
 
         :id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
 
+        :customerscenario: true
+
         :expectedresults: Partition table is created
 
         :CaseImportance: Critical
@@ -342,6 +344,8 @@ class PartitionTableTestCase(UITestCase):
 
         :id: 405ed98a-4207-4bf8-899e-dcea7791850e
 
+        :customerscenario: true
+
         :expectedresults: Partition table is deleted
 
         :CaseImportance: Critical
@@ -363,6 +367,8 @@ class PartitionTableTestCase(UITestCase):
         """Update partition table with its name, layout and OS family
 
         :id: 63203508-7c73-4ce0-853e-64564167bec3
+
+        :customerscenario: true
 
         :expectedresults: Partition table is updated
 

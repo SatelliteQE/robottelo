@@ -647,6 +647,8 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 49ba2e4e-7772-4e5f-ac49-33f3a4966110
 
+        :customerscenario: true
+
         :BZ: 1260697
 
         :expectedresults: A hostgroup is created with expected content source
@@ -688,6 +690,8 @@ class HostGroupTestCase(CLITestCase):
         """Check if hostgroup with synced kickstart repository can be created
 
         :id: 7c51ac72-359c-488a-8658-88b5a94d7e7a
+
+        :customerscenario: true
 
         :expectedresults: Hostgroup should be created and has proper
             installation content id present
@@ -776,6 +780,8 @@ class HostGroupTestCase(CLITestCase):
         """Update hostgroup's content source
 
         :id: c22218a1-4d86-4ac1-ad4b-79b10c9adcde
+
+        :customerscenario: true
 
         :BZ: 1260697
 

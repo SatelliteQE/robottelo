@@ -374,6 +374,8 @@ class LocationTestCase(CLITestCase):
 
         :id: 49b34733-103a-4fee-818b-6a3386253af1
 
+        :customerscenario: true
+
         :BZ: 1299802
 
         :expectedresults: Location created successfully and has correct and
@@ -907,6 +909,8 @@ class LocationTestCase(CLITestCase):
 
         :id: 34522d1a-1190-48d8-9285-fc9a9bcf6c6a
 
+        :customerscenario: true
+
         :BZ: 1299802
 
         :expectedresults: Location was updated successfully
@@ -929,6 +933,8 @@ class LocationTestCase(CLITestCase):
 
         :id: fd4cb1cf-377f-4b48-b7f4-d4f6ca56f544
 
+        :customerscenario: true
+
         :BZ: 1299802
 
         :expectedresults: Location was not updated
@@ -950,6 +956,8 @@ class LocationTestCase(CLITestCase):
         """Attempt to set a location as its own parent
 
         :id: 26e07124-9043-4597-8513-7147135a8426
+
+        :customerscenario: true
 
         :BZ: 1299802
 
