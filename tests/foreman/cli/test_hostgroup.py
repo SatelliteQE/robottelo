@@ -63,7 +63,6 @@ from robottelo.datafactory import (
     valid_hostgroups_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
@@ -346,7 +345,7 @@ class HostGroupTestCase(CLITestCase):
         })
         self.assertEqual(
             lc_env['name'],
-            hostgroup['lifecycle-environment'],
+            hostgroup['lifecycle-environment']['name'],
         )
 
     @tier1
@@ -465,9 +464,10 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(ptable['name'], hostgroup['partition-table'])
         self.assertEqual(media['name'], hostgroup['medium'])
         self.assertEqual(os_full_name, hostgroup['operating-system'])
-        self.assertEqual(cv['name'], hostgroup['content-view'])
-        self.assertEqual(lce['name'], hostgroup['lifecycle-environment'])
-        self.assertEqual(proxy['name'], hostgroup['content-source'])
+        self.assertEqual(cv['name'], hostgroup['content-view']['name'])
+        self.assertEqual(
+            lce['name'], hostgroup['lifecycle-environment']['name'])
+        self.assertEqual(proxy['name'], hostgroup['content-source']['name'])
 
     @run_only_on('sat')
     @tier2
@@ -544,10 +544,9 @@ class HostGroupTestCase(CLITestCase):
             'operatingsystem-id': os['id'],
         }
         hostgroup = make_hostgroup(make_hostgroup_params)
-        if not bz_bug_is_open(1313056):
-            self.assertEqual(cv['id'], hostgroup['content-view-id'])
-            self.assertEqual(lce['id'], hostgroup['lifecycle-environment-id'])
-            self.assertEqual(proxy['id'], hostgroup['content-source-id'])
+        self.assertEqual(cv['id'], hostgroup['content-view']['id'])
+        self.assertEqual(lce['id'], hostgroup['lifecycle-environment']['id'])
+        self.assertEqual(proxy['id'], hostgroup['content-source']['id'])
         # get the json output format
         hostgroup = HostGroup.info(
             {'id': hostgroup['id']}, output_format='json')
@@ -649,7 +648,7 @@ class HostGroupTestCase(CLITestCase):
 
         :customerscenario: true
 
-        :BZ: 1260697
+        :BZ: 1260697, 1313056
 
         :expectedresults: A hostgroup is created with expected content source
             assigned
@@ -663,7 +662,8 @@ class HostGroupTestCase(CLITestCase):
             'content-source-id': content_source['id'],
             'organization-ids': self.org['id'],
         })
-        self.assertEqual(hostgroup['content-source'], content_source['name'])
+        self.assertEqual(
+            hostgroup['content-source']['name'], content_source['name'])
 
     @tier1
     def test_negative_create_with_content_source(self):
@@ -783,7 +783,7 @@ class HostGroupTestCase(CLITestCase):
 
         :customerscenario: true
 
-        :BZ: 1260697
+        :BZ: 1260697, 1313056
 
         :expectedresults: Hostgroup was successfully updated with new content
             source
@@ -806,7 +806,7 @@ class HostGroupTestCase(CLITestCase):
         })
         hostgroup = HostGroup.info({'id': hostgroup['id']})
         self.assertEqual(
-            hostgroup['content-source'], new_content_source['name'])
+            hostgroup['content-source']['name'], new_content_source['name'])
 
     @tier1
     def test_negative_update_content_source(self):
@@ -814,7 +814,7 @@ class HostGroupTestCase(CLITestCase):
 
         :id: 4ffe6d18-3899-4bf1-acb2-d55ea09b7a26
 
-        :BZ: 1260697
+        :BZ: 1260697, 1313056
 
         :expectedresults: Host group was not updated. Content source remains
             the same as it was before update
@@ -835,7 +835,7 @@ class HostGroupTestCase(CLITestCase):
             })
         hostgroup = HostGroup.info({'id': hostgroup['id']})
         self.assertEqual(
-            hostgroup['content-source'], content_source['name'])
+            hostgroup['content-source']['name'], content_source['name'])
 
     @tier1
     def test_positive_update_name(self):

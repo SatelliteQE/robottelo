@@ -347,7 +347,7 @@ class HostCreateTestCase(CLITestCase):
 
         :customerscenario: true
 
-        :BZ: 1260697, 1483252
+        :BZ: 1260697, 1483252, 1313056
 
         :expectedresults: A host is created with expected content source
             assigned
@@ -363,7 +363,7 @@ class HostCreateTestCase(CLITestCase):
             'lifecycle-environment-id': self.LIBRARY['id'],
             'organization': self.new_org['name'],
         })
-        self.assertEqual(host['content-information']['content-source'],
+        self.assertEqual(host['content-information']['content-source']['name'],
                          content_source['name'])
 
     @tier1
@@ -420,7 +420,7 @@ class HostCreateTestCase(CLITestCase):
             'content-source-id': new_content_source['id'],
         })
         host = Host.info({'id': host['id']})
-        self.assertEqual(host['content-information']['content-source'],
+        self.assertEqual(host['content-information']['content-source']['name'],
                          new_content_source['name'])
 
     @skip_if_bug_open('bugzilla', 1483252)
@@ -430,7 +430,7 @@ class HostCreateTestCase(CLITestCase):
 
         :id: 03243c56-3835-4b15-94df-15d436bbda87
 
-        :BZ: 1260697, 1483252
+        :BZ: 1260697, 1483252, 1313056
 
         :expectedresults: Host was not updated. Content source remains the same
             as it was before update
@@ -452,7 +452,7 @@ class HostCreateTestCase(CLITestCase):
                 'content-source-id': gen_integer(10000, 99999),
             })
         host = Host.info({'id': host['id']})
-        self.assertEqual(host['content-information']['content-source'],
+        self.assertEqual(host['content-information']['content-source']['name'],
                          content_source['name'])
 
     @run_only_on('sat')
@@ -465,6 +465,8 @@ class HostCreateTestCase(CLITestCase):
 
         :expectedresults: Host is created, default content view is associated
 
+        :BZ: 1313056
+
         :CaseImportance: Critical
         """
         new_host = make_fake_host({
@@ -473,7 +475,7 @@ class HostCreateTestCase(CLITestCase):
             'organization-id': self.new_org['id'],
         })
         self.assertEqual(
-            new_host['content-information']['content-view'],
+            new_host['content-information']['content-view']['name'],
             self.DEFAULT_CV['name'],
         )
 
@@ -488,6 +490,8 @@ class HostCreateTestCase(CLITestCase):
         :expectedresults: Host is created, default lifecycle environment is
             associated
 
+        :BZ: 1313056
+
         :CaseImportance: Critical
         """
         new_host = make_fake_host({
@@ -496,7 +500,7 @@ class HostCreateTestCase(CLITestCase):
             'organization-id': self.new_org['id'],
         })
         self.assertEqual(
-            new_host['content-information']['lifecycle-environment'],
+            new_host['content-information']['lifecycle-environment']['name'],
             self.LIBRARY['name'],
         )
 
@@ -509,6 +513,8 @@ class HostCreateTestCase(CLITestCase):
 
         :expectedresults: Host is created using new lifecycle
 
+        :BZ: 1313056
+
         :CaseImportance: Critical
         """
         new_host = make_fake_host({
@@ -517,7 +523,7 @@ class HostCreateTestCase(CLITestCase):
             'organization-id': self.new_org['id'],
         })
         self.assertEqual(
-            new_host['content-information']['lifecycle-environment'],
+            new_host['content-information']['lifecycle-environment']['name'],
             self.new_lce['name'],
         )
 
@@ -530,6 +536,8 @@ class HostCreateTestCase(CLITestCase):
 
         :expectedresults: Host is created using new published, promoted cv
 
+        :BZ: 1313056
+
         :CaseImportance: Critical
         """
         new_host = make_fake_host({
@@ -538,7 +546,7 @@ class HostCreateTestCase(CLITestCase):
             'organization-id': self.new_org['id'],
         })
         self.assertEqual(
-            new_host['content-information']['content-view'],
+            new_host['content-information']['content-view']['name'],
             self.promoted_cv['name'],
         )
 
@@ -989,12 +997,12 @@ class HostCreateTestCase(CLITestCase):
             'organization-id': self.new_org['id'],
         })
         self.assertEqual(
-            host['content-information']['lifecycle-environment'],
-            hostgroup['lifecycle-environment'],
+            host['content-information']['lifecycle-environment']['name'],
+            hostgroup['lifecycle-environment']['name'],
         )
         self.assertEqual(
-            host['content-information']['content-view'],
-            hostgroup['content-view'],
+            host['content-information']['content-view']['name'],
+            hostgroup['content-view']['name'],
         )
 
     @skip_if_bug_open('bugzilla', '1436162')
