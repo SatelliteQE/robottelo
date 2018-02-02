@@ -341,7 +341,7 @@ class SubscriptionTestCase(UITestCase):
                 self.assertEqual(len(content_products), 1)
                 self.assertIn(vds_product_name, content_products)
 
-    @skip_if_bug_open('bugzilla', 1506636)
+    @skip_if_bug_open('bugzilla', 1487317)
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_view_VDC_guest_subscription_products(self):
@@ -368,7 +368,7 @@ class SubscriptionTestCase(UITestCase):
             2. The Virtual Data Centers guests subscription Product Content is
                not empty and one of the consumed products exist
 
-        :BZ: 1395788, 1506636
+        :BZ: 1395788, 1506636, 1487317
 
         :CaseLevel: System
         """
