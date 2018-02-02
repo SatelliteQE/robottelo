@@ -141,17 +141,67 @@ def parse_help(output):
     return contents
 
 
+def get_line_indentation_spaces(line, tab_spaces=4):
+    """Return the number of spaces chars the line begin with
+
+    :param str line: the line string to parse
+    :param int tab_spaces: The tab char is represent how many spaces
+    """
+    if not line or len(line) < tab_spaces:
+        return 0
+    spaces = 0
+    for char in line:
+        if char not in (' ', '\t'):
+            break
+        if char == '\t':
+            spaces += tab_spaces
+        else:
+            spaces += 1
+
+    return spaces
+
+
+def get_line_indentation_level(line, tab_spaces=4, indentation_spaces=4):
+    """Return the indentation level
+
+    :param str line: the line string to parse
+    :param int tab_spaces: The tab char is represent how many spaces
+    :param indentation_spaces: how much spaces represent an indentation level
+
+    Note::
+
+        suppose we have the following lines:
+        '''
+        level 0
+            level 1
+                level 2
+        '''
+        assert get_line_indentation_level('level 0') == 0
+        assert get_line_indentation_level('    level 1') == 1
+        assert get_line_indentation_level('        level 2') == 2
+
+    """
+    return get_line_indentation_spaces(
+        line, tab_spaces=tab_spaces)//indentation_spaces
+
+
 def parse_info(output):
     """Parse the info output and returns a dict mapping the values."""
     # info dictionary
     contents = {}
     sub_prop = None  # stores name of the last group of sub-properties
     sub_num = None  # is not None when list of properties
+    second_level_key = None  # is set when a possible second level is detected
 
     for line in output:
         # skip empty lines
         if line == '':
             continue
+        current_indent_level = get_line_indentation_level(line)
+        if current_indent_level <= 1:
+            # we are entering or leaving a second level from lower/upper levels
+            # clear the second level key
+            second_level_key = None
         if line.startswith(' '):  # sub-properties are indented
             # values are separated by ':' or '=>', but not by '::' which can be
             # entity name like 'test::params::keys'
@@ -204,12 +254,31 @@ def parse_info(output):
                     contents[sub_prop].append({})
 
                 key = key.lstrip().replace(' ', '-').lower()
-
+                value = value.lstrip()
                 # add value to dictionary
                 if sub_num is not None:
-                    contents[sub_prop][-1][key] = value.lstrip()
+                    contents[sub_prop][-1][key] = value
                 else:
-                    contents[sub_prop][key] = value.lstrip()
+                    # a third level is always represented as a dictionary and
+                    # we need to detect if we are at third level
+                    # example:
+                    # Content Information:
+                    #     Content View:
+                    #         ID:   10
+                    #         Name: Default Organization View
+                    # the "ID" and "Name" are located at third indent level
+                    # "content view" is located at second indent level
+                    if current_indent_level == 2 and second_level_key:
+                        # we are at third level indentation
+                        if not contents[sub_prop][second_level_key]:
+                            contents[sub_prop][second_level_key] = {}
+                        contents[sub_prop][second_level_key][key] = value
+                    else:
+                        contents[sub_prop][key] = value
+                    if current_indent_level == 1 and not value:
+                        # always set the last possible second level key
+                        # that can form a third level
+                        second_level_key = key
         else:
             sub_num = None  # new property implies no sub property
             key, value = line.lstrip().split(":", 1)
