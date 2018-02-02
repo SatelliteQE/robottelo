@@ -14,12 +14,11 @@
 
 :Upstream: No
 """
-import unittest2
 
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.constants import OSCAP_DEFAULT_CONTENT
+from robottelo.constants import OSCAP_DEFAULT_CONTENT, ANY_CONTEXT
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
     skip_if_bug_open,
@@ -30,7 +29,7 @@ from robottelo.decorators import (
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_oscapcontent
+from robottelo.ui.factory import make_oscapcontent, set_context
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -151,8 +150,6 @@ class OpenScapContentTestCase(UITestCase):
             )
 
     @tier1
-    @unittest2.skip('oscap contents are not installed by default.'
-                    'Installer needs to be fixed')
     def test_positive_default(self):
         """Check whether OpenScap content exists by default.
 
@@ -168,7 +165,8 @@ class OpenScapContentTestCase(UITestCase):
         :CaseImportance: Critical
         """
         # see BZ 1336374
-        with Session(self):
+        with Session(self) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             self.assertIsNotNone(self.oscapcontent.search(
                 OSCAP_DEFAULT_CONTENT['rhel7_content']))
             self.assertIsNotNone(self.oscapcontent.search(
