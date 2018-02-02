@@ -21,6 +21,7 @@ from nailgun import client, entities
 from nailgun.entity_mixins import TaskFailedError
 from robottelo import ssh, manifests
 from robottelo.api.utils import (
+    call_entity_method_with_timeout,
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
@@ -586,7 +587,6 @@ class CapsuleContentManagementTestCase(APITestCase):
             get_repo_files(cvv_repo_path)
         )
 
-    @skip_if_bug_open('bugzilla', 1480358)
     @tier4
     def test_positive_iso_library_sync(self):
         """Ensure RH repo with ISOs after publishing to Library is synchronized
@@ -596,7 +596,7 @@ class CapsuleContentManagementTestCase(APITestCase):
 
         :customerscenario: true
 
-        :BZ: 1303102, 1480358
+        :BZ: 1303102, 1480358, 1303103
 
         :expectedresults: ISOs are present on external capsule
 
@@ -615,7 +615,7 @@ class CapsuleContentManagementTestCase(APITestCase):
             releasever=None,
         )
         rh_repo = entities.Repository(id=rh_repo_id).read()
-        rh_repo.sync()
+        call_entity_method_with_timeout(rh_repo.sync, timeout=2500)
         capsule = entities.Capsule(id=self.capsule_id).read()
         # Find "Library" lifecycle env for specific organization
         lce = entities.LifecycleEnvironment(organization=org).search(query={
