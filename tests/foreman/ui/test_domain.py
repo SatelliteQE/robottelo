@@ -41,7 +41,7 @@ def valid_long_domain_names():
 
     The length of chars is in accordance with DOMAIN global variable.
     """
-    return[
+    return [
         gen_string('alphanumeric', 243),
         gen_string('alpha', 243),
         gen_string('numeric', 243),
@@ -53,14 +53,16 @@ def valid_long_domain_names():
 @filtered_datapoint
 def valid_domain_update_data():
     """Returns a list of valid test data for domain update tests"""
-    return [
+    names = [
         {'name': gen_string('alpha')},
         {'name': gen_string('numeric')},
         {'name': gen_string('alphanumeric')},
         {'name': gen_string('utf8')},
-        {'name': gen_string('latin1')},
-        {'name': gen_string('html'), 'bugzilla': 1220104}
+        {'name': gen_string('latin1')}
     ]
+    if not bz_bug_is_open(1220104):
+        names.append({'name': gen_string('html')})
+    return names
 
 
 class DomainTestCase(UITestCase):
@@ -140,10 +142,6 @@ class DomainTestCase(UITestCase):
             self.assertIsNotNone(self.domain.search(domain_name))
             for testdata in valid_domain_update_data():
                 with self.subTest(testdata):
-                    bug_id = testdata.pop('bugzilla', None)
-                    if bug_id is not None and bz_bug_is_open(bug_id):
-                        self.skipTest('Bugzilla bug {0} is open.'.format(
-                            bug_id))
                     new_name = new_description = DOMAIN % testdata['name']
                     self.domain.update(domain_name, new_name, new_description)
                     self.assertIsNotNone(self.domain.search(new_name))
