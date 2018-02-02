@@ -1,15 +1,5 @@
-from fauxfactory import gen_string
-
 from airgun.decorators import parametrize
-from airgun.fixtures import session
-
-
-def valid_data_list():
-    """Generates a list of valid input values."""
-    return [
-        gen_string('alphanumeric', 25),
-        gen_string('alpha', 15),
-    ]
+from robottelo.datafactory import valid_data_list
 
 
 @parametrize('name', valid_data_list())
