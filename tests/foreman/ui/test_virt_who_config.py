@@ -315,7 +315,7 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
                     )
                 )
 
-    @skip_if_bug_open('bugzilla', 1506636)
+    @skip_if_bug_open('bugzilla', 1487317)
     @skip_if_bug_open('bugzilla', 1382090)
     @tier4
     def test_positive_open_hypervisor_contenthost_from_subscription(self):
@@ -327,7 +327,7 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
 
         :expectedresults: hypervisor contenthost page opened successfully
 
-        :BZ: 1382090, 1506636
+        :BZ: 1382090, 1506636, 1487317
 
         :CaseLevel: System
         """
@@ -366,7 +366,7 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
                 )
             )
 
-    @skip_if_bug_open('bugzilla', 1506636)
+    @skip_if_bug_open('bugzilla', 1487317)
     @tier4
     def test_positive_vdc_subscription_contenthost_association(self):
         """Ensure vdc subscription hosts association is not empty and virt-who
@@ -380,7 +380,7 @@ class VirtWhoConfigDeployedTestCase(UITestCase):
             1. subscription hosts association is not empty
             2. virt-who hypervisor is in the association list
 
-        :BZ: 1426403, 1506636
+        :BZ: 1426403, 1506636, 1487317
 
         :CaseLevel: System
         """
