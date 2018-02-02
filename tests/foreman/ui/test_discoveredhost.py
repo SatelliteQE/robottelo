@@ -474,12 +474,21 @@ class DiscoveryTestCase(UITestCase):
                     loc=self.loc.name,
                     facts_page=True,
                     quick_create=True)
-                self.assertIsNotNone(self.discoveredhosts.wait_until_element(
-                    common_locators['notif.success']))
-                search = self.hosts.search(
-                    u'{0}.{1}'.format(host_name, self.config_env['domain'])
+                # the provisioning take some time to finish, when done will be
+                # redirected to the created host
+                # wait until redirected to host page
+                pxe_host_name = '{0}.{1}'.format(
+                    host_name, self.config_env['domain'])
+                self.assertIsNotNone(
+                    session.hosts.wait_until_element(
+                        locators["host.host_page_title"] % pxe_host_name,
+                        timeout=160
+                    )
                 )
-                self.assertIsNotNone(search)
+                host_properties = session.hosts.get_host_properties(
+                    pxe_host_name, ['status'])
+                self.assertTrue(host_properties)
+                self.assertEqual(host_properties['status'], 'OK')
                 # Check that provisioned host is not in the list of discovered
                 # hosts anymore
                 self.assertIsNone(self.discoveredhosts.search(host_name))
