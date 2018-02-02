@@ -174,7 +174,7 @@ class Hosts(Base):
             self._configure_provisioning_method(provisioning_method)
         self.wait_until_element_is_not_visible(
             common_locators['modal_background'])
-        self.click(common_locators['submit'], ajax_timeout=60)
+        self.click(common_locators['submit'], ajax_timeout=120)
 
     def update(self, name, domain_name, new_name=None, parameters_list=None,
                puppet_classes=None, interface_parameters=None,
