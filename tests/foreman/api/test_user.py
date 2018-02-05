@@ -18,9 +18,14 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 :Upstream: No
 """
+import json
+import paramiko
+
 from nailgun import entities
 from requests.exceptions import HTTPError
+from robottelo.config import settings
 from robottelo.datafactory import (
+    gen_string,
     generate_strings_list,
     valid_data_list,
     valid_usernames_list,
@@ -29,12 +34,8 @@ from robottelo.datafactory import (
     invalid_usernames_list,
     invalid_names_list
 )
-from robottelo.decorators import (
-    stubbed,
-    tier1,
-    tier2,
-    upgrade
-)
+from robottelo.decorators import tier1, tier2, upgrade
+from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
 
@@ -378,7 +379,20 @@ class UserRoleTestCase(APITestCase):
 class SshKeyInUserTestCase(APITestCase):
     """Implements the SSH Key in User Tests"""
 
-    @stubbed()
+    def gen_ssh_rsakey(self):
+        """Generates RSA type ssh key using ssh module
+
+        :return: string type well formatted RSA key
+        """
+        return 'ssh-rsa {}'.format(paramiko.RSAKey.generate(2048).get_base64())
+
+    @classmethod
+    def setUpClass(cls):
+        """Create an user and import different keys from data json file"""
+        super(SshKeyInUserTestCase, cls).setUpClass()
+        cls.user = entities.User().create()
+        cls.data_keys = json.loads(read_data_file('sshkeys.json'))
+
     @tier1
     def test_positive_create_ssh_key(self):
         """SSH Key can be added to User
@@ -394,8 +408,13 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        ssh_name = gen_string('alpha')
+        ssh_key = self.gen_ssh_rsakey()
+        user_sshkey = entities.SSHKey(
+            user=self.user, name=ssh_name, key=ssh_key).create()
+        self.assertEqual(ssh_name, user_sshkey.name)
+        self.assertEqual(ssh_key, user_sshkey.key)
 
-    @stubbed()
     @tier1
     def test_positive_create_ssh_key_super_admin(self):
         """SSH Key can be added to Super Admin user
@@ -406,8 +425,16 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        user = entities.User().search(
+            query={'search': u'login="admin"'}
+        )[0]
+        ssh_name = gen_string('alpha')
+        ssh_key = self.gen_ssh_rsakey()
+        user_sshkey = entities.SSHKey(
+            user=user, name=ssh_name, key=ssh_key).create()
+        self.assertEqual(ssh_name, user_sshkey.name)
+        self.assertEqual(ssh_key, user_sshkey.key)
 
-    @stubbed()
     @tier1
     def test_negative_create_ssh_key(self):
         """Invalid ssh key can not be added in User Template
@@ -427,8 +454,24 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        invalid_sshkey = gen_string('alpha', length=256)
+        with self.assertRaises(HTTPError) as context:
+            entities.SSHKey(
+                user=self.user,
+                name=gen_string('alpha'),
+                key=invalid_sshkey
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text, 'Key is invalid')
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            'Fingerprint could not be generated'
+        )
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            'Length could not be calculated'
+        )
 
-    @stubbed()
     @tier1
     def test_negative_create_invalid_length_ssh_key(self):
         """Attempt to add SSH key that has invalid length
@@ -445,8 +488,20 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        invalid_length_key = self.data_keys['ssh_keys']['invalid_ssh_key']
+        with self.assertRaises(HTTPError) as context:
+            entities.SSHKey(
+                user=self.user,
+                name=gen_string('alpha'),
+                key=invalid_length_key
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text, 'Length could not be calculated')
+        self.assertNotRegexpMatches(
+            context.exception.response.text,
+            'Fingerprint could not be generated'
+        )
 
-    @stubbed()
     @tier1
     @upgrade
     def test_positive_create_multiple_ssh_key_types(self):
@@ -462,8 +517,20 @@ class SshKeyInUserTestCase(APITestCase):
         :expectedresults: Multiple types of supported ssh keys can be added to
             user
         """
+        rsa = self.gen_ssh_rsakey()
+        dsa = self.data_keys['ssh_keys']['dsa']
+        ecdsa = self.data_keys['ssh_keys']['ecdsa']
+        ed = self.data_keys['ssh_keys']['ed']
+        user = entities.User().create()
+        for key in [rsa, dsa, ecdsa, ed]:
+            entities.SSHKey(
+                user=user,
+                name=gen_string('alpha'),
+                key=key
+            ).create()
+        user_sshkeys = entities.SSHKey(user=user).search()
+        self.assertEqual(len(user_sshkeys), 4)
 
-    @stubbed()
     @tier1
     @upgrade
     def test_positive_delete_ssh_key(self):
@@ -481,8 +548,15 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        user = entities.User().create()
+        sshkey_name = gen_string('alpha')
+        sshkey = entities.SSHKey(
+            user=user, name=sshkey_name, key=self.gen_ssh_rsakey()
+        ).create()
+        sshkey.delete()
+        result = entities.SSHKey(user=user).search()
+        self.assertEqual(len(result), 0)
 
-    @stubbed()
     @tier2
     @upgrade
     def test_positive_ssh_key_in_host_enc(self):
@@ -501,8 +575,27 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        user = entities.User(
+            organization=[org], location=[loc]).create()
+        ssh_key = self.gen_ssh_rsakey()
+        entities.SSHKey(
+            user=user, name=gen_string('alpha'), key=ssh_key).create()
+        host = entities.Host(
+            owner=user,
+            owner_type='User',
+            organization=org,
+            location=loc,
+        ).create()
+        sshkey_updated_for_host = '{0} {1}@{2}'.format(
+            ssh_key,
+            user.login,
+            settings.server.hostname
+        )
+        host_enc_key = host.enc()['data']['parameters']['ssh_authorized_keys']
+        self.assertEqual(sshkey_updated_for_host, host_enc_key[0])
 
-    @stubbed()
     @tier2
     def test_positive_list_users_ssh_key(self):
         """Satellite lists users ssh keys
@@ -519,8 +612,14 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseLevel: Integration
         """
+        user = entities.User().create()
+        for i in range(2):
+            entities.SSHKey(
+                user=user, name=gen_string('alpha'), key=self.gen_ssh_rsakey()
+            ).create()
+        result = entities.SSHKey(user=user).search()
+        self.assertEqual(len(result), 2)
 
-    @stubbed()
     @tier1
     def test_positive_info_users_ssh_key(self):
         """Satellite returns info of user ssh key
@@ -538,3 +637,9 @@ class SshKeyInUserTestCase(APITestCase):
 
         :CaseImportance: Critical
         """
+        ssh_name = gen_string('alpha')
+        ssh_key = self.gen_ssh_rsakey()
+        user_sshkey = entities.SSHKey(
+            user=self.user, name=ssh_name, key=ssh_key).create()
+        self.assertEqual(ssh_name, user_sshkey.name)
+        self.assertEqual(ssh_key, user_sshkey.key)
