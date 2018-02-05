@@ -1,1 +1,1 @@
-from airgun.fixtures import session  # noqa  # pylint:disable=unused-import
+pytest_plugins = ["airgun.fixtures"]

@@ -38,6 +38,9 @@ upgrade = pytest.mark.upgrade
 # Tests to be executed in 1 thread
 run_in_one_thread = pytest.mark.run_in_one_thread
 
+# Shortcut for pytest's parametrize
+parametrize = pytest.mark.parametrize
+
 
 def setting_is_set(option):
     """Return either ``True`` or ``False`` if a Robottelo section setting is
