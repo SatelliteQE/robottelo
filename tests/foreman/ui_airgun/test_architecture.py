@@ -1,3 +1,5 @@
+from nailgun import entities
+
 from robottelo.datafactory import gen_string, valid_data_list
 from robottelo.decorators import parametrize
 
@@ -10,9 +12,10 @@ def test_positive_create(session, name):
 
 def test_positive_create_with_os(session):
     name = gen_string('alpha')
+    os_name = entities.OperatingSystem().create().name
     with session:
         session.architecture.create_architecture({
             'name': name,
             'os_names': {
-                'operation': 'Add', 'values': ['RedHat 59.9', 'RedHat 7.3']}
+                'operation': 'Add', 'values': [os_name]}
         })
