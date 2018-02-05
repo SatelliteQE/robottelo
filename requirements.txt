@@ -27,7 +27,7 @@ PyYAML==3.12
 robozilla==0.2.6
 
 # Get airgun and nailgun from master
-git+https://bitbucket.org/Balah/airgun.git#egg=airgun
+git+https://github.com/abalakh/airgun.git#egg=airgun
 git+https://github.com/SatelliteQE/nailgun.git#egg=nailgun
 
 --editable .
