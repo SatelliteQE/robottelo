@@ -14,8 +14,9 @@
 
 :Upstream: No
 """
-import re
 from datetime import datetime
+
+import re
 from six.moves import zip
 
 from robottelo import ssh
@@ -48,6 +49,7 @@ PREVIOUS_INSTALLER_OPTIONS = set([
     u'--[no-]enable-foreman-plugin-templates',
     u'--[no-]enable-foreman-proxy',
     u'--[no-]enable-foreman-proxy-content',
+    u'--[no-]enable-foreman-proxy-plugin-dhcp-remote-isc',
     u'--[no-]enable-foreman-proxy-plugin-discovery',
     u'--[no-]enable-foreman-proxy-plugin-openscap',
     u'--[no-]enable-foreman-proxy-plugin-pulp',
@@ -197,6 +199,7 @@ PREVIOUS_INSTALLER_OPTIONS = set([
     u'--foreman-proxy-content-pulp-oauth-effective-user',
     u'--foreman-proxy-content-pulp-oauth-key',
     u'--foreman-proxy-content-pulp-oauth-secret',
+    u'--foreman-proxy-content-pulp-worker-timeout',
     u'--foreman-proxy-content-puppet',
     u'--foreman-proxy-content-qpid-router',
     u'--foreman-proxy-content-qpid-router-agent-addr',
@@ -271,6 +274,11 @@ PREVIOUS_INSTALLER_OPTIONS = set([
     u'--foreman-proxy-oauth-consumer-key',
     u'--foreman-proxy-oauth-consumer-secret',
     u'--foreman-proxy-oauth-effective-user',
+    u'--foreman-proxy-plugin-dhcp-remote-isc-dhcp-config',
+    u'--foreman-proxy-plugin-dhcp-remote-isc-dhcp-leases',
+    u'--foreman-proxy-plugin-dhcp-remote-isc-key-name',
+    u'--foreman-proxy-plugin-dhcp-remote-isc-key-secret',
+    u'--foreman-proxy-plugin-dhcp-remote-isc-omapi-port',
     u'--foreman-proxy-plugin-discovery-image-name',
     u'--foreman-proxy-plugin-discovery-install-images',
     u'--foreman-proxy-plugin-discovery-source-url',
@@ -408,6 +416,7 @@ PREVIOUS_INSTALLER_OPTIONS = set([
     u'--katello-proxy-url',
     u'--katello-proxy-username',
     u'--katello-pulp-max-speed',
+    u'--katello-pulp-worker-timeout',
     u'--katello-qpid-wcache-page-size',
     u'--katello-repo-export-dir',
     u'--katello-repo-gpgcheck',
@@ -709,6 +718,7 @@ PREVIOUS_INSTALLER_OPTIONS = set([
     u'--reset-foreman-proxy-content-pulp-oauth-effective-user',
     u'--reset-foreman-proxy-content-pulp-oauth-key',
     u'--reset-foreman-proxy-content-pulp-oauth-secret',
+    u'--reset-foreman-proxy-content-pulp-worker-timeout',
     u'--reset-foreman-proxy-content-puppet',
     u'--reset-foreman-proxy-content-qpid-router',
     u'--reset-foreman-proxy-content-qpid-router-agent-addr',
@@ -783,6 +793,11 @@ PREVIOUS_INSTALLER_OPTIONS = set([
     u'--reset-foreman-proxy-oauth-consumer-key',
     u'--reset-foreman-proxy-oauth-consumer-secret',
     u'--reset-foreman-proxy-oauth-effective-user',
+    u'--reset-foreman-proxy-plugin-dhcp-remote-isc-dhcp-config',
+    u'--reset-foreman-proxy-plugin-dhcp-remote-isc-dhcp-leases',
+    u'--reset-foreman-proxy-plugin-dhcp-remote-isc-key-name',
+    u'--reset-foreman-proxy-plugin-dhcp-remote-isc-key-secret',
+    u'--reset-foreman-proxy-plugin-dhcp-remote-isc-omapi-port',
     u'--reset-foreman-proxy-plugin-discovery-image-name',
     u'--reset-foreman-proxy-plugin-discovery-install-images',
     u'--reset-foreman-proxy-plugin-discovery-source-url',
@@ -916,6 +931,7 @@ PREVIOUS_INSTALLER_OPTIONS = set([
     u'--reset-katello-proxy-url',
     u'--reset-katello-proxy-username',
     u'--reset-katello-pulp-max-speed',
+    u'--reset-katello-pulp-worker-timeout',
     u'--reset-katello-qpid-wcache-page-size',
     u'--reset-katello-repo-export-dir',
     u'--reset-katello-repo-gpgcheck',
