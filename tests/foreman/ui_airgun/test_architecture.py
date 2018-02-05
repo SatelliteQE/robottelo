@@ -8,6 +8,7 @@ from robottelo.decorators import parametrize
 def test_positive_create(session, name):
     with session:
         session.architecture.create_architecture({'name': name})
+        assert session.architecture.search(name) == name
 
 
 def test_positive_create_with_os(session):
@@ -19,3 +20,4 @@ def test_positive_create_with_os(session):
             'os_names': {
                 'operation': 'Add', 'values': [os_name]}
         })
+        assert session.architecture.search(name) == name
