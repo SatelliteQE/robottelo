@@ -1201,8 +1201,9 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 os_version_major, os_version_minor)
         ))[0].read()
         # Get the image arch
-        arch = entities.Architecture(
-            name=self.rhev_img_arch).search()[0].read()
+        arch = entities.Architecture().search(
+            query=dict(search='name="{0}"'.format(self.rhev_img_arch))
+        )[0].read()
         # Get the default org content view
         content_view = entities.ContentView(
             name=DEFAULT_CV, organization=self.org).search()[0].read()
@@ -1379,8 +1380,9 @@ class RhevComputeResourceHostTestCase(UITestCase):
                 os_version_major, os_version_minor)
         ))[0].read()
         # Get the image arch
-        arch = entities.Architecture(
-            name=self.rhev_img_arch).search()[0].read()
+        arch = entities.Architecture().search(
+            query=dict(search='name="{0}"'.format(self.rhev_img_arch))
+        )[0].read()
         # Get the default org content view
         content_view = entities.ContentView(
             name=DEFAULT_CV, organization=self.org).search()[0].read()
