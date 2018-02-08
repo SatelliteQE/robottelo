@@ -2,6 +2,7 @@
 """Generic base class for cli hammer commands."""
 import logging
 import re
+import uuid
 
 from robottelo import ssh
 from robottelo.cli import hammer
@@ -284,15 +285,18 @@ class Base(object):
             time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
-        cmd = u'LANG={0} {1} hammer -v {2} {3} {4} {5}'.format(
-            settings.locale,
-            u'time -p' if time_hammer else '',
-            u'-u {0}'.format(user) if user is not None
-            else u'--interactive no',
-            u'-p {0}'.format(password) if password is not None else '',
-            u'--output={0}'.format(output_format) if output_format else u'',
-            command,
-        )
+        cmd = (u'RUBY_COVERAGE_NAME={0} LANG={1}'
+               ' {2} hammer -v {3} {4} {5} {6}').format(
+                    str(uuid.uuid4())[0:7],
+                    settings.locale,
+                    u'time -p' if time_hammer else '',
+                    u'-u {0}'.format(user) if user is not None
+                    else u'--interactive no',
+                    u'-p {0}'.format(password) if password is not None else '',
+                    u'--output={0}'.format(
+                        output_format) if output_format else u'',
+                    command,)
+
         response = ssh.command(
             cmd.encode('utf-8'),
             output_format=output_format,
