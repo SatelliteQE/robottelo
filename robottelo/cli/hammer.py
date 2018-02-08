@@ -195,7 +195,7 @@ def parse_info(output):
 
     for line in output:
         # skip empty lines
-        if line == '':
+        if line == '' or line.startswith('Coverage report generated for'):
             continue
         current_indent_level = get_line_indentation_level(line)
         if current_indent_level <= 1:

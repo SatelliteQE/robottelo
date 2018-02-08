@@ -17,6 +17,7 @@
 from datetime import datetime
 
 import re
+import uuid
 from six.moves import zip
 
 from robottelo import ssh
@@ -1191,9 +1192,11 @@ class SELinuxTestCase(TestCase):
                 self.assertEqual(len(result.stderr), 0)
 
         # check status reported by hammer ping command
-        result = ssh.command(u'hammer -u {0[0]} -p {0[1]} ping'.format(
-            settings.server.get_credentials()
-        ))
+        result = ssh.command(u'RUBY_COVERAGE_NAME={0} '
+                             'hammer -u {1[0]} -p {1[1]} ping'.format(
+                                str(uuid.uuid4())[0:7],
+                                settings.server.get_credentials()
+                                ))
 
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]

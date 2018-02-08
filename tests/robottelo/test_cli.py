@@ -284,16 +284,21 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check dump method"""
         self.assert_cmd_execution(construct, execute, Base.dump, 'dump')
 
+    @mock.patch('robottelo.cli.base.uuid.uuid4')
     @mock.patch('robottelo.cli.base.ssh.command')
     @mock.patch('robottelo.cli.base.settings')
-    def test_execute_with_raw_response(self, settings, command):
+    def test_execute_with_raw_response(self, settings, command, uuid4):
         """Check excuted build ssh method and returns raw response"""
+        uuid4.return_value = 'fakUUID'
         settings.locale = 'en_US'
         settings.performance = False
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', return_raw_response=True)
-        ssh_cmd = u'LANG=en_US  hammer -v -u admin -p password  some_cmd'
+        ssh_cmd = (
+            u'RUBY_COVERAGE_NAME=fakUUID LANG=en_US  '
+            u'hammer -v -u admin -p password  some_cmd'
+        )
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),
             output_format=None,
@@ -302,19 +307,23 @@ class BaseCliTestCase(unittest2.TestCase):
         )
         self.assertIs(response, command.return_value)
 
+    @mock.patch('robottelo.cli.base.uuid.uuid4')
     @mock.patch('robottelo.cli.base.Base._handle_response')
     @mock.patch('robottelo.cli.base.ssh.command')
     @mock.patch('robottelo.cli.base.settings')
-    def test_execute_with_performance(self, settings, command, handle_resp):
+    def test_execute_with_performance(
+            self, settings, command, handle_resp, uuid4):
         """Check excuted build ssh method and delegate response handling"""
+        uuid4.return_value = 'fakUUID'
         settings.locale = 'en_US'
         settings.performance.timer_hammer = True
         settings.server.admin_username = 'admin'
         settings.server.admin_password = 'password'
         response = Base.execute('some_cmd', output_format='json')
         ssh_cmd = (
-            u'LANG=en_US time -p hammer -v -u admin -p password --output=json'
-            u' some_cmd'
+            u'RUBY_COVERAGE_NAME=fakUUID LANG=en_US time -p '
+            u'hammer -v -u admin -p password --output=json '
+            u'some_cmd'
         )
         command.assert_called_once_with(
             ssh_cmd.encode('utf-8'),

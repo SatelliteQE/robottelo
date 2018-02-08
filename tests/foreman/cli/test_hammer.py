@@ -16,6 +16,7 @@
 """
 import json
 import re
+import uuid
 
 from robottelo import ssh
 from robottelo.cli import hammer
@@ -91,7 +92,11 @@ class HammerCommandsTestCase(CLITestCase):
 
         """
         raw_output = ssh.command(
-            'hammer full-help', output_format='plain').stdout
+            'RUBY_COVERAGE_NAME={0} '
+            'hammer full-help'.format(
+                str(uuid.uuid4())[0:7]),
+            output_format='plain'
+        ).stdout
         commands = re.split('.*\n(?=hammer.*\n^[-]+)', raw_output, flags=re.M)
         commands.pop(0)  # remove "Hammer CLI help" line
         for raw_command in commands:
