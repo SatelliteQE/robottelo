@@ -14,6 +14,8 @@
 
 :Upstream: No
 """
+import uuid
+
 from robottelo import ssh
 from robottelo.decorators import tier1, upgrade
 from robottelo.test import CLITestCase
@@ -39,10 +41,12 @@ class PingTestCase(CLITestCase):
 
         :CaseImportance: Critical
         """
-        result = ssh.command('hammer -u {0} -p {1} ping'.format(
-            self.foreman_user,
-            self.foreman_password
-        ))
+        result = ssh.command('RUBY_COVERAGE_NAME={0} '
+                             'hammer -u {1} -p {2} ping'.format(
+                                str(uuid.uuid4())[0:7],
+                                self.foreman_user,
+                                self.foreman_password
+                                ))
         self.assertEqual(len(result.stderr), 0)
 
         status_count = 0
@@ -51,10 +55,12 @@ class PingTestCase(CLITestCase):
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
         # only the status line is relevant for this test
-        for _, status, _ in zip(*[iter(result.stdout)] * 3):
+        iterable = [iter(result.stdout)]
+        iterable.pop()
+        for _, status, _ in zip(*iterable * 3):
             status_count += 1
 
-            if status.split(':')[1].strip().lower() == 'ok':
+            if status and status.split(':')[1].strip().lower() == 'ok':
                 ok_count += 1
 
         if status_count == ok_count:

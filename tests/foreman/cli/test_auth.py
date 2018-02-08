@@ -15,6 +15,8 @@
 
 :Upstream: No
 """
+import uuid
+
 from fauxfactory import gen_string
 from robottelo import ssh
 from robottelo.cli.auth import Auth
@@ -273,7 +275,9 @@ class HammerAuthTestCase(CLITestCase):
         # list organizations without supplying credentials
         with self.assertNotRaises(CLIReturnCodeError):
             Org.with_user().list()
-        result = ssh.command('hammer ping')
+        result = ssh.command('RUBY_COVERAGE_NAME={0} hammer ping'.format(
+            str(uuid.uuid4())[0:7])
+        )
         self.assertEqual(result.return_code, 0, 'Failed to run hammer ping')
         result = Auth.with_user().status()
         self.assertIn(
