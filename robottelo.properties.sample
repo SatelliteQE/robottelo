@@ -419,6 +419,31 @@ port_range=9091, 14999
 # image_name: Image name on the external provider
 # image_name=
 
+# [osp]
+# Openstack to be added as a compute resource
+# hostname: Openstack api url For eg: https://hostname:port/v2.0/tokens
+# hostname=
+# username: Login for Openstack
+# username=
+# password: Password for Openstack
+# password=
+# tenant: Openstack tenant to be used
+# tenant=
+# security_group: Name of group for provisioning
+# security_group=
+# vm_name: Name of VM to power On/Off & delete
+# vm_name=
+
+# Openstack Compute resource image data
+# image_os: Operating system of the image
+# image_os=
+# image_arch: Architecture of the image
+# image_arch=
+# image_username: Login to the image
+# image_username=
+# image_name: Image name on the external provider
+# image_name=
+
 # section for real capsule
 # [capsule]
 # to setup a real capsule we need the capsule virtual machine hostname

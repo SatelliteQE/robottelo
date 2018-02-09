@@ -760,6 +760,50 @@ class OscapSettings(FeatureSettings):
         return validation_errors
 
 
+class OSPSettings(FeatureSettings):
+    """OSP settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(OSPSettings, self).__init__(*args, **kwargs)
+        # Compute Resource Information
+        self.hostname = None
+        self.username = None
+        self.password = None
+        self.tenant = None
+        self.vm_name = None
+        self.security_group = None
+        # Image Information
+        self.image_os = None
+        self.image_arch = None
+        self.image_username = None
+        self.image_name = None
+
+    def read(self, reader):
+        """Read osp settings."""
+        # Compute Resource Information
+        self.hostname = reader.get('osp', 'hostname')
+        self.username = reader.get('osp', 'username')
+        self.password = reader.get('osp', 'password')
+        self.tenant = reader.get('osp', 'tenant')
+        self.security_group = reader.get('osp', 'security_group')
+        self.vm_name = reader.get('osp', 'vm_name')
+        # Image Information
+        self.image_os = reader.get('osp', 'image_os')
+        self.image_arch = reader.get('osp', 'image_arch')
+        self.image_username = reader.get('osp', 'image_username')
+        self.image_name = reader.get('osp', 'image_name')
+
+    def validate(self):
+        """Validate osp settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [osp] hostname, username, password, tenant, '
+                'vm_name, image_name, image_os, image_arch, image_username, '
+                'image_name options must be provided.'
+            )
+        return validation_errors
+
+
 class OstreeSettings(FeatureSettings):
     """Ostree settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -1054,6 +1098,7 @@ class Settings(object):
         self.ipa = LDAPIPASettings()
         self.oscap = OscapSettings()
         self.ostree = OstreeSettings()
+        self.osp = OSPSettings()
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
         self.rhev = RHEVSettings()
