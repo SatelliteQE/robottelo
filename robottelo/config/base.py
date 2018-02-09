@@ -1256,15 +1256,19 @@ class Settings(object):
             },
             'satellite': {
                 'hostname': self.server.hostname,
-                'username': self.server.admin_username,
                 'password': self.server.admin_password,
+                'username': self.server.admin_username,
             },
             'selenium': {
                 'browser': self.browser,
+                'saucelabs_key': self.saucelabs_key,
+                'saucelabs_user': self.saucelabs_user,
+                'screenshots_path': self.screenshots_path,
                 'webdriver': self.webdriver,
                 'webdriver_binary': self.webdriver_binary,
-                'screenshots_path': self.screenshots_path,
             },
+            'webdriver_desired_capabilities': (
+                self.webdriver_desired_capabilities),
         })
 
     def _configure_logging(self):
