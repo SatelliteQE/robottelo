@@ -38,8 +38,9 @@ upgrade = pytest.mark.upgrade
 # Tests to be executed in 1 thread
 run_in_one_thread = pytest.mark.run_in_one_thread
 
-# Shortcut for pytest's parametrize
+# Shortcuts for pytest methods
 parametrize = pytest.mark.parametrize
+fixture = pytest.fixture
 
 
 def setting_is_set(option):
