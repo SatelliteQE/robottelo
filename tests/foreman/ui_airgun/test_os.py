@@ -34,8 +34,15 @@ def test_positive_create_with_arch(session):
 def test_positive_create_with_ptable(session):
     name = gen_string('alpha')
     major_version = gen_string('numeric', 2)
-    ptable = entities.PartitionTable().create()
+    org = entities.Organization().create()
+    loc = entities.Location().create()
+    ptable = entities.PartitionTable(
+        organization=[org],
+        location=[loc],
+    ).create()
     with session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=loc.name)
         session.os.create_operating_system({
             'name': name,
             'major': major_version,

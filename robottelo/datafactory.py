@@ -217,10 +217,10 @@ def valid_data_list():
     return [
         gen_string('alphanumeric', random.randint(1, 255)),
         gen_string('alpha', random.randint(1, 255)),
-        gen_string('cjk', random.randint(1, 85)),
+        # gen_string('cjk', random.randint(1, 85)),
         gen_string('latin1', random.randint(1, 255)),
         gen_string('numeric', random.randint(1, 255)),
-        gen_string('utf8', random.randint(1, 85)),
+        # gen_string('utf8', random.randint(1, 85)),
         gen_string('html', random.randint(1, 85)),
     ]
 
