@@ -13,9 +13,10 @@ def module_org():
 def test_positive_create(session, name):
     major_version = gen_string('numeric', 2)
     with session:
-        session.os.create_operating_system({
+        session.operatingsystem.create({
             'name': name, 'major': major_version})
-        assert session.os.search(name) == '{} {}'.format(name, major_version)
+        os_full_name = '{} {}'.format(name, major_version)
+        assert session.operatingsystem.search(name) == os_full_name
 
 
 def test_positive_create_with_arch(session):
@@ -23,17 +24,17 @@ def test_positive_create_with_arch(session):
     major_version = gen_string('numeric', 2)
     arch = entities.Architecture().create()
     with session:
-        session.os.create_operating_system({
+        session.operatingsystem.create({
             'name': name,
             'major': major_version,
-            'arch_element.operation': 'Add',
-            'arch_element.values': [arch.name],
+            'architectures.operation': 'Add',
+            'architectures.values': [arch.name],
         })
         os_full_name = '{} {}'.format(name, major_version)
-        assert session.os.search(name) == os_full_name
-        arch_values = session.architecture.view_architecture(arch.name)
-        assert len(arch_values['os_element']['assigned']) == 1
-        assert arch_values['os_element']['assigned'][0] == os_full_name
+        assert session.operatingsystem.search(name) == os_full_name
+        arch_values = session.architecture.read(arch.name)
+        assert len(arch_values['operatingsystems']['assigned']) == 1
+        assert arch_values['operatingsystems']['assigned'][0] == os_full_name
 
 
 def test_positive_create_with_ptable(session):
@@ -48,13 +49,14 @@ def test_positive_create_with_ptable(session):
     with session:
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
-        session.os.create_operating_system({
+        session.operatingsystem.create({
             'name': name,
             'major': major_version,
-            'ptable.operation': 'Add',
-            'ptable.values': [ptable.name],
+            'ptables.operation': 'Add',
+            'ptables.values': [ptable.name],
         })
-        assert session.os.search(name) == '{} {}'.format(name, major_version)
+        os_full_name = '{} {}'.format(name, major_version)
+        assert session.operatingsystem.search(name) == os_full_name
 
 
 def test_positive_create_with_ptable_same_org(module_org, session):
@@ -62,10 +64,11 @@ def test_positive_create_with_ptable_same_org(module_org, session):
     major_version = gen_string('numeric', 2)
     ptable = entities.PartitionTable(organization=[module_org]).create()
     with session:
-        session.os.create_operating_system({
+        session.operatingsystem.create({
             'name': name,
             'major': major_version,
-            'ptable.operation': 'Add',
-            'ptable.values': [ptable.name],
+            'ptables.operation': 'Add',
+            'ptables.values': [ptable.name],
         })
-        assert session.os.search(name) == '{} {}'.format(name, major_version)
+        os_full_name = '{} {}'.format(name, major_version)
+        assert session.operatingsystem.search(name) == os_full_name
