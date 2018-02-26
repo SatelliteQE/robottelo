@@ -17,6 +17,7 @@
 
 """
 from fauxfactory import gen_string
+from nailgun import entities
 from robottelo.config import settings
 from robottelo.decorators import (
         destructive,
@@ -27,7 +28,7 @@ from robottelo.decorators import (
 from robottelo.ssh import get_connection
 from robottelo.test import TestCase
 
-BCK_MSG = "Hostname change complete!"
+BCK_MSG = "**** Hostname change complete! ****"
 BAD_HN_MSG = "{0} is not a valid fully qualified domain name, please \
 use a valid FQDN and try again."
 NO_CREDS_MSG = "Username and/or Password options are missing!"
@@ -46,7 +47,10 @@ class RenameHostTestCase(TestCase):
         cls.username = settings.server.admin_username
         cls.password = settings.server.admin_password
 
-    @stubbed()
+        cls.org = entities.Organization(id=1)
+        cls.product = entities.Product(organization=cls.org).create()
+
+    @run_in_one_thread
     def test_positive_rename_satellite(self):
         """run katello-change-hostname on Satellite server
 
@@ -76,27 +80,90 @@ class RenameHostTestCase(TestCase):
 
         :caseautomation: automated
         """
-        # Save original hostname, get credentials, eventually will
-        # end up in setUpClass
-        # original_name = settings.server.hostname
-        username = settings.server.admin_username
-        password = settings.server.admin_password
-        # the rename part of the test, not necessary to run from robotello
+        old_hostname = settings.server.hostname
+        new_hostname = 'new-{0}'.format(old_hostname)
+        # create installation medium with hostname in path
+        medium_path = 'http://{0}/testpath-{1}/os/'.format(
+                        old_hostname, gen_string('alpha'))
+        medium = entities.Media(
+                    organization=[self.org],
+                    path_=medium_path
+                ).create()
+        repo = entities.Repository(
+                product=self.product, name='testrepo').create()
         with get_connection() as connection:
-            hostname = gen_string('alpha')
             result = connection.run(
-                # use -y once implemented BZ#1469466
-                'yes | katello-change-hostname -u {0} -p {1}\
-                        --disable-system-checks\
-                        --scenario satellite {2}'.format(
-                    username, password, hostname),
-                output_format='plain'
+                'katello-change-hostname {0} -y -u {1} -p {2}'.format(
+                    new_hostname, self.username, self.password),
+            )
+            self.assertEqual(result.return_code, 0, 'unsuccessful rename')
+            self.assertIn(BCK_MSG, result.stdout)
+            # services running after rename?
+            result = connection.run('hammer ping')
+            self.assertEqual(result.return_code, 0,
+                             'services did not start properly')
+            # basic hostname check
+            result = connection.run('hostname')
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(new_hostname, result.stdout,
+                          'hostname left unchanged')
+            # check default capsule
+            result = connection.run(
+                'hammer -u {1} -p {2} --output json capsule \
+                        info --name {0}'.format(
+                    new_hostname, self.username, self.password),
+                output_format='json'
+            )
+            self.assertEqual(result.return_code, 0,
+                             'internal capsule not renamed correctly')
+            self.assertEqual(
+                    result.stdout['url'],
+                    "https://{}:9090".format(new_hostname))
+            # check old consumer certs were deleted
+            result = connection.run('rpm -qa | grep ^{}'.format(old_hostname))
+            self.assertEqual(result.return_code, 1,
+                             'old consumer certificates not removed')
+            # check new consumer certs were created
+            result = connection.run('rpm -qa | grep ^{}'.format(new_hostname))
+            self.assertEqual(result.return_code, 0,
+                             'new consumer certificates not created')
+            # check if installation media paths were updated
+            result = connection.run(
+                'hammer -u {1} -p {2} --output json \
+                        medium info --id {0}'.format(
+                   medium.id, self.username, self.password),
+                output_format='json'
             )
             self.assertEqual(result.return_code, 0)
-            self.assertIn(BCK_MSG, result.stdout)
-        # reconnecting to a new hostname for additional asserts
-        # with get_connection(hostname=hostname) as connection:
-        # ...
+            self.assertIn(new_hostname, result.stdout['path'],
+                          'medium path not updated correctly')
+            # check answer file for instances of old hostname
+            ans_f = '/etc/foreman-installer/scenarios.d/satellite-answers.yaml'
+            result = connection.run(
+                    'grep " {0}" {1}'.format(old_hostname, ans_f))
+            self.assertEqual(result.return_code, 1,
+                             'old hostname was not correctly replaced \
+                                     in answers.yml')
+            # check repository published at path
+            result = connection.run(
+                'hammer -u {1} -p {2} --output json \
+                        repository info --id {0}'.format(
+                   repo.id, self.username, self.password),
+                output_format='json'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(new_hostname, result.stdout['published-at'],
+                          'repository published path not updated correctly')
+
+        # refresh manifest
+        sub = entities.Subscription(organization=self.org)
+        sub.refresh_manifest(data={'organization_id': self.org.id})
+        # sync and publish the previously created repo
+        repo.sync()
+        cv = entities.ContentView(organization=self.org).create()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        cv.publish()
 
     @run_in_one_thread
     @skip_if_bug_open('bugzilla', 1485884)
