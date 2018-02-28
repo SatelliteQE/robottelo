@@ -1,6 +1,3 @@
-import pytest
-from selenium.common.exceptions import NoSuchElementException
-
 from nailgun import entities
 
 from robottelo.datafactory import gen_string, valid_data_list
@@ -30,8 +27,7 @@ def test_positive_create_with_arch(session):
         session.operatingsystem.create({
             'name': name,
             'major': major_version,
-            'architectures.operation': 'Add',
-            'architectures.values': [arch.name],
+            'architectures.assigned': [arch.name],
         })
         os_full_name = '{} {}'.format(name, major_version)
         assert session.operatingsystem.search(name) == os_full_name
@@ -55,8 +51,7 @@ def test_positive_create_with_ptable(session):
         session.operatingsystem.create({
             'name': name,
             'major': major_version,
-            'ptables.operation': 'Add',
-            'ptables.values': [ptable.name],
+            'ptables.assigned': [ptable.name],
         })
         os_full_name = '{} {}'.format(name, major_version)
         assert session.operatingsystem.search(name) == os_full_name
@@ -70,8 +65,7 @@ def test_positive_create_with_ptable_same_org(module_org, session):
         session.operatingsystem.create({
             'name': name,
             'major': major_version,
-            'ptables.operation': 'Add',
-            'ptables.values': [ptable.name],
+            'ptables.assigned': [ptable.name],
         })
         os_full_name = '{} {}'.format(name, major_version)
         assert session.operatingsystem.search(name) == os_full_name
@@ -82,9 +76,7 @@ def test_positive_delete(session):
     major = gen_string('numeric', 2)
     entities.OperatingSystem(name=name, major=major).create()
     with session:
-        assert session.operatingsystem.search(name) == '{} {}'.format(name, major)
+        assert session.operatingsystem.search(name) == '{} {}'.format(
+            name, major)
         session.operatingsystem.delete(name)
-        with pytest.raises(NoSuchElementException):
-            session.operatingsystem.search(name)
-    current = entities.OperatingSystem().search(query={'search': 'name="%s"' % name})
-    assert len(current) == 0
+        assert session.operatingsystem.search(name) == None

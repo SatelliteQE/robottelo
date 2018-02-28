@@ -17,7 +17,6 @@ def test_positive_create_with_os(session):
     with session:
         session.architecture.create({
             'name': name,
-            'operatingsystems.operation': 'Add',
-            'operatingsystems.values': [os_name],
+            'operatingsystems.assigned': [os_name],
         })
         assert session.architecture.search(name) == name
