@@ -71,6 +71,25 @@ def test_positive_create_with_ptable_same_org(module_org, session):
         assert session.operatingsystem.search(name) == os_full_name
 
 
+def test_positive_create_with_params(session):
+    name = gen_string('alpha')
+    major_version = gen_string('numeric', 2)
+    param_name = gen_string('alpha')
+    param_value = gen_string('alpha')
+    with session:
+        session.operatingsystem.create({
+            'name': name,
+            'major': major_version,
+            'parameters': {'name': param_name, 'value': param_value},
+        })
+        os_full_name = '{} {}'.format(name, major_version)
+        assert session.operatingsystem.search(name) == os_full_name
+        values = session.operatingsystem.read(os_full_name)
+        assert len(values['parameters']) == 1
+        assert values['parameters'][0]['name'] == param_name
+        assert values['parameters'][0]['value'] == param_value
+
+
 def test_positive_delete(session):
     name = gen_string('alpha')
     major = gen_string('numeric', 2)
